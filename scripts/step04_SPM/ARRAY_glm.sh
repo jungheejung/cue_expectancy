@@ -18,6 +18,6 @@ subjects=( "0002" "0003" "0004" "0005" "0006" "0007" "0008" "0009" "0010" \
 PARTICIPANT_LABEL=${subjects[$((SLURM_ARRAY_TASK_ID - 1 ))]}
 
 # sub_list = {2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,23,24,25}
-module load matlab/r2018b
+module load matlab/r2020a
 matlab -nodisplay -nosplash -r "addpath('/optnfs/el7/spm/spm12'); addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore'));
 glm_discovery_job(${PARTICIPANT_LABEL});exit"
