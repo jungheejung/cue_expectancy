@@ -18,8 +18,8 @@
 % [x] list corresponding regressors.
 % [x] run PVC order? or collected order? >> collected order. script will figure out corresponding contrast order
 % [x] if run-keyword == pain, highlight -1
-function = glm_discovery_job(sub_num)
-sub_list = {2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,23,24,25}
+function glm_discovery_job(input)
+%sub_list = {2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,23,24,25}
 numscans = 56;
 disacqs = 0;
 
@@ -37,7 +37,7 @@ motion_dir = fullfile(main_dir, 'data', 'dartmouth', 'd05_motion');
 onset_dir = fullfile(main_dir, 'data', 'dartmouth', 'd04_EV_SPM');
 
 %% 2. for loop "subject-wise" _______________________________________________________
-
+sub_num = sscanf(char(input),'%d');
 sub = strcat('sub-', sprintf('%04d', sub_num));
 filelist = dir(fullfile(onset_dir, sub, '*/*_events.tsv'));
 T = struct2table(filelist); % convert the struct array to a table
@@ -59,13 +59,13 @@ matlabbatch = cell(1,2);
 for run_ind = 1:1% size(sortedT,1)
     disp(strcat('run', num2str(run_ind)));
     % [x] extract sub, ses, run info
-    sub_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'ses-', '_')),'%d'); sub = strcat('sub-', sprintf('%04d', sub_ind));
+    sub_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'sub-', '_')),'%d'); sub = strcat('sub-', sprintf('%04d', sub_ind));
     ses_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'ses-', '_')),'%d'); ses = strcat('ses-', sprintf('%02d', ses_num));
     run_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'run-', '_')),'%d'); run = strcat('run-', sprintf('%01d', run_num));
-    scan_fname = fullfile(fmriprep_dir, sub, ses, 'func',
-    strcat(sub, '_', ses, '_task-social_acq-mb8_run-', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz');
-    nii_fname = fullfile(fmriprep_dir, sub, ses, 'func',
-    strcat(sub, '_', ses, '_task-social_acq-mb8_run-', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii');
+    scan_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
+    strcat(sub, '_', ses, '_task-social_acq-mb8_run-', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
+    nii_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
+    strcat(sub, '_', ses, '_task-social_acq-mb8_run-', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
     if ~exist(nii_fname,'file'), gunzip(scan_fname)
     end
 
@@ -101,12 +101,12 @@ for run_ind = 1:1% size(sortedT,1)
 
     %onset_fname = '/Users/h/Documents/projects_local/social_influence_analysis/data/dartmouth/EV_bids/sub-0006/ses-01'
     m_fmriprep   = fullfile(fmriprep_dir, sub, ses, 'func', ...
-                   strcat(sub, '_', ses, '_task-social_acq-mb8_run-', run, '_desc-confounds_timeseries.tsv');
+                   strcat(sub, '_', ses, '_task-social_acq-mb8_run-', run, '_desc-confounds_timeseries.tsv'));
     m            = struct2table(tdfread(m_fmriprep));
     m_subset     = m(:, {'csf', 'white_matter', 'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z'});
     m_double     = table2array(m_subset);
-    motion_fname = fullfile(motion_dir, sub, ses,
-                   strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d', run), '_confounds-subset.txt');
+    motion_fname = fullfile(motion_dir, sub, ses,...
+                   strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d', run), '_confounds-subset.txt'));
     dlmwrite(motion_fname, m_double, 'delimiter','\t','precision',13);
 
 
@@ -207,9 +207,11 @@ matlabbatch{4}.spm.stats.fmri_est.spmmat(1) = cfg_dep('Contrast Manager: SPM.mat
 matlabbatch{4}.spm.stats.fmri_est.write_residuals = 0;
 matlabbatch{4}.spm.stats.fmri_est.method.Classical = 1;
 
-batch_fname = fullfile(output_dir, strcat(strcat(sub, '_batch.mat'));
+batch_fname = fullfile(output_dir, strcat(strcat(sub, '_batch.mat')));
 save( batch_fname  ,'matlabbatch');
 
 %% 4. run __________________________________________________________
 spm_jobman('run',matlabbatch);
 clearvars matlabbatch
+
+end
