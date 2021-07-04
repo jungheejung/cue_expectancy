@@ -8,7 +8,7 @@
 #SBATCH -e ./log/preproc_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=6
+#SBATCH --array=5
 ## --array=1-17%5
 
 
@@ -20,4 +20,4 @@ PARTICIPANT_LABEL=${subjects[$((SLURM_ARRAY_TASK_ID - 1 ))]}
 # sub_list = {2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,23,24,25}
 module load matlab/r2018b
 matlab -nodisplay -nosplash -r "addpath('/optnfs/el7/spm/spm12'); addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore'));
-glm_discovery_job(${PARTICIPANT_LABEL})
+glm_discovery_job(${PARTICIPANT_LABEL});exit"
