@@ -23,6 +23,8 @@ function glm_discovery_job(input)
 numscans = 56;
 disacqs = 0;
 
+disp(strcat('setting parameters...'));
+
 % contrast mapper _______________________________________________________
 keySet = {'pain','vicarious','cognitive'};
 con1 = [2 -1 -1];   con2 = [-1 2 -1];  con3 = [-1 -1 2];  con4 = [1 1 1];
@@ -62,6 +64,8 @@ for run_ind = 1:1% size(sortedT,1)
     sub_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'sub-', '_')),'%d'); sub = strcat('sub-', sprintf('%04d', sub_ind));
     ses_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'ses-', '_')),'%d'); ses = strcat('ses-', sprintf('%02d', ses_num));
     run_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'run-', '_')),'%d'); run = strcat('run-', sprintf('%01d', run_num));
+
+    disp(strcat('gunzip and saving nifti...'));
     scan_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
     strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
     nii_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
@@ -69,6 +73,7 @@ for run_ind = 1:1% size(sortedT,1)
     if ~exist(nii_fname,'file'), gunzip(scan_fname)
     end
 
+    disp(strcat('constructing contrasts...'));
     onset_fname   = fullfile(char(sortedT.folder(run_ind)), char(sortedT.name(run_ind)));
     social        = struct2table(tdfread(onset_fname));
     keyword       = extractBetween(sortedT.name(run_ind), 'run-0', '_events.tsv');
@@ -99,6 +104,7 @@ for run_ind = 1:1% size(sortedT,1)
     c13 = [ c13  stimXactual_P];  c14 = [ c14  stimXactual_V];  c15 = [ c15  stimXactual_C];  c16 = [ c16  stimXactual_G];
     c17 = [ c17  motor];
 
+    disp(strcat('creating motion covariate text file...'));
     %onset_fname = '/Users/h/Documents/projects_local/social_influence_analysis/data/dartmouth/EV_bids/sub-0006/ses-01'
     m_fmriprep   = fullfile(fmriprep_dir, sub, ses, 'func', ...
                    strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_desc-confounds_timeseries.tsv'));
@@ -113,6 +119,8 @@ for run_ind = 1:1% size(sortedT,1)
 
 
 %     save motion_fname motion_txt -ascii -double
+    disp(strcat('starting spmbatch...'));
+
     %-----------------------------------------------------------------------
     matlabbatch{1}.spm.stats.fmri_spec.dir = {output_dir};
     matlabbatch{1}.spm.stats.fmri_spec.timing.units = 'secs';
