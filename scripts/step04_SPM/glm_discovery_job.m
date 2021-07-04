@@ -73,23 +73,23 @@ for run_ind = 1:1% size(sortedT,1)
     social        = struct2table(tdfread(onset_fname));
     keyword       = extractBetween(sortedT.name(run_ind), 'run-0', '_events.tsv');
     task          = char(extractAfter(keyword, '-'));
-    cue_P         = [ 0	m1(task)	0	0	0	0	0 0 0 0 0 0 0 0 0 ];
-    cue_V         = [ 0	m2(task)	0	0	0	0	0 0 0 0 0 0 0 0 0  ];
-    cue_C         = [ 0	m3(task)	0	0	0	0	0 0 0 0 0 0 0 0 0  ];
-    cue_G         = [ 0	m4(task)	0	0	0	0	0 0 0 0 0 0 0 0 0  ];
-    stim_P        = [ 0 0 0 m1(task)	0	0	0 0 0 0 0 0 0 0 0  ];
-    stim_V        = [ 0	0	0	m2(task)	0	0	0 0 0 0 0 0 0 0 0  ];
-    stim_C        = [ 0	0	0	m3(task)	0	0	0 0 0 0 0 0 0 0 0  ];
-    stim_G        = [ 0	0	0	m4(task)	0	0	0 0 0 0 0 0 0 0 0  ];
-    stimXcue_P    = [ 0	0	0	0	m1(task)	0	0 0 0 0 0 0 0 0 0  ];
-    stimXcue_V    = [ 0	0	0	0	m2(task)	0	0 0 0 0 0 0 0 0 0  ];
-    stimXcue_C    = [ 0	0	0	0	m3(task)	0	0 0 0 0 0 0 0 0 0  ];
-    stimXcue_G    = [ 0	0	0	0	m4(task)	0	0 0 0 0 0 0 0 0 0  ];
-    stimXactual_P = [ 0	0	0	0	0	m1(task)	0 0 0 0 0 0 0 0 0  ];
-    stimXactual_V = [ 0	0	0	0	0	m2(task)	0 0 0 0 0 0 0 0 0  ];
-    stimXactual_C = [ 0	0	0	0	0	m3(task)	0 0 0 0 0 0 0 0 0  ];
-    stimXactual_G = [ 0	0	0	0	0	m4(task)	0 0 0 0 0 0 0 0 0  ];
-    motor         = [ 0	0	1	0	0	0	1 0 0 0 0 0 0 0 0    ];
+    cue_P         = [ 0,m1(task),0,0,0,0,0,0,0,0,0,0,0,0,0 ];
+    cue_V         = [ 0,m2(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ];
+    cue_C         = [ 0,m3(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ];
+    cue_G         = [ 0,m4(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ];
+    stim_P        = [ 0,0,0,m1(task),0,0,0,0,0,0,0,0,0,0,0  ];
+    stim_V        = [ 0,0,0,m2(task),0,0,0,0,0,0,0,0,0,0,0  ];
+    stim_C        = [ 0,0,0,m3(task),0,0,0,0,0,0,0,0,0,0,0  ];
+    stim_G        = [ 0,0,0,m4(task),0,0,0,0,0,0,0,0,0,0,0  ];
+    stimXcue_P    = [ 0,0,0,0,m1(task),0,0,0,0,0,0,0,0,0,0  ];
+    stimXcue_V    = [ 0,0,0,0,m2(task),0,0,0,0,0,0,0,0,0,0  ];
+    stimXcue_C    = [ 0,0,0,0,m3(task),0,0,0,0,0,0,0,0,0,0  ];
+    stimXcue_G    = [ 0,0,0,0,m4(task),0,0,0,0,0,0,0,0,0,0  ];
+    stimXactual_P = [ 0,0,0,0,0,m1(task),0,0,0,0,0,0,0,0,0  ];
+    stimXactual_V = [ 0,0,0,0,0,m2(task),0,0,0,0,0,0,0,0,0  ];
+    stimXactual_C = [ 0,0,0,0,0,m3(task),0,0,0,0,0,0,0,0,0  ];
+    stimXactual_G = [ 0,0,0,0,0,m4(task),0,0,0,0,0,0,0,0,0  ];
+    motor         = [ 0,0,1,0,0,0,1,0,0,0,0,0,0,0,0    ];
 
     % identify which trials have missing pmods,
     % eliminate the corresponding trial from onset too
@@ -107,6 +107,8 @@ for run_ind = 1:1% size(sortedT,1)
     m_double     = table2array(m_subset);
     motion_fname = fullfile(motion_dir, sub, ses,...
                    strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d', run_num), '_confounds-subset.txt'));
+    if ~exist(fullfile(motion_dir, sub, ses),'dir'), mkdir(fullfile(motion_dir, sub, ses))
+    end
     dlmwrite(motion_fname, m_double, 'delimiter','\t','precision',13);
 
 
