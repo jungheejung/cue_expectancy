@@ -1,3 +1,4 @@
+function glm_discovery_job(input)
 %-----------------------------------------------------------------------
 % Job saved on 30-Jun-2021 19:26:24 by cfg_util (rev $Rev: 7345 $)
 % spm SPM - SPM12 (7771)
@@ -18,11 +19,10 @@
 % [x] list corresponding regressors.
 % [x] run PVC order? or collected order? >> collected order. script will figure out corresponding contrast order
 % [x] if run-keyword == pain, highlight -1
-function glm_discovery_job(input)
 %sub_list = {2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,23,24,25}
 numscans = 56;
 disacqs = 0;
-
+disp(input);
 disp(strcat('setting parameters...'));
 
 % contrast mapper _______________________________________________________
