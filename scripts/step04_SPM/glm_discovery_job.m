@@ -63,9 +63,9 @@ for run_ind = 1:1% size(sortedT,1)
     ses_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'ses-', '_')),'%d'); ses = strcat('ses-', sprintf('%02d', ses_num));
     run_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'run-', '_')),'%d'); run = strcat('run-', sprintf('%01d', run_num));
     scan_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
-    strcat(sub, '_', ses, '_task-social_acq-mb8_run-', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
+    strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
     nii_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
-    strcat(sub, '_', ses, '_task-social_acq-mb8_run-', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
+    strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
     if ~exist(nii_fname,'file'), gunzip(scan_fname)
     end
 
@@ -101,12 +101,12 @@ for run_ind = 1:1% size(sortedT,1)
 
     %onset_fname = '/Users/h/Documents/projects_local/social_influence_analysis/data/dartmouth/EV_bids/sub-0006/ses-01'
     m_fmriprep   = fullfile(fmriprep_dir, sub, ses, 'func', ...
-                   strcat(sub, '_', ses, '_task-social_acq-mb8_run-', run, '_desc-confounds_timeseries.tsv'));
+                   strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_desc-confounds_timeseries.tsv'));
     m            = struct2table(tdfread(m_fmriprep));
     m_subset     = m(:, {'csf', 'white_matter', 'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z'});
     m_double     = table2array(m_subset);
     motion_fname = fullfile(motion_dir, sub, ses,...
-                   strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d', run), '_confounds-subset.txt'));
+                   strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d', run_num), '_confounds-subset.txt'));
     dlmwrite(motion_fname, m_double, 'delimiter','\t','precision',13);
 
 
