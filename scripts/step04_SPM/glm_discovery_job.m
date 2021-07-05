@@ -41,9 +41,12 @@ onset_dir = fullfile(main_dir, 'data', 'dartmouth', 'd04_EV_SPM');
 %% 2. for loop "subject-wise" _______________________________________________________
 sub_num = sscanf(char(input),'%d');
 sub = strcat('sub-', sprintf('%04d', sub_num));
+disp(strcat('sub_num: ', sub_num));
+disp(strcat('sub: ', sub));
 filelist = dir(fullfile(onset_dir, sub, '*/*_events.tsv'));
 T = struct2table(filelist); % convert the struct array to a table
 sortedT = sortrows(T, 'name'); % sort the table by 'DOB'
+sortedT
 output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'model-01_CcEScaA',...
 '1stLevel', sub);
 if ~exist(output_dir, 'dir')
