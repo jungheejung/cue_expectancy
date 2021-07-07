@@ -15,10 +15,6 @@ function glm_discovery_job(input)
 %     - STIM x actual
 %     - ACTUAL
 %% 1. load parameters _______________________________________________________
-% [x] import csv files
-% [x] list corresponding regressors.
-% [x] run PVC order? or collected order? >> collected order. script will figure out corresponding contrast order
-% [x] if run-keyword == pain, highlight -1
 %sub_list = {2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,23,24,25}
 numscans = 56;
 disacqs = 0;
@@ -44,7 +40,10 @@ sub = strcat('sub-', sprintf('%04d', sub_num));
 disp(strcat('[ STEP 02 ] PRINT VARIABLE'))
 disp(strcat('sub_num =  ', sub_num));
 disp(strcat('sub =    ', sub));
+
+
 filelist = dir(fullfile(onset_dir, sub, '*/*_events.tsv'));
+filelist = dir(fullfile(fmriprep_dif, sub, '*/func/*task-social*_bold.nii.gz'));
 T = struct2table(filelist); % convert the struct array to a table
 sortedT = sortrows(T, 'name'); % sort the table by 'DOB'
 output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'model-01_CcEScaA',...
@@ -58,7 +57,7 @@ c01 = []; c02 = []; c03 = []; c04 = [];c05 = []; c06 = []; c07 = []; c08 = [];
 c09 = []; c10 = []; c11 = []; c12 = [];c13 = []; c14 = []; c15 = []; c16 = []; c17 = [];
 
 
-matlabbatch = cell(1,2);
+matlabbatch = cell(1,4);
 % matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind) = cell(1,size(sortedT,1));
 %% 3. for loop "run-wise" _______________________________________________________
 for run_ind = 1: size(sortedT,1)
@@ -79,10 +78,13 @@ for run_ind = 1: size(sortedT,1)
     strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-brain_mask.nii.gz'));
 
     disp(strcat('[ STEP 04 ]constructing contrasts...'));
-    onset_fname   = fullfile(char(sortedT.folder(run_ind)), char(sortedT.name(run_ind)));
+    %onset_fname   = fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-social_', run, '-', task, '_events.tsv'));
+    %onset_fname   = fullfile(char(sortedT.folder(run_ind)), char(sortedT.name(run_ind)));
+    onset_fname   = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-social_', run, '-*_events.tsv')));
     social        = struct2table(tdfread(onset_fname));
     keyword       = extractBetween(sortedT.name(run_ind), 'run-0', '_events.tsv');
     task          = char(extractAfter(keyword, '-'));
+
     cue_P         = [ 0,m1(task),0,0,0,0,0,0,0,0,0,0,0,0,0 ];
     cue_V         = [ 0,m2(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ];
     cue_C         = [ 0,m3(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ];
