@@ -65,6 +65,14 @@ for i, (sub_ind, ses_ind) in enumerate(sub_ses):
         datalad['cue_con'] = datalad['param_cue_type'].map(dict_cue)
         datalad['stim_lin'] = datalad['param_stimulus_type'].map(dict_stim)
         datalad['stim_quad'] = datalad['param_stimulus_type'].map(dict_stim_q)
+
+        # save angle, RT in a separate tab
+        # ANGLE: 1) demean , 2) for NA value, assign value of 0. this works for the parametric modulator
+        # RT: if RT or angle is empty with a NA value, fill in duration as 4s ("time to rate")
+        datalad[['event02_expect_angle', 'event04_actual_angle']] = datalad[['event02_expect_angle', 'event04_actual_angle']].transform(lambda df: df - df.mean())
+        datalad[['event02_expect_angle', 'event04_actual_angle']] = datalad[['event02_expect_angle', 'event04_actual_angle']].fillna(0).copy()
+        datalad[['event02_expect_RT', 'event04_actual_RT']] = datalad[['event02_expect_RT', 'event04_actual_RT']].fillna(4).copy()
+        
         datalad.rename(dict_col, inplace = True)
         datalad_fname = os.path.join(ev_bids_dir, sub, ses, label+'_events.tsv' )
         datalad.to_csv(datalad_fname, index=None,sep='\t')
