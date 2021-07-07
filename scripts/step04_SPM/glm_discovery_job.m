@@ -23,7 +23,7 @@ function glm_discovery_job(input)
 numscans = 56;
 disacqs = 0;
 disp(input);
-disp(strcat('setting parameters...'));
+disp(strcat('[ STEP 01 ] setting parameters...'));
 
 % contrast mapper _______________________________________________________
 keySet = {'pain','vicarious','cognitive'};
@@ -41,12 +41,12 @@ onset_dir = fullfile(main_dir, 'data', 'dartmouth', 'd04_EV_SPM');
 %% 2. for loop "subject-wise" _______________________________________________________
 sub_num = sscanf(char(input),'%d');
 sub = strcat('sub-', sprintf('%04d', sub_num));
-disp(strcat('sub_num: ', sub_num));
-disp(strcat('sub: ', sub));
+disp(strcat('[ STEP 02 ] PRINT VARIABLE'))
+disp(strcat('sub_num =  ', sub_num));
+disp(strcat('sub =    ', sub));
 filelist = dir(fullfile(onset_dir, sub, '*/*_events.tsv'));
 T = struct2table(filelist); % convert the struct array to a table
 sortedT = sortrows(T, 'name'); % sort the table by 'DOB'
-sortedT
 output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'model-01_CcEScaA',...
 '1stLevel', sub);
 if ~exist(output_dir, 'dir')
@@ -61,22 +61,24 @@ c09 = []; c10 = []; c11 = []; c12 = [];c13 = []; c14 = []; c15 = []; c16 = []; c
 matlabbatch = cell(1,2);
 % matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind) = cell(1,size(sortedT,1));
 %% 3. for loop "run-wise" _______________________________________________________
-for run_ind = 1:1% size(sortedT,1)
+for run_ind = 1: size(sortedT,1)
     disp(strcat('run', num2str(run_ind)));
     % [x] extract sub, ses, run info
     sub_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'sub-', '_')),'%d'); sub = strcat('sub-', sprintf('%04d', sub_num));
     ses_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'ses-', '_')),'%d'); ses = strcat('ses-', sprintf('%02d', ses_num));
     run_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'run-', '_')),'%d'); run = strcat('run-', sprintf('%01d', run_num));
 
-    disp(strcat('gunzip and saving nifti...'));
+    disp(strcat('[ STEP 03 ] gunzip and saving nifti...'));
     scan_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
     strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
     nii_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
     strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
     if ~exist(nii_fname,'file'), gunzip(scan_fname)
     end
+    mask_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
+    strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-brain_mask.nii.gz'));
 
-    disp(strcat('constructing contrasts...'));
+    disp(strcat('[ STEP 04 ]constructing contrasts...'));
     onset_fname   = fullfile(char(sortedT.folder(run_ind)), char(sortedT.name(run_ind)));
     social        = struct2table(tdfread(onset_fname));
     keyword       = extractBetween(sortedT.name(run_ind), 'run-0', '_events.tsv');
@@ -107,7 +109,7 @@ for run_ind = 1:1% size(sortedT,1)
     c13 = [ c13  stimXactual_P];  c14 = [ c14  stimXactual_V];  c15 = [ c15  stimXactual_C];  c16 = [ c16  stimXactual_G];
     c17 = [ c17  motor];
 
-    disp(strcat('creating motion covariate text file...'));
+    disp(strcat('[ STEP 05 ]creating motion covariate text file...'));
     %onset_fname = '/Users/h/Documents/projects_local/social_influence_analysis/data/dartmouth/EV_bids/sub-0006/ses-01'
     m_fmriprep   = fullfile(fmriprep_dir, sub, ses, 'func', ...
                    strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_desc-confounds_timeseries.tsv'));
@@ -122,7 +124,7 @@ for run_ind = 1:1% size(sortedT,1)
 
 
 %     save motion_fname motion_txt -ascii -double
-    disp(strcat('starting spmbatch...'));
+    disp(strcat('[ STEP 06 ]starting spmbatch...'));
 
     %-----------------------------------------------------------------------
     matlabbatch{1}.spm.stats.fmri_spec.dir = {output_dir};
@@ -136,7 +138,7 @@ for run_ind = 1:1% size(sortedT,1)
     matlabbatch{1}.spm.stats.fmri_spec.volt = 1;
     matlabbatch{1}.spm.stats.fmri_spec.global = 'None';
     matlabbatch{1}.spm.stats.fmri_spec.mthresh = -Inf;
-    matlabbatch{1}.spm.stats.fmri_spec.mask = {''}; %mask_fname
+    matlabbatch{1}.spm.stats.fmri_spec.mask = {mask_fname}; %mask_fname
     matlabbatch{1}.spm.stats.fmri_spec.cvi = 'AR(1)';
 
     % RUN 01 _________________________________________________________________________
@@ -185,18 +187,20 @@ end
 
 %% 2. estimation __________________________________________________________
 %
-% SPM_fname= fullfile(output_dir, 'SPM.mat' );
-% matlabbatch{2}.spm.stats.fmri_est.spmmat = cellstr(SPM_fname);
-% matlabbatch{2}.spm.stats.fmri_est.write_residuals = 0;
-% matlabbatch{2}.spm.stats.fmri_est.method.Classical = 1;
-
-matlabbatch{2}.spm.stats.fmri_est.spmmat(1) = cfg_dep('fMRI model specification: SPM.mat File', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','spmmat'));
+disp(strcat('[ STEP 07 ] estimation '))
+SPM_fname= fullfile(output_dir, 'SPM.mat' );
+matlabbatch{2}.spm.stats.fmri_est.spmmat = cellstr(SPM_fname);
 matlabbatch{2}.spm.stats.fmri_est.write_residuals = 0;
 matlabbatch{2}.spm.stats.fmri_est.method.Classical = 1;
+%matlabbatch{2}.spm.stats.fmri_est.spmmat(1) = cfg_dep('fMRI model specification: SPM.mat File', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','spmmat'));
+%matlabbatch{2}.spm.stats.fmri_est.write_residuals = 0;
+%matlabbatch{2}.spm.stats.fmri_est.method.Classical = 1;
 
 % %% 3. contrast __________________________________________________________
 %
-matlabbatch{3}.spm.stats.con.spmmat(1) = cfg_dep('Model estimation: SPM.mat File', substruct('.','val', '{}',{2}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','spmmat'));
+disp(strcat('[ STEP 08 ] first level contrast'))
+%matlabbatch{3}.spm.stats.con.spmmat(1) = cfg_dep('Model estimation: SPM.mat File', substruct('.','val', '{}',{2}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','spmmat'));
+matlabbatch{3}.spm.stats.fmri_est.spmmat = cellstr(SPM_fname);
 matlabbatch{3}.spm.stats.con.consess{1}.tcon = struct('name', 'cue_P>VC',  'weights', c01, 'sessrep' , 'none');
 matlabbatch{3}.spm.stats.con.consess{2}.tcon = struct('name', 'cue_V>PC',  'weights', c02, 'sessrep' , 'none');
 matlabbatch{3}.spm.stats.con.consess{3}.tcon = struct('name', 'cue_C>PV',  'weights', c03, 'sessrep' , 'none');
@@ -216,7 +220,9 @@ matlabbatch{3}.spm.stats.con.consess{16}.tcon = struct('name', 'stimXactual_G', 
 matlabbatch{3}.spm.stats.con.consess{17}.tcon = struct('name', 'motor', 'weights', c17, 'sessrep' , 'none');
 matlabbatch{3}.spm.stats.con.delete = 0;
 
-matlabbatch{4}.spm.stats.fmri_est.spmmat(1) = cfg_dep('Contrast Manager: SPM.mat File', substruct('.','val', '{}',{3}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','spmmat'));
+disp(strcat('[ STEP 09 ] contrast estimation'))
+% matlabbatch{4}.spm.stats.fmri_est.spmmat(1) = cfg_dep('Contrast Manager: SPM.mat File', substruct('.','val', '{}',{3}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','spmmat'));
+matlabbatch{4}.spm.stats.fmri_est.spmmat = cellstr(SPM_fname);
 matlabbatch{4}.spm.stats.fmri_est.write_residuals = 0;
 matlabbatch{4}.spm.stats.fmri_est.method.Classical = 1;
 
@@ -227,4 +233,5 @@ save( batch_fname  ,'matlabbatch');
 spm_jobman('run',matlabbatch);
 clearvars matlabbatch
 
+disp(strcat('FINISH - subject complete'))
 end
