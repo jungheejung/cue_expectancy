@@ -42,12 +42,12 @@ disp(strcat('sub_num =  ', sub_num));
 disp(strcat('sub =    ', sub));
 
 
-filelist = dir(fullfile(onset_dir, sub, '*/*_events.tsv'));
-filelist = dir(fullfile(fmriprep_dif, sub, '*/func/*task-social*_bold.nii.gz'));
+% filelist = dir(fullfile(onset_dir, sub, '*/*_events.tsv'));
+filelist = dir(fullfile(fmriprep_dir, sub, '*/func/*task-social*_bold.nii.gz'));
 T = struct2table(filelist); % convert the struct array to a table
 sortedT = sortrows(T, 'name'); % sort the table by 'DOB'
 output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'model-01_CcEScaA',...
-'1stLevel', sub);
+'1stLevel',sub);
 if ~exist(output_dir, 'dir')
     mkdir(output_dir)
 end
