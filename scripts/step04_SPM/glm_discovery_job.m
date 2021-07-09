@@ -57,7 +57,7 @@ c01 = []; c02 = []; c03 = []; c04 = [];c05 = []; c06 = []; c07 = []; c08 = [];
 c09 = []; c10 = []; c11 = []; c12 = [];c13 = []; c14 = []; c15 = []; c16 = []; c17 = [];
 
 
-matlabbatch = cell(1,4);
+matlabbatch = cell(1,2);
 % matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind) = cell(1,size(sortedT,1));
 %% 3. for loop "run-wise" _______________________________________________________
 for run_ind = 1: size(sortedT,1)
@@ -72,6 +72,7 @@ for run_ind = 1: size(sortedT,1)
     strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
     nii_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
     strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
+    disp(strcat('nifti files: ', nii_fname));
     if ~exist(nii_fname,'file'), gunzip(scan_fname)
     end
     mask_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
@@ -80,9 +81,12 @@ for run_ind = 1: size(sortedT,1)
     disp(strcat('[ STEP 04 ]constructing contrasts...'));
     %onset_fname   = fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-social_', run, '-', task, '_events.tsv'));
     %onset_fname   = fullfile(char(sortedT.folder(run_ind)), char(sortedT.name(run_ind)));
-    onset_fname   = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-social_', run, '-*_events.tsv')));
+    onset_glob    = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-social_',strcat('run-', sprintf('%02d', run_num)), '-*_events.tsv')));
+    onset_fname   = fullfile(char(onset_glob.folder), char(onset_glob.name));
+    disp(strcat('onset folder: ', onset_glob.folder));
+    disp(strcat('onset file:   ', onset_glob.name));
     social        = struct2table(tdfread(onset_fname));
-    keyword       = extractBetween(sortedT.name(run_ind), 'run-0', '_events.tsv');
+    keyword       = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
     task          = char(extractAfter(keyword, '-'));
 
     cue_P         = [ 0,m1(task),0,0,0,0,0,0,0,0,0,0,0,0,0 ];
@@ -102,7 +106,7 @@ for run_ind = 1: size(sortedT,1)
     stimXactual_C = [ 0,0,0,0,0,m3(task),0,0,0,0,0,0,0,0,0  ];
     stimXactual_G = [ 0,0,0,0,0,m4(task),0,0,0,0,0,0,0,0,0  ];
     motor         = [ 0,0,1,0,0,0,1,0,0,0,0,0,0,0,0    ];
-
+    disp(strcat('contrast: ', cue_P));
     % identify which trials have missing pmods,
     % eliminate the corresponding trial from onset too
     c01 = [ c01  cue_P];  c02 = [ c02  cue_V];  c03 = [ c03  cue_C];  c04 = [ c04  cue_G];
@@ -200,33 +204,33 @@ matlabbatch{2}.spm.stats.fmri_est.method.Classical = 1;
 
 % %% 3. contrast __________________________________________________________
 %
-disp(strcat('[ STEP 08 ] first level contrast'))
+%disp(strcat('[ STEP 08 ] first level contrast'))
 %matlabbatch{3}.spm.stats.con.spmmat(1) = cfg_dep('Model estimation: SPM.mat File', substruct('.','val', '{}',{2}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','spmmat'));
-matlabbatch{3}.spm.stats.fmri_est.spmmat = cellstr(SPM_fname);
-matlabbatch{3}.spm.stats.con.consess{1}.tcon = struct('name', 'cue_P>VC',  'weights', c01, 'sessrep' , 'none');
-matlabbatch{3}.spm.stats.con.consess{2}.tcon = struct('name', 'cue_V>PC',  'weights', c02, 'sessrep' , 'none');
-matlabbatch{3}.spm.stats.con.consess{3}.tcon = struct('name', 'cue_C>PV',  'weights', c03, 'sessrep' , 'none');
-matlabbatch{3}.spm.stats.con.consess{4}.tcon = struct('name', 'cue_G',     'weights', c04, 'sessrep' , 'none');
-matlabbatch{3}.spm.stats.con.consess{5}.tcon = struct('name', 'stim_P>VC', 'weights', c05, 'sessrep' , 'none');
-matlabbatch{3}.spm.stats.con.consess{6}.tcon = struct('name', 'stim_V>PC', 'weights', c06, 'sessrep' , 'none');
-matlabbatch{3}.spm.stats.con.consess{7}.tcon = struct('name', 'stim_C>PV', 'weights', c07, 'sessrep' , 'none');
-matlabbatch{3}.spm.stats.con.consess{8}.tcon = struct('name', 'stim_G',    'weights', c08, 'sessrep' , 'none');
-matlabbatch{3}.spm.stats.con.consess{9}.tcon = struct('name',  'stimXcue_P>VC',  'weights', c09, 'sessrep' , 'none');
-matlabbatch{3}.spm.stats.con.consess{10}.tcon = struct('name', 'stimXcue_V>PC',  'weights', c10, 'sessrep' , 'none');
-matlabbatch{3}.spm.stats.con.consess{11}.tcon = struct('name', 'stimXcue_C>PV',  'weights', c11, 'sessrep' , 'none');
-matlabbatch{3}.spm.stats.con.consess{12}.tcon = struct('name', 'stimXcue_G',     'weights', c12, 'sessrep' , 'none');
-matlabbatch{3}.spm.stats.con.consess{13}.tcon = struct('name', 'stimXactual_P>VC', 'weights', c13, 'sessrep' , 'none');
-matlabbatch{3}.spm.stats.con.consess{14}.tcon = struct('name', 'stimXactual_V>PC', 'weights', c14, 'sessrep' , 'none');
-matlabbatch{3}.spm.stats.con.consess{15}.tcon = struct('name', 'stimXactual_C>PV', 'weights', c15, 'sessrep' , 'none');
-matlabbatch{3}.spm.stats.con.consess{16}.tcon = struct('name', 'stimXactual_G',    'weights', c16, 'sessrep' , 'none');
-matlabbatch{3}.spm.stats.con.consess{17}.tcon = struct('name', 'motor', 'weights', c17, 'sessrep' , 'none');
-matlabbatch{3}.spm.stats.con.delete = 0;
+%matlabbatch{3}.spm.stats.fmri_est.spmmat = cellstr(SPM_fname);
+%matlabbatch{3}.spm.stats.con.consess{1}.tcon = struct('name', 'cue_P>VC',  'weights', c01, 'sessrep' , 'none');
+%matlabbatch{3}.spm.stats.con.consess{2}.tcon = struct('name', 'cue_V>PC',  'weights', c02, 'sessrep' , 'none');
+%matlabbatch{3}.spm.stats.con.consess{3}.tcon = struct('name', 'cue_C>PV',  'weights', c03, 'sessrep' , 'none');
+%matlabbatch{3}.spm.stats.con.consess{4}.tcon = struct('name', 'cue_G',     'weights', c04, 'sessrep' , 'none');
+%matlabbatch{3}.spm.stats.con.consess{5}.tcon = struct('name', 'stim_P>VC', 'weights', c05, 'sessrep' , 'none');
+%matlabbatch{3}.spm.stats.con.consess{6}.tcon = struct('name', 'stim_V>PC', 'weights', c06, 'sessrep' , 'none');
+%matlabbatch{3}.spm.stats.con.consess{7}.tcon = struct('name', 'stim_C>PV', 'weights', c07, 'sessrep' , 'none');
+%matlabbatch{3}.spm.stats.con.consess{8}.tcon = struct('name', 'stim_G',    'weights', c08, 'sessrep' , 'none');
+%matlabbatch{3}.spm.stats.con.consess{9}.tcon = struct('name',  'stimXcue_P>VC',  'weights', c09, 'sessrep' , 'none');
+%matlabbatch{3}.spm.stats.con.consess{10}.tcon = struct('name', 'stimXcue_V>PC',  'weights', c10, 'sessrep' , 'none');
+%matlabbatch{3}.spm.stats.con.consess{11}.tcon = struct('name', 'stimXcue_C>PV',  'weights', c11, 'sessrep' , 'none');
+%matlabbatch{3}.spm.stats.con.consess{12}.tcon = struct('name', 'stimXcue_G',     'weights', c12, 'sessrep' , 'none');
+%matlabbatch{3}.spm.stats.con.consess{13}.tcon = struct('name', 'stimXactual_P>VC', 'weights', c13, 'sessrep' , 'none');
+%matlabbatch{3}.spm.stats.con.consess{14}.tcon = struct('name', 'stimXactual_V>PC', 'weights', c14, 'sessrep' , 'none');
+%matlabbatch{3}.spm.stats.con.consess{15}.tcon = struct('name', 'stimXactual_C>PV', 'weights', c15, 'sessrep' , 'none');
+%matlabbatch{3}.spm.stats.con.consess{16}.tcon = struct('name', 'stimXactual_G',    'weights', c16, 'sessrep' , 'none');
+%matlabbatch{3}.spm.stats.con.consess{17}.tcon = struct('name', 'motor', 'weights', c17, 'sessrep' , 'none');
+%matlabbatch{3}.spm.stats.con.delete = 0;
 
-disp(strcat('[ STEP 09 ] contrast estimation'))
+%disp(strcat('[ STEP 09 ] contrast estimation'))
 % matlabbatch{4}.spm.stats.fmri_est.spmmat(1) = cfg_dep('Contrast Manager: SPM.mat File', substruct('.','val', '{}',{3}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','spmmat'));
-matlabbatch{4}.spm.stats.fmri_est.spmmat = cellstr(SPM_fname);
-matlabbatch{4}.spm.stats.fmri_est.write_residuals = 0;
-matlabbatch{4}.spm.stats.fmri_est.method.Classical = 1;
+%matlabbatch{4}.spm.stats.fmri_est.spmmat = cellstr(SPM_fname);
+%matlabbatch{4}.spm.stats.fmri_est.write_residuals = 0;
+%matlabbatch{4}.spm.stats.fmri_est.method.Classical = 1;
 
 batch_fname = fullfile(output_dir, strcat(strcat(sub, '_batch.mat')));
 save( batch_fname  ,'matlabbatch');
