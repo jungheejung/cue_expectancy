@@ -48,11 +48,42 @@ disp(strcat('sub:    ', sub));
 
 
 % filelist = dir(fullfile(onset_dir, sub, '*/*_events.tsv'));
-filelist = dir(fullfile(fmriprep_dir, sub, '*/func/*task-social*_bold.nii'));
-T = struct2table(filelist); % convert the struct array to a table
-sortedT = sortrows(T, 'name'); % sort the table by 'DOB'
+%filelist = dir(fullfile(fmriprep_dir, sub, '*/func/smooth_5mm_*task-social*_bold.nii'));
+%T = struct2table(filelist); % convert the struct array to a table
+%sortedT = sortrows(T, 'name'); % sort the table by 'DOB'
+
+% find nifti files
+niilist = dir(fullfile(fmriprep_dir, sub, '*/func/smooth_5mm_*task-social*_bold.nii'));
+nT = struct2table(niilist); % convert the struct array to a table
+sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
+
+sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
+sortedT.ses_num(:) = str2double(extractBetween(sortedT.name, 'ses-', '_'));
+sortedT.run_num(:) = str2double(extractBetween(sortedT.name, 'run-', '_'));
+
+nii_col_names = sortedT.Properties.VariableNames;
+nii_num_colomn = nii_col_names(endsWith(nii_col_names, '_num'));
+
+% find onset files
+onsetlist = dir(fullfile(onset_dir, sub, '*', strcat(sub, '_*_task-social_*_events.tsv')));
+onsetT = struct2table(onsetlist);
+sortedonsetT = sortrows(onsetT, 'name');
+
+sortedonsetT.sub_num(:) = str2double(extractBetween(sortedonsetT.name, 'sub-', '_'));
+sortedonsetT.ses_num(:) = str2double(extractBetween(sortedonsetT.name, 'ses-', '_'));
+sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '-'));
+
+onset_col_names = sortedonsetT.Properties.VariableNames;
+onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
+
+%intersection of nifti and onset files
+A = intersect(sortedT(:,nii_num_colomn),sortedonsetT(:,onset_num_colomn));
+
+
+
 output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'model-01_CcEScaA',...
 '1stLevel',sub);
+
 if ~exist(output_dir, 'dir')
     mkdir(output_dir)
 end
@@ -65,13 +96,16 @@ c09 = []; c10 = []; c11 = []; c12 = [];c13 = []; c14 = []; c15 = []; c16 = []; c
 matlabbatch = cell(1,2);
 % matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind) = cell(1,size(sortedT,1));
 %% 3. for loop "run-wise" _______________________________________________________
-for run_ind = 1: size(sortedT,1)
+for run_ind = 1: size(A,1)
     disp(strcat('______________________run', num2str(run_ind), '____________________________'));
     % [x] extract sub, ses, run info
-    sub_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'sub-', '_')),'%d'); sub = strcat('sub-', sprintf('%04d', sub_num));
-    ses_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'ses-', '_')),'%d'); ses = strcat('ses-', sprintf('%02d', ses_num));
-    run_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'run-', '_')),'%d'); run = strcat('run-', sprintf('%01d', run_num));
-
+    % sub_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'sub-', '_')),'%d'); sub = strcat('sub-', sprintf('%04d', sub_num));
+    % ses_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'ses-', '_')),'%d'); ses = strcat('ses-', sprintf('%02d', ses_num));
+    % run_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'run-', '_')),'%d'); run = strcat('run-', sprintf('%01d', run_num));
+    sub = strcat('sub-', sprintf('%04d', A.sub_num(run_ind)));
+    ses = strcat('ses-', sprintf('%02d', A.ses_num(run_ind)));
+    run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
+    
     disp(strcat('[ STEP 03 ] gunzip and saving nifti...'));
     % smooth_5mm_sub-0006_ses-01_task-social_acq-mb8_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold.nii
     smooth_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
@@ -89,10 +123,7 @@ for run_ind = 1: size(sortedT,1)
     disp(strcat('[ STEP 04 ]constructing contrasts...'));
     %onset_fname   = fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-social_', run, '-', task, '_events.tsv'));
     %onset_fname   = fullfile(char(sortedT.folder(run_ind)), char(sortedT.name(run_ind)));
-    onset_glob    = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-social_',strcat('run-', sprintf('%02d', run_num)), '-*_events.tsv')));
-    onset_fname   = fullfile(char(onset_glob.folder), char(onset_glob.name));
-    if isempty(onset_glob), continue
-    end
+    onset_glob    = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-social_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '-*_events.tsv')));
     onset_fname   = fullfile(char(onset_glob.folder), char(onset_glob.name));
     disp(strcat('onset folder: ', onset_glob.folder));
     disp(strcat('onset file:   ', onset_glob.name));
@@ -142,7 +173,7 @@ for run_ind = 1: size(sortedT,1)
     end
 
     motion_fname = fullfile(motion_dir, sub, ses,...
-                   strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d', run_num), '_confounds-subset.txt'));
+                   strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d',A.run_num(run_ind)), '_confounds-subset.txt'));
     if ~motion_fname, 
         if ~exist(fullfile(motion_dir, sub, ses),'dir'), mkdir(fullfile(motion_dir, sub, ses))
         end
