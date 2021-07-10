@@ -5,7 +5,7 @@ function glm(input)
 % cfg_basicio BasicIO - Unknown
 %-----------------------------------------------------------------------
 disp('...STARTING JOBS');
-tic
+
 rootgroup = settings; rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = 'v7.3'
 
 %-----------------------------------------------------------------------
@@ -65,7 +65,7 @@ c09 = []; c10 = []; c11 = []; c12 = [];c13 = []; c14 = []; c15 = []; c16 = []; c
 matlabbatch = cell(1,2);
 % matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind) = cell(1,size(sortedT,1));
 %% 3. for loop "run-wise" _______________________________________________________
-for run_ind = 1: 1 %size(sortedT,1)
+for run_ind = 1: size(sortedT,1)
     disp(strcat('______________________run', num2str(run_ind), '____________________________'));
     % [x] extract sub, ses, run info
     sub_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'sub-', '_')),'%d'); sub = strcat('sub-', sprintf('%04d', sub_num));
@@ -85,18 +85,14 @@ for run_ind = 1: 1 %size(sortedT,1)
     %disp(strcat('nifti files: ', nii_fname));
     %if ~exist(nii_fname,'file'), gunzip(scan_fname)
     %end
-    mask_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
-    strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-brain_mask.nii.gz'));
-    mask_nii = fullfile(fmriprep_dir, sub, ses, 'func',...
-    strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-brain_mask.nii'));
-    if ~exist(mask_nii,'file'), gunzip(mask_fname)
-    %end
 
     disp(strcat('[ STEP 04 ]constructing contrasts...'));
     %onset_fname   = fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-social_', run, '-', task, '_events.tsv'));
     %onset_fname   = fullfile(char(sortedT.folder(run_ind)), char(sortedT.name(run_ind)));
     onset_glob    = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-social_',strcat('run-', sprintf('%02d', run_num)), '-*_events.tsv')));
     onset_fname   = fullfile(char(onset_glob.folder), char(onset_glob.name));
+    if ~exist(onset_fname), continue
+    end
     disp(strcat('onset folder: ', onset_glob.folder));
     disp(strcat('onset file:   ', onset_glob.name));
     social        = struct2table(tdfread(onset_fname));
@@ -136,6 +132,14 @@ for run_ind = 1: 1 %size(sortedT,1)
     %m            = struct2table(tdfread(m_fmriprep));
     %m_subset     = m(:, {'csf', 'white_matter', 'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z'});
     %m_double     = table2array(m_subset);
+    
+    mask_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
+    strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-brain_mask.nii.gz'));
+    mask_nii = fullfile(fmriprep_dir, sub, ses, 'func',...
+    strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-brain_mask.nii'));
+    if ~exist(mask_nii,'file'), gunzip(mask_fname)
+    end
+
     motion_fname = fullfile(motion_dir, sub, ses,...
                    strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d', run_num), '_confounds-subset.txt'));
     if ~motion_fname, 
@@ -170,7 +174,7 @@ for run_ind = 1: 1 %size(sortedT,1)
     matlabbatch{1}.spm.stats.fmri_spec.volt = 1;
     matlabbatch{1}.spm.stats.fmri_spec.global = 'None';
     matlabbatch{1}.spm.stats.fmri_spec.mthresh = 0.8;
-    matlabbatch{1}.spm.stats.fmri_spec.mask = {mask_nii}; %mask_fname
+    matlabbatch{1}.spm.stats.fmri_spec.mask = {mask_fname}; %mask_fname
     matlabbatch{1}.spm.stats.fmri_spec.cvi = 'AR(1)';
 
     % RUN 01 _________________________________________________________________________
@@ -224,9 +228,6 @@ SPM_fname= fullfile(output_dir, 'SPM.mat' );
 matlabbatch{2}.spm.stats.fmri_est.spmmat = cellstr(SPM_fname);
 matlabbatch{2}.spm.stats.fmri_est.write_residuals = 0;
 matlabbatch{2}.spm.stats.fmri_est.method.Classical = 1;
-%matlabbatch{2}.spm.stats.fmri_est.spmmat(1) = cfg_dep('fMRI model specification: SPM.mat File', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','spmmat'));
-%matlabbatch{2}.spm.stats.fmri_est.write_residuals = 0;
-%matlabbatch{2}.spm.stats.fmri_est.method.Classical = 1;
 
 % %% 3. contrast __________________________________________________________
 %
@@ -268,5 +269,5 @@ spm_jobman('run',matlabbatch);
 clearvars matlabbatch
 
 disp(strcat('FINISH - subject ', sub,  ' complete'))
-toc
+
 end
