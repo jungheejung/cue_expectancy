@@ -91,8 +91,9 @@ for run_ind = 1: size(sortedT,1)
     %onset_fname   = fullfile(char(sortedT.folder(run_ind)), char(sortedT.name(run_ind)));
     onset_glob    = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-social_',strcat('run-', sprintf('%02d', run_num)), '-*_events.tsv')));
     onset_fname   = fullfile(char(onset_glob.folder), char(onset_glob.name));
-    if ~exist(onset_fname), continue
+    if isempty(onset_glob), continue
     end
+    onset_fname   = fullfile(char(onset_glob.folder), char(onset_glob.name));
     disp(strcat('onset folder: ', onset_glob.folder));
     disp(strcat('onset file:   ', onset_glob.name));
     social        = struct2table(tdfread(onset_fname));
