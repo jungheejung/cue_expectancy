@@ -1,8 +1,18 @@
-function first_level_contrast(input)
-% parameters ___________________________________________________________________
-% main_dir = '/Users/h/Documents/projects_local/conformity.01';
+function firstlevel02_contrast(input)
+
+% NOTE 01 start jobs
+disp('...STARTING JOBS');
+
+rootgroup = settings; rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = 'v7.3'
+
+
+% NOTE 02 define directories _______________________________________________________
+fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'; % sub / ses
 main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
-matlabbatch = cell(1,1);
+motion_dir = fullfile(main_dir, 'data', 'dartmouth', 'd05_motion');
+onset_dir = fullfile(main_dir, 'data', 'dartmouth', 'd04_EV_SPM');
+
+
 
 sub_num = sscanf(char(input),'%d');
 sub = strcat('sub-', sprintf('%04d', sub_num));
@@ -13,8 +23,36 @@ fmri_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'model-01_CcEScaA',...
     '1stLevel', sub); % first level spm mat.
 spm_fname = fullfile(fmri_dir, 'SPM.mat');
 
-% contrast
-onset_dir = fullfile(main_dir, 'data', 'dartmouth', 'd04_EV_SPM');
+
+% NOTE 03 find intersection of nifti and onset files
+% find nifti files
+niilist = dir(fullfile(fmriprep_dir, sub, '*/func/smooth_5mm_*task-social*_bold.nii'));
+nT = struct2table(niilist); % convert the struct array to a table
+sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
+
+sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
+sortedT.ses_num(:) = str2double(extractBetween(sortedT.name, 'ses-', '_'));
+sortedT.run_num(:) = str2double(extractBetween(sortedT.name, 'run-', '_'));
+
+nii_col_names = sortedT.Properties.VariableNames;
+nii_num_colomn = nii_col_names(endsWith(nii_col_names, '_num'));
+
+% find onset files
+onsetlist = dir(fullfile(onset_dir, sub, '*', strcat(sub, '_*_task-social_*_events.tsv')));
+onsetT = struct2table(onsetlist);
+sortedonsetT = sortrows(onsetT, 'name');
+
+sortedonsetT.sub_num(:) = str2double(extractBetween(sortedonsetT.name, 'sub-', '_'));
+sortedonsetT.ses_num(:) = str2double(extractBetween(sortedonsetT.name, 'ses-', '_'));
+sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '-'));
+
+onset_col_names = sortedonsetT.Properties.VariableNames;
+onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
+
+%intersection of nifti and onset files
+A = intersect(sortedT(:,nii_num_colomn),sortedonsetT(:,onset_num_colomn));
+
+% NOTE 04 define contrast
 
 contrast_name = {'cue_P', 'cue_V', 'cue_C', 'cue_G',...
     'stim_P', 'stim_V', 'stim_C', 'stim_G',...
@@ -24,19 +62,26 @@ contrast_name = {'cue_P', 'cue_V', 'cue_C', 'cue_G',...
 c01 = []; c02 = []; c03 = []; c04 = [];c05 = []; c06 = []; c07 = []; c08 = [];
 c09 = []; c10 = []; c11 = []; c12 = [];c13 = []; c14 = []; c15 = []; c16 = []; c17 = [];
 
-filelist = dir(fullfile(onset_dir, sub, '*/*_events.tsv'));
-T = struct2table(filelist); % convert the struct array to a table
-sortedT = sortrows(T, 'name');
 
-for run_ind = 1: size(sortedT,1)
+matlabbatch = cell(1,1);
+
+for run_ind = 1: size(A,1)
     disp(strcat('run', num2str(run_ind)));
-    sub_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'sub-', '_')),'%d'); sub = strcat('sub-', sprintf('%04d', sub_num));
-    ses_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'ses-', '_')),'%d'); ses = strcat('ses-', sprintf('%02d', ses_num));
-    run_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'run-', '_')),'%d'); run = strcat('run-', sprintf('%01d', run_num));
-    onset_fname   = fullfile(char(sortedT.folder(run_ind)), char(sortedT.name(run_ind)));
+    % sub_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'sub-', '_')),'%d'); sub = strcat('sub-', sprintf('%04d', sub_num));
+    % ses_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'ses-', '_')),'%d'); ses = strcat('ses-', sprintf('%02d', ses_num));
+    % run_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'run-', '_')),'%d'); run = strcat('run-', sprintf('%01d', run_num));
+    sub = strcat('sub-', sprintf('%04d', A.sub_num(run_ind)));
+    ses = strcat('ses-', sprintf('%02d', A.ses_num(run_ind)));
+    run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
+
+    onset_glob    = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-social_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '-*_events.tsv')));
+    onset_fname   = fullfile(char(onset_glob.folder), char(onset_glob.name));
+
+    % onset_fname   = fullfile(char(sortedT.folder(run_ind)), char(sortedT.name(run_ind)));
     social        = struct2table(tdfread(onset_fname));
-    keyword       = extractBetween(sortedT.name(run_ind), 'run-0', '_events.tsv');
+    keyword       = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
     task          = char(extractAfter(keyword, '-'));
+
     cue_P         = [ 0,m1(task),0,0,0,0,0,0,0,0,0,0,0,0,0 ];
     cue_V         = [ 0,m2(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ];
     cue_C         = [ 0,m3(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ];
@@ -54,6 +99,9 @@ for run_ind = 1: size(sortedT,1)
     stimXactual_C = [ 0,0,0,0,0,m3(task),0,0,0,0,0,0,0,0,0  ];
     stimXactual_G = [ 0,0,0,0,0,m4(task),0,0,0,0,0,0,0,0,0  ];
     motor         = [ 0,0,1,0,0,0,1,0,0,0,0,0,0,0,0    ];
+
+    disp(strcat('task: ', task));
+
     c01 = [ c01  cue_P];  c02 = [ c02  cue_V];  c03 = [ c03  cue_C];  c04 = [ c04  cue_G];
     c05 = [ c05  stim_P];  c06 = [ c06  stim_V];  c07 = [ c07  stim_C];  c08 = [ c08  stim_G];
     c09 = [ c09  stimXcue_P];  c10 = [ c10  stimXcue_V];  c11 = [ c11  stimXcue_C];  c12 = [ c12  stimXcue_G];
@@ -72,12 +120,12 @@ contrast_vector{15} = c15; contrast_vector{16} = c16;
 contrast_vector{17} = c17;
 %% 1. contrast batch _______________________________________________________
 for con_num = 1: length(contrast_name)
-    
+
     matlabbatch{1}.spm.stats.con.spmmat = cellstr( spm_fname );
     matlabbatch{1}.spm.stats.con.consess{con_num}.tcon.name = contrast_name{con_num};
     matlabbatch{1}.spm.stats.con.consess{con_num}.tcon.convec = contrast_vector{con_num};
     matlabbatch{1}.spm.stats.con.consess{con_num}.tcon.sessrep = 'none';
-    
+
 end
 
 matlabbatch{1}.spm.stats.con.delete = 1; % delete previous contrast
