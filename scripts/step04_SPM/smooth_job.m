@@ -12,6 +12,7 @@ sub = strcat('sub-', sprintf('%04d', sub_num));
 disp(strcat('subject: ', sub));
 
 fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/';
+main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
 output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'model-01_CcEScaA',...
     '1stLevel',sub);
 if ~exist(output_dir, 'dir')
