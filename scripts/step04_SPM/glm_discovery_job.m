@@ -57,7 +57,7 @@ c01 = []; c02 = []; c03 = []; c04 = [];c05 = []; c06 = []; c07 = []; c08 = [];
 c09 = []; c10 = []; c11 = []; c12 = [];c13 = []; c14 = []; c15 = []; c16 = []; c17 = [];
 
 
-matlabbatch = cell(1,2);
+matlabbatch = cell(1,3);
 % matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind) = cell(1,size(sortedT,1));
 %% 3. for loop "run-wise" _______________________________________________________
 for run_ind = 1: size(sortedT,1)
@@ -68,13 +68,18 @@ for run_ind = 1: size(sortedT,1)
     run_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'run-', '_')),'%d'); run = strcat('run-', sprintf('%01d', run_num));
 
     disp(strcat('[ STEP 03 ] gunzip and saving nifti...'));
-    scan_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
-    strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
-    nii_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
-    strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
-    disp(strcat('nifti files: ', nii_fname));
-    if ~exist(nii_fname,'file'), gunzip(scan_fname)
+    % smooth_5mm_sub-0006_ses-01_task-social_acq-mb8_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold.nii
+    smooth_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
+                   strcat('smooth_5mm_', sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
+    if ~exist(smooth_fname,'file'), disp('NEED SMOOTHING')
     end
+    % scan_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
+    %strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
+    %nii_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
+    %strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
+    %disp(strcat('nifti files: ', nii_fname));
+    %if ~exist(nii_fname,'file'), gunzip(scan_fname)
+    %end
     mask_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
     strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-brain_mask.nii.gz'));
 
@@ -106,7 +111,7 @@ for run_ind = 1: size(sortedT,1)
     stimXactual_C = [ 0,0,0,0,0,m3(task),0,0,0,0,0,0,0,0,0  ];
     stimXactual_G = [ 0,0,0,0,0,m4(task),0,0,0,0,0,0,0,0,0  ];
     motor         = [ 0,0,1,0,0,0,1,0,0,0,0,0,0,0,0    ];
-    disp(strcat('contrast: ', cue_P));
+    disp(strcat('task: ', task));
     % identify which trials have missing pmods,
     % eliminate the corresponding trial from onset too
     c01 = [ c01  cue_P];  c02 = [ c02  cue_V];  c03 = [ c03  cue_C];  c04 = [ c04  cue_G];
@@ -117,16 +122,28 @@ for run_ind = 1: size(sortedT,1)
 
     disp(strcat('[ STEP 05 ]creating motion covariate text file...'));
     %onset_fname = '/Users/h/Documents/projects_local/social_influence_analysis/data/dartmouth/EV_bids/sub-0006/ses-01'
-    m_fmriprep   = fullfile(fmriprep_dir, sub, ses, 'func', ...
-                   strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_desc-confounds_timeseries.tsv'));
-    m            = struct2table(tdfread(m_fmriprep));
-    m_subset     = m(:, {'csf', 'white_matter', 'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z'});
-    m_double     = table2array(m_subset);
+    %m_fmriprep   = fullfile(fmriprep_dir, sub, ses, 'func', ...
+    %               strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_desc-confounds_timeseries.tsv'));
+    %m            = struct2table(tdfread(m_fmriprep));
+    %m_subset     = m(:, {'csf', 'white_matter', 'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z'});
+    %m_double     = table2array(m_subset);
     motion_fname = fullfile(motion_dir, sub, ses,...
                    strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d', run_num), '_confounds-subset.txt'));
-    if ~exist(fullfile(motion_dir, sub, ses),'dir'), mkdir(fullfile(motion_dir, sub, ses))
+    if ~motion_fname, 
+        if ~exist(fullfile(motion_dir, sub, ses),'dir'), mkdir(fullfile(motion_dir, sub, ses))
+        end
+        m_fmriprep   = fullfile(fmriprep_dir, sub, ses, 'func', ...
+                   strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_desc-confounds_timeseries.tsv'));
+        m            = struct2table(tdfread(m_fmriprep));
+        m_subset     = m(:, {'csf', 'white_matter', 'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z'});
+        m_double     = table2array(m_subset);
+        dlmwrite(motion_fname, m_double, 'delimiter','\t','precision',13);
+    else
+        disp('motion subset file exists');
     end
-    dlmwrite(motion_fname, m_double, 'delimiter','\t','precision',13);
+    %if ~exist(fullfile(motion_dir, sub, ses),'dir'), mkdir(fullfile(motion_dir, sub, ses))
+    %end
+    %dlmwrite(motion_fname, m_double, 'delimiter','\t','precision',13);
 
 
 %     save motion_fname motion_txt -ascii -double
@@ -143,13 +160,13 @@ for run_ind = 1: size(sortedT,1)
     matlabbatch{1}.spm.stats.fmri_spec.bases.hrf.derivs = [0 0];
     matlabbatch{1}.spm.stats.fmri_spec.volt = 1;
     matlabbatch{1}.spm.stats.fmri_spec.global = 'None';
-    matlabbatch{1}.spm.stats.fmri_spec.mthresh = -Inf;
+    matlabbatch{1}.spm.stats.fmri_spec.mthresh = 0.8;
     matlabbatch{1}.spm.stats.fmri_spec.mask = {mask_fname}; %mask_fname
     matlabbatch{1}.spm.stats.fmri_spec.cvi = 'AR(1)';
 
     % RUN 01 _________________________________________________________________________
-    scans = spm_select('Expand',nii_fname);
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).scans = cellstr(scans);
+    scans = spm_select('Expand',smooth_fname);
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).scans = cellstr(smooth_fname);
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).name = 'CUE';
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).onset = social.event01_cue_onset;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).duration = 1;
@@ -160,8 +177,8 @@ for run_ind = 1: size(sortedT,1)
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).orth = 0;
 
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).name = 'EXPECT_RATING';
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).onset = social.event02_expect_displayonset(~ismissing(social.event02_expect_RT));
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).duration = social.event02_expect_RT(~ismissing(social.event02_expect_RT));
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).onset = social.event02_expect_displayonset;
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).duration = social.event02_expect_RT(~ismissing(social.event02_expect_displayonset));
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).tmod = 0;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).pmod = struct('name', {}, 'param', {}, 'poly', {});
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).orth = 0;
@@ -195,6 +212,7 @@ end
 %
 disp(strcat('[ STEP 07 ] estimation '))
 SPM_fname= fullfile(output_dir, 'SPM.mat' );
+save( SPM_fname ,'SPM', '-v7.3');
 matlabbatch{2}.spm.stats.fmri_est.spmmat = cellstr(SPM_fname);
 matlabbatch{2}.spm.stats.fmri_est.write_residuals = 0;
 matlabbatch{2}.spm.stats.fmri_est.method.Classical = 1;
@@ -206,7 +224,7 @@ matlabbatch{2}.spm.stats.fmri_est.method.Classical = 1;
 %
 %disp(strcat('[ STEP 08 ] first level contrast'))
 %matlabbatch{3}.spm.stats.con.spmmat(1) = cfg_dep('Model estimation: SPM.mat File', substruct('.','val', '{}',{2}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','spmmat'));
-%matlabbatch{3}.spm.stats.fmri_est.spmmat = cellstr(SPM_fname);
+%matlabbatch{3}.spm.stats.con.spmmat = cellstr(SPM_fname);
 %matlabbatch{3}.spm.stats.con.consess{1}.tcon = struct('name', 'cue_P>VC',  'weights', c01, 'sessrep' , 'none');
 %matlabbatch{3}.spm.stats.con.consess{2}.tcon = struct('name', 'cue_V>PC',  'weights', c02, 'sessrep' , 'none');
 %matlabbatch{3}.spm.stats.con.consess{3}.tcon = struct('name', 'cue_C>PV',  'weights', c03, 'sessrep' , 'none');
@@ -224,7 +242,7 @@ matlabbatch{2}.spm.stats.fmri_est.method.Classical = 1;
 %matlabbatch{3}.spm.stats.con.consess{15}.tcon = struct('name', 'stimXactual_C>PV', 'weights', c15, 'sessrep' , 'none');
 %matlabbatch{3}.spm.stats.con.consess{16}.tcon = struct('name', 'stimXactual_G',    'weights', c16, 'sessrep' , 'none');
 %matlabbatch{3}.spm.stats.con.consess{17}.tcon = struct('name', 'motor', 'weights', c17, 'sessrep' , 'none');
-%matlabbatch{3}.spm.stats.con.delete = 0;
+%matlabbatch{3}.spm.stats.con.delete = 1;
 
 %disp(strcat('[ STEP 09 ] contrast estimation'))
 % matlabbatch{4}.spm.stats.fmri_est.spmmat(1) = cfg_dep('Contrast Manager: SPM.mat File', substruct('.','val', '{}',{3}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','spmmat'));
@@ -233,11 +251,11 @@ matlabbatch{2}.spm.stats.fmri_est.method.Classical = 1;
 %matlabbatch{4}.spm.stats.fmri_est.method.Classical = 1;
 
 batch_fname = fullfile(output_dir, strcat(strcat(sub, '_batch.mat')));
-save( batch_fname  ,'matlabbatch');
+save( batch_fname  ,'matlabbatch', '-v7.3');
 
 %% 4. run __________________________________________________________
 spm_jobman('run',matlabbatch);
 clearvars matlabbatch
 
-disp(strcat('FINISH - subject complete'))
+disp(strcat('FINISH - subject ', sub,  ' complete'))
 end
