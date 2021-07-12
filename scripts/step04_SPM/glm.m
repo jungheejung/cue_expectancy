@@ -229,7 +229,7 @@ for run_ind = 1: size(A,1)
 
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).name = 'EXPECT_RATING';
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).onset = double(social.event02_expect_displayonset);
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).duration = double(social.event02_expect_RT));
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).duration = double(social.event02_expect_RT);
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).tmod = 0;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).pmod = struct('name', {}, 'param', {}, 'poly', {});
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).orth = 0;
