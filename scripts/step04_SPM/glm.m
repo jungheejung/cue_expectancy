@@ -7,7 +7,7 @@ function glm(input)
 disp('...STARTING JOBS');
 
 rootgroup = settings; rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = 'v7.3'
-
+rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = 'v7.3';
 %-----------------------------------------------------------------------
 % PARAMETERS
 %     - CUE
@@ -84,6 +84,10 @@ output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'model-01_CcEScaA',...
 if ~exist(output_dir, 'dir')
     mkdir(output_dir)
 end
+if isfile(fullfile(output_dir,'SPM.mat'))
+   delete *.nii
+   delete SPM.mat
+end
 
 % contrasts (initialize per run)
 c01 = []; c02 = []; c03 = []; c04 = [];c05 = []; c06 = []; c07 = []; c08 = [];
@@ -93,7 +97,7 @@ c09 = []; c10 = []; c11 = []; c12 = [];c13 = []; c14 = []; c15 = []; c16 = []; c
 matlabbatch = cell(1,2);
 % matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind) = cell(1,size(sortedT,1));
 %% 3. for loop "run-wise" _______________________________________________________
-for run_ind = 1%: size(A,1)
+for run_ind = 1: size(A,1)
     disp(strcat('______________________run', num2str(run_ind), '____________________________'));
     % [x] extract sub, ses, run info
     % sub_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'sub-', '_')),'%d'); sub = strcat('sub-', sprintf('%04d', sub_num));
