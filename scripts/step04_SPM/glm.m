@@ -229,26 +229,26 @@ for run_ind = 1: size(A,1)
 
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).name = 'EXPECT_RATING';
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).onset = double(social.event02_expect_displayonset);
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).duration = double(social.event02_expect_RT(~ismissing(social.event02_expect_displayonset)));
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).duration = double(social.event02_expect_RT));
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).tmod = 0;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).pmod = struct('name', {}, 'param', {}, 'poly', {});
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).orth = 0;
 
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).name = 'STIM';
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).onset = double(social.event03_stimulus_displayonset(~ismissing(social.event04_actual_angle)));
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).onset = double(social.event03_stimulus_displayonset);
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).duration = double(repelem(5,size(social.event03_stimulus_displayonset,1))');;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).tmod = 0;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(1).name = 'cue';
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(1).param = double(social.cue_con(~ismissing(social.event04_actual_angle)));
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(1).param = double(social.cue_con);
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(1).poly = 1;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(2).name = 'actual_rating';
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(2).param = double(social.event04_actual_angle(~ismissing(social.event04_actual_angle)));
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(2).param = double(social.event04_actual_angle);
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(2).poly = 1;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).orth = 0;
 
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).name = 'ACTUAL_RATING';
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).onset = double(social.event04_actual_displayonset(~ismissing(social.event04_actual_RT)));
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).duration = double(social.event04_actual_RT(~ismissing(social.event04_actual_RT)));
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).onset = double(social.event04_actual_displayonset);
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).duration = double(social.event04_actual_RT);
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).tmod = 0;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).pmod = struct('name', {}, 'param', {}, 'poly', {});
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).orth = 0;
