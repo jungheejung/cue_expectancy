@@ -93,7 +93,7 @@ c09 = []; c10 = []; c11 = []; c12 = [];c13 = []; c14 = []; c15 = []; c16 = []; c
 matlabbatch = cell(1,2);
 % matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind) = cell(1,size(sortedT,1));
 %% 3. for loop "run-wise" _______________________________________________________
-for run_ind = 1: size(A,1)
+for run_ind = 1%: size(A,1)
     disp(strcat('______________________run', num2str(run_ind), '____________________________'));
     % [x] extract sub, ses, run info
     % sub_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'sub-', '_')),'%d'); sub = strcat('sub-', sprintf('%04d', sub_num));
@@ -123,7 +123,7 @@ for run_ind = 1: size(A,1)
     %onset_fname   = fullfile(char(sortedT.folder(run_ind)), char(sortedT.name(run_ind)));
     onset_glob    = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-social_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '-*_events.tsv')));
     onset_fname   = fullfile(char(onset_glob.folder), char(onset_glob.name));
-    if empty(onset_glob)
+    if isempty(onset_glob)
       disp('ABORT')
       break
     end
@@ -169,7 +169,7 @@ for run_ind = 1: size(A,1)
 
     mask_fname = fullfile(fmriprep_dir, sub, 'ses-01', 'anat',...
     strcat(sub, '_ses-01_acq-MPRAGEXp3X08mm_desc-brain_mask.nii.gz'));
-    mask_nii = fullfile(fmriprep_dir, sub, ses, 'func',...
+    mask_nii = fullfile(fmriprep_dir, sub, 'ses-01', 'anat',...
     strcat(sub, '_ses-01_acq-MPRAGEXp3X08mm_desc-brain_mask.nii'));
     if ~exist(mask_nii,'file'), gunzip(mask_fname)
     end
@@ -205,7 +205,7 @@ for run_ind = 1: size(A,1)
     matlabbatch{1}.spm.stats.fmri_spec.timing.units = 'secs';
     matlabbatch{1}.spm.stats.fmri_spec.timing.RT = 0.46;
     matlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t = 16;
-    matlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t0 = numscans/2;
+    matlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t0 = 8;
 
     matlabbatch{1}.spm.stats.fmri_spec.fact = struct('name', {}, 'levels', {});
     matlabbatch{1}.spm.stats.fmri_spec.bases.hrf.derivs = [0 0];
@@ -217,10 +217,10 @@ for run_ind = 1: size(A,1)
 
     % RUN 01 _________________________________________________________________________
     scans = spm_select('Expand',smooth_fname);
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).scans = cellstr(scans);
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).scans = cellstr(smooth_fname);
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).name = 'CUE';
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).onset = double(social.event01_cue_onset);
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).duration = double(repelem(1,size(social.event03_stimulus_displayonset,1))');;
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).duration = double(repelem(1,12)');;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).tmod = 0;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).pmod.name = 'cue';
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).pmod.param = double(social.cue_con);
@@ -229,14 +229,14 @@ for run_ind = 1: size(A,1)
 
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).name = 'EXPECT_RATING';
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).onset = double(social.event02_expect_displayonset);
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).duration = double(social.event02_expect_RT));
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).duration = double(social.event02_expect_RT);
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).tmod = 0;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).pmod = struct('name', {}, 'param', {}, 'poly', {});
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).orth = 0;
 
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).name = 'STIM';
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).onset = double(social.event03_stimulus_displayonset);
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).duration = double(repelem(5,size(social.event03_stimulus_displayonset,1))');;
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).duration = double(repelem(5,12)');
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).tmod = 0;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(1).name = 'cue';
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(1).param = double(social.cue_con);
@@ -254,7 +254,7 @@ for run_ind = 1: size(A,1)
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).orth = 0;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).multi = {''};
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).regress = struct('name', {}, 'val', {});
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).multi_reg = cellstr(motion_fname);
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).multi_reg = cellstr(save_m_fname);
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).hpf = 128;
 end
 
@@ -263,7 +263,8 @@ end
 %
 disp(strcat('[ STEP 07 ] estimation '))
 SPM_fname= fullfile(output_dir, 'SPM.mat' );
-matlabbatch{2}.spm.stats.fmri_est.spmmat = cellstr(SPM_fname);
+matlabbatch{2}.spm.stats.fmri_est.spmmat(1) = cfg_dep('fMRI model specification: SPM.mat File', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','spmmat'));
+% matlabbatch{2}.spm.stats.fmri_est.spmmat = cellstr(SPM_fname);
 matlabbatch{2}.spm.stats.fmri_est.write_residuals = 0;
 matlabbatch{2}.spm.stats.fmri_est.method.Classical = 1;
 
@@ -298,14 +299,14 @@ matlabbatch{2}.spm.stats.fmri_est.method.Classical = 1;
 %matlabbatch{4}.spm.stats.fmri_est.method.Classical = 1;
 
 batch_fname = fullfile(output_dir, strcat(strcat(sub, '_batch.mat')));
-save( batch_fname,'matlabbatch', '-v7.3');
+save( batch_fname,'matlabbatch') %, '-v7.3');
 
 
 
 %% 4. run __________________________________________________________
 spm('defaults', 'FMRI');
 spm_jobman('run',matlabbatch);
-% clearvars matlabbatch
+clearvars matlabbatch
 
 disp(strcat('FINISH - subject ', sub,  ' complete'))
 
