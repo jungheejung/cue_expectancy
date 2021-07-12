@@ -79,11 +79,8 @@ onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
 %intersection of nifti and onset files
 A = intersect(sortedT(:,nii_num_colomn),sortedonsetT(:,onset_num_colomn));
 
-
-
 output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'model-01_CcEScaA',...
 '1stLevel',sub);
-
 if ~exist(output_dir, 'dir')
     mkdir(output_dir)
 end
@@ -102,10 +99,11 @@ for run_ind = 1: size(A,1)
     % sub_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'sub-', '_')),'%d'); sub = strcat('sub-', sprintf('%04d', sub_num));
     % ses_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'ses-', '_')),'%d'); ses = strcat('ses-', sprintf('%02d', ses_num));
     % run_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'run-', '_')),'%d'); run = strcat('run-', sprintf('%01d', run_num));
+    sub=[];ses=[];run = [];
     sub = strcat('sub-', sprintf('%04d', A.sub_num(run_ind)));
     ses = strcat('ses-', sprintf('%02d', A.ses_num(run_ind)));
     run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
-    
+
     disp(strcat('[ STEP 03 ] gunzip and saving nifti...'));
     % smooth_5mm_sub-0006_ses-01_task-social_acq-mb8_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold.nii
     smooth_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
@@ -125,37 +123,41 @@ for run_ind = 1: size(A,1)
     %onset_fname   = fullfile(char(sortedT.folder(run_ind)), char(sortedT.name(run_ind)));
     onset_glob    = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-social_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '-*_events.tsv')));
     onset_fname   = fullfile(char(onset_glob.folder), char(onset_glob.name));
+    if empty(onset_glob)
+      disp('ABORT')
+      break
+    end
     disp(strcat('onset folder: ', onset_glob.folder));
     disp(strcat('onset file:   ', onset_glob.name));
     social        = struct2table(tdfread(onset_fname));
     keyword       = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
     task          = char(extractAfter(keyword, '-'));
 
-    cue_P         = [ 0,m1(task),0,0,0,0,0,0,0,0,0,0,0,0,0 ];
-    cue_V         = [ 0,m2(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ];
-    cue_C         = [ 0,m3(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ];
-    cue_G         = [ 0,m4(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ];
-    stim_P        = [ 0,0,0,m1(task),0,0,0,0,0,0,0,0,0,0,0  ];
-    stim_V        = [ 0,0,0,m2(task),0,0,0,0,0,0,0,0,0,0,0  ];
-    stim_C        = [ 0,0,0,m3(task),0,0,0,0,0,0,0,0,0,0,0  ];
-    stim_G        = [ 0,0,0,m4(task),0,0,0,0,0,0,0,0,0,0,0  ];
-    stimXcue_P    = [ 0,0,0,0,m1(task),0,0,0,0,0,0,0,0,0,0  ];
-    stimXcue_V    = [ 0,0,0,0,m2(task),0,0,0,0,0,0,0,0,0,0  ];
-    stimXcue_C    = [ 0,0,0,0,m3(task),0,0,0,0,0,0,0,0,0,0  ];
-    stimXcue_G    = [ 0,0,0,0,m4(task),0,0,0,0,0,0,0,0,0,0  ];
-    stimXactual_P = [ 0,0,0,0,0,m1(task),0,0,0,0,0,0,0,0,0  ];
-    stimXactual_V = [ 0,0,0,0,0,m2(task),0,0,0,0,0,0,0,0,0  ];
-    stimXactual_C = [ 0,0,0,0,0,m3(task),0,0,0,0,0,0,0,0,0  ];
-    stimXactual_G = [ 0,0,0,0,0,m4(task),0,0,0,0,0,0,0,0,0  ];
-    motor         = [ 0,0,1,0,0,0,1,0,0,0,0,0,0,0,0    ];
+    % cue_P         = [ 0,m1(task),0,0,0,0,0,0,0,0,0,0,0,0,0 ];
+    % cue_V         = [ 0,m2(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ];
+    % cue_C         = [ 0,m3(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ];
+    % cue_G         = [ 0,m4(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ];
+    % stim_P        = [ 0,0,0,m1(task),0,0,0,0,0,0,0,0,0,0,0  ];
+    % stim_V        = [ 0,0,0,m2(task),0,0,0,0,0,0,0,0,0,0,0  ];
+    % stim_C        = [ 0,0,0,m3(task),0,0,0,0,0,0,0,0,0,0,0  ];
+    % stim_G        = [ 0,0,0,m4(task),0,0,0,0,0,0,0,0,0,0,0  ];
+    % stimXcue_P    = [ 0,0,0,0,m1(task),0,0,0,0,0,0,0,0,0,0  ];
+    % stimXcue_V    = [ 0,0,0,0,m2(task),0,0,0,0,0,0,0,0,0,0  ];
+    % stimXcue_C    = [ 0,0,0,0,m3(task),0,0,0,0,0,0,0,0,0,0  ];
+    % stimXcue_G    = [ 0,0,0,0,m4(task),0,0,0,0,0,0,0,0,0,0  ];
+    % stimXactual_P = [ 0,0,0,0,0,m1(task),0,0,0,0,0,0,0,0,0  ];
+    % stimXactual_V = [ 0,0,0,0,0,m2(task),0,0,0,0,0,0,0,0,0  ];
+    % stimXactual_C = [ 0,0,0,0,0,m3(task),0,0,0,0,0,0,0,0,0  ];
+    % stimXactual_G = [ 0,0,0,0,0,m4(task),0,0,0,0,0,0,0,0,0  ];
+    % motor         = [ 0,0,1,0,0,0,1,0,0,0,0,0,0,0,0    ];
     disp(strcat('task: ', task));
     % identify which trials have missing pmods,
     % eliminate the corresponding trial from onset too
-    c01 = [ c01  cue_P];  c02 = [ c02  cue_V];  c03 = [ c03  cue_C];  c04 = [ c04  cue_G];
-    c05 = [ c05  stim_P];  c06 = [ c06  stim_V];  c07 = [ c07  stim_C];  c08 = [ c08  stim_G];
-    c09 = [ c09  stimXcue_P];  c10 = [ c10  stimXcue_V];  c11 = [ c11  stimXcue_C];  c12 = [ c12  stimXcue_G];
-    c13 = [ c13  stimXactual_P];  c14 = [ c14  stimXactual_V];  c15 = [ c15  stimXactual_C];  c16 = [ c16  stimXactual_G];
-    c17 = [ c17  motor];
+    % c01 = [ c01  cue_P];  c02 = [ c02  cue_V];  c03 = [ c03  cue_C];  c04 = [ c04  cue_G];
+    % c05 = [ c05  stim_P];  c06 = [ c06  stim_V];  c07 = [ c07  stim_C];  c08 = [ c08  stim_G];
+    % c09 = [ c09  stimXcue_P];  c10 = [ c10  stimXcue_V];  c11 = [ c11  stimXcue_C];  c12 = [ c12  stimXcue_G];
+    % c13 = [ c13  stimXactual_P];  c14 = [ c14  stimXactual_V];  c15 = [ c15  stimXactual_C];  c16 = [ c16  stimXactual_G];
+    % c17 = [ c17  motor];
 
     disp(strcat('[ STEP 05 ]creating motion covariate text file...'));
     %onset_fname = '/Users/h/Documents/projects_local/social_influence_analysis/data/dartmouth/EV_bids/sub-0006/ses-01'
@@ -164,17 +166,21 @@ for run_ind = 1: size(A,1)
     %m            = struct2table(tdfread(m_fmriprep));
     %m_subset     = m(:, {'csf', 'white_matter', 'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z'});
     %m_double     = table2array(m_subset);
-    
-    mask_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
-    strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-brain_mask.nii.gz'));
+
+    mask_fname = fullfile(fmriprep_dir, sub, 'ses-01', 'anat',...
+    strcat(sub, '_ses-01_acq-MPRAGEXp3X08mm_desc-brain_mask.nii.gz'));
     mask_nii = fullfile(fmriprep_dir, sub, ses, 'func',...
-    strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-brain_mask.nii'));
+    strcat(sub, '_ses-01_acq-MPRAGEXp3X08mm_desc-brain_mask.nii'));
     if ~exist(mask_nii,'file'), gunzip(mask_fname)
     end
 
     motion_fname = fullfile(motion_dir, sub, ses,...
                    strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d',A.run_num(run_ind)), '_confounds-subset.txt'));
-    if ~motion_fname, 
+    R = dlmread(motion_fname);
+    save_m_fname = fullfile(motion_dir, sub, ses,...
+        strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d',A.run_num(run_ind)), '_confounds-subset.mat'));
+    save(save_m_fname, 'R');
+    if ~motion_fname,
         if ~exist(fullfile(motion_dir, sub, ses),'dir'), mkdir(fullfile(motion_dir, sub, ses))
         end
         m_fmriprep   = fullfile(fmriprep_dir, sub, ses, 'func', ...
@@ -198,23 +204,23 @@ for run_ind = 1: size(A,1)
     matlabbatch{1}.spm.stats.fmri_spec.dir = cellstr(output_dir);
     matlabbatch{1}.spm.stats.fmri_spec.timing.units = 'secs';
     matlabbatch{1}.spm.stats.fmri_spec.timing.RT = 0.46;
-    matlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t = numscans;
-    matlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t0 = 8;
+    matlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t = 16;
+    matlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t0 = numscans/2;
 
     matlabbatch{1}.spm.stats.fmri_spec.fact = struct('name', {}, 'levels', {});
     matlabbatch{1}.spm.stats.fmri_spec.bases.hrf.derivs = [0 0];
     matlabbatch{1}.spm.stats.fmri_spec.volt = 1;
     matlabbatch{1}.spm.stats.fmri_spec.global = 'None';
     matlabbatch{1}.spm.stats.fmri_spec.mthresh = 0.8;
-    matlabbatch{1}.spm.stats.fmri_spec.mask = {mask_fname}; %mask_fname
+    matlabbatch{1}.spm.stats.fmri_spec.mask = cellstr(mask_nii); %mask_fname
     matlabbatch{1}.spm.stats.fmri_spec.cvi = 'AR(1)';
 
     % RUN 01 _________________________________________________________________________
-    % scans = spm_select('Expand',smooth_fname);
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).scans = cellstr(smooth_fname);
+    scans = spm_select('Expand',smooth_fname);
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).scans = cellstr(scans);
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).name = 'CUE';
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).onset = double(social.event01_cue_onset);
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).duration = 1;
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).duration = double(repelem(1,size(social.event03_stimulus_displayonset,1))');;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).tmod = 0;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).pmod.name = 'cue';
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).pmod.param = double(social.cue_con);
@@ -230,7 +236,7 @@ for run_ind = 1: size(A,1)
 
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).name = 'STIM';
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).onset = double(social.event03_stimulus_displayonset(~ismissing(social.event04_actual_angle)));
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).duration = 5;
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).duration = double(repelem(5,size(social.event03_stimulus_displayonset,1))');;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).tmod = 0;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(1).name = 'cue';
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(1).param = double(social.cue_con(~ismissing(social.event04_actual_angle)));
@@ -297,8 +303,9 @@ save( batch_fname,'matlabbatch', '-v7.3');
 
 
 %% 4. run __________________________________________________________
+spm('defaults', 'FMRI');
 spm_jobman('run',matlabbatch);
-clearvars matlabbatch
+% clearvars matlabbatch
 
 disp(strcat('FINISH - subject ', sub,  ' complete'))
 
