@@ -1,9 +1,8 @@
 clear all;
 clc;
 
-subject = {};
 
-contrastName ={ 'cue_P', 'cue_V', 'cue_C', 'cue_G',...
+contrast_name ={ 'cue_P', 'cue_V', 'cue_C', 'cue_G',...
 'stim_P', 'stim_V', 'stim_C', 'stim_G', ...
 'stimXcue_P', 'stimXcue_V', 'stimXcue_C', 'stimXcue_G',...
 'stimXactual_P', 'stimXactual_V', 'stimXactual_C', 'stimXactual_G', 'motor'};
@@ -13,21 +12,25 @@ contrast_folder = {'con-01_cue_P-gt-VC', 'con-02_cue_V-gt_PC', 'con-03_cue_C-gt-
 'con-13_stimXactual_P-gt-VC', 'con-14_stimXactual_V-gt-PC', 'con-15_stimXactual_C-gt-PV', 'con-16_stimXactual_G',...
 'con-17_motor'};
 
-main_dir = '/Users/h/Documents/projects_local/conformity.01';
-
+main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social';
 contrast_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'model-01_CcEScaA', '1stLevel' );
+% main_dir = '/Users/h/Documents/projects_local/conformity.01';
+% contrast_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'model-01_CcEScaA', '1stLevel' );
+
 matlabbatch = cell(1,2);
 
-for con_num = 1: length(contrastName) % 1: NoC              number of contrast
-    disp( contrastName{con_num} );
+for con_num = 1: length(contrast_name) % 1: NoC              number of contrast
+    disp( contrast_name{con_num} );
     %% design matrix ______________________________________________________
     scan_files = cell(length(subject),1);
-
-    for sub_num = 1:length(subject) % for each participant - find the contrast
-        con_fname = fullfile(contrast_dir, strcat('sub-', subject{sub_num}), ...
-            strcat('con_', sprintf('%04d', con_num), '.nii'));
-        scan_files{sub_num,1}= con_fname;
-    end
+    tnii = dir(fullfile(contrast_dir, '*', strcat('spmT_', sprintf('%04d', con_num), '.nii') ));
+    fldr = {tnii.folder}; fname = {tnii.name};
+    scanfiles = strcat(fldr,'/', fname)';
+    % for sub_num = 1:length(subject) % for each participant - find the contrast
+    %     con_fname = fullfile(contrast_dir, strcat('sub-', subject{sub_num}), ...
+    %         strcat('con_', sprintf('%04d', con_num), '.nii'));
+    %     scan_files{sub_num,1}= con_fname;
+    % end
 
     second_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'model-01_CcEScaA',...
         '2ndLevel',contrast_folder{con_num});
@@ -49,8 +52,8 @@ for con_num = 1: length(contrastName) % 1: NoC              number of contrast
 
 
     %% estimation ______________________________________________________________
-    spm_fname= fullfile( second_dir, 'SPM.mat' );
-    matlabbatch{2}.spm.stats.fmri_est.spmmat = cellstr(spm_fname);
+    matlabbatch{2}.spm.stats.fmri_est.spmmat(1) = cfg_dep('Factorial design specification: SPM.mat File', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','spmmat'));
+    matlabbatch{2}.spm.stats.fmri_est.write_residuals = 0;
     matlabbatch{2}.spm.stats.fmri_est.method.Classical = 1;
 
 
