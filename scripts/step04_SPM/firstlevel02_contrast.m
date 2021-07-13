@@ -6,6 +6,14 @@ disp('...STARTING JOBS');
 rootgroup = settings; rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = 'v7.3'
 
 
+% contrast mapper _______________________________________________________
+keySet = {'pain','vicarious','cognitive'};
+con1 = [2 -1 -1];   con2 = [-1 2 -1];  con3 = [-1 -1 2];  con4 = [1 1 1];
+m1 = containers.Map(keySet,con1);
+m2 = containers.Map(keySet,con2);
+m3 = containers.Map(keySet,con3);
+m4 = containers.Map(keySet,con4);
+
 % NOTE 02 define directories _______________________________________________________
 fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'; % sub / ses
 main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
