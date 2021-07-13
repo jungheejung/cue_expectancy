@@ -23,7 +23,7 @@ for con_num = 1: length(contrast_name) % 1: NoC              number of contrast
     % scan_files = cell(length(subject),1);
     tnii = dir(fullfile(contrast_dir, '*', strcat('spmT_', sprintf('%04d', con_num), '.nii') ));
     fldr = {tnii.folder}; fname = {tnii.name};
-    scanfiles = strcat(fldr,'/', fname)';
+    scan_files = strcat(fldr,'/', fname)';
     % for sub_num = 1:length(subject) % for each participant - find the contrast
     %     con_fname = fullfile(contrast_dir, strcat('sub-', subject{sub_num}), ...
     %         strcat('con_', sprintf('%04d', con_num), '.nii'));
