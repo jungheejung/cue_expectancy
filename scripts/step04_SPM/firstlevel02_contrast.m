@@ -6,6 +6,11 @@ disp('...STARTING JOBS');
 rootgroup = settings; rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = 'v7.3'
 
 
+numscans = 56;
+disacqs = 0;
+disp(input);
+disp(strcat('[ STEP 01 ] setting parameters...'));
+
 % contrast mapper _______________________________________________________
 keySet = {'pain','vicarious','cognitive'};
 con1 = [2 -1 -1];   con2 = [-1 2 -1];  con3 = [-1 -1 2];  con4 = [1 1 1];
@@ -81,11 +86,15 @@ for run_ind = 1: size(A,1)
     sub = strcat('sub-', sprintf('%04d', A.sub_num(run_ind)));
     ses = strcat('ses-', sprintf('%02d', A.ses_num(run_ind)));
     run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
-
+    disp(strcat('[ STEP 04 ]constructing contrasts...'));
     onset_glob    = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-social_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '-*_events.tsv')));
     onset_fname   = fullfile(char(onset_glob.folder), char(onset_glob.name));
-
-    % onset_fname   = fullfile(char(sortedT.folder(run_ind)), char(sortedT.name(run_ind)));
+    if isempty(onset_glob)
+      disp('ABORT')
+      break
+    end
+    disp(strcat('onset folder: ', onset_glob.folder));
+    disp(strcat('onset file:   ', onset_glob.name));
     social        = struct2table(tdfread(onset_fname));
     keyword       = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
     task          = char(extractAfter(keyword, '-'));
