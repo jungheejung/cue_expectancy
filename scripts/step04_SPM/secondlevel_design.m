@@ -1,6 +1,4 @@
-clear all;
-clc;
-
+function secondlevel_design
 
 contrast_name ={ 'cue_P', 'cue_V', 'cue_C', 'cue_G',...
 'stim_P', 'stim_V', 'stim_C', 'stim_G', ...
@@ -17,12 +15,12 @@ contrast_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'model-01_CcEScaA',
 % main_dir = '/Users/h/Documents/projects_local/conformity.01';
 % contrast_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'model-01_CcEScaA', '1stLevel' );
 
-matlabbatch = cell(1,2);
+matlabbatch = cell(1,3);
 
 for con_num = 1: length(contrast_name) % 1: NoC              number of contrast
     disp( contrast_name{con_num} );
     %% design matrix ______________________________________________________
-    scan_files = cell(length(subject),1);
+    % scan_files = cell(length(subject),1);
     tnii = dir(fullfile(contrast_dir, '*', strcat('spmT_', sprintf('%04d', con_num), '.nii') ));
     fldr = {tnii.folder}; fname = {tnii.name};
     scanfiles = strcat(fldr,'/', fname)';
@@ -38,10 +36,8 @@ for con_num = 1: length(contrast_name) % 1: NoC              number of contrast
         mkdir(second_dir);
     end
 
-
     matlabbatch{1}.spm.stats.factorial_design.dir = cellstr( second_dir );
     matlabbatch{1}.spm.stats.factorial_design.des.t1.scans = scan_files;
-
     matlabbatch{1}.spm.stats.factorial_design.cov = struct('c', {}, 'cname', {}, 'iCFI', {}, 'iCC', {});
     matlabbatch{1}.spm.stats.factorial_design.masking.tm.tm_none = 1;
     matlabbatch{1}.spm.stats.factorial_design.masking.im = 1;
@@ -50,11 +46,17 @@ for con_num = 1: length(contrast_name) % 1: NoC              number of contrast
     matlabbatch{1}.spm.stats.factorial_design.globalm.gmsca.gmsca_no = 1;
     matlabbatch{1}.spm.stats.factorial_design.globalm.glonorm = 1;
 
-
     %% estimation ______________________________________________________________
     matlabbatch{2}.spm.stats.fmri_est.spmmat(1) = cfg_dep('Factorial design specification: SPM.mat File', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','spmmat'));
     matlabbatch{2}.spm.stats.fmri_est.write_residuals = 0;
     matlabbatch{2}.spm.stats.fmri_est.method.Classical = 1;
+
+    %% t stat ______________________________________________________________
+    matlabbatch{3}.spm.stats.con.spmmat(1) = cfg_dep('Model estimation: SPM.mat File', substruct('.','val', '{}',{2}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','spmmat'));
+    matlabbatch{3}.spm.stats.con.consess{1}.tcon.name = contrast_name(con_num);
+    matlabbatch{3}.spm.stats.con.consess{1}.tcon.weights = 1;
+    matlabbatch{3}.spm.stats.con.consess{1}.tcon.sessrep = 'none';
+    matlabbatch{3}.spm.stats.con.delete = 1;
 
 
     est_fname = fullfile(second_dir, 'secondlevel_estimation_matlabbatch.mat' );
@@ -63,4 +65,6 @@ for con_num = 1: length(contrast_name) % 1: NoC              number of contrast
     % run ______________________________________________________________
     spm_jobman('run',matlabbatch);
     clearvars matlabbatch
+end
+
 end
