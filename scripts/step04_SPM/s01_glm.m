@@ -1,4 +1,4 @@
-function glm(input)
+function s01_glm(input)
 %-----------------------------------------------------------------------
 % Job saved on 30-Jun-2021 19:26:24 by cfg_util (rev $Rev: 7345 $)
 % spm SPM - SPM12 (7771)
@@ -110,9 +110,12 @@ for run_ind = 1: size(A,1)
 
     disp(strcat('[ STEP 03 ] gunzip and saving nifti...'));
     % smooth_5mm_sub-0006_ses-01_task-social_acq-mb8_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold.nii
+    % smooth_5mm_sub-0003_ses-01_task-social_acq-mb8_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold_masked.nii.gz
     smooth_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
-                   strcat('smooth_5mm_', sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
-    if ~exist(smooth_fname,'file'), disp('NEED SMOOTHING')
+                   strcat('smooth_5mm_', sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold_masked.nii.gz'));
+    smooth_nii = fullfile(fmriprep_dir, sub, ses, 'func',...
+                   strcat('smooth_5mm_', sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold_masked.nii'));
+    if ~exist(smooth_nii,'file'), gunzip(smooth_fname)
     end
     % scan_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
     %strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
@@ -216,12 +219,12 @@ for run_ind = 1: size(A,1)
     matlabbatch{1}.spm.stats.fmri_spec.volt = 1;
     matlabbatch{1}.spm.stats.fmri_spec.global = 'None';
     matlabbatch{1}.spm.stats.fmri_spec.mthresh = 0.8;
-    matlabbatch{1}.spm.stats.fmri_spec.mask = cellstr(mask_nii); %mask_fname
+    matlabbatch{1}.spm.stats.fmri_spec.mask = {''};
     matlabbatch{1}.spm.stats.fmri_spec.cvi = 'AR(1)';
 
     % RUN 01 _________________________________________________________________________
     scans = spm_select('Expand',smooth_fname);
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).scans = cellstr(smooth_fname);
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).scans = cellstr(smooth_nii);
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).name = 'CUE';
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).onset = double(social.event01_cue_onset);
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).duration = double(repelem(1,12)');;
@@ -239,7 +242,7 @@ for run_ind = 1: size(A,1)
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).orth = 0;
 
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).name = 'STIM';
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).onset = double(social.event03_stimulus_displayonset);
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).onset = double(social.event03_stimulus_displayonset) + 2 ;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).duration = double(repelem(5,12)');
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).tmod = 0;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(1).name = 'cue';
