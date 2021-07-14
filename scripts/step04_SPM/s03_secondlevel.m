@@ -1,4 +1,4 @@
-function secondlevel_design
+function s03_secondlevel
 
 contrast_name ={ 'cue_P', 'cue_V', 'cue_C', 'cue_G',...
 'stim_P', 'stim_V', 'stim_C', 'stim_G', ...
@@ -55,7 +55,7 @@ for con_num = 1: length(contrast_name) % 1: NoC              number of contrast
 
     %% t stat ______________________________________________________________
     matlabbatch{3}.spm.stats.con.spmmat(1) = cfg_dep('Model estimation: SPM.mat File', substruct('.','val', '{}',{2}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','spmmat'));
-    matlabbatch{3}.spm.stats.con.consess{1}.tcon.name = char(contrast_name{con_num});
+    matlabbatch{3}.spm.stats.con.consess{1}.tcon.name = contrast_name{con_num};
     matlabbatch{3}.spm.stats.con.consess{1}.tcon.weights = 1;
     matlabbatch{3}.spm.stats.con.consess{1}.tcon.sessrep = 'none';
     matlabbatch{3}.spm.stats.con.delete = 1;
