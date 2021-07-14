@@ -1,4 +1,4 @@
-function firstlevel02_contrast(input)
+function s02_contrast(input)
 
 % NOTE 01 start jobs
 disp('...STARTING JOBS');
