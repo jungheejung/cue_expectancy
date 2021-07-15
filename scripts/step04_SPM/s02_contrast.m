@@ -130,7 +130,8 @@ for run_ind = 1: size(A,1)
     c05 = [ c05  stim_P];  c06 = [ c06  stim_V];  c07 = [ c07  stim_C];  c08 = [ c08  stim_G];
     c09 = [ c09  stimXcue_P];  c10 = [ c10  stimXcue_V];  c11 = [ c11  stimXcue_C];  c12 = [ c12  stimXcue_G];
     c13 = [ c13  stimXactual_P];  c14 = [ c14  stimXactual_V];  c15 = [ c15  stimXactual_C];  c16 = [ c16  stimXactual_G];
-    c17 = [ c17  motor]; c18 = [ c18  simple_stimXcue_P]; c19 = [ c19  simple_stimXcue_V]; c20 = [ c20  simple_stimXcue_C];
+    c17 = [ c17  motor];
+    c18 = [ c18  simple_stimXcue_P]; c19 = [ c19  simple_stimXcue_V]; c20 = [ c20  simple_stimXcue_C];
 end
 
 contrast_vector{1} = c01; contrast_vector{2} = c02;
@@ -141,7 +142,7 @@ contrast_vector{9} = c09; contrast_vector{10} = c10;
 contrast_vector{11} = c11; contrast_vector{12} = c12;
 contrast_vector{13} = c13; contrast_vector{14} = c14;
 contrast_vector{15} = c15; contrast_vector{16} = c16;
-contrast_vector{17} = c17; contrast_vector{17} = c18;
+contrast_vector{17} = c17; contrast_vector{18} = c18;
 contrast_vector{19} = c19; contrast_vector{20} = c20;
 %% 1. contrast batch _______________________________________________________
 for con_num = 1: length(contrast_name)
