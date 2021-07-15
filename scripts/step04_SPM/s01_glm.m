@@ -112,9 +112,9 @@ for run_ind = 1: size(A,1)
     % smooth_5mm_sub-0006_ses-01_task-social_acq-mb8_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold.nii
     % smooth_5mm_sub-0003_ses-01_task-social_acq-mb8_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold_masked.nii.gz
     smooth_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
-                   strcat('smooth_5mm_', sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold_masked.nii.gz'));
+                   strcat('smooth_5mm_', sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
     smooth_nii = fullfile(fmriprep_dir, sub, ses, 'func',...
-                   strcat('smooth_5mm_', sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold_masked.nii'));
+                   strcat('smooth_5mm_', sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
     if ~exist(smooth_nii,'file'), gunzip(smooth_fname)
     end
     % scan_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
@@ -218,13 +218,13 @@ for run_ind = 1: size(A,1)
     matlabbatch{1}.spm.stats.fmri_spec.bases.hrf.derivs = [0 0];
     matlabbatch{1}.spm.stats.fmri_spec.volt = 1;
     matlabbatch{1}.spm.stats.fmri_spec.global = 'None';
-    matlabbatch{1}.spm.stats.fmri_spec.mthresh = 0.8;
+    matlabbatch{1}.spm.stats.fmri_spec.mthresh = -Inf;
     matlabbatch{1}.spm.stats.fmri_spec.mask = {''};
     matlabbatch{1}.spm.stats.fmri_spec.cvi = 'AR(1)';
 
     % RUN 01 _________________________________________________________________________
-    scans = spm_select('Expand',smooth_fname);
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).scans = cellstr(smooth_nii);
+    scans = spm_select('Expand',smooth_nii);
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).scans = cellstr(scans);
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).name = 'CUE';
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).onset = double(social.event01_cue_onset);
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).duration = double(repelem(1,12)');;
