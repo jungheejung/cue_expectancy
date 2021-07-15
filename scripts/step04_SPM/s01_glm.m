@@ -181,12 +181,9 @@ for run_ind = 1: size(A,1)
     if ~exist(mask_nii,'file'), gunzip(mask_fname)
     end
 
+%% regressor ______________________________________________________
     motion_fname = fullfile(motion_dir, sub, ses,...
                    strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d',A.run_num(run_ind)), '_confounds-subset.txt'));
-    R = dlmread(motion_fname);
-    save_m_fname = fullfile(motion_dir, sub, ses,...
-        strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d',A.run_num(run_ind)), '_confounds-subset.mat'));
-    save(save_m_fname, 'R');
     if ~motion_fname,
         if ~exist(fullfile(motion_dir, sub, ses),'dir'), mkdir(fullfile(motion_dir, sub, ses))
         end
@@ -196,15 +193,15 @@ for run_ind = 1: size(A,1)
         m_subset     = m(:, {'csf', 'white_matter', 'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z'});
         m_double     = table2array(m_subset);
         dlmwrite(motion_fname, m_double, 'delimiter','\t','precision',13);
+        R = dlmread(motion_fname);
+        save_m_fname = fullfile(motion_dir, sub, ses,...
+            strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d',A.run_num(run_ind)), '_confounds-subset.mat'));
+        save(save_m_fname, 'R');
     else
         disp('motion subset file exists');
     end
-    %if ~exist(fullfile(motion_dir, sub, ses),'dir'), mkdir(fullfile(motion_dir, sub, ses))
-    %end
-    %dlmwrite(motion_fname, m_double, 'delimiter','\t','precision',13);
 
 
-%     save motion_fname motion_txt -ascii -double
     disp(strcat('[ STEP 06 ]starting spmbatch...'));
 
     %-----------------------------------------------------------------------
@@ -261,7 +258,7 @@ for run_ind = 1: size(A,1)
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).orth = 0;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).multi = {''};
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).regress = struct('name', {}, 'val', {});
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).multi_reg = cellstr(save_m_fname);
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).multi_reg = cellstr(motion_fname);
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).hpf = 128;
 end
 
