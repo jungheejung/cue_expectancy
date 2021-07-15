@@ -14,10 +14,14 @@ disp(strcat('[ STEP 01 ] setting parameters...'));
 % contrast mapper _______________________________________________________
 keySet = {'pain','vicarious','cognitive'};
 con1 = [2 -1 -1];   con2 = [-1 2 -1];  con3 = [-1 -1 2];  con4 = [1 1 1];
+con5 = [1 0 0]; con6 = [0 1 0]; con7 = [0 0 1];
 m1 = containers.Map(keySet,con1);
 m2 = containers.Map(keySet,con2);
 m3 = containers.Map(keySet,con3);
 m4 = containers.Map(keySet,con4);
+m5 = containers.Map(keySet,con5);
+m6 = containers.Map(keySet,con6);
+m7 = containers.Map(keySet,con7);
 
 % NOTE 02 define directories _______________________________________________________
 fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'; % sub / ses
@@ -70,19 +74,18 @@ A = intersect(sortedT(:,nii_num_colomn),sortedonsetT(:,onset_num_colomn));
 contrast_name = {'cue_P', 'cue_V', 'cue_C', 'cue_G',...
     'stim_P', 'stim_V', 'stim_C', 'stim_G',...
     'stimXcue_P', 'stimXcue_V', 'stimXcue_C', 'stimXcue_G',...
-    'stimXactual_P', 'stimXactual_V', 'stimXactual_C', 'stimXactual_G', 'motor'};
+    'stimXactual_P', 'stimXactual_V', 'stimXactual_C', 'stimXactual_G', 'motor', ...
+    'simple_stimXcue_P', 'simple_stimXcue_V', 'simple_stimXcue_C'};
 
 c01 = []; c02 = []; c03 = []; c04 = [];c05 = []; c06 = []; c07 = []; c08 = [];
 c09 = []; c10 = []; c11 = []; c12 = [];c13 = []; c14 = []; c15 = []; c16 = []; c17 = [];
+c18 = []; c19 = []; c20 = [];
 
 
 matlabbatch = cell(1,1);
 
 for run_ind = 1: size(A,1)
     disp(strcat('run', num2str(run_ind)));
-    % sub_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'sub-', '_')),'%d'); sub = strcat('sub-', sprintf('%04d', sub_num));
-    % ses_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'ses-', '_')),'%d'); ses = strcat('ses-', sprintf('%02d', ses_num));
-    % run_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'run-', '_')),'%d'); run = strcat('run-', sprintf('%01d', run_num));
     sub = strcat('sub-', sprintf('%04d', A.sub_num(run_ind)));
     ses = strcat('ses-', sprintf('%02d', A.ses_num(run_ind)));
     run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
@@ -116,6 +119,10 @@ for run_ind = 1: size(A,1)
     stimXactual_C = [ 0,0,0,0,0,m3(task),0,0,0,0,0,0,0,0,0  ];
     stimXactual_G = [ 0,0,0,0,0,m4(task),0,0,0,0,0,0,0,0,0  ];
     motor         = [ 0,0,1,0,0,0,1,0,0,0,0,0,0,0,0    ];
+    simple_stimXcue_P = [ 0,0,0,0,m5(task),0,0,0,0,0,0,0,0,0,0  ];
+    simple_stimXcue_V = [ 0,0,0,0,m6(task),0,0,0,0,0,0,0,0,0,0  ];
+    simple_stimXcue_C = [ 0,0,0,0,m7(task),0,0,0,0,0,0,0,0,0,0  ];
+
 
     disp(strcat('task: ', task));
 
@@ -123,7 +130,7 @@ for run_ind = 1: size(A,1)
     c05 = [ c05  stim_P];  c06 = [ c06  stim_V];  c07 = [ c07  stim_C];  c08 = [ c08  stim_G];
     c09 = [ c09  stimXcue_P];  c10 = [ c10  stimXcue_V];  c11 = [ c11  stimXcue_C];  c12 = [ c12  stimXcue_G];
     c13 = [ c13  stimXactual_P];  c14 = [ c14  stimXactual_V];  c15 = [ c15  stimXactual_C];  c16 = [ c16  stimXactual_G];
-    c17 = [ c17  motor];
+    c17 = [ c17  motor]; c18 = [ c18  simple_stimXcue_P]; c19 = [ c19  simple_stimXcue_V]; c20 = [ c20  simple_stimXcue_C];
 end
 
 contrast_vector{1} = c01; contrast_vector{2} = c02;
@@ -134,7 +141,8 @@ contrast_vector{9} = c09; contrast_vector{10} = c10;
 contrast_vector{11} = c11; contrast_vector{12} = c12;
 contrast_vector{13} = c13; contrast_vector{14} = c14;
 contrast_vector{15} = c15; contrast_vector{16} = c16;
-contrast_vector{17} = c17;
+contrast_vector{17} = c17; contrast_vector{17} = c18;
+contrast_vector{19} = c19; contrast_vector{20} = c20;
 %% 1. contrast batch _______________________________________________________
 for con_num = 1: length(contrast_name)
 
