@@ -9,12 +9,12 @@ from pathlib import Path
 import itertools
 
 # 1. directories ________________________________________________________________________
-csv_dir = '/Users/h/Documents/projects_local/social_influence_analysis/data/dartmouth/preprocessed'
-ev_dir = '/Users/h/Documents/projects_local/social_influence_analysis/data/dartmouth/EV'
-ev_bids_dir = '/Users/h/Documents/projects_local/social_influence_analysis/data/dartmouth/EV_bids'
+csv_dir = '/Users/h/Documents/projects_local/social_influence_analysis/data/dartmouth/d02_preprocessed'
+ev_dir = '/Users/h/Documents/projects_local/social_influence_analysis/data/dartmouth/d03_EV_FSL'
+ev_bids_dir = '/Users/h/Documents/projects_local/social_influence_analysis/data/dartmouth/d04_EV_SPM'
 
-sub_list = [2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,23,24,25]
-sub_list = [6]
+sub_list = [2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,23,24,25,26,28,29]
+#sub_list = [6]
 ses_list = [1,3,4]
 sub_ses = list(itertools.product(sub_list, ses_list))
 for i, (sub_ind, ses_ind) in enumerate(sub_ses):
@@ -58,6 +58,7 @@ for i, (sub_ind, ses_ind) in enumerate(sub_ses):
         # I. create dataframe for datalad
         datalad_df = df[['event01_cue_onset','event02_expect_displayonset',
         'event03_stimulus_displayonset','event04_actual_displayonset']]
+        # or I could do: datalad_df = df.filter(like='event')
         datalad = datalad_df - df['param_trigger_onset'][0]
         datalad = pd.concat([datalad, df[['param_cue_type','param_stimulus_type',
         'event02_expect_RT','event02_expect_angle',
@@ -72,7 +73,7 @@ for i, (sub_ind, ses_ind) in enumerate(sub_ses):
         datalad[['event02_expect_angle', 'event04_actual_angle']] = datalad[['event02_expect_angle', 'event04_actual_angle']].transform(lambda df: df - df.mean())
         datalad[['event02_expect_angle', 'event04_actual_angle']] = datalad[['event02_expect_angle', 'event04_actual_angle']].fillna(0).copy()
         datalad[['event02_expect_RT', 'event04_actual_RT']] = datalad[['event02_expect_RT', 'event04_actual_RT']].fillna(4).copy()
-        
+
         datalad.rename(dict_col, inplace = True)
         datalad_fname = os.path.join(ev_bids_dir, sub, ses, label+'_events.tsv' )
         datalad.to_csv(datalad_fname, index=None,sep='\t')
