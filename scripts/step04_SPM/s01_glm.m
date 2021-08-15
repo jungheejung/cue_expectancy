@@ -184,7 +184,7 @@ for run_ind = 1: size(A,1)
 %% regressor ______________________________________________________
     motion_fname = fullfile(motion_dir, sub, ses,...
                    strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d',A.run_num(run_ind)), '_confounds-subset.txt'));
-    if ~motion_fname,
+    if ~isfile(motion_fname)
         if ~exist(fullfile(motion_dir, sub, ses),'dir'), mkdir(fullfile(motion_dir, sub, ses))
         end
         m_fmriprep   = fullfile(fmriprep_dir, sub, ses, 'func', ...
