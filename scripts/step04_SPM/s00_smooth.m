@@ -21,6 +21,8 @@ end
 filelist = dir(fullfile(fmriprep_dir, sub, '*/func/*task-social*_bold.nii.gz'));
 T = struct2table(filelist);
 sortedT = sortrows(T, 'name');
+% if smooth file not exist, 
+% add it to the queue and smooth
 
 for run_ind = 1: size(sortedT,1)
     sub_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'sub-', '_')),'%d'); sub = strcat('sub-', sprintf('%04d', sub_num));
@@ -41,8 +43,6 @@ for run_ind = 1: size(sortedT,1)
     matlabbatch{1}.spm.spatial.smooth.im = 0;
     matlabbatch{1}.spm.spatial.smooth.prefix = 'smooth_5mm_';
     
-    batch_fname = fullfile(output_dir, strcat(strcat(sub, '_smoothbatch.mat')));
-    save( batch_fname  ,'matlabbatch');
     spm_jobman('run',matlabbatch);
     clearvars matlabbatch
     
