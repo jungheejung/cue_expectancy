@@ -39,7 +39,8 @@ for sub_num, ses_num, run_num in b:
     ses = 'ses-{0}'.format(str(ses_num).zfill(2))
     run = 'run-{0}'.format(str(run_num).zfill(2))
     ev_top_dir = glob.glob(os.path.join(ev_dir, sub, ses, '{0}-*'.format(run) ))
-    run_fullname = os.path.basename(ev_top_dir[0])
+    ev_fil_dir = [e_dir for e_dir in ev_top_dir if e_dir != [] ]
+    run_fullname = os.path.basename(ev_fil_dir[0])
     ev_list = os.listdir(ev_top_dir[0]) 
     for ev_folder in sorted(ev_list):
         fsloutput_dir = os.path.join(ev_top_dir[0], ev_folder)  
