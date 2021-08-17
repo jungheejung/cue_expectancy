@@ -12,7 +12,7 @@ modified by Heejung Jung on 2018-01-02 and 2021-08-14
 import os, glob, sys, time, shutil
 import numpy as np
 import fileinput
-
+import itertools
 # experiment_name = 'social'
 # exper_dir = '/work/ics/data/projects/snaglab/Projects/POKER.05'
 # event_file_list = ['at_CARD_lowbet.txt', 'at_CARD_lowfold.txt']
@@ -39,7 +39,9 @@ for sub_num, ses_num, run_num in b:
     ses = 'ses-{0}'.format(str(ses_num).zfill(2))
     run = 'run-{0}'.format(str(run_num).zfill(2))
     ev_top_dir = glob.glob(os.path.join(ev_dir, sub, ses, '{0}-*'.format(run) ))
+    print(ev_top_dir)
     ev_fil_dir = [e_dir for e_dir in ev_top_dir if e_dir != [] ]
+    print(ev_fil_dir)
     run_fullname = os.path.basename(ev_fil_dir[0])
     ev_list = os.listdir(ev_top_dir[0]) 
     for ev_folder in sorted(ev_list):
