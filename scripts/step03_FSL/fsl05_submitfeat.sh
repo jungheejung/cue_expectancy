@@ -9,7 +9,7 @@
 #SBATCH -e ./log_fsl/FSL_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=601-700%20
+#SBATCH --array=701-3000%20
 
 module load fsl/6.0.4
 conda activate spacetop_env
@@ -30,8 +30,7 @@ CHECK=$(echo $INFILE | cut -f5 -d,)
 RUN_NUM=$(echo ${RUN} | sed 's/[^1-9]*//g')
 
 # TODO: if CHECK is empty, execute model
-if [ -z "$CHECK" ];
-    then  
+if [ -z "$CHECK" ]; then  
     # conduct FSL single trial model analysis
     BOLD=${FMRIPREP_DIR}/${SUB}/${SES}/func/${SUB}_${SES}_task-social_acq-mb8_run-${RUN_NUM}_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz
     NII=${FMRIPREP_DIR}/${SUB}/${SES}/func/${SUB}_${SES}_task-social_acq-mb8_run-${RUN_NUM}_space-MNI152NLin2009cAsym_desc-preproc_bold.nii
@@ -47,23 +46,25 @@ if [ -z "$CHECK" ];
         cd ${EV_DIR}/${SUB}/${SES}/${RUN}/${EV}
         echo "STEP03: starting FEAT"
         feat isolated_model.fsf
+        echo "JOB COMPLETE: ${SUB},${SES},${RUN},${EV}"
+        
+        echo "STEP04: updating list - mark as complete"
+            # TODO: 5. cp beta maps "pe.nii.gz" over to isolate_nifti 
+        SINGLE=${EV_DIR}/${SUB}/${SES}/${RUN}/${EV}/isolate_model.feat/stats/pe1.nii.gz
+        NEW_PE=${SUB}_${SES}_${RUN}_${EV}.nii.gz
+        mkdir -p ${NIFTI_DIR}/${SUB}
+        cp ${SINGLE} ${NIFTI_DIR}/${SUB}/${NEW_PE}
+        echo "STEP05: COPY FILE TO ${NIFTI_DIR}/${SUB}/${NEW_PE}"
+        # TODO: 6. remove models. 
+        echo "STEP06: Deleting FEAT files"
+        ls | grep -v "${EV_DIR}/${SUB}/${SES}/${RUN}/${EV}/isolate_model.feat/stats" | xargs rm -rf
+        # TODO: 4. Append DONE to the textfiles once jobs complete. 
+        awk -v n=${IND} -v string=',DONE' 'NR==n { $0 = $0 string} 1' ${ARRAY_FILE}  > tmp && mv tmp ${ARRAY_FILE}
+    else 
+        echo "NO BRAIN DATA"
+        exit
     fi
-    echo "JOB COMPLETE: ${SUB},${SES},${RUN},${EV}"
-    # TODO: 4. Append DONE to the textfiles once jobs complete. 
-    awk -v n=${IND} -v string=',DONE' 'NR==n { $0 = $0 string} 1' ${ARRAY_FILE}  > tmp && mv tmp ${ARRAY_FILE}
 
-    # TODO: 5. cp beta maps "pe.nii.gz" over to isolate_nifti 
-    SINGLE=${EV_DIR}/${SUB}/${SES}/${RUN}/${EV}/isolate_model.feat/stats/pe1.nii.gz
-    NEW_PE=${SUB}_${SES}_${RUN}_${EV}.nii.gz
-    mkdir -p ${NIFTI_DIR}/${SUB}
-    cp ${SINGLE} ${NIFTI_DIR}/${SUB}/${NEW_PE}
-    echo "COPY FILE TO: ${NIFTI_DIR}/${SUB}/${NEW_PE}"
-    # TODO: 6. remove models. 
-    ls | grep -v "${EV_DIR}/${SUB}/${SES}/${RUN}/${EV}/isolate_model.feat/stats" | xargs rm -rf
-    echo "Deleting FEAT files"
-    # /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/analysis/fmri/fsl/multivariate/isolate_ev/sub-0005/ses-03/run-03-pain/ev-cue-0002/isolate_model.feat/stats/pe1.nii.gz 
-    # cp /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/analysis/fmri/fsl/multivariate/isolate_ev/sub-0005/ses-03/run-03-pain/ev-cue-0002/isolate_model.feat/stats/pe1.nii.gz ${NIFTI_DIR}/sub-0005_ses-03_run-03-pain_trial-cue-0002.nii.gz
-    echo "STEP04: updating list - mark as complete"
     
 else 
     if [ "$CHECK" = "DONE" ]; then
