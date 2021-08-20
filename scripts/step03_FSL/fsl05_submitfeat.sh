@@ -14,6 +14,7 @@ module load fsl/6.0.4
 
 FMRIPREP_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep"
 EV_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/analysis/fmri/fsl/multivariate/isolate_ev"
+NIFTI_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/analysis/fmri/fsl/multivariate/isolate_nifti"
 SCRIPT_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/scripts/step03_FSL"
 ARRAY_FILE=${SCRIPT_DIR}/fsl05_jobarraylist.txt
 
@@ -45,6 +46,18 @@ if [ -z "$CHECK" ];
     echo "JOB COMPLETE: ${SUB},${SES},${RUN},${EV}"
     # TODO: 4. Append DONE to the textfiles once jobs complete. 
     awk -v n=${IND} -v string=',DONE' 'NR==n { $0 = $0 string} 1' ${ARRAY_FILE}  > tmp && mv tmp ${ARRAY_FILE}
+
+    # TODO: 5. cp beta maps "pe.nii.gz" over to isolate_nifti 
+    SINGLE=${EV_DIR}/${SUB}/${SES}/${RUN}/${EV}/isolate_model.feat/stats/pe1.nii.gz
+    NEW_PE=${SUB}_${SES}_${RUN}_${EV}.nii.gz
+    mkdir -p ${NIFTI_DIR}/${SUB}
+    cp ${SINGLE} ${NIFTI_DIR}/${SUB}/${NEW_PE}
+    echo "COPY FILE TO: ${NIFTI_DIR}/${SUB}/${NEW_PE}"
+    # TODO: 6. remove models. 
+    ls | grep -v "${EV_DIR}/${SUB}/${SES}/${RUN}/${EV}/isolate_model.feat/stats" | xargs rm -rf
+    echo "Deleting FEAT files"
+    # /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/analysis/fmri/fsl/multivariate/isolate_ev/sub-0005/ses-03/run-03-pain/ev-cue-0002/isolate_model.feat/stats/pe1.nii.gz 
+    # cp /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/analysis/fmri/fsl/multivariate/isolate_ev/sub-0005/ses-03/run-03-pain/ev-cue-0002/isolate_model.feat/stats/pe1.nii.gz ${NIFTI_DIR}/sub-0005_ses-03_run-03-pain_trial-cue-0002.nii.gz
     
 else 
     if [ "$CHECK" = "DONE" ]; then
