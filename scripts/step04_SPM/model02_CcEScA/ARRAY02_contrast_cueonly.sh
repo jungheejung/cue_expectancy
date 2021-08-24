@@ -18,8 +18,8 @@ subjects=( "'0002'" "'0003'" "'0004'" "'0005'" "'0006'" "'0007'" "'0008'" "'0009
 #subjects=(2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,20)
 PARTICIPANT_LABEL=${subjects[$((SLURM_ARRAY_TASK_ID -1))]}
 echo "array id: " ${SLURM_ARRAY_TASK_ID}, "subject id: " ${PARTICIPANT_LABEL}
-CANLABCORE_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore"
-SCRIPT_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/scripts/step04_SPM"
+CANLABCORE_DIR="'/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore'"
+SCRIPT_DIR="'/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/scripts/step04_SPM/model02_CcEScA'"
 SUBJECT=${SLURM_ARRAY_TASK_ID//[!0-9]/}
 echo ${SUBJECT}
 # sub_list = {2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,23,24,25}
