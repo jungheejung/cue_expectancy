@@ -1,14 +1,15 @@
 #!/bin/bash -l
 #SBATCH --job-name=glm
 #SBATCH --nodes=1
-#SBATCH --ntasks=16
+#SBATCH --cpus-per-task=8
+#SBATCH --ntasks=1 
 #SBATCH --mem-per-cpu=8gb
-#SBATCH --time=06:00:00
-#SBATCH -o ./log_glm/GLM_%A_%a.o
-#SBATCH -e ./log_glm/GLM_%A_%a.e
+#SBATCH --time=12:00:00
+#SBATCH -o ./log_glm_cueonly/GLM_%A_%a.o
+#SBATCH -e ./log_glm_cueonly/GLM_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=preemptable
-#SBATCH --array=19
+#SBATCH --array=7-25%5
 ####SBATCH --array=17,19-20,22-25
 ####SBATCH --array=2,4-9,12-13,19
 ## 18, 19,21,23,24
@@ -30,4 +31,4 @@ SCRIPT_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/scripts
 module load matlab/r2020a
 matlab -nodesktop -nosplash -batch "opengl('save','hardware'); rootgroup = settings; rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = 'v7.3'; rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = 'v7.3';  addpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12'); addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore')); addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/scripts/step04_SPM')); cd '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/scripts/step04_SPM'; s01_glm_cueonly($PARTICIPANT_LABEL);"
 
-echo "matlab -nodesktop -nosplash -batch "opengl('save','hardware'); rootgroup = settings; rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = 'v7.3';rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = 'v7.3';  addpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12'); addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore')); addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/scripts/step04_SPM'));s01_glm_cueonly($PARTICIPANT_LABEL);"
+echo "matlab -nodesktop -nosplash -batch "opengl('save','hardware'); rootgroup = settings; rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = 'v7.3';rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = 'v7.3';  addpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12'); addpath(genpath(${CANLABCORE_DIR})); addpath(genpath(${SCRIPT_DIR}));s01_glm_cueonly($PARTICIPANT_LABEL);"
