@@ -37,7 +37,6 @@ fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/da
 main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
 motion_dir = fullfile(main_dir, 'data', 'dartmouth', 'd05_motion');
 onset_dir = fullfile(main_dir, 'data', 'dartmouth', 'd04_EV_SPM');
-
 %% 2. for loop "subject-wise" _______________________________________________________
 sub_num = sscanf(char(input),'%d');
 sub = strcat('sub-', sprintf('%04d', sub_num));
@@ -72,7 +71,7 @@ onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
 %intersection of nifti and onset files
 A = intersect(sortedT(:,nii_num_colomn),sortedonsetT(:,onset_num_colomn));
 
-output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'model-02_CcEScA',...
+output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm','univariate', 'model-02_CcEScA',...
 '1stLevel',sub);
 if ~exist(output_dir, 'dir')
     mkdir(output_dir)
