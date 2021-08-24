@@ -8,7 +8,7 @@
 #SBATCH -e ./log_con/contrast_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=preemptable
-#SBATCH --array=19
+#SBATCH --array=1-25%5
 ## --array=1-17%5
 
 subjects=( "'0002'" "'0003'" "'0004'" "'0005'" "'0006'" "'0007'" "'0008'" "'0009'" "'0010'" "'0011'" \
@@ -24,5 +24,5 @@ SUBJECT=${SLURM_ARRAY_TASK_ID//[!0-9]/}
 echo ${SUBJECT}
 # sub_list = {2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,23,24,25}
 module load matlab/r2020a
-matlab -nodisplay -nosplash -batch "addpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12'); addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore')); addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/scripts/step04_SPM')); s02_contrast_cueonly($PARTICIPANT_LABEL);"
+matlab -nodisplay -nosplash -batch "addpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12'); addpath(genpath(${CANLABCORE_DIR})); addpath(genpath(${SCRIPT_DIR})); s02_contrast_cueonly($PARTICIPANT_LABEL);"
 
