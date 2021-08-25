@@ -28,6 +28,7 @@ import nibabel as nib
 import numpy as np
 from nilearn import image
 
+
 # def _prepare_m2(sub_list, con_num, path_dir):
 #     fmri_concat = None
 #     for sub in sub_list:
@@ -80,7 +81,7 @@ def _multiply_save():
     #multiply
     #save
     return
-x-cue_m-stim_y-actual
+# x-cue_m-stim_y-actual
 # %%
 x = [(27,34, 'pain'), (28,35, 'vicarious'), (29,36, 'cognitive')]
 for sub in sublist:
@@ -94,6 +95,7 @@ for sub in sublist:
         ab.shape
         ab_nii = image.new_img_like(original, ab)
         new_dir = os.path.join(top_dir, 'analysis', 'fmri', 'spm', 'univariate', 'mediation_ab', 'med_X-cue_M-stim_Y-actual', c, '1stLevel')
+        Path(new_dir).mkdir(parents=True, exist_ok=True)
         fname = 'sub-{0}_ab_con{1}Xcon{2}_{3}.nii'.format( str(sub).zfill(4), str(a).zfill(2), str(b).zfill(2) , str(c) )
         ab_nii.to_filename(os.path.join(new_dir,fname))
 
