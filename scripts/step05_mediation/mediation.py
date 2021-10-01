@@ -93,7 +93,10 @@ for sub in sublist:
         # a*b = hadamard product (element-wise multiplication) of two beta maps
         ab = np.multiply(con1, con2)
         ab.shape
-        ab_nii = image.new_img_like(original, ab)
+        print(original.get_data().shape)
+        # (73, 86, 73)
+        rshape = ab.reshape(-1, 73).T.reshape(-1, 86, 73)
+        ab_nii = image.new_img_like(original, rshape)
         new_dir = os.path.join(top_dir, 'analysis', 'fmri', 'spm', 'univariate', 'mediation_ab', 'med_X-cue_M-stim_Y-actual', c, '1stLevel')
         Path(new_dir).mkdir(parents=True, exist_ok=True)
         fname = 'sub-{0}_ab_con{1}Xcon{2}_{3}.nii'.format( str(sub).zfill(4), str(a).zfill(2), str(b).zfill(2) , str(c) )

@@ -149,11 +149,11 @@ for run_ind = 1: size(A,1)
     c27 = [ c27  simple_stimXcue_P]; c28 = [ c28  simple_stimXcue_V]; c29 = [ c29  simple_stimXcue_C];
 end
 
-contrast_vector{1} = c01; contrast_vector{2} = c02;
-contrast_vector{3} = c03; contrast_vector{4} = c04;
-contrast_vector{5} = c05; contrast_vector{6} = c06;
-contrast_vector{7} = c07; contrast_vector{8} = c08;
-contrast_vector{9} = c09; contrast_vector{10} = c10;
+contrast_vector{1} = c01;  contrast_vector{2} = c02;
+contrast_vector{3} = c03;  contrast_vector{4} = c04;
+contrast_vector{5} = c05;  contrast_vector{6} = c06;
+contrast_vector{7} = c07;  contrast_vector{8} = c08;
+contrast_vector{9} = c09;  contrast_vector{10} = c10;
 contrast_vector{11} = c11; contrast_vector{12} = c12;
 contrast_vector{13} = c13; contrast_vector{14} = c14;
 contrast_vector{15} = c15; contrast_vector{16} = c16;
