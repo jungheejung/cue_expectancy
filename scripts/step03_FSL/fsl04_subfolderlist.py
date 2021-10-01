@@ -10,6 +10,7 @@ import os, glob, sys, time, shutil
 import numpy as np
 import fileinput
 import itertools
+import pandas as pd
 
 main_dir = os.path.join('/dartfs-hpc','rc','lab','C','CANlab',
 'labdata','projects','spacetop','social', 'analysis', 'fmri', 'fsl', 'multivariate', 'isolate_ev')
