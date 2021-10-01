@@ -3,6 +3,8 @@
 
 % TODO:
 % 1. for each subject, get fsl estimated single trials
+% 2. stack in FSL >  
+% sub-0020_ses-03_run-05-pain_ev-stim-0011.nii.gz 
 % 2. UNGUNZIP if not 
 %       [x] unpack nii.gz as .nii 
 % 2. [ ] load into cell 
