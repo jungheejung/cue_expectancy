@@ -100,34 +100,20 @@ matlabbatch = cell(1,2);
 for run_ind = 1: size(A,1)
     disp(strcat('______________________run', num2str(run_ind), '____________________________'));
     % [x] extract sub, ses, run info
-    % sub_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'sub-', '_')),'%d'); sub = strcat('sub-', sprintf('%04d', sub_num));
-    % ses_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'ses-', '_')),'%d'); ses = strcat('ses-', sprintf('%02d', ses_num));
-    % run_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'run-', '_')),'%d'); run = strcat('run-', sprintf('%01d', run_num));
     sub=[];ses=[];run = [];
     sub = strcat('sub-', sprintf('%04d', A.sub_num(run_ind)));
     ses = strcat('ses-', sprintf('%02d', A.ses_num(run_ind)));
     run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
 
     disp(strcat('[ STEP 03 ] gunzip and saving nifti...'));
-    % smooth_5mm_sub-0006_ses-01_task-social_acq-mb8_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold.nii
-    % smooth_5mm_sub-0003_ses-01_task-social_acq-mb8_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold_masked.nii.gz
     smooth_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
                    strcat('smooth_5mm_', sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
     smooth_nii = fullfile(fmriprep_dir, sub, ses, 'func',...
                    strcat('smooth_5mm_', sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
     if ~exist(smooth_nii,'file'), gunzip(smooth_fname)
     end
-    % scan_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
-    %strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
-    %nii_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
-    %strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
-    %disp(strcat('nifti files: ', nii_fname));
-    %if ~exist(nii_fname,'file'), gunzip(scan_fname)
-    %end
 
     disp(strcat('[ STEP 04 ]constructing contrasts...'));
-    %onset_fname   = fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-social_', run, '-', task, '_events.tsv'));
-    %onset_fname   = fullfile(char(sortedT.folder(run_ind)), char(sortedT.name(run_ind)));
     onset_glob    = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-social_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '-*_events.tsv')));
     onset_fname   = fullfile(char(onset_glob.folder), char(onset_glob.name));
     if isempty(onset_glob)
@@ -140,39 +126,9 @@ for run_ind = 1: size(A,1)
     keyword       = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
     task          = char(extractAfter(keyword, '-'));
 
-    % cue_P         = [ 0,m1(task),0,0,0,0,0,0,0,0,0,0,0,0,0 ];
-    % cue_V         = [ 0,m2(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ];
-    % cue_C         = [ 0,m3(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ];
-    % cue_G         = [ 0,m4(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ];
-    % stim_P        = [ 0,0,0,m1(task),0,0,0,0,0,0,0,0,0,0,0  ];
-    % stim_V        = [ 0,0,0,m2(task),0,0,0,0,0,0,0,0,0,0,0  ];
-    % stim_C        = [ 0,0,0,m3(task),0,0,0,0,0,0,0,0,0,0,0  ];
-    % stim_G        = [ 0,0,0,m4(task),0,0,0,0,0,0,0,0,0,0,0  ];
-    % stimXcue_P    = [ 0,0,0,0,m1(task),0,0,0,0,0,0,0,0,0,0  ];
-    % stimXcue_V    = [ 0,0,0,0,m2(task),0,0,0,0,0,0,0,0,0,0  ];
-    % stimXcue_C    = [ 0,0,0,0,m3(task),0,0,0,0,0,0,0,0,0,0  ];
-    % stimXcue_G    = [ 0,0,0,0,m4(task),0,0,0,0,0,0,0,0,0,0  ];
-    % stimXactual_P = [ 0,0,0,0,0,m1(task),0,0,0,0,0,0,0,0,0  ];
-    % stimXactual_V = [ 0,0,0,0,0,m2(task),0,0,0,0,0,0,0,0,0  ];
-    % stimXactual_C = [ 0,0,0,0,0,m3(task),0,0,0,0,0,0,0,0,0  ];
-    % stimXactual_G = [ 0,0,0,0,0,m4(task),0,0,0,0,0,0,0,0,0  ];
-    % motor         = [ 0,0,1,0,0,0,1,0,0,0,0,0,0,0,0    ];
-    disp(strcat('task: ', task));
-    % identify which trials have missing pmods,
-    % eliminate the corresponding trial from onset too
-    % c01 = [ c01  cue_P];  c02 = [ c02  cue_V];  c03 = [ c03  cue_C];  c04 = [ c04  cue_G];
-    % c05 = [ c05  stim_P];  c06 = [ c06  stim_V];  c07 = [ c07  stim_C];  c08 = [ c08  stim_G];
-    % c09 = [ c09  stimXcue_P];  c10 = [ c10  stimXcue_V];  c11 = [ c11  stimXcue_C];  c12 = [ c12  stimXcue_G];
-    % c13 = [ c13  stimXactual_P];  c14 = [ c14  stimXactual_V];  c15 = [ c15  stimXactual_C];  c16 = [ c16  stimXactual_G];
-    % c17 = [ c17  motor];
 
     disp(strcat('[ STEP 05 ]creating motion covariate text file...'));
-    %onset_fname = '/Users/h/Documents/projects_local/social_influence_analysis/data/dartmouth/EV_bids/sub-0006/ses-01'
-    %m_fmriprep   = fullfile(fmriprep_dir, sub, ses, 'func', ...
-    %               strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_desc-confounds_timeseries.tsv'));
-    %m            = struct2table(tdfread(m_fmriprep));
     %m_subset     = m(:, {'csf', 'white_matter', 'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z'});
-    %m_double     = table2array(m_subset);
 
     mask_fname = fullfile(fmriprep_dir, sub, 'ses-01', 'anat',...
     strcat(sub, '_ses-01_acq-MPRAGEXp3X08mm_desc-brain_mask.nii.gz'));

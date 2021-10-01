@@ -5,7 +5,6 @@ disp('...STARTING JOBS');
 
 rootgroup = settings; rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = 'v7.3'
 
-
 numscans = 56;
 disacqs = 0;
 disp(input);
@@ -29,17 +28,13 @@ main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
 motion_dir = fullfile(main_dir, 'data', 'dartmouth', 'd05_motion');
 onset_dir = fullfile(main_dir, 'data', 'dartmouth', 'd04_EV_SPM');
 
-
-
 sub_num = sscanf(char(input),'%d');
 sub = strcat('sub-', sprintf('%04d', sub_num));
 disp( sub );
-
-
+% /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/analysis/fmri/spm/model-01_CcEScaA/1stLevel/sub-0005
 fmri_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'model-01_CcEScaA',...
     '1stLevel', sub); % first level spm mat.
 spm_fname = fullfile(fmri_dir, 'SPM.mat');
-
 
 % NOTE 03 find intersection of nifti and onset files
 % find nifti files
@@ -58,7 +53,7 @@ nii_num_colomn = nii_col_names(endsWith(nii_col_names, '_num'));
 onsetlist = dir(fullfile(onset_dir, sub, '*', strcat(sub, '_*_task-social_*_events.tsv')));
 onsetT = struct2table(onsetlist);
 sortedonsetT = sortrows(onsetT, 'name');
-
+disp(strcat(sortedonsetT.name))
 sortedonsetT.sub_num(:) = str2double(extractBetween(sortedonsetT.name, 'sub-', '_'));
 sortedonsetT.ses_num(:) = str2double(extractBetween(sortedonsetT.name, 'ses-', '_'));
 sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '-'));
@@ -143,6 +138,7 @@ for run_ind = 1: size(A,1)
     simple_stimXactual_P = [ 0,0,0,0,0,m5(task),0,0,0,0,0,0,0,0,0  ];
     simple_stimXactual_V = [ 0,0,0,0,0,m6(task),0,0,0,0,0,0,0,0,0  ];
     simple_stimXactual_C = [ 0,0,0,0,0,m7(task),0,0,0,0,0,0,0,0,0  ];
+
     c01 = [ c01  cue_P];          c02 = [ c02  cue_V];          c03 = [ c03  cue_C];          c04 = [ c04  cue_G];
     c05 = [ c05  cueXcue_P];      c06 = [ c06  cueXcue_V];      c07 = [ c07  cueXcue_C];      c08 = [ c08  cueXcue_G];
     c09 = [ c09  stim_P];         c10 = [ c10  stim_V];         c11 = [ c11  stim_C];         c12 = [ c12  stim_G];
@@ -154,7 +150,6 @@ for run_ind = 1: size(A,1)
     c28 = [ c28  simple_stim_P];         c29 = [ c29  simple_stim_V];        c30 = [ c30  simple_stim_C];
     c31 = [ c31  simple_stimXcue_P];     c32 = [ c32  simple_stimXcue_V];    c33 = [ c33  simple_stimXcue_C];
     c34 = [ c34  simple_stimXactual_P];  c35 = [ c35  simple_stimXactual_V]; c36 = [ c36  simple_stimXactual_C];
-
 
     disp(strcat('task: ', task));
 
@@ -174,10 +169,10 @@ contrast_vector{21} = c21; contrast_vector{22} = c22;
 contrast_vector{23} = c23; contrast_vector{24} = c24;
 contrast_vector{25} = c25; contrast_vector{26} = c26;
 contrast_vector{27} = c27; contrast_vector{28} = c28;
-contrast_vector{28} = c29; contrast_vector{30} = c30;
-contrast_vector{31} = c11; contrast_vector{32} = c12;
-contrast_vector{33} = c13; contrast_vector{34} = c14;
-contrast_vector{35} = c15; contrast_vector{36} = c16;
+contrast_vector{29} = c29; contrast_vector{30} = c30;
+contrast_vector{31} = c31; contrast_vector{32} = c32;
+contrast_vector{33} = c33; contrast_vector{34} = c34;
+contrast_vector{35} = c35; contrast_vector{36} = c36;
 
 %% 1. contrast batch _______________________________________________________
 for con_num = 1: length(contrast_name)
