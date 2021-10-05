@@ -5,6 +5,10 @@
 % 1. for each subject, get fsl estimated single trials
 % 2. stack in FSL >  
 % sub-0020_ses-03_run-05-pain_ev-stim-0011.nii.gz 
+% sub-0020_ses-03_run-05-pain_ev-stim-0010.nii.gz 
+% >> concatenate across session and runs. 
+% >> save as sub-0020_task-pain.nii.gz
+% >> save metadata into json, so that I can grab matching behavioral data, too
 % 2. UNGUNZIP if not 
 %       [x] unpack nii.gz as .nii 
 % 2. [ ] load into cell 
@@ -93,6 +97,18 @@ for s = 1 : length(sublist)
     X{1,s} = cue_contrast;
     Y{1,s} = actual_rating;
     M{1,s} = fullfile(single_concat_dir,strcat('single-trial_sub-',sprintf('%04d', sublist(s)), '.nii'));
+
+    % save as table
+    vnames = {'trial', 'cue', 'actual_rating', 'nii_filename'};
+    vtypes = {'double','double','double','string'}
+    F = table('Size', [size(design_file,1), size(vnames,2)], 'VariableNames', vnames, 'VariableTypes', vtypes);
+    F.trial = 1:length(nii_files);
+    F.cue = cue_contrast;
+    F.actual_rating = actual_rating;
+    F.nii_filename = nii_files;
+    save_tableF = 
+    writetable(F,save_tableF);
+
         
 end
 
