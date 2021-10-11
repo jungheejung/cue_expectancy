@@ -6,7 +6,7 @@ from pathlib import Path
 # cross check and copy over only that doesn't exist in d02_preprocessed
 
 current_dir = os.getcwd()
-analysis_repo_dir = Path(current_dir).parents[1]
+analysis_repo_dir = Path(current_dir).parents[2]
 data_repo_dir = "/Users/h/Documents/projects_local/d_beh" # USER, INSERT PATH
 
 
