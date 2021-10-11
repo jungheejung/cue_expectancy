@@ -1,4 +1,3 @@
-function multi02_mediation
 % TODO:
 % 1. grab nifti and unzip
 % 2. grab metadata
@@ -10,7 +9,9 @@ rmpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip'));
 rmpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip/external/stats');
 % parameters __________________________________________________________________
 nifti_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/analysis/fmri/fsl/multivariate/isolate_nifti';
-sublist = [2,3,4,6,7,8,9,10,18,19,20,23,25,26,28,29];%, 19];%,26];
+sublist = [2,3,4,6,7,...
+8,9,10,18,19,...
+20,23,25,26,28,29];%, 19];%,26];
 
 X = cell(1, length(sublist));
 M = cell(1, length(sublist));
@@ -77,4 +78,6 @@ printhdr('Path a*b: Brain Mediators of Temperature Effects on Pain')
 [clpos, clneg, clpos_data, clneg_data, clpos_data2, clneg_data2] = mediation_brain_results('ab', 'thresh', ...
     SETUP.fdr_p_thresh, 'size', 5, ...
     'slices', 'tables', 'names', 'save');
-end
+
+    load('cl_M-Y_pvals_003_k5_noprune.mat')
+    whos cl*
