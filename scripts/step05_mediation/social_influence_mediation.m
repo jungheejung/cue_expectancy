@@ -100,7 +100,7 @@ for s = 1 : length(sublist)
 
     % save as table
     vnames = {'trial', 'cue', 'actual_rating', 'nii_filename'};
-    vtypes = {'double','double','double','string'}
+    vtypes = {'double','double','double','string'};
     F = table('Size', [size(design_file,1), size(vnames,2)], 'VariableNames', vnames, 'VariableTypes', vtypes);
     F.trial = 1:length(nii_files);
     F.cue = cue_contrast;
@@ -166,5 +166,7 @@ SETUP.wh_is_mediator = 'M';
 mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc')
 
 SETUP = mediation_brain_corrected_threshold('fdr');
+
+
 
 
