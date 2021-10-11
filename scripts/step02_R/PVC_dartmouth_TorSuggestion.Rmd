@@ -1,0 +1,742 @@
+---
+title: "PVC_dartmouth_TorSuggestion"
+author: "Heejung Jung"
+date: "4/6/2021"
+output: html_document
+---
+# load libraries
+```{r}
+library(psych)
+library(car)
+library(lmSupport)
+library(lme4)
+library(lmerTest)
+library(plyr)
+
+library(tidyr)
+library(stringr)
+library(ggplot2)
+#library(Hmisc)
+
+#library(Rmisc)
+library(png)
+library(knitr)
+library(TMB)
+#library(sjPlot)
+#library(ggpubr)
+library(gridExtra)
+#library(merTools)
+#library(sjstats) #to get ICC
+#library(broom)
+library(tidyverse)
+library(GGally)
+library(RCurl)
+library(rstanarm)
+library(reshape)
+library(boot)
+library(afex)
+library(cowplot)
+library(readr)
+library(lavaan)
+library(rmarkdown)
+library(readr)
+library(caTools)
+library(bitops)
+library(stringr)
+## library(extraoperators)
+##library(JWileymisc)
+##library(multilevelTools)
+library(ggpubr)
+library(dplyr)
+# library(PupillometryR)
+source('http://psych.colorado.edu/~jclab/R/mcSummaryLm.R')
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
+source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+library(r2mlm)
+```
+
+
+# parameters
+
+```{r}
+main_dir = dirname(dirname(getwd()))
+```
+# 0. function
+
+## a) summary table
+http://www.cookbook-r.com/Graphs/Plotting_means_and_error_bars_(ggplot2)/#Helper%20functions
+
+### Function normdatawithin
+```{r}
+normDataWithin <- function(data=NULL, idvar, measurevar, betweenvars=NULL,
+                           na.rm=FALSE, .drop=TRUE) {
+  ## Norms the data within specified groups in a data frame; it normalizes each
+## subject (identified by idvar) so that they have the same mean, within each group
+## specified by betweenvars.
+##   data: a data frame.
+##   idvar: the name of a column that identifies each subject (or matched subjects)
+##   measurevar: the name of a column that contains the variable to be summariezed
+##   betweenvars: a vector containing names of columns that are between-subjects variables
+##   na.rm: a boolean that indicates whether to ignore NA's
+    library(plyr)
+
+    # Measure var on left, idvar + between vars on right of formula.
+    data.subjMean <- ddply(data, c(idvar, betweenvars), .drop=.drop,
+     .fun = function(xx, col, na.rm) {
+        c(subjMean = mean(xx[,col], na.rm=na.rm))
+      },
+      measurevar,
+      na.rm
+    )
+
+    # Put the subject means with original data
+    data <- merge(data, data.subjMean)
+
+    # Get the normalized data in a new column
+    measureNormedVar <- paste(measurevar, "_norm", sep="")
+    data[,measureNormedVar] <- data[,measurevar] - data[,"subjMean"] +
+                               mean(data[,measurevar], na.rm=na.rm)
+
+    # Remove this subject mean column
+    data$subjMean <- NULL
+
+    return(data)
+}
+```
+
+### FUNCTION: summarySEwithin
+```{r}
+summarySEwithin <- function(data=NULL, measurevar, betweenvars=NULL, withinvars=NULL,
+                            idvar=NULL, na.rm=FALSE, conf.interval=.95, .drop=TRUE) {
+
+  ## Summarizes data, handling within-subjects variables by removing inter-subject variability.
+## It will still work if there are no within-S variables.
+## Gives count, un-normed mean, normed mean (with same between-group mean),
+##   standard deviation, standard error of the mean, and confidence interval.
+## If there are within-subject variables, calculate adjusted values using method from Morey (2008).
+##   data: a data frame.
+##   measurevar: the name of a column that contains the variable to be summariezed
+##   betweenvars: a vector containing names of columns that are between-subjects variables
+##   withinvars: a vector containing names of columns that are within-subjects variables
+##   idvar: the name of a column that identifies each subject (or matched subjects)
+##   na.rm: a boolean that indicates whether to ignore NA's
+##   conf.interval: the percent range of the confidence interval (default is 95%)
+  # Ensure that the betweenvars and withinvars are factors
+  factorvars <- vapply(data[, c(betweenvars, withinvars), drop=FALSE],
+    FUN=is.factor, FUN.VALUE=logical(1))
+
+  if (!all(factorvars)) {
+    nonfactorvars <- names(factorvars)[!factorvars]
+    message("Automatically converting the following non-factors to factors: ",
+            paste(nonfactorvars, collapse = ", "))
+    data[nonfactorvars] <- lapply(data[nonfactorvars], factor)
+  }
+
+  # Get the means from the un-normed data
+  datac <- summarySE(data, measurevar, groupvars=c(betweenvars, withinvars),
+                     na.rm=na.rm, conf.interval=conf.interval, .drop=.drop)
+
+  # Drop all the unused columns (these will be calculated with normed data)
+  datac$sd <- NULL
+  datac$se <- NULL
+  datac$ci <- NULL
+
+  # Norm each subject's data
+  ndata <- normDataWithin(data, idvar, measurevar, betweenvars, na.rm, .drop=.drop)
+
+  # This is the name of the new column
+  measurevar_n <- paste(measurevar, "_norm", sep="")
+
+  # Collapse the normed data - now we can treat between and within vars the same
+  ndatac <- summarySE(ndata, measurevar_n, groupvars=c(betweenvars, withinvars),
+                      na.rm=na.rm, conf.interval=conf.interval, .drop=.drop)
+
+  # Apply correction from Morey (2008) to the standard error and confidence interval
+  #  Get the product of the number of conditions of within-S variables
+  nWithinGroups    <- prod(vapply(ndatac[,withinvars, drop=FALSE], FUN=nlevels,
+                           FUN.VALUE=numeric(1)))
+  correctionFactor <- sqrt( nWithinGroups / (nWithinGroups-1) )
+
+  # Apply the correction factor
+  ndatac$sd <- ndatac$sd * correctionFactor
+  ndatac$se <- ndatac$se * correctionFactor
+  ndatac$ci <- ndatac$ci * correctionFactor
+
+  # Combine the un-normed means with the normed results
+  df = merge(datac, ndatac)
+  return(df)
+  
+}
+```
+
+### FUNCTION: summarySE
+```{r}
+# summarySE function
+summarySE <- function(data = NULL, measurevar, groupvars = NULL, na.rm = FALSE,
+                      conf.interval = .95, .drop = TRUE) {
+  library(plyr)
+
+  # New version of length which can handle NA's: if na.rm==T, don't count them
+  length2 <- function(x, na.rm = FALSE) {
+    if (na.rm) {
+      sum(!is.na(x))
+    } else {
+      length(x)
+    }
+  }
+
+  # This does the summary. For each group's data frame, return a vector with
+  # N, mean, median, and sd
+
+  datac <- plyr::ddply(data, groupvars, .drop=.drop,
+                   .fun = function(xx, col) {
+                       c(N      = length2(xx[[col]], na.rm=na.rm),
+                         mean   = mean(xx[[col]], na.rm=na.rm),
+                         median = median(xx[[col]], na.rm=na.rm),
+                         sd      = sd(xx[[col]], na.rm=na.rm)
+                       )
+                   },
+                   measurevar
+  )
+
+  # Rename the "mean" and "median" columns
+ datac <- plyr::rename(datac, c("mean" = paste(measurevar, "_mean", sep = "")))
+ datac <- plyr::rename(datac, c("median" = paste(measurevar, "_median", sep = "")))
+
+ datac$se <- datac$sd / sqrt(datac$N)  # Calculate standard error of the mean
+
+  # Confidence interval multiplier for standard error
+  # Calculate t-statistic for confidence interval:
+  # e.g., if conf.interval is .95, use .975 (above/below), and use df=N-1
+  ciMult <- qt(conf.interval / 2 + .5, datac$N - 1)
+  datac$ci <- datac$se * ciMult
+
+  return(datac)
+}
+```
+
+### FUNCTION: meanSummary
+```{r}
+meanSummary <- function(DATA, GROUP, DV){
+  z <- ddply(DATA, GROUP, .fun = function(xx){
+                         c(mean_per_sub = mean(xx[,DV],na.rm=TRUE),
+                         sd = sd(xx[,DV],na.rm=TRUE) ) })
+  return(z)
+  }
+```
+
+
+## FUNCTION: expect_df load data
+```{r}
+expect_df = function(TASKNAME, SUBJECT_VARKEY, IV, DV, EXCLUDE ) {
+  
+  # INPUT:
+  # * TASKNAME (e.g. pain, cognitive, vicarious)
+  # * SUBJECT_VARKEY (e.g. src_subject_id or subject)
+  # A. load data ______________________________________________________________
+  FILENAME = paste('*_task-social_*-' ,TASKNAME, '_beh.csv', sep = "")
+  common_path = Sys.glob(file.path(main_dir,'data', 'dartmouth', 'preprocessed',
+                                   'sub-*','ses-*',FILENAME))
+  filter_path = common_path[!str_detect(common_path,pattern="sub-0001")]
+  
+  DF <- do.call("rbind",lapply(filter_path,FUN=function(files){ read.csv(files)}))
+  is.nan.data.frame <- function(x)
+    do.call(cbind, lapply(x, is.nan))
+  DF[is.nan(DF)] <- NA
+  # subjects as factor
+  print("subject")
+  DF[,"subject"] = factor(DF[,SUBJECT_VARKEY])
+  # print("line323")
+  # B. plot expect rating NA ___________________________________________________
+  DF_expect_NA = aggregate(DF[,DV], list(DF$subject),function(x) sum(is.na(x)))
+  TITLE = paste(TASKNAME, " task - Expectation ratings", sep = "" )
+  ggplot(DF_expect_NA, aes(x = Group.1, y = x))+ 
+    geom_bar(stat = "identity", position = "identity") +
+    xlab("subject ID") + 
+    ylab("freq. of NA") + 
+    ggtitle(TITLE) +
+    theme_bw()
+  
+  # C. run model ___________________________________________________
+  
+  DF_remove_NA = DF[!is.na(  DF[DV]  ),]
+  return(DF_remove_NA)
+  # cog_dataset[!is.na(cog_dataset["event02_expect_angle"]),]
+    # c1. contrastcode
+  # stimulus intensity
+  # DF_remove_NA$stim[DF_remove_NA$event03_stimulus_type == "low_stim"] <- -0.5 # social influence task
+  # DF_remove_NA$stim[DF_remove_NA$event03_stimulus_type == "med_stim"] <- 0 # no influence task
+  # DF_remove_NA$stim[DF_remove_NA$event03_stimulus_type == "high_stim"] <- 0.5 # no influence task
+  # 
+  # DF_remove_NA$stim_factor = factor(DF_remove_NA$event03_stimulus_type)
+  # 
+  # #contrast code 1 linear
+  # DF_remove_NA$stim_con_linear[DF_remove_NA$event03_stimulus_type == "low_stim"] <- -0.5
+  # DF_remove_NA$stim_con_linear[DF_remove_NA$event03_stimulus_type == "med_stim"] <- 0
+  # DF_remove_NA$stim_con_linear[DF_remove_NA$event03_stimulus_type == "high_stim"] <- 0.5
+  # 
+  # # contrast code 2 quadratic
+  # DF_remove_NA$stim_con_quad[DF_remove_NA$event03_stimulus_type == "low_stim"] <- -0.33
+  # DF_remove_NA$stim_con_quad[DF_remove_NA$event03_stimulus_type == "med_stim"] <- 0.66
+  # DF_remove_NA$stim_con_quad[DF_remove_NA$event03_stimulus_type == "high_stim"] <- -0.33
+  # 
+  # # social cude contrast
+  # DF_remove_NA$social_cue[DF_remove_NA[,IV] == 'low_cue'] <- -0.5 # social influence task
+  # DF_remove_NA$social_cue[DF_remove_NA[,IV] == 'high_cue'] <- 0.5 # no influence task
+  # DF_remove_NA$cue_factor = factor(DF_remove_NA[,IV])
+  return(as.data.frame(DF_remove_NA))
+}
+
+```
+
+## FUNCTION: run_cue_lmer 
+```{r}
+run_cue_lmer = function(DATA,TASKNAME, IV, DV, SUBJECT, DV_KEYWORD){
+  model.cue = lmer( DATA[,DV] ~ DATA[,IV] + (DATA[,IV] | DATA[,SUBJECT]))
+  print("--------------------------")
+  print(paste("model: ", str_to_title(DV_KEYWORD), " ratings - ", TASKNAME))
+  print(paste("IV: ", str_to_title(IV),"DV: ", str_to_title(DV) ))
+  print(paste("Random effects: ", str_to_title(SUBJECT)))
+  print("--------------------------")
+  print(summary(model.cue))
+  
+  model_filename = file.path(main_dir, 'analysis', 'semicircle_degree', 
+                   paste('lmer_task-' ,TASKNAME, '_rating-', DV_KEYWORD,'_torsuggest.txt', sep = ""))
+  sink(model_filename)
+  print("--------------------------")
+  print(paste("model: ", str_to_title(DV_KEYWORD), " ratings - ", TASKNAME))
+  print(paste("IV: ", str_to_title(IV),"DV: ", str_to_title(DV) ))
+  print(paste("Random effects: ", str_to_title(SUBJECT)))
+  print("--------------------------")
+  print(summary(model.cue))
+  sink()
+  }
+```
+
+## FUNCTION: run_full_lmer
+```{r}
+run_full_lmer = function(DATA,TASKNAME, IV,CON1, CON2, DV, SUBJECT, DV_KEYWORD){
+  
+  
+  model.full = lmer( DATA[,DV] ~ DATA[,IV]* DATA[,CON1] +
+                       DATA[,IV]* DATA[,CON2]+ 
+                       (DATA[,IV]* DATA[,CON1] +  DATA[,IV]* DATA[,CON2] | DATA[,SUBJECT])
+                     )
+  print("--------------------------")
+  print(paste("model: ", str_to_title(DV_KEYWORD), " ratings - ", TASKNAME))
+  print(paste("IV: ", str_to_title(IV),"CONTRASTS",str_to_title(CON1),str_to_title(CON2), "DV: ", str_to_title(DV) ))
+  print(paste("Random effects: ", str_to_title(SUBJECT)))
+  print("--------------------------")
+  print(summary(model.full))
+  
+  model_filename = file.path(main_dir, 'analysis', 'semicircle_degree', 
+                   paste('lmer_task-' ,TASKNAME, '_rating-', DV_KEYWORD,'_torsuggest.txt', sep = ""))
+  sink(model_filename)
+  print("--------------------------")
+  print(paste("model: ", str_to_title(DV_KEYWORD), " ratings - ", TASKNAME))
+  print(paste("IV: ", str_to_title(IV),"CONTRASTS",str_to_title(CON1),str_to_title(CON2), "DV: ", str_to_title(DV) ))
+  print(paste("Random effects: ", str_to_title(SUBJECT)))
+  print("--------------------------")
+  print(summary(model.full))
+  sink()
+  }
+```
+
+# ______________
+# 1. EXPECT
+# ______________
+
+
+## expect contrast
+```{r}
+# stimulus intensity
+DF$stim[DF$event03_stimulus_type == "low_stim"] <- -0.5 # social influence task
+DF$stim[DF$event03_stimulus_type == "med_stim"] <- 0 # no influence task
+DF$stim[DF$event03_stimulus_type == "high_stim"] <- 0.5 # no influence task
+
+DF$stim_factor = factor(DF$event03_stimulus_type)
+
+#contrast code 1 linear
+DF$stim_con_linear[DF$event03_stimulus_type == "low_stim"] <- -0.5
+DF$stim_con_linear[DF$event03_stimulus_type == "med_stim"] <- 0
+DF$stim_con_linear[DF$event03_stimulus_type == "high_stim"] <- 0.5
+
+# contrast code 2 quadratic
+DF$stim_con_quad[DF$event03_stimulus_type == "low_stim"] <- -0.33
+DF$stim_con_quad[DF$event03_stimulus_type == "med_stim"] <- 0.66
+DF$stim_con_quad[DF$event03_stimulus_type == "high_stim"] <- -0.33
+
+# social cude contrast
+DF$social_cue[DF$param_cue_type == 'low_cue'] <- -0.5 # social influence task
+DF$social_cue[DF$param_cue_type == 'high_cue'] <- 0.5 # no influence task
+DF$cue_factor = factor(DF$param_cue_type)
+```
+
+```{r}
+# parameters
+TASKNAME = 'vicarious'
+SUBJECT_VARKEY = "src_subject_id"
+IV = "param_cue_type"
+DV = "event02_expect_angle"
+DV_KEYWORD = "expect"
+XLAB = ""; YLAB = "ratings (degree)"; 
+if(any(startsWith(DV_KEYWORD, c("expect", "Expect")))){COLOR = c( "#1B9E77", "#D95F02")}else{COLOR=c( "#4575B4", "#D73027")} # if 
+GGTITLE = paste(TASKNAME, " - Expectation Rating (degree)")
+TITLE = paste(TASKNAME, " - Expect")
+SUBJECT = "subject"
+EXCLUDE = ""
+
+DATA = expect_df(TASKNAME, SUBJECT_VARKEY, IV, DV, EXCLUDE )
+
+DATA$cue[DATA$param_cue_type == 'high_cue'] <- "high cue" 
+DATA$cue[DATA$param_cue_type == 'low_cue'] <- "low cue" # no influence task
+
+DATA$stim[DATA$param_stimulus_type == 'high_stim'] <- "high" # no influence task
+DATA$stim[DATA$param_stimulus_type == 'med_stim'] <- "med" # no influence task
+DATA$stim[DATA$param_stimulus_type == 'low_stim'] <- "low" # no influence task
+
+DATA$stim <- factor(DATA$stim, levels=c("low", "med", "high"))
+DATA$cue <- factor(DATA$cue, levels=c( "low cue", "high cue"))
+df_d = meanSummary(DATA, c(SUBJECT, "stim", "cue"), DV)
+
+
+run_cue_lmer(DATA,TASKNAME, IV, DV, SUBJECT, DV_KEYWORD)
+
+# IV = "param_cue_type"
+# DV = "event02_expect_angle"
+
+# plot ver 1
+df_d = meanSummary(DATA, c(SUBJECT, "cue"), DV)
+df_a = summarySEwithin(data=df_d,
+                  measurevar = "mean_per_sub", # variable created from above
+                    withinvars = c("cue"), # IV
+                    idvar = "subject")
+
+p1 <- ggplot(data = df_a, aes(x = cue, y = mean_per_sub_norm_mean, fill = cue)) +
+  geom_bar(stat = "identity", width = .5) +
+  geom_errorbar(data = df_a, aes(ymin = mean_per_sub_norm_mean-ci, ymax = mean_per_sub_norm_mean+ci, width = .05))+
+  geom_point(data = df_d, aes(y = mean_per_sub, x = cue), alpha = 0.4, width = .1, 
+             position = position_jitter(.1),
+             size = 2) +
+  guides(fill=FALSE) +
+  ylab("score mean") +
+  # theme_cowplot()+
+  ggtitle(GGTITLE)
+p1
+
+# plot ver 2 - con
+WIDE_EXPECT = meanSummary(DATA, c(SUBJECT, IV), DV)
+
+WIDE_EXPECT_D = DATA_EXPECT %>%
+  select(subject, param_cue_type, mean_per_sub ) %>%
+  spread( param_cue_type, mean_per_sub )
+WIDE_EXPECT_D$high_vs_low_cue = WIDE_EXPECT_D$high_cue - WIDE_EXPECT_D$low_cue
+
+WIDE_EXPECT_A = summarySE(data=WIDE_EXPECT_D,
+                  measurevar = "high_vs_low_cue") # variable created from above
+                # withinvars = c("subject")) # IV
+                   # idvar = "subject")
+
+# summarySE <- function(data = NULL, measurevar, groupvars = NULL, na.rm = FALSE,
+                      # conf.interval = .95, .drop = TRUE) 
+
+expect.effect.size = mean(WIDE_EXPECT$high_vs_low_cue)/sd(WIDE_EXPECT$high_vs_low_cue) # 2.61
+
+res <- t.test(WIDE_EXPECT_D$high_vs_low_cue, mu = 0)
+print(res)
+
+# data:  WIDE_EXPECT_D$high_vs_low_cue
+# t = 7.8302, df = 8, p-value = 5.095e-05
+# alternative hypothesis: true mean is not equal to 0
+# 95 percent confidence interval:
+#  23.24188 42.64609
+# sample estimates:
+# mean of x 
+#  32.94398 
+
+
+# raincloud plots
+g <- ggplot(data = df_d, aes(y = mean_per_sub, x = cue, fill = cue)) +
+  geom_flat_violin(aes(fill = cue), position = position_nudge(x = .1, y = 0), adjust = 1.5,
+                   trim = FALSE, alpha = .5, colour = NA) +
+  geom_line(data = df_d, aes(group = subject, y = mean_per_sub, x = as.numeric(cue)-.15, fill = cue), linetype = 3, color = "grey") +
+  #geom_point(aes(group = subject, x = as.numeric(levels_ordered)-.15, y = mean_per_sub, color = social_name),
+ #            position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+  geom_point(aes(x = as.numeric(cue)-.15, y = mean_per_sub, color = cue),
+             position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+  geom_boxplot(aes(x = cue, y = mean_per_sub, fill = cue),width = .1,
+               outlier.shape = NA, alpha = 0.8, width = .1, colour = "black") +
+  
+  # use summary stats __________________________________________________________________________________
+#  geom_line(data = a, aes(x = as.numeric(levels_ordered)+.1, y = mean_degree_per_sub_norm,
+#                           group = social_name, colour = social_name), linetype = 3) +
+  
+  # geom_point(data = a, aes(x = as.numeric(levels_ordered)+.1, y = mean_degree_per_sub_norm,
+                           # group = social_name, colour = social_name), shape = 18) +
+  geom_errorbar(data = df_a, aes(x = as.numeric(cue)+.1, y = mean_per_sub_norm_mean,
+                             colour = cue, 
+                              ymin = mean_per_sub_norm_mean-se, 
+                              ymax = mean_per_sub_norm_mean+se), width = .05) +
+
+  # legend stuff __________________________________________________________________________________
+  expand_limits(x = 2.8) +
+  guides(fill = FALSE) +
+  guides(color = FALSE) +
+  guides(fill=guide_legend(title="social cues"))+
+  # scale_color_brewer(palette = "PiYG") +
+  # scale_fill_brewer(palette = "PiYG") +
+  scale_fill_manual(values =COLOR) +#c( "#4575B4", "#D73027"))+
+  scale_color_manual(values = COLOR)+ #c( "#4575B4","#D73027"))+
+  ggtitle(GGTITLE) +
+  # coord_flip() + #vertical vs horizontal
+  
+  xlab("Stimulus intensity levels") +
+  ylab("Degrees of expected ratings") +
+  theme_bw() 
+
+g
+
+
+```
+
+# cue effect onesample t
+## 1) tidyverse - wide form
+## 2) calculate high vs low cue "event02_expect_angle" "event04_actual_angle"
+```{r}
+# widen
+IV = "param_cue_type"
+DV = "event02_expect_angle"
+DATA_EXPECT = meanSummary(DATA, c(SUBJECT, IV), DV)
+
+WIDE_EXPECT = DATA_EXPECT %>% 
+  select(subject, param_cue_type, mean_per_sub ) %>%
+  spread( param_cue_type, mean_per_sub )
+
+
+df_d = meanSummary(DATA, c(SUBJECT, IV), DV)
+df_a = summarySEwithin(data=df_d, 
+                  measurevar = "mean_per_sub", # variable created from above
+                    withinvars = c(IV), # IV
+                    idvar = "subject")
+```
+
+
+```{r}
+WIDE_EXPECT$high_vs_low_cue = WIDE_EXPECT$high_cue - WIDE_EXPECT$low_cue
+expect.effect.size = mean(WIDE_EXPECT$high_vs_low_cue)/sd(WIDE_EXPECT$high_vs_low_cue) # 2.61
+EXPECT_CON_D = meanSummary(WIDE_EXPECT, c( IV), high_vs_low_cue)
+EXPECT_CON_A = summarySEwithin(data=EXPECT_CON_D, 
+                  measurevar = "mean_per_sub", # variable created from above
+                   # withinvars = c(IV), # IV
+                    idvar = "subject")
+```
+
+# barplot ver 1
+```{r}
+
+p1 <- ggplot(data = df_a, aes(x = param_cue_type, y = mean_per_sub_norm_mean, fill = param_cue_type)) +
+  geom_bar(stat = "identity", width = .5) +
+  geom_errorbar(data = df_a, aes(ymin = mean_per_sub_norm_mean-ci, ymax = mean_per_sub_norm_mean+ci, width = .05))+
+  geom_point(data = df_d, aes(y = mean_per_sub, x = param_cue_type), alpha = 0.4, width = .1, 
+             position = position_jitter(.1),
+             size = 2) +
+  guides(fill=FALSE) +
+  ylab("score mean") +
+  theme_cowplot()+
+  ggtitle(GGTITLE)
+p1
+```
+
+# barplot ver 2
+```{r}
+# WIDE_EXPECT %>% get_summary_stats(high_vs_low_cue, type = "mean_sd")
+# res <- t.test(WIDE_EXPECT$high_vs_low_cue, mu = 0)
+cue_onet.test <- lmer(high_vs_low_cue ~ 1, mu = 0)
+cue_onet.test
+# Printing the results
+# res 
+```
+
+```{r}
+
+p2 <- ggplot(data = df_a, aes(x = param_cue_type, y = mean_per_sub_norm_mean, fill = param_cue_type)) +
+  geom_bar(stat = "identity", width = .5) +
+  geom_errorbar(data = df_a, aes(ymin = mean_per_sub_norm_mean-ci, ymax = mean_per_sub_norm_mean+ci, width = .05))+
+  geom_point(data = df_d, aes(y = mean_per_sub, x = param_cue_type), alpha = 0.4, width = .1, 
+             position = position_jitter(.1),
+             size = 2) +
+  guides(fill=FALSE) +
+  ylab("score mean") +
+  theme_cowplot()+
+  ggtitle(GGTITLE)
+p2
+```
+
+```{r}
+df_d = meanSummary(DATA, c(SUBJECT, IV), DV)
+df_a = summarySEwithin(data=df_d, 
+                  measurevar = "mean_per_sub", # variable created from above
+                    withinvars = c(IV), # IV
+                    idvar = "subject")
+
+if(any(startsWith(DV_KEYWORD, c("expect", "Expect")))){COLOR = c( "#1B9E77", "#D95F02")}else{COLOR=c( "#4575B4", "#D73027")} # if keyword starts with
+GGTITLE = paste(TASKNAME, " - Expectation Rating (degree)")
+TITLE = paste(TASKNAME, " - Expect")
+plot_expect_rainclouds(df_d, df_a, GGTITLE, TITLE, XLAB, YLAB, TASKNAME, 5, 3, DV_KEYWORD,COLOR)
+```
+
+
+# ----------------
+# full factorial
+# ----------------
+
+
+```{r}
+
+# parameters __________________________________________________________________
+TASKNAME = 'cognitive'
+SUBJECT_VARKEY = "src_subject_id"
+IV1 = "param_cue_type"
+IV2 = "param_stimulus_type"
+DV = "event04_actual_angle"
+DV_KEYWORD = "actual"
+XLAB = ""; YLAB = "ratings (degree)"; 
+
+GGTITLE = paste(TASKNAME, " - Actual Rating (degree)")
+TITLE = paste(TASKNAME, " - Actual")
+SUBJECT = "subject"
+EXCLUDE = ""
+if(any(startsWith(DV_KEYWORD, c("expect", "Expect")))){COLOR = c( "#1B9E77", "#D95F02")}else{COLOR=c(  "#D73027", "#4575B4")}
+# 1. load data
+ACTUAL_DATA = expect_df(TASKNAME, SUBJECT_VARKEY, IV, DV, EXCLUDE )
+
+# contrasts __________________________________________________________________
+
+#contrast code 1 linear
+ACTUAL_DATA$stim_con_linear[ACTUAL_DATA$event03_stimulus_type == "low_stim"] <- -0.5
+ACTUAL_DATA$stim_con_linear[ACTUAL_DATA$event03_stimulus_type == "med_stim"] <- 0
+ACTUAL_DATA$stim_con_linear[ACTUAL_DATA$event03_stimulus_type == "high_stim"] <- 0.5
+# 
+# # contrast code 2 quadratic
+ACTUAL_DATA$stim_con_quad[ACTUAL_DATA$event03_stimulus_type == "low_stim"] <- -0.33
+ACTUAL_DATA$stim_con_quad[ACTUAL_DATA$event03_stimulus_type == "med_stim"] <- 0.66
+ACTUAL_DATA$stim_con_quad[ACTUAL_DATA$event03_stimulus_type == "high_stim"] <- -0.33
+
+# social cude contrast
+ACTUAL_DATA$social_cue[ACTUAL_DATA$param_cue_type == 'low_cue'] <- -0.5 # social influence task
+ACTUAL_DATA$social_cue[ACTUAL_DATA$param_cue_type == 'high_cue'] <- 0.5 # no influence task
+
+#ACTUAL_DATA$stim_factor = factor(ACTUAL_DATA$event03_stimulus_type)
+#ACTUAL_DATA$cue_factor = factor(ACTUAL_DATA$param_cue_type)
+
+# 2. lmer model __________________________________________________________________
+#run_full_lmer(ACTUAL_DATA, TASKNAME, "social_cue","stim_con_linear","stim_con_quad" , DV, SUBJECT, DV_KEYWORD)
+model.full= lmer(ACTUAL_DATA[,DV] ~ ACTUAL_DATA[,"social_cue"]*ACTUAL_DATA[,"stim_con_linear"] + ACTUAL_DATA[,"social_cue"]*ACTUAL_DATA[,"stim_con_quad"] +
+       (ACTUAL_DATA[,"social_cue"]*ACTUAL_DATA[,"stim_con_linear"] + ACTUAL_DATA[,"social_cue"]*ACTUAL_DATA[,"stim_con_quad"]|ACTUAL_DATA[,SUBJECT]) )
+
+print(summary(model.full))
+model_filename = file.path(main_dir, 'analysis', 'semicircle_degree', 
+                   paste('lmer_task-' ,TASKNAME, '_rating-', DV_KEYWORD,'_torsuggest.txt', sep = ""))
+sink(model_filename)
+print("--------------------------")
+print(paste("model: ", str_to_title(DV_KEYWORD), " ratings - ", TASKNAME))
+print(paste("IV: ", str_to_title(IV)))
+print(paste("CONTRASTS",str_to_title("stim_con_linear"),str_to_title("stim_con_linear"))) 
+print(paste("D V: ", str_to_title(DV) ))
+print(paste("Random effects: ", str_to_title(SUBJECT)))
+print("--------------------------")
+print(summary(model.full))
+sink()
+# 3. summary table
+#df_d = meanSummary(DATA, c(SUBJECT, IV1, IV2), DV)
+
+
+# 4. re-label __________________________________________________________________
+
+ACTUAL_DATA$stim[ACTUAL_DATA$param_stimulus_type == 'high_stim'] <- "high" # no influence task
+ACTUAL_DATA$stim[ACTUAL_DATA$param_stimulus_type == 'med_stim'] <- "med" # no influence task
+ACTUAL_DATA$stim[ACTUAL_DATA$param_stimulus_type == 'low_stim'] <- "low" # no influence task
+
+ACTUAL_DATA$cue[ACTUAL_DATA$event01_cue_type == "high_cue"] <- "high" 
+ACTUAL_DATA$cue[ACTUAL_DATA$event01_cue_type == "low_cue"] <- "low" # no influence task
+
+
+ACTUAL_DATA$stim <- factor(ACTUAL_DATA$stim, levels=c("low", "med", "high"))
+ACTUAL_DATA$cue <- factor(ACTUAL_DATA$cue, levels=c("high", "low"))
+df_d = meanSummary(ACTUAL_DATA, c(SUBJECT, "stim", "cue"), DV)
+df_a = summarySEwithin(data=df_d,
+                  measurevar = "mean_per_sub", # variable created from above
+                    withinvars = c( "stim", "cue"), # IV
+                    idvar = "subject")
+df_a$stim <- factor(df_a$stim, levels=c("low", "med", "high"))
+df_a$cue <- factor(df_a$cue, levels=c("high", "low"))
+# 4. raincloud plot _______________________________________________________
+# 
+  #within subjet line
+  #geom_line(data = df_d, aes(group = subject, y = mean_per_sub, x = as.numeric(stim)-.15, fill = cue), linetype = 3, color = "grey") +
+  # between subject line
+k <- ggplot(data = df_d, aes(y = mean_per_sub, x = stim, fill = cue)) +
+  geom_flat_violin(aes(fill = cue), position = position_nudge(x = .1, y = 0), adjust = 1.5,
+                   trim = FALSE, alpha = .7, colour = NA) +
+  geom_line(data = df_a, aes(x = as.numeric(stim)+.1, y = mean_per_sub_norm_mean, group = cue, colour = cue),  linetype = 2) +
+  geom_point(aes(x = as.numeric(stim)-.15, y = mean_per_sub, color = cue),
+             position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+  geom_boxplot(aes(x = stim, y = mean_per_sub, fill = cue),width = .1,
+               outlier.shape = NA, alpha = 0.8, width = .1, colour = "black") +
+  # use summary stats __________________________________________________________________________________
+  geom_errorbar(data = df_a, aes(x = as.numeric(stim)+.1, y = mean_per_sub_norm_mean,
+                              group = cue, colour = cue, 
+                              ymin = mean_per_sub_norm_mean-se, 
+                              ymax = mean_per_sub_norm_mean+se), width = .05) +
+  # legend stuff __________________________________________________________________________________
+  expand_limits(x = 3.25) +
+  guides(fill = FALSE) +
+  guides(color = FALSE) +
+  guides(fill=guide_legend(title="social cues"))+
+  scale_fill_manual(values = COLOR)+
+  scale_color_manual(values = COLOR)+
+  ggtitle(GGTITLE) +
+  xlab("Stimulus intensity levels") +
+  ylab("Degrees of actual ratings") +
+  theme_bw() 
+k
+
+
+#__________________________________________________________________________________
+# plot ver 2 - contrasts
+#__________________________________________________________________________________
+WIDE_EXPECT = meanSummary(ACTUAL_DATA, c(SUBJECT, IV1, IV2), DV)
+
+WIDE_EXPECT_D = WIDE_EXPECT %>%
+  select(subject, param_cue_type,param_stimulus_type, mean_per_sub ) %>%
+  spread( c(param_cue_type), mean_per_sub )
+
+WIDE_EXPECT_D$high_vs_low_cue = WIDE_EXPECT_D$high_cue - WIDE_EXPECT_D$low_cue
+
+WIDE_EXPECT_A = summarySEwithin(data=WIDE_EXPECT_D,
+                measurevar = "high_vs_low_cue", # variable created from above
+                 withinvars = c("param_stimulus_type"), # IV
+                   idvar = "subject")
+
+WIDE_EXPECT_D$param_stimulus_type <- factor(WIDE_EXPECT_D$param_stimulus_type, levels=c("low_stim", "med_stim", "high_stim"))
+WIDE_EXPECT_A$param_stimulus_type <- factor(WIDE_EXPECT_A$param_stimulus_type, levels=c("low_stim", "med_stim", "high_stim"))
+
+expect.effect.size = mean(WIDE_EXPECT$high_vs_low_cue)/sd(WIDE_EXPECT$high_vs_low_cue) # 2.61
+
+
+p2 <- ggplot(data = WIDE_EXPECT_A, aes(x = param_stimulus_type,y = high_vs_low_cue_mean, fill =param_stimulus_type )) +
+  geom_bar(stat = "identity", width = .5) +
+  geom_errorbar(data = WIDE_EXPECT_A, aes(ymin = high_vs_low_cue_mean-ci, ymax = high_vs_low_cue_mean+ci, width = .05))+
+  geom_point(data = WIDE_EXPECT_D, aes(y = high_vs_low_cue), alpha = 0.4, width = .1,
+             position = position_jitter(.1),
+             size = 2) +
+  guides(fill=FALSE) +
+  ylab("semi-circle rating (High > low cue)") +
+  theme_cowplot()+
+  ggtitle(GGTITLE)
+p2
+```
+
+
