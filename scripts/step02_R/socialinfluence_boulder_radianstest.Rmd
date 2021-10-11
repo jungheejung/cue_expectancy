@@ -1,0 +1,1528 @@
+---
+title: "social_influence_behavioral"
+author: "Heejung Jung"
+date: "9/16/2020"
+output: html_document
+---
+
+
+Saved in : /Users/h/Documents/projects_local/social_influence_analysis/scripts/R/socialinfluence_boulder_radianstest.Rmd
+python jupyter notebook in : /Users/h/Documents/projects_local/social_influence_analysis/scripts/calculateDegrees/c03_plotratings.ipynb
+open side by side
+
+
+# R libraries
+```{r setup_1, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r setup, include=FALSE}
+# packages <- c("psych", "car", "lmSupport", "lme4", "lmerTest", "plyr", "dplyr",
+#               "tidyr", "stringr", "ggplot2", "png", "knitr", "TMB", "ggpubr",
+#               "gridExtra", "merTools", "sjstats", "tidyverse", "lavaan", "cowplot", 
+#               "rmarkdown", "readr", "caTools", "bitops")
+# if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
+#   install.packages(setdiff(packages, rownames(installed.packages())))  
+# }
+library(psych)
+library(car)
+library(lmSupport)
+library(lme4)
+library(lmerTest)
+library(plyr)
+#library(dplyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+#library(Hmisc)
+#library(Rmisc)
+library(png)
+library(knitr)
+library(TMB)
+library(sjPlot)
+library(ggpubr)
+library(gridExtra)
+library(merTools)
+library(sjstats) #to get ICC
+library(broom)
+library(tidyverse)
+library(GGally)
+library(RCurl)
+library(rstanarm)
+library(reshape)
+library(boot)
+library(afex)
+library(cowplot)
+library(readr)
+library(lavaan)
+library(rmarkdown)
+library(readr)
+library(caTools)
+library(bitops)
+## library(extraoperators)
+##library(JWileymisc)
+##library(multilevelTools)
+library(ggpubr)
+# library(PupillometryR)
+source('http://psych.colorado.edu/~jclab/R/mcSummaryLm.R')
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
+source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+library(r2mlm)
+#source("/Users/h/Documents/projects_local/social_influence_analysis/scripts/R/geom_flat_violin.R")
+```
+
+# Functions
+http://www.cookbook-r.com/Graphs/Plotting_means_and_error_bars_(ggplot2)/#Helper%20functions
+### FUNCTION: normdatawithin
+```{r}
+## Norms the data within specified groups in a data frame; it normalizes each
+## subject (identified by idvar) so that they have the same mean, within each group
+## specified by betweenvars.
+##   data: a data frame.
+##   idvar: the name of a column that identifies each subject (or matched subjects)
+##   measurevar: the name of a column that contains the variable to be summariezed
+##   betweenvars: a vector containing names of columns that are between-subjects variables
+##   na.rm: a boolean that indicates whether to ignore NA's
+normDataWithin <- function(data=NULL, idvar, measurevar, betweenvars=NULL,
+                           na.rm=FALSE, .drop=TRUE) {
+    library(plyr)
+
+    # Measure var on left, idvar + between vars on right of formula.
+    data.subjMean <- ddply(data, c(idvar, betweenvars), .drop=.drop,
+     .fun = function(xx, col, na.rm) {
+        c(subjMean = mean(xx[,col], na.rm=na.rm))
+      },
+      measurevar,
+      na.rm
+    )
+
+    # Put the subject means with original data
+    data <- merge(data, data.subjMean)
+
+    # Get the normalized data in a new column
+    measureNormedVar <- paste(measurevar, "_norm", sep="")
+    data[,measureNormedVar] <- data[,measurevar] - data[,"subjMean"] +
+                               mean(data[,measurevar], na.rm=na.rm)
+
+    # Remove this subject mean column
+    data$subjMean <- NULL
+
+    return(data)
+}
+```
+### FUNCTION:summarySEwithin
+```{r}
+## Summarizes data, handling within-subjects variables by removing inter-subject variability.
+## It will still work if there are no within-S variables.
+## Gives count, un-normed mean, normed mean (with same between-group mean),
+##   standard deviation, standard error of the mean, and confidence interval.
+## If there are within-subject variables, calculate adjusted values using method from Morey (2008).
+##   data: a data frame.
+##   measurevar: the name of a column that contains the variable to be summariezed
+##   betweenvars: a vector containing names of columns that are between-subjects variables
+##   withinvars: a vector containing names of columns that are within-subjects variables
+##   idvar: the name of a column that identifies each subject (or matched subjects)
+##   na.rm: a boolean that indicates whether to ignore NA's
+##   conf.interval: the percent range of the confidence interval (default is 95%)
+summarySEwithin <- function(data=NULL, measurevar, betweenvars=NULL, withinvars=NULL,
+                            idvar=NULL, na.rm=FALSE, conf.interval=.95, .drop=TRUE) {
+
+  # Ensure that the betweenvars and withinvars are factors
+  factorvars <- vapply(data[, c(betweenvars, withinvars), drop=FALSE],
+    FUN=is.factor, FUN.VALUE=logical(1))
+
+  if (!all(factorvars)) {
+    nonfactorvars <- names(factorvars)[!factorvars]
+    message("Automatically converting the following non-factors to factors: ",
+            paste(nonfactorvars, collapse = ", "))
+    data[nonfactorvars] <- lapply(data[nonfactorvars], factor)
+  }
+
+  # Get the means from the un-normed data
+  datac <- summarySE(data, measurevar, groupvars=c(betweenvars, withinvars),
+                     na.rm=na.rm, conf.interval=conf.interval, .drop=.drop)
+
+  # Drop all the unused columns (these will be calculated with normed data)
+  datac$sd <- NULL
+  datac$se <- NULL
+  datac$ci <- NULL
+
+  # Norm each subject's data
+  ndata <- normDataWithin(data, idvar, measurevar, betweenvars, na.rm, .drop=.drop)
+
+  # This is the name of the new column
+  measurevar_n <- paste(measurevar, "_norm", sep="")
+
+  # Collapse the normed data - now we can treat between and within vars the same
+  ndatac <- summarySE(ndata, measurevar_n, groupvars=c(betweenvars, withinvars),
+                      na.rm=na.rm, conf.interval=conf.interval, .drop=.drop)
+
+  # Apply correction from Morey (2008) to the standard error and confidence interval
+  #  Get the product of the number of conditions of within-S variables
+  nWithinGroups    <- prod(vapply(ndatac[,withinvars, drop=FALSE], FUN=nlevels,
+                           FUN.VALUE=numeric(1)))
+  correctionFactor <- sqrt( nWithinGroups / (nWithinGroups-1) )
+
+  # Apply the correction factor
+  ndatac$sd <- ndatac$sd * correctionFactor
+  ndatac$se <- ndatac$se * correctionFactor
+  ndatac$ci <- ndatac$ci * correctionFactor
+
+  # Combine the un-normed means with the normed results
+  merge(datac, ndatac)
+}
+```
+### FUNCTION:data_summary
+```{r}
+ 
+data_summary <- function(data, varname, groupnames){
+  require(plyr)
+  summary_func <- function(x, col){
+    c(mean = mean(x[[col]], na.rm=TRUE),
+      sd = sd(x[[col]], na.rm=TRUE),
+      se = sd(x[[col]], na.rm=TRUE)/sqrt(length(x[[col]])) )
+  }
+  data_sum<-ddply(data, groupnames, .fun=summary_func,
+                  varname)
+  data_sum <- plyr::rename(data_sum, c("mean" = varname))
+ return(data_sum)
+}
+```
+### FUNCTION:summarySE
+```{r}
+summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
+                      conf.interval=.95, .drop=TRUE) {
+    library(plyr)
+
+    # New version of length which can handle NA's: if na.rm==T, don't count them
+    length2 <- function (x, na.rm=FALSE) {
+        if (na.rm) sum(!is.na(x))
+        else       length(x)
+    }
+
+    # This does the summary. For each group's data frame, return a vector with
+    # N, mean, and sd
+    datac <- ddply(data, groupvars, .drop=.drop,
+      .fun = function(xx, col) {
+        c(N    = length2(xx[[col]], na.rm=na.rm),
+          mean = mean   (xx[[col]], na.rm=na.rm),
+          sd   = sd     (xx[[col]], na.rm=na.rm)
+        )
+      },
+      measurevar
+    )
+
+    # Rename the "mean" column    
+    datac <- rename(datac, c("mean" = measurevar))
+
+    datac$se <- datac$sd / sqrt(datac$N)  # Calculate standard error of the mean
+
+    # Confidence interval multiplier for standard error
+    # Calculate t-statistic for confidence interval: 
+    # e.g., if conf.interval is .95, use .975 (above/below), and use df=N-1
+    ciMult <- qt(conf.interval/2 + .5, datac$N-1)
+    datac$ci <- datac$se * ciMult
+
+    return(datac)
+}
+```
+still working on it
+```{r}
+process_semicircle_data <- function(data, )
+```
+
+# select design features
+```{r}
+library(RColorBrewer)
+display.brewer.pal(n = 8, name = 'Dark2')
+
+brewer.pal(n = 8, name = "Dark2")
+```
+
+```{r}
+raincloud_theme = theme(
+text = element_text(size = 10),
+axis.title.x = element_text(size = 16),
+axis.title.y = element_text(size = 16),
+axis.text = element_text(size = 14),
+axis.text.x = element_text(angle = 45, vjust = 0.5),
+legend.title=element_text(size=16),
+legend.text=element_text(size=16),
+legend.position = "right",
+plot.title = element_text(lineheight=.8, face="bold", size = 16),
+panel.border = element_blank(),
+panel.grid.minor = element_blank(),
+panel.grid.major = element_blank(),
+axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
+axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'))
+w = 5
+h = 3
+```
+
+
+# pseudo code
+radians ~ cue + administerlevel + cue*administerlevel + (cue*administerlevel | subject)
+lmer()
+
+
+```{r}
+main_dir = dirname(dirname(getwd()))
+```
+
+```{r}
+lb <- function(x) mean(x) - sd(x)
+ub <- function(x) mean(x) + sd(x)
+```
+
+# 1. load cognitive data
+```{r}
+# merge and concatenate files
+common_path = file.path(main_dir,'data','boulder', 'beh_withcoord' )
+filenames = list.files(path = common_path, pattern = "*_task-cognitive_meta_beh.csv", recursive = TRUE)
+fullpath = file.path(common_path, filenames)
+cog_dataset <- do.call("rbind",lapply(fullpath,FUN=function(files){ read.csv(files)}))
+
+cog_dataset$ex_RT = cog_dataset$p3_expect_responseonset
+cog_dataset$p3_expect_responseonset = cog_dataset$p3_expect_RT
+cog_dataset$p3_expect_RT = cog_dataset$ex_RT
+
+cog_dataset$actual_RT = cog_dataset$p6_actual_responseonset
+cog_dataset$p6_actual_responseonset = cog_dataset$p6_actual_RT
+cog_dataset$p6_actual_RT = cog_dataset$actual_RT
+```
+
+
+
+## convert to theta
+
+```{r}
+# expectation rating
+cog_dataset$new_expect_coord_x = abs(cog_dataset$expect_ptb_coord_x - 512)
+cog_dataset$new_expect_coord_y = abs(cog_dataset$expect_ptb_coord_y - 551)
+cog_dataset$expect_r = sqrt(cog_dataset$new_expect_coord_x^2 + cog_dataset$new_expect_coord_y^2)
+cog_dataset$expect_theta = atan(cog_dataset$new_expect_coord_y/cog_dataset$new_expect_coord_x)
+
+# actual rating
+cog_dataset$new_actual_coord_x = abs(cog_dataset$actual_ptb_coord_x - 512)
+cog_dataset$new_actual_coord_y = abs(cog_dataset$actual_ptb_coord_y - 551)
+cog_dataset$actual_r = sqrt(cog_dataset$new_actual_coord_x^2 + cog_dataset$new_actual_coord_y^2)
+cog_dataset$actual_theta = atan(cog_dataset$new_actual_coord_y/cog_dataset$new_actual_coord_x)
+
+cog_dataset$expect_theta_pi = cog_dataset$expect_theta - pi
+cog_dataset$actual_theta_pi = cog_dataset$actual_theta - pi
+
+```
+
+
+
+```{r}
+
+# subjects as factor
+cog_dataset$subject = factor(cog_dataset$src_subject_id)
+
+
+# levels
+cog_dataset$levels[cog_dataset$p5_administer_type == 50] <- -0.5 # social influence task
+cog_dataset$levels[cog_dataset$p5_administer_type == 100] <- 0 # no influence task
+cog_dataset$levels[cog_dataset$p5_administer_type == 150] <- 0.5 # no influence task
+
+#
+cog_dataset$levels_factor = factor(cog_dataset$levels)
+#contrast code 1 linear
+cog_dataset$level_con_linear[cog_dataset$p5_administer_type == 50] <- -0.5
+cog_dataset$level_con_linear[cog_dataset$p5_administer_type == 100] <- 0
+cog_dataset$level_con_linear[cog_dataset$p5_administer_type == 150] <- 0.5
+
+# contrast code 2 quadratic
+cog_dataset$level_con_quad[cog_dataset$p5_administer_type == 50] <- -0.33
+cog_dataset$level_con_quad[cog_dataset$p5_administer_type == 100] <- 0.66
+cog_dataset$level_con_quad[cog_dataset$p5_administer_type == 150] <- -0.33
+
+# social cude contrast
+cog_dataset$social_cue[cog_dataset$param_cue_type == 'low'] <- -0.5 # social influence task
+cog_dataset$social_cue[cog_dataset$param_cue_type == 'high'] <- 0.5 # no influence task
+cog_dataset$param_cue_type = factor(cog_dataset$param_cue_type)
+```
+
+
+# filter data ____________________
+```{r}
+cog_dataset$subject = factor(cog_dataset$src_subject_id)
+cog_expect_removeNA = subset(cog_dataset, cog_dataset$p3_expect_RT != "NA" | cog_dataset$expect_r >= 150 | cog_dataset$subject != c(2,11,15,16,25))
+cog_expect_removeNA$expect_degree = cog_expect_removeNA$expect_theta*180/pi
+
+cog_actual_removeNA = subset(cog_dataset, cog_dataset$p6_actual_RT != "NA" | cog_dataset$actual_r >= 150| cog_dataset$subject != c(2,11,15,16,25))
+cog_actual_removeNA$actual_degree = (cog_actual_removeNA$actual_theta)*180/pi
+```
+```{r}
+length(unique(cog_actual_removeNA$subject))
+```
+
+
+#### Cognitive count lost trials 
+```{r}
+cog_dataset$subject = factor(cog_dataset$src_subject_id)
+cog_expect_countNA = subset(cog_dataset, cog_dataset$p3_expect_RT == "NA" | cog_dataset$expect_r < 150)
+cog_actual_countNA = subset(cog_dataset, cog_dataset$p6_actual_RT == "NA" | cog_dataset$actual_r < 150)
+```
+#### plot per participant - Cognitive Expect
+```{r}
+#participant 
+# 2, 11, 15, 16, 25
+lost_ce_na = aggregate(cog_dataset$p3_expect_RT, list(cog_dataset$subject),function(x) sum(is.na(x)))
+lost_ce_r = aggregate(cog_dataset$expect_r, list(cog_dataset$subject),function(x) sum(x < 150))
+```
+```{r}
+#plot(lost_ca_NA$Group.1, lost_ca_NA$x)
+ggplot(lost_ce_na, aes(x = Group.1, y = x))+ 
+  geom_bar(stat = "identity", position = "identity") +
+  xlab("subject ID") + 
+  ylab("freq. of NA") + 
+  ggtitle("Cognitive task - Expectation ratings") +
+  theme_bw() 
+
+ggplot(lost_ce_r, aes(x = Group.1, y = x))+ 
+  geom_bar(stat = "identity", position = "identity") +
+  xlab("subject ID") + 
+  ylab("Ratings with r < 150") + 
+  ggtitle("Cognitive task - Expectation ratings") +
+  theme_bw() 
+```
+
+#### plot per participant - Cognitive Actual
+```{r}
+#participant 
+# 2, 11, 15, 16, 25
+lost_ca_NA = aggregate(cog_dataset$p6_actual_RT, list(cog_dataset$subject),function(x) sum(is.na(x)))
+lost_ca_r = aggregate(cog_dataset$actual_r, list(cog_dataset$subject),function(x) sum(x < 150))
+```
+
+```{r}
+#plot(lost_ca_NA$Group.1, lost_ca_NA$x)
+ggplot(lost_ca_NA, aes(x = Group.1, y = x))+ 
+  geom_bar(stat = "identity", position = "identity") +
+  xlab("subject ID") + 
+  ylab("freq. of NA") + 
+  ggtitle("Cognitive task - Actual ratings") +
+  theme_bw() 
+
+ggplot(lost_ca_r, aes(x = Group.1, y = x))+ 
+  geom_bar(stat = "identity", position = "identity") +
+  xlab("subject ID") + 
+  ylab("Ratings with r < 150") + 
+  ggtitle("Cognitive task - Actual ratings") +
+  theme_bw() 
+```
+
+
+# 1-1. expect rating model __________________________
+```{r}
+model.cog_expect = lmer(expect_degree ~ social_cue + (social_cue | subject), data=cog_expect_removeNA)
+summary(model.cog_expect)
+```
+
+# effect size estimate
+```{r}
+r2mlm(model.cog_expect)
+```
+
+
+# plot expect
+relabels
+```{r}
+cog_expect_removeNA$social_name[cog_expect_removeNA$social_cue == 0.5] <- "high cue" 
+cog_expect_removeNA$social_name[cog_expect_removeNA$social_cue == -0.5] <- "low cue" # no influence task
+
+cog_expect_removeNA$levels_name[cog_expect_removeNA$levels == 0.5] <- "high" # no influence task
+cog_expect_removeNA$levels_name[cog_expect_removeNA$levels == 0] <- "med" # no influence task
+cog_expect_removeNA$levels_name[cog_expect_removeNA$levels == -0.5] <- "low" # no influence task
+```
+
+```{r}
+cog_expect_removeNA$levels_ordered <- factor(cog_expect_removeNA$param_administer_type, levels=c(50, 100, 150))
+cog_expect_removeNA$social_ordered <- factor(cog_expect_removeNA$social_name, levels=c("low cue", "high cue"))
+
+```
+
+# summarize cognitive expect data
+```{r}
+c_expect_d = ddply(cog_expect_removeNA, .(subject, social_ordered),
+      summarize, 
+      mean_degree_per_sub = mean(expect_degree), 
+      sd = sd(expect_degree))
+```
+```{r}
+c_expect_a = summarySEwithin(data=c_expect_d, 
+                    measurevar = "mean_degree_per_sub", 
+                    withinvars = c("social_ordered"), 
+                    idvar = "subject")
+
+```
+
+# cognitive expect rating
+```{r}
+# total_actual_removeNA$xaxis = factor(total_actual_removeNA$levels, levels = c("low", "med", "high"))
+
+g <- ggplot(data = c_expect_d, aes(y = mean_degree_per_sub, x = social_ordered, fill = social_ordered)) +
+  geom_flat_violin(aes(fill = social_ordered), position = position_nudge(x = .1, y = 0), adjust = 1.5,
+                   trim = FALSE, alpha = .5, colour = NA) +
+  geom_line(data = c_expect_d, aes(group = subject, y = mean_degree_per_sub, x = as.numeric(social_ordered)-.15, fill = social_ordered), linetype = 3, color = "grey") +
+  #geom_point(aes(group = subject, x = as.numeric(levels_ordered)-.15, y = mean_degree_per_sub, color = social_name),
+ #            position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+  geom_point(aes(x = as.numeric(social_ordered)-.15, y = mean_degree_per_sub, color = social_ordered),
+             position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+  geom_boxplot(aes(x = social_ordered, y = mean_degree_per_sub, fill = social_ordered),width = .1,
+               outlier.shape = NA, alpha = 0.8, width = .1, colour = "black") +
+  
+  # use summary stats __________________________________________________________________________________
+#  geom_line(data = a, aes(x = as.numeric(levels_ordered)+.1, y = mean_degree_per_sub_norm,
+#                           group = social_name, colour = social_name), linetype = 3) +
+  
+  # geom_point(data = a, aes(x = as.numeric(levels_ordered)+.1, y = mean_degree_per_sub_norm,
+                           # group = social_name, colour = social_name), shape = 18) +
+  geom_errorbar(data = c_expect_a, aes(x = as.numeric(social_ordered)+.1, y = mean_degree_per_sub_norm,
+                             colour = social_ordered, 
+                              ymin = mean_degree_per_sub_norm-se, 
+                              ymax = mean_degree_per_sub_norm+se), width = .05) +
+
+  # legend stuff __________________________________________________________________________________
+  expand_limits(x = 2.8) +
+  guides(fill = FALSE) +
+  guides(color = FALSE) +
+  guides(fill=guide_legend(title="social cues"))+
+  # scale_color_brewer(palette = "PiYG") +
+  # scale_fill_brewer(palette = "PiYG") +
+  scale_fill_manual(values = c( "#4575B4", "#D73027"))+
+  scale_color_manual(values = c( "#4575B4","#D73027"))+
+  ggtitle("Cognitive task - expected ratings") +
+  # coord_flip() + #vertical vs horizontal
+  xlab("Stimulus intensity levels") +
+  ylab("Degrees of expected ratings") +
+  theme_bw() 
+
+g
+
+ggsave('/Users/h/Documents/projects_local/social_influence_analysis/analysis/mixedeffect/boulder/task-cognitive_rating-expect.png', width = w, height = h)
+```
+
+
+# 1-2. actual
+```{r}
+# PSEUDOCODE: radians ~ cue + administerlevel + cue*administerlevel + (cue*administerlevel | subject)
+model.cog_actual = lmer(actual_degree ~ social_cue*levels +  (social_cue*levels| subject), data= cog_actual_removeNA)
+summary(model.cog_actual)
+
+```
+
+```{r}
+# PSEUDOCODE: radians ~ cue + administerlevel + cue*administerlevel + (cue*administerlevel | subject)
+model.cog_actual = lmer(actual_degree ~ social_cue*level_con_linear + social_cue *level_con_quad+ (social_cue*level_con_linear + social_cue *level_con_quad| subject), data= cog_actual_removeNA)
+
+summary(model.cog_actual)
+
+```
+# effect size
+```{r}
+r2mlm(model.cog_actual)
+
+```
+
+relabels
+```{r}
+cog_actual_removeNA$social_name[cog_actual_removeNA$social_cue == 0.5] <- "high cue" 
+cog_actual_removeNA$social_name[cog_actual_removeNA$social_cue == -0.5] <- "low cue" # no influence task
+
+cog_actual_removeNA$levels_name[cog_actual_removeNA$levels == 0.5] <- "high" # no influence task
+cog_actual_removeNA$levels_name[cog_actual_removeNA$levels == 0] <- "med" # no influence task
+cog_actual_removeNA$levels_name[cog_actual_removeNA$levels == -0.5] <- "low" # no influence task
+
+```
+
+```{r}
+cog_actual_removeNA$levels_ordered = factor(cog_actual_removeNA$param_administer_type, levels=c(50, 100, 150))
+cog_actual_removeNA$social_ordered = factor(cog_actual_removeNA$social_name, levels=c("low cue", "high cue"))
+```
+
+
+```{r}
+c_actual_d = ddply(cog_actual_removeNA, .(subject, levels_ordered,social_ordered),
+      summarize, 
+      mean_degree_per_sub = mean(actual_degree), 
+      sd = sd(actual_degree))
+      
+
+```
+
+```{r}
+c_actual_mean = summarySEwithin(data=c_actual_d, 
+                    measurevar = "mean_degree_per_sub", 
+                    withinvars = c("levels_ordered","social_ordered"), 
+                    idvar = "subject")
+
+```
+
+# cognitive actual rating
+```{r}
+# total_actual_removeNA$xaxis = factor(total_actual_removeNA$levels, levels = c("low", "med", "high"))
+g <- ggplot(data = c_actual_d, aes(y = mean_degree_per_sub, x = levels_ordered, fill = social_ordered)) +
+  geom_flat_violin(aes(fill = social_ordered), position = position_nudge(x = .1, y = 0), adjust = 1.5,
+                   trim = FALSE, alpha = .5, colour = NA) +
+  geom_line(data = c_actual_d, aes(group = subject, y = mean_degree_per_sub, x = as.numeric(levels_ordered)-.15, fill = social_ordered), linetype = 3, color = "grey") +
+  #geom_point(aes(group = subject, x = as.numeric(levels_ordered)-.15, y = mean_degree_per_sub, color = social_ordered),
+ #            position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+  geom_point(aes(x = as.numeric(levels_ordered)-.15, y = mean_degree_per_sub, color = social_ordered),
+             position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+  geom_boxplot(aes(x = levels_ordered, y = mean_degree_per_sub, fill = social_ordered),width = .1,
+               outlier.shape = NA, alpha = 0.8, width = .1, colour = "black") +
+  
+  # use summary stats __________________________________________________________________________________
+
+  geom_errorbar(data = c_actual_mean, aes(x = as.numeric(levels_ordered)+.1, y = mean_degree_per_sub_norm,
+                              group = social_ordered, colour = social_ordered, 
+                              ymin = mean_degree_per_sub_norm-se, 
+                              ymax = mean_degree_per_sub_norm+se), width = .05) +
+
+  # legend stuff __________________________________________________________________________________
+  expand_limits(x = 4) +
+  guides(fill = FALSE) +
+  guides(color = FALSE) +
+  guides(fill=guide_legend(title="social cues"))+
+  # scale_color_brewer(palette = "PiYG") +
+  # scale_fill_brewer(palette = "PiYG") +
+  scale_fill_manual(values = c( "#4575B4", "#D73027"))+
+  scale_color_manual(values = c( "#4575B4", "#D73027"))+
+  ggtitle("Cognitive task - Actual ratings 2 x 3") +
+  # coord_flip() + #vertical vs horizontal
+  xlab("Stimulus intensity levels") +
+  ylab("Degrees of actual ratings") +
+  theme_bw() 
+w = 5
+h = 3
+g
+ggsave('/Users/h/Documents/projects_local/social_influence_analysis/analysis/mixedeffect/boulder/task-cognitive_rating-actual.png', width = w, height = h)
+```
+
+RT
+
+```{r}
+library(hrbrthemes)
+library(viridis)
+# ggplot(data = RT_vic_actual_d, aes(y = mean_RT_per_sub, x = levels_ordered, group = subject)) + 
+#   geom_density_ridges(alpha = 0.6) 
+
+
+ggplot(cog_expect_removeNA, 
+        aes(x = p3_expect_RT, y = social_name)) +
+  geom_density_ridges(rel_min_height = 0.01, jittered_points = TRUE,
+                      position = position_points_jitter(width = 0.5, height = 0),
+                      point_shape = "|", point_size = 2,
+                      alpha = 0.7) +
+  xlim(0,5) +
+  xlab("RT") +
+  ylab("social cue") +
+  ggtitle("Cognitive expectation rating RT")
+
+
+ggplot(cog_actual_removeNA, 
+        aes(x = p6_actual_RT, y = levels_ordered)) +
+  geom_density_ridges(rel_min_height = 0.01, jittered_points = TRUE,
+                      position = position_points_jitter(width = 0.5, height = 0),
+                      point_shape = "|", point_size = 2,
+                      alpha = 0.7) +
+  xlim(0,5) +
+  xlab("RT") +
+  ylab("stimulus intensity") +
+  ggtitle("Cognitive actual rating RT")
+
+ggplot(cog_actual_removeNA, 
+        aes(x = p6_actual_RT, y = social_name)) +
+  geom_density_ridges(rel_min_height = 0.01, jittered_points = TRUE,
+                      position = position_points_jitter(width = 0.5, height = 0),
+                      point_shape = "|", point_size = 2,
+                      alpha = 0.7) +
+  xlim(0,5) +
+  xlab("RT") +
+  ylab("social cue") +
+  ggtitle("Cognitive actual rating RT")
+
+```
+
+
+# ___________________________________
+# VICARIOUS
+# ____________________________________
+
+# 2. load vicarious data
+```{r}
+# merge and concatenate files
+common_path = file.path(main_dir,'boulder', 'beh_withcoord' )
+vic_filenames = list.files(path = common_path, pattern = "*_task-vicarious_meta_beh.csv", recursive = TRUE)
+vic_fullpath = file.path(common_path, vic_filenames)
+vic_dataset <- do.call("rbind",lapply(vic_fullpath,FUN=function(files){ read.csv(files)}))
+vic_dataset$actual_RT = vic_dataset$p6_actual_responseonset
+vic_dataset$p6_actual_responseonset = vic_dataset$p6_actual_RT
+vic_dataset$p6_actual_RT = vic_dataset$actual_RT
+```
+
+#
+```{r}
+# expectation rating
+vic_dataset$new_expect_coord_x = abs(vic_dataset$expect_ptb_coord_x - 512)
+vic_dataset$new_expect_coord_y = abs(vic_dataset$expect_ptb_coord_y - 551)
+vic_dataset$expect_r = sqrt(vic_dataset$new_expect_coord_x^2 + vic_dataset$new_expect_coord_y^2)
+vic_dataset$expect_theta = atan(vic_dataset$new_expect_coord_y/vic_dataset$new_expect_coord_x)
+
+# actual rating
+vic_dataset$new_actual_coord_x = abs(vic_dataset$actual_ptb_coord_x - 512)
+vic_dataset$new_actual_coord_y = abs(vic_dataset$actual_ptb_coord_y - 551)
+vic_dataset$actual_r = sqrt(vic_dataset$new_actual_coord_x^2 + vic_dataset$new_actual_coord_y^2)
+vic_dataset$actual_theta = atan(vic_dataset$new_actual_coord_y/vic_dataset$new_actual_coord_x)
+
+vic_dataset$expect_theta_pi = vic_dataset$expect_theta - pi
+vic_dataset$actual_theta_pi = vic_dataset$actual_theta - pi
+
+
+```
+
+
+```{r}
+
+# subject
+vic_dataset$subject = factor(vic_dataset$src_subject_id)
+
+vic_dataset$levels[vic_dataset$param_administer_type == 'low'] <- -0.5 # social influence task
+vic_dataset$levels[vic_dataset$param_administer_type == 'med'] <- 0 # no influence task
+vic_dataset$levels[vic_dataset$param_administer_type == 'high'] <- 0.5 # no influence task
+
+#contrast code 1 linear
+vic_dataset$level_con_linear[vic_dataset$param_administer_type == 'low'] <- -0.5
+vic_dataset$level_con_linear[vic_dataset$param_administer_type == 'med'] <- 0
+vic_dataset$level_con_linear[vic_dataset$param_administer_type == 'high'] <- 0.5
+
+# contrast code 2 quadratic
+vic_dataset$level_con_quad[vic_dataset$param_administer_type == 'low'] <- -0.33
+vic_dataset$level_con_quad[vic_dataset$param_administer_type == 'med'] <- 0.66
+vic_dataset$level_con_quad[vic_dataset$param_administer_type == 'high'] <- -0.33
+
+# social cude contrast
+vic_dataset$social_cue[vic_dataset$param_cue_type == 'low'] <- -0.5 # social influence task
+vic_dataset$social_cue[vic_dataset$param_cue_type == 'high'] <- 0.5 # no influence task
+
+```
+
+# filter out
+```{r}
+
+vic_expect_removeNA = subset(vic_dataset, vic_dataset$p3_expect_RT != "NA" & vic_dataset$expect_r >= 150)
+vic_expect_removeNA$expect_degree = vic_expect_removeNA$expect_theta*180/pi
+
+vic_actual_removeNA = subset(vic_dataset, vic_dataset$p6_actual_RT != "NA" & vic_dataset$actual_r >= 150)
+vic_actual_removeNA$actual_degree = (vic_actual_removeNA$actual_theta)*180/pi
+```
+# filter data ____________________
+
+#### Vicarious count lost trials 
+```{r}
+vic_dataset$subject = factor(vic_dataset$src_subject_id)
+vic_expect_countNA = subset(vic_dataset, vic_dataset$p3_expect_RT == "NA" | vic_dataset$expect_r < 150)
+vic_actual_countNA = subset(vic_dataset, vic_dataset$p6_actual_RT == "NA" | vic_dataset$actual_r < 150)
+```
+#### plot per participant - Vicarious Expect
+```{r}
+#participant 
+# 2, 11, 15, 16, 25
+lost_ve_na = aggregate(vic_dataset$p3_expect_RT, list(vic_dataset$subject),function(x) sum(is.na(x)))
+lost_ve_r = aggregate(vic_dataset$expect_r, list(vic_dataset$subject),function(x) sum(x < 150))
+```
+```{r}
+#plot(lost_ca_NA$Group.1, lost_ca_NA$x)
+ggplot(lost_ve_na, aes(x = Group.1, y = x))+ 
+  geom_bar(stat = "identity", position = "identity") +
+  xlab("subject ID") + 
+  ylab("freq. of NA") + 
+  ggtitle("Vicarious task - Expectation ratings") +
+  theme_bw() 
+
+ggplot(lost_ve_r, aes(x = Group.1, y = x))+ 
+  geom_bar(stat = "identity", position = "identity") +
+  xlab("subject ID") + 
+  ylab("Ratings with r < 150") + 
+  ggtitle("Vicarious task - Expectation ratings") +
+  theme_bw() 
+```
+
+#### plot per participant - Vicarious Actual
+```{r}
+#participant 
+# 2, 11, 15, 16, 25
+lost_va_NA = aggregate(vic_dataset$p6_actual_RT, list(vic_dataset$subject),function(x) sum(is.na(x)))
+lost_va_r = aggregate(vic_dataset$actual_r, list(vic_dataset$subject),function(x) sum(x < 150))
+```
+
+```{r}
+#plot(lost_ca_NA$Group.1, lost_ca_NA$x)
+ggplot(lost_va_NA, aes(x = Group.1, y = x))+ 
+  geom_bar(stat = "identity", position = "identity") +
+  xlab("subject ID") + 
+  ylab("freq. of NA") + 
+  ggtitle("Vicarious task - Actual ratings") +
+  theme_bw() 
+
+ggplot(lost_va_r, aes(x = Group.1, y = x))+ 
+  geom_bar(stat = "identity", position = "identity") +
+  xlab("subject ID") + 
+  ylab("Ratings with r < 150") + 
+  ggtitle("Vicarious task - Actual ratings") +
+  theme_bw() 
+```
+
+#### 
+```{r}
+vic_dataset$subject = factor(vic_dataset$src_subject_id)
+vic_expect_removeNA = subset(vic_dataset, vic_dataset$p3_expect_RT != "NA" & vic_dataset$expect_r >= 150 & vic_dataset$subject != c(2,11,15,16,25))
+vic_expect_removeNA$expect_degree = vic_expect_removeNA$expect_theta*180/pi
+
+vic_actual_removeNA = subset(vic_dataset, vic_dataset$p6_actual_RT != "NA" & vic_dataset$actual_r >= 150 & vic_dataset$subject != c(2,11,15,16,25))
+vic_actual_removeNA$actual_degree = (vic_actual_removeNA$actual_theta)*180/pi
+```
+```{r}
+length(unique(vic_actual_removeNA$subject))
+```
+
+
+# 2-1. expect rating
+```{r}
+vic_expect_removeNA$subject = factor(vic_expect_removeNA$src_subject_id)
+
+# actually, I shouldn't include the "cognitive levels, because you have yet to experience it. 
+# Unless you're analyzing the effect prior actual experience on the expectation ratings, this is a wrong analysis. 
+# hence the revised model
+
+
+model.vic_expect = lmer(expect_degree ~ social_cue + (social_cue | subject), data=  vic_expect_removeNA)
+summary(model.vic_expect)
+
+```
+# plot expect
+relabels
+```{r}
+vic_expect_removeNA$social_name[vic_expect_removeNA$social_cue == 0.5] <- "high cue" 
+vic_expect_removeNA$social_name[vic_expect_removeNA$social_cue == -0.5] <- "low cue" # no influence task
+
+vic_expect_removeNA$levels_name[vic_expect_removeNA$levels == 0.5] <- "high" # no influence task
+vic_expect_removeNA$levels_name[vic_expect_removeNA$levels == 0] <- "med" # no influence task
+vic_expect_removeNA$levels_name[vic_expect_removeNA$levels == -0.5] <- "low" # no influence task
+```
+```{r}
+vic_expect_removeNA$levels_ordered <- factor(vic_expect_removeNA$levels_name, levels=c("low", "med", "high"))
+vic_expect_removeNA$social_ordered <- factor(vic_expect_removeNA$social_name, levels=c("low cue", "high cue"))
+```
+summarize cognitive expect data
+```{r}
+v_expect_d = ddply(vic_expect_removeNA, .(subject, social_ordered),
+      summarize, 
+      mean_degree_per_sub = mean(expect_degree), 
+      sd = sd(expect_degree))
+```
+```{r}
+v_expect_a = summarySEwithin(data=v_expect_d, 
+                    measurevar = "mean_degree_per_sub", 
+                    withinvars = c("social_ordered"), 
+                    idvar = "subject")
+
+```
+plot vicarious expect rating
+```{r}
+
+# total_actual_removeNA$xaxis = factor(total_actual_removeNA$levels, levels = c("low", "med", "high"))
+
+g <- ggplot(data = v_expect_d, aes(y = mean_degree_per_sub, x = social_ordered, fill = social_ordered)) +
+  geom_flat_violin(aes(fill = social_ordered), position = position_nudge(x = .1, y = 0), adjust = 1.5,
+                   trim = FALSE, alpha = .5, colour = NA) +
+  geom_line(data = v_expect_d, aes(group = subject, y = mean_degree_per_sub, x = as.numeric(social_ordered)-.15, fill = social_ordered), linetype = 3, color = "grey") +
+  #geom_point(aes(group = subject, x = as.numeric(levels_ordered)-.15, y = mean_degree_per_sub, color = social_name),
+ #            position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+  geom_point(aes(x = as.numeric(social_ordered)-.15, y = mean_degree_per_sub, color = social_ordered),
+             position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+  geom_boxplot(aes(x = social_ordered, y = mean_degree_per_sub, fill = social_ordered),width = .1,
+               outlier.shape = NA, alpha = 0.8, width = .1, colour = "black") +
+  
+  # use summary stats __________________________________________________________________________________
+  geom_errorbar(data = v_expect_a, aes(x = as.numeric(social_ordered)+.1, y = mean_degree_per_sub_norm,
+                             colour = social_ordered, 
+                              ymin = mean_degree_per_sub_norm-se, 
+                              ymax = mean_degree_per_sub_norm+se), width = .05) +
+
+  # legend stuff __________________________________________________________________________________
+  expand_limits(x = 2.8) +
+  guides(fill = FALSE) +
+  guides(color = FALSE) +
+  guides(fill=guide_legend(title="social cues"))+
+  scale_color_brewer(palette = "Dark2") +
+  scale_fill_brewer(palette = "Dark2") +
+  #scale_fill_manual(values = c("#D73027", "#4575B4"))+
+  #scale_color_manual(values = c("#D73027", "#4575B4"))+
+  ggtitle("Vicarious task - expected ratings") +
+  # coord_flip() + #vertical vs horizontal
+  xlab("Stimulus intensity levels") +
+  ylab("Degrees ") +
+  theme_bw() 
+
+g
+w = 5
+h = 3
+
+ggsave('/Users/h/Documents/projects_local/social_influence_analysis/fig/vicarious_expect.png', width = w, height = h)
+
+```
+
+
+# 2-2. actual
+```{r}
+#vic_dataset$social_cue = factor(vic_dataset$param_cue_type)
+# PSEUDOCODE: radians ~ cue + administerlevel + cue*administerlevel + (cue*administerlevel | subject)
+
+model.vic_actual_m0 = lmer(actual_degree ~ social_cue + (social_cue | subject), data=  vic_actual_removeNA)
+summary(model.vic_actual_m0)
+
+```
+
+```{r}
+#vic_dataset$social_cue = factor(vic_dataset$param_cue_type)
+# PSEUDOCODE: radians ~ cue + administerlevel + cue*administerlevel + (cue*administerlevel | subject)
+
+model.vic_actual = lmer(actual_theta_pi ~ social_cue*level_con_linear + social_cue *level_con_quad + (social_cue*level_con_linear + social_cue *level_con_quad | subject), data=  vic_actual_removeNA)
+summary(model.vic_actual)
+
+```
+```{r}
+anova(model.vic_actual_m0,model.vic_actual, refit=FALSE)
+```
+
+
+relabel levels
+```{r}
+vic_actual_removeNA$social_name[vic_actual_removeNA$social_cue == 0.5] <- "high cue" 
+vic_actual_removeNA$social_name[vic_actual_removeNA$social_cue == -0.5] <- "low cue" # no influence task
+
+#total_actual_removeNA$levels_name = factor(total_actual_removeNA$levels, levels=c("low", "med", "high"))
+
+vic_actual_removeNA$levels_name[vic_actual_removeNA$levels == 0.5] <- "high" # no influence task
+vic_actual_removeNA$levels_name[vic_actual_removeNA$levels == 0] <- "med" # no influence task
+vic_actual_removeNA$levels_name[vic_actual_removeNA$levels == -0.5] <- "low" # no influence task
+
+```
+```{r}
+vic_actual_removeNA$levels_ordered <- factor(vic_actual_removeNA$param_administer_type, levels=c("low", "med", "high"))
+```
+```{r}
+vic_actual_removeNA$levels_ordered <- factor(vic_actual_removeNA$levels_name, levels=c("low", "med", "high"))
+vic_actual_removeNA$social_ordered <- factor(vic_actual_removeNA$social_name, levels=c("low cue", "high cue"))
+```
+
+summary statistics
+```{r}
+v_d = ddply(vic_actual_removeNA, .(subject, levels_ordered,social_name),
+      summarize, 
+      mean_degree_per_sub = mean(actual_degree), 
+      sd = sd(actual_degree))
+```
+
+```{r}
+v_a = summarySEwithin(data=v_d, 
+                    measurevar = "mean_degree_per_sub", 
+                    withinvars = c("levels_ordered","social_name"), 
+                    idvar = "subject")
+
+```
+
+# ver 4 16 datapoints?
+```{r}
+# total_actual_removeNA$xaxis = factor(total_actual_removeNA$levels, levels = c("low", "med", "high"))
+
+g <- ggplot(data = v_d, aes(y = mean_degree_per_sub, x = levels_ordered, fill = social_name)) +
+  geom_flat_violin(aes(fill = social_name), position = position_nudge(x = .1, y = 0), adjust = 1.5,
+                   trim = FALSE, alpha = .7, colour = NA) +
+  geom_line(data = v_d, aes(group = subject, y = mean_degree_per_sub, x = as.numeric(levels_ordered)-.15, fill = social_name), linetype = 3, color = "grey") +
+  #geom_point(aes(group = subject, x = as.numeric(levels_ordered)-.15, y = mean_degree_per_sub, color = social_name),
+ #            position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+  geom_point(aes(x = as.numeric(levels_ordered)-.15, y = mean_degree_per_sub, color = social_name),
+             position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+  geom_boxplot(aes(x = levels_ordered, y = mean_degree_per_sub, fill = social_name),width = .1,
+               outlier.shape = NA, alpha = 0.8, width = .1, colour = "black") +
+  
+  # use summary stats __________________________________________________________________________________
+
+  geom_errorbar(data = v_a, aes(x = as.numeric(levels_ordered)+.1, y = mean_degree_per_sub_norm,
+                              group = social_name, colour = social_name, 
+                              ymin = mean_degree_per_sub_norm-se, 
+                              ymax = mean_degree_per_sub_norm+se), width = .05) +
+
+  # legend stuff __________________________________________________________________________________
+  expand_limits(x = 3.25) +
+  guides(fill = FALSE) +
+  guides(color = FALSE) +
+  guides(fill=guide_legend(title="social cues"))+
+  #scale_color_brewer(palette = "Dark2") +
+  #scale_fill_brewer(palette = "Dark2") +
+  scale_fill_manual(values = c("#D95F02","#1B9E77" ))+
+  scale_color_manual(values = c("#D95F02","#1B9E77"))+
+  ggtitle("Vicarious task - Actual ratings 2 x 3") +
+  # coord_flip() + #vertical vs horizontal
+  xlab("Stimulus intensity levels") +
+  ylab("Degrees of actual ratings") +
+  theme_bw() 
+
+g
+w = 5
+h = 3
+
+ggsave('/Users/h/Documents/projects_local/social_influence_analysis/fig/vicarious_actual.png', width = w, height = h)
+
+```
+
+
+#### p3 expect vicarious RT ________
+plot by high and low social cue
+```{r}
+gghistogray(
+  
+)
+```
+
+
+```{r}
+RT_vic_actual_d = ddply(vic_actual_removeNA, .(subject, levels_ordered,social_name),
+      summarize, 
+      mean_RT_per_sub = mean(p6_actual_RT), 
+      sd = sd(p6_actual_RT))
+```
+
+```{r}
+RT_vic_actual_a = summarySEwithin(data=RT_vic_actual_d, 
+                    measurevar = "mean_RT_per_sub", 
+                    withinvars = c("levels_ordered","social_name"), 
+                    idvar = "subject")
+
+```
+
+```{r}
+library(hrbrthemes)
+library(viridis)
+# ggplot(data = RT_vic_actual_d, aes(y = mean_RT_per_sub, x = levels_ordered, group = subject)) + 
+#   geom_density_ridges(alpha = 0.6) 
+
+ggplot(vic_expect_removeNA, 
+        aes(x = p3_expect_RT, y = levels_ordered)) +
+  geom_density_ridges(rel_min_height = 0.01, jittered_points = TRUE,
+                      position = position_points_jitter(width = 0.5, height = 0),
+                      point_shape = "|", point_size = 2,
+                      alpha = 0.7) +
+  xlim(0,5) +
+  xlab("RT") +
+  ylab("stimulus intensity") +
+  ggtitle("Vicarious expectation rating RT")
+
+ggplot(vic_expect_removeNA, 
+        aes(x = p3_expect_RT, y = social_name)) +
+  geom_density_ridges(rel_min_height = 0.01, jittered_points = TRUE,
+                      position = position_points_jitter(width = 0.5, height = 0),
+                      point_shape = "|", point_size = 2,
+                      alpha = 0.7) +
+  xlim(0,5) +
+  xlab("RT") +
+  ylab("social cue") +
+  ggtitle("Vicarious expectation rating RT")
+
+
+ggplot(vic_actual_removeNA, 
+        aes(x = p6_actual_RT, y = levels_ordered)) +
+  geom_density_ridges(rel_min_height = 0.01, jittered_points = TRUE,
+                      position = position_points_jitter(width = 0.5, height = 0),
+                      point_shape = "|", point_size = 2,
+                      alpha = 0.7) +
+  xlim(0,5) +
+  xlab("RT") +
+  ylab("stimulus intensity") +
+  ggtitle("Vicarious actual rating RT")
+
+ggplot(vic_actual_removeNA, 
+        aes(x = p6_actual_RT, y = social_name)) +
+  geom_density_ridges(rel_min_height = 0.01, jittered_points = TRUE,
+                      position = position_points_jitter(width = 0.5, height = 0),
+                      point_shape = "|", point_size = 2,
+                      alpha = 0.7) +
+  xlim(0,5) +
+  xlab("RT") +
+  ylab("social cue") +
+  ggtitle("Vicarious actual rating RT")
+
+```
+
+plot
+```{r}
+# total_actual_removeNA$xaxis = factor(total_actual_removeNA$levels, levels = c("low", "med", "high"))
+
+g <- ggplot(data = RT_vic_actual_d, aes(y = mean_RT_per_sub, x = levels_ordered, fill = social_name)) +
+  geom_flat_violin(aes(fill = social_name), position = position_nudge(x = .1, y = 0), adjust = 1.5,
+                   trim = FALSE, alpha = .5, colour = NA) +
+  geom_line(data = RT_vic_actual_d, aes(group = subject, y = mean_RT_per_sub, x = as.numeric(levels_ordered)-.15, fill = social_name), linetype = 3, color = "grey") +
+  #geom_point(aes(group = subject, x = as.numeric(levels_ordered)-.15, y = mean_RT_per_sub, color = social_name),
+ #            position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+  geom_point(aes(x = as.numeric(levels_ordered)-.15, y = mean_RT_per_sub, color = social_name),
+             position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+  geom_boxplot(aes(x = levels_ordered, y = mean_RT_per_sub, fill = social_name),width = .1,
+               outlier.shape = NA, alpha = 0.8, width = .1, colour = "black") +
+  
+  # use summary stats __________________________________________________________________________________
+#  geom_line(data = a, aes(x = as.numeric(levels_ordered)+.1, y = mean_degree_per_sub_norm_mean,
+#                           group = social_name, colour = social_name), linetype = 3) +
+  
+  # geom_point(data = a, aes(x = as.numeric(levels_ordered)+.1, y = mean_degree_per_sub_norm_mean,
+                           # group = social_name, colour = social_name), shape = 18) +
+  geom_errorbar(data = RT_vic_actual_a, aes(x = as.numeric(levels_ordered)+.1, y = mean_RT_per_sub_norm,
+                              group = social_name, colour = social_name, 
+                              ymin = mean_RT_per_sub_norm-se, 
+                              ymax = mean_RT_per_sub_norm+se), width = .05) +
+
+  # legend stuff __________________________________________________________________________________
+  expand_limits(x = 3.25) +
+  guides(fill = FALSE) +
+  guides(color = FALSE) +
+  guides(fill=guide_legend(title="social cues"))+
+  # scale_color_brewer(palette = "PiYG") +
+  # scale_fill_brewer(palette = "PiYG") +
+  scale_fill_manual(values = c("#D73027", "#4575B4"))+
+  scale_color_manual(values = c("#D73027", "#4575B4"))+
+  ggtitle("Vicarious task - RT for Actual ratings 2 x 3") +
+  # coord_flip() + #vertical vs horizontal
+  xlab("Stimulus intensity levels") +
+  ylab("RT of actual ratings") +
+  theme_bw() 
+
+g
+```
+```{r}
+qqnorm(residuals(model.cog_expect))
+qqnorm(residuals(model.cog_actual))
+qqnorm(residuals(model.vic_expect))
+qqnorm(residuals(model.vic_actual))
+```
+
+
+# --------------------------------------
+# 3. total cognitive + vicarious ############
+--------------------------------------
+```{r 3_combine_data}
+# combine studies
+subV = vic_dataset %>% select(subject, src_subject_id,expect_theta, expect_theta_pi, expect_r,actual_theta, actual_theta_pi, actual_r, levels, social_cue, p3_expect_responseonset, p6_actual_responseonset, p3_expect_RT, p6_actual_RT, param_administer_type)
+
+subC = cog_dataset %>% select(subject, src_subject_id, expect_theta,expect_theta_pi, expect_r,actual_theta, actual_theta_pi, actual_r, levels, social_cue, p3_expect_responseonset, p6_actual_responseonset, p3_expect_RT, p6_actual_RT, param_administer_type)
+subV$task = 'vicarious'
+subC$task = 'cognitive'
+
+```
+
+```{r}
+total = rbind(subC, subV)
+```
+
+```{r 3_contrast_code}
+# recoding variables
+total$levels[total$param_administer_type == 'low'] <- -0.5 # social influence task
+total$levels[total$param_administer_type == 'med'] <- 0 # no influence task
+total$levels[total$param_administer_type == 'high'] <- 0.5 # no influence task
+
+total$levels = factor(total$levels)
+
+#contrast code 1 linear
+total$level_con_linear[total$levels == -0.5] <- -0.5
+total$level_con_linear[total$levels == 0 ]   <- 0
+total$level_con_linear[total$levels == 0.5]  <- 0.5
+
+# contrast code 2 quadratic
+total$level_con_quad[total$levels == -0.5] <- -0.33
+total$level_con_quad[total$levels == 0]    <- 0.66
+total$level_con_quad[total$levels == 0.5]  <- -0.33
+
+# social cude contrast
+total$social_cue[total$param_cue_type == 'low']  <- -0.5 # social influence task
+total$social_cue[total$param_cue_type == 'high'] <- 0.5 # no influence task
+
+
+```
+
+#filter data
+```{r}
+total_expect_removeNA = subset(total, total$p3_expect_RT != "NA" & total$expect_r >= 150)
+total_expect_removeNA$expect_degree = total_expect_removeNA$expect_theta*180/pi
+
+total_actual_removeNA = subset(total, total$p6_actual_RT != "NA" & total$actual_r >= 150)
+total_actual_removeNA$actual_degree = (total_actual_removeNA$actual_theta)*180/pi
+
+```
+# check skewness
+# log trasform
+```{r}
+
+# log transform degrees
+total_expect_removeNA$log_expect_degrees = log(total_expect_removeNA$expect_degree)
+total_actual_removeNA$log_actual_degrees = log(total_actual_removeNA$actual_degree)
+
+```
+
+# lmer model
+
+# 3-2. expected ratings
+```{r 3_expect_rating}
+
+model.expect = lmer(expect_degree ~ social_cue + (social_cue | subject), data=  total_expect_removeNA)
+summary(model.expect)
+
+```
+```{r}
+qqnorm(resid(model.expect))
+qqline(resid(model.expect))
+```
+
+# 3-3. actual ratings
+```{r}
+
+model.total_actual = lmer(actual_degree ~ social_cue + level_con_linear + level_con_quad + (social_cue + level_con_linear + level_con_quad| subject), data=  total_actual_removeNA)
+summary(model.total_actual)
+
+```
+
+```{r}
+
+#total_actual_removeNA = subset(total, total$p6_actual_RT != "NA" & total$actual_r >= 150)
+
+model.total_actual = lmer(actual_degree ~ social_cue + levels + (social_cue + levels | subject), data=  total_actual_removeNA)
+summary(model.total_actual)
+
+```
+
+
+```{r}
+qqnorm(resid(model.actual))
+qqline(resid(model.actual))
+```
+
+
+```{r}
+total_actual_removeNA$social_name[total_actual_removeNA$social_cue == 0.5] <- "high cue" 
+total_actual_removeNA$social_name[total_actual_removeNA$social_cue == -0.5] <- "low cue" # no influence task
+
+#total_actual_removeNA$levels_name = factor(total_actual_removeNA$levels, levels=c("low", "med", "high"))
+
+total_actual_removeNA$levels_name[total_actual_removeNA$levels == 0.5] <- "high" # no influence task
+total_actual_removeNA$levels_name[total_actual_removeNA$levels == 0] <- "med" # no influence task
+total_actual_removeNA$levels_name[total_actual_removeNA$levels == -0.5] <- "low" # no influence task
+
+```
+
+
+
+```{r}
+total_actual_removeNA$actual_degree = total_actual_removeNA$actual_theta*180/pi
+hist(total_actual_removeNA$actual_degree)
+hist(log(total_actual_removeNA$actual_degree))
+```
+
+# summarize for visualization
+```{r}
+# sumrepdat <- summarySE(total_actual_removeNA, measurevar = "actual_degree", groupvars=c("levels_name", "social_name"))
+# d_bycond = cog_actual_removeNA %>%
+  # group_by(levels, param_cue_type) %>%
+  # summarise(mean_actual_degree = mean(actual_degree), )
+```
+
+```{r}
+total_actual_removeNA$levels_ordered <- factor(total_actual_removeNA$levels_name, levels=c("low", "med", "high"))
+
+```
+
+```{r}
+d = ddply(total_actual_removeNA, .(subject, levels_ordered,social_name),
+      summarize, 
+      mean_degree_per_sub = mean(actual_degree), 
+      sd = sd(actual_degree))
+      
+
+```
+
+```{r}
+a = summarySEwithin(data=d, 
+                    measurevar = "mean_degree_per_sub", 
+                    withinvars = c("levels_ordered","social_name"), 
+                    idvar = "subject")
+
+```
+
+
+
+
+# ver 4 16 datapoints?
+```{r}
+# total_actual_removeNA$xaxis = factor(total_actual_removeNA$levels, levels = c("low", "med", "high"))
+
+g <- ggplot(data = d, aes(y = mean_degree_per_sub, x = levels_ordered, fill = social_name)) +
+  geom_flat_violin(aes(fill = social_name), position = position_nudge(x = .1, y = 0), adjust = 1.5,
+                   trim = FALSE, alpha = .5, colour = NA) +
+  geom_line(data = d, aes(group = subject, y = mean_degree_per_sub, x = as.numeric(levels_ordered)-.15, fill = social_name), linetype = 3, color = "grey") +
+  #geom_point(aes(group = subject, x = as.numeric(levels_ordered)-.15, y = mean_degree_per_sub, color = social_name),
+ #            position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+  geom_point(aes(x = as.numeric(levels_ordered)-.15, y = mean_degree_per_sub, color = social_name),
+             position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+  geom_boxplot(aes(x = levels_ordered, y = mean_degree_per_sub, fill = social_name),width = .1,
+               outlier.shape = NA, alpha = 0.8, width = .1, colour = "black") +
+  
+  # use summary stats __________________________________________________________________________________
+#  geom_line(data = a, aes(x = as.numeric(levels_ordered)+.1, y = mean_degree_per_sub_norm_mean,
+#                           group = social_name, colour = social_name), linetype = 3) +
+  
+  # geom_point(data = a, aes(x = as.numeric(levels_ordered)+.1, y = mean_degree_per_sub_norm_mean,
+                           # group = social_name, colour = social_name), shape = 18) +
+  geom_errorbar(data = a, aes(x = as.numeric(levels_ordered)+.1, y = mean_degree_per_sub_norm_mean,
+                              group = social_name, colour = social_name, 
+                              ymin = mean_degree_per_sub_norm_mean-se, 
+                              ymax = mean_degree_per_sub_norm_mean+se), width = .05) +
+
+  # legend stuff __________________________________________________________________________________
+  expand_limits(x = 3.25) +
+  guides(fill = FALSE) +
+  guides(color = FALSE) +
+  guides(fill=guide_legend(title="social cues"))+
+  # scale_color_brewer(palette = "PiYG") +
+  # scale_fill_brewer(palette = "PiYG") +
+  scale_fill_manual(values = c("#D73027", "#4575B4"))+
+  scale_color_manual(values = c("#D73027", "#4575B4"))+
+  ggtitle("Cognitive & Vicarious task - Actual ratings 2 x 3") +
+  # coord_flip() + #vertical vs horizontal
+  xlab("Stimulus intensity levels") +
+  ylab("Degrees of actual ratings") +
+  theme_bw() 
+
+g
+```
+
+```{r}
+a = summarySEwithin(data=total_actual_removeNA, measurevar = "actual_degree", 
+                    withinvars = c("levels_ordered",  "social_name"), idvar = "subject")
+
+nf = normDataWithin(data=total_actual_removeNA, measurevar = "actual_degree", 
+                    withinvars = c("levels_ordered",  "social_name"), idvar = "subject")
+
+```
+
+
+```{r}
+total_actual_removeNA$xaxis = factor(total_actual_removeNA$levels, levels = c("low", "med", "high"))
+my_comparisons <- list( c("low", "med"), c("low", "high") )
+ggviolin(total_actual_removeNA, x = "levels_name",
+          y = "actual_degree",
+          combine = TRUE, 
+         #panel.labs = list(social_name=c("low cue", "high cue")),
+         facet.by = "social_name",
+         # color = "levels_name",
+         order = c("low", "med", "high"),
+         fill = "levels_name",
+         palette = c("#00AFBB", "#E7B800", "#FC4E07"),
+          ylab = "degrees of actual ratings", 
+          xlab = "social cue",
+           add = "boxplot", add.params = list(fill = "white")) +
+  stat_compare_means(comparisons = my_comparisons, label = "p.signif") 
+
+```
+```{r}
+# http://www.sthda.com/english/articles/24-ggpubr-publication-ready-plots/
+# https://rpkgs.datanovia.com/ggpubr/reference/ggviolin.html
+# https://github.com/kassambara/ggpubr/issues/36
+# https://www.r-bloggers.com/2017/06/facilitating-exploratory-data-visualization-application-to-tcga-genomic-data/
+total_actual_removeNA$xaxis = factor(total_actual_removeNA$levels, levels = c("low", "med", "high"))
+my_comparisons <- list( c("low cue", "high cue") )
+ggviolin(total_actual_removeNA, x = "social_name",
+          y = "degree",
+          combine = TRUE, 
+         
+         #panel.labs = list(social_name=c("low cue", "high cue")),
+         #facet.by = "social_name",
+         # color = "levels_name",
+         order = c("low cue", "high cue"),
+         fill = "social_name",
+         palette = c("#00AFBB",  "#FC4E07"), 
+          ylab = "degrees of actual ratings", 
+          xlab = "social cue",
+           add = "boxplot", add.params = list(fill = "white")) + 
+  stat_compare_means(comparisons = my_comparisons, label = "p.signif") 
+  #stat_compare_means(label.y = 50)   
+
+```
+
+
+
+# RT
+
+## plot expect RT
+```{r}
+hist(total_expect_removeNA$p3_expect_RT)
+hist(log(total_expect_removeNA$p3_expect_RT))
+```
+
+```{r}
+hist(total_expect_removeNA$p6_actual_RT)
+hist(log(total_expect_removeNA$p6_actual_RT))
+```
+
+## plot actual RT
+```{r}
+model.expect_RT = lmer(p3_expect_RT ~ social_cue + (social_cue | subject), data=  total_expect_removeNA)
+summary(model.expect_RT)
+```
+```{r}
+total_expect_removeNA$social_name[total_expect_removeNA$social_cue == 0.5] <- "high cue" 
+total_expect_removeNA$social_name[total_expect_removeNA$social_cue == -0.5] <- "low cue" # no influence task
+
+```
+
+```{r}
+RT_expect_d = ddply(total_expect_removeNA, .(subject, social_name),
+      summarize, 
+      mean_RT_per_sub = mean(p3_expect_RT), 
+      sd = sd(p3_expect_RT))
+      
+
+```
+
+```{r}
+RT_expect_a = summarySEwithin(data=RT_expect_d, 
+                    measurevar = "mean_RT_per_sub", 
+                    withinvars = c("social_name"), 
+                    idvar = "subject")
+
+```
+
+
+
+
+# ver 4 16 datapoints?
+```{r}
+# total_actual_removeNA$xaxis = factor(total_actual_removeNA$levels, levels = c("low", "med", "high"))
+
+g <- ggplot(data = RT_expect_d, aes(y = mean_RT_per_sub, x = social_name, fill = social_name)) +
+  geom_flat_violin(aes(fill = social_name), position = position_nudge(x = .1, y = 0), adjust = 1.5,
+                   trim = FALSE, alpha = .5, colour = NA) +
+  geom_line(data = RT_expect_d, aes(group = subject, y = mean_RT_per_sub, x = as.numeric(social_name)-.15), linetype = 3, color = "grey") +
+
+  geom_point(aes(x = as.numeric(social_name)-.15, y = mean_RT_per_sub, color = social_name),
+             position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+  geom_boxplot(aes(x = social_name, y = mean_RT_per_sub, fill = social_name),width = .1,
+               outlier.shape = NA, alpha = 0.8, width = .1, colour = "black") +
+  
+  # use summary stats __________________________________________________________________________________
+#  geom_line(data = a, aes(x = as.numeric(levels_ordered)+.1, y = mean_degree_per_sub_norm_mean,
+#                           group = social_name, colour = social_name), linetype = 3) +
+  
+  # geom_point(data = a, aes(x = as.numeric(levels_ordered)+.1, y = mean_degree_per_sub_norm_mean,
+                           # group = social_name, colour = social_name), shape = 18) +
+  geom_errorbar(data = RT_expect_a, aes(x = as.numeric(social_name)+.1, y = mean_RT_per_sub_norm_mean,
+                              group = social_name, colour = social_name, 
+                              ymin = mean_RT_per_sub_norm_mean-se, 
+                              ymax = mean_RT_per_sub_norm_mean+se), width = .05) +
+
+  # legend stuff __________________________________________________________________________________
+  expand_limits(x = 3.25) +
+  guides(fill = FALSE) +
+  guides(color = FALSE) +
+  #guides(fill=guide_legend(title="social cues"))+
+  # scale_color_brewer(palette = "PiYG") +
+  # scale_fill_brewer(palette = "PiYG") +
+  scale_fill_manual(values = c("#D73027", "#4575B4"))+
+  scale_color_manual(values = c("#D73027", "#4575B4"))+
+  ggtitle("Cognitive & Vicarious task - RT for Expected ratings") +
+  # coord_flip() + #vertical vs horizontal
+  xlab("Social cues") +
+  ylab("RT of expected ratings") +
+  theme_bw() 
+
+g
+```
+
+
+```{r}
+
+model.actual_RT = lmer(p6_actual_RT ~ social_cue*level_con_linear + social_cue*level_con_quad + (social_cue| subject), data=  total_actual_removeNA)
+summary(model.actual_RT)
+```
+
+```{r}
+total_actual_removeNA$levels_ordered <- factor(total_actual_removeNA$levels_name, levels=c("low", "med", "high"))
+
+```
+
+```{r}
+RT_total_d = ddply(total_actual_removeNA, .(subject, levels_ordered,social_name),
+      summarize, 
+      mean_RT_per_sub = mean(p6_actual_RT), 
+      sd = sd(p6_actual_RT))
+      
+
+```
+
+```{r}
+RT_total_a = summarySEwithin(data=RT_total_d, 
+                    measurevar = "mean_RT_per_sub", 
+                    withinvars = c("levels_ordered","social_name"), 
+                    idvar = "subject")
+
+```
+
+
+
+
+plot
+```{r}
+# total_actual_removeNA$xaxis = factor(total_actual_removeNA$levels, levels = c("low", "med", "high"))
+
+g <- ggplot(data = RT_total_d, aes(y = mean_RT_per_sub, x = levels_ordered, fill = social_name)) +
+  geom_flat_violin(aes(fill = social_name), position = position_nudge(x = .1, y = 0), adjust = 1.5,
+                   trim = FALSE, alpha = .5, colour = NA) +
+  geom_line(data = RT_total_d, aes(group = subject, y = mean_RT_per_sub, x = as.numeric(levels_ordered)-.15, fill = social_name), linetype = 3, color = "grey") +
+  #geom_point(aes(group = subject, x = as.numeric(levels_ordered)-.15, y = mean_RT_per_sub, color = social_name),
+ #            position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+  geom_point(aes(x = as.numeric(levels_ordered)-.15, y = mean_RT_per_sub, color = social_name),
+             position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+  geom_boxplot(aes(x = levels_ordered, y = mean_RT_per_sub, fill = social_name),width = .1,
+               outlier.shape = NA, alpha = 0.8, width = .1, colour = "black") +
+  
+  # use summary stats __________________________________________________________________________________
+#  geom_line(data = a, aes(x = as.numeric(levels_ordered)+.1, y = mean_degree_per_sub_norm_mean,
+#                           group = social_name, colour = social_name), linetype = 3) +
+  
+  # geom_point(data = a, aes(x = as.numeric(levels_ordered)+.1, y = mean_degree_per_sub_norm_mean,
+                           # group = social_name, colour = social_name), shape = 18) +
+  geom_errorbar(data = RT_total_a, aes(x = as.numeric(levels_ordered)+.1, y = mean_RT_per_sub_norm_mean,
+                              group = social_name, colour = social_name, 
+                              ymin = mean_RT_per_sub_norm_mean-se, 
+                              ymax = mean_RT_per_sub_norm_mean+se), width = .05) +
+
+  # legend stuff __________________________________________________________________________________
+  expand_limits(x = 3.25) +
+  guides(fill = FALSE) +
+  guides(color = FALSE) +
+  guides(fill=guide_legend(title="social cues"))+
+  # scale_color_brewer(palette = "PiYG") +
+  # scale_fill_brewer(palette = "PiYG") +
+  scale_fill_manual(values = c("#D73027", "#4575B4"))+
+  scale_color_manual(values = c("#D73027", "#4575B4"))+
+  ggtitle("Cognitive & Vicarious task - RT for Actual ratings 2 x 3") +
+  # coord_flip() + #vertical vs horizontal
+  xlab("Stimulus intensity levels") +
+  ylab("RT of actual ratings") +
+  theme_bw() 
+
+g
+```

@@ -1,0 +1,108 @@
+---
+title: "sfn"
+author: "Heejung Jung"
+date: "7/15/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+library(dplyr)
+library(plyr)
+library(readr)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+# data_all <- list.files(path = "/Users/h/Documents/projects_local/social_influence_analysis/analysis/fmri/roi_extraction", 
+#                        pattern ="atlas-buckner_task-*.csv", 
+#                        full.names = TRUE %>% 
+#   lapply(read_csv)      %>%                                      # Store all files in list
+#   bind_rows                                                       # Combine data sets into one data set 
+# data_all     
+```
+
+```{r}
+FILENAME = paste('atlas-buckner_task-*_con.csv', sep = "")
+common_path = Sys.glob(file.path("/Users/h/Documents/projects_local/social_influence_analysis/analysis/fmri",'roi_extraction'))
+filter_path = common_path[!str_detect(common_path,pattern="sub-0024|sub-0001")]
+
+DF <- do.call("rbind",lapply(filter_path,FUN=function(files){ read.csv(files)}))
+is.nan.data.frame <- function(x)
+  do.call(cbind, lapply(x, is.nan))
+DF[is.nan(DF)] <- NA
+DF = as.data.frame(DF)
+# subjects as factor
+DF$subject = factor(DF$src_subject_id)
+```
+
+
+
+```{r}
+library(tidyverse)
+
+list_of_files <- list.files(path="/Users/h/Documents/projects_local/social_influence_analysis/analysis/fmri/roi_extraction",pattern = "\\_con.csv",full.names = TRUE)
+
+df <- list_of_files %>% 
+  map_dfr(read.csv, header=TRUE, fill=TRUE)
+```
+
+```{r}
+# 7 region x 3 task
+df$sub = factor(df$sub)
+df$task = factor(df$task)
+long_df = gather(df, roi, beta_value, Visual:Default, factor_key=TRUE)
+
+
+
+```
+
+```{r}
+
+con.roi = matrix(c(6,	-1,	-1,	-1,	-1,	-1,	-1,
+0,	5,	-1,	-1,	-1,	-1,	-1,
+0,	0,	4,	-1,	-1,	-1,	-1,
+0,	0,	0,	3,	-1,	-1,	-1,
+0,	0,	0,	0,	2,	-1,	-1,
+0,	0,	0,	0,	0,	1, -1), ncol = 6)
+con.roi
+long_df$roi.f = factor(long_df$roi, labels=c("Visual", "Somatomotor", "dAttention", "vAttention", "Limbic", "Frontoparietal", "Default"))
+
+contrasts(long_df$roi.f) = con.roi
+
+
+con.task = matrix(c(-1, 2, -1, 1, 0, -1), ncol = 2)
+con.task
+long_df$task.f = factor(long_df$task, labels=c("Cognitive", "Pain", "Vicarious"))
+
+contrasts(long_df$task.f) = con.task
+```
+
+```{r}
+model.roi = lmer(beta_value ~ roi.f*task.f + (roi|sub), data=long_df)
+summary(model.roi)
+```
+
+```{r}
+model.roi = lmer(beta_value ~ roi*task + (roi|sub), data=long_df)
+summary(model.roi)
+```
+```{r}
+model.roi = lmer(beta_value ~ roi*task + (roi|sub), data=long_df)
+summary(model.roi)
+```
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
