@@ -17,6 +17,27 @@ fsl01_extract_three_column.py
 # __email__ = "heejung.jung@colorado.edu"
 # __status__ = "Production"
 
+
+# %% functions ____
+def _ev_pandas(empty_df, df, col_onset, col_dur, col_mod, txt_fname, label):
+    # NumberTypes = (types.IntType, types.LongType, types.FloatType, types.ComplexType)
+    empty_df['onset'] = df[col_onset] - df['param_trigger_onset']
+    if isinstance(col_dur, str):
+        empty_df['dur'] = df[col_dur]
+    elif isinstance(col_dur, (int, long, float, complex)):
+        empty_df['dur'] = col_dur
+    # if isinstance(col_mod, str):
+        # empty_df['mod'] = df[col_mod]
+    if isinstance(col_mod, (int, long, float, complex)):
+        empty_df['mod'] = col_mod
+    else:
+        empty_df['mod'] = col_mod
+    # empty_df['mod'] = col_mod
+    save_fname = os.path.join(ev_dir, sub, ses, label+txt_fname)
+    empty_df.to_csv(save_fname, header=None, index=None, sep='\t')
+    # return(empty_df)
+
+
 # %% parameters ________________________________________________________________________
 current_dir = os.getcwd()
 main_dir = Path(current_dir).parents[2] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
@@ -94,52 +115,71 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         # column 1: onset, column 2: duration, column 3: value of the input during period (parametric modulator)
 
 
+
         #onset
         # 1. CUE ______________________
         # 1-1. CUE onset only
         #pdb.set_trace()
         ev_cue_onset_only = pd.DataFrame()
-        ev_cue_onset_only['onset'] = df['event01_cue_onset'] - df['param_trigger_onset'] #CUE;
-        ev_cue_onset_only['dur'] = 1
-        ev_cue_onset_only['mod'] = 1
-        fname_1_1 = os.path.join(ev_dir, sub, ses, label+'_EV01-CUE_onsetonly.txt')
-        ev_cue_onset_only.to_csv(fname_1_1, header=None, index=None, sep='\t')
+        _ev_pandas(ev_cue_onset_only, df, 
+        'event01_cue_onset', 1, 1, '_EV01-CUE_onsetonly.txt', label)
+        # ev_cue_onset_only['onset'] = df['event01_cue_onset'] - df['param_trigger_onset'] #CUE;
+        # ev_cue_onset_only['dur'] = 1
+        # ev_cue_onset_only['mod'] = 1
+        # fname_1_1 = os.path.join(ev_dir, sub, ses, label+'_EV01-CUE_onsetonly.txt')
+        # ev_cue_onset_only.to_csv(fname_1_1, header=None, index=None, sep='\t')
+        
 
         # 1-2. CUE modulated with cue type
         ev_cue_pmod_cue = pd.DataFrame()
-        ev_cue_pmod_cue['onset'] = df['event01_cue_onset'] - df['param_trigger_onset'] #CUE;
-        ev_cue_pmod_cue['dur'] = 1
-        ev_cue_pmod_cue['mod'] = df['param_cue_type'].map(dict_cue)
-        fname_1_2 = os.path.join(ev_dir, sub, ses, label+'_EV01-CUE_pmod-cue.txt')
-        ev_cue_pmod_cue.to_csv(fname_1_2, header=None, index=None, sep='\t', mode='w')
+        _ev_pandas(ev_cue_pmod_cue, df, 
+        'event01_cue_onset', 1, df['param_cue_type'].map(dict_cue), 
+        '_EV01-CUE_pmod-cue.txt', label)
+        # ev_cue_pmod_cue['onset'] = df['event01_cue_onset'] - df['param_trigger_onset'] #CUE;
+        # ev_cue_pmod_cue['dur'] = 1
+        # ev_cue_pmod_cue['mod'] = df['param_cue_type'].map(dict_cue)
+        # fname_1_2 = os.path.join(ev_dir, sub, ses, label+'_EV01-CUE_pmod-cue.txt')
+        # ev_cue_pmod_cue.to_csv(fname_1_2, header=None, index=None, sep='\t', mode='w')
 
         # 1-3. CUE modulated with cue type
         ev_cue_pmod_expect = pd.DataFrame()
-        ev_cue_pmod_expect['onset'] = df['event01_cue_onset'] - df['param_trigger_onset'] #CUE;
-        ev_cue_pmod_expect['dur'] = 1
-        ev_cue_pmod_expect['mod'] = df['event02_expect_angle']
-        fname_1_3 = os.path.join(ev_dir, sub, ses, label+'_EV01-CUE_pmod-expect.txt')
-        ev_cue_pmod_expect.to_csv(fname_1_3, header=None, index=None, sep='\t', mode='w')
+        _ev_pandas(ev_cue_pmod_expect, df, 
+        'event01_cue_onset', 1, df['event02_expect_angle'], 
+        '_EV01-CUE_pmod-expect.txt', label)
+        # ev_cue_pmod_expect['onset'] = df['event01_cue_onset'] - df['param_trigger_onset'] #CUE;
+        # ev_cue_pmod_expect['dur'] = 1
+        # ev_cue_pmod_expect['mod'] = df['event02_expect_angle']
+        # fname_1_3 = os.path.join(ev_dir, sub, ses, label+'_EV01-CUE_pmod-expect.txt')
+        # ev_cue_pmod_expect.to_csv(fname_1_3, header=None, index=None, sep='\t', mode='w')
 
         # 2. RATING EXPECT ______________________ DUR: RT
         # 2-1. RATING onset only
         ev_expect_onset_only = pd.DataFrame()
-        ev_expect_onset_only['onset'] = df['event02_expect_displayonset'] - df['param_trigger_onset'] #CUE;
-        ev_expect_onset_only['dur'] = df['event02_expect_RT']
-        ev_expect_onset_only['mod'] = 1
-        fname_2_1 = os.path.join(ev_dir, sub, ses, label+'_EV02-EXPECT_onsetonly.txt')
-        ev_expect_onset_only.to_csv(fname_2_1, header=None, index=None, sep='\t', mode='w')
+        _ev_pandas(ev_expect_onset_only, df, 
+        'event02_expect_displayonset', 'event02_expect_RT', 1, 
+        '_EV02-EXPECT_onsetonly.txt', label)
+        # ev_expect_onset_only['onset'] = df['event02_expect_displayonset'] - df['param_trigger_onset'] #CUE;
+        # ev_expect_onset_only['dur'] = df['event02_expect_RT']
+        # ev_expect_onset_only['mod'] = 1
+        # fname_2_1 = os.path.join(ev_dir, sub, ses, label+'_EV02-EXPECT_onsetonly.txt')
+        # ev_expect_onset_only.to_csv(fname_2_1, header=None, index=None, sep='\t', mode='w')
 
         # 3. STIM ___________________________________________________________________________
         # 3-1. stim x 5s x no pmod
         ev_stim_onset_only = pd.DataFrame()
-        ev_stim_onset_only['onset'] = df['event03_stimulus_displayonset'] - df['param_trigger_onset'] #CUE;
-        ev_stim_onset_only['dur'] = 5
-        ev_stim_onset_only['mod'] = 1
-        fname_3_1 = os.path.join(ev_dir, sub, ses, label+'_EV03-STIM_onsetonly.txt')
-        ev_stim_onset_only.to_csv(fname_3_1, header=None, index=None, sep='\t', mode='w')
+        _ev_pandas(ev_stim_onset_only, df, 
+        'event03_stimulus_displayonset', 5, 1, 
+        '_EV03-STIM_onsetonly.txt', label)
+        # ev_stim_onset_only['onset'] = df['event03_stimulus_displayonset'] - df['param_trigger_onset'] #CUE;
+        # ev_stim_onset_only['dur'] = 5
+        # ev_stim_onset_only['mod'] = 1
+        # fname_3_1 = os.path.join(ev_dir, sub, ses, label+'_EV03-STIM_onsetonly.txt')
+        # ev_stim_onset_only.to_csv(fname_3_1, header=None, index=None, sep='\t', mode='w')
         # 3-2. stim x 5s x cue
         ev_stim_pmod_cue = pd.DataFrame()
+        _ev_pandas(ev_stim_onset_only, df, 
+        'event03_stimulus_displayonset', 5, 1, 
+        '_EV03-STIM_onsetonly.txt', label)
         ev_stim_pmod_cue['onset'] = df['event03_stimulus_displayonset'] - df['param_trigger_onset'] #CUE;
         ev_stim_pmod_cue['dur'] = 5
         ev_stim_pmod_cue['mod'] = df['param_cue_type'].map(dict_cue)
