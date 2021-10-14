@@ -5,6 +5,16 @@ import glob
 import ntpath
 import numpy as np
 
+"""
+c01_extract_xycoord.m
+after extracting x, y coordinates,
+This code converts cartesian coordinates into angle and radians.
+If radians are greater than 
+"""
+# __author__ = "Heejung Jung"
+# __version__ = "1.0.1"
+# __email__ = "heejung.jung@colorado.edu"
+# __status__ = "Production"
 # TODO:
 # 1. calculate angle
 # if angle > 0
@@ -44,12 +54,13 @@ for sub in sub_list:
     # TODO: 
     # load sub-0060_ses-01_task-social_run-06-pain_beh
     # load sub-0060_ses-01_task-social_run-02-vicarious_trajectory_formatted
-        data = pd.DataFrame(); newdata = pd.DataFrame();
+        
         run_list = glob.glob(os.path.join(data_dir, sub, 'ses-{0:02d}'.format(ses), '*run*_trajectory_formatted.csv'))
         for run in run_list:
+            data = pd.DataFrame(); newdata = pd.DataFrame();
             run_str = re.findall(r'\b\d+\b', run)[2] # '05'
-            print("{0}_ses{1}_run-{2}".format(sub,ses,run_str))
-            print("filepath: {0}".format(run))
+            # print("{0}_ses{1}_run-{2}".format(sub,ses,run_str))
+            # print("filepath: {0}".format(run))
 
             data = pd.read_csv(run) #'fullfilepath'
             fname = os.path.basename(run)
