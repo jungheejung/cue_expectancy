@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# encoding: utf-8
 # %% libraries ________________________________________________________________________
 import pandas as pd
 import os, glob
@@ -19,8 +21,9 @@ fsl01_extract_three_column.py
 
 # %% parameters ________________________________________________________________________
 current_dir = os.getcwd()
-main_dir = Path(current_dir).parents[2] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
-
+main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
+print("\nscript directory is: {0}".format(current_dir))
+print("\ntop directory is: {0}".format(main_dir))
 csv_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd02_preprocessed')
 ev_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd03_EV_FSL')
 ev_bids_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd04_EV_SPM')
@@ -28,6 +31,7 @@ ev_bids_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd04_EV_SPM')
 # %%
 # sub_list = [2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,23,24,25,26,28,29]
 sub_list = next(os.walk(csv_dir))[1]
+sub_list.remove("sub-0001")
 ses_list = [1,3,4]
 sub_ses = list(itertools.product(sub_list, ses_list))
 for i, (sub, ses_ind) in enumerate(sub_ses):
@@ -179,25 +183,3 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         ev_expect_onset_only['mod'] = 1
         fname_4_1 = os.path.join(ev_dir, sub, ses, label+'_EV04-ACTUAL-onsetonly.txt')
         ev_expect_onset_only.to_csv(fname_4_1, header=None, index=None, sep='\t', mode='w')
-
-
-
-
-# 'event01_cue_onset'
-# 'event02_expect_displayonset' #RATING EXPECT
-# 'event03_stimulus_displayonset' #STIM
-# 'event04_actual_displayonset' #RATING ACTUAL
-#
-# #Parametric modulator
-# 'param_cue_type' #Cue contrast
-# 'param_stim_type'
-# 'event02_expect_RT'
-# 'event02_expect_angle'
-# 'event04_actual_RT'
-# 'event04_actual_angle'
-#
-#
-#
-#
-# ev_cue = pain['event01_cue_onset'] #CUE
-# VARIABLE version
