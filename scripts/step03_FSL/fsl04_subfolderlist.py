@@ -10,7 +10,6 @@ extract subfolders, save into txt file for job array submission
 # __status__ = "Production"
 # __userinput__ = "fmriprep_dir"
 
-
 # TODO: figure out which sources to check
 # 1. fmriprep preprocessed images
 # 2. tcol folders 
@@ -29,7 +28,8 @@ import fileinput
 import itertools
 from pathlib import Path
 import pandas as pd
-
+from datetime import date
+import json
 
 # %% parameters ________________________________________________________________________
 current_dir = os.getcwd()
@@ -50,34 +50,43 @@ approved = ['.csv']
 filesDepth4[:] = [f for f in filesDepth4 if not any(sub in f for sub in approved)]
 
 save_dir = os.path.join(main_dir, 'scripts', 'step03_FSL')
-df = pd.DataFrame([sub.split("/") for sub in filesDepth4])
+df = pd.DataFrame(data = [sub.split("/") for sub in filesDepth4], columns=['sub', 'ses', 'run', 'ev'])
 
 # TODO: check if nifti exists
 # if so, added complete at the end of the column
-# print( df[[0]].astype(str) + '_' + df[[1]].astype(str) + '_' + df[[2]].astype(str) + '_' + df[[3]].astype(str) + '.nii.gz')
 df['niftidir'] = nifti_dir
-df['filename'] = df[[0,1,2,3]].agg('_'.join, axis=1)
+df['filename'] = df[['sub', 'ses', 'run', 'ev']].agg('_'.join, axis=1)
 df['filename'] = df['filename'].astype(str) + '.nii.gz'
 
-# df['filename'] =str(df[[0]].astype(str) + '_' + df[[1]].astype(str) + '_' + df[[2]].astype(str) + '_' + df[[3]].astype(str) + '.nii.gz')
-# print("{0}_{1}_{2}_{3}.nii.gz".format(df[[0]], df[[1]], df[[2]], df[[3]]))
-# print(df.head())
-# df['fpath'] = nifti_dir + os.path.sep + df[[0]].astype(str) + os.path.sep +  df['filename'].astype(str)
-df['fpath'] = df[['niftidir', 0, 'filename']].agg('/'.join, axis = 1)
+df['fpath'] = df[['niftidir', 'sub', 'filename']].agg('/'.join, axis = 1)
 print(df.head())
 df['exists'] = df['fpath'].map(os.path.isfile)
 print(sub_list)
 # TODO: exclude rows from pandas df where no fmriprep sub folder exists. 
-df = df[df[[0]].isin(sub_list)]
-# df['exists'] = df['filename'].map(os.path.isfile)
-print(df.head())
+subset_df = df[df['sub'].isin(sub_list)]
+subset_df.drop(columns=['niftidir', 'filename'], inplace = True)
+print(subset_df)
 
-# os.path.isfile(os.path.join(nifti_dir, "{0}_{1}_{2}_{3}.nii.gz".format(df[[0]], df[[1]], df[[2]], df[[3]] ) ))
-# /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/analysis/fmri/fsl/multivariate/isolate_nifti/sub-0010
+print(subset_df.agg(['nunique']))
+total = subset_df.agg(['nunique'])
+print(type(total))
+today = date.today()
+d1 = today.strftime("%Y-%m-%d")
+print("total list summary\n{0}\n\t* sub: {1}\n\t* files: {2}\n\t* no. of complete: {3}".format(
+    d1, total.iloc[0,0], total.iloc[0,4], subset_df.exists.eq(True).sum()))
 
-df.to_csv(os.path.join(save_dir, 'fsl05_jobarraylist_test.txt'), sep = ',', index=False, header = False)
+json_summary = {
+	"file description": "summary of single trial combintations, based on existing fmriprep nifti outputs and .fsf files created from behavioral files",
+	"date": d1,
+	"number of unique subjects": int(total.iloc[0, 0]),
+	"number of unique files for FSL": int(total.iloc[0, 4]),
+	"number of already completed single trials": int(subset_df.exists.eq(True).sum()),
+	"subject list": sub_list
+}
 
-# with open(os.path.join(save_dir, 'fsl05_jobarraylist.txt'), 'w') as f:
-#     for item in filesDepth4:
-#         f.write("%s\n" % item)
-
+Path(os.path.join(current_dir, 'log')).mkdir(parents=True, exist_ok=True)
+filename = os.path.join(current_dir, 'log', "summary_{0}.json".format(d1))
+with open(filename, 'w') as outfile:
+    json.dump(json_summary, outfile)
+subset_df.to_csv(os.path.join(current_dir, 'log', "summary_{0}.txt".format(d1)), sep = ',', index=False, header = True)
+subset_df.to_csv(os.path.join(save_dir, 'fsl05_jobarraylist.txt'), sep = ',', index=False, header = False)
