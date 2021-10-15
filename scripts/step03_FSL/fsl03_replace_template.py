@@ -1,43 +1,66 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-replace_template.py
+fsl03_replace_template.py
 open FSL template and replace variables with corresponding filenames
 
 created by McKell Carter on 2012-02-04
 modified by Heejung Jung on 2018-01-02 and 2021-08-14
 """
+# __author__ = "McKell Carter, Heejung Jung"
+# __version__ = "1.0.1"
+# __email__ = "heejung.jung@colorado.edu"
+# __status__ = "Production"
+# __userinput__ = "fmriprep_dir"
 
-# 1. libraries and directories __________________________________________
+# %% 1. libraries and directories __________________________________________
 import os, glob, sys, time, shutil
 import numpy as np
 import fileinput
+from pathlib import Path
 import itertools
 # experiment_name = 'social'
 # exper_dir = '/work/ics/data/projects/snaglab/Projects/POKER.05'
 # event_file_list = ['at_CARD_lowbet.txt', 'at_CARD_lowfold.txt']
 # template_fname = 'Scripts/isolateEvents/isolateEV01_templateBIDS.fsf'
 # three_col_file_ext = '.tcol'
-main_git_dir = os.path.join('/dartfs-hpc','rc','lab','C','CANlab',
-'labdata','projects','spacetop','social')
-ev_dir = os.path.join(main_git_dir,'analysis','fmri','fsl',
+
+# TODO: DELETE later
+# main_git_dir = os.path.join('/dartfs-hpc','rc','lab','C','CANlab',
+# 'labdata','projects','spacetop','social')
+# ev_dir = os.path.join(main_git_dir,'analysis','fmri','fsl',
+# 'multivariate','isolate_ev')
+# fmriprep_dir = os.path.join('/dartfs-hpc','rc','lab','C','CANlab',
+# 'labdata','data','spacetop','derivatives','dartmouth','fmriprep','fmriprep')
+# motion_dir = os.path.join(main_git_dir, 'data', 'dartmouth', 'd05_motion')
+# script_dir = os.path.join(main_git_dir, 'scripts','step03_FSL')
+
+# %% parameters __________________________________________
+current_dir = os.getcwd()
+main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
+
+ev_dir = os.path.join(main_dir,'analysis','fmri','fsl',
 'multivariate','isolate_ev')
-fmriprep_dir = os.path.join('/dartfs-hpc','rc','lab','C','CANlab',
-'labdata','data','spacetop','derivatives','dartmouth','fmriprep','fmriprep')
-motion_dir = os.path.join(main_git_dir, 'data', 'dartmouth', 'd05_motion')
-script_dir = os.path.join(main_git_dir, 'scripts','step03_FSL')
-a = [[2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,23,24,25,26,28,29],
+fmriprep_dir = os.path.join('/dartfs-hpc/rc/lab/C/CANlab/labdata/data',
+'spacetop','derivatives','dartmouth','fmriprep','fmriprep')
+motion_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd05_motion')
+script_dir = os.path.join(main_dir, 'scripts','step03_FSL')
+print("main_dir {0}".format(main_dir))
+sub_list = next(os.walk(ev_dir))[1]
+print(sub_list)
+a = [sub_list,
 [1,3,4],
 [1,2,3,4,5,6]]
 b = list(itertools.product(*a))
-
+print("subject: {0}".format(sub_list))
 # TODO: 2. extract directories __________________________________________
 # [x] extract the keyword that follows run-01
 
-for sub_num, ses_num, run_num in b:
-    sub = 'sub-{0}'.format(str(sub_num).zfill(4))
+for sub, ses_num, run_num in b:
+    # sub = 'sub-{0}'.format(str(sub_num).zfill(4))
     ses = 'ses-{0}'.format(str(ses_num).zfill(2))
     run = 'run-{0}'.format(str(run_num).zfill(2))
+    print("{0}, {1}, {2}".format(sub, ses, run))
     ev_top_dir = glob.glob(os.path.join(ev_dir, sub, ses, '{0}-*'.format(run) ))
     print(ev_top_dir)
     if ev_top_dir:

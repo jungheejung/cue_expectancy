@@ -1,10 +1,14 @@
+#!/usr/bin/env python
+# encoding: utf-8
 # %%
 from operator import index
 import os, re, glob
 import numpy as np
 import pandas as pd
+from pathlib import Path
 import itertools
 """
+fsl02_create_single_tcol.py
 this script will isolate trials into 1) single and 2) combined .tcol outputs. 
 For the social influence task, we have two events of interest: CUE and STIM
 There are four event types that will be modeled in the glm: CUE, EXPECT, STIM, and ACTUAL.
@@ -12,10 +16,14 @@ There are four event types that will be modeled in the glm: CUE, EXPECT, STIM, a
 benchmark
 https://github.com/SNaGLab/POKER.05/blob/POKER.05_BIDS/Scripts/isolateEvents/isolateEV01_FSLrestructure.py
 """
+# __author__ = "Heejung Jung"
+# __version__ = "1.0.1"
+# __email__ = "heejung.jung@colorado.edu"
+# __status__ = "Production"
 
 # functions ___________________________________________________________
 # %%
-def clean_df(fname, trial_type):
+def _clean_df(fname, trial_type):
     # loads 3 column EV files 
     # convert to pandas and append info (trial number, trial type) 
     if os.path.exists(fname):
@@ -30,22 +38,24 @@ def clean_df(fname, trial_type):
     else:
         df = None
     return df
-# %%
+# %% parameters ________________________________________________________________________
 # local data, 3 column EV files
 # threeEV_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/data/dartmouth/d03_EV_FSL' # sub-0002/ses-01
 # singleEV_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/analysis/fmri/fsl/isolated_ev'
-threeEV_dir = '/Users/h/Documents/projects_local/social_influence_analysis/data/dartmouth/d03_EV_FSL/' # sub-0002/ses-01
-singleEV_dir = '/Users/h/Documents/projects_local/social_influence_analysis/analysis/fmri/fsl/isolated_ev'
+current_dir = os.getcwd()
+main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
+threeEV_dir = os.path.join(main_dir,'data', 'dartmouth', 'd03_EV_FSL') # sub-0002/ses-01
+singleEV_dir = os.path.join(main_dir,'analysis','fmri','fsl','multivariate','isolate_ev')
 
 # data/dartmouth/d03_EV_FSL/sub-0003/ses-01/sub-0003_ses-01_task-social_run-01-pain_EV01-CUE_onsetonly.txt
-
-a = [[2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,23,24,25,26,28,29],
+sub_list = next(os.walk(threeEV_dir))[1]
+a = [sub_list,
 [1,3,4],
 [1,2,3,4,5,6]]
 b = list(itertools.product(*a))
-for sub_num, ses_num, run_num in b:
+for sub, ses_num, run_num in b:
 # 1) open CUE text and count number of CUE
-    sub = 'sub-{0}'.format(str(sub_num).zfill(4))
+    # sub = 'sub-{0}'.format(str(sub_num).zfill(4))
     ses = 'ses-{0}'.format(str(ses_num).zfill(2))
     run = 'run-{0}'.format(str(run_num).zfill(2))
     fname_cue    = glob.glob(os.path.join(threeEV_dir, sub, ses, '{0}_{1}_task-social_{2}-*_EV01-CUE_onsetonly.txt'.format(sub,ses,run)))
@@ -63,10 +73,10 @@ for sub_num, ses_num, run_num in b:
         run = info[3] # run-01-pain
 
         # [x] TODO: open all files, load and vstack
-        cue_df = clean_df(fname_cue[0], 'cue')
-        stim_df = clean_df(fname_stim[0], 'stim')
-        expect_df = clean_df(fname_expect[0], 'expect')
-        actual_df = clean_df(fname_actual[0], 'actual')
+        cue_df = _clean_df(fname_cue[0], 'cue')
+        stim_df = _clean_df(fname_stim[0], 'stim')
+        expect_df = _clean_df(fname_expect[0], 'expect')
+        actual_df = _clean_df(fname_actual[0], 'actual')
         full_df = pd.concat([cue_df, stim_df, expect_df, actual_df])
         full_df.reset_index(drop=True, inplace=True)
 
