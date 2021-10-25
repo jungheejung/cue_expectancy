@@ -6,7 +6,8 @@
 
 
 % directories _________________
-nifti_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/analysis/fmri/fsl/multivariate/isolate_nifti';
+% nifti_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/analysis/fmri/fsl/multivariate/isolate_nifti';
+nifti_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/analysis/fmri/fsl/multivariate/concat_nifti'
 sublist = [2,3,4,6,7,8,9,10,18,19,20,23,25,26,28,29];%, 19];%,26];
 % step 01 __________________________________________________________________
 
