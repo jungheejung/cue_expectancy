@@ -41,8 +41,8 @@ sub_list = next(os.walk(fmriprep_dir))[1]
 approved = ['sub']
 sub_list[:] = [url for url in sub_list if any(sub in url for sub in approved)]
 
-# nifti_dir = os.path.join(main_dir,  'analysis', 'fmri', 'fsl', 'multivariate', 'isolate_nifti')
-nifti_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/analysis/fmri/fsl/multivariate/isolate_nifti'
+nifti_dir = os.path.join(main_dir,  'analysis', 'fmri', 'fsl', 'multivariate', 'isolate_nifti')
+#nifti_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/analysis/fmri/fsl/multivariate/isolate_nifti'
 
 os.chdir(ev_dir)
 filesDepth4 = sorted(glob.glob('*/*/*/*'))
@@ -88,5 +88,5 @@ Path(os.path.join(current_dir, 'log')).mkdir(parents=True, exist_ok=True)
 filename = os.path.join(current_dir, 'log', "summary_{0}.json".format(d1))
 with open(filename, 'w') as outfile:
     json.dump(json_summary, outfile)
-subset_df.to_csv(os.path.join(current_dir, 'log', "summary_{0}.txt".format(d1)), sep = ',', index=False, header = True)
-subset_df.to_csv(os.path.join(save_dir, 'fsl05_jobarraylist.txt'), sep = ',', index=False, header = False)
+subset_df.to_csv(os.path.join(current_dir, 'log', "summary_{0}_interim.txt".format(d1)), sep = ',', index=False, header = True)
+subset_df.to_csv(os.path.join(save_dir, 'fsl05_jobarraylist_interim.txt'), sep = ',', index=False, header = False)
