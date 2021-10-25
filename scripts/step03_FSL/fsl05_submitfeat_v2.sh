@@ -9,7 +9,7 @@
 #SBATCH -e ./log/FSL_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1071-5000%60
+#SBATCH --array=8313-12274%20
 
 module load fsl/6.0.4
 conda activate spacetop_env
