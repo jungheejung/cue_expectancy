@@ -7,8 +7,10 @@
 
 % directories _________________
 % nifti_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/analysis/fmri/fsl/multivariate/isolate_nifti';
-nifti_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/analysis/fmri/fsl/multivariate/concat_nifti'
-sublist = [2,3,4,6,7,8,9,10,18,19,20,23,25,26,28,29];%, 19];%,26];
+script_mediation_dir = pwd;
+main_dir = fileparts(fileparts(script_mediation_dir)); % /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
+nifti_dir = fullfile(main_dir, 'analysis','fmri','fsl','multivariate','concat_nifti');
+sublist = [2,3,4,5,6,7,8,9,10,14,15,16,18,19,20,21,23,24,25,26,28,29,30,31,32,33,35];%, 19];%,26];
 % step 01 __________________________________________________________________
 
 % grab stacked nifti
@@ -48,7 +50,7 @@ for s = 1:length(sublist)
             % run_num   = str2num(A{3});
             trial = str2num(A{4});
 
-            table_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/data/dartmouth/d02_preprocessed_N60';
+            table_dir = fullfile(main_dir,'data','dartmouth','d02_preprocessed');
             csv_fname = dir(fullfile(table_dir,...
                 strcat('sub-', A{1}),...
                 strcat('ses-', A{2}),...
@@ -68,14 +70,15 @@ for s = 1:length(sublist)
         end
         % step 03 __________________________________________________________________
         %  save as csv - set table parameters
-        vnames = {'trial', 'cue', 'expect_rating', 'actual_rating', 'nii_filename'};
+        vnames = {'trial','cue','expect_rating','actual_rating','nii_filename'};
         vtypes = {'double','double','double','double','string'}
-        F = table('Size', [size(nifti_list{1},1), size(vnames,2)], 'VariableNames', vnames, 'VariableTypes', vtypes);
+        F = table('Size',[size(nifti_list{1},1), size(vnames,2)],'VariableNames',vnames,'VariableTypes',vtypes);
         F.trial = [1:length(nifti_list{1})]';
         F.cue = cue_contrast;
         F.expect_rating = expect_rating;
         F.actual_rating = actual_rating;
         F.nii_filename = nifti_list{1};
+        F.nii_filename = eraseBetween(F.nii_filename, 1,2); % remove the './ from the filenames'
         save_tablename = strcat('metadata_', parsef{1}, '_', parsef{2}, '_', event{1}, '.csv')
         writetable(F,fullfile(nifti_fdir, save_tablename));
 
