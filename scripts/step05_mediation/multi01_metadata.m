@@ -11,13 +11,16 @@ script_mediation_dir = pwd;
 main_dir = fileparts(fileparts(script_mediation_dir)); % /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
 nifti_dir = fullfile(main_dir, 'analysis','fmri','fsl','multivariate','concat_nifti');
 sublist = [2,3,4,5,6,7,8,9,10,14,15,16,18,19,20,21,23,24,25,26,28,29,30,31,32,33,35];%, 19];%,26];
+eventlist = {'cue', 'stim'}
 % step 01 __________________________________________________________________
 
 % grab stacked nifti
+for e = 1%:length(eventlist)
 for s = 1:length(sublist)
     disp(strcat('starting ', strcat('sub-',sprintf('%04d', sublist(s)))))
     simpleP_t = dir(fullfile(nifti_dir, strcat('sub-',sprintf('%04d', sublist(s)) ),...
-    strcat('sub-', sprintf('%04d', sublist(s)), '_task-*_ev-stim.nii.gz') ));
+    strcat('sub-', sprintf('%04d', sublist(s)), '_task-*_ev-',char(eventlist(e)),'.nii.gz')   ));
+    % strcat('sub-', sprintf('%04d', sublist(s)), '_task-*_ev-',eventlist(e),'.nii.gz') ));
     simpleP_fldr = {simpleP_t.folder}; fname = {simpleP_t.name};
     simpleP_files = strcat(simpleP_fldr,'/', fname)';
 
@@ -41,7 +44,7 @@ for s = 1:length(sublist)
         % unzip via spm
         % step 02 __________________________________________________________________
         % based on nifti filename text file, grab corresponding behavioral data
-        cue_contrast = []; expect_rating = []; actual_rating = [];
+        cue_contrast = []; stim_contrast = []; expect_rating = []; actual_rating = [];
         for n = 1: length(nifti_list{1})
             nifti_list{1}{n}
             A = regexp( nifti_list{1}{n}, '\<0*[+]?\d+\.?\d', 'match' );
@@ -64,17 +67,27 @@ for s = 1:length(sublist)
                 cue_contrast = [cue_contrast ; 1];
             end
             
+	    if strcmpi(char(T.param_stimulus_type(trial+1)), 'low_stim')
+                stim_contrast = [stim_contrast ; 48];
+            elseif strcmpi(char(T.param_stimulus_type(trial+1)), 'med_stim')
+                stim_contrast = [stim_contrast ; 49];
+            elseif strcmpi(char(T.param_stimulus_type(trial+1)), 'high_stim')
+                stim_contrast = [stim_contrast ; 50];
+            end
+
             actual_rating = [actual_rating; T.event04_actual_angle(trial+1)];
             expect_rating = [expect_rating; T.event02_expect_angle(trial+1)];
+            
             
         end
         % step 03 __________________________________________________________________
         %  save as csv - set table parameters
-        vnames = {'trial','cue','expect_rating','actual_rating','nii_filename'};
-        vtypes = {'double','double','double','double','string'}
+        vnames = {'trial','cue','stim','expect_rating','actual_rating','nii_filename'};
+        vtypes = {'double','double','string','double','double','string'}
         F = table('Size',[size(nifti_list{1},1), size(vnames,2)],'VariableNames',vnames,'VariableTypes',vtypes);
         F.trial = [1:length(nifti_list{1})]';
         F.cue = cue_contrast;
+        F.stim = stim_contrast;
         F.expect_rating = expect_rating;
         F.actual_rating = actual_rating;
         F.nii_filename = nifti_list{1};
@@ -84,4 +97,5 @@ for s = 1:length(sublist)
 
 % step 04 __________________________________________________________________
     end
+end
 end
