@@ -30,9 +30,15 @@ Y = cell(1, length(sublist));
 for s = 1:length(sublist)
     % step 01 __________________________________________________________________
     % grab metadata
+<<<<<<< HEAD
 %     sub = strcat('sub-',sprintf('%04d', sublist(s)));
     sub = char(sublist(s));
     fname = strcat('metadata_', sub ,'_task-pain_ev-stim.csv');
+=======
+    % sub = strcat('sub-',sprintf('%04d', sublist(s)));
+    sub = char(sublist(s));
+    fname = strcat('metadata_', sub ,'_task-cognitive_ev-cue.csv');
+>>>>>>> ce76799f34efe3b452b6242af4df96e5c6f04e0c
     T = readtable(fullfile(nifti_dir, sub, fname));
     basename = strrep(strrep(fname,'metadata_',''), '.csv', '');
 
@@ -50,7 +56,7 @@ for s = 1:length(sublist)
     Y{1, s} = T.actual_rating;
 
 end
-SETUP.mask = which('gray_matter_mask.nii');
+SETUP.mask = which('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/gray_matter_mask.nii');
 SETUP.preprocX = 0;
 SETUP.preprocY = 0;
 SETUP.preprocM = 0;
@@ -63,7 +69,7 @@ dashes = '----------------------------------------------';
 printstr = @(dashes) disp(dashes);
 printhdr = @(str) fprintf('\n\n%s\n%s\n%s\n%s\n%s\n\n', dashes, dashes, str, dashes, dashes);
 
-printhdr('Path a: Temperature to Brain Response')
+printhdr('Path a: Cue to Brain Response')
 
 mediation_brain_results('a', 'thresh', ...
     SETUP.fdr_p_thresh, 'size', 5, ...
@@ -72,7 +78,7 @@ mediation_brain_results('a', 'thresh', ...
 
 % Results for Path b
 % Generate results for effects of brain responses on pain reports, controlling for stimulus  temperature. 
-printhdr('Path b: Brain Response to Pain, Adjusting for Temperature')
+printhdr('Path b: Brain Response to Actual Rating, Adjusting for Cue')
 
 mediation_brain_results('b', 'thresh', ...
 SETUP.fdr_p_thresh, 'size', 5, ...
@@ -80,11 +86,11 @@ SETUP.fdr_p_thresh, 'size', 5, ...
 
 % Results for Path a*b
 % Generate results for the mediation effect. Here, we'll return some clusters structures with results to the workspace as output so we can examine them later. (We can also load them from disk).
-printhdr('Path a*b: Brain Mediators of Temperature Effects on Pain')
+printhdr('Path a*b: Brain Mediators of Cue Effects on General')
 
 [clpos, clneg, clpos_data, clneg_data, clpos_data2, clneg_data2] = mediation_brain_results('ab', 'thresh', ...
     SETUP.fdr_p_thresh, 'size', 5, ...
     'slices', 'tables', 'names', 'save');
 
-    load('cl_M-Y_pvals_003_k5_noprune.mat')
-    whos cl*
+%    load('cl_M-Y_pvals_003_k5_noprune.mat')
+%    whos cl*
