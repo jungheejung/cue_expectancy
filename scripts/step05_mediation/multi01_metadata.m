@@ -15,7 +15,7 @@ eventlist = {'cue', 'stim'}
 % step 01 __________________________________________________________________
 
 % grab stacked nifti
-for e = 1%:length(eventlist)
+for e = 1:length(eventlist)
 for s = 1:length(sublist)
     disp(strcat('starting ', strcat('sub-',sprintf('%04d', sublist(s)))))
     simpleP_t = dir(fullfile(nifti_dir, strcat('sub-',sprintf('%04d', sublist(s)) ),...
