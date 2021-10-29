@@ -9,10 +9,8 @@ rmpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip'));
 rmpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip/external/stats');
 % parameters __________________________________________________________________
 nifti_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/analysis/fmri/fsl/multivariate/concat_nifti';
-% sublist = [2,3,4,6,7,...
-% 8,9,10,18,19,...
-% 20,23,25,26,28,29];%, 19];%,26];
-sublist = {'sub-0002','sub-0003','sub-0004','sub-0005',...
+% 'sub-0004',
+sublist = {'sub-0002','sub-0003','sub-0005',...
 'sub-0006','sub-0007','sub-0008','sub-0009','sub-0010',...
 'sub-0014','sub-0015','sub-0016','sub-0018' ,'sub-0019','sub-0020',...
 'sub-0021','sub-0023','sub-0024','sub-0025',...
@@ -22,10 +20,6 @@ sublist = {'sub-0002','sub-0003','sub-0004','sub-0005',...
 X = cell(1, length(sublist));
 M = cell(1, length(sublist));
 Y = cell(1, length(sublist));
-
-% X = cell(1, 5);
-% M = cell(1, 5);
-% Y = cell(1, 5);
 
 for s = 1:length(sublist)
     % step 01 __________________________________________________________________
@@ -38,14 +32,14 @@ for s = 1:length(sublist)
 
     % step 02 __________________________________________________________________
     % grab nifti and unzip
-    fname_nifti = fullfile(nifti_dir, sub, strcat(basename, '.nii.gz'));
-    fname_nii = fullfile(nifti_dir, sub, strcat(basename, '.nii'));
+    fname_nifti = fullfile(nifti_dir, sub, strcat('smooth_5mm_',basename, '.nii.gz'));
+    fname_nii = fullfile(nifti_dir, sub, strcat('smooth_5mm_',basename, '.nii'));
     if ~exist(fname_nii,'file'), gunzip(fname_nifti)
     end
 
     % step 03 __________________________________________________________________
     % provide input as XMY
-    X{1, s} = T.cue;
+    X{1, s} = T.stim;
     M{1, s} = char(fname_nii);
     Y{1, s} = T.actual_rating;
 
@@ -85,6 +79,8 @@ printhdr('Path a*b: Brain Mediators of Temperature Effects on Pain')
 [clpos, clneg, clpos_data, clneg_data, clpos_data2, clneg_data2] = mediation_brain_results('ab', 'thresh', ...
     SETUP.fdr_p_thresh, 'size', 5, ...
     'slices', 'tables', 'names', 'save');
+% 
+%     load('cl_M-Y_pvals_003_k5_noprune.mat')
+%     whos cl*
 
-    load('cl_M-Y_pvals_003_k5_noprune.mat')
-    whos cl*
+publish_mediation_report
