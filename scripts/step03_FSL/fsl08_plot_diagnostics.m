@@ -1,4 +1,7 @@
-close all
+
+
+addpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12'); 
+addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore')); 
 main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social';
 concat_dir = fullfile(main_dir, 'analysis', 'fmri', 'fsl', 'multivariate', 'concat_nifti');
 sublist = {'sub-0002','sub-0003','sub-0005',...
@@ -14,22 +17,22 @@ for s = 1%:length(sublist)
     for t = 1%:length(tasklist)
         for e = 1%:length(eventlist)
             keyword = strcat('task-', tasklist(t), '_ev-', eventlist(e));
-            if ~exist(fullfile(plot_dir, keyword), 'dir')
-                mkdir(fullfile(plot_dir, keyword))
+            if ~exist(fullfile(plot_dir, char(keyword)), 'dir')
+                mkdir(fullfile(plot_dir, char(keyword)))
             end
             sub = char(sublist(s));
             disp(sub)
             
-            S = fmri_data(fullfile(concat_dir, sublist(s), ...
-                strcat('smooth_5mm_', sub, '_task-', tasklist(t), '_ev-', eventlist(e), '.nii')));
+            S = fmri_data(fullfile(concat_dir, sublist(s), strcat('smooth_5mm_', sub, '_task-', tasklist(t), '_ev-', eventlist(e), '.nii')));
             plot(S);
             % findall(groot,'Type','figure')
             montage = findall( groot,'Type', 'Figure', 'Name', 'Orthviews_fmri_data_mean_and_std' );
-            exportgraphics(montage,fullfile(plot_dir, keyword, strcat('smooth_5mm_', sub, '_', keyword,'_01.png')));
+            exportgraphics(montage,fullfile(plot_dir, char(keyword), strcat('smooth_5mm_', sub, '_', keyword,'_01.png')));
             
             fh = findall( groot,'Type', 'Figure', 'Name', 'fmri data matrix' );
-            exportgraphics(fh, fullfile(plot_dir, keyword, strcat('smooth_5mm_', sub, '_', keyword,'_02.png')));
+            exportgraphics(fh, fullfile(plot_dir, char(keyword), strcat('smooth_5mm_', sub, '_', keyword,'_02.png')));
             
+            close all
 
         end
     end
