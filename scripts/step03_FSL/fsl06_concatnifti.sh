@@ -9,7 +9,7 @@
 #SBATCH -e ./log_concat/FSL_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=14-16
+#SBATCH --array=1-4
 
 #================================================================
 # HEADER
@@ -45,29 +45,36 @@
 
 
 module load fsl/6.0.4
-SINGLENIFTI_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/analysis/fmri/fsl/multivariate/isolate_nifti"
+MAIN_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/analysis/fmri/fsl/multivariate"
+SINGLENIFTI_DIR="${MAIN_DIR}/isolate_nifti"
 ARRAY_FILE=./fsl06_concatlist.txt
 IND=$((SLURM_ARRAY_TASK_ID))
 INFILE=`awk -F "," -v RS="\n" "NR==${IND}" ${ARRAY_FILE}`
 SUB_NUM=$(echo $INFILE | cut -f1 -d,)
 
+OUTPUTNIFTI_DIR="${MAIN_DIR}/concat_nifti"
+
 echo "STARTING fslmerge ___________________________________________"
 # for SUB_NUM in `cat fsl06_concatlist.txt`; do echo ${SUB_NUM};
 # STEP01 grab relevant indices
+
 SUB=$(printf "sub-%04d" $SUB_NUM)
 for TASK in "pain" "vicarious" "cognitive"; do
     for EVENT in "cue" "stim"; do
+        echo ${TASK}
+        echo ${EVENT}
 
         cd ${SINGLENIFTI_DIR}/${SUB}
         # STEP02 find all nifti files (single trials)
         list=$(find -type f -name "${SUB}*ses*run*${TASK}*${EVENT}*.nii.gz" | sort -t '\0' -n  )
-        OUTPUTNAME=${SUB}_task-${TASK}_ev-${EVENT}.nii.gz
+        mkdir -p ${OUTPUTNIFTI_DIR}/${SUB}
+        OUTPUTNAME=${OUTPUTNIFTI_DIR}/${SUB}/${SUB}_task-${TASK}_ev-${EVENT}.nii.gz
 
         # STEP03 fslmerge
         fslmerge -t ${OUTPUTNAME} ${list}
 
         # STEP04 save file sequence
-        printf "%s" "$list" > niftifname_${SUB}_task-${TASK}_ev-${EVENT}.txt 
+        printf "%s" "$list" > ${OUTPUTNIFTI_DIR}/${SUB}/niftifname_${SUB}_task-${TASK}_ev-${EVENT}.txt 
     done
 done
 # done
@@ -79,19 +86,20 @@ done
 # comma_list=$(${list} | tr ' ' ',')
 # IFS=', ' read -r -a array <<< "$comma_list"
 # read -a arr <<< $list
-
+    echo "merge general files ___________________________________________"
     # STEP01 grab relevant indices
     for EVENT in "cue" "stim"; do
         cd ${SINGLENIFTI_DIR}/${SUB}
         # STEP02 find all nifti files (single trials)
         list=$(find -type f -name "${SUB}*ses*run*${EVENT}*.nii.gz" | sort -t '\0' -n  )
-        OUTPUTNAME=${SUB}_task-general_ev-${EVENT}.nii.gz
-
+        mkdir -p ${OUTPUTNIFTI_DIR}/${SUB}
+        OUTPUTNAME=${OUTPUTNIFTI_DIR}/${SUB}/${SUB}_task-general_ev-${EVENT}.nii.gz
+        
         # STEP03 fslmerge
         fslmerge -t ${OUTPUTNAME} ${list}
 
         # STEP04 save file sequence
-        printf "%s" "$list" > niftifname_${SUB}_task-general_ev-${EVENT}.txt 
+        printf "%s" "$list" > ${OUTPUTNIFTI_DIR}/${SUB}/niftifname_${SUB}_task-general_ev-${EVENT}.txt 
     done
 
 

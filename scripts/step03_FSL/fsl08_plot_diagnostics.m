@@ -13,9 +13,9 @@ sublist = {'sub-0002','sub-0003','sub-0005',...
 tasklist = {'pain', 'vicarious', 'cognitive'};
 eventlist = {'cue', 'stim'};
 plot_dir = fullfile(main_dir, 'figure', 'fsl_concat_nifti');
-for s = 1%:length(sublist)
-    for t = 1%:length(tasklist)
-        for e = 1%:length(eventlist)
+for s = 1:length(sublist)
+    for t = 1:length(tasklist)
+        for e = 1:length(eventlist)
             keyword = strcat('task-', tasklist(t), '_ev-', eventlist(e));
             if ~exist(fullfile(plot_dir, char(keyword)), 'dir')
                 mkdir(fullfile(plot_dir, char(keyword)))
@@ -27,10 +27,10 @@ for s = 1%:length(sublist)
             plot(S);
             % findall(groot,'Type','figure')
             montage = findall( groot,'Type', 'Figure', 'Name', 'Orthviews_fmri_data_mean_and_std' );
-            exportgraphics(montage,fullfile(plot_dir, char(keyword), strcat('smooth_5mm_', sub, '_', keyword,'_01.png')));
+            exportgraphics(montage,fullfile(plot_dir, char(keyword), strcat('smooth_5mm_', sub, '_', char(keyword),'_01.png')));
             
             fh = findall( groot,'Type', 'Figure', 'Name', 'fmri data matrix' );
-            exportgraphics(fh, fullfile(plot_dir, char(keyword), strcat('smooth_5mm_', sub, '_', keyword,'_02.png')));
+            exportgraphics(fh, fullfile(plot_dir, char(keyword), strcat('smooth_5mm_', sub, '_',char(keyword),'_02.png')));
             
             close all
 
