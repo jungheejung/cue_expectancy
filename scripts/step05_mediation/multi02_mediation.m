@@ -9,10 +9,7 @@ rmpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip'));
 rmpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip/external/stats');
 % parameters __________________________________________________________________
 nifti_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/analysis/fmri/fsl/multivariate/concat_nifti';
-% sublist = [2,3,4,6,7,...
-% 8,9,10,18,19,...
-% 20,23,25,26,28,29];%, 19];%,26];
-sublist = {'sub-0002','sub-0003','sub-0004','sub-0005',...
+sublist = {'sub-0002','sub-0003','sub-0005',...
 'sub-0006','sub-0007','sub-0008','sub-0009','sub-0010',...
 'sub-0014','sub-0015','sub-0016','sub-0018' ,'sub-0019','sub-0020',...
 'sub-0021','sub-0023','sub-0024','sub-0025',...
@@ -23,22 +20,12 @@ X = cell(1, length(sublist));
 M = cell(1, length(sublist));
 Y = cell(1, length(sublist));
 
-% X = cell(1, 5);
-% M = cell(1, 5);
-% Y = cell(1, 5);
 
 for s = 1:length(sublist)
     % step 01 __________________________________________________________________
     % grab metadata
-<<<<<<< HEAD
-%     sub = strcat('sub-',sprintf('%04d', sublist(s)));
     sub = char(sublist(s));
     fname = strcat('metadata_', sub ,'_task-pain_ev-stim.csv');
-=======
-    % sub = strcat('sub-',sprintf('%04d', sublist(s)));
-    sub = char(sublist(s));
-    fname = strcat('metadata_', sub ,'_task-cognitive_ev-cue.csv');
->>>>>>> ce76799f34efe3b452b6242af4df96e5c6f04e0c
     T = readtable(fullfile(nifti_dir, sub, fname));
     basename = strrep(strrep(fname,'metadata_',''), '.csv', '');
 

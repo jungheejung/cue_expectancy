@@ -2,14 +2,12 @@
 #SBATCH --job-name=mediation
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=8
-#SBATCH --ntasks=1 
 #SBATCH --mem-per-cpu=8gb
 #SBATCH --time=12:00:00
 #SBATCH -o ./log/M_%A_%a.o
 #SBATCH -e ./log/M_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-
 
 # echo "array id: " ${SLURM_ARRAY_TASK_ID}, "subject id: " ${PARTICIPANT_LABEL}
 CANLABCORE_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore"
