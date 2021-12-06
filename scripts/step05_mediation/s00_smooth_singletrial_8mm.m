@@ -1,4 +1,4 @@
-function s00_smooth(input)
+function s00_smooth_8mm(input)
 %-----------------------------------------------------------------------
 % Job saved on 08-Jul-2021 21:03:45 by cfg_util (rev $Rev: 7345 $)
 % spm SPM - SPM12 (7771)
