@@ -9,7 +9,7 @@
 #SBATCH -e ./log_fsl07/%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1-40%5
+#SBATCH --array=20-32%5
 
 source /optnfs/common/miniconda3/etc/profile.d/conda.sh
 conda activate spacetop_env
@@ -18,7 +18,7 @@ MAINDIR=/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/sc
 
 echo "SLURMSARRAY: " ${SLURM_ARRAY_TASK_ID}
 IND=$((SLURM_ARRAY_TASK_ID+1))
-INFILE=`awk -F '\t' "NR==${SLURM_ARRAY_TASK_ID}" ./fsl07_B_unwanted_list.txt`
+INFILE=`awk -F '\r\t\n' "NR==${SLURM_ARRAY_TASK_ID}" ./fsl07_B_unwanted_list.txt`
 echo $INFILE
 SUB=$(echo $INFILE | cut -d$' ' -f1)
 SES=$(echo $INFILE | cut -d$' ' -f2)
