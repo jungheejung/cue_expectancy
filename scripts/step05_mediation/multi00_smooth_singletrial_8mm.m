@@ -1,4 +1,4 @@
-function s00_smooth_8mm(input)
+function multi00_smooth_singletrial_8mm(input)
 %-----------------------------------------------------------------------
 % Job saved on 08-Jul-2021 21:03:45 by cfg_util (rev $Rev: 7345 $)
 % spm SPM - SPM12 (7771)
@@ -22,8 +22,12 @@ main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_socia
 %     '1stLevel',sub);
 sub_list = [2,3,4,5,6,7,8,9,10,14,15,16,18,19,20,21,23,24,25,26,28,29,30,31,32,33,35]
 
-for sub_num = 1:length(sub_list)
-    
+task_list = {'pain', 'vicarious', 'cognitive'};
+event_list = {'cue', 'stim'};
+for t = 1:length(task_list)
+for e = 1:length(event_list)
+%for sub_num = 1:length(sub_list)
+    sub_num = input    
     sub = strcat('sub-', sprintf('%04d', sub_list(sub_num)));
     disp(strcat('STARTING SMOOTHING:', sub));
     output_dir = fullfile(main_dir,'analysis', 'fmri', 'fsl', 'multivariate',...
@@ -31,8 +35,8 @@ for sub_num = 1:length(sub_list)
     if ~exist(output_dir, 'dir')
         mkdir(output_dir)
     end
-    nii_fname = fullfile(output_dir, strcat(sub,'_task-general_ev-cue.nii'));
-    scan_fname = fullfile(output_dir, strcat(sub,'_task-general_ev-cue.nii.gz'));
+    nii_fname = fullfile(output_dir, strcat(sub,'_task-',char(task_list(t)),'_ev-',char(event_list(e)),'.nii'));
+    scan_fname = fullfile(output_dir, strcat(sub,'_task-',char(task_list(t)),'_ev-',char(event_list(e)), '.nii.gz'));
     if ~exist(nii_fname,'file'), gunzip(scan_fname)
     end
   
@@ -47,7 +51,5 @@ for sub_num = 1:length(sub_list)
     clearvars matlabbatch
     disp(strcat('FINISH - subject complete'))
 end
-
-
-% end
+end
 
