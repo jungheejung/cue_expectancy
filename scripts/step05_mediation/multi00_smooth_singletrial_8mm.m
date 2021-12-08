@@ -20,15 +20,15 @@ main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_socia
 % main_dir = '/Volumes/spacetop_projects_social/'
 % output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'model-01_CcEScaA',...
 %     '1stLevel',sub);
-sub_list = [2,3,4,5,6,7,8,9,10,14,15,16,18,19,20,21,23,24,25,26,28,29,30,31,32,33,35]
+% sub_list = [2,3,4,5,6,7,8,9,10,14,15,16,18,19,20,21,23,24,25,26,28,29,30,31,32,33,35]
 
-task_list = {'pain', 'vicarious', 'cognitive'};
+task_list = {'general','pain', 'vicarious', 'cognitive'};
 event_list = {'cue', 'stim'};
 for t = 1:length(task_list)
 for e = 1:length(event_list)
 %for sub_num = 1:length(sub_list)
     sub_num = input    
-    sub = strcat('sub-', sprintf('%04d', sub_list(sub_num)));
+    sub = strcat('sub-', sprintf('%04d', sub_num));
     disp(strcat('STARTING SMOOTHING:', sub));
     output_dir = fullfile(main_dir,'analysis', 'fmri', 'fsl', 'multivariate',...
         'concat_nifti',sub);
