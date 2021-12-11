@@ -39,7 +39,7 @@ ev_dir = os.path.join(main_dir,  'analysis', 'fmri', 'fsl', 'multivariate', 'iso
 fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep'
 sub_list = next(os.walk(fmriprep_dir))[1]
 approved = ['sub']
-sub_list[:] = [url for url in sub_list if any(sub in url for sub in approved)]
+sub_list[:] = [s for s in sub_list if any(sub in s for sub in approved)]
 
 nifti_dir = os.path.join(main_dir,  'analysis', 'fmri', 'fsl', 'multivariate', 'isolate_nifti')
 #nifti_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/analysis/fmri/fsl/multivariate/isolate_nifti'
@@ -60,7 +60,7 @@ df['filename'] = df['filename'].astype(str) + '.nii.gz'
 
 df['fpath'] = df[['niftidir', 'sub', 'filename']].agg('/'.join, axis = 1)
 print(df.head())
-df['exists'] = df['fpath'].map(os.path.isfile)
+df['exists'] = df['fpath'].map(os.path.isfile) # check if file exists. TRUE FALSE
 print(sub_list)
 # TODO: exclude rows from pandas df where no fmriprep sub folder exists. 
 subset_df = df[df['sub'].isin(sub_list)]
@@ -90,3 +90,6 @@ with open(filename, 'w') as outfile:
     json.dump(json_summary, outfile)
 subset_df.to_csv(os.path.join(current_dir, 'log', "summary_{0}_interim.txt".format(d1)), sep = ',', index=False, header = True)
 subset_df.to_csv(os.path.join(save_dir, 'fsl05_jobarraylist_interim.txt'), sep = ',', index=False, header = False)
+
+remain_df = subset_df[~subset_df['exists']]   
+remain_df.to_csv(os.path.join(save_dir, 'fsl05_jobarraylist_remain.txt'), sep = ',', index=False, header = False)
