@@ -4,12 +4,13 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --ntasks=1 
 #SBATCH --mem-per-cpu=8gb
-#SBATCH --time=03:00:00
+#SBATCH --time=03:30:00
 #SBATCH -o ./log/FSL_%A_%a.o
 #SBATCH -e ./log/FSL_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=8313-12274%20
+#SBATCH --array=388-600%25
+# #8313-12274%20
 
 module load fsl/6.0.4
 conda activate spacetop_env
@@ -23,7 +24,7 @@ MAIN_DIR=$(dirname $(dirname ${PWD_DIR}))
 EV_DIR=${MAIN_DIR}/analysis/fmri/fsl/multivariate/isolate_ev
 NIFTI_DIR=${MAIN_DIR}/analysis/fmri/fsl/multivariate/isolate_nifti
 SCRIPT_DIR=${MAIN_DIR}/scripts/step03_FSL
-ARRAY_FILE=${SCRIPT_DIR}/fsl05_jobarraylist.txt
+ARRAY_FILE=${SCRIPT_DIR}/fsl05_jobarraylist_remain_v2.txt 
 
 IND=$((SLURM_ARRAY_TASK_ID-1))
 INFILE=`awk -F "," -v RS="\n" "NR==${IND}" ${ARRAY_FILE}`
