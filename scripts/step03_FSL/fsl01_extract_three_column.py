@@ -137,14 +137,14 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         # 3. STIM ___________________________________________________________________________
         # 3-1. stim x 5s x no pmod
         ev_stim_onset_only = pd.DataFrame()
-        ev_stim_onset_only['onset'] = df['event03_stimulus_displayonset'] - df['param_trigger_onset'] #CUE;
+        ev_stim_onset_only['onset'] = df['event03_stimulus_displayonset'] - df['param_trigger_onset'] - 2;
         ev_stim_onset_only['dur'] = 5
         ev_stim_onset_only['mod'] = 1
         fname_3_1 = os.path.join(ev_dir, sub, ses, label+'_EV03-STIM_onsetonly.txt')
         ev_stim_onset_only.to_csv(fname_3_1, header=None, index=None, sep='\t', mode='w')
         # 3-2. stim x 5s x cue
         ev_stim_pmod_cue = pd.DataFrame()
-        ev_stim_pmod_cue['onset'] = df['event03_stimulus_displayonset'] - df['param_trigger_onset'] #CUE;
+        ev_stim_pmod_cue['onset'] = df['event03_stimulus_displayonset'] - df['param_trigger_onset'] -2;
         ev_stim_pmod_cue['dur'] = 5
         ev_stim_pmod_cue['mod'] = df['param_cue_type'].map(dict_cue)
         fname_3_2 = os.path.join(ev_dir, sub, ses, label+'_EV03-STIM_pmod-cue.txt')
@@ -152,7 +152,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
 
         # 3-3. stim x 5s x actual rating
         ev_stim_pmod_actual = pd.DataFrame()
-        ev_stim_pmod_actual['onset'] = df['event03_stimulus_displayonset'] - df['param_trigger_onset'] #CUE;
+        ev_stim_pmod_actual['onset'] = df['event03_stimulus_displayonset'] - df['param_trigger_onset'] -2;
         ev_stim_pmod_actual['dur'] = 5
         ev_stim_pmod_actual['mod'] = df['event04_actual_angle']
         fname_3_3 = os.path.join(ev_dir, sub, ses, label+'_EV03-STIM_pmod-actual.txt')
@@ -160,7 +160,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
 
         # 3-4. stim x 5s x expect rating
         ev_stim_pmod_expect = pd.DataFrame()
-        ev_stim_pmod_expect['onset'] = df['event03_stimulus_displayonset'] - df['param_trigger_onset'] #CUE;
+        ev_stim_pmod_expect['onset'] = df['event03_stimulus_displayonset'] - df['param_trigger_onset'] -2;
         ev_stim_pmod_expect['dur'] = 5
         ev_stim_pmod_expect['mod'] = df['event02_expect_angle']
         fname_3_4 = os.path.join(ev_dir, sub, ses, label+'_EV03-STIM_pmod-expect.txt')
