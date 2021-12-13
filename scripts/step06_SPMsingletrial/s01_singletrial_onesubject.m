@@ -29,8 +29,8 @@ motion_dir = fullfile(main_dir, 'data', 'dartmouth', 'd05_motion');
 onset_dir = fullfile(main_dir, 'data', 'dartmouth', 'd06_singletrial_SPM');
 
 %% 2. for loop "subject-wise" _______________________________________________________
-sub_num = sscanf(char(input),'%d');
-sub = strcat('sub-', sprintf('%04d', sub_num));
+% sub_num = sscanf(char(input),'%d');
+sub = strcat('sub-', sprintf('%04d', input));
 disp(strcat('[ STEP 02 ] PRINT VARIABLE'))
 disp(strcat('sub_num:  ', sub_num));
 disp(strcat('sub:    ', sub));
