@@ -34,14 +34,16 @@ m3 = containers.Map(keySet,con3);
 m4 = containers.Map(keySet,con4);
 % 1-1. directories _______________________________________________________
 fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'; % sub / ses
-main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
+% main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
+main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social';
 motion_dir = fullfile(main_dir, 'data', 'dartmouth', 'd05_motion');
 onset_dir = fullfile(main_dir, 'data', 'dartmouth', 'd04_EV_SPM');
 %% 2. for loop "subject-wise" _______________________________________________________
-sub_num = sscanf(char(input),'%d');
-sub = strcat('sub-', sprintf('%04d', sub_num));
+%sub_num = sscanf(char(input),'%d');
+%sub = strcat('sub-', sprintf('%04d', sub_num));
+sub = input
 disp(strcat('[ STEP 02 ] PRINT VARIABLE'))
-disp(strcat('sub_num:  ', sub_num));
+%disp(strcat('sub_num:  ', sub_num));
 disp(strcat('sub:    ', sub));
 
 % find nifti files
