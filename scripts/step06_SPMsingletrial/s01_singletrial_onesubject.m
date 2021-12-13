@@ -1,10 +1,10 @@
-
-function s01_glm(input)
+function s01_singletrial(input)
     %-----------------------------------------------------------------------
     % Job saved on 30-Jun-2021 19:26:24 by cfg_util (rev $Rev: 7345 $)
     % spm SPM - SPM12 (7771)
     % cfg_basicio BasicIO - Unknown
     %-----------------------------------------------------------------------
+    % Dec 13 2021. Heejung Jung
 %% _________________________________________________________________________
 disp('...STARTING JOBS');
 rootgroup = settings; rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = 'v7.3'
@@ -112,7 +112,6 @@ for run_ind = 1: size(A,1)
         m            = struct2table(tdfread(m_fmriprep));
         m_subset     = m(:, {'csf', 'white_matter', 'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z'});
         m_double     = table2array(m_subset);
-        m_double[]
         dlmwrite(motion_fname, m_double, 'delimiter','\t','precision',13);
         R = dlmread(motion_fname);
 
