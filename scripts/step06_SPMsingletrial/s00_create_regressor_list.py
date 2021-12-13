@@ -29,6 +29,9 @@ csv_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd02_preprocessed')
 ev_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd03_EV_FSL')
 ev_bids_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd04_EV_SPM')
 ev_single_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd06_singletrial_SPM')
+dict_cue = {'low_cue':-1, 'high_cue':1}
+dict_stim = {'low_stim':-1, 'med_stim':0, 'high_stim':1}
+dict_stim_q = {'low_stim':1, 'med_stim':-2, 'high_stim':1}
 # %%
 sub_list = next(os.walk(csv_dir))[1]
 sub_list.remove('sub-0001')
@@ -69,7 +72,7 @@ for sub in sub_list:
         new.loc[0:cue_num-1, 'stim_type'] = list(df.param_stimulus_type)
 
 
-        # STIM fill in parameters for STIM event ____________________________________________
+        # STIM fill in parameters for STIM event _____________________________________________
         trial_num = len(df.event03_stimulus_displayonset - df.param_trigger_onset) 
         new.loc[cue_num:cue_num+trial_num-1, 'onset'] = list(df.event03_stimulus_displayonset - df.param_trigger_onset + 2)
         new.loc[cue_num:cue_num+trial_num-1, 'ev'] = 'stim'
@@ -80,6 +83,9 @@ for sub in sub_list:
         new.loc[cue_num:cue_num+trial_num-1, 'cue_type'] = list(df.param_cue_type)
         new.loc[cue_num:cue_num+trial_num-1, 'stim_type'] = list(df.param_stimulus_type)
 
+        # expect actual rating ________________________________________________________________
+        new.loc[0:cue_num+trial_num-1, 'expect_rating'] = list(df.event02_expect_angle.repeat(2).reset_index(drop = True))
+        new.loc[0:cue_num+trial_num-1, 'actual_rating'] = list(df.event04_actual_angle.repeat(2).reset_index(drop = True))
         # RATING fill in parameters for STIM event ____________________________________________
         # trial_num = len(df.ISI03_onset - df.param_trigger_onset) 
         rating = pd.concat( [df.event02_expect_displayonset-df.param_trigger_onset, df.event04_actual_displayonset-df.param_trigger_onset])
@@ -91,11 +97,16 @@ for sub in sub_list:
         new.loc[cue_num+trial_num, 'dur'] = list(rt)
         new.loc[cue_num+trial_num, 'mod'] = 1
         new.loc[cue_num+trial_num, 'regressor'] = False
+
+
+
         matlab_rating = pd.concat([rating, rt], axis = 1)
         matlabname = f'{sub}_ses-{ses_num:02d}_run-{run_num:02d}_rating.csv'
         matlab_rating.to_csv(os.path.join(ev_single_dir, sub, matlabname), index = False, header = ['rating', 'rt'] ) #sub-####_ses-##_run-##_event-rating.csv
 
-
+        new.loc[0:cue_num+trial_num-1,'cue_con'] = df['param_cue_type'].map(dict_cue).repeat(2).reset_index(drop = True)
+        new.loc[0:cue_num+trial_num-1,'stim_lin'] = df['param_stimulus_type'].map(dict_stim).repeat(2).reset_index(drop = True)
+        new.loc[0:cue_num+trial_num-1,'stim_quad'] = df['param_stimulus_type'].map(dict_stim_q).repeat(2).reset_index(drop = True)
         #
         new['sub'] = sub_num
         new['ses'] = ses_num
@@ -119,7 +130,7 @@ for sub in sub_list:
         new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'regressor'] = False
         subject_dataframe = subject_dataframe.append(new)
 
-    subject_dataframe.reset_index(inplace = True)
+    subject_dataframe.reset_index(inplace = True).rename(columns={0: 'index'})
     subject_dataframe.to_csv(os.path.join(ev_single_dir, sub,  f'{sub}_singletrial.csv'))
 
 # %%
