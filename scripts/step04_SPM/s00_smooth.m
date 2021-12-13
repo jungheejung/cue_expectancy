@@ -6,18 +6,16 @@ function s00_smooth(input)
 %-----------------------------------------------------------------------
 
 disp(input);
-
-sub_num = sscanf(char(input),'%d');
+sub_num = input;
+%sub_num = sscanf(char(input),'%d');
 sub = strcat('sub-', sprintf('%04d', sub_num));
+sub = input;
+
 disp(strcat('subject: ', sub));
 
 fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/';
-main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
-output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'model-01_CcEScaA',...
-    '1stLevel',sub);
-if ~exist(output_dir, 'dir')
-    mkdir(output_dir)
-end
+% main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
+main_dir = fileparts(fileparts(pwd)); %'/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social';
 filelist = dir(fullfile(fmriprep_dir, sub, '*/func/*task-social*_bold.nii.gz'));
 T = struct2table(filelist);
 sortedT = sortrows(T, 'name');
@@ -38,10 +36,10 @@ for run_ind = 1: size(sortedT,1)
     
     scans = spm_select('Expand',nii_fname);
     matlabbatch{1}.spm.spatial.smooth.data = cellstr(scans);
-    matlabbatch{1}.spm.spatial.smooth.fwhm = [5 5 5];
+    matlabbatch{1}.spm.spatial.smooth.fwhm = [6 6 6];
     matlabbatch{1}.spm.spatial.smooth.dtype = 0;
     matlabbatch{1}.spm.spatial.smooth.im = 0;
-    matlabbatch{1}.spm.spatial.smooth.prefix = 'smooth_5mm_';
+    matlabbatch{1}.spm.spatial.smooth.prefix = 'smooth_6mm_';
     
     spm_jobman('run',matlabbatch);
     clearvars matlabbatch
