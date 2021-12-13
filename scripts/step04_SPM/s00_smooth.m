@@ -9,7 +9,6 @@ disp(input);
 sub_num = input;
 %sub_num = sscanf(char(input),'%d');
 sub = strcat('sub-', sprintf('%04d', sub_num));
-sub = input;
 
 disp(strcat('subject: ', sub));
 
