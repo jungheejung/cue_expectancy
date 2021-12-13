@@ -132,7 +132,7 @@ for sub in sub_list:
         new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'regressor'] = False
         subject_dataframe = subject_dataframe.append(new)
 
-    subject_dataframe.reset_index(inplace = True).rename(columns={0: 'index'})
+    subject_dataframe.reset_index(inplace = True)
     subject_dataframe.to_csv(os.path.join(ev_single_dir, sub,  f'{sub}_singletrial.csv'))
 
 # %%
