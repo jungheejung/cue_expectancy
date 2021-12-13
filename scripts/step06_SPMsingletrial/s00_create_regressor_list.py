@@ -58,7 +58,9 @@ for sub in sub_list:
         nuissance_num = len(nuissance)
         new = pd.DataFrame(
             index = range(cue_num + trial_num + nuissance_num + 1),
-            columns=['nifti_name','sub','ses','run','task','ev','num','onset','dur','mod','regressor', 'cue_type', 'stim_type'])
+            columns=['nifti_name','sub','ses','run','task','ev','num',
+            'onset','dur','mod','regressor',
+            'cue_type', 'stim_type','expect_rating','actual_rating','cue_con', 'stim_lin', 'stim_quad'])
 
         # CUE event fill in parameters for CUE event ____________________________________________
         cue_num = len(df.event01_cue_onset - df.param_trigger_onset)
