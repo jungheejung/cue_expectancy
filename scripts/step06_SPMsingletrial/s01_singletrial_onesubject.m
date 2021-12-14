@@ -19,12 +19,13 @@ rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = 'v7.3';
 %% 1. load parameters _______________________________________________________
 numscans = 56;
 disacqs = 6;
+smooth = 6;
 disp(input);
 disp(strcat('[ STEP 01 ] setting parameters...'));
 
 % 1-1. directories _______________________________________________________
 fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'; % sub / ses
-main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
+main_dir = fileparts(fileparts(pwd)); % '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
 motion_dir = fullfile(main_dir, 'data', 'dartmouth', 'd05_motion');
 onset_dir = fullfile(main_dir, 'data', 'dartmouth', 'd06_singletrial_SPM');
 
@@ -36,10 +37,10 @@ disp(strcat('[ STEP 02 ] PRINT VARIABLE'))
 disp(strcat('sub:    ', sub));
 
 % find nifti files
-niilist = dir(fullfile(fmriprep_dir, sub, '*/func/smooth_5mm_*task-social*_bold.nii'));
+niilist = dir(fullfile(fmriprep_dir, sub, '*','func',strcat('smooth_', num2str(smooth),'mm_*task-social*_bold.nii')));
 nT = struct2table(niilist); % convert the struct array to a table
 sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
-
+disp(sortedT); % TODO: DELETE
 sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
 sortedT.ses_num(:) = str2double(extractBetween(sortedT.name, 'ses-', '_'));
 sortedT.run_num(:) = str2double(extractBetween(sortedT.name, 'run-', '_'));
@@ -51,10 +52,10 @@ nii_num_colomn = nii_col_names(endsWith(nii_col_names, '_num'));
 onsetlist = dir(fullfile(onset_dir, sub, strcat(sub, '_*_rating.csv')));
 onsetT = struct2table(onsetlist);
 sortedonsetT = sortrows(onsetT, 'name');
-
+disp(sortedT); % TODO: DELETE
 sortedonsetT.sub_num(:) = str2double(extractBetween(sortedonsetT.name, 'sub-', '_'));
 sortedonsetT.ses_num(:) = str2double(extractBetween(sortedonsetT.name, 'ses-', '_'));
-sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '-'));
+sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '_'));
 
 onset_col_names = sortedonsetT.Properties.VariableNames;
 onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
@@ -62,7 +63,7 @@ onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
 %intersection of nifti and onset files
 A = intersect(sortedT(:,nii_num_colomn),sortedonsetT(:,onset_num_colomn));
 
-output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'multivariate','isolate_nifti', sub);
+output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'multivariate','s02_isolatenifti', sub);
 if ~exist(output_dir, 'dir')
     mkdir(output_dir)
 end
@@ -72,7 +73,8 @@ if isfile(fullfile(output_dir,'SPM.mat'))
 end
 
 matlabbatch = cell(1,2);
-T = readtable('/Users/h/Dropbox/projects_dropbox/social_influence_analysis/data/dartmouth/d06_singletrial_SPM/sub-0010/sub-0010_singletrial.csv')
+T = readtable(fullfile(onset_dir, sub, strcat(sub, '_singletrial.csv')));
+%T = readtable('/Users/h/Dropbox/projects_dropbox/social_influence_analysis/data/dartmouth/d06_singletrial_SPM/sub-0010/sub-0010_singletrial.csv')
 %% 3. for loop "run-wise" _______________________________________________________
 for run_ind = 1: size(A,1)
     disp(strcat('______________________run', num2str(run_ind), '____________________________'));
@@ -80,22 +82,16 @@ for run_ind = 1: size(A,1)
     sub=[];ses=[];run = [];
     sub = strcat('sub-', sprintf('%04d', A.sub_num(run_ind)));
     ses = strcat('ses-', sprintf('%02d', A.ses_num(run_ind)));
-    run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
-
+    run = strcat('run-', sprintf('%02d', A.run_num(run_ind)));
+    fmriprep_run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
     disp(strcat('[ STEP 03 ] gunzip and saving nifti...'));
     smooth_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
-                   strcat('smooth_5mm_', sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
+                  strcat('smooth_',num2str(smooth),'mm_', sub, '_', ses, '_task-social_acq-mb8_', fmriprep_run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
     smooth_nii = fullfile(fmriprep_dir, sub, ses, 'func',...
-                   strcat('smooth_5mm_', sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
+                   strcat('smooth_',num2str(smooth),'mm_', sub, '_', ses, '_task-social_acq-mb8_', fmriprep_run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
     if ~exist(smooth_nii,'file'), gunzip(smooth_fname)
     end
 
-    % onset_glob    = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-social_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '-*_events.tsv')));
-    % onset_fname   = fullfile(char(onset_glob.folder), char(onset_glob.name));
-    % if isempty(onset_glob)
-    %   disp('ABORT')
-    %   break
-    % end
     %% rating ______________________________________________________
     rating_fname = fullfile(onset_dir, sub, strcat(sub, '_', ses, '_', run, '_rating.csv'));
     rating = readtable(rating_fname);
@@ -108,19 +104,22 @@ for run_ind = 1: size(A,1)
         if ~exist(fullfile(onset_dir, sub),'dir'), mkdir(fullfile(onset_dir, sub))
         end
         m_fmriprep   = fullfile(fmriprep_dir, sub, ses, 'func', ...
-                   strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_desc-confounds_timeseries.tsv'));
+                   strcat(sub, '_', ses, '_task-social_acq-mb8_', fmriprep_run, '_desc-confounds_timeseries.tsv'));
         m            = struct2table(tdfread(m_fmriprep));
         m_subset     = m(:, {'csf', 'white_matter', 'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z'});
-        m_double     = table2array(m_subset);
+        m_double     = table2array(m_subset);i
+        dummy = zeros(size(m_double,1),1);    dummy(1:disacqs,1) = 1
+        m_double(:,size(m_double,2)+1) = dummy
+
         dlmwrite(motion_fname, m_double, 'delimiter','\t','precision',13);
-        R = dlmread(motion_fname);
+        %R = dlmread(motion_fname);
 
-        dummy = zeros(size(R,1),1);    dummy(1:disacqs,1) = 1
-        R(:,size(R,2)+1) = dummy
+        %dummy = zeros(size(R,1),1);    dummy(1:disacqs,1) = 1
+        %R(:,size(R,2)+1) = dummy
 
-        save_m_fname = fullfile(onset_dir, sub, ...
-            strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d',A.run_num(run_ind)), '_confounds-subset.txt'));
-        save(save_m_fname, 'R');
+        %save_m_fname = fullfile(onset_dir, sub, ...
+    %        strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d',A.run_num(run_ind)), '_confounds-subset.txt'));
+        %save(save_m_fname, 'R');
     else
         disp('motion subset file exists');
     end
@@ -148,14 +147,14 @@ for run_ind = 1: size(A,1)
     scans = spm_select('Expand',smooth_nii);
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).scans = cellstr(scans);
 
-    subset = T(T.sub == sub & T.ses == ses & T.run == run & ismember(T.regressor, 'True'), :);
+    subset = T(T.sub == A.sub_num(run_ind) & T.ses ==  A.ses_num(run_ind) & T.run ==  A.run_num(run_ind) & ismember(T.regressor, 'True'), :);
     total_trial= size(subset,1); % 24
     r = total_trial + 1;
     % CUE, STIM
     for c = 1:total_trial
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).name = strcat(subset.ev{c},'-', num2str(subset.num(c), '%02.f'));
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).onset = double(subset.onset(c));
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).duration = double(subset.dur(c));
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).onset = subset.onset(c);
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).duration = subset.dur(c);
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).tmod = 0;
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).pmod = struct('name', {}, 'param', {}, 'poly', {});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).orth = 0;
@@ -171,18 +170,6 @@ for run_ind = 1: size(A,1)
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(r).pmod = struct('name', {}, 'param', {}, 'poly', {});
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(r).orth = 0;
 
-    % RUN 01 _________________________________________________________________________
-
-    % for c = 1:size(subset,1)
-
-    %     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).name = strcat(subset.ev{c},'-', num2str(subset.num(c), '%02.f'));
-    %     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).onset = subset.onset(c);
-    %     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).duration = subset.dur(c);
-    %     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).tmod = 0;
-    %     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).pmod = struct('name', {}, 'param', {}, 'poly', {});
-    %     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).orth = 0;
-
-    % end
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).multi = {''};
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).regress = struct('name', {}, 'val', {});
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).multi_reg = cellstr(motion_fname);
@@ -197,4 +184,14 @@ matlabbatch{2}.spm.stats.fmri_est.spmmat(1) = cfg_dep('fMRI model specification:
 matlabbatch{2}.spm.stats.fmri_est.write_residuals = 0;
 matlabbatch{2}.spm.stats.fmri_est.method.Classical = 1;
 
+
+batch_fname = fullfile(output_dir, strcat(strcat(sub, '_batch.mat')));
+save( batch_fname,'matlabbatch') %, '-v7.3');
+
+%% 3. run __________________________________________________________
+spm('defaults', 'FMRI');
+spm_jobman('run',matlabbatch);
+clearvars matlabbatch
+
+disp(strcat('FINISH - subject ', sub,  ' complete'))
 end
