@@ -9,7 +9,7 @@
 #SBATCH -e ./log_concat/FSL_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=10-20
+#SBATCH --array=1-10
 
 #================================================================
 # HEADER
@@ -47,11 +47,13 @@
 module load fsl/6.0.4
 MAIN_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/analysis/fmri/spm/multivariate"
 SINGLENIFTI_DIR="${MAIN_DIR}/s02_isolatenifti"
-ARRAY_FILE=./fsl06_concatlist.txt
-IND=$((SLURM_ARRAY_TASK_ID))
-INFILE=`awk -F "," -v RS="\n" "NR==${IND}" ${ARRAY_FILE}`
-SUB_NUM=$(echo $INFILE | cut -f1 -d,)
+#ARRAY_FILE=./fsl06_concatlist.txt
+# IND=$((SLURM_ARRAY_TASK_ID))
+# INFILE=`awk -F "," -v RS="\n" "NR==${IND}" ${ARRAY_FILE}`
+# SUB_NUM=$(echo $INFILE | cut -f1 -d,)
 
+subjects=(0 2 3 4 5 6 7 8 9 10 11 13 14 15 16 17 18 19 20 21 23 24 25 26 28 29 30 31 32 33 35 37 43 47 51 53 55 58 60)
+SUB_NUM=${subjects[$((SLURM_ARRAY_TASK_ID))]}
 OUTPUTNIFTI_DIR="${MAIN_DIR}/s03_concatnifti"
 
 echo "STARTING fslmerge ___________________________________________"
@@ -66,9 +68,9 @@ for TASK in "pain" "vicarious" "cognitive"; do
 
         cd ${SINGLENIFTI_DIR}/${SUB}
         # STEP02 find all nifti files (single trials)
-        list=$(find -type f -not -path "*exclude/*"  -name "${SUB}*ses*run*${TASK}*${EVENT}*.nii.gz" | sort -t '\0' -n  )
+        list=$(find -type f -not -path "*exclude/*"  -name "${SUB}*ses*run*${TASK}*${EVENT}*.nii" | sort -t '\0' -n  )
         mkdir -p ${OUTPUTNIFTI_DIR}/${SUB}
-        OUTPUTNAME=${OUTPUTNIFTI_DIR}/${SUB}/${SUB}_task-${TASK}_ev-${EVENT}.nii.gz
+        OUTPUTNAME=${OUTPUTNIFTI_DIR}/${SUB}/${SUB}_task-${TASK}_ev-${EVENT}.nii
 
         # STEP03 fslmerge
         fslmerge -t ${OUTPUTNAME} ${list}
@@ -91,9 +93,9 @@ done
     for EVENT in "cue" "stim"; do
         cd ${SINGLENIFTI_DIR}/${SUB}
         # STEP02 find all nifti files (single trials)
-        list=$(find -type f -not -path "*exclude/*" -name "${SUB}*ses*run*${EVENT}*.nii.gz" | sort -t '\0' -n  )
+        list=$(find -type f -not -path "*exclude/*" -name "${SUB}*ses*run*${EVENT}*.nii" | sort -t '\0' -n  )
         mkdir -p ${OUTPUTNIFTI_DIR}/${SUB}
-        OUTPUTNAME=${OUTPUTNIFTI_DIR}/${SUB}/${SUB}_task-general_ev-${EVENT}.nii.gz
+        OUTPUTNAME=${OUTPUTNIFTI_DIR}/${SUB}/${SUB}_task-general_ev-${EVENT}.nii
         
         # STEP03 fslmerge
         fslmerge -t ${OUTPUTNAME} ${list}
