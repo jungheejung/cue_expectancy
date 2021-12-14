@@ -35,8 +35,8 @@ Path(os.path.join(sub_dir, 'exclude')).mkdir(parents=True, exist_ok=True)
 
 key_input = {"ses": ses, "run": run}
 
-print(f"sub-{sub_num:04d}_ses-{key_input['ses']:02d}_run-{key_input['run']:02d}*.nii.gz")
-exclude_files = glob.glob(os.path.join(sub_dir, f"sub-{sub_num:04d}_ses-{key_input['ses']:02d}_run-{key_input['run']:02d}*.nii.gz"))
+print(f"sub-{sub_num:04d}_ses-{key_input['ses']:02d}_run-{key_input['run']:02d}*.nii")
+exclude_files = glob.glob(os.path.join(sub_dir, f"sub-{sub_num:04d}_ses-{key_input['ses']:02d}_run-{key_input['run']:02d}*.nii"))
 print(exclude_files)
 for e_file in exclude_files:
     shutil.move(os.path.join(sub_dir, e_file), os.path.join(sub_dir, 'exclude'))
