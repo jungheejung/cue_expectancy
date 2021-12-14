@@ -19,7 +19,7 @@ rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = 'v7.3';
 %% 1. load parameters _______________________________________________________
 numscans = 56;
 disacqs = 6;
-smooth = 6
+smooth = 6;
 disp(input);
 disp(strcat('[ STEP 01 ] setting parameters...'));
 
@@ -37,10 +37,10 @@ disp(strcat('[ STEP 02 ] PRINT VARIABLE'))
 disp(strcat('sub:    ', sub));
 
 % find nifti files
-niilist = dir(fullfile(fmriprep_dir, sub, '*/func/smooth_', num2str(smooth),'mm_*task-social*_bold.nii'));
+niilist = dir(fullfile(fmriprep_dir, sub, '*','func',strcat('smooth_', num2str(smooth),'mm_*task-social*_bold.nii')));
 nT = struct2table(niilist); % convert the struct array to a table
 sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
-
+disp(sortedT); % TODO: DELETE
 sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
 sortedT.ses_num(:) = str2double(extractBetween(sortedT.name, 'ses-', '_'));
 sortedT.run_num(:) = str2double(extractBetween(sortedT.name, 'run-', '_'));
@@ -52,10 +52,10 @@ nii_num_colomn = nii_col_names(endsWith(nii_col_names, '_num'));
 onsetlist = dir(fullfile(onset_dir, sub, strcat(sub, '_*_rating.csv')));
 onsetT = struct2table(onsetlist);
 sortedonsetT = sortrows(onsetT, 'name');
-
+disp(sortedT); % TODO: DELETE
 sortedonsetT.sub_num(:) = str2double(extractBetween(sortedonsetT.name, 'sub-', '_'));
 sortedonsetT.ses_num(:) = str2double(extractBetween(sortedonsetT.name, 'ses-', '_'));
-sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '-'));
+sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '_'));
 
 onset_col_names = sortedonsetT.Properties.VariableNames;
 onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
@@ -86,7 +86,7 @@ for run_ind = 1: size(A,1)
     fmriprep_run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
     disp(strcat('[ STEP 03 ] gunzip and saving nifti...'));
     smooth_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
-                   strcat('smooth_',num2str(smooth),'mm_', sub, '_', ses, '_task-social_acq-mb8_', fmriprep_run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
+                  strcat('smooth_',num2str(smooth),'mm_', sub, '_', ses, '_task-social_acq-mb8_', fmriprep_run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
     smooth_nii = fullfile(fmriprep_dir, sub, ses, 'func',...
                    strcat('smooth_',num2str(smooth),'mm_', sub, '_', ses, '_task-social_acq-mb8_', fmriprep_run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
     if ~exist(smooth_nii,'file'), gunzip(smooth_fname)
@@ -118,7 +118,7 @@ for run_ind = 1: size(A,1)
         %R(:,size(R,2)+1) = dummy
 
         %save_m_fname = fullfile(onset_dir, sub, ...
-            strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d',A.run_num(run_ind)), '_confounds-subset.txt'));
+    %        strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d',A.run_num(run_ind)), '_confounds-subset.txt'));
         %save(save_m_fname, 'R');
     else
         disp('motion subset file exists');
@@ -147,14 +147,14 @@ for run_ind = 1: size(A,1)
     scans = spm_select('Expand',smooth_nii);
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).scans = cellstr(scans);
 
-    subset = T(T.sub == sub & T.ses == ses & T.run == run & ismember(T.regressor, 'True'), :);
+    subset = T(T.sub == A.sub_num(run_ind) & T.ses ==  A.ses_num(run_ind) & T.run ==  A.run_num(run_ind) & ismember(T.regressor, 'True'), :);
     total_trial= size(subset,1); % 24
     r = total_trial + 1;
     % CUE, STIM
     for c = 1:total_trial
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).name = strcat(subset.ev{c},'-', num2str(subset.num(c), '%02.f'));
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).onset = double(subset.onset(c));
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).duration = double(subset.dur(c));
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).onset = subset.onset(c);
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).duration = subset.dur(c);
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).tmod = 0;
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).pmod = struct('name', {}, 'param', {}, 'poly', {});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).orth = 0;
