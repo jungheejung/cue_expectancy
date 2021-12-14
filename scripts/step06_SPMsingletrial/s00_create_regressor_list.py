@@ -9,6 +9,7 @@
 import os, glob, itertools
 import pandas as pd
 from pathlib import Path 
+import numpy as np
 
 def _event_sort(df, ind_first, ev, ev_name, dur, mod, regressor, cue_type, stim_type):
     # df, 0, 'event01_cue_onset', 'cue', 1, 1, True, 
@@ -86,8 +87,8 @@ for sub in sub_list:
         new.loc[cue_num:cue_num+trial_num-1, 'stim_type'] = list(df.param_stimulus_type)
 
         # expect actual rating ________________________________________________________________
-        new.loc[0:cue_num+trial_num-1, 'expect_rating'] = list(df.event02_expect_angle.repeat(2).reset_index(drop = True))
-        new.loc[0:cue_num+trial_num-1, 'actual_rating'] = list(df.event04_actual_angle.repeat(2).reset_index(drop = True))
+        new.loc[0:cue_num+trial_num-1, 'expect_rating'] = list(pd.concat([df.event02_expect_angle]*2, ignore_index=True))
+        new.loc[0:cue_num+trial_num-1, 'actual_rating'] = list(pd.concat([df.event04_actual_angle]*2, ignore_index=True))
         # RATING fill in parameters for STIM event ____________________________________________
         # trial_num = len(df.ISI03_onset - df.param_trigger_onset) 
         rating = pd.concat( [df.event02_expect_displayonset-df.param_trigger_onset, df.event04_actual_displayonset-df.param_trigger_onset])
@@ -100,15 +101,13 @@ for sub in sub_list:
         new.loc[cue_num+trial_num, 'mod'] = 1
         new.loc[cue_num+trial_num, 'regressor'] = False
 
-
-
         matlab_rating = pd.concat([rating, rt], axis = 1)
         matlabname = f'{sub}_ses-{ses_num:02d}_run-{run_num:02d}_rating.csv'
         matlab_rating.to_csv(os.path.join(ev_single_dir, sub, matlabname), index = False, header = ['rating', 'rt'] ) #sub-####_ses-##_run-##_event-rating.csv
 
-        new.loc[0:cue_num+trial_num-1,'cue_con'] = df['param_cue_type'].map(dict_cue).repeat(2).reset_index(drop = True)
-        new.loc[0:cue_num+trial_num-1,'stim_lin'] = df['param_stimulus_type'].map(dict_stim).repeat(2).reset_index(drop = True)
-        new.loc[0:cue_num+trial_num-1,'stim_quad'] = df['param_stimulus_type'].map(dict_stim_q).repeat(2).reset_index(drop = True)
+        new.loc[0:cue_num+trial_num-1,'cue_con'] = pd.concat([df['param_cue_type'].map(dict_cue)]*2, ignore_index=True)
+        new.loc[0:cue_num+trial_num-1,'stim_lin'] = pd.concat([df['param_stimulus_type'].map(dict_stim)]*2, ignore_index=True)
+        new.loc[0:cue_num+trial_num-1,'stim_quad'] = pd.concat([df['param_stimulus_type'].map(dict_stim_q)]*2, ignore_index=True)
         #
         new['sub'] = sub_num
         new['ses'] = ses_num
