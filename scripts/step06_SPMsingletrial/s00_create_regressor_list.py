@@ -54,7 +54,7 @@ for sub in sub_list:
 
         cue_num = len(df.event01_cue_onset - df.param_trigger_onset)
         trial_num = len(df.event03_stimulus_displayonset - df.param_trigger_onset) 
-        nuissance = ['csf', 'white_matter', 'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z', 'dummy', 'intercept']
+        nuissance = ['csf', 'white_matter', 'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z', 'dummy']
         nuissance_num = len(nuissance)
         new = pd.DataFrame(
             index = range(cue_num + trial_num + nuissance_num + 1),
