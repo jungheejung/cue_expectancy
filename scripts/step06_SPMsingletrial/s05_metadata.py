@@ -9,7 +9,10 @@ current_dir = os.getcwd()
 main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
 nifti_dir = os.path.join(main_dir, 'analysis', 'fmri', 'spm', 'multivariate', 's03_concatnifti')
 sub_list = next(os.walk(nifti_dir))[1]
-
+items_to_remove = ['sub-0000', 'sub-0002']
+for item in items_to_remove:
+    if item in sub_list:
+        sub_list.remove(item)
 param_list = [sub_list, 
 ['pain', 'vicarious', 'cognitive', 'general'],
 ['cue', 'stim']]
@@ -20,7 +23,8 @@ param_list = [sub_list,
 
 full_list = list(itertools.product(*param_list))
 for sub, task, ev in full_list:
-# load niftifname txt 
+    print(f"subject: {sub}, task: {task}, event: {ev}")
+    # load niftifname txt 
     nifti_fname = os.path.join(nifti_dir, sub, f"niftifname_{sub}_task-{task}_ev-{ev}.txt")
     nifti = pd.read_csv(nifti_fname, sep = '\t', header = None)
     # load f'{sub}_singletrial.csv
