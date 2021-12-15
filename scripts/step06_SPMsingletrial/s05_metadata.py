@@ -38,8 +38,8 @@ for sub, task, ev in full_list:
     filtered = subset[subset.nifti_name  == nifti.fname]
     filtered.rename(columns={0:"beta_index_fsl"})
     save_fname = os.path.join(nifti_dir, sub, f"metadata_{sub}_task-{task}_ev-{ev}.csv")
-    try:
-        os.ulink(save_fname)
-    except:
-        print("Error while deleting file or file doesn't exist")   
+    if os.path.exists(save_fname):
+        os.remove(save_fname)
+    else:
+        print(f"{sub}_task-{task}_ev-{ev} doesnt exist")
     filtered.to_csv(save_fname)
