@@ -1,0 +1,1 @@
+find /inbox/DICOM/2021/ -iname "0000051.dcm" | while read f; do /usr/local/bin/singularity exec --bind /inbox/DICOM/:/inbox/DICOM ${HOME}/reproin_0.8.0.1.sif dcmdump -M -L +P '0008,0008' $f | fgrep -qe "ORIGINAL\PRIMARY\FMRI\NONE\MB\ND\NORM\MOSAIC" && echo $f  || : ; done > ${HOME}/odd_dicoms_01-21-2022.txt
