@@ -55,14 +55,25 @@ current_dir = os.getcwd()
 main_dir = Path(current_dir).parents[2]
 
 # %% parameters
+color_dict = {'complete': 7, # green
+'Yes': 7, # green
+'no_data': 1, # gray
+'complete_dontuse': 3, # red
+'repeat_use': 5, # shaded green
+'repeat_dontuse':3,
+'incomplete_use': 5, # shaded green
+'Partial': 3, # shaded green
+'Incomplete': 3,
+np.nan: 1} # gray
+
 bvals = [0,2,4,6, 8]
-colors = ['#b4bbc4', '#ff6666', '#dfedda' , '#94e88d']
+colors = ['#F2F3F4', '#ff5964', '#F4D03F' , '#2ECC71']
 dcolorsc = discrete_colorscale(bvals, colors)
 
 bvals = np.array(bvals)
 tickvals = [np.mean(bvals[k:k+2]) for k in range(len(bvals)-1)] #position with respect to bvals where ticktext is displayed
 # ticktext = [f'<{bvals[1]}'] + [f'{bvals[k]}-{bvals[k+1]}' for k in range(1, len(bvals)-2)]+[f'>{bvals[-2]}']
-ticktext = ['NA', 'complete_dontuse', 'repeat_use, incomplete_use', 'complete']
+ticktext = ['No data', 'complete_dontuse', 'repeat_use, incomplete_use', 'complete']
 
 # %% color based on value
 # https://plotly.com/python/table/#cell-color-based-on-variable
@@ -87,16 +98,7 @@ plt_st = st.drop(labels=
 
 # df_plotly = plot_st.map(color_dict)
 # %%
-color_dict = {'complete': 7, # green
-'Yes': 7, # green
-'no_data': 1, # gray
-'complete_dontuse': 3, # red
-'repeat_use': 5, # shaded green
-'repeat_dontuse':3,
-'incomplete_use': 5, # shaded green
-'Partial': 5, # shaded green
-'Incomplete': 5,
-np.nan: 1} # gray
+
  
 plt_clr = plt_st.replace(color_dict)
 plt_clr.set_index('sub-ID', inplace=True)
