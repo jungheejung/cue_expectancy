@@ -1,10 +1,11 @@
-# purpose:
-# create grids with subject and run info.
-# color code based on complete incomplete runs
+#!/usr/bin/env python3
+"""
+This code reformats spacetop scannotes.
+Download from google sheets.
+It will reformat column names, extract information on session and task, run. 
+After reformat, complete vs incomplete runs will be color coded.  
+"""
 
-# load st_participants
-# stack according to columns
-# reorganize rows
 
 # %% libraries
 from collections import OrderedDict
@@ -23,12 +24,27 @@ from datetime import datetime
 pio.renderers.default = "vscode"
 # https: // stackoverflow.com/questions/61686382/change-the-text-color-of-cells-in-plotly-table-based-on-value-string
 
-# %% directories
+__author__ = "Heejung Jung"
+__copyright__ = "Spatial Topology Project"
+__credits__ = ["Heejung"] # people who reported bug fixes, made suggestions, etc. but did not actually write the code.
+__license__ = "GPL"
+__version__ = "0.0.1"
+__maintainer__ = "Heejung Jung"
+__email__ = "heejung.jung@colorado.edu"
+__status__ = "Development"
+
+
+# %% directories _____________________________________________________________
 current_dir = os.getcwd()
-main_dir = Path(current_dir).parents[1]
-# load dataframe _____________________________________________________________
+main_dir = Path(current_dir).parents[2]
+# %% load dataframe _____________________________________________________________
+data_xls = pd.read_excel(os.path.join(main_dir,'scripts','step00_qc','Copy of ST_Participants.xlsx'), 
+'scan_info', dtype=str, index_col=None)
+data_xls.to_csv(os.path.join(main_dir,'scripts','step00_qc','csvfile.csv'), encoding='utf-8', index=False)
+
+# %%
 df = pd.read_csv(os.path.join(main_dir, 'scripts',
-                 'step00_qc', 'ST_Participants.csv'))
+                 'step00_qc', 'csvfile.csv'))
 df.columns = df.columns.str.replace(' +', '_', regex=True).str.replace(
     '\n+', '_', regex=True).str.replace('\r+', '_', regex=True).str.replace(',', '_', regex=True)
 columns_to_drop = ['Staff', 'Time_in_Scanner', 'Audio_Check_(during_scout)',
@@ -153,7 +169,7 @@ column_map = {
 
 }
 
-# _____________________________________________________________
+# rename and drop _____________________________________________________________
 # ses_01.columns.str.replace(column_map['ses_01']['rename'])
 ses_01.drop(labels=column_map['ses_01']['drop'], inplace=True, axis=1)
 ses_01.rename(columns=column_map['ses_01']['rename'], inplace=True)
@@ -164,11 +180,13 @@ ses_03.rename(columns=column_map['ses_03']['rename'], inplace=True)
 ses_04.drop(labels=column_map['ses_04']['drop'], inplace=True, axis=1)
 ses_04.rename(columns=column_map['ses_04']['rename'], inplace=True)
 
-
+# merge and final product
 df_12 = pd.merge(ses_01, ses_02, on='sub-ID', how='outer')
 df_123 = pd.merge(df_12, ses_03, on='sub-ID', how='outer')
 stdf = pd.merge(df_123, ses_04, on='sub-ID', how='outer')
-# %%
+# %% save with timestamp _____________________________________________________________
 st = stdf.set_index('sub-ID')
-date = datetime.now().strftime("%m/%d/%Y")
-st.to_csv(os.path.join(main_dir, 'spacetop_scannotes_{date}.csv'))
+date = datetime.now().strftime("%m-%d-%Y")
+st.to_csv(os.path.join(main_dir, f"spacetop-scannotes_{date}.csv"))
+
+# %%
