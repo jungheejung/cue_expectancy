@@ -16,5 +16,5 @@ df["complete"] = df["filename"].apply(lambda path: os.path.splitext(os.path.base
 date = datetime.now().strftime("%m-%d-%Y")
 
 # save file:
-social = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social'
+social = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/scripts/step00_qc/qc01_dashboard'
 df.to_csv(os.path.join(social, f"fmriprep-complete_{date}.csv"), index = False)
