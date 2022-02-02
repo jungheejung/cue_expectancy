@@ -1,5 +1,8 @@
+#!/usr/bin/env python3
 # %%
+
 # load library
+import sys; sys.path = [''] + sys.path
 import os
 from nilearn import plotting
 from nilearn import datasets
