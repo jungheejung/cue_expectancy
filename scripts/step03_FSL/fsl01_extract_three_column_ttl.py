@@ -274,7 +274,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
             _build_evfile(df = mri_ttl, onset_col='onset03_stim', dur_col = 5, mod_col = 1, fname = fname_311)
             # 3-2. stim x 5s x cue type
             fname_312 = os.path.join(ev_dir, sub, ses, label+'_EV03-STIM-EXPECTED-5s_pmod-cue.txt')
-            _build_evfile(df = mri_ttl, onset_col='onset03_stim', dur_col = 5, mod_col = 'param_cue_type', fname = fname_312, dict_map = dict_cue)
+            _build_evfile(df = mri_ttl, onset_col='onset03_stim', dur_col = 5, mod_col = 'pmod_cue_type', fname = fname_312, dict_map = dict_cue)
             # 3-3. stim x 5s x actual rating
             fname_313 = os.path.join(ev_dir, sub, ses, label+'_EV03-STIM-EXPECTED-5s_pmod-actual.txt')
             _build_evfile(df = mri_ttl, onset_col='onset03_stim', dur_col = 5, mod_col = 'event04_actual_angle_demean', fname = fname_313)
@@ -290,7 +290,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
             _build_evfile(df=mri_ttl, onset_col='onset03_stim_earlyphase_0-4500ms', dur_col=4.5, mod_col=1, fname = fname_321)
             # 2-2. stim x TTL early x cue type
             fname_322 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-EARLY_pmod-cue.txt')
-            _build_evfile(df=mri_ttl, onset_col='onset03_stim_earlyphase_0-4500ms', dur_col=4.5, mod_col='param_cue_type', fname = fname_322, dict_map = dict_cue)
+            _build_evfile(df=mri_ttl, onset_col='onset03_stim_earlyphase_0-4500ms', dur_col=4.5, mod_col='pmod_cue_type', fname = fname_322, dict_map = dict_cue)
             # 2-3. stim x TTL early x actual rating
             fname_323 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-EARLY_pmod-actual.txt')
             _build_evfile(df=mri_ttl, onset_col='onset03_stim_earlyphase_0-4500ms', dur_col=4.5, mod_col='event04_actual_angle_demean', fname = fname_323)
@@ -306,7 +306,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
             _build_evfile(df=mri_ttl, onset_col='onset03_stim_latephase_4500-9000ms', dur_col=4.5, mod_col=1, fname = fname_331)
             # 3-2. stim x TTL late x cue type
             fname_332 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-LATE_pmod-cue.txt')
-            _build_evfile(df=mri_ttl, onset_col='onset03_stim_latephase_4500-9000ms', dur_col=4.5, mod_col='param_cue_type', fname = fname_332, dict_map = dict_cue)
+            _build_evfile(df=mri_ttl, onset_col='onset03_stim_latephase_4500-9000ms', dur_col=4.5, mod_col='pmod_cue_type', fname = fname_332, dict_map = dict_cue)
             # 3-3. stim x TTL late x actual rating
             fname_333 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-LATE_pmod-actual.txt')
             _build_evfile(df=mri_ttl, onset_col='onset03_stim_latephase_4500-9000ms', dur_col=4.5, mod_col='event04_actual_angle_demean', fname = fname_333)
@@ -323,7 +323,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
             _build_evfile(df=mri_ttl, onset_col='onset03_stim_poststim_9000-135000ms', dur_col=4.5, mod_col=1, fname = fname_341)
             # 4-2. stim x TTL post x cue type
             fname_342 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-POST_pmod-cue.txt')
-            _build_evfile(df=mri_ttl, onset_col='onset03_stim_poststim_9000-135000ms', dur_col=4.5, mod_col='param_cue_type', fname = fname_342, dict_map = dict_cue)
+            _build_evfile(df=mri_ttl, onset_col='onset03_stim_poststim_9000-135000ms', dur_col=4.5, mod_col='pmod_cue_type', fname = fname_342, dict_map = dict_cue)
             # 4-3. stim x TTL post x actual rating
             fname_343 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-POST_pmod-actual.txt')
             _build_evfile(df=mri_ttl, onset_col='onset03_stim_poststim_9000-135000ms', dur_col=4.5, mod_col='event04_actual_angle_demean', fname = fname_343)
