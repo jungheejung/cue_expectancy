@@ -203,7 +203,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
             # ev_cue_pmod_cue.to_csv(fname_1_2, header=None, index=None, sep='\t', mode='w')
 
             fname_12 = os.path.join(ev_dir, sub, ses, label+'_EV01-CUE_pmod-cue.txt')
-            _build_evfile(df=mri_ttl, onset_col='onset01_cue', dur_col=1, mod_col=1, fname=fname_12, mod_col = 'pmod_cue_type', dict_map = dict_cue)
+            _build_evfile(df=mri_ttl, onset_col='onset01_cue', dur_col=1, fname=fname_12, mod_col = 'pmod_cue_type', dict_map = dict_cue)
             # 1-3. CUE modulated with cue type
             # ev_cue_pmod_expect = pd.DataFrame()
             # ev_cue_pmod_expect['onset'] = df['event01_cue_onset'] - df['param_trigger_onset'] #CUE;
