@@ -1,15 +1,25 @@
-# create a table 
-# each row corresponds to each regressor
-# contains nifti name, onset, duration ,modulation degree
-# CUE, STIM, wm, csf, 6DOR, 6 dummy regressor
-# next run...
-# Each index corresponds to the 
-
+#!/usr/bin/env python3
+"""create a table 
+each row corresponds to each regressor
+contains nifti name, onset, duration ,modulation degree
+CUE, STIM, wm, csf, 6DOR, 6 dummy regressor
+next run...
+Each index corresponds to the 
+"""
 # %%
 import os, glob, itertools
 import pandas as pd
 from pathlib import Path 
 import numpy as np
+
+__author__ = "Heejung Jung"
+__copyright__ = "Spatial Topology Project"
+__credits__ = ["Heejung"] # people who reported bug fixes, made suggestions, etc. but did not actually write the code.
+__license__ = "GPL"
+__version__ = "0.0.1"
+__maintainer__ = "Heejung Jung"
+__email__ = "heejung.jung@colorado.edu"
+__status__ = "Development" 
 
 def _event_sort(df, ind_first, ev, ev_name, dur, mod, regressor, cue_type, stim_type):
     # df, 0, 'event01_cue_onset', 'cue', 1, 1, True, 
