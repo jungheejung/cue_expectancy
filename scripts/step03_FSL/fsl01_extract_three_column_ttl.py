@@ -65,7 +65,7 @@ print("\nscript directory is: {0}".format(current_dir))
 print("\ntop directory is: {0}".format(main_dir))
 csv_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd02_preprocessed')
 ev_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd03_EV_FSL')
-ev_bids_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd04_EV_SPM')
+ev_bids_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd06_singletrial_SPM')
 # biopac directory is outside of social influence repository. Set accordingly
 biopac_ttl_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/biopac/dartmouth/b03_extract_ttl/'
 log_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/scripts/step03_onset/flag'
