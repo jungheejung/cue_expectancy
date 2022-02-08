@@ -153,8 +153,8 @@ for run_ind = 1: size(A,1)
     % CUE, STIM
     for c = 1:total_trial
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).name = strcat(subset.ev{c},'-', num2str(subset.num(c), '%02.f'));
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).onset = subset.onset(c);
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).duration = subset.dur(c);
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).onset = double(subset.onset{c});
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).duration = double(subset.dur{c});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).tmod = 0;
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).pmod = struct('name', {}, 'param', {}, 'poly', {});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).orth = 0;
