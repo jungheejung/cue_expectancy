@@ -125,25 +125,26 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                 dict_stim = {'low_stim':-1, 'med_stim':0, 'high_stim':1}
                 dict_stim_q = {'low_stim':1, 'med_stim':-2, 'high_stim':1}
                 dict_col = {
-                'event01_cue_onset': 'onset01_cue',
-                'event02_expect_displayonset': 'onset02_ratingexpect',
-                'event03_stimulus_displayonset': 'onset03_stim',
+                # 'event01_cue_onset': 'onset01_cue',
+                # 'event02_expect_displayonset': 'onset02_ratingexpect',
+                # 'event03_stimulus_displayonset': 'onset03_stim',
                 'ttl_1':'TTL1',
                 'ttl_2':'TTL2',
                 'ttl_3':'TTL3',
                 'ttl_4':'TTL4',
-                'early':'onset03_stim_earlyphase_0-4500ms', # duration of 4.5s
-                'late': 'onset03_stim_latephase_4500-9000ms', # duration of 4.5s
-                'poststim':'onset03_stim_poststim_9000-135000ms', # duration of 4.5s
-                'ttl_plateau':'onset03_stim_ttl-plateau', # calculate duration 
-                'plateau_dur':'onset03_stim_ttl-plateau-dur',
-                'event04_actual_displayonset': 'onset04_ratingactual',
-                'param_cue_type': 'pmod_cue_type',
-                'param_stimulus_type': 'pmod_stim_type',
-                'event02_expect_RT': 'pmod_expect_RT',
-                'event02_expect_angle_demean': 'pmod_expect_angle_demean',
-                'event04_actual_RT': 'pmod_actual_RT',
-                'event04_actual_angle_demean': 'pmod_actual_angle_demean'
+                'early':'event03_stim_earlyphase_0-4500ms', # duration of 4.5s
+                'late': 'event03_stim_latephase_4500-9000ms', # duration of 4.5s
+                'poststim':'event03_stim_poststim_9000-135000ms', # duration of 4.5s
+                'ttl_plateau':'event03_stim_ttl-plateau', # calculate duration 
+                'plateau_dur':'event03_stim_ttl-plateau-dur',
+                # 'event04_actual_displayonset': 'onset04_ratingactual',
+                # 'param_cue_type': 'pmod_cue_type',
+                # 'param_stimulus_type': 'pmod_stim_type',
+                # 'event02_expect_RT': 'pmod_expect_RT',
+                # 'event02_expect_angle_demean': 'pmod_expect_angle_demean',
+                # 'event04_actual_RT': 'pmod_actual_RT',
+                # 'event04_actual_angle_demean': 'pmod_actual_angle_demean'
+                
                 }
                 trigger = df['param_trigger_onset'][0]
 
