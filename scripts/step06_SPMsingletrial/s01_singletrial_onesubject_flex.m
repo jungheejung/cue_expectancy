@@ -27,7 +27,7 @@ disp(strcat('[ STEP 01 ] setting parameters...'));
 key_set = {'early', 'late', 'plateau', 'post'}
 value_set = {'singletrial_SPM_01-pain-early', 'singletrial_SPM_02-pain-late',...
 'singletrial_SPM_03-pain-post', 'singletrial_SPM_04-pain-plateau'}
-M = containers.Map(keySet,valueSet);
+M = containers.Map(key_set,value_set);
 fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'; % sub / ses
 main_dir = fileparts(fileparts(pwd)); % '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
 motion_dir = fullfile(main_dir, 'data', 'dartmouth', 'd05_motion');
