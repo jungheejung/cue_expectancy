@@ -111,7 +111,7 @@ for sub in sub_list:
 
         # STIM fill in parameters for STIM event _____________________________________________
         trial_num = len(df.event03_stimulus_displayonset) 
-        new.loc[cue_num:cue_num+trial_num-1, 'onset'] = list(df['onset03_stim_earlyphase_0-4500ms'])
+        new.loc[cue_num:cue_num+trial_num-1, 'onset'] = list(df['event03_stim_earlyphase_0-4500ms'])
         new.loc[cue_num:cue_num+trial_num-1, 'ev'] = 'stim'
         new.loc[cue_num:cue_num+trial_num-1, 'dur'] = 4.5
         new.loc[cue_num:cue_num+trial_num-1, 'mod'] = 1
