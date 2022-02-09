@@ -172,7 +172,7 @@ for sub in sub_list:
             subject_dataframe = subject_dataframe.append(new)
 
         subject_dataframe.reset_index(inplace = True)
-        subject_dataframe.to_csv(os.path.join(ev_single_dir, sub,  f'{sub}_singletrial_post.csv'))
+        subject_dataframe.to_csv(os.path.join(ev_single_dir, sub,  f'{sub}_singletrial_post.csv'), index_col=False)
     else:
         print(f"{sub} doesnt exist")
 # %%
