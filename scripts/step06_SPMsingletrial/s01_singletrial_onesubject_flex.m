@@ -1,4 +1,4 @@
-function s01_singletrial_onesubject_flex(input, keyword)
+function s01_singletrial_onesubject_flex(input,keyword)
     %-----------------------------------------------------------------------
     % Job saved on 30-Jun-2021 19:26:24 by cfg_util (rev $Rev: 7345 $)
     % spm SPM - SPM12 (7771)
@@ -20,19 +20,23 @@ rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = 'v7.3';
 numscans = 56;
 disacqs = 6;
 smooth = 6;
-disp(input);
+% disp(input);
 disp(strcat('[ STEP 01 ] setting parameters...'));
-
+%args = strsplit(arguments)
+%input = args{1};
+%keyword = args{2};
+disp(input);
+disp(keyword);
 % 1-1. directories _______________________________________________________
-key_set = {'early', 'late', 'plateau', 'post'}
+key_set = {'early', 'late', 'plateau', 'post'};
 value_set = {'singletrial_SPM_01-pain-early', 'singletrial_SPM_02-pain-late',...
-'singletrial_SPM_03-pain-post', 'singletrial_SPM_04-pain-plateau'}
-M = containers.Map(keySet,valueSet);
+'singletrial_SPM_03-pain-post', 'singletrial_SPM_04-pain-plateau'};
+M = containers.Map(key_set,value_set);
 fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'; % sub / ses
 main_dir = fileparts(fileparts(pwd)); % '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
 motion_dir = fullfile(main_dir, 'data', 'dartmouth', 'd05_motion');
 onset_dir = fullfile(main_dir, 'data', 'dartmouth', strcat('d06_', M(keyword)));
-
+disp(onset_dir)
 %% 2. for loop "subject-wise" _______________________________________________________
 % sub_num = sscanf(char(input),'%d');
 sub = strcat('sub-', sprintf('%04d', input));
@@ -61,13 +65,13 @@ disp(sortedT); % TODO: DELETE
 sortedonsetT.sub_num(:) = str2double(extractBetween(sortedonsetT.name, 'sub-', '_'));
 sortedonsetT.ses_num(:) = str2double(extractBetween(sortedonsetT.name, 'ses-', '_'));
 sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '_'));
-
+disp(strcat('sortedonsetT sub_num', str2double(extractBetween(sortedonsetT.name, 'sub-', '_'))))
 onset_col_names = sortedonsetT.Properties.VariableNames;
 onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
 
 %intersection of nifti and onset files
 A = intersect(sortedT(:,nii_num_colomn),sortedonsetT(:,onset_num_colomn));
-
+disp(A)
 output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'multivariate','s01_singletrial', M(keyword),sub);
 if ~exist(output_dir, 'dir')
     mkdir(output_dir)
@@ -151,7 +155,7 @@ for run_ind = 1: size(A,1)
 
     scans = spm_select('Expand',smooth_nii);
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).scans = cellstr(scans);
-
+    disp(strcat('run:',run_ind)); 
     subset = T(T.sub == A.sub_num(run_ind) & T.ses ==  A.ses_num(run_ind) & T.run ==  A.run_num(run_ind) & ismember(T.regressor, 'True'), :);
     total_trial= size(subset,1); % 24
     r = total_trial + 1;
