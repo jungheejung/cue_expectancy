@@ -76,103 +76,107 @@ for sub in sub_list:
     beh_list = glob.glob(os.path.join(csv_dir, sub, '*','*pain*_beh.csv'))
     beh_list = glob.glob(os.path.join(main_dir, 'data', 'dartmouth', 'd06_singletrial_SPM', sub, '*', '*_ttl.tsv'))
     subject_dataframe = pd.DataFrame([])
-    for ind, fpath in enumerate(sorted(beh_list)):
-        fname = os.path.basename(fpath)
-        
-        df = pd.DataFrame()
-        df = pd.read_csv(fpath, sep = '\t')
-        fname = os.path.basename(fpath)
-        df.rename(columns = dict_col, inplace = True)
 
-        sub_num = [match for match in fname.split('_') if "sub" in match][0]
-        ses_num= int(re.findall('\d+', [match for match in fname.split('_') if "ses" in match][0])[0])
-        run_num = int(re.findall('\d+', [match for match in fname.split('_') if "run" in match][0])[0])
-        task_name = [match for match in fname.split('_') if "task" in match][0]
+    print(beh_list)
+    if beh_list:
+        for ind, fpath in enumerate(sorted(beh_list)):
+            fname = os.path.basename(fpath)
+            
+            df = pd.DataFrame()
+            df = pd.read_csv(fpath, sep = '\t')
+            fname = os.path.basename(fpath)
+            df.rename(columns = dict_col, inplace = True)
 
-        Path(os.path.join(ev_single_dir, sub)).mkdir(parents=True, exist_ok=True)
+            sub_num = [match for match in fname.split('_') if "sub" in match][0]
+            ses_num= int(re.findall('\d+', [match for match in fname.split('_') if "ses" in match][0])[0])
+            run_num = int(re.findall('\d+', [match for match in fname.split('_') if "run" in match][0])[0])
+            task_name = [match for match in fname.split('_') if "task" in match][0]
 
-        cue_num = len(df.event01_cue_onset)
-        trial_num = len(df.event03_stimulus_displayonset) 
-        nuissance = ['csf', 'white_matter', 'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z', 'dummy']
-        nuissance_num = len(nuissance)
-        new = pd.DataFrame(
-            index = range(cue_num + trial_num + nuissance_num + 1),
-            columns=['nifti_name','sub','ses','run','task','ev','num',
-            'onset','dur','mod','regressor',
-            'cue_type', 'stim_type','expect_rating','actual_rating','cue_con', 'stim_lin', 'stim_quad'])
+            Path(os.path.join(ev_single_dir, sub)).mkdir(parents=True, exist_ok=True)
 
-        # CUE event fill in parameters for CUE event ____________________________________________
-        cue_num = len(df.event01_cue_onset)
-        new.loc[0:cue_num-1, 'onset'] = df.event01_cue_onset 
-        new.loc[0:cue_num-1, 'ev'] = 'cue'
-        new.loc[0:cue_num-1, 'dur'] = 1
-        new.loc[0:cue_num-1, 'mod'] = 1
-        new.loc[0:cue_num-1, 'regressor'] = True
-        new.loc[0:cue_num-1, 'num'] = list(range(cue_num))
-        new.loc[0:cue_num-1, 'cue_type'] = list(df.param_cue_type)
-        new.loc[0:cue_num-1, 'stim_type'] = list(df.param_stimulus_type)
+            cue_num = len(df.event01_cue_onset)
+            trial_num = len(df.event03_stimulus_displayonset) 
+            nuissance = ['csf', 'white_matter', 'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z', 'dummy']
+            nuissance_num = len(nuissance)
+            new = pd.DataFrame(
+                index = range(cue_num + trial_num + nuissance_num + 1),
+                columns=['nifti_name','sub','ses','run','task','ev','num',
+                'onset','dur','mod','regressor',
+                'cue_type', 'stim_type','expect_rating','actual_rating','cue_con', 'stim_lin', 'stim_quad'])
+
+            # CUE event fill in parameters for CUE event ____________________________________________
+            cue_num = len(df.event01_cue_onset)
+            new.loc[0:cue_num-1, 'onset'] = df.event01_cue_onset 
+            new.loc[0:cue_num-1, 'ev'] = 'cue'
+            new.loc[0:cue_num-1, 'dur'] = 1
+            new.loc[0:cue_num-1, 'mod'] = 1
+            new.loc[0:cue_num-1, 'regressor'] = True
+            new.loc[0:cue_num-1, 'num'] = list(range(cue_num))
+            new.loc[0:cue_num-1, 'cue_type'] = list(df.param_cue_type)
+            new.loc[0:cue_num-1, 'stim_type'] = list(df.param_stimulus_type)
 
 
-        # STIM fill in parameters for STIM event _____________________________________________
-        trial_num = len(df.event03_stimulus_displayonset) 
-        new.loc[cue_num:cue_num+trial_num-1, 'onset'] = list(df['event03_stim_ttl-plateau'])
-        new.loc[cue_num:cue_num+trial_num-1, 'ev'] = 'stim'
-        new.loc[cue_num:cue_num+trial_num-1, 'dur'] = list(df['event03_stim_ttl-plateau-dur'])
-        new.loc[cue_num:cue_num+trial_num-1, 'mod'] = 1
-        new.loc[cue_num:cue_num+trial_num-1, 'regressor'] = True
-        new.loc[cue_num:cue_num+trial_num-1, 'num'] = list(range(trial_num))
-        new.loc[cue_num:cue_num+trial_num-1, 'cue_type'] = list(df.param_cue_type)
-        new.loc[cue_num:cue_num+trial_num-1, 'stim_type'] = list(df.param_stimulus_type)
+            # STIM fill in parameters for STIM event _____________________________________________
+            trial_num = len(df.event03_stimulus_displayonset) 
+            new.loc[cue_num:cue_num+trial_num-1, 'onset'] = list(df['event03_stim_poststim_9000-135000ms'])
+            new.loc[cue_num:cue_num+trial_num-1, 'ev'] = 'stim'
+            new.loc[cue_num:cue_num+trial_num-1, 'dur'] = 4.5
+            new.loc[cue_num:cue_num+trial_num-1, 'mod'] = 1
+            new.loc[cue_num:cue_num+trial_num-1, 'regressor'] = True
+            new.loc[cue_num:cue_num+trial_num-1, 'num'] = list(range(trial_num))
+            new.loc[cue_num:cue_num+trial_num-1, 'cue_type'] = list(df.param_cue_type)
+            new.loc[cue_num:cue_num+trial_num-1, 'stim_type'] = list(df.param_stimulus_type)
 
-        # expect actual rating ________________________________________________________________
-        new.loc[0:cue_num+trial_num-1, 'expect_rating'] = list(pd.concat([df.event02_expect_angle_demean]*2, ignore_index=True))
-        new.loc[0:cue_num+trial_num-1, 'actual_rating'] = list(pd.concat([df.event04_actual_angle_demean]*2, ignore_index=True))
-        # RATING fill in parameters for STIM event ____________________________________________
-        # trial_num = len(df.ISI03_onset - df.param_trigger_onset) 
-        rating = pd.concat( [df.event02_expect_displayonset, df.event04_actual_displayonset]).reset_index(drop = True)
-        rt = pd.concat( [df.event02_expect_RT, df.event04_actual_RT]).reset_index(drop = True)
-        rate_df = pd.concat([rating, rt], axis = 1)
-        rate_df.fillna(4, inplace = True)
-        rate_df.rename({0:'rating', 1:'rt'}, axis = 1, inplace = True)
-        rate_df.sort_values(by =[ 'rating'], ascending = True, inplace = True, ignore_index=True)
-        # rating.sort_values(ascending = True, inplace = True, ignore_index=True)
-        new.loc[cue_num+trial_num, 'onset'] = list(rating )
-        new.loc[cue_num+trial_num, 'ev'] = 'rating'
-        new.loc[cue_num+trial_num, 'dur'] = list(rt)
-        new.loc[cue_num+trial_num, 'mod'] = 1
-        new.loc[cue_num+trial_num, 'regressor'] = False
+            # expect actual rating ________________________________________________________________
+            new.loc[0:cue_num+trial_num-1, 'expect_rating'] = list(pd.concat([df.event02_expect_angle_demean]*2, ignore_index=True))
+            new.loc[0:cue_num+trial_num-1, 'actual_rating'] = list(pd.concat([df.event04_actual_angle_demean]*2, ignore_index=True))
+            # RATING fill in parameters for STIM event ____________________________________________
+            # trial_num = len(df.ISI03_onset - df.param_trigger_onset) 
+            rating = pd.concat( [df.event02_expect_displayonset, df.event04_actual_displayonset]).reset_index(drop = True)
+            rt = pd.concat( [df.event02_expect_RT, df.event04_actual_RT]).reset_index(drop = True)
+            rate_df = pd.concat([rating, rt], axis = 1)
+            rate_df.fillna(4, inplace = True)
+            rate_df.rename({0:'rating', 1:'rt'}, axis = 1, inplace = True)
+            rate_df.sort_values(by =[ 'rating'], ascending = True, inplace = True, ignore_index=True)
+            # rating.sort_values(ascending = True, inplace = True, ignore_index=True)
+            new.loc[cue_num+trial_num, 'onset'] = list(rating )
+            new.loc[cue_num+trial_num, 'ev'] = 'rating'
+            new.loc[cue_num+trial_num, 'dur'] = list(rt)
+            new.loc[cue_num+trial_num, 'mod'] = 1
+            new.loc[cue_num+trial_num, 'regressor'] = False
 
-        matlab_rating = pd.concat([rating, rt], axis = 1)
-        matlabname = f'{sub}_ses-{ses_num:02d}_run-{run_num:02d}_rating_plateau.csv'
-        matlab_rating.to_csv(os.path.join(ev_single_dir, sub, matlabname), index = False, header = ['rating', 'rt'] ) #sub-####_ses-##_run-##_event-rating.csv
+            matlab_rating = pd.concat([rating, rt], axis = 1)
+            matlabname = f'{sub}_ses-{ses_num:02d}_run-{run_num:02d}_rating_plateau.csv'
+            matlab_rating.to_csv(os.path.join(ev_single_dir, sub, matlabname), index = False, header = ['rating', 'rt'] ) #sub-####_ses-##_run-##_event-rating.csv
 
-        new.loc[0:cue_num+trial_num-1,'cue_con'] = pd.concat([df['param_cue_type'].map(dict_cue)]*2, ignore_index=True)
-        new.loc[0:cue_num+trial_num-1,'stim_lin'] = pd.concat([df['param_stimulus_type'].map(dict_stim)]*2, ignore_index=True)
-        new.loc[0:cue_num+trial_num-1,'stim_quad'] = pd.concat([df['param_stimulus_type'].map(dict_stim_q)]*2, ignore_index=True)
-        #
-        new['sub'] = sub_num
-        new['ses'] = ses_num
-        new['run'] = run_num
-        new['task'] = task_name
+            new.loc[0:cue_num+trial_num-1,'cue_con'] = pd.concat([df['param_cue_type'].map(dict_cue)]*2, ignore_index=True)
+            new.loc[0:cue_num+trial_num-1,'stim_lin'] = pd.concat([df['param_stimulus_type'].map(dict_stim)]*2, ignore_index=True)
+            new.loc[0:cue_num+trial_num-1,'stim_quad'] = pd.concat([df['param_stimulus_type'].map(dict_stim_q)]*2, ignore_index=True)
+            #
+            new['sub'] = sub_num
+            new['ses'] = ses_num
+            new['run'] = run_num
+            new['task'] = task_name
 
-        # filename build string e.g. sub-0005_ses-04_run-06-pain_ev-stim-0011.nii.gz
-        new['nifti_name'] = 'sub-' + new['sub'].astype(str).str.zfill(4) + \
-        '_ses-' + new['ses'].astype(str).str.zfill(2) + \
-        '_run-' + new['run'].astype(str).str.zfill(2) + '-' + new['task'] + \
-            '_ev-' + new['ev'] + '-' + new['num'].astype(str).str.zfill(4)
-        # print(f"sub-{new.sub:04d}_ses-{new['ses']:02d}_run-{new['run']:02d}*.nii.gz")
+            # filename build string e.g. sub-0005_ses-04_run-06-pain_ev-stim-0011.nii.gz
+            new['nifti_name'] = 'sub-' + new['sub'].astype(str).str.zfill(4) + \
+            '_ses-' + new['ses'].astype(str).str.zfill(2) + \
+            '_run-' + new['run'].astype(str).str.zfill(2) + '-' + new['task'] + \
+                '_ev-' + new['ev'] + '-' + new['num'].astype(str).str.zfill(4)
+            # print(f"sub-{new.sub:04d}_ses-{new['ses']:02d}_run-{new['run']:02d}*.nii.gz")
 
-        # dummy regressors
-        
-        new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1, 'nifti_name'] = list(nuissance)
-        new['sub'] = sub_num
-        new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'ses'] = ses_num
-        new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'run'] = run_num
-        new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'task'] = task_name
-        new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'regressor'] = False
-        subject_dataframe = subject_dataframe.append(new)
+            # dummy regressors
+            
+            new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1, 'nifti_name'] = list(nuissance)
+            new['sub'] = sub_num
+            new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'ses'] = ses_num
+            new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'run'] = run_num
+            new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'task'] = task_name
+            new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'regressor'] = False
+            subject_dataframe = subject_dataframe.append(new)
 
-    subject_dataframe.reset_index(inplace = True)
-    subject_dataframe.to_csv(os.path.join(ev_single_dir, sub,  f'{sub}_singletrial_plateau.csv'))
+        subject_dataframe.reset_index(inplace = True)
+        subject_dataframe.to_csv(os.path.join(ev_single_dir, sub,  f'{sub}_singletrial_plateau.csv'))
+    else:
+        print(f"{sub} doesnt exist")
 
-# %%
