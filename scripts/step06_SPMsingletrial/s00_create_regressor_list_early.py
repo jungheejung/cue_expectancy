@@ -81,7 +81,7 @@ for sub in sub_list:
             fname = os.path.basename(fpath)
             df.rename(columns = dict_col, inplace = True)
 
-            sub_num = [match for match in fname.split('_') if "sub" in match][0]
+            sub_num = int(re.findall('\d+', [match for match in fname.split('_') if "sub" in match][0])[0])
             ses_num= int(re.findall('\d+', [match for match in fname.split('_') if "ses" in match][0])[0])
             run_num = int(re.findall('\d+', [match for match in fname.split('_') if "run" in match][0])[0])
             task_name = [match for match in fname.split('_') if "task" in match][0]
@@ -170,7 +170,7 @@ for sub in sub_list:
             subject_dataframe = subject_dataframe.append(new)
 
         subject_dataframe.reset_index(inplace = True)
-        subject_dataframe.to_csv(os.path.join(ev_single_dir, sub,  f'{sub}_singletrial_early.csv'))
+        subject_dataframe.to_csv(os.path.join(ev_single_dir, sub,  f'{sub}_singletrial_early.csv'), index_col=False)
     else:
-        print(f"{sub} doesnt exist")
+        print(f"{sub} doesnt exist")   
 # %%
