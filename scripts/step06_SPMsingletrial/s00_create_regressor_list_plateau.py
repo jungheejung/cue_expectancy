@@ -72,6 +72,7 @@ for sub in sub_list:
     beh_list = glob.glob(os.path.join(csv_dir, sub, '*','*pain*_beh.csv'))
     beh_list = glob.glob(os.path.join(main_dir, 'data', 'dartmouth', 'd06_singletrial_SPM', sub, '*', '*_ttl.tsv'))
     subject_dataframe = pd.DataFrame([])
+
     print(beh_list)
     if beh_list:
         for ind, fpath in enumerate(sorted(beh_list)):
@@ -174,4 +175,4 @@ for sub in sub_list:
         subject_dataframe.to_csv(os.path.join(ev_single_dir, sub,  f'{sub}_singletrial_plateau.csv'))
     else:
         print(f"{sub} doesnt exist")
-# %%
+
