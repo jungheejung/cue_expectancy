@@ -48,7 +48,8 @@ disp(sortedT); % TODO: DELETE
 sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
 sortedT.ses_num(:) = str2double(extractBetween(sortedT.name, 'ses-', '_'));
 sortedT.run_num(:) = str2double(extractBetween(sortedT.name, 'run-', '_'));
-
+disp(strcat('sortedT sub_num', str2double(extractBetween(sortedT.name, 'sub-', '_'))))
+disp(strcat('sortedT sub_num', str2double(extractBetween(sortedT.name, 'ses-', '_'))))
 nii_col_names = sortedT.Properties.VariableNames;
 nii_num_colomn = nii_col_names(endsWith(nii_col_names, '_num'));
 
