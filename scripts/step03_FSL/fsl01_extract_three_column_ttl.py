@@ -78,8 +78,8 @@ sub_list = [x for x in biopac_list if x != remove_list]
 ses_list = [1,3,4]
 sub_ses = list(itertools.product(sorted(sub_list), ses_list))
 
-date = datetime.now().strftime("%m/%d/%Y")
-textfile = open(os.path.join(log_dir, "flag_{date}.txt"), "w")
+date = datetime.now().strftime("%m-%d-%Y")
+textfile = open(os.path.join(log_dir, f"flag_{date}.txt"), "w")
 textfile.write("this file contains anomalies from biopac-extracted TTL data and behavioral data\n" )
 textfile.write("it raises a flag if biopac data doesn't match behavioral data\n" )
 
