@@ -66,7 +66,11 @@ dict_col = {
 }
 # %%
 sub_list = next(os.walk(csv_dir))[1]
-sub_list.remove('sub-0001')
+#sub_list.remove('sub-0001')
+remove_int = [1,2,3,4,5]
+remove_list = [f"sub-{x:04d}" for x in remove_int]
+sub_list = [x for x in sub_list if x != remove_list]
+
 for sub in sub_list:
     beh_list = []
     beh_list = glob.glob(os.path.join(csv_dir, sub, '*','*pain*_beh.csv'))
