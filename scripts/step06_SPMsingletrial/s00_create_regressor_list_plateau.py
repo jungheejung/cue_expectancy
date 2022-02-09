@@ -58,7 +58,7 @@ dict_col = {
 'pmod_actual_RT':'event04_actual_RT',
 'pmod_expect_angle_demean':'event02_expect_angle_demean',
 'pmod_actual_angle_demean':'event04_actual_angle_demean',
-'onset03_stim_earlyphase_4500-9000ms':'event03_stim_earlyphase_0-4500ms', # duration of 4.5s
+'onset03_stim_earlyphase_0-4500ms':'event03_stim_earlyphase_0-4500ms', # duration of 4.5s
 'onset03_stim_latephase_4500-9000ms': 'event03_stim_latephase_4500-9000ms', # duration of 4.5s
 'onset03_stim_poststim_9000-135000ms':'event03_stim_poststim_9000-135000ms', # duration of 4.5s
 'onset03_stim_ttl-plateau':'event03_stim_ttl-plateau', # calculate duration 
