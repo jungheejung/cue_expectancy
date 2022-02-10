@@ -90,19 +90,11 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         print( sub, ses_ind)
         ses = f"ses-{ses_ind:02d}"
         biopac_list = glob.glob(os.path.join(biopac_ttl_dir, sub, ses, 'task-social', '*ttl.csv'))
-        #################
-        # STOP: TODO: 02/03/2022
-        # x write code so that glob biopac file list first
-        # x from that, identify matching behavioral list
-        # x from that, open behavioal list and ttl list
-        # x merge and save to dataframe -> SPM
-        # x separately save as txt files -> FSL
 
         # beh_list = glob.glob(os.path.join(csv_dir, sub, ses,'*_beh.csv'))
         Path(os.path.join(ev_dir, sub, ses)).mkdir(parents=True, exist_ok=True)
         Path(os.path.join(ev_bids_dir, sub, ses)).mkdir(parents=True, exist_ok=True)
 
-        #FILENAME = os.path.join(csv_dir, sub, ses, 'sub-' + 'ses-' + 'task-*' + 'run-*' )
         for ind, bio_fpath in enumerate(biopac_list):
             # example: sub-0029_ses-04_task-social_run-01_physio-ttl.csv
             # based on biopac run info, find corresponding behavioral file
@@ -191,171 +183,123 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                 #onset
                 # 1. CUE ______________________
                 # 1-1. CUE onset only
-                # ev_cue_onset_only = pd.DataFrame()
-                # ev_cue_onset_only['onset'] = df['event01_cue_onset'] - df['param_trigger_onset'] #CUE;
-                # ev_cue_onset_only['dur'] = 1
-                # ev_cue_onset_only['mod'] = 1
-                # fname_1_1 = os.path.join(ev_dir, sub, ses, label+'_EV01-CUE_onsetonly.txt')
-                # ev_cue_onset_only.to_csv(fname_1_1, header=None, index=None, sep='\t')
-
-
+                # 1-2. CUE modulated with cue type
+                # 1-3. CUE modulated with cue type
                 fname_11 = os.path.join(ev_dir, sub, ses, label+'_EV01-CUE_onsetonly.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset01_cue', dur_col=1, mod_col=1, fname=fname_11)
-                
-                # 1-2. CUE modulated with cue type
-                # ev_cue_pmod_cue = pd.DataFrame()
-                # ev_cue_pmod_cue['onset'] = df['event01_cue_onset'] - df['param_trigger_onset'] #CUE;
-                # ev_cue_pmod_cue['dur'] = 1
-                # ev_cue_pmod_cue['mod'] = df['param_cue_type'].map(dict_cue)
-                # fname_1_2 = os.path.join(ev_dir, sub, ses, label+'_EV01-CUE_pmod-cue.txt')
-                # ev_cue_pmod_cue.to_csv(fname_1_2, header=None, index=None, sep='\t', mode='w')
 
                 fname_12 = os.path.join(ev_dir, sub, ses, label+'_EV01-CUE_pmod-cue.txt')
-                _build_evfile(df=mri_ttl, onset_col='onset01_cue', dur_col=1, fname=fname_12, mod_col = 'pmod_cue_type', dict_map = dict_cue)
-                # 1-3. CUE modulated with cue type
-                # ev_cue_pmod_expect = pd.DataFrame()
-                # ev_cue_pmod_expect['onset'] = df['event01_cue_onset'] - df['param_trigger_onset'] #CUE;
-                # ev_cue_pmod_expect['dur'] = 1
-                # ev_cue_pmod_expect['mod'] = df['event02_expect_angle']
-                # fname_1_3 = os.path.join(ev_dir, sub, ses, label+'_EV01-CUE_pmod-expect.txt')
-                # ev_cue_pmod_expect.to_csv(fname_1_3, header=None, index=None, sep='\t', mode='w')
+                _build_evfile(df=mri_ttl, onset_col='onset01_cue', dur_col=1, fname=fname_12, mod_col = 'pmod_cue_type', dict_map = dict_cue)              
+
                 fname_13 = os.path.join(ev_dir, sub, ses, label+'_EV01-CUE_pmod-cue.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset01_cue', dur_col=1, mod_col='event02_expect_angle', fname=fname_13)
 
                 # 2. RATING EXPECT ______________________ DUR: RT
                 # 2-1. RATING onset only
-                # ev_expect_onset_only = pd.DataFrame()
-                # ev_expect_onset_only['onset'] = df['event02_expect_displayonset'] - df['param_trigger_onset'] #CUE;
-                # ev_expect_onset_only['dur'] = df['event02_expect_RT']
-                # ev_expect_onset_only['mod'] = 1
-                # fname_2_1 = os.path.join(ev_dir, sub, ses, label+'_EV02-EXPECT_onsetonly.txt')
-                # ev_expect_onset_only.to_csv(fname_2_1, header=None, index=None, sep='\t', mode='w')
-
                 fname_2 = os.path.join(ev_dir, sub, ses, label+'_EV02-EXPECT_onsetonly.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset02_ratingexpect', dur_col='pmod_expect_RT', mod_col=1, fname=fname_2)
                 
                 # # 3. STIM :: expected time (2s after onset - 7s after onset) ___________________________________________________________________________
-                # # 3-1. stim x 5s x no pmod
-                # ev_stim_onset_only = pd.DataFrame()
-                # ev_stim_onset_only['onset'] = df['event03_stimulus_displayonset'] - df['param_trigger_onset'] - 2;
-                # ev_stim_onset_only['dur'] = 5
-                # ev_stim_onset_only['mod'] = 1
-                # fname_3_1 = os.path.join(ev_dir, sub, ses, label+'_EV03-STIM_onsetonly.txt')
-                # ev_stim_onset_only.to_csv(fname_3_1, header=None, index=None, sep='\t', mode='w')
-                # # 3-2. stim x 5s x cue
-                # ev_stim_pmod_cue = pd.DataFrame()
-                # ev_stim_pmod_cue['onset'] = df['event03_stimulus_displayonset'] - df['param_trigger_onset'] -2;
-                # ev_stim_pmod_cue['dur'] = 5
-                # ev_stim_pmod_cue['mod'] = df['param_cue_type'].map(dict_cue)
-                # fname_3_2 = os.path.join(ev_dir, sub, ses, label+'_EV03-STIM_pmod-cue.txt')
-                # ev_stim_pmod_cue.to_csv(fname_3_2, header=None, index=None, sep='\t', mode='w')
-
-                # # 3-3. stim x 5s x actual rating
-                # ev_stim_pmod_actual = pd.DataFrame()
-                # ev_stim_pmod_actual['onset'] = df['event03_stimulus_displayonset'] - df['param_trigger_onset'] -2;
-                # ev_stim_pmod_actual['dur'] = 5
-                # ev_stim_pmod_actual['mod'] = df['event04_actual_angle']
-                # fname_3_3 = os.path.join(ev_dir, sub, ses, label+'_EV03-STIM_pmod-actual.txt')
-                # ev_stim_pmod_actual.to_csv(fname_3_3, header=None, index=None, sep='\t', mode='w')
-
-                # # 3-4. stim x 5s x expect rating
-                # ev_stim_pmod_expect = pd.DataFrame()
-                # ev_stim_pmod_expect['onset'] = df['event03_stimulus_displayonset'] - df['param_trigger_onset'] -2;
-                # ev_stim_pmod_expect['dur'] = 5
-                # ev_stim_pmod_expect['mod'] = df['event02_expect_angle']
-                # fname_3_4 = os.path.join(ev_dir, sub, ses, label+'_EV03-STIM_pmod-expect.txt')
-                # ev_stim_pmod_expect.to_csv(fname_3_4, header=None, index=None, sep='\t', mode='w')
-
-                # # 3-5. stim x 5s x stimulus intensity level
-                # ev_stim_pmod_stim = pd.DataFrame()
-                # ev_stim_pmod_stim['onset'] = df['event03_stimulus_displayonset'] - df['param_trigger_onset'] #CUE;
-                # ev_stim_pmod_stim['dur'] = 5
-                # ev_stim_pmod_stim['mod'] = df['param_stimulus_type'].map(dict_stim)
-                # fname_3_5 = os.path.join(ev_dir, sub, ses, label+'_EV03-STIM-pmod-level.txt')
-                # ev_stim_pmod_expect.to_csv(fname_3_5, header=None, index=None, sep='\t', mode='w')
-                
-
-                    # return new_df
                     # STIM_onsetonly, STIM_pmod-cue, STIM_pmod-actual, STIM_pmod-expect, STIM-pmod-level
-                # 3-1. stim x 5s x onset time only
+                # 3-1-1. stim x 5s x onset time only
+                # 3-1-2. stim x 5s x cue type
+                # 3-1-3. stim x 5s x actual rating
+                # 3-1-4. stim x 5s x expect rating
+                # 3-1-5. stim x 5s x stimulus intensity level
                 fname_311 = os.path.join(ev_dir, sub, ses, label+'_EV03-STIM-EXPECTED-5s_onsetonly.txt')
                 _build_evfile(df = mri_ttl, onset_col='onset03_stim', dur_col = 5, mod_col = 1, fname = fname_311)
-                # 3-2. stim x 5s x cue type
+                
                 fname_312 = os.path.join(ev_dir, sub, ses, label+'_EV03-STIM-EXPECTED-5s_pmod-cue.txt')
                 _build_evfile(df = mri_ttl, onset_col='onset03_stim', dur_col = 5, mod_col = 'pmod_cue_type', fname = fname_312, dict_map = dict_cue)
-                # 3-3. stim x 5s x actual rating
+                
                 fname_313 = os.path.join(ev_dir, sub, ses, label+'_EV03-STIM-EXPECTED-5s_pmod-actual.txt')
                 _build_evfile(df = mri_ttl, onset_col='onset03_stim', dur_col = 5, mod_col = 'pmod_actual_angle_demean', fname = fname_313)
-                # 3-4. stim x 5s x expect rating
+                
                 fname_314 = os.path.join(ev_dir, sub, ses, label+'_EV03-STIM-EXPECTED-5s_pmod_expect.txt')
                 _build_evfile(df = mri_ttl, onset_col='onset03_stim', dur_col = 5, mod_col = 'pmod_expect_angle_demean', fname = fname_314)
-                # 3-5. stim x 5s x stimulus intensity level
+                
                 fname_315 = os.path.join(ev_dir, sub, ses, label+'_EV03-STIM-EXPECTED-5s_pmod_level.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset03_stim', dur_col=4.5, fname=fname_315, mod_col='pmod_stim_type', dict_map = dict_stim)
                 
-                # 2-1. stim x TTL early x onset time only           
+                # 3-2-1. stim x TTL early x onset time only     
+                # 3-2-2. stim x TTL early x cue type    
+                # 3-2-3. stim x TTL early x actual rating  
+                # 3-2-4. stim x TTL early x expect rating
+                # 3-2-5. stim x TTL early x onset time only
                 fname_321 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-EARLY_onsetonly.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset03_stim_earlyphase_0-4500ms', dur_col=4.5, mod_col=1, fname = fname_321)
-                # 2-2. stim x TTL early x cue type
+                
                 fname_322 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-EARLY_pmod-cue.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset03_stim_earlyphase_0-4500ms', dur_col=4.5, mod_col='pmod_cue_type', fname = fname_322, dict_map = dict_cue)
-                # 2-3. stim x TTL early x actual rating
+                
                 fname_323 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-EARLY_pmod-actual.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset03_stim_earlyphase_0-4500ms', dur_col=4.5, mod_col='pmod_actual_angle_demean', fname = fname_323)
-                # 2-4. stim x TTL early x expect rating
+                
                 fname_324 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-EARLY_pmod_expect.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset03_stim_earlyphase_0-4500ms', dur_col=4.5, mod_col='pmod_expect_angle_demean', fname = fname_324)
-                # 2-5. stim x TTL early x onset time only
+                
                 fname_325 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-EARLY_pmod_level.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset03_stim_earlyphase_0-4500ms', dur_col=4.5, mod_col='pmod_stim_type', fname=fname_325, dict_map = dict_stim)
                 
-                # 3-1. stim x TTL late x onset time only           
+                # 3-3-1. stim x TTL late x onset time only
+                # 3-3-2. stim x TTL late x cue type           
+                # 3-3-3. stim x TTL late x actual rating
+                # 3-3-4. stim x TTL late x expect rating
+                # 3-3-5. stim x TTL late x onset time only
                 fname_331 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-LATE_onsetonly.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset03_stim_latephase_4500-9000ms', dur_col=4.5, mod_col=1, fname = fname_331)
-                # 3-2. stim x TTL late x cue type
+                
                 fname_332 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-LATE_pmod-cue.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset03_stim_latephase_4500-9000ms', dur_col=4.5, mod_col='pmod_cue_type', fname = fname_332, dict_map = dict_cue)
-                # 3-3. stim x TTL late x actual rating
+                
                 fname_333 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-LATE_pmod-actual.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset03_stim_latephase_4500-9000ms', dur_col=4.5, mod_col='pmod_actual_angle_demean', fname = fname_333)
-                # 3-4. stim x TTL late x expect rating
+                
                 fname_334 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-LATE_pmod_expect.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset03_stim_latephase_4500-9000ms', dur_col=4.5, mod_col='pmod_expect_angle_demean', fname = fname_334)
-                # 3-5. stim x TTL late x onset time only
+                
                 fname_335 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-LATE_pmod_level.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset03_stim_latephase_4500-9000ms', dur_col=4.5, mod_col='pmod_stim_type', fname=fname_335, dict_map = dict_stim)
                 
 
-                # 4-1. stim x TTL post x onset time only           
+                # 3-4-1. stim x TTL post x onset time only   
+                # 3-4-2. stim x TTL post x cue type 
+                # 3-4-3. stim x TTL post x actual rating  
+                # 3-4-4. stim x TTL post x expect rating
+                # 3-4-5. stim x TTL post x onset time only     
                 fname_341 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-POST_onsetonly.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset03_stim_poststim_9000-135000ms', dur_col=4.5, mod_col=1, fname = fname_341)
-                # 4-2. stim x TTL post x cue type
+                
                 fname_342 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-POST_pmod-cue.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset03_stim_poststim_9000-135000ms', dur_col=4.5, mod_col='pmod_cue_type', fname = fname_342, dict_map = dict_cue)
-                # 4-3. stim x TTL post x actual rating
+                
                 fname_343 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-POST_pmod-actual.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset03_stim_poststim_9000-135000ms', dur_col=4.5, mod_col='pmod_actual_angle_demean', fname = fname_343)
-                # 4-4. stim x TTL post x expect rating
+                
                 fname_344 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-POST_pmod_expect.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset03_stim_poststim_9000-135000ms', dur_col=4.5, mod_col='pmod_expect_angle_demean', fname = fname_344)
-                # 4-5. stim x TTL post x onset time only
+                
                 fname_345 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-POST_pmod_level.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset03_stim_poststim_9000-135000ms', dur_col=4.5, mod_col='pmod_stim_type', fname=fname_345, dict_map = dict_stim)
                 
 
-                # 5-1. stim x TTL plateau x onset time only           
+                # 3-5-1. stim x TTL plateau x onset time only          
+                # 3-5-2. stim x TTL plateau x cue type 
+                # 3-5-3. stim x TTL plateau x actual rating
+                # 3-5-4. stim x TTL plateau x expect rating
+                # 3-5-5. stim x TTL plateau x onset time only
                 fname_351 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-PLATEAU_onsetonly.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset03_stim_ttl-plateau', dur_col='onset03_stim_ttl-plateau-dur', mod_col=1, fname = fname_351)
-                # 5-2. stim x TTL plateau x cue type
+                
                 fname_352 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-PLATEAU_pmod-cue.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset03_stim_ttl-plateau', dur_col='onset03_stim_ttl-plateau-dur', mod_col='pmod_cue_type', fname = fname_352, dict_map = dict_cue)
-                # 5-3. stim x TTL plateau x actual rating
+                
                 fname_353 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-PLATEAU_pmod-actual.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset03_stim_ttl-plateau', dur_col='onset03_stim_ttl-plateau-dur', mod_col='pmod_actual_angle_demean', fname = fname_353)
-                # 5-4. stim x TTL plateau x expect rating
+               
                 fname_354 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-PLATEAU_pmod_expect.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset03_stim_ttl-plateau', dur_col='onset03_stim_ttl-plateau-dur', mod_col='pmod_expect_angle_demean', fname = fname_354)
-                # 5-5. stim x TTL plateau x onset time only
+                
                 fname_355 = os.path.join(ev_dir, sub, ses, label+'_EV03-TTL-PLATEAU_pmod_level.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset03_stim_ttl-plateau', dur_col='onset03_stim_ttl-plateau-dur', mod_col='pmod_stim_type', fname=fname_355, dict_map = dict_stim)
                 
@@ -364,23 +308,8 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                 # 4-1. RATING onset only
                 fname_4 = os.path.join(ev_dir, sub, ses, label+'_EV04-ACTUAL-onsetonly.txt')
                 _build_evfile(df=mri_ttl, onset_col='onset04_ratingactual', dur_col='pmod_actual_RT', mod_col=1, fname=fname_4)
-                
-                # ev_expect_onset_only = pd.DataFrame()
-                # ev_expect_onset_only['onset'] = df['event04_actual_displayonset'] - df['param_trigger_onset'] #CUE;
-                # ev_expect_onset_only['dur'] = df['event04_actual_RT']
-                # ev_expect_onset_only['mod'] = 1
-                # fname_4_1 = os.path.join(ev_dir, sub, ses, label+'_EV04-ACTUAL-onsetonly.txt')
-                # ev_expect_onset_only.to_csv(fname_4_1, header=None, index=None, sep='\t', mode='w')
+
     except:
         with open(os.path.join(log_dir, "flag_{date}.txt"), "a") as logfile:
             traceback.print_exc(file=logfile)
 
-# # %%    # iIF loop 2) IF RUN TYPE NOT PAIN, raise a flag and save flag
-#         elif 'pain' not in run_type:
-#             flag.append(bio_fpath)
-
-# save flags to separate folder __________________________________________________________________
-
-# for element in flag:
-#     textfile.write(element + "\n")
-# textfile.close()
