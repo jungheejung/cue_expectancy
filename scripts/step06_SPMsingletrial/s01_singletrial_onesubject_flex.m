@@ -61,7 +61,7 @@ nii_num_colomn = nii_col_names(endsWith(nii_col_names, '_num'));
 onsetlist = dir(fullfile(onset_dir, sub, strcat(sub, '_*_rating_', keyword, '.csv')));
 onsetT = struct2table(onsetlist);
 sortedonsetT = sortrows(onsetT, 'name');
-disp(sortedT); % TODO: DELETE
+disp(sortedonsetT); % TODO: DELETE
 sortedonsetT.sub_num(:) = str2double(extractBetween(sortedonsetT.name, 'sub-', '_'));
 sortedonsetT.ses_num(:) = str2double(extractBetween(sortedonsetT.name, 'ses-', '_'));
 sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '_'));
@@ -85,6 +85,7 @@ matlabbatch = cell(1,2);
 T = readtable(fullfile(onset_dir, sub, strcat(sub, '_singletrial_',keyword, '.csv')));
 %T = readtable('/Users/h/Dropbox/projects_dropbox/social_influence_analysis/data/dartmouth/d06_singletrial_SPM/sub-0010/sub-0010_singletrial.csv')
 %% 3. for loop "run-wise" _______________________________________________________
+size(A,1)
 for run_ind = 1: size(A,1)
     disp(strcat('______________________run', num2str(run_ind), '____________________________'));
     % [x] extract sub, ses, run info
