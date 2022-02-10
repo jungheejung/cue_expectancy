@@ -65,7 +65,7 @@ disp(sortedT); % TODO: DELETE
 sortedonsetT.sub_num(:) = str2double(extractBetween(sortedonsetT.name, 'sub-', '_'));
 sortedonsetT.ses_num(:) = str2double(extractBetween(sortedonsetT.name, 'ses-', '_'));
 sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '_'));
-disp(strcat('sortedonsetT sub_num', str2double(extractBetween(sortedonsetT.name, 'sub-', '_'))))
+disp(strcat('sortedonsetT sub_num: ', str2double(extractBetween(sortedonsetT.name, 'sub-', '_'))))
 onset_col_names = sortedonsetT.Properties.VariableNames;
 onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
 
@@ -155,7 +155,7 @@ for run_ind = 1: size(A,1)
 
     scans = spm_select('Expand',smooth_nii);
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).scans = cellstr(scans);
-    disp(strcat('run:',run_ind)); 
+    disp(strcat('run: ',run_ind)); 
     subset = T(T.sub == A.sub_num(run_ind) & T.ses ==  A.ses_num(run_ind) & T.run ==  A.run_num(run_ind) & ismember(T.regressor, 'True'), :);
     total_trial= size(subset,1); % 24
     r = total_trial + 1;
