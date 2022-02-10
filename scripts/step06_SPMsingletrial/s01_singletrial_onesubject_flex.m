@@ -25,21 +25,35 @@ disp(strcat('[ STEP 01 ] setting parameters...'));
 %args = strsplit(arguments)
 %input = args{1};
 %keyword = args{2};
-disp(input);
-disp(keyword);
+disp(strcat("input: ", input));disp(strcat("input: ", keyword));
 % 1-1. directories _______________________________________________________
 key_set = {'early', 'late', 'plateau', 'post'};
 value_set = {'singletrial_SPM_01-pain-early', 'singletrial_SPM_02-pain-late',...
 'singletrial_SPM_03-pain-post', 'singletrial_SPM_04-pain-plateau'};
 M = containers.Map(key_set,value_set);
 fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'; % sub / ses
+f = dir(fullfile(fmriprep_dir, '*.html'))
+ftable = struct2table(f)
+F = regexprep(ftable.name, '.html', '')
+% contains(f.name, '.')
+
+
 main_dir = fileparts(fileparts(pwd)); % '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
 motion_dir = fullfile(main_dir, 'data', 'dartmouth', 'd05_motion');
 onset_dir = fullfile(main_dir, 'data', 'dartmouth', strcat('d06_', M(keyword)));
-disp(onset_dir)
+biopac_ttl_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/biopac/dartmouth/b03_extract_ttl';
+b = dir(biopac_ttl_dir);
+bfolders = b([b(:).isdir]); 
+bfolders = bfolders(~ismember({bfolders(:).name},{'.','..'}));
+btable = struct2table(bfolders);
+B = btable.name;
+
+subset = intersect(B, F);
+disp(strcat("onset_dir: ", onset_dir));
 %% 2. for loop "subject-wise" _______________________________________________________
 % sub_num = sscanf(char(input),'%d');
-sub = strcat('sub-', sprintf('%04d', input));
+% sub = strcat('sub-', sprintf('%04d', input));
+sub = char(subset(input));
 disp(strcat('[ STEP 02 ] PRINT VARIABLE'))
 %disp(strcat('sub_num:  ', sub_num));
 disp(strcat('sub:    ', sub));
