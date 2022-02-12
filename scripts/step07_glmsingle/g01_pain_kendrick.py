@@ -17,13 +17,13 @@ import itertools
 
 import os, sys, glob, re
 from os.path import join, exists, split
-import time
 import urllib.request
 import copy
 import warnings
 from tqdm import tqdm
 from pprint import pprint
 warnings.filterwarnings('ignore')
+import time
 
 import glmsingle
 from glmsingle.glmsingle import GLM_single
@@ -61,7 +61,7 @@ print(f'directory to save example1 outputs:\n\t{outputdir}\n')
 # <extra_regressors> should be identical as <design> time x condition
 # Feb 11 model: extra regressor: dump all of rating regressors
 # TODO: do I need to subtract one frame from TR?
-run_list = [2,5]
+# run_list = [2,5]
 
 # sub = 'sub-0051'
 # ses = 'ses-04'
@@ -79,6 +79,7 @@ ttl_dir = {
 design = []
 extra = []
 data = []
+ses_ind = []
 
 sub_ses = list(itertools.product(sub, ses_list))
 for i, (sub, ses_ind) in enumerate(sub_ses):
