@@ -16,7 +16,7 @@ ttl_dict = {
 'plateau':'singletrial_SPM_04-pain-plateau'}
 current_dir = os.getcwd()
 main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
-meta_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd06_singletrial_SPM', ttl_dict[ttl_key])
+meta_dir = os.path.join(main_dir, 'data', 'dartmouth', f"d06_{ttl_dict[ttl_key]}")
 spm_dir = os.path.join(main_dir, 'analysis', 'fmri', 'spm', 'multivariate', 's01_singletrial',ttl_dict[ttl_key])
 nifti_dir = os.path.join(main_dir, 'analysis', 'fmri', 'spm', 'multivariate', 's02_isolatenifti',ttl_dict[ttl_key])
 sub_list = next(os.walk(spm_dir))[1]
@@ -30,7 +30,8 @@ print(sub_list)
 # sub = sub_list[0]
 for sub in sub_list:
     T = pd.read_csv(os.path.join(meta_dir, sub, f'{sub}_singletrial_{ttl_key}.csv'))
-    T['spm_index'] = T.iloc[:,0] + 1
+    T['spm_index'] = T.index.tolist() 
+    T['spm_index'] = T['spm_index'] +1
 
     subset = T[T.regressor == True].copy()
     subset['source_name'] = subset["spm_index"].astype(int).apply(lambda x: f'beta_{x:04d}.nii')
