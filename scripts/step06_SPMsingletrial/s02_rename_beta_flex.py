@@ -33,22 +33,29 @@ print(sub_list)
 for sub in sub_list:
     try: 
         print(f"starting {sub}")
-        T = pd.read_csv(os.path.join(meta_dir, sub, f'{sub}_singletrial_{ttl_key}.csv'))
+        T = pd.read_csv(os.path.join(meta_dir, sub, f'{sub}_singletrial_{ttl_key}.csv'), index_col = False)
+        del T['index']
+        T = T.reset_index()
         T['spm_index'] = T.index.tolist() 
         T['spm_index'] = T['spm_index'] +1
-
+        #print(T.columns)
+        print(T.head())
         subset = T[T.regressor == True].copy()
         subset['source_name'] = subset["spm_index"].astype(int).apply(lambda x: f'beta_{x:04d}.nii')
         # 'source_name' >> 'nifti_name'
         for ind, row in subset.iterrows():
-    #        print(ind, row)
-            source_name = os.path.join(spm_dir, sub, row.source_name)
-            nifti_name = f"sub-{row.sub:04d}_ses-{row.ses:02d}_run-{row.run:02d}-pain-{ttl_dict[ttl_key]}_{row.task}_ev-{row.ev}-{row.num:04d}.nii"
+    #       
+            # print(ind, row)
+            #print(row['sub'])
+            print(row)
+            print(row['num'])
+            source_fname = os.path.join(spm_dir, sub, row['source_name'])
+            nifti_name = f"sub-{row['sub']:04d}_ses-{row['ses']:02d}_run-{row['run']:02d}-pain-{ttl_dict[ttl_key]}_{row['task']}_ev-{row['ev']}-{row['num']:04d}.nii"
             dest_name = os.path.join(nifti_dir, sub, nifti_name)
             Path(os.path.join(nifti_dir, sub)).mkdir(parents=True, exist_ok=True)
-            print(source_name)
+            print(source_fname)
             print(dest_name)
-            shutil.copy(source_name, dest_name)
+            shutil.copy(source_fname, dest_name)
     except:
         with open("exceptions.log", "a") as logfile:
             traceback.print_exc(file=logfile)
