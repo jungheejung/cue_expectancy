@@ -3,6 +3,7 @@
 import os, shutil,sys
 from pathlib import Path
 import pandas as pd
+import traceback
 # go into each SPM dir
 # based on table, identify beta number
 # rename and mv
@@ -30,20 +31,24 @@ print(sub_list)
 # %%
 # sub = sub_list[0]
 for sub in sub_list:
-    T = pd.read_csv(os.path.join(meta_dir, sub, f'{sub}_singletrial_{ttl_key}.csv'))
-    T['spm_index'] = T.index.tolist() 
-    T['spm_index'] = T['spm_index'] +1
+    try: 
+        print(f"starting {sub}")
+        T = pd.read_csv(os.path.join(meta_dir, sub, f'{sub}_singletrial_{ttl_key}.csv'))
+        T['spm_index'] = T.index.tolist() 
+        T['spm_index'] = T['spm_index'] +1
 
-    subset = T[T.regressor == True].copy()
-    subset['source_name'] = subset["spm_index"].astype(int).apply(lambda x: f'beta_{x:04d}.nii')
-    # 'source_name' >> 'nifti_name'
-    for ind, row in subset.iterrows():
-#        print(ind, row)
-        source_name = os.path.join(spm_dir, sub, row.source_name)
-        dest_name = os.path.join(nifti_dir, sub, row.nifti_name + '.nii')
-        Path(os.path.join(nifti_dir, sub)).mkdir(parents=True, exist_ok=True)
-        print(source_name)
-        print(dest_name)
-        shutil.copy(source_name, dest_name)
-
+        subset = T[T.regressor == True].copy()
+        subset['source_name'] = subset["spm_index"].astype(int).apply(lambda x: f'beta_{x:04d}.nii')
+        # 'source_name' >> 'nifti_name'
+        for ind, row in subset.iterrows():
+    #        print(ind, row)
+            source_name = os.path.join(spm_dir, sub, row.source_name)
+            dest_name = os.path.join(nifti_dir, sub, row.nifti_name + '.nii')
+            Path(os.path.join(nifti_dir, sub)).mkdir(parents=True, exist_ok=True)
+            print(source_name)
+            print(dest_name)
+            shutil.copy(source_name, dest_name)
+    except:
+        with open("exceptions.log", "a") as logfile:
+            traceback.print_exc(file=logfile)
 # %%
