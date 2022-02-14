@@ -9,6 +9,7 @@ import pandas as pd
 # isolate_nifti
 # %% parameters ________________________________________________________________________
 ttl_key = sys.argv[1]
+print(ttl_key)
 ttl_dict = {
 'early':'singletrial_SPM_01-pain-early',
 'late':'singletrial_SPM_02-pain-late',
