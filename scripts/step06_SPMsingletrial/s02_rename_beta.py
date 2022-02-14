@@ -40,6 +40,7 @@ for sub in sub_list:
     for ind, row in subset.iterrows():
 #        print(ind, row)
         source_name = os.path.join(spm_dir, sub, row.source_name)
+        nifti_name = f"sub-{row['sub']:04d}_ses-{row['ses']:02d}_run-{row['run']:02d}-{row.task}_task-social_ev-{row['ev']}-{int(row['num']):04d}.nii"
         dest_name = os.path.join(nifti_dir, sub, row.nifti_name + '.nii')
         Path(os.path.join(nifti_dir, sub)).mkdir(parents=True, exist_ok=True)
         print(source_name)
