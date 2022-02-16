@@ -46,6 +46,7 @@
 
 module load fsl/6.0.4
 MAIN_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/analysis/fmri/spm/multivariate"
+PAIN_DIR="singletrial_SPM_01-pain-early" # "singletrial_SPM_02-pain-late" "singletrial_SPM_03-pain-post" "singletrial_SPM_04-pain-plateau"
 SINGLENIFTI_DIR="${MAIN_DIR}/s02_isolatenifti"
 #ARRAY_FILE=./fsl06_concatlist.txt
 # IND=$((SLURM_ARRAY_TASK_ID))
@@ -54,21 +55,21 @@ SINGLENIFTI_DIR="${MAIN_DIR}/s02_isolatenifti"
 
 subjects=(0 2 3 4 5 6 7 8 9 10 11 13 14 15 16 17 18 19 20 21 23 24 25 26 28 29 30 31 32 33 35 37 43 47 51 53 55 58 60)
 SUB_NUM=${subjects[$((SLURM_ARRAY_TASK_ID))]}
-OUTPUTNIFTI_DIR="${MAIN_DIR}/s03_concatnifti"
+OUTPUTNIFTI_DIR="${MAIN_DIR}/s03_concatnifti/${PAIN_DIR}"
 
 echo "STARTING fslmerge ___________________________________________"
 # for SUB_NUM in `cat fsl06_concatlist.txt`; do echo ${SUB_NUM};
 # STEP01 grab relevant indices
 
 SUB=$(printf "sub-%04d" $SUB_NUM)
-for TASK in "pain" "vicarious" "cognitive"; do
+for TASK in "pain" "vicarious" "cognitive" "pain-early" "pain-late" "pain-post" "pain-plateau"; do
     for EVENT in "cue" "stim"; do
         echo ${TASK}
         echo ${EVENT}
 
         cd ${SINGLENIFTI_DIR}/${SUB}
         # STEP02 find all nifti files (single trials)
-        list=$(find -type f -not -path "*exclude/*"  -name "${SUB}*ses*run*${TASK}*${EVENT}*.nii" | sort -t '\0' -n  )
+        list=$(find -type f -not -path "*exclude/*"  -name "${SUB}*ses*run*${TASK}_*${EVENT}*.nii" | sort -t '\0' -n  )
         mkdir -p ${OUTPUTNIFTI_DIR}/${SUB}
         OUTPUTNAME=${OUTPUTNIFTI_DIR}/${SUB}/${SUB}_task-${TASK}_ev-${EVENT}.nii
 
