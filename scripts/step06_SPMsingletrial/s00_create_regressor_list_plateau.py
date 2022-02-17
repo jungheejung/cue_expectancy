@@ -118,9 +118,9 @@ for sub in sub_list:
 
             # STIM fill in parameters for STIM event _____________________________________________
             trial_num = len(df.event03_stimulus_displayonset) 
-            new.loc[cue_num:cue_num+trial_num-1, 'onset'] = list(df['event03_stim_poststim_9000-135000ms'])
+            new.loc[cue_num:cue_num+trial_num-1, 'onset'] = list(df['event03_stim_ttl-plateau'])
             new.loc[cue_num:cue_num+trial_num-1, 'ev'] = 'stim'
-            new.loc[cue_num:cue_num+trial_num-1, 'dur'] = 4.5
+            new.loc[cue_num:cue_num+trial_num-1, 'dur'] = list(df['event03_stim_ttl-plateau-dur'])
             new.loc[cue_num:cue_num+trial_num-1, 'mod'] = 1
             new.loc[cue_num:cue_num+trial_num-1, 'regressor'] = True
             new.loc[cue_num:cue_num+trial_num-1, 'num'] = list(range(trial_num))
