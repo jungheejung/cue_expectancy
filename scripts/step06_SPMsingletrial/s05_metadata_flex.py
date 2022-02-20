@@ -16,7 +16,7 @@ for item in items_to_remove:
     if item in sub_list:
         sub_list.remove(item)
 
-param_list = [sub_list, 
+param_list = [sorted(sub_list), 
 ['early','late','post','plateau'],
 ['stim']]
 ttl_dict = {
@@ -61,7 +61,7 @@ for sub, task, ev in full_list:
             os.remove(save_fname)
         else:
             print(f"{sub}_task-{task}_ev-{ev} doesnt exist")
-        filtered.to_csv(save_fname)
+        filtered.to_csv(save_fname, index_col = False)
 
 
     else:
