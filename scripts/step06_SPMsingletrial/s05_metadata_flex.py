@@ -71,16 +71,15 @@ for sub, task, ev in full_list:
         mask = meta[['sub', 'ses', 'run', 'ev', 'num']].apply(lambda x: all(
             np.in1d(x, nifti[['sub', 'ses', 'run', 'ev', 'num']])), axis=1)
         filtered = meta.loc[mask, ]
-        'sub-0006_ses-04_run-01-pain-early_task-social_ev-stim-0000'
-        meta['nifti_name'] = meta['sub'].apply(lambda x: f"sub-{x:04d}") +'_'+ meta['sub'].apply(lambda x: f"ses-{x:02d}") +'_'+ \
-        meta['run'].apply(lambda x: f"run-{x:02d}") +'-pain-'+ task + '_task-social-' + meta['num'].apply(lambda x: f"ev-stim-{x:04d}")
+        filtered['nifti_name'] = filtered['sub'].apply(lambda x: f"sub-{x:04d}") +'_'+ filtered['sub'].apply(lambda x: f"ses-{x:02d}") +'_'+ \
+        filtered['run'].apply(lambda x: f"run-{x:02d}") +'-pain-'+ task + '_task-social-' + filtered['num'].apply(lambda x: f"ev-stim-{x:04d}")
         save_fname = os.path.join(
             nifti_dir, sub, f"metadata_{sub}_task-pain-{task}_ev-{ev}.csv")
         if os.path.exists(save_fname):
             os.remove(save_fname)
         else:
             print(f"{sub}_task-{task}_ev-{ev} doesnt exist")
-        filtered.to_csv(save_fname, index_col=False)
+        filtered.to_csv(save_fname, index=False)
 
     else:
         print(f"no match for {sub} {task} {ev}")
