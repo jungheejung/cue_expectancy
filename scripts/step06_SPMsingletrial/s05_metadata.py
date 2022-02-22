@@ -31,18 +31,19 @@ for sub, task, ev in full_list:
     # subset task and ev, # based on text file, # only grab rows that exist
         nifti['fname'] = nifti[0].map(lambda x: x.lstrip('./').rstrip('.nii'))
         nifti['sub'] = nifti['fname'].str.split(
-            f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_ev-([A-Za-z-]+)-(\d+)', expand=True)[1].astype(int)
+            f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_task-social_ev-([A-Za-z-]+)-(\d+)', expand=True)[1].astype(int)
         nifti['ses'] = nifti['fname'].str.split(
-            f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_ev-([A-Za-z-]+)-(\d+)', expand=True)[2].astype(int)
+            f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_task-social_ev-([A-Za-z-]+)-(\d+)', expand=True)[2].astype(int)
         nifti['run'] = nifti['fname'].str.split(
-            f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_ev-([A-Za-z-]+)-(\d+)', expand=True)[3].astype(int)
-        nifti['task'] = 'task-social' 
-        #nifti['fname'].str.split(
+            f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_task-social_ev-([A-Za-z-]+)-(\d+)', expand=True)[3].astype(int)
+        nifti['task'] = nifti['fname'].str.split(
+            f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_task-social_ev-([A-Za-z-]+)-(\d+)', expand=True)[4]
+        # nifti['fname'].str.split(
             # f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_task-social_ev-([A-Za-z-]+)-(\d+)', expand=True)[4]
         nifti['ev'] = nifti['fname'].str.split(
-            f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_ev-([A-Za-z-]+)-(\d+)', expand=True)[5]
+            f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_task-social_ev-([A-Za-z-]+)-(\d+)', expand=True)[5]
         nifti['num'] = nifti['fname'].str.split(
-            f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_ev-([A-Za-z-]+)-(\d+)', expand=True)[6].astype(int)
+            f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_task-social_ev-([A-Za-z-]+)-(\d+)', expand=True)[6].astype(int)
 
         meta = meta.dropna(subset=['num'])
         meta['num'] = meta['num'].astype(np.int64)
