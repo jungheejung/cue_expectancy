@@ -12,6 +12,7 @@ from heudiconv.utils import load_json
 from heudiconv.utils import save_json
 import os, time, sys, glob
 from os.path import join
+import json
 
 __author__ = "Heejung Jung"
 __copyright__ = "Spatial Topology Project"
@@ -27,12 +28,13 @@ __status__ = "Development"
 # {main_dir}/{sub}/{ses}/func
 
 # 1. get list of dup names _____________________________________________________________
-    # (identify the latest deleted dup name)
-    # 1-1. remove bold__dup-01.json
-    # 1-2. remove bold__dup-01.nii.gz
-    # 1-3. remove sbref__dup-01.json
-    # 1-4. remove sbref__dup-01.nii.gz
+    # TODO: remove all 4 types of files - See if you can remove and datalad save within this script.
+    # 1) remove bold__dup-01.json
+    # 2) remove bold__dup-01.nii.gz
+    # 3) remove sbref__dup-01.json
+    # 4) remove sbref__dup-01.nii.gz
 main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/dartmouth'
+save_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/scripts/spacetop_log'
 dup_pattern = 'sub-*/ses-*/func/sub-*_ses-*_task-*_acq-mb8_run-*_bold__dup*.nii.gz'
 
 dup_glob = glob.glob(join(main_dir, dup_pattern))
@@ -71,24 +73,22 @@ for ind, dup_fpath in enumerate(dup_glob):
             print(flag_msg2)
             flaglist.append(flag_msg2)
 
-        txt_filename = os.path.join(save_dir, 'dup_flaglist.txt')
-        with open(txt_filename, 'w') as f:
-            f.write(json.dumps(flaglist))
-                    # return subject in list
+# 3. save filenames with missing intendedfor fields or missing dup filenames __________________________________________
+txt_filename = os.path.join(save_dir, 'dup_flaglist.txt')
+with open(txt_filename, 'w') as f:
+    f.write(json.dumps(flaglist))
 
 
 
 
-
-# 4. save json
-
-            # 3-3. if the file is at the end of the list, deleted 
-            # if dup_index[0] == len(copy_list)-1:
-            #     copy_list.pop(-1)
-            #     print(f"removed {dup_fname} from list")
-            #     f['IntendedFor'] = copy_list
-            # 3-4. if the file is in the middle of the list, simply delete
-            # elif dup_index[0] < len(copy_list)-1:
+# TODO: clean up anything below
+# 3-3. if the file is at the end of the list, deleted 
+# if dup_index[0] == len(copy_list)-1:
+#     copy_list.pop(-1)
+#     print(f"removed {dup_fname} from list")
+#     f['IntendedFor'] = copy_list
+# 3-4. if the file is in the middle of the list, simply delete
+# elif dup_index[0] < len(copy_list)-1:
 
 # conda activate spacetop_env (within shell script)
 # /dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/dartmouth/sub-0009/ses-01/fmap/sub-0009_ses-01_acq-mb8_dir-ap_run-01_epi.json
