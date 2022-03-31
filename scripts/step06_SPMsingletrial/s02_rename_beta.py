@@ -13,7 +13,9 @@ main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab
 meta_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd06_singletrial_SPM')
 spm_dir = os.path.join(main_dir, 'analysis', 'fmri', 'spm', 'multivariate', 's01_singletrial')
 nifti_dir = os.path.join(main_dir, 'analysis', 'fmri', 'spm', 'multivariate', 's02_isolatenifti')
-sub_list = next(os.walk(spm_dir))[1]
+#sub_list = next(os.walk(spm_dir))[1]
+sub_folders = next(os.walk(nifti_dir))[1]
+sub_list = [i for i in sub_folders if i.startswith('sub-')]
 items_to_remove = ['sub-0001','sub-0002','sub-0003','sub-0004','sub-0005',
 'sub-0006','sub-0007','sub-0008','sub-0009','sub-0010',
 'sub-0014','sub-0015','sub-0016','sub-0018','sub-0019','sub-0020',
