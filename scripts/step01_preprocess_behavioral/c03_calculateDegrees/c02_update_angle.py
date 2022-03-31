@@ -47,7 +47,7 @@ origin_y = 707
 # %%
 main_dir = '/Users/h/Documents/projects_local/social_influence_analysis'
 data_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd02_preprocessed')
-sub_list = next(os.walk(data_dir))[1]
+sub_list = sorted(next(os.walk(data_dir))[1])
 ses_list = [1,3,4]
 for sub in sub_list:
     for ses in ses_list:
