@@ -1,23 +1,23 @@
 normDataWithin <- function(data = NULL, idvar, measurevar, betweenvars = NULL,
                            na.rm = FALSE, .drop = TRUE) {
-  """
-  Norms the data within specified groups in a data frame;
-  it normalizes each subject (identified by idvar),
-  within each group specified by betweenvars.
+#   """
+#   Norms the data within specified groups in a data frame;
+#   it normalizes each subject (identified by idvar),
+#   within each group specified by betweenvars.
 
-  Parameters
-  ----------
-  data:
-        a data frame.
-  idvar:
-        the column name that identifies each subject (or matched subjects)
-  measurevar:
-        the column name that contains the variable to be summariezed
-  betweenvars:
-        a vector containing that are between-subjects column names
-  na.rm:
-        a boolean that indicates whether to ignore NA's
-  """
+#   Parameters
+#   ----------
+#   data:
+#         a data frame.
+#   idvar:
+#         the column name that identifies each subject (or matched subjects)
+#   measurevar:
+#         the column name that contains the variable to be summariezed
+#   betweenvars:
+#         a vector containing that are between-subjects column names
+#   na.rm:
+#         a boolean that indicates whether to ignore NA's
+#   """
   library(plyr)
 
   # Measure var on left, idvar + between vars on right of formula.

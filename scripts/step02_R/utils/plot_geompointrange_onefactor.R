@@ -1,4 +1,4 @@
-plot_geom_pointrange <- function(subjectwise, groupwise,
+plot_geompointrange_onefactor <- function(subjectwise, groupwise,
                                  iv, subjectwise_mean, group_mean, se,
                                  xlab, ylab, color, ggtitle, w, h, save_fname) {
     j <- ggplot(
@@ -27,8 +27,8 @@ plot_geom_pointrange <- function(subjectwise, groupwise,
         ) +
         theme_classic() +
         expand_limits(x = 3.25) +
-        guides(fill = FALse) +
-        guides(color = FALse) +
+        guides(fill = FALSE) +
+        guides(color = FALSE) +
         guides(fill = guide_legend(title = "social cues")) +
         scale_fill_manual(values = color) +
         scale_color_manual(values = color) +
