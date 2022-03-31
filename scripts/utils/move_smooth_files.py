@@ -45,4 +45,4 @@ for gname in sorted(smooth_glob):
     Path(dest_fpath).mkdir(parents=True,exist_ok=True)
     print(f"source is {gname}")
     print(f"destination is {join(dest_fpath,dest_fname)}")
-    # shutil.copy(gname, join(dest_fpath,dest_fname))
+    shutil.move(gname, join(dest_fpath,dest_fname))
