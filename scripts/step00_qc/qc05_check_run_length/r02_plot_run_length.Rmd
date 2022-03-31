@@ -1,0 +1,109 @@
+---
+title: "plot_exdur"
+author: "Heejung Jung"
+date: "2/21/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(car)
+library(psych)
+library(ggpubr)
+library(cowplot)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+fname = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step00_qc/qc05_check_run_length/experiment_length.csv'
+length_df = read.csv(fname)
+```
+
+```{r}
+chunks = data.frame(str_split_fixed(length_df$run_type, '-',3 ))
+names(chunks)[2] <- "run_num"
+names(chunks)[3] <- "task"
+length_df$task = chunks$task
+
+newdf = subset(length_df, sub!="sub-0001")
+```
+
+#plot separately
+```{r}
+# PVC_rand_cue_subset = subset(PVC, select  = c(task, subj, rand_cue))
+newdf_sub = spread(newdf, key = task, value = experiment_dur)
+
+
+```
+```{r}
+PV = ggplot(aes(x=vicarious, y=pain), data=newdf_sub, cex.lab=1.5, cex.axis=2, cex.main=1.5, cex.sub=1.5) + geom_point() + theme_classic() +  theme(aspect.ratio=1) + stat_cor(p.accuracy = 0.001, r.accuracy = 0.01)
+VC = ggplot(aes(x=cognitive, y=vicarious), data=newdf_sub, cex.lab=1.5, cex.axis=2, cex.main=1.5, cex.sub=1.5) + geom_point() + theme_classic() +  theme(aspect.ratio=1)+ stat_cor(p.accuracy = 0.001, r.accuracy = 0.01)
+CP = ggplot(aes(x=pain, y=cognitive), data=newdf_sub, cex.lab=1.5, cex.axis=2, cex.main=1.5, cex.sub=1.5) + geom_point() + theme_classic() +  theme(aspect.ratio=1) + stat_cor(p.accuracy = 0.001, r.accuracy = 0.01)
+ggpubr::ggarrange(PV,VC,CP,ncol = 3, nrow = 1, common.legend = FALSE,legend = "bottom")
+plot_filename = file.path(main_dir, 'analysis','mixedeffect','model03_cue_stim_actualrating_02-2022', paste('socialinfluence_task-total_rating-',DV_KEYWORD,'_correlation-rand-cue-coef','_', as.character(Sys.Date()),'.png', sep = ""))
+ggsave(plot_filename, width = 7, height = 3)
+```
+
+```{r}
+# Add the density curve on the same axis
+# p = gghistogram(
+#   subset(newdf, task == 'pain'), x = "experiment_dur", y = "..density..",
+#   add = "mean", rug = TRUE,
+#   palette = c("#860f06"),#, "#22834a", "#001f75"
+#   add_density = TRUE
+#   ) 
+
+p = ggplot(subset(newdf, task == 'pain'), aes(x=experiment_dur)) + 
+  geom_histogram(color="#860f06", fill="#860f06", alpha=0.5)+ 
+  geom_vline(aes(xintercept=398.76),
+            color="#860f06", linetype="dashed", size=1) +
+  theme_classic()
+p=ggpar(p,xlim = c(397,400))
+
+v = ggplot(subset(newdf, task == 'vicarious'), aes(x=experiment_dur)) + 
+  geom_histogram(color="#22834a", fill="#22834a", alpha=0.5)+ 
+  geom_vline(aes(xintercept=398.76),
+            color="#22834a", linetype="dashed", size=1) +
+  theme_classic()
+v=ggpar(v,xlim = c(397,400))
+
+c = ggplot(subset(newdf, task == 'cognitive'), aes(x=experiment_dur)) + 
+  geom_histogram(color="#001f75", fill="#001f75",  alpha=0.5)+ 
+  geom_vline(aes(xintercept=398.76),
+            color="#001f75", linetype="dashed", size=1) +
+  theme_classic()
+c =ggpar(c,xlim = c(397,400))
+
+# 
+# v = gghistogram(
+#   subset(newdf, task == 'pain'), x = "experiment_dur", y = "..density..",
+#   add = "mean", rug = TRUE,
+#   palette = c("#860f06"),#, "#22834a", "#001f75"
+#   add_density = TRUE
+#   ) 
+# ggpar(v,xlim = c(397,400))
+# 
+# c = gghistogram(
+#   subset(newdf, task == 'pain'), x = "experiment_dur", y = "..density..",
+#   add = "mean", rug = TRUE,
+#   palette = c("#860f06"),#, "#22834a", "#001f75"
+#   add_density = TRUE
+#   ) 
+# ggpar(c,xlim = c(397,400))
+ggpubr::ggarrange(p,v,c,ncol = 3, nrow = 1, common.legend = FALSE,legend = "bottom")
+plot_filename = file.path(main_dir, 'analysis','mixedeffect','experiment_dur', paste('socialinfluence_experiment_duration.png', sep = ""))
+ggsave(plot_filename, width = 10, height = 3)
+```
+
