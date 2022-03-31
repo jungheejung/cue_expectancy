@@ -1,0 +1,704 @@
+---
+title: "c02_model_NPSvalue"
+author: "Heejung Jung"
+date: "2/16/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# load libraries
+```{r}
+library(psych)
+library(car)
+library(lmSupport)
+library(lme4)
+library(lmerTest)
+library(plyr)
+#library(dplyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+library(ggpubr)
+source('http://psych.colorado.edu/~jclab/R/mcSummaryLm.R')
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
+source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+
+```
+
+# Functions _____________________________________________________________________
+files that start with pain
+```{r function :: clean_nps_df}
+clean_nps_pain_df <- function(file, merge_df) { 
+nps_df = read.csv(file)
+
+# split filename into useful information
+columns = data.frame(str_split_fixed(nps_df$filename, '_', 4))
+names(columns)[1] <- "sub"
+names(columns)[2] <- "ses"
+names(columns)[3] <- "run"
+names(columns)[4] <- "ev"
+columns$study = 'task-social'
+# names(columns)[5] <- "ev"
+columns = columns[,c(1,2,3,5,4)]
+
+
+# names(columns)[1] <- "sub"
+# names(columns)[2] <- "ses"
+# names(columns)[3] <- "run"
+# names(columns)[4] <- "study"
+# names(columns)[5] <- "ev"
+
+
+# split run (e.g. "run-03-pain-early" -> "run" "03" "pain-early")
+chunks = data.frame(str_split_fixed(columns$run, '-',3 ))
+names(chunks)[2] <- "run_num"
+names(chunks)[3] <- "task"
+columns$task = chunks$task
+
+columns$sub_num = as.numeric(str_extract_all(columns$sub, "[0-9]+"))
+columns$ses_num = as.numeric(str_extract_all(columns$ses, "[0-9]+"))
+columns$run_num = as.numeric(str_extract_all(chunks$run_num, "[0-9]+"))
+columns$ev_num = as.numeric(str_extract_all(columns$ev, "[0-9]+"))
+df = cbind(columns[c('study', 'sub_num', 'ses_num', 'run_num', 'ev_num', 'task')], nps_df)
+
+merge_df = rbind(merge_df, df)
+sub = paste('sub-', str_pad(columns$sub_num[[1]], 4, pad = "0"),sep="")
+
+meta_fname = paste('metadata_', sub, '_task-pain_ev-stim.csv', sep = "")
+meta_fpath = file.path(main_dir, 'analysis','fmri','spm','multivariate','s03_concatnifti',sub, meta_fname )
+meta_df = read.csv(meta_fpath)
+#meta_drop = subset(meta_df, select = -c(X, Unnamed..0))
+# colnames(meta_drop)[which(names(meta_drop) == "task")] <- "study"
+meta_df$ttl = 'pain'
+df3 = merge(merge_df, meta_df, by.x=c("sub_num", "ses_num","run_num", "ev_num", "task"), 
+            by.y=c("sub","ses","run","num", "ttl"))
+  
+return(df3)
+}
+```
+
+```{r function :: clean_nps_df}
+clean_nps_merge_df <- function(file, merge_df) { 
+nps_df = read.csv(file)
+
+# split filename into useful columns
+columns = data.frame(str_split_fixed(nps_df$filename, '_', 5))
+names(columns)[1] <- "sub"
+names(columns)[2] <- "ses"
+names(columns)[3] <- "run"
+names(columns)[4] <- "study"
+names(columns)[5] <- "ev"
+
+# split run (e.g. "run-03-pain-early" -> "run" "03" "pain-early")
+chunks = data.frame(str_split_fixed(columns$run, '-',3 ))
+names(chunks)[2] <- "run_num"
+names(chunks)[3] <- "task"
+columns$task = chunks$task
+
+columns$sub_num = as.numeric(str_extract_all(columns$sub, "[0-9]+"))
+columns$ses_num = as.numeric(str_extract_all(columns$ses, "[0-9]+"))
+columns$run_num = as.numeric(str_extract_all(chunks$run_num, "[0-9]+"))
+columns$ev_num = as.numeric(str_extract_all(columns$ev, "[0-9]+"))
+df = cbind(columns[c('study', 'sub_num', 'ses_num', 'run_num', 'ev_num', 'task')], nps_df)
+
+merge_df = rbind(merge_df, df)
+sub = paste('sub-', str_pad(columns$sub_num[[1]], 4, pad = "0"),sep="")
+task_name = str_split_fixed(str_split_fixed(basename(as.character(file_name[row,1])), '_', n = 3)[2], '-', 2)[2]
+meta_fname = paste('metadata_', sub, '_task-', task_name, '_ev-stim.csv', sep = "")
+meta_fpath = file.path(main_dir, 'analysis','fmri','spm','multivariate','s03_concatnifti',sub, meta_fname )
+meta_df = read.csv(meta_fpath)
+colnames(meta_df)[which(names(meta_df) == "task")] <- "study"
+meta_df$ttl = task_name
+df3 = merge(merge_df, meta_df, by.x=c("sub_num", "ses_num","run_num", "ev_num", "task"), 
+            by.y=c("sub","ses","run","num", "ttl"))
+  
+return(df3)
+}
+```
+
+### FUNCTION: normdatawithin
+```{r}
+normDataWithin <- function(data=NULL, idvar, measurevar, betweenvars=NULL,
+                           na.rm=FALSE, .drop=TRUE) {
+  ## Norms the data within specified groups in a data frame; it normalizes each
+## subject (identified by idvar) so that they have the same mean, within each group
+## specified by betweenvars.
+##   data: a data frame.
+##   idvar: the name of a column that identifies each subject (or matched subjects)
+##   measurevar: the name of a column that contains the variable to be summariezed
+##   betweenvars: a vector containing names of columns that are between-subjects variables
+##   na.rm: a boolean that indicates whether to ignore NA's
+    library(plyr)
+
+    # Measure var on left, idvar + between vars on right of formula.
+    data.subjMean <- ddply(data, c(idvar, betweenvars), .drop=.drop,
+     .fun = function(xx, col, na.rm) {
+        c(subjMean = mean(xx[,col], na.rm=na.rm))
+      },
+      measurevar,
+      na.rm
+    )
+
+    # Put the subject means with original data
+    data <- merge(data, data.subjMean)
+
+    # Get the normalized data in a new column
+    measureNormedVar <- paste(measurevar, "_norm", sep="")
+    data[,measureNormedVar] <- data[,measurevar] - data[,"subjMean"] +
+                               mean(data[,measurevar], na.rm=na.rm)
+
+    # Remove this subject mean column
+    data$subjMean <- NULL
+
+    return(data)
+}
+```
+
+### FUNCTION: summarySEwithin
+```{r}
+summarySEwithin <- function(data=NULL, measurevar, betweenvars=NULL, withinvars=NULL,
+                            idvar=NULL, na.rm=FALSE, conf.interval=.95, .drop=TRUE) {
+
+  ## Summarizes data, handling within-subjects variables by removing inter-subject variability.
+## It will still work if there are no within-S variables.
+## Gives count, un-normed mean, normed mean (with same between-group mean),
+##   standard deviation, standard error of the mean, and confidence interval.
+## If there are within-subject variables, calculate adjusted values using method from Morey (2008).
+##   data: a data frame.
+##   measurevar: the name of a column that contains the variable to be summariezed
+##   betweenvars: a vector containing names of columns that are between-subjects variables
+##   withinvars: a vector containing names of columns that are within-subjects variables
+##   idvar: the name of a column that identifies each subject (or matched subjects)
+##   na.rm: a boolean that indicates whether to ignore NA's
+##   conf.interval: the percent range of the confidence interval (default is 95%)
+  # Ensure that the betweenvars and withinvars are factors
+  factorvars <- vapply(data[, c(betweenvars, withinvars), drop=FALSE],
+    FUN=is.factor, FUN.VALUE=logical(1))
+
+  if (!all(factorvars)) {
+    nonfactorvars <- names(factorvars)[!factorvars]
+    message("Automatically converting the following non-factors to factors: ",
+            paste(nonfactorvars, collapse = ", "))
+    data[nonfactorvars] <- lapply(data[nonfactorvars], factor)
+  }
+
+  # Get the means from the un-normed data
+  datac <- summarySE(data, measurevar, groupvars=c(betweenvars, withinvars),
+                     na.rm=na.rm, conf.interval=conf.interval, .drop=.drop)
+
+  # Drop all the unused columns (these will be calculated with normed data)
+  datac$sd <- NULL
+  datac$se <- NULL
+  datac$ci <- NULL
+
+  # Norm each subject's data
+  ndata <- normDataWithin(data, idvar, measurevar, betweenvars, na.rm, .drop=.drop)
+
+  # This is the name of the new column
+  measurevar_n <- paste(measurevar, "_norm", sep="")
+
+  # Collapse the normed data - now we can treat between and within vars the same
+  ndatac <- summarySE(ndata, measurevar_n, groupvars=c(betweenvars, withinvars),
+                      na.rm=na.rm, conf.interval=conf.interval, .drop=.drop)
+
+  # Apply correction from Morey (2008) to the standard error and confidence interval
+  #  Get the product of the number of conditions of within-S variables
+  nWithinGroups    <- prod(vapply(ndatac[,withinvars, drop=FALSE], FUN=nlevels,
+                           FUN.VALUE=numeric(1)))
+  correctionFactor <- sqrt( nWithinGroups / (nWithinGroups-1) )
+
+  # Apply the correction factor
+  ndatac$sd <- ndatac$sd * correctionFactor
+  ndatac$se <- ndatac$se * correctionFactor
+  ndatac$ci <- ndatac$ci * correctionFactor
+
+  # Combine the un-normed means with the normed results
+  df = merge(datac, ndatac)
+  return(df)
+  
+}
+```
+
+### FUNCTION: meanSummary
+```{r}
+meanSummary <- function(DATA, GROUP, DV){
+  z <- ddply(DATA, GROUP, .fun = function(xx){
+                         c(mean_per_sub = mean(xx[,DV],na.rm=TRUE),
+                         sd = sd(xx[,DV],na.rm=TRUE) ) })
+  return(z)
+  }
+```
+
+### FUNCTION: plot_expect_rainclouds
+```{r}
+# data within_average
+# DV = mean_per_sub
+# IV = param_cue_type
+plot_expect_rainclouds = function(within_average, group_level_condition_average, 
+                                  fill_IV, SUB_MEAN, GROUP_MEAN, SE, SUBJECT,
+                                  GGTITLE, TITLE, XLAB, YLAB,task_name, w, h, DV_KEYWORD,COLOR, SAVE_FNAME) {
+g <- ggplot(data = within_average, 
+            aes(y = .data[[SUB_MEAN]], x = factor(.data[[fill_IV]]), fill =  factor(.data[[fill_IV]]))) +
+  geom_flat_violin(aes(fill =  factor(.data[[fill_IV]])), position = position_nudge(x = .1, y = 0), 
+                   adjust = 1.5, trim = FALSE, alpha = .3, colour = NA) +
+  geom_line(data = within_average,
+           aes(group = .data[[SUBJECT]], y = .data[[SUB_MEAN]], x = as.numeric( .data[[fill_IV]] )-.15, 
+               fill =  factor(.data[[fill_IV]])), linetype = "solid", color = "grey", alpha = .3) +
+  geom_point(aes(x = as.numeric( .data[[fill_IV]])-.15, y = .data[[SUB_MEAN]], color = factor(.data[[fill_IV]])),
+             position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+  geom_boxplot(aes(x =  .data[[fill_IV]], y = .data[[SUB_MEAN]], fill =  .data[[fill_IV]]), width = .1,
+               outlier.shape = NA, alpha = 0.8, width = .1, colour = "black") +
+  geom_errorbar(data = group_level_condition_average, 
+                aes(x = as.numeric( .data[[fill_IV]])+.1, y = as.numeric(.data[[GROUP_MEAN]]), 
+                   colour =  factor(.data[[fill_IV]]), 
+                   ymin =  .data[[GROUP_MEAN]] - .data[[SE]], 
+                   ymax =  .data[[GROUP_MEAN]] + .data[[SE]]), width = .05) +
+
+  # legend stuff __________________________________________________________________________________
+  expand_limits(x = 2.8) +
+  guides(fill = FALSE) +
+  guides(color = FALSE) +
+  guides(fill=guide_legend(title=TITLE))+
+  scale_fill_manual(values = COLOR)+
+  scale_color_manual(values = COLOR)+
+
+  ggtitle(GGTITLE) +
+  # coord_flip() + #vertical vs horizontal
+  xlab(XLAB) +
+  ylab(YLAB) +
+  theme_classic() 
+ggsave(SAVE_FNAME, width = w, height = h)
+return(g)
+
+}
+```
+### FUNCTION: plot_actual_rainclouds
+```{r}
+plot_actual_rainclouds = function(subjectwise, groupwise, 
+                                  IV1, IV2, SUB_MEAN, GROUP_MEAN, SE, SUBJECT, GGTITLE, TITLE, XLAB,YLAB,task_name, w, h, DV_KEYWORD,COLOR,SAVE_FNAME) {
+
+g <- ggplot(data = subjectwise, aes(y = .data[[SUB_MEAN]], x = .data[[IV1]], fill = .data[[IV2]])) +
+  geom_flat_violin(aes(fill = .data[[IV2]]), position = position_nudge(x = .1, y = 0), adjust = 1.5,
+                   trim = FALSE, alpha = .3, colour = NA) +
+  geom_line(data = subjectwise, aes(group = .data[[SUBJECT]], y = .data[[SUB_MEAN]], x = as.numeric(.data[[IV1]])-.15, fill = .data[[IV2]]), linetype = 3, color = "grey") +
+  #geom_point(aes(group = subject, x = as.numeric(IV1)-.15, y = mean_per_sub, color = IV2),
+ #            position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+  geom_point(data = subjectwise, aes(x = as.numeric(.data[[IV1]])-.15, 
+                                     y = .data[[SUB_MEAN]], color =.data[[IV2]]),
+             position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+  geom_boxplot(data = subjectwise, aes(x = .data[[IV1]], y = .data[[SUB_MEAN]], fill = .data[[IV2]]),width = .1,
+               outlier.shape = NA, alpha = 0.8, width = .1, colour = "black") +
+
+  # use summary stats __________________________________________________________________________________
+
+  geom_errorbar(data = groupwise, aes(x = as.numeric(.data[[IV1]])+.1, y = .data[[GROUP_MEAN]],
+                              group = .data[[IV2]], colour = .data[[IV2]], 
+                              ymin = .data[[GROUP_MEAN]] - .data[[SE]], 
+                              ymax = .data[[GROUP_MEAN]] + .data[[SE]]), width = .05) +
+
+  # legend stuff __________________________________________________________________________________
+  expand_limits(x = 3.25) +
+  guides(fill = FALSE) +
+  guides(color = FALSE) +
+  guides(fill=guide_legend(title="social cues"))+
+  #scale_color_brewer(palette = "Dark2") +
+  #scale_fill_brewer(palette = "Dark2") +
+  scale_fill_manual(values = COLOR)+
+  scale_color_manual(values = COLOR)+
+  ggtitle(GGTITLE) +
+  # coord_flip() + #vertical vs horizontal
+  xlab("Stimulus intensity levels") +
+  ylab("Degrees of actual ratings") +
+  theme_classic() 
+
+g
+#w = 5
+#h = 3
+
+ggsave(SAVE_FNAME, width = w, height = h)
+
+}
+```
+
+# _________________ load data ____________________________________
+```{r}
+df = clean_nps_df('/Volumes/spacetop_projects_social/analysis/fmri/spm/extract_nps/sub-0053/sub-0053_task-pain-early_ev-stim.csv')
+```
+```{r}
+main_dir = dirname(dirname(getwd()))
+main_dir = '/Volumes/spacetop_projects_social'
+```
+
+```{r}
+FILENAME = paste('*_task-*_ev-stim.csv', sep = "")
+common_path = Sys.glob(file.path(main_dir,'analysis', 'fmri', 'spm', 'extract_nps', 'sub-*','*_task-pain-*_ev-stim.csv'))
+filter_path = common_path[!str_detect(common_path,pattern="sub-0001|sub-0003|sub-0004|sub-0005|sub-0007|sub-0032")]
+temp =list.files(pattern=common_path)
+merge_df = data.frame()
+ttl_file_name = data.frame(filter_path)
+# df2<-file_list[!(file_list$filter_path=="/Volumes/spacetop_projects_social/analysis/fmri/spm/extract_nps/sub-0053/sub-0053_task-pain-early_ev-stim.csv"),]
+# file_name = data.frame(df2)
+```
+
+```{r}
+FILENAME = paste('*_task-pain_ev-stim.csv', sep = "")
+common_path = Sys.glob(file.path(main_dir,'analysis', 'fmri', 'spm', 'extract_nps', 'sub-*','*_task-pain_ev-stim.csv'))
+filter_path = common_path[!str_detect(common_path,pattern="sub-0001|sub-0003|sub-0004|sub-0005|sub-0007|sub-0032")]
+temp =list.files(pattern=common_path)
+merge_df = data.frame()
+pain_file_name = data.frame(filter_path)
+# df2<-file_list[!(file_list$filter_path=="/Volumes/spacetop_projects_social/analysis/fmri/spm/extract_nps/sub-0053/sub-0053_task-pain-early_ev-stim.csv"),]
+# file_name = data.frame(df2)
+```
+
+
+```{r}
+merge_df = data.frame(matrix(ncol = 61, nrow = 0))
+# merge_df <- data.frame()
+colnames(merge_df) <- c("study","sub_num","ses_num","run_num",
+"ev_num","task","nps","nps_corr",
+"nps_cosine","npspos","npspos_corr","npspos_cosine",
+"npsneg","npsneg_corr","npsneg_cosine","pos_nps_vermis",
+"pos_nps_vermis_corr","pos_nps_vermis_cosine","pos_nps_rIns","pos_nps_rIns_corr","pos_nps_rIns_cosine","pos_nps_rV1","pos_nps_rV1_corr","pos_nps_rV1_cosine","pos_nps_rThal","pos_nps_rThal_corr","pos_nps_rThal_cosine","pos_nps_lIns", "pos_nps_lIns_corr","pos_nps_lIns_cosine","pos_nps_rdpIns","pos_nps_rdpIns_corr",
+ "pos_nps_rdpIns_cosine","pos_nps_rS2_Op","pos_nps_rS2_Op_corr","pos_nps_rS2_Op_cosine",
+ "pos_nps_dACC","pos_nps_dACC_corr","pos_nps_dACC_cosine","neg_nps_rLOC",
+ "neg_nps_rLOC_corr","neg_nps_rLOC_cosine","neg_nps_lLOC","neg_nps_lLOC_corr",
+ "neg_nps_lLOC_cosine","neg_nps_rpLOC","neg_nps_rpLOC_corr","neg_nps_rpLOC_cosine" ,
+ "neg_nps_pgACC","neg_nps_pgACC_corr","neg_nps_pgACC_cosine","neg_nps_lSTS",
+ "neg_nps_lSTS_corr","neg_nps_lSTS_cosine","neg_nps_rIPL","neg_nps_rIPL_corr",
+ "neg_nps_rIPL_cosine","neg_nps_PCC","neg_nps_PCC_corr","neg_nps_PCC_cosine",
+ "filename"   )
+total_df = merge_df
+```
+
+
+```{r}
+for (row in 1:nrow(ttl_file_name)){
+  fname = as.character(ttl_file_name[row,1])
+  print(fname)
+  # nps_df = read.csv(fname)
+  clean_df = clean_nps_merge_df(fname, merge_df)
+  total_df = rbind(total_df, clean_df)
+}
+```
+
+```{r}
+merge_df = data.frame(matrix(ncol = 61, nrow = 0))
+# merge_df <- data.frame()
+colnames(merge_df) <- c("study","sub_num","ses_num","run_num",
+"ev_num","task","nps","nps_corr",
+"nps_cosine","npspos","npspos_corr","npspos_cosine",
+"npsneg","npsneg_corr","npsneg_cosine","pos_nps_vermis",
+"pos_nps_vermis_corr","pos_nps_vermis_cosine","pos_nps_rIns","pos_nps_rIns_corr","pos_nps_rIns_cosine","pos_nps_rV1","pos_nps_rV1_corr","pos_nps_rV1_cosine","pos_nps_rThal","pos_nps_rThal_corr","pos_nps_rThal_cosine","pos_nps_lIns", "pos_nps_lIns_corr","pos_nps_lIns_cosine","pos_nps_rdpIns","pos_nps_rdpIns_corr",
+ "pos_nps_rdpIns_cosine","pos_nps_rS2_Op","pos_nps_rS2_Op_corr","pos_nps_rS2_Op_cosine",
+ "pos_nps_dACC","pos_nps_dACC_corr","pos_nps_dACC_cosine","neg_nps_rLOC",
+ "neg_nps_rLOC_corr","neg_nps_rLOC_cosine","neg_nps_lLOC","neg_nps_lLOC_corr",
+ "neg_nps_lLOC_cosine","neg_nps_rpLOC","neg_nps_rpLOC_corr","neg_nps_rpLOC_cosine" ,
+ "neg_nps_pgACC","neg_nps_pgACC_corr","neg_nps_pgACC_cosine","neg_nps_lSTS",
+ "neg_nps_lSTS_corr","neg_nps_lSTS_cosine","neg_nps_rIPL","neg_nps_rIPL_corr",
+ "neg_nps_rIPL_cosine","neg_nps_PCC","neg_nps_PCC_corr","neg_nps_PCC_cosine",
+ "filename"   )
+pain_df = merge_df
+```
+
+
+```{r}
+for (row in 1:nrow(pain_file_name)){
+  fname = as.character(pain_file_name[row,1])
+  print(fname)
+  # nps_df = read.csv(fname)
+  clean_df = clean_nps_pain_df(fname, merge_df)
+  pain_df = rbind(pain_df, clean_df)
+}
+```
+
+```{r}
+fname = file.path(main_dir,'analysis','mixedeffect','nps',paste('ttlonset_nps-dotproduct','_', as.character(Sys.Date()),'.csv', sep = ""))
+write.csv(total_df,fname )
+```
+
+
+# Load total dataframe _____________________________________________________________________
+```{r}
+fname = file.path(main_dir,'analysis','mixedeffect','nps',paste('ttlonset_nps-dotproduct','_', 
+                                                                # as.character(Sys.Date()),
+                                                                '2022-02-21',
+                                                                '.csv', sep = ""))
+df = read.csv(fname )
+df$temp = mapvalues(df$stim_type, from = c("low_stim", "med_stim", "high_stim"), to = c(48,49,50))
+df$temp <- factor(df$temp, levels = c(48,49,50))
+```
+
+
+# start analysis _____________________________________________________________________
+
+
+# analysis 2-1. NPS plots ________________________________________________________________
+#### color palette: https://colorhunt.co/palette/0000005800ffe900ffffc600
+```{r}
+DATA = df
+SUBJECT = "sub_num"
+IV = "task"
+DV = "nps"
+DATA$sub_num = factor(DATA$sub_num)
+DATA$task <- factor(DATA$task, levels = c("pain-early", "pain-late", "pain-post", "pain-plateau", "pain"))
+subjectwise = meanSummary(DATA, c(SUBJECT, IV), DV)
+groupwise = summarySEwithin(data=subjectwise, 
+                  measurevar = "mean_per_sub", # variable created from above
+                    withinvars = c(IV), # IV
+                    idvar = "sub_num")
+groupwise_drop <- na.omit(groupwise)
+# subjectwise_drop
+# subjectwise_drop<-subjectwise[!(subjectwise$task=="pain" | subjectwise$task=="Andrea"),]
+```
+
+```{r}
+w = 10
+h = 6
+SE = "se";
+SUBJECT = "sub_num"
+fill_IV = "task"
+TASKNAME = 'pain'
+GGTITLE = paste(TASKNAME, "TTL extracted onsets - NPS dot product"); TITLE = paste(TASKNAME, " - Actual");
+XLAB = ""; YLAB = "nps dot product";
+DV_KEYWORD = "nps"
+SUB_MEAN = "mean_per_sub"; GROUP_MEAN = "mean_per_sub_norm_mean"; SE = "se"; SUBJECT = "sub_num"
+if(any(startsWith(DV_KEYWORD, c("expect", "Expect"))))
+  {COLOR = c( "#FFC600", "#E900FF", "#5800FF", "#000000","#1B9E77")}else{COLOR=c( "#FFC600", "#E900FF", "#5800FF", "#000000","#1B9E77")} # if keyword starts with
+SAVE_FNAME = file.path(main_dir, 'analysis','mixedeffect', 'nps', paste('raincloudpoint_task-' ,TASKNAME, '_rating-', DV_KEYWORD,'_', as.character(Sys.Date()),'.png', sep = ""))
+plot_expect_rainclouds(subjectwise, groupwise_drop, 
+                                  fill_IV, SUB_MEAN, GROUP_MEAN, SE, SUBJECT,
+                                  GGTITLE, TITLE, XLAB, YLAB,TASKNAME, w, h, DV_KEYWORD,COLOR, SAVE_FNAME) 
+
+```
+
+# ICC for temperature
+
+# 1) calculate average NPS per temperature
+# 2) calculated ICC
+```{r}
+DATA = subset(total_df, task == "pain-plateau", select = c("task", "nps", "sub_num", "ses_num","run_num","ev_num","stim_type", "actual_rating"))
+SUBJECT = "sub_num"
+IV = "stim_type"
+DV = "nps"
+df$sub_num = factor(df$sub_num)
+df$task <- factor(df$task, levels = c("pain-early", "pain-late", "pain-post", "pain-plateau", "pain"))
+subjectwise = meanSummary(DATA, c(SUBJECT, IV), DV)
+groupwise = summarySEwithin(data=subjectwise, 
+                  measurevar = "mean_per_sub", # variable created from above
+                    withinvars = c(IV), # IV
+                    idvar = "sub_num")
+groupwise_drop <- na.omit(groupwise)
+# subjectwise_drop
+# subjectwise_drop<-subjectwise[!(subjectwise$task=="pain" | subjectwise$task=="Andrea"),]
+```
+
+
+
+# analysis 2-2. temperature x pain type
+```{r}
+combined_se_calc =  data.frame()
+DATA = df
+SUBJECT = "sub_num"
+IV = c("task", "stim_type")
+DV = "nps"
+df$sub_num = factor(df$sub_num)
+df$task <- factor(df$task, levels = c("pain-early", "pain-late", "pain-post", "pain-plateau"))#  "pain"
+# subjectwise_temp = meanSummary(df, c(SUBJECT, "task", "stim_type"), DV)
+# groupwise_temp = summarySEwithin(data=subjectwise, 
+#                   measurevar = "mean_per_sub", # variable created from above
+#                     withinvars = c(task, stim_type), # IV
+#                     idvar = "sub_num")
+DATA = df
+MODELIV1 = "task"
+MODELIV2 = "stim_type" 
+actual_subjectwise = meanSummary(DATA, c(SUBJECT, MODELIV1, MODELIV2), DV)
+actual_groupwise = summarySEwithin(data=actual_subjectwise, measurevar = "mean_per_sub", withinvars = c(MODELIV1, MODELIV2), idvar = SUBJECT)
+actual_groupwise$task = TASKNAME
+
+groupwise_temp_drop <- na.omit(actual_groupwise)
+subjectwise_temp_drop<-subjectwise_temp[!(subjectwise_temp$task=="pain" | subjectwise_temp$task=="Andrea"),]
+
+# https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+combined_se_calc = rbind(combined_se_calc, groupwise_temp_drop)
+#if(any(startsWith(DV_KEYWORD, c("expect", "Expect")))){COLOR = c( "#1B9E77", "#D95F02")}else{COLOR=c( "#4575B4", "#D73027")} # if keyword starts with
+#print("groupwisemean")
+#  [ PLOT ] calculate mean and se  ----------------------------------------------------------------------------
+SUB_MEAN = "mean_per_sub"; GROUP_MEAN = "mean_per_sub_norm_mean"; SE = "se"; SUBJECT = "sub_num";
+GGTITLE = paste(TASKNAME, " - Actual Rating (degree)"); TITLE = paste(TASKNAME, " - Actual");
+XLAB = ""; YLAB = "ratings (degree)";
+DV_KEYWORD = "actual"
+if(any(startsWith(DV_KEYWORD, c("expect", "Expect")))){COLOR = c( "#1B9E77", "#D95F02")}else{COLOR=c( "#4575B4", "#D73027")} # if keyword starts with
+SAVE_FNAME = file.path(main_dir, 'analysis','mixedeffect', 'nps', paste('socialinfluence_task-' ,TASKNAME, '_rating-', DV_KEYWORD,'temp.png', sep = ""))
+plot_actual_rainclouds(subjectwise_temp_drop, groupwise_temp_drop, MODELIV1, MODELIV2,
+                       SUB_MEAN, GROUP_MEAN, SE, SUBJECT,
+                       GGTITLE, TITLE, XLAB, YLAB,TASKNAME, w, h, DV_KEYWORD,COLOR, SAVE_FNAME)
+
+
+```
+
+```{r}
+w = 5
+h = 3
+SE = "se";
+SUBJECT = "sub_num"
+fill_IV = "stim_type"
+IV1 = "stim_type"
+IV2 = "task"
+TASKNAME = 'stim_type'
+GGTITLE = paste(TASKNAME, " - Actual Rating (degree)"); TITLE = paste(TASKNAME, " - Actual");
+df$stim_type <- factor(df$stim_type, levels = c("low_stim", "med_stim", "high_stim"))
+XLAB = ""; YLAB = "nps dot product";
+DV_KEYWORD = "nps"
+SUB_MEAN = "mean_per_sub"; GROUP_MEAN = "mean_per_sub_norm_mean"; SE = "se"; SUBJECT = "sub_num"
+if(any(startsWith(DV_KEYWORD, c("expect", "Expect"))))
+  {COLOR = c( "#FFC600", "#E900FF", "#5800FF", "#000000","#1B9E77")}else{COLOR=c( "#FFC600", "#E900FF", "#5800FF", "#000000","#1B9E77")} # if keyword starts with
+SAVE_FNAME = file.path(main_dir, 'analysis','mixedeffect', 'nps', paste('raincloudpoint_task-' ,TASKNAME, '_rating-', DV_KEYWORD,'_temp.png', sep = ""))
+plot_actual_rainclouds(subjectwise_temp_drop, groupwise_temp_drop, 
+                      IV1, IV2, SUB_MEAN, GROUP_MEAN, SE, SUBJECT, GGTITLE, TITLE, XLAB,YLAB,task_name, w, h,
+                      DV_KEYWORD,COLOR,SAVE_FNAME)
+```
+
+# FIX:
+```{r}
+IV1 = "stim_type"
+IV2 = "task"
+SUB_MEAN = "mean_per_sub"; GROUP_MEAN = "mean_per_sub_norm_mean"; SE = "se"; SUBJECT = "sub_num";
+GGTITLE = paste(TASKNAME, " - dot product (degree)"); TITLE = paste(TASKNAME, " - dot product");
+SAVE_FNAME=file.path(main_dir, 'analysis','mixedeffect', 'nps', paste('raincloudpoint_task-' ,TASKNAME, '_rating-', DV_KEYWORD,'.png', sep = ""))
+w = 5; h = 3
+DV_KEYWORD = "nps_dot_product"
+ 
+newdata <- df[ which(df$task=='pain-early'), ]
+newdata$sub_num = factor(newdata$sub_num)
+newdata$task_name = "pain-early"
+newdata$task <- factor(newdata$task, levels = c("pain-early", "pain-late", "pain-post", "pain-plateau", "pain"))
+plot_actual_rainclouds(subjectwise_temp_drop, groupwise_temp_drop, 
+                                  IV1, IV2, SUB_MEAN, GROUP_MEAN, SE, SUBJECT, GGTITLE, TITLE, XLAB,YLAB,task_name, w, h, DV_KEYWORD,COLOR,SAVE_FNAME)
+```
+
+# plot separately
+```{r}
+PVC_rand_cue_subset = subset(df, select  = c(task, sub_num, ses_num, nps, temp))
+# pldf <- df[ which(df$task=='pain-plateau'),]
+PVC_rand_cue = spread(PVC_rand_cue_subset, key = ses_num, value = nps)
+
+PVC_rand_cue_subset = subset(pldf, select  = c(sub_num, nps, temp))
+
+PV = ggplot(aes(x=temp, y=nps), data=PVC_rand_cue_subset, cex.lab=1.5, cex.axis=2, cex.main=1.5, cex.sub=1.5) + geom_point() + theme_classic() +  theme(aspect.ratio=1) + stat_cor(p.accuracy = 0.001, r.accuracy = 0.01)
+ggpubr::ggarrange(PV,ncol = 3, nrow = 1, common.legend = FALSE,legend = "bottom")
+
+
+```
+
+
+```{r}
+
+PVC_rand_cue = spread(PVC_rand_cue_subset, key = temp, value = nps)
+
+PV = ggplot(aes(x=vicarious, y=pain), data=PVC_rand_cue, cex.lab=1.5, cex.axis=2, cex.main=1.5, cex.sub=1.5) + geom_point() + theme_classic() +  theme(aspect.ratio=1) + stat_cor(p.accuracy = 0.001, r.accuracy = 0.01)
+
+VC = ggplot(aes(x=cognitive, y=vicarious), data=PVC_rand_cue, cex.lab=1.5, cex.axis=2, cex.main=1.5, cex.sub=1.5) + geom_point() + theme_classic() +  theme(aspect.ratio=1)+ stat_cor(p.accuracy = 0.001, r.accuracy = 0.01)
+CP = ggplot(aes(x=pain, y=cognitive), data=PVC_rand_cue, cex.lab=1.5, cex.axis=2, cex.main=1.5, cex.sub=1.5) + geom_point() + theme_classic() +  theme(aspect.ratio=1) + stat_cor(p.accuracy = 0.001, r.accuracy = 0.01)
+ggpubr::ggarrange(PV,VC,CP,ncol = 3, nrow = 1, common.legend = FALSE,legend = "bottom")
+plot_filename = file.path(main_dir, 'analysis','mixedeffect','model02_cue_stim_actualrating', paste('socialinfluence_task-total_rating-',DV_KEYWORD,'_correlation-rand-cue-coef.png', sep = ""))
+ggsave(plot_filename, width = 7, height = 3)
+
+```
+
+# mimic Xiaochun matlab script
+```{r}
+library(dplyr)
+
+df = df %>%
+        group_by(sub_num, task) %>%
+        mutate(event_by_task_zscore = scale(nps))
+subjectwise_nps = df %>%
+  count(sub_num, task) 
+subjectwise_nps$df = subjectwise_nps$n-1
+
+subject_means_by_task = df %>%
+  group_by(sub_num, task) %>%
+  mutate(subject_means_by_task = mean(nps))
+
+subject_means_by_task_rescale = df %>%
+  group_by(sub_num, task) %>%
+  mutate(subject_means_by_task_rescale = subject_means_by_task / mad(subject_means_by_task))
+
+subject_ste_by_task = subject_means_by_task %>%
+  group_by(sub_num, task) %>%
+  mutate(subject_ste_by_task = se(nps, na.rm = TRUE))
+
+# df_by_study{i} = (cellfun(@length, event_by_study{i}) - 1)';  % not precise without removing NaNs, now ok, see above
+```
+
+
+
+# Xiaochun 
+```{r}
+#dotproduct#
+Time1 <- merge_df[merge_df$ses_num == 1,]
+Time2 <- merge_df[merge_df$ses_num == 3,]
+Time3 <- merge_df[merge_df$ses_num == 4,]
+x1 = data.frame(Time1$nps, Time2$nps, Time3$nps)
+ICC(x1)
+
+```
+```{r}
+
+#######correlation#############
+#Time1 & Time2
+col=rgb(50/255,50/255,50/255)
+ds <- data.frame(Time1$nps,Time2$nps,Time3$nps)
+p1<-ggplot(ds,aes(x=Time1.nps,y=Time2.nps)) + geom_point(alpha = 0.8, size = 2, colour = col) + geom_smooth(method=lm , size = 1, color=col, se=TRUE) + theme(panel.background = element_rect(fill = "transparent"), axis.line = element_line(size = 0.5, colour = "black"), axis.ticks = element_line(size = 0.5, colour = "black"))
+p1+stat_cor(method="pearson")
+
+#Time1 & Time3
+p2<-ggplot(ds,aes(x=Time1.nps,y=Time3.nps)) + geom_point(alpha = 0.8, size = 2, colour = col) + geom_smooth(method=lm , size = 1, color=col, se=TRUE) + theme(panel.background = element_rect(fill = "transparent"), axis.line = element_line(size = 0.5, colour = "black"), axis.ticks = element_line(size = 0.5, colour = "black"))
+p2+stat_cor(method="pearson")
+
+#Time2 & Time3
+p3<-ggplot(ds,aes(x=Time2.nps,y=Time3.nps)) + geom_point(alpha = 0.8, size = 2, colour = col) + geom_smooth(method=lm , size = 1, color=col, se=TRUE) + theme(panel.background = element_rect(fill = "transparent"), axis.line = element_line(size = 0.5, colour = "black"), axis.ticks = element_line(size = 0.5, colour = "black"))
+p3+stat_cor(method="pearson")
+
+```
+
+
+```{r}
+# load in csv file
+library(readxl)
+library(ggplot2)
+library(plotrix)
+
+#setwd('./FigureS1A_NPS_mean_response')
+file = 'NPS_mean_response.csv'
+my_data = read.csv(file,header=TRUE)
+
+# colors settings
+col=c("#BFC49E")
+
+# Generating figure
+data_summary <- function(x) {
+  mu <- mean(x, na.rm=TRUE)
+  sigma1 <- mu-std.error(x, na.rm=TRUE)
+  sigma2 <- mu+std.error(x, na.rm=TRUE)
+  return(c(y=mu,ymin=sigma1,ymax=sigma2))
+}
+
+p<-ggplot(my_data,aes(x=study,y=rescale_mean, colour = col)) + 
+  geom_hline(yintercept=0,size=0.5,linetype = "dashed")
+p + scale_colour_manual(values = col) + 
+  geom_violin(scale = "width", width = 0.6, position=position_dodge(0.7)) + 
+  stat_summary(fun.data = data_summary,position=position_dodge(0.7),size = 0.6) + 
+  geom_point(alpha = 0.4, size = 1, position=position_jitterdodge(jitter.width = 0.6,dodge.width = 0.7)) + 
+  theme(panel.background = element_rect(fill = "transparent"), 
+        axis.line = element_line(size = 0.5, colour = "black"), 
+        axis.ticks = element_line(size = 0.5, colour = "black"))
+
+```
+
