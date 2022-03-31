@@ -25,16 +25,16 @@ disp(strcat('[ STEP 01 ] setting parameters...'));
 %args = strsplit(arguments)
 %input = args{1};
 %keyword = args{2};
-disp(strcat("input: ", input));disp(strcat("input: ", keyword));
+disp(strcat("input: ", num2str(input)));disp(strcat("input: ", keyword));
 % 1-1. directories _______________________________________________________
-key_set = {'early', 'late', 'plateau', 'post'};
+key_set = {'early', 'late', 'post', 'plateau'};
 value_set = {'singletrial_SPM_01-pain-early', 'singletrial_SPM_02-pain-late',...
 'singletrial_SPM_03-pain-post', 'singletrial_SPM_04-pain-plateau'};
 M = containers.Map(key_set,value_set);
 fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'; % sub / ses
-f = dir(fullfile(fmriprep_dir, '*.html'))
-ftable = struct2table(f)
-F = regexprep(ftable.name, '.html', '')
+f = dir(fullfile(fmriprep_dir, '*.html'));
+ftable = struct2table(f);
+F = regexprep(ftable.name, '.html', '');
 % contains(f.name, '.')
 
 
@@ -48,12 +48,12 @@ bfolders = bfolders(~ismember({bfolders(:).name},{'.','..'}));
 btable = struct2table(bfolders);
 B = btable.name;
 
-subset = intersect(B, F);
+subject_subset = intersect(B, F);
 disp(strcat("onset_dir: ", onset_dir));
 %% 2. for loop "subject-wise" _______________________________________________________
 % sub_num = sscanf(char(input),'%d');
 % sub = strcat('sub-', sprintf('%04d', input));
-sub = char(subset(input));
+sub = char(subject_subset(input));
 disp(strcat('[ STEP 02 ] PRINT VARIABLE'))
 %disp(strcat('sub_num:  ', sub_num));
 disp(strcat('sub:    ', sub));
@@ -66,8 +66,8 @@ disp(sortedT); % TODO: DELETE
 sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
 sortedT.ses_num(:) = str2double(extractBetween(sortedT.name, 'ses-', '_'));
 sortedT.run_num(:) = str2double(extractBetween(sortedT.name, 'run-', '_'));
-disp(strcat('sortedT sub_num', str2double(extractBetween(sortedT.name, 'sub-', '_'))))
-disp(strcat('sortedT sub_num', str2double(extractBetween(sortedT.name, 'ses-', '_'))))
+disp(strcat('sortedT sub_num', extractBetween(sortedT.name, 'sub-', '_')));
+disp(strcat('sortedT ses_num', extractBetween(sortedT.name, 'ses-', '_')));
 nii_col_names = sortedT.Properties.VariableNames;
 nii_num_colomn = nii_col_names(endsWith(nii_col_names, '_num'));
 
@@ -170,15 +170,17 @@ for run_ind = 1: size(A,1)
 
     scans = spm_select('Expand',smooth_nii);
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).scans = cellstr(scans);
-    disp(strcat('run: ',run_ind)); 
+    disp(strcat('run: ',num2str(run_ind))); 
     subset = T(T.sub == A.sub_num(run_ind) & T.ses ==  A.ses_num(run_ind) & T.run ==  A.run_num(run_ind) & ismember(T.regressor, 'True'), :);
     total_trial= size(subset,1); % 24
+    disp("printing subset table---------------")
+    disp(subset);
     r = total_trial + 1;
     % CUE, STIM
     for c = 1:total_trial
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).name = strcat(subset.ev{c},'-', num2str(subset.num(c), '%02.f'));
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).onset = double(subset.onset{c});
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).duration = double(subset.dur{c});
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).onset = double(subset.onset(c));
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).duration = double(subset.dur(c));
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).tmod = 0;
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).pmod = struct('name', {}, 'param', {}, 'poly', {});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(c).orth = 0;
