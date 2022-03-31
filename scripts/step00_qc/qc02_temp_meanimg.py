@@ -7,6 +7,16 @@ from nilearn.input_data import NiftiMasker
 import numpy as np
 import pandas as pd
 
+
+__author__ = "Heejung Jung"
+__copyright__ = "Spatial Topology Project"
+__credits__ = [""] # people who reported bug fixes, made suggestions, etc. but did not actually write the code.
+__license__ = "GPL"
+__version__ = "0.0.1"
+__maintainer__ = "Heejung Jung"
+__email__ = "heejung.jung@colorado.edu"
+__status__ = "Development" 
+
 # fmriprep_dir = '/Volumes/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'
 # htmlsave_dir = '/Users/h/Desktop/'
 # beta_dir = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate/s02_isolatenifti/'
