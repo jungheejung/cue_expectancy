@@ -80,7 +80,7 @@ ticktext = ['No data', 'complete_dontuse', 'repeat_use, incomplete_use', 'comple
 # https://stackoverflow.com/questions/61686382/change-the-text-color-of-cells-in-plotly-table-based-on-value-string
 
 # %% load data with select columns
-st = pd.read_csv(os.path.join(main_dir, 'spacetop-scannotes_01-27-2022.csv'))
+st = pd.read_csv(os.path.join(main_dir, 'resources','spacetop-scannotes_01-27-2022.csv'))
 plt_st = st.drop(labels=
 
 ['ses-01','ses-02','ses-03','ses-04',

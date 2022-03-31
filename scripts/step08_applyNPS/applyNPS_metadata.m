@@ -150,6 +150,7 @@ for k = 5:length(key_list)
         table_fname = fullfile(nps_dir, sub, strcat(sub, '_task-', key, '_ev-stim.csv'));
         writetable(dat.metadata_table, table_fname);
         clear dat meta_nifti test_file
+        disp(strcat("complete job", key));
         
     else
         disp(strcat('participant ', sub, ' does not have ', key, ' nifti file'));
