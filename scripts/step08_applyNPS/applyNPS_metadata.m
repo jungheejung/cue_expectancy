@@ -39,9 +39,9 @@ d = dir(singletrial_dir);
 dfolders = d([d(:).isdir]);
 dfolders_remove = dfolders(~ismember({dfolders(:).name},{'.','..','sub-0000','sub-0002'}));
 sub_list = {dfolders_remove.name};
-key_list = {'pain-early', 'pain-late', 'pain-post', 'pain-plateau'};
+key_list = {'pain-early', 'pain-late', 'pain-post', 'pain-plateau', 'pain'};
 sub = char(sub_list(input));
-for k = 1:length(key_list)
+for k = 5:length(key_list)
     %
     key = char(key_list(k));
     dat = [];
