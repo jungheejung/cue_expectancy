@@ -8,6 +8,8 @@ from nilearn import plotting
 from nilearn import datasets
 from nilearn import image
 import matplotlib.pyplot as plt
+from pathlib import Path 
+import itertools
 
 # help -----
 # https://stackoverflow.com/questions/64331987/removing-hiding-empty-subplots-in-matplotlib-when-plotting-a-flexible-grid
