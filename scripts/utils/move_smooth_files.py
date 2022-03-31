@@ -25,7 +25,7 @@ __email__ = "heejung.jung@colorado.edu"
 __status__ = "Development" 
 
 spacetop_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop'
-smooth_glob = glob.glob(join(spacetop_dir, 'fmriprep', '*', '*', 'func', 'smooth_6mm_*MNI152NLin2009cAsym_desc-preproc_bold.nii'))
+smooth_glob = glob.glob(join(spacetop_dir, 'derivatives','fmriprep', '*', '*', 'func', 'smooth_6mm_*MNI152NLin2009cAsym_desc-preproc_bold.nii'))
 
 for gname in sorted(smooth_glob):
     filename = Path(gname).stem
@@ -45,4 +45,4 @@ for gname in sorted(smooth_glob):
     Path(dest_fpath).mkdir(parents=True,exist_ok=True)
     print(f"source is {gname}")
     print(f"destination is {join(dest_fpath,dest_fname)}")
-    # shutil.copy(gname, join(dest_fpath,dest_fname))
+    shutil.move(gname, join(dest_fpath,dest_fname))
