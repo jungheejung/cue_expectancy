@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 """
 the purpose of this script is to automate the "removing-dup" process in datalad. 
 Once a duplicate file is confirmed and removed, we need to update 3 sources
@@ -13,15 +12,6 @@ from heudiconv.utils import save_json
 import os, time, sys, glob
 from os.path import join
 import json
-
-__author__ = "Heejung Jung"
-__copyright__ = "Spatial Topology Project"
-__credits__ = [""] # people who reported bug fixes, made suggestions, etc. but did not actually write the code.
-__license__ = "GPL"
-__version__ = "0.0.1"
-__maintainer__ = "Heejung Jung"
-__email__ = "heejung.jung@colorado.edu"
-__status__ = "Development" 
 
 # example file dir
 # /dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/dartmouth/sub-0085/ses-01/func/sub-0085_ses-01_task-alignvideo_acq-mb8_run-01_bold__dup-01.nii.gz'
@@ -56,7 +46,7 @@ for ind, dup_fpath in enumerate(dup_glob):
         if key_field:
             copy_list = f['IntendedFor']
             print(copy_list)
-            # find "IntendedFor" field and if dup_fname exists, pop item
+            # 2-2. find "IntendedFor" field and if dup_fname exists, pop item
             dup_index = [i for i, s in enumerate(copy_list) if dup_fname in s]
             if dup_index:
                 copy_list.pop(dup_index[0])
@@ -81,7 +71,7 @@ with open(txt_filename, 'w') as f:
 
 
 
-# TODO: clean up anything below
+# TODO: delete later. clean up anything below __________________________________________
 # 3-3. if the file is at the end of the list, deleted 
 # if dup_index[0] == len(copy_list)-1:
 #     copy_list.pop(-1)
