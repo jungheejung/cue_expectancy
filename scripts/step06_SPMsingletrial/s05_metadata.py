@@ -29,7 +29,7 @@ for sub, task, ev in full_list:
         nifti = pd.read_csv(nifti_fname, sep = '\t', header = None)
         meta = pd.read_csv(subject_csv)
     # subset task and ev, # based on text file, # only grab rows that exist
-        nifti['fname'] = nifti[0].map(lambda x: x.lstrip('./').rstrip('.nii'))
+        nifti['fname'] = nifti[0].map(lambda x: os.path.basename(x).lstrip('./').rstrip('.nii'))
         nifti['sub'] = nifti['fname'].str.split(
             f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_task-social_ev-([A-Za-z-]+)-(\d+)', expand=True)[1].astype(int)
         nifti['ses'] = nifti['fname'].str.split(

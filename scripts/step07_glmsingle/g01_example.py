@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-"""glm single example tutorial
+"""
+glm single example tutorial
 """
 # %%
 import numpy as np

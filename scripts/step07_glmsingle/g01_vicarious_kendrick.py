@@ -69,6 +69,7 @@ ses_list = [1,3,4]
 design = []
 extra = []
 data = []
+ses_ind = []
 
 sub_ses = list(itertools.product(sub, ses_list))
 for i, (sub, ses_ind) in enumerate(sub_ses):
@@ -186,7 +187,7 @@ opt['wantfracridge'] = 1
 # and also save them to the disk
 opt['wantfileoutputs'] = [1,1,1,1]
 opt['wantmemoryoutputs'] = [1,1,1,1]
-opt['sessionindicator'] = [1,1]
+opt['sessionindicator'] = ses_ind 
 opt['extra_regressor'] = extra
 
 # running python GLMsingle involves creating a GLM_single object

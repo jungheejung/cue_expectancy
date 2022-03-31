@@ -12,7 +12,7 @@ def cart2pol(x, y):
 origin_x = 960
 origin_y = 707
 
-main_dir = '/Users/h/Documents/projects_local/social_influence_analysis'
+main_dir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis'
 list_sub = [3,4];list_ses = [1];list_task = ['cognitive', 'pain', 'vicarious']
 fix_file_list = [];ses = 1
 for ind,sub in enumerate(list_sub):
@@ -58,7 +58,7 @@ for filepath in flat_list:
 # based on expected x and y, calculate theta
 # extract names
 # insert it in
-    new_dir = os.path.join(main_dir, 'dartmouth', 'beh_raw', 'sub-{0}'.format(num[0]), 'ses-{0}'.format(num[1]))
+    new_dir = os.path.join(main_dir, 'dartmouth', 'd01_rawbeh', 'sub-{0}'.format(num[0]), 'ses-{0}'.format(num[1]))
     new_filename = 'sub-{0}_ses-{1}_task-social_run-{2}-{3}_beh.csv'.format(num[0], num[1], num[2], taskname)
     newdata = pd.read_csv(os.path.join(new_dir, new_filename))
     print("new_filename: {0}".format(new_filename))

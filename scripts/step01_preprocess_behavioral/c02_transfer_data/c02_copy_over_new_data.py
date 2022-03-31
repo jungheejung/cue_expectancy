@@ -21,6 +21,9 @@ into /Users/h/Documents/projects_local/social_influence_analysis/data/dartmouth/
 
 
 src = sorted(glob.glob(os.path.join(data_repo_dir, 'sub-*', 'task-social', 'ses-*', '*.csv')))
+src2 = sorted(glob.glob(os.path.join(data_repo_dir, 'sub-*', 'task-social', 'ses-*', '*.mat')))
+for i in src2 :
+    src.append(i)
 # %%
 for ind, src_fname in enumerate(src):
 
@@ -35,6 +38,9 @@ for ind, src_fname in enumerate(src):
     # else:
     fbase = os.path.basename(src_fname)
     if not os.path.exists(join(dst_fname2, fbase)) or not filecmp.cmp(src_fname, join(dst_fname2, fbase)):
+        # d01_path = Path(dst_fname)
+        Path(dst_fname).mkdir(parents = True, exist_ok = True)
+        Path(dst_fname2).mkdir(parents = True, exist_ok = True)
         shutil.copy(src_fname, dst_fname)
         shutil.copy(src_fname, dst_fname2)
 
