@@ -32,6 +32,7 @@ import json
 
 # %% temporary
 main_dir = '/Volumes/spacetop'
+main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop'
 print(main_dir)
 save_dir = os.path.join(main_dir, 'biopac', 'dartmouth', 'b03_extract_ttl')
 print(save_dir)
