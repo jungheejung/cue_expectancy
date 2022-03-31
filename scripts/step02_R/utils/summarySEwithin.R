@@ -1,32 +1,32 @@
 summarySEwithin <- function(data = NULL, measurevar, betweenvars = NULL, withinvars = NULL,
                             idvar = NULL, na.rm = FALSE, conf.interval = .95, .drop = TRUE) {
-  """
-  Summarizes data, handling within-subjects variables
-  by removing inter-subject variability.
-  It will still work if there are no within-S variables.
-  Gives count, un-normed mean, normed mean (with same between-group mean),
-  standard deviation, standard error of the mean, and confidence interval.
-  If there are within-subject variables,
-  calculate adjusted values using method from Morey (2008).
+#   """
+#   Summarizes data, handling within-subjects variables
+#   by removing inter-subject variability.
+#   It will still work if there are no within-S variables.
+#   Gives count, un-normed mean, normed mean (with same between-group mean),
+#   standard deviation, standard error of the mean, and confidence interval.
+#   If there are within-subject variables,
+#   calculate adjusted values using method from Morey (2008).
 
-  Parameters
-  ----------
-  data:
-      a data frame.
-  measurevar:
-      the name of a column that contains the variable to be summariezed
-  betweenvars:
-      a vector containing names of columns that are between-subjects variables
-  withinvars:
-      a vector containing names of columns that are within-subjects variables
-  idvar:
-      the name of a column that identifies each subject (or matched subjects)
-  na.rm:
-      a boolean that indicates whether to ignore NA's
-  conf.interval:
-      the percent range of the confidence interval (default is 95%)
-      Ensure that the betweenvars and withinvars are factors
-  """
+#   Parameters
+#   ----------
+#   data:
+#       a data frame.
+#   measurevar:
+#       the name of a column that contains the variable to be summariezed
+#   betweenvars:
+#       a vector containing names of columns that are between-subjects variables
+#   withinvars:
+#       a vector containing names of columns that are within-subjects variables
+#   idvar:
+#       the name of a column that identifies each subject (or matched subjects)
+#   na.rm:
+#       a boolean that indicates whether to ignore NA's
+#   conf.interval:
+#       the percent range of the confidence interval (default is 95%)
+#       Ensure that the betweenvars and withinvars are factors
+#   """
     factorvars <- vapply(data[, c(betweenvars, withinvars), drop = FALSE],
         FUN = is.factor, FUN.VALUE = logical(1)
     )

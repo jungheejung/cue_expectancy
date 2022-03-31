@@ -1,11 +1,7 @@
 plot_rainclouds_onefactor <- function(subjectwise, groupwise, iv,
                                       subjectwise_mean, group_mean, se, subject,
-                                      ggtitle, title, xlab, ylab, taskname,
+                                      ggtitle, title, xlab, ylab, taskname, ylim,
                                       w, h, dv_keyword, color, save_fname) {
-  # data subjectwise
-  # DV = mean_per_sub
-  # IV = param_cue_type
-
   g <- ggplot(
     data = subjectwise,
     aes(
@@ -14,12 +10,11 @@ plot_rainclouds_onefactor <- function(subjectwise, groupwise, iv,
       fill = factor(.data[[iv]])
     )
   ) +
-    coord_cartesian(ylim = c(-10, 120), expand = TRUE) +
-    geom_flat_violin(aes(
-      fill = factor(.data[[iv]])
-    ),
-    position = position_nudge(x = .1, y = 0),
-    adjust = 1.5, trim = FALse, alpha = .3, colour = NA
+    coord_cartesian(ylim = ylim, expand = TRUE) +
+    geom_flat_violin(
+      aes(fill = factor(.data[[iv]])),
+      position = position_nudge(x = .1, y = 0),
+      adjust = 1.5, trim = FALSE, alpha = .3, colour = NA
     ) +
     geom_line(
       data = subjectwise,
@@ -37,7 +32,7 @@ plot_rainclouds_onefactor <- function(subjectwise, groupwise, iv,
         y = .data[[subjectwise_mean]],
         color = factor(.data[[iv]])
       ),
-      position = position_jitter(width = .05), 
+      position = position_jitter(width = .05),
       size = 1, alpha = 0.8, shape = 20
     ) +
     geom_boxplot(
@@ -60,8 +55,8 @@ plot_rainclouds_onefactor <- function(subjectwise, groupwise, iv,
     ) +
     # legend stuff ________________________________________________________ # nolint
     expand_limits(x = 2.8) +
-    guides(fill = FALse) +
-    guides(color = FALse) +
+    guides(fill = FALSE) +
+    guides(color = FALSE) +
     guides(fill = guide_legend(title = title)) +
     scale_fill_manual(values = color) +
     scale_color_manual(values = color) +
@@ -69,6 +64,6 @@ plot_rainclouds_onefactor <- function(subjectwise, groupwise, iv,
     xlab(xlab) +
     ylab(ylab) +
     theme_bw()
-  ggsave(save_fname, width = w, height = h)
+  # ggsave(save_fname, width = w, height = h)
   return(g)
 }

@@ -1,13 +1,15 @@
 ---
-title: "socialinfluence_dartmouth_CBB"
+title: "socialinfluence_dartmouth_SfN"
 author: "Heejung Jung"
-date: "4/5/2021"
+date: "10/27/2021"
 output: html_document
 ---
+""" We have 40-50 additional participants. 
+the purpose of the Rmd is to separate the early analysis and see what the additional participants does to the results.  """
 
 
-# load libraries
-```{r}
+
+```{r load libraries}
 library(psych)
 library(car)
 library(lmSupport)
@@ -57,18 +59,17 @@ source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/f
 library(r2mlm)
 ```
 
-# parameters
 
-```{r}
+```{r parameters}
 main_dir = dirname(dirname(getwd()))
+main_dir
 ```
-# 0. function ___________________________________________________________
+# Functions
 
 ## a) summary table
 http://www.cookbook-r.com/Graphs/Plotting_means_and_error_bars_(ggplot2)/#Helper%20functions
 
-### Function normdatawithin
-```{r}
+```{r FUNCTION - normDataWithin}
 normDataWithin <- function(data=NULL, idvar, measurevar, betweenvars=NULL,
                            na.rm=FALSE, .drop=TRUE) {
   ## Norms the data within specified groups in a data frame; it normalizes each
@@ -105,8 +106,7 @@ normDataWithin <- function(data=NULL, idvar, measurevar, betweenvars=NULL,
 }
 ```
 
-### FUNCTION: summarySEwithin
-```{r}
+```{r FUNCTION - summarySEwithin}
 summarySEwithin <- function(data=NULL, measurevar, betweenvars=NULL, withinvars=NULL,
                             idvar=NULL, na.rm=FALSE, conf.interval=.95, .drop=TRUE) {
 
@@ -170,8 +170,7 @@ summarySEwithin <- function(data=NULL, measurevar, betweenvars=NULL, withinvars=
 }
 ```
 
-### FUNCTION: meanSummary
-```{r}
+```{r FUNCTION: meanSummary}
 meanSummary <- function(DATA, GROUP, DV){
   z <- ddply(DATA, GROUP, .fun = function(xx){
                          c(mean_per_sub = mean(xx[,DV],na.rm=TRUE),
@@ -180,71 +179,36 @@ meanSummary <- function(DATA, GROUP, DV){
   }
 ```
 
-
-### FUNCTION: expect_df load data
-```{r}
+```{r FUNCTION: expect_df load data}
 expect_df = function(TASKNAME, SUBJECT_VARKEY, IV, DV, EXCLUDE ) {
   # INPUT:
   # * TASKNAME (e.g. pain, cognitive, vicarious)
   # * SUBJECT_VARKEY (e.g. src_subject_id or subject)
   # A. load data ______________________________________________________________
   FILENAME = paste('*_task-social_*-' ,TASKNAME, '_beh.csv', sep = "")
-  common_path = Sys.glob(file.path(main_dir,'data', 'dartmouth', 'preprocessed',
+  common_path = Sys.glob(file.path(main_dir,'data', 'dartmouth', 'd02_preprocessed_N60',
                                    'sub-*','ses-*',FILENAME))
-  filter_path = common_path[!str_detect(common_path,pattern="sub-0001|sub-0025")]
-  
+  # filter_path = common_path[!str_detect(common_path,pattern="sub-0001|sub-0025")]
+  filter_path = common_path[str_detect(common_path,pattern="sub-0003|sub-0004|sub-0005|sub-0006|sub-0008|sub-0009|sub-0010|sub-0014|sub-0015|sub-0016|sub-0024|sub-0026|sub-0028|sub-0029|sub-0030|sub-0031|sub-0032|sub-0033|sub-0035|sub-0037|sub-0047|sub-0051|sub-0053|sub-0055|sub-0058")]
   DF <- do.call("rbind",lapply(filter_path,FUN=function(files){ read.csv(files)}))
   is.nan.data.frame <- function(x)
     do.call(cbind, lapply(x, is.nan))
   DF[is.nan(DF)] <- NA
-  # subjects as factor
-  #print("subject")
+
   DF[,"subject"] = factor(DF[,SUBJECT_VARKEY])
-  # print("line323")
+
   # B. plot expect rating NA ___________________________________________________
   DF_expect_NA = aggregate(DF[,DV], list(DF$subject),function(x) sum(is.na(x)))
-  #TITLE = paste(TASKNAME, " task - Expectation ratings", sep = "" )
-  # ggplot(DF_expect_NA, aes(x = Group.1, y = x))+ 
-  #   geom_bar(stat = "identity", position = "identity") +
-  #   xlab("subject ID") + 
-  #   ylab("freq. of NA") + 
-  #   ggtitle(TITLE) +
-  #   theme_bw()
-  #print(213)
+
   # C. run model ___________________________________________________
   
   DF_remove_NA = DF[!is.na(  DF[DV]  ),]
-  #return(DF_remove_NA)
-  #print(218)
-  # cog_dataset[!is.na(cog_dataset["event02_expect_angle"]),]
-    # c1. contrastcode
-  # stimulus intensity
-  # DF_remove_NA$stim[DF_remove_NA$event03_stimulus_type == "low_stim"] <- -0.5 # social influence task
-  # DF_remove_NA$stim[DF_remove_NA$event03_stimulus_type == "med_stim"] <- 0 # no influence task
-  # DF_remove_NA$stim[DF_remove_NA$event03_stimulus_type == "high_stim"] <- 0.5 # no influence task
-  # 
-  # DF_remove_NA$stim_factor = factor(DF_remove_NA$event03_stimulus_type)
-  # 
-  # #contrast code 1 linear
-  # DF_remove_NA$stim_con_linear[DF_remove_NA$event03_stimulus_type == "low_stim"] <- -0.5
-  # DF_remove_NA$stim_con_linear[DF_remove_NA$event03_stimulus_type == "med_stim"] <- 0
-  # DF_remove_NA$stim_con_linear[DF_remove_NA$event03_stimulus_type == "high_stim"] <- 0.5
-  # 
-  # # contrast code 2 quadratic
-  # DF_remove_NA$stim_con_quad[DF_remove_NA$event03_stimulus_type == "low_stim"] <- -0.33
-  # DF_remove_NA$stim_con_quad[DF_remove_NA$event03_stimulus_type == "med_stim"] <- 0.66
-  # DF_remove_NA$stim_con_quad[DF_remove_NA$event03_stimulus_type == "high_stim"] <- -0.33
-  # 
-  # # social cude contrast
-  # DF_remove_NA$social_cue[DF_remove_NA[,IV] == 'low_cue'] <- -0.5 # social influence task
-  # DF_remove_NA$social_cue[DF_remove_NA[,IV] == 'high_cue'] <- 0.5 # no influence task
-  # DF_remove_NA$cue_factor = factor(DF_remove_NA[,IV])
+
   DATA <<- as.data.frame(DF_remove_NA)
 }
 ```
 
-### FUNCTION: run_cue_lmer 
-```{r}
+```{r FUNCTION: run_cue_lmer }
 run_cue_lmer = function(DATA,TASKNAME, IV, DV, SUBJECT, DV_KEYWORD, MODEL_SAVE){
   model.cue = lmer( DATA[,DV] ~ DATA[,IV] + (DATA[,IV] | DATA[,SUBJECT]) + (DATA[,IV] | DATA$session_id))
   print(paste("model: ", str_to_title(DV_KEYWORD), " ratings - ", TASKNAME))
@@ -255,10 +219,7 @@ run_cue_lmer = function(DATA,TASKNAME, IV, DV, SUBJECT, DV_KEYWORD, MODEL_SAVE){
   }
 ```
 
-
-
-### FUNCTION: run_cue_stim_lmer
-```{r}
+```{r FUNCTION: run_cue_stim_lmer}
 run_cue_stim_lmer = function(DATA,TASKNAME, IV, STIMC1,STIMC2, DV, SUBJECT, DV_KEYWORD, SAVE_FNAME){
   model.full = lmer( DATA[,DV] ~ DATA[,IV]*DATA[,STIMC1] + DATA[,IV]*DATA[,STIMC2] + 
                     (DATA[,IV]*DATA[,STIMC1] + DATA[,IV]*DATA[,STIMC2] | DATA[,SUBJECT])) 
@@ -271,6 +232,7 @@ run_cue_stim_lmer = function(DATA,TASKNAME, IV, STIMC1,STIMC2, DV, SUBJECT, DV_K
   print(summary(model.full))
   fixEffect <<- as.data.frame(fixef(model.full))
   randEffect <<-as.data.frame(ranef(model.full))
+  return(model.full)
   #View(as.data.frame(fixEffect))
   #View(as.data.frame(randEffect$src_subject_id))
   # A <<- coef(model.full)$src_subject_id
@@ -282,48 +244,67 @@ run_cue_stim_lmer = function(DATA,TASKNAME, IV, STIMC1,STIMC2, DV, SUBJECT, DV_K
   }
 ```
 
-## b) plot
-### b-1) plot cue effect
-```{r}
-FIX_plot_expect_rainclouds = function(within_average, group_level_condition_average,  
-                                      GGTITLE, TITLE, XLAB, YLAB, IV, task_name, w, h, COLOR) {
-
-g <- ggplot(data = within_average, aes(y = mean_per_sub, x = within_average[,IV], fill = within_average[,IV])) +
-  geom_flat_violin(aes(fill = IV), position = position_nudge(x = .1, y = 0), adjust = 1.5,
-                   trim = FALSE, alpha = .5, colour = NA) +
-  geom_line(data = within_average, aes(group = subject, y = mean_per_sub, x = as.numeric(within_average[,IV])-.15, fill = within_average[,IV]), linetype = "solid", color = "grey", alpha = .3) +
-  geom_point(aes(x = as.numeric(within_average[,IV])-.15, y = mean_per_sub, color = within_average[,IV]),
-             position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
-  geom_boxplot(aes(x = within_average[,IV], y = mean_per_sub, fill = within_average[,IV]),width = .1,
-               outlier.shape = NA, alpha = 0.8, width = .1, colour = "black") +
-  geom_errorbar(data = group_level_condition_average, aes(x = as.numeric(group_level_condition_average[,IV])+.1, y = mean_per_sub_norm_mean,
-                             colour = group_level_condition_average[,IV], 
-                              ymin = mean_per_sub_norm_mean-se, 
-                              ymax = mean_per_sub_norm_mean+se), width = .05) +
-
-  # legend stuff __________________________________________________________________________________
-  expand_limits(x = 2.8) +
-  guides(fill = FALSE) +
-  guides(color = FALSE) +
-  guides(fill=guide_legend(title=TITLE))+
-  scale_fill_manual(values = COLOR)+
-  scale_color_manual(values = COLOR)+
-
-  ggtitle(GGTITLE) +
-  # coord_flip() + #vertical vs horizontal
-  xlab(XLAB) +
-  ylab(YLAB) +
-  theme_bw() 
-# plot_filename = file.path(main_dir, 'analysis', paste('paingenbias_task-' ,task_name, '_onlyresponse.png', sep = ""))
-# ggsave(plot_filename, width = w, height = h)
-g
-
+```{r FUNCTION: run_cue_stim_ses_lmer}
+run_cue_stim_ses_lmer = function(DATA,TASKNAME, IV, STIMC1,STIMC2, SES,DV, SUBJECT, DV_KEYWORD, SAVE_FNAME){
+  model.full = lmer( DATA[,DV] ~ DATA[,IV]*DATA[,STIMC1]*DATA[,SES] + DATA[,IV]*DATA[,STIMC2]*DATA[,SES] + 
+                    (DATA[,IV]*DATA[,SES]  | DATA[,SUBJECT])) 
+  sink(SAVE_FNAME)
+  print(paste("model: ", str_to_title(DV_KEYWORD), " ratings - ", TASKNAME))
+  print(summary(model.full))
+  sink()
+  print(summary(model.full))
+  SESfixEffect <<- as.data.frame(fixef(model.full))
+  SESrandEffect <<-as.data.frame(ranef(model.full))
+  return(model.full)
 }
 ```
 
+```{r FUNCTION: plot_expect_rainclouds}
 
-### FUNCTION: plot_expect_rainclouds
-```{r}
+# plot_expect_rainclouds(subjectwise, groupwise, 
+#                                   IV, SUB_MEAN, GROUP_MEAN, SE, SUBJECT,
+#                                   GGTITLE, TITLE, XLAB, YLAB,task_name, w, h, DV_KEYWORD,COLOR, SAVE_FNAME) 
+# 
+# FIXplot_expect_rainclouds = function(within_average, group_level_condition_average,  
+#                                       GGTITLE, TITLE, XLAB, YLAB, IV, task_name, w, h, COLOR) {
+# 
+# g <- ggplot(data = within_average, aes(y = mean_per_sub, x = within_average[,IV], fill = within_average[,IV])) +
+#   geom_flat_violin(aes(fill = IV), position = position_nudge(x = .1, y = 0), adjust = 1.5,
+#                    trim = FALSE, alpha = .5, colour = NA) +
+#   geom_line(data = within_average, aes(group = subject, y = mean_per_sub, x = as.numeric(within_average[,IV])-.15, fill = within_average[,IV]), linetype = "solid", color = "grey", alpha = .3) +
+#   geom_point(aes(x = as.numeric(within_average[,IV])-.15, y = mean_per_sub, color = within_average[,IV]),
+#              position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+#   geom_boxplot(aes(x = within_average[,IV], y = mean_per_sub, fill = within_average[,IV]),width = .1,
+#                outlier.shape = NA, alpha = 0.8, width = .1, colour = "black") +
+#   geom_errorbar(data = group_level_condition_average, aes(x = as.numeric(group_level_condition_average[,IV])+.1, y = mean_per_sub_norm_mean,
+#                              colour = group_level_condition_average[,IV], 
+#                               ymin = mean_per_sub_norm_mean-se, 
+#                               ymax = mean_per_sub_norm_mean+se), width = .05) +
+# 
+#   # legend stuff __________________________________________________________________________________
+#   expand_limits(x = 2.8) +
+#   guides(fill = FALSE) +
+#   guides(color = FALSE) +
+#   guides(fill=guide_legend(title=TITLE))+
+#   scale_fill_manual(values = COLOR)+
+#   scale_color_manual(values = COLOR)+
+# 
+#   ggtitle(GGTITLE) +
+#   # coord_flip() + #vertical vs horizontal
+#   xlab(XLAB) +
+#   ylab(YLAB) +
+#   theme_bw() +
+# theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+# panel.background = element_blank(), axis.line = element_line(colour = "black"))
+# # plot_filename = file.path(main_dir, 'analysis', paste('paingenbias_task-' ,task_name, '_onlyresponse.png', sep = ""))
+# # ggsave(plot_filename, width = w, height = h)
+# g
+# 
+# }
+```
+
+
+```{r FUNCTION: plot_expect_rainclouds}
 # data within_average
 # DV = mean_per_sub
 # IV = param_cue_type
@@ -359,15 +340,17 @@ g <- ggplot(data = within_average,
   # coord_flip() + #vertical vs horizontal
   xlab(XLAB) +
   ylab(YLAB) +
-  theme_bw() 
+  theme_bw() + 
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))
 ggsave(SAVE_FNAME, width = w, height = h)
 return(g)
 
 }
 ```
 
-### FUNCTION: plot_actual_rainclouds
-```{r}
+
+```{r FUNCTION: plot_actual_rainclouds}
 plot_actual_rainclouds = function(subjectwise, groupwise, 
                                   IV1, IV2, SUB_MEAN, GROUP_MEAN, SE, SUBJECT, GGTITLE, TITLE, XLAB,YLAB,task_name, w, h, DV_KEYWORD,COLOR,SAVE_FNAME) {
 
@@ -439,8 +422,7 @@ load_and_plot = function(TASKNAME, SUBJECT_VARKEY, IV, DV,DV_KEYWORD, XLAB,YLAB,
 }
 ```
 
-## rain cloud theme
-```{r}
+```{r rain cloud theme}
 raincloud_theme = theme(
 text = element_text(size = 10),
 axis.title.x = element_text(size = 16),
@@ -465,10 +447,9 @@ h = 3
 ### b-2) plot full factorial
 
 
-# 1. expectation rating
+# MODEL 1. expectation rating (all three tasks)
 
-
-```{r}
+```{r EXPECT, all three tasks}
 # parameters
 TASKNAME = 'cognitive'
 SUBJECT_VARKEY = "src_subject_id"
@@ -482,7 +463,7 @@ TITLE = paste(TASKNAME, " - Expect")
 SUBJECT = "subject"
 EXCLUDE = ""
 
-analysis_dir =file.path(main_dir,'analysis', 'mixedeffect', 'model01_cue_expectrating')
+analysis_dir =file.path(main_dir,'analysis', 'mixedeffect', 'model01_cue_expectrating_sfn')
 
 for (TASKNAME in c("pain", "vicarious", "cognitive")){
 
@@ -501,13 +482,14 @@ XLAB = ""; YLAB = "ratings (degree)"; DV_KEYWORD = "expect"
 if(any(startsWith(DV_KEYWORD, c("expect", "Expect")))){COLOR = c( "#1B9E77", "#D95F02")}else{COLOR=c( "#4575B4", "#D73027")} # if keyword starts with
 #SAVE_FNAME = file.path(analysis_dir, paste('raincloudplot_task-', TASKNAME,'_rating-',DV_KEYWORD,'.png',sep = ''))
 
-SAVE_FNAME = file.path(main_dir, 'analysis','mixedeffect', 'model01_cue_expectrating', paste('raincloudpoint_task-' ,TASKNAME, '_rating-', DV_KEYWORD,'.png', sep = ""))
-plot_expect_rainclouds(subjectwise, groupwise, 
-                                  IV, SUB_MEAN, GROUP_MEAN, SE, SUBJECT,
-                                  GGTITLE, TITLE, XLAB, YLAB,task_name, w, h, DV_KEYWORD,COLOR, SAVE_FNAME) 
-#plot_expect_rainclouds(df_d, df_a, GGTITLE, TITLE, XLAB, YLAB, TASKNAME, 5, 3, DV_KEYWORD,COLOR)
+SAVE_FNAME = file.path(main_dir, 'analysis','mixedeffect', 'model01_cue_expectrating_sfn', paste('raincloudpoint_task-' ,TASKNAME, '_rating-', DV_KEYWORD,'.png', sep = ""))
+plot_expect_rainclouds(subjectwise, groupwise,IV, SUB_MEAN, GROUP_MEAN, SE, SUBJECT,GGTITLE, TITLE, XLAB, YLAB,task_name, w, h, DV_KEYWORD,COLOR, SAVE_FNAME)
 }
+
+DATA_FNAME = file.path(main_dir, 'data', 'dartmouth', 'd02_preprocessed_meta', paste('task-', TASKNAME, '.csv',sep = ""))
+write.csv(DATA, DATA_FNAME)
 ```
+
 
 
 
@@ -521,13 +503,15 @@ TASKNAME = 'pain'
 A. load data
 ```{r}
 FILENAME = paste('*_task-social_*-' ,TASKNAME, '_beh.csv', sep = "")
-common_path = Sys.glob(file.path(main_dir,'data', 'dartmouth', 'preprocessed', 'sub-*','ses-*',FILENAME))
-filter_path = common_path[!str_detect(common_path,pattern="sub-0001|sub-0025")]
-
+common_path = Sys.glob(file.path(main_dir,'data', 'dartmouth', 'd02_preprocessed', 'sub-*','ses-*',FILENAME))
+# filter_path = common_path[!str_detect(common_path,pattern="sub-0001|sub-0025")]
+filter_path = common_path[str_detect(common_path,pattern="sub-0003|sub-0004|sub-0005|sub-0006|sub-0008|sub-0009|sub-0010|sub-0014|sub-0015|sub-0016|sub-0024|sub-0026|sub-0028|sub-0029|sub-0030|sub-0031|sub-0032|sub-0033|sub-0035|sub-0037|sub-0047|sub-0051|sub-0053|sub-0055|sub-0058")]
 DF <- do.call("rbind",lapply(filter_path,FUN=function(files){ read.csv(files)}))
 is.nan.data.frame <- function(x)
-  do.call(cbind, lapply(x, is.nan))
+do.call(cbind, lapply(x, is.nan))
 DF[is.nan(DF)] <- NA
+
+
 DF = as.data.frame(DF)
 # subjects as factor
 DF$subject = factor(DF$src_subject_id)
@@ -576,49 +560,20 @@ model.DF_expect = lmer(event02_expect_angle ~ param_cue_type + (param_cue_type |
 summary(model.DF_expect)
 ```
 
-D. Plot
-1) summarize data
-```{r}
-IV = "param_cue_type"
-DV = "event02_expect_angle"
-SUBJECT = "subject"
-
-meanSummary <- function(DF, GROUP, DV){
-z <- ddply(DF, GROUP, .fun = function(xx){
-                         c(mean_per_sub = mean(xx[,DV],na.rm=TRUE),
-                         sd = sd(xx[,DV],na.rm=TRUE) ) })
-return(z)
-}
-df_d = meanSummary(DF, c(SUBJECT, "param_cue_type"), DV)
-
-
-myFunction2 <- function(x, y, col){
-z <- ddply(x, y, .fun = function(xx){
-                         c(mean = mean(xx[,col],na.rm=TRUE),
-                         max = max(xx[,col],na.rm=TRUE) ) })
-return(z)
-}
-
-df_a = summarySEwithin(data=df_d, 
-                    measurevar = "mean_dev_per_sub", # variable created from above
-                    withinvars = c(IV), # IV
-                    idvar = "subject")
-```
-
 
 # 1-RT caltulate RT
 #### Cognitive RT data
 ```{r}
-cog_dataset$expect_RT = cog_dataset$event02_expect_responseonset - cog_dataset$event02_expect_displayonset
-cog_dataset$actual_RT = cog_dataset$event04_actual_responseonset - cog_dataset$event04_actual_displayonset
+# cog_dataset$expect_RT = cog_dataset$event02_expect_responseonset - cog_dataset$event02_expect_displayonset
+# cog_dataset$actual_RT = cog_dataset$event04_actual_responseonset - cog_dataset$event04_actual_displayonset
 
 ```
 
 # 2. actual judgment
 # 2-1. cue effect
-```{r}
+```{r 2-1 cue effect on actual judgment}
 # parameters
-TASKNAME = 'cognitive'
+# TASKNAME = 'cognitive'
 SUBJECT_VARKEY = "src_subject_id"
 IV = "param_cue_type"
 DV = "event04_actual_angle"
@@ -630,10 +585,24 @@ TITLE = paste(TASKNAME, " - actual")
 SUBJECT = "subject"
 EXCLUDE = ""
 
+
+analysis_dir = file.path(main_dir,'analysis', 'mixedeffect', 'model02_cue_actualrating_sfn')
+
+w = 10; h = 6
+
+# [ CONTRASTS ]  ----------------------------------------------------------------------------
+# DATA = cue_stim_contrast(DATA)
+# STIMC1 = "stim_con_linear"
+# STIMC2 = "stim_con_quad"
+
+for (TASKNAME in c("pain", "vicarious", "cognitive")){
+
+# [ MODEL ] ----------------------------------------------------------------------------
+MODEL_FNAME = file.path(analysis_dir, paste('lmer_task-', TASKNAME, '_cue_on_rating-',DV_KEYWORD,'.txt',sep = ''))
 DATA = expect_df(TASKNAME, SUBJECT_VARKEY, IV, DV, EXCLUDE )
-run_cue_lmer(DATA,TASKNAME, IV, DV, SUBJECT, DV_KEYWORD)
-df_d = meanSummary(DATA, c(SUBJECT, IV), DV)
-df_a = summarySEwithin(data=df_d, 
+run_cue_lmer(DATA,TASKNAME, IV, DV, SUBJECT, DV_KEYWORD, MODEL_FNAME)
+subjectwise = meanSummary(DATA, c(SUBJECT, IV), DV)
+groupwise = summarySEwithin(data=df_d, 
                   measurevar = "mean_per_sub", # variable created from above
                     withinvars = c(IV), # IV
                     idvar = "subject")
@@ -641,17 +610,24 @@ df_a = summarySEwithin(data=df_d,
 if(any(startsWith(DV_KEYWORD, c("expect", "Expect")))){COLOR = c( "#1B9E77", "#D95F02")}else{COLOR=c( "#4575B4", "#D73027")} # if keyword starts with
 GGTITLE = paste(TASKNAME, " - actual judgment (degree)")
 TITLE = paste(TASKNAME, " - actual")
+
+SUB_MEAN = "mean_per_sub"; GROUP_MEAN = "mean_per_sub_norm_mean"; SE = "se"; SUBJECT = "subject";
+
 # plot_expect_rainclouds(df_d, df_a, GGTITLE, TITLE, XLAB, YLAB, TASKNAME, 5, 3, DV_KEYWORD,COLOR)
-plot_expect_rainclouds(df_d, df_a,  GGTITLE, TITLE, XLAB,
-                                  YLAB,TASKNAME, w, h, DV_KEYWORD,COLOR)
+# # plot_expect_rainclouds(df_d, df_a,  
+# #                        IV, GGTITLE, TITLE, XLAB,
+# #                                   YLAB,IV, TASKNAME, w, h,COLOR )
+SAVE_FNAME = file.path(main_dir, 'analysis','mixedeffect', 'model02_cue_actualrating_sfn', paste('raincloudpoint_task-' ,TASKNAME, '_rating-', DV_KEYWORD,'.png', sep = ""))
+plot_expect_rainclouds(subjectwise, groupwise,IV, SUB_MEAN, GROUP_MEAN, SE, SUBJECT,GGTITLE, TITLE, XLAB, YLAB,TASKNAME, w, h, DV_KEYWORD,COLOR, SAVE_FNAME)
+# plot_expect_rainclouds = function(within_average, IV, task_name, group_level_condition_average,  
+#                                       GGTITLE, TITLE, XLAB, YLAB, IV, task_name, w, h, COLOR) {
+}
 ```
 
 # 2-2. full factorial
-```{r}
 
-```
 
-```{r}
+```{r FUNCTION: cue_stim_contrast}
 cue_stim_contrast = function(DATA){
   # [ CONTRASTS ]  ----------------------------------------------------------------------------
 DATA$stim[DATA$param_stimulus_type == "low_stim"] <- -0.5 # social influence task
@@ -678,7 +654,7 @@ return(as.data.frame(DATA))
 }
 ```
 
-
+# MODEL 2: actual rating = CUE X STIM
 ```{r}
 
 combined_se_calc =  data.frame()
@@ -690,13 +666,13 @@ DV = "event04_actual_angle"
 DV_KEYWORD = "actual"
 XLAB = ""; YLAB = "judgment (degree)"; 
 
-for (TASKNAME in c("pain","vicarious", "cognitive")){
+for (TASKNAME in c("pain","vicarious","cognitive")){
 GGTITLE = paste(TASKNAME, " - actual judgment (degree)")
 TITLE = paste(TASKNAME, " - actual")
 SUBJECT = "subject"
 EXCLUDE = ""
 DATA = expect_df(TASKNAME, SUBJECT_VARKEY, IV, DV, EXCLUDE )
-analysis_dir = file.path(main_dir,'analysis', 'mixedeffect', 'model02_cue_stim_actualrating')
+analysis_dir = file.path(main_dir,'analysis', 'mixedeffect', 'model03_cue_stim_actualrating_ohbm')
 
 w = 10; h = 6
 
@@ -782,12 +758,9 @@ write.csv(new_total, save_fname, row.names = FALSE)
 
 # plot using for loop
 ### FUNCTION: lineplot
-```{r}
+```{r FUNCTION: lineplot}
 line_plot <- function(DATA, TASK, IV1, IV2, MEAN, ERROR, COLOR, GGTITLE){
-# IV1 = "levels_ordered"
-# IV2 = "social_ordered"
-# MEAN = mean_per_sub_norm_mean
-# ERROR = ci
+
   SUBSET = DATA[ which(DATA$task == TASK),]
 
   g = ggplot(data = SUBSET, aes(x = .data[[IV1]], y = .data[[MEAN]], 
@@ -811,6 +784,31 @@ g
   }
 ```
 
+```{r FUNCTION: line_plot_onefactor}
+line_plot_onefactor <- function(DATA, TASK, IV1, MEAN, ERROR, COLOR, GGTITLE, XLAB, YLAB){
+
+  SUBSET = DATA[ which(DATA$task == TASK),]
+
+  g = ggplot(data = SUBSET, aes(x = .data[[IV1]], y = .data[[MEAN]], 
+                                ), cex.lab=1.5, cex.axis=2, cex.main=1.5, cex.sub=1.5) + 
+  geom_errorbar(aes(ymin = (.data[[MEAN]]-.data[[ERROR]]), ymax = (.data[[MEAN]]+.data[[ERROR]])), width = .1) + 
+  geom_line() + 
+  geom_point() + 
+  #scale_x_continuous(breaks = seq(-3, +3, by = 1)) +
+  #scale_y_continuous(breaks = seq(0, 90, by=30), limits=c(0,90)) +
+  ggtitle(GGTITLE) +
+ # ggtitle(expression(atop(GGTITLE, 
+ #                         atop(italic("cue effect on actual experience"), "")))) +
+  xlab(XLAB) + 
+  ylab(YLAB) + 
+  #guides(fill=guide_legend(title="Social Endorsement Position")) +
+  scale_color_manual(values=COLOR) + 
+  theme_classic() + 
+  theme(legend.position="none") 
+  theme(aspect.ratio=.6)
+g
+  }
+```
 
 ```{r}
 library(ggpubr)
@@ -828,7 +826,7 @@ p3 = line_plot(DATA, 'cognitive',
                LINEIV1, LINEIV2, MEAN, ERROR, color,GGTITLE = 'cognitive')
 #grid.arrange(p1, p2, p3, ncol=3 , common.legend = TRUE)
 ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
-plot_filename = file.path(main_dir, 'analysis','mixedeffect','model02_cue_stim_actualrating', paste('socialinfluence_task-total_rating-',DV_KEYWORD,'.png', sep = ""))
+plot_filename = file.path(main_dir, 'analysis','mixedeffect','model03_cue_stim_actualrating_sfn', paste('socialinfluence_task-total_rating-',DV_KEYWORD,'.png', sep = ""))
 ggsave(plot_filename, width = 7, height = 3)
 
 ```
@@ -858,7 +856,27 @@ PV = ggplot(aes(x=vicarious, y=pain), data=PVC_rand_cue, cex.lab=1.5, cex.axis=2
 VC = ggplot(aes(x=cognitive, y=vicarious), data=PVC_rand_cue, cex.lab=1.5, cex.axis=2, cex.main=1.5, cex.sub=1.5) + geom_point() + theme_classic() +  theme(aspect.ratio=1)+ stat_cor(p.accuracy = 0.001, r.accuracy = 0.01)
 CP = ggplot(aes(x=pain, y=cognitive), data=PVC_rand_cue, cex.lab=1.5, cex.axis=2, cex.main=1.5, cex.sub=1.5) + geom_point() + theme_classic() +  theme(aspect.ratio=1) + stat_cor(p.accuracy = 0.001, r.accuracy = 0.01)
 ggpubr::ggarrange(PV,VC,CP,ncol = 3, nrow = 1, common.legend = FALSE,legend = "bottom")
-plot_filename = file.path(main_dir, 'analysis','mixedeffect','model02_cue_stim_actualrating', paste('socialinfluence_task-total_rating-',DV_KEYWORD,'_correlation-rand-cue-coef.png', sep = ""))
+plot_filename = file.path(main_dir, 'analysis','mixedeffect','model03_cue_stim_actualrating_sfn', paste('socialinfluence_task-total_rating-',DV_KEYWORD,'_correlation-rand-cue-coef.png', sep = ""))
+ggsave(plot_filename, width = 7, height = 3)
+
+```
+# plot separately AFTER REMOVING OUTLIERS
+```{r}
+PVC_rand_cue_subset = subset(PVC, select  = c(task, subj, rand_cue))
+PVC_rand_cue_rmoutlier = PVC_rand_cue_subset[PVC_rand_cue_subset$sub != 13, ]  
+
+PVC_rand_cue_rm = spread(PVC_rand_cue_rmoutlier, key = task, value = rand_cue)
+PV = ggplot(aes(x=vicarious, y=pain), data=PVC_rand_cue_rm, cex.lab=1.5, cex.axis=2, cex.main=1.5, cex.sub=1.5) + geom_point() + theme_classic() +  theme(aspect.ratio=1) + stat_cor(p.accuracy = 0.001, r.accuracy = 0.01) 
+# + xlim(-15, 15) + ylim(-15, 15)
+
+VC = ggplot(aes(x=cognitive, y=vicarious), data=PVC_rand_cue_rm, cex.lab=1.5, cex.axis=2, cex.main=1.5, cex.sub=1.5) + geom_point() + theme_classic() +  theme(aspect.ratio=1)+ stat_cor(p.accuracy = 0.001, r.accuracy = 0.01) 
+# + xlim(-15, 15) + ylim(-15, 15)
+
+CP = ggplot(aes(x=pain, y=cognitive), data=PVC_rand_cue_rm, cex.lab=1.5, cex.axis=2, cex.main=1.5, cex.sub=1.5, cex.xlim=c(0,30), cex.ylim=c(0,150)) + geom_point() + theme_classic() +  theme(aspect.ratio=1) + stat_cor(p.accuracy = 0.001, r.accuracy = 0.01) 
+# + xlim(-15, 15) + ylim(-15, 15)
+
+ggpubr::ggarrange(PV,VC,CP,ncol = 3, nrow = 1, common.legend = FALSE,legend = "bottom")
+plot_filename = file.path(main_dir, 'analysis','mixedeffect','model03_cue_stim_actualrating_sfn', paste('socialinfluence_task-total_rating-',DV_KEYWORD,'_correlation-rand-cue-coef_rmoutlier.png', sep = ""))
 ggsave(plot_filename, width = 7, height = 3)
 
 ```
@@ -885,6 +903,399 @@ scatterplotMatrix(~pain+vicarious+cognitive, data=PVC_indiff_cue ,
       main="Scatter plot with Three Cylinder Options"
       )
 ```
+
+
+# MODEL 3: DEMEAN actual rating = CUE X STIM
+```{r}
+
+combined_se_calc =  data.frame()
+combined_se_calc_session =  data.frame()
+combined_se_calc_cue = data.frame()
+# 1. [ PARAMETERS ]  ----------------------------------------------------------------------------
+# TASKNAME = 'cognitive'
+SUBJECT_VARKEY = "src_subject_id"
+IV1 = "param_cue_type"
+DV = "event04_actual_angle"
+DV_KEYWORD = "demean_actual"
+XLAB = ""; YLAB = "judgment (degree)"; 
+
+for (TASKNAME in c("pain","vicarious", "cognitive")){
+GGTITLE = paste(TASKNAME, " - actual judgment (degree)")
+TITLE = paste(TASKNAME, " - actual")
+SUBJECT = "subject"
+EXCLUDE = ""
+DATA = expect_df(TASKNAME, SUBJECT_VARKEY, IV, DV, EXCLUDE )
+analysis_dir = file.path(main_dir,'analysis', 'mixedeffect', 'model03_cue_stim_actualrating_sfn')
+
+w = 10; h = 6
+
+# [ CONTRASTS ]  ----------------------------------------------------------------------------
+DATA = cue_stim_contrast(DATA)
+STIMC1 = "stim_con_linear"
+STIMC2 = "stim_con_quad"
+SESSION = "session_id"
+DATA$demean_ACTUAL = DATA$event04_actual_angle -mean(DATA$event04_actual_angle)
+MODELDV = "demean_ACTUAL"
+# [ MODEL ] ----------------------------------------------------------------------------
+MODEL_3FNAME = file.path(analysis_dir, paste('lmer_task-', TASKNAME, '_rating-',MODELDV,'.txt',sep = ''))
+model.3 = run_cue_stim_lmer(DATA,TASKNAME, IV1, STIMC1,STIMC2, MODELDV, SUBJECT, DV_KEYWORD, MODEL_3FNAME)
+MODEL_4FNAME = file.path(analysis_dir, paste('lmer_task-', TASKNAME, '_rating-',MODELDV,'_session.txt',sep = ''))
+model.4 = run_cue_stim_ses_lmer(DATA,TASKNAME, IV1, STIMC1,STIMC2,SESSION, MODELDV, SUBJECT, DV_KEYWORD, MODEL_4FNAME)
+
+# [ PLOT ] reordering for plots ----------------------------------------------------------------------------
+DATA$cue_name[DATA$param_cue_type == "high_cue"] <- "high cue"
+DATA$cue_name[DATA$param_cue_type == "low_cue"] <- "low cue" # no influence task
+
+DATA$stim_name[DATA$param_stimulus_type == "high_stim"] <- "high" # no influence task
+DATA$stim_name[DATA$param_stimulus_type == "med_stim"] <- "med" # no influence task
+DATA$stim_name[DATA$param_stimulus_type == "low_stim"] <- "low" # no influence task
+
+# DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
+
+DATA$stim_ordered <- factor(DATA$stim_name, levels=c("low", "med", "high"))
+DATA$cue_ordered <- factor(DATA$cue_name, levels=c("low cue", "high cue"))
+
+MODELIV1 = "stim_ordered"; MODELIV2 = "cue_ordered"
+
+
+#  [ PLOT ] calculate mean and se  ----------------------------------------------------------------------------
+actual_subjectwise = meanSummary(DATA, c(SUBJECT, MODELIV1, MODELIV2), MODELDV)
+actual_groupwise = summarySEwithin(data=actual_subjectwise, measurevar = "mean_per_sub", withinvars = c(MODELIV1, MODELIV2), idvar = SUBJECT)
+actual_groupwise$task = TASKNAME
+#  ----------------------------------------------------------------------------
+actual_sessionwise = meanSummary(DATA, c(SUBJECT, MODELIV1, MODELIV2, "session_id"), MODELDV)
+actual_groupsessionwise = summarySEwithin(data=actual_sessionwise, measurevar = "mean_per_sub", withinvars = c(MODELIV1, MODELIV2,"session_id"), idvar = SUBJECT)
+#  ----------------------------------------------------------------------------
+actual_groupsessionwise$task = TASKNAME
+# https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+combined_se_calc = rbind(combined_se_calc, actual_groupwise)
+combined_se_calc_session = rbind(combined_se_calc_session, actual_groupsessionwise)
+#  ----------------------------------------------------------------------------
+G = actual_sessionwise %>%
+  arrange(subject, session_id, stim_ordered) %>%
+  mutate(mean_per_sub = mean_per_sub-lag(mean_per_sub,default=first(mean_per_sub)) )
+cue_effect = G[!(G$cue_ordered == "low cue"),]
+actual_groupcuewise = summarySEwithin(data=cue_effect, measurevar = "mean_per_sub", withinvars = c("session_id"), idvar = SUBJECT)
+actual_groupcuewise$task = TASKNAME
+combined_se_calc_cue= rbind(combined_se_calc_cue, actual_groupcuewise)
+
+#if(any(startsWith(DV_KEYWORD, c("expect", "Expect")))){COLOR = c( "#1B9E77", "#D95F02")}else{COLOR=c( "#4575B4", "#D73027")} # if keyword starts with
+#print("groupwisemean")
+#  [ PLOT ] calculate mean and se  ----------------------------------------------------------------------------
+SUB_MEAN = "mean_per_sub"; GROUP_MEAN = "mean_per_sub_norm_mean"; SE = "se"; SUBJECT = "subject";
+GGTITLE = paste(TASKNAME, " - Actual Rating (degree)"); TITLE = paste(TASKNAME, " - Actual");
+XLAB = ""; YLAB = "ratings (degree)";
+DV_KEYWORD = "demean_actual"
+if(any(startsWith(DV_KEYWORD, c("expect", "Expect")))){COLOR = c( "#1B9E77", "#D95F02")}else{COLOR=c( "#4575B4", "#D73027")} # if keyword starts with
+SAVE_FNAME = file.path(analysis_dir,paste('socialinfluence_task-' ,TASKNAME, '_rating-', DV_KEYWORD,'.png', sep = ""))
+plot_actual_rainclouds(actual_subjectwise, actual_groupwise, MODELIV1, MODELIV2,
+                       SUB_MEAN, GROUP_MEAN, SE, SUBJECT,
+                       GGTITLE, TITLE, XLAB, YLAB,TASKNAME, w, h, DV_KEYWORD,COLOR, SAVE_FNAME)
+
+
+
+# [ FIXED RANDOM EFFECTS ]save fixed random effects    ----------------------------------------------------------------------------
+require(plyr)
+randEffect$newcoef <- mapvalues(randEffect$term,
+          from=c("(Intercept)","DATA[, IV]low_cue","DATA[, STIMC1]", "DATA[, STIMC2]", "DATA[, IV]low_cue:DATA[, STIMC1]", "DATA[, IV]low_cue:DATA[, STIMC2]"),
+          to=c("rand_intercept","rand_cue","rand_stimulus_linear", "rand_stimulus_quad", "rand_int_cue_stimlin", "rand_int_cue_stimquad"))
+
+# 
+# # The arguments to spread():
+# # - data: Data object
+# # - key: Name of column containing the new column names
+# # - value: Name of column containing values
+# 
+# # TODO: add fixed effects
+# 
+
+rand_subset = subset(randEffect, select  = -c(grpvar, term, condsd))
+wide_rand = spread(rand_subset, key = newcoef, value = condval)
+wide_rand$task = TASKNAME
+wide_fix = do.call("rbind", replicate(nrow(wide_rand), as.data.frame(t(as.matrix(fixEffect))), simplify = FALSE))
+rownames(wide_fix)<-NULL
+new_wide_fix = dplyr::rename(wide_fix, fix_intercept = `(Intercept)`,    
+                             fix_cue = `DATA[, IV]low_cue`,
+              fix_stimulus_linear = `DATA[, STIMC1]`,
+     fix_stimulus_quad = `DATA[, STIMC2]`,    fix_int_cue_stimlin = `DATA[, IV]low_cue:DATA[, STIMC1]`,
+    fix_int_cue_stimquad = `DATA[, IV]low_cue:DATA[, STIMC2]`  )
+
+total <- cbind(wide_rand,new_wide_fix)
+new_total <- total %>% select(task, everything())
+new_total = dplyr::rename(new_total, subj = grp)
+
+save_fname = file.path(analysis_dir, paste('task-',TASKNAME,'_', DV_KEYWORD,'.csv',  sep='') )
+write.csv(new_total, save_fname, row.names = FALSE)
+
+# [ RAND EFFECTS AND SESSION ] Session
+SESrandEffect$newcoef <- mapvalues(SESrandEffect$term,
+          from=c("(Intercept)","DATA[, IV]low_cue","DATA[, STIMC1]", "DATA[, STIMC2]","DATA[, SES]",
+                 "DATA[, IV]low_cue:DATA[, STIMC1]", "DATA[, IV]low_cue:DATA[, STIMC2]",
+                 "DATA[, IV]low_cue:DATA[, SES]",
+                 "DATA[, IV]low_cue:DATA[, STIMC1]:DATA[, SES]","DATA[, IV]low_cue:DATA[, SES]:DATA[, STIMC2]" ),
+          to=c("rand_intercept","rand_cue","rand_stimulus_linear", "rand_stimulus_quad","rand_ses" ,
+               "rand_int_cue_stimlin", "rand_int_cue_stimquad","rand_int_cue_ses", 
+               "rand_int_cue_ses_stimlin", "rand_int_cue_ses_stimquad"))
+SESrand_subset = subset(SESrandEffect, select  = -c(grpvar, term, condsd))
+Swide_rand = spread(SESrand_subset, key = newcoef, value = condval)
+Swide_rand$task = TASKNAME
+Swide_fix = do.call("rbind", replicate(nrow(Swide_rand), as.data.frame(t(as.matrix(SESfixEffect))), simplify = FALSE))
+rownames(Swide_fix)<-NULL
+ses_new_wide_fix = dplyr::rename(Swide_fix, fix_intercept = `(Intercept)`,    
+                             fix_cue = `DATA[, IV]low_cue`,
+                             fix_stimulus_linear = `DATA[, STIMC1]`,
+                             fix_stimulus_quad = `DATA[, STIMC2]`,    
+                             fix_ses = `DATA[, SES]`,
+                             fix_int_cue_stimlin = `DATA[, IV]low_cue:DATA[, STIMC1]`,
+                             fix_int_cue_stimquad = `DATA[, IV]low_cue:DATA[, STIMC2]`,
+                             fix_int_cue_ses = `DATA[, IV]low_cue:DATA[, SES]`,
+                             fix_int_ses_stimlin = `DATA[, STIMC1]:DATA[, SES]`,
+                             fix_int_ses_stimquad = `DATA[, SES]:DATA[, STIMC2]`,
+                             fix_int_ses_cue_stimlin = `DATA[, IV]low_cue:DATA[, STIMC1]:DATA[, SES]`,
+                             fix_int_ses_cue_stimquad = `DATA[, IV]low_cue:DATA[, SES]:DATA[, STIMC2]`)
+
+ses_total <- cbind(Swide_rand,ses_new_wide_fix)
+ses_new_total <- ses_total %>% select(task, everything())
+ses_new_total = dplyr::rename(ses_new_total, subj = grp)
+
+save_fname = file.path(analysis_dir, paste('task-',TASKNAME,'_', DV_KEYWORD,'_session.csv',  sep='') )
+write.csv(ses_new_total, save_fname, row.names = FALSE)
+}
+
+```
+
+
+```{r}
+library(ggpubr)
+DATA = as.data.frame(combined_se_calc)
+color = c( "#4575B4", "#D73027")
+LINEIV1 = "stim_ordered"
+LINEIV2 = "cue_ordered"
+MEAN = "mean_per_sub_norm_mean"
+ERROR = "ci"
+p1 = line_plot(DATA, 'pain', 
+               LINEIV1, LINEIV2, MEAN, ERROR, color, GGTITLE = 'pain' )
+p2 = line_plot(DATA,'vicarious', 
+               LINEIV1, LINEIV2, MEAN, ERROR, color,GGTITLE = 'vicarious')
+p3 = line_plot(DATA, 'cognitive', 
+               LINEIV1, LINEIV2, MEAN, ERROR, color,GGTITLE = 'cognitive')
+#grid.arrange(p1, p2, p3, ncol=3 , common.legend = TRUE)
+ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
+plot_filename = file.path(main_dir, 'analysis','mixedeffect','model03_cue_stim_actualrating_sfn', paste('socialinfluence_task-total_rating-',DV_KEYWORD,'.png', sep = ""))
+ggsave(plot_filename, width = 7, height = 3)
+
+```
+
+# PER SESSION
+
+
+# PER SESSION line plot
+```{r}
+dfP_ses = read.csv(file.path(analysis_dir, paste('task-pain_',DV_KEYWORD,'_session.csv',  sep='') ))
+dfV_ses = read.csv(file.path(analysis_dir, paste('task-vicarious_',DV_KEYWORD,'_session.csv',  sep='') ))
+dfC_ses = read.csv(file.path(analysis_dir, paste('task-cognitive_',DV_KEYWORD,'_session.csv',  sep='') ))
+PVC_ses <- merge_recurse(list(dfP_ses,dfV_ses,dfC_ses))
+
+save_fname = file.path(analysis_dir, paste('PVC_mixedeffect_coef',DV_KEYWORD,'_session.csv',  sep='') )
+write.csv(PVC_ses, save_fname, row.names = FALSE)
+
+```
+```{r}
+# cue effect per session 
+
+# 
+# G = actual_sessionwise %>%
+#   arrange(subject, session_id, stim_ordered) %>%
+#   mutate(diff = mean_per_sub-lag(mean_per_sub,default=first(mean_per_sub)) )
+# 
+# cue_effect = G[!(G$cue_ordered == "low cue"),]
+
+session_groupwise = summarySEwithin(data=cue_effect, measurevar = "mean_per_sub", withinvars = c("stim_ordered","session_id"), idvar = "subject")
+
+color = c( "#4575B4", "#D73027")
+LINEIV1 = "stim_ordered"
+LINEIV2 = "cue_ordered"
+MEAN = "mean_per_sub_norm_mean"
+ERROR = "ci"
+ses1=combined_se_calc_session[combined_se_calc_session$session_id == 1, ]
+ses3=combined_se_calc_session[combined_se_calc_session$session_id == 3, ]
+ses4=combined_se_calc_session[combined_se_calc_session$session_id == 4, ]
+
+p11 = line_plot(ses1 , 'pain',
+               LINEIV1, LINEIV2, MEAN, ERROR, color, GGTITLE = 'pain - session 1')
+p12 = line_plot(ses3  , 'pain',
+               LINEIV1, LINEIV2, MEAN, ERROR, color, GGTITLE = 'pain - session 3')
+p13 = line_plot(ses4  , 'pain',
+               LINEIV1, LINEIV2, MEAN, ERROR, color, GGTITLE = 'pain - session 4')
+
+
+p21 = line_plot(ses1 , 'vicarious',
+               LINEIV1, LINEIV2, MEAN, ERROR, color, GGTITLE = 'vicarious - session 1')
+p22 = line_plot(ses3  , 'vicarious',
+               LINEIV1, LINEIV2, MEAN, ERROR, color, GGTITLE = 'vicarious - session 3')
+p23 = line_plot(ses4  , 'vicarious',
+               LINEIV1, LINEIV2, MEAN, ERROR, color, GGTITLE = 'vicarious - session 4')
+
+p31 = line_plot(ses1 , 'cognitive',
+               LINEIV1, LINEIV2, MEAN, ERROR, color, GGTITLE = 'cognitive - session 1')
+p32 = line_plot(ses3  , 'cognitive',
+               LINEIV1, LINEIV2, MEAN, ERROR, color, GGTITLE = 'cognitive - session 3')
+p33 = line_plot(ses4  , 'cognitive',
+               LINEIV1, LINEIV2, MEAN, ERROR, color, GGTITLE = 'cognitive - session 4')
+
+ggpubr::ggarrange(p11,p12,p13,p21,p22,p23,p31,p32,p33,ncol = 3, nrow = 3, common.legend = TRUE,legend = "bottom")
+plot_filename = file.path(main_dir, 'analysis','mixedeffect','model03_cue_stim_actualrating_sfn', paste('socialinfluence_task-total_rating-',DV_KEYWORD,'_per_session.png', sep = ""))
+ggsave(plot_filename, width = 7, height = 9)
+```
+
+```{r}
+library(ggpubr)
+# combined_se_calc_cue (includes both session_id and stim_ordered)
+
+# cue effect per session 
+session_groupwise = summarySEwithin(data=combined_se_calc_cue, measurevar = "mean_per_sub_mean", withinvars = c("task","session_id"), idvar = "subject")
+
+color = c( "#4575B4", "#D73027")
+LINEIV1 = "stim_ordered"
+LINEIV2 = "cue_ordered"
+MEAN = "mean_per_sub_norm_mean"
+ERROR = "ci"
+ses1=combined_se_calc_cue[combined_se_calc_cue$session_id == 1, ]
+ses3=combined_se_calc_cue[combined_se_calc_cue$session_id == 3, ]
+ses4=combined_se_calc_cue[combined_se_calc_cue$session_id == 4, ]
+
+p11 = line_plot_onefactor(ses1 , 'pain',
+               LINEIV1,  MEAN, ERROR, color, GGTITLE = 'pain - session 1')
+p12 = line_plot_onefactor(ses3  , 'pain',
+               LINEIV1, MEAN, ERROR, color, GGTITLE = 'pain - session 3')
+p13 = line_plot_onefactor(ses4  , 'pain',
+               LINEIV1,  MEAN, ERROR, color, GGTITLE = 'pain - session 4')
+
+
+p21 = line_plot_onefactor(ses1 , 'vicarious',
+               LINEIV1,  MEAN, ERROR, color, GGTITLE = 'vicarious - session 1')
+p22 = line_plot_onefactor(ses3  , 'vicarious',
+               LINEIV1, MEAN, ERROR, color, GGTITLE = 'vicarious - session 3')
+p23 = line_plot_onefactor(ses4  , 'vicarious',
+               LINEIV1,  MEAN, ERROR, color, GGTITLE = 'vicarious - session 4')
+
+p31 = line_plot_onefactor(ses1 , 'cognitive',
+               LINEIV1, MEAN, ERROR, color, GGTITLE = 'cognitive - session 1')
+p32 = line_plot_onefactor(ses3  , 'cognitive',
+               LINEIV1,MEAN, ERROR, color, GGTITLE = 'cognitive - session 3')
+p33 = line_plot_onefactor(ses4  , 'cognitive',
+               LINEIV1, MEAN, ERROR, color, GGTITLE = 'cognitive - session 4')
+
+ggpubr::ggarrange(p11,p12,p13,p21,p22,p23,p31,p32,p33,ncol = 3, nrow = 3, common.legend = TRUE,legend = "bottom")
+plot_filename = file.path(main_dir, 'analysis','mixedeffect','model03_cue_stim_actualrating_sfn', paste('socialinfluence_task-total_rating-',DV_KEYWORD,'_per_session_cueeffect.png', sep = ""))
+ggsave(plot_filename, width = 7, height = 9)
+
+```
+
+```{r}
+
+
+library(ggpubr)
+SDATA = as.data.frame(combined_se_calc_cue)
+color = c( "#4575B4", "#D73027")
+LINEIV1 = "session_id"
+LINEIV2 = "cue_ordered"
+MEAN = "mean_per_sub_norm_mean"
+ERROR = "ci"
+XLAB = "session"
+  YLAB = "cue effect on actual rating (high > low cue)"
+
+p11 = line_plot_onefactor(SDATA , 'pain',
+               LINEIV1,  MEAN, ERROR, color, GGTITLE = 'pain - cue effect', XLAB, YLAB )
+p12 = line_plot_onefactor(SDATA  , 'vicarious',
+               LINEIV1,  MEAN, ERROR, color, GGTITLE = 'vicarious - cue effect', XLAB, YLAB)
+p13 = line_plot_onefactor(SDATA  , 'cognitive',
+               LINEIV1,  MEAN, ERROR, color, GGTITLE = 'cognitive - cue effect', XLAB, YLAB)
+
+ggpubr::ggarrange(p11,p12,p13,ncol = 1, nrow = 3, common.legend = TRUE,legend = "bottom")
+plot_filename = file.path(main_dir, 'analysis','mixedeffect','model03_cue_stim_actualrating_sfn', paste('socialinfluence_task-total_rating-',DV_KEYWORD,'_per_session_cueeffect.png', sep = ""))
+ggsave(plot_filename, width = 3, height = 7)
+
+```
+
+
+# concat mixed effect coefficients
+```{r}
+# stack task- .csv
+dfP = read.csv(file.path(analysis_dir, paste('task-pain_',DV_KEYWORD,'.csv',  sep='') ))
+dfV = read.csv(file.path(analysis_dir, paste('task-vicarious_',DV_KEYWORD,'.csv',  sep='') ))
+dfC = read.csv(file.path(analysis_dir, paste('task-cognitive_',DV_KEYWORD,'.csv',  sep='') ))
+PVC <- merge_recurse(list(dfP,dfV,dfC))
+
+save_fname = file.path(analysis_dir, paste('PVC_mixedeffect_coef',DV_KEYWORD,'.csv',  sep='') )
+write.csv(PVC, save_fname, row.names = FALSE)
+
+
+```
+
+```{r}
+PVC_rand_cue_subset = subset(PVC, select  = c(task, subj, rand_cue))
+PVC_rand_cue_rmoutlier = PVC_rand_cue_subset[PVC_rand_cue_subset$sub != 13, ]  
+
+PVC_rand_cue_rm = spread(PVC_rand_cue_rmoutlier, key = task, value = rand_cue)
+PV = ggplot(aes(x=vicarious, y=pain), data=PVC_rand_cue_rm, cex.lab=1.5, cex.axis=2, cex.main=1.5, cex.sub=1.5) + geom_point(shape = 21, fill = "lightgray", color = "black", size = 3) + theme_classic() +  theme(aspect.ratio=1) + stat_cor(p.accuracy = 0.001, r.accuracy = 0.01) 
+# + xlim(-15, 15) + ylim(-15, 15)
+
+VC = ggplot(aes(x=cognitive, y=vicarious), data=PVC_rand_cue_rm, cex.lab=1.5, cex.axis=2, cex.main=1.5, cex.sub=1.5) + geom_point(shape = 21, fill = "lightgray", color = "black", size = 3) + theme_classic() +  theme(aspect.ratio=1)+ stat_cor(p.accuracy = 0.001, r.accuracy = 0.01) 
+# + xlim(-15, 15) + ylim(-15, 15)
+
+CP = ggplot(aes(x=pain, y=cognitive), data=PVC_rand_cue_rm, cex.lab=1.5, cex.axis=2, cex.main=1.5, cex.sub=1.5, cex.xlim=c(0,30), cex.ylim=c(0,150)) + geom_point(shape = 21, fill = "lightgray", color = "black", size = 3) + theme_classic() +  theme(aspect.ratio=1) + stat_cor(p.accuracy = 0.001, r.accuracy = 0.01) 
+# + xlim(-15, 15) + ylim(-15, 15)
+
+ggpubr::ggarrange(PV,VC,CP,ncol = 3, nrow = 1, common.legend = FALSE,legend = "bottom")
+plot_filename = file.path(main_dir, 'analysis','mixedeffect','model03_cue_stim_actualrating_sfn', paste('socialinfluence_task-total_rating-',DV_KEYWORD,'_correlation-rand-cue-coef_rmoutlier.png', sep = ""))
+ggsave(plot_filename, width = 7, height = 3)
+
+```
+
+```{r}
+
+# ggplot(data = DATA,
+#        aes(x = social_cue,
+#            y = event04_actual_angle,
+#            group = stim_factor,
+#            color = as.factor(src_subject_id)))+
+#          geom_point(size = 1.2, alpha = .8,
+#                     position = "jitter") +
+#          theme_minimal() +
+# geom_abline(slope=coef(model.3)$`DATA[, SUBJECT]`[,2], intercept=coef(model.3)$`DATA[, SUBJECT]`[,1]) +
+#          labs(title = "actual rating vs cue")
+# model.full = lmer( DATA[,DV] ~ DATA[,IV]*DATA[,STIMC1] + DATA[,IV]*DATA[,STIMC2] + 
+#                     (DATA[,IV]*DATA[,STIMC1] + DATA[,IV]*DATA[,STIMC2] | DATA[,SUBJECT])) 
+#                     # + 
+#       
+# 
+
+# VERSION2__________________________________________________
+
+model.3 = lmer(event04_actual_angle ~ param_cue_type*param_stimulus_type + (param_cue_type|src_subject_id), data = DATA)
+# g  = ggplot(data = DATA, aes(x = .data[[IV1]], y = .data[[MEAN]],
+#                                 group = factor(.data[[IV2]]), color = factor(.data[[IV2]])), cex.lab=1.5, cex.axis=2, cex.main=1.5, c
+
+# DATA$random.coefficients.predictions <- predict(model.3)
+# random.coef.graph <- ggplot(aes(x = social_cue, y = random.coefficients.predictions,
+#                                 color = as.factor(src_subject_id)), data = DATA) +
+# geom_line(size=.3) +
+# geom_point(aes(y = event04_actual_angle)) +
+# ggthemes::theme_tufte() #just to make it nice!
+# random.coef.graph 
+
+
+g = ggplot(DATA, aes(y = event04_actual_angle, x = factor(social_cue))) +  
+    geom_point(size = 3, col = "firebrick", alpha = 0.5) + 
+    geom_line(aes(group = src_subject_id)) +
+    labs(x = "Year", y = "Patch length (mm)") + 
+    theme_classic()
+g
+```
+
+
+
 
 ```{r}
 library(psych)
