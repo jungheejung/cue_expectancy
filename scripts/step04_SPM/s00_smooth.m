@@ -11,8 +11,9 @@ sub_num = input;
 sub = strcat('sub-', sprintf('%04d', sub_num));
 
 disp(strcat('subject: ', sub));
-
-fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/';
+fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/fmriprep'
+% fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/';
+smooth_output_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/analysis/fmri/smooth6mm';
 % main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
 main_dir = fileparts(fileparts(pwd)); %'/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social';
 filelist = dir(fullfile(fmriprep_dir, sub, '*/func/*task-social*_bold.nii.gz'));
