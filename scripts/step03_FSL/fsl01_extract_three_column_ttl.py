@@ -174,7 +174,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                 mri_ttl['plateau_dur'] = mri_ttl['ttl_3'] - mri_ttl['ttl_2']
                 # merge biopac data
                 mri_ttl.rename(dict_col, axis='columns',inplace = True)
-                mri_ttl_fname = os.path.join(ev_bids_dir, sub, label+'_events_ttl.tsv' )
+                mri_ttl_fname = os.path.join(ev_bids_dir, sub, ses, label+'_events_ttl.tsv' )
                 mri_ttl.to_csv(mri_ttl_fname, index=None,sep='\t')
                 # II. create EV ________________________________________________________________________
                 # column 1: onset, column 2: duration, column 3: value of the input during period (parametric modulator)
