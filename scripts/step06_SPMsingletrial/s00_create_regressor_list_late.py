@@ -34,13 +34,14 @@ def _event_sort(df, ind_first, ev, ev_name, dur, mod, regressor, cue_type, stim_
     df.loc[ind_first: len(df['ev']), 'stim_type'] = stim_type
     return df
 # %% parameters ________________________________________________________________________
+keyword = 'late'
 current_dir = os.getcwd()
 main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
-
+biopac_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/biopac/'
 csv_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd02_preprocessed')
 ev_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd03_EV_FSL')
 ev_bids_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd04_EV_SPM')
-ev_single_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd06_singletrial_SPM_02-pain-late')
+ev_single_dir = os.path.join(main_dir, 'data', 'dartmouth', f'd06_singletrial_SPM_02-pain-{keyword}')
 
 dict_cue = {'low_cue':-1, 'high_cue':1}
 dict_stim = {'low_stim':-1, 'med_stim':0, 'high_stim':1}
@@ -70,15 +71,14 @@ sub_list = next(os.walk(csv_dir))[1]
 sub_list.remove('sub-0001')
 for sub in sub_list:
     beh_list = []
-    beh_list = glob.glob(os.path.join(csv_dir, sub, '*','*pain*_beh.csv'))
-    beh_list = glob.glob(os.path.join(main_dir, 'data', 'dartmouth', 'd06_singletrial_SPM', sub, '*', '*_ttl.tsv'))
+    beh_list = glob.glob(os.path.join(biopac_dir, 'dartmouth', 'b03_extract_ttl', sub, '*', 'task-social', '*_physio-ttl.csv' ))
     subject_dataframe = pd.DataFrame([])
     if beh_list:
         for ind, fpath in enumerate(sorted(beh_list)):
             fname = os.path.basename(fpath)
             
             df = pd.DataFrame()
-            df = pd.read_csv(fpath, sep = '\t')
+            df = pd.read_csv(fpath, sep = ',')
             fname = os.path.basename(fpath)
             df.rename(columns = dict_col, inplace = True)
 
@@ -141,7 +141,7 @@ for sub in sub_list:
             new.loc[cue_num+trial_num, 'regressor'] = False
 
             matlab_rating = pd.concat([rating, rt], axis = 1)
-            matlabname = f'{sub}_ses-{ses_num:02d}_run-{run_num:02d}_rating_late.csv'
+            matlabname = f'{sub}_ses-{ses_num:02d}_run-{run_num:02d}_rating_{keyword}.csv'
             matlab_rating.to_csv(os.path.join(ev_single_dir, sub, matlabname), index = False, header = ['rating', 'rt'] ) #sub-####_ses-##_run-##_event-rating.csv
 
             new.loc[0:cue_num+trial_num-1,'cue_con'] = pd.concat([df['param_cue_type'].map(dict_cue)]*2, ignore_index=True)
@@ -171,7 +171,7 @@ for sub in sub_list:
             subject_dataframe = subject_dataframe.append(new)
 
         subject_dataframe.reset_index(inplace = True)
-        subject_dataframe.to_csv(os.path.join(ev_single_dir, sub,  f'{sub}_singletrial_late.csv'), index_col=False)
+        subject_dataframe.to_csv(os.path.join(ev_single_dir, sub,  f'{sub}_singletrial_{keyword}.csv'), index_col=False)
     else:
         print(f"{sub} doesnt exist")
         
