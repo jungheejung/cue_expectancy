@@ -33,13 +33,14 @@ def _event_sort(df, ind_first, ev, ev_name, dur, mod, regressor, cue_type, stim_
     df.loc[ind_first: len(df['ev']), 'stim_type'] = stim_type
     return df
 # %% parameters ________________________________________________________________________
+keyword = 'nottl'
 current_dir = os.getcwd()
 main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
 
 csv_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd02_preprocessed')
 ev_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd03_EV_FSL')
 ev_bids_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd04_EV_SPM')
-ev_single_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd06_singletrial_SPM')
+ev_single_dir = os.path.join(main_dir, 'data', 'dartmouth', f'd06_singletrial_SPM_05-pain-{keyword}')
 dict_cue = {'low_cue':-1, 'high_cue':1}
 dict_stim = {'low_stim':-1, 'med_stim':0, 'high_stim':1}
 dict_stim_q = {'low_stim':1, 'med_stim':-2, 'high_stim':1}
@@ -142,6 +143,6 @@ for sub in sub_list:
         subject_dataframe = subject_dataframe.append(new)
 
     subject_dataframe.reset_index(inplace = True)
-    subject_dataframe.to_csv(os.path.join(ev_single_dir, sub,  f'{sub}_singletrial.csv'))
+    subject_dataframe.to_csv(os.path.join(ev_single_dir, sub,  f'{sub}_singletrial_{keyword}.csv'))
 
 # %%
