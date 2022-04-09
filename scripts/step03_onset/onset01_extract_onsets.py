@@ -6,7 +6,7 @@ import os, glob
 import pdb
 from pathlib import Path
 import itertools
-from utils import _build_evfile
+# from utils import _build_evfile
 """
 onset01_extract_three_column.py
 # get behavioral files from "d02_preproc-beh"
@@ -39,7 +39,7 @@ def _build_evfile(df, onset_col, dur_col, mod_col, fname, **dict_map):
     """
     new_df = pd.DataFrame()
     # NumberTypes = (types.IntType, types.LongType, types.FloatType, types.ComplexType)
-    new_df['onset'] = df[onset_col] - df['param_trigger_onset']
+    new_df['onset'] = df[onset_col] 
     if isinstance(dur_col, str):
         new_df['dur'] = df[dur_col]
     elif isinstance(dur_col, (int, float, complex)):
@@ -57,7 +57,7 @@ def _build_evfile(df, onset_col, dur_col, mod_col, fname, **dict_map):
 # %% parameters ________________________________________________________________________
 current_dir = os.getcwd()
 main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
-
+main_dir = '/Volumes/spacetop_projects_social'
 beh_dir = os.path.join(main_dir, 'data', 'd02_preproc-beh')
 fsl_dir = os.path.join(main_dir, 'data', 'd03_onset', 'onset01_FSL')
 spm_dir = os.path.join(main_dir, 'data', 'd03_onset', 'onset02_SPM')
@@ -121,7 +121,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         datalad[['event02_expect_angle_demean', 'event04_actual_angle_demean']] = datalad[['event02_expect_angle', 'event04_actual_angle']].transform(lambda df: df - df.mean())
         datalad[['event02_expect_angle_demean', 'event04_actual_angle_demean']] = datalad[['event02_expect_angle_demean', 'event04_actual_angle_demean']].fillna(0).copy()
         datalad[['event02_expect_RT', 'event04_actual_RT']] = datalad[['event02_expect_RT', 'event04_actual_RT']].fillna(4).copy()
-   
+
         # 3) save as SPM format
         datalad.rename(dict_col, inplace = True)
         datalad_fname = os.path.join(spm_dir, sub, ses, label+'_events.tsv' )
@@ -135,18 +135,18 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         # * 1-2. CUE x 1s x pmod cue type (high vs low) 
         # * 1-3. CUE x 1s x pmod expect rating (demean)
         fname_1_1 = os.path.join(fsl_dir, sub, ses, label+'_ev01-cue_pmod-onsetonly.txt')
-        _build_evfile(df=df, onset_col = 'event01_cue_onset', dur_col = 1, mod_col = 1, fname = fname_1_1)
+        _build_evfile(df=datalad, onset_col = 'event01_cue_onset', dur_col = 1, mod_col = 1, fname = fname_1_1)
 
         fname_1_2 = os.path.join(fsl_dir, sub, ses, label+'_ev01-cue_pmod-cue.txt')
-        _build_evfile(df=df, onset_col = 'event01_cue_onset', dur_col = 1, mod_col = 'param_cue_type', fname = fname_1_2, dict_map = dict_cue)   
+        _build_evfile(df=datalad, onset_col = 'event01_cue_onset', dur_col = 1, mod_col = 'param_cue_type', fname = fname_1_2, dict_map = dict_cue)   
 
         fname_1_3 = os.path.join(fsl_dir, sub, ses, label+'_ev01-cue_pmod-expectdemean.txt')
-        _build_evfile(df=df, onset_col = 'event01_cue_onset', dur_col = 1, mod_col = 'event02_expect_angle_demean', fname = fname_1_3)
+        _build_evfile(df=datalad, onset_col = 'event01_cue_onset', dur_col = 1, mod_col = 'event02_expect_angle_demean', fname = fname_1_3)
 
         # 2. RATING EXPECT ___________________________________________________________________________ DUR: RT
         # * 2-1. RATING onset only       
         fname_2_1 = os.path.join(fsl_dir, sub, ses, label+'_ev02-expect_pmod-onsetonly.txt')
-        _build_evfile(df=df, onset_col = 'event02_expect_displayonset', dur_col = 'event02_expect_RT', mod_col = 1, fname = fname_2_1)
+        _build_evfile(df=datalad, onset_col = 'event02_expect_displayonset', dur_col = 'event02_expect_RT', mod_col = 1, fname = fname_2_1)
 
         # 3. STIM ___________________________________________________________________________
         # * 3-1. stim x 5s x no pmod
@@ -155,22 +155,22 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         # * 3-4. stim x 5s x expect rating (demean)
         # * 3-5. stim x 5s x stimulus intensity level
         fname_3_1 = os.path.join(fsl_dir, sub, ses, label+'_ev03-stim_pmod-onsetonly.txt')
-        _build_evfile(df=df, onset_col = 'event03_stimulus_displayonset', dur_col = 5, mod_col = 1, fname = fname_3_1)
+        _build_evfile(df=datalad, onset_col = 'event03_stimulus_displayonset', dur_col = 5, mod_col = 1, fname = fname_3_1)
 
         fname_3_2 = os.path.join(fsl_dir, sub, ses, label+'_ev03-stim_pmod-cue.txt')
-        _build_evfile(df=df, onset_col = 'event03_stimulus_displayonset', dur_col = 5, mod_col = 'param_cue_type', fname = fname_3_2, dict_map= dict_cue)
+        _build_evfile(df=datalad, onset_col = 'event03_stimulus_displayonset', dur_col = 5, mod_col = 'param_cue_type', fname = fname_3_2, dict_map= dict_cue)
        
         fname_3_3 = os.path.join(fsl_dir, sub, ses, label+'_ev03-stim_pmod-actualdemean.txt')
-        _build_evfile(df=df, onset_col = 'event03_stimulus_displayonset', dur_col = 5, mod_col = 'event04_actual_angle_demean', fname = fname_3_3)
+        _build_evfile(df=datalad, onset_col = 'event03_stimulus_displayonset', dur_col = 5, mod_col = 'event04_actual_angle_demean', fname = fname_3_3)
         
         fname_3_4 = os.path.join(fsl_dir, sub, ses, label+'_ev03-stim_pmod-expectdemean.txt')
-        _build_evfile(df=df, onset_col = 'event03_stimulus_displayonset', dur_col = 5, mod_col = 'event02_expect_angle_demean', fname = fname_3_4)
+        _build_evfile(df=datalad, onset_col = 'event03_stimulus_displayonset', dur_col = 5, mod_col = 'event02_expect_angle_demean', fname = fname_3_4)
        
         fname_3_5 = os.path.join(fsl_dir, sub, ses, label+'_ev03-stim_pmod-stimintensity.txt')
-        _build_evfile(df=df, onset_col = 'event03_stimulus_displayonset', dur_col = 5, mod_col = 'param_stimulus_type', fname = fname_3_5, dict_map = dict_stim)
+        _build_evfile(df=datalad, onset_col = 'event03_stimulus_displayonset', dur_col = 5, mod_col = 'param_stimulus_type', fname = fname_3_5, dict_map = dict_stim)
 
 
         # 4. RATING ACTUAL __________________________________________________________________
         # * 4-1. RATING onset only
         fname_4_1 = os.path.join(fsl_dir, sub, ses, label+'_ev04-actual_pmod-onsetonly.txt')
-        _build_evfile(df=df, onset_col = 'event04_actual_displayonset', dur_col = 'event04_actual_RT', mod_col = 1, fname = fname_4_1)
+        _build_evfile(df=datalad, onset_col = 'event04_actual_displayonset', dur_col = 'event04_actual_RT', mod_col = 1, fname = fname_4_1)
