@@ -2,7 +2,7 @@
 # encoding: utf-8
 # %% libraries ________________________________________________________________________
 import pandas as pd
-import os, glob
+import os, glob, datetime
 from os.path import join
 import pdb
 from pathlib import Path
@@ -86,7 +86,7 @@ sub_ses = list(itertools.product(sorted(sub_list), ses_list))
 date = datetime.now().strftime("%m-%d-%Y")
 
 txt_filename = os.path.join(
-    log_dir, f"biopac_flaglist_{datetime.date.today().isoformat()}.txt"
+    log_dir, f"biopac_flaglist_{date}.txt"
 )
 
 formatter = logging.Formatter("%(levelname)s - %(message)s")
