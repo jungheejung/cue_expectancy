@@ -9,6 +9,7 @@ from pathlib import Path
 import itertools
 from datetime import datetime
 import traceback
+import logging
 
 """onset02_extract_three_column_ttl.py
 This file integrates the behavioral onsets, in conjunction with the TTL onsets, 
@@ -83,11 +84,29 @@ ses_list = [1, 3, 4]
 sub_ses = list(itertools.product(sorted(sub_list), ses_list))
 
 date = datetime.now().strftime("%m-%d-%Y")
-textfile = open(join(log_dir, f"flag_{date}.txt"), "w")
-textfile.write(
-    "this file contains anomalies from biopac-extracted TTL data and behavioral data\n"
+
+txt_filename = os.path.join(
+    save_dir, f"biopac_flaglist_{datetime.date.today().isoformat()}.txt"
 )
-textfile.write("it raises a flag if biopac data doesn't match behavioral data\n")
+
+formatter = logging.Formatter("%(levelname)s - %(message)s")
+handler = logging.FileHandler(txt_filename)
+handler.setFormatter(formatter)
+handler.setLevel(logging.DEBUG)
+# create console handler with a higher log level
+ch = logging.StreamHandler()
+ch.setFormatter(formatter)
+ch.setLevel(logging.INFO)
+logging.getLogger().addHandler(handler)
+logging.getLogger().addHandler(ch)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# textfile = open(join(log_dir, f"flag_{date}.txt"), "w")
+# textfile.write(
+#     "this file contains anomalies from biopac-extracted TTL data and behavioral data\n"
+# )
+# textfile.write("it raises a flag if biopac data doesn't match behavioral data\n")
 
 # %%
 flag = []
@@ -95,11 +114,12 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
     try:
         print(sub, ses_ind)
         ses = f"ses-{ses_ind:02d}"
+        logger.info(f"\n\n__________________{sub} {ses} __________________")
         biopac_flist = glob.glob(join(biopac_ttl_dir, sub, ses, "*ttl.csv"))
     except:
-        message = f"no ttl file exists"
-        with open(join(log_dir, "flag_{date}.txt"), "a") as logfile:
-            traceback.print_exc(file=logfile)
+        logger.error(f"\tno ttl file exists")
+        # with open(join(log_dir, "flag_{date}.txt"), "a") as logfile:
+        #     traceback.print_exc(file=logfile)
         continue
 
     # beh_list = glob.glob(join(beh_dir, sub, ses,'*_beh.csv'))
@@ -117,7 +137,11 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         beh_fpath = glob.glob(
             join(beh_dir, sub, ses, f"{sub}_{ses}_task-social_{run}-*_beh.csv")
         )
-        beh_fname = os.path.basename(beh_fpath[0])
+        try:
+            beh_fname = os.path.basename(beh_fpath[0])
+        except:
+            logger.error(f"\tno match between behavioral and ttl file")
+            continue
         run_type = beh_fname.split("_")[3]
         label = "_".join(beh_fname.split("_")[0:4])
         # IF loop 1) CHECK that run type is "pain"
