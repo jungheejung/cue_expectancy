@@ -251,7 +251,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
             _build_evfile(
                 df=mri_ttl,
                 onset_col="event02_expect_displayonset",
-                dur_col="pmod_expect_RT",
+                dur_col="event02_expect_RT",
                 mod_col=1,
                 fname=join(
                     fsl_dir, sub, ses, label + "_ev02-expect_pmod-onsetonly.txt"
@@ -323,7 +323,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                     ses,
                     label + "_ev03-stim_type-ptb_pmod-stimintensity.txt",
                 ),
-                mod_col="pmod_stim_type",
+                mod_col="param_stimulus_type",
                 dict_map=dict_stim,
             )
 
@@ -387,7 +387,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                 df=mri_ttl,
                 onset_col="event03_stim_earlyphase_0-4500ms",
                 dur_col=4.5,
-                mod_col="pmod_stim_type",
+                mod_col="param_stimulus_type",
                 fname=join(
                     fsl_dir,
                     sub,
@@ -456,7 +456,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                 df=mri_ttl,
                 onset_col="event03_stim_latephase_4500-9000ms",
                 dur_col=4.5,
-                mod_col="pmod_stim_type",
+                mod_col="param_stimulus_type",
                 fname=join(
                     fsl_dir,
                     sub,
