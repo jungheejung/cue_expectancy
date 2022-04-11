@@ -57,15 +57,21 @@ def _build_evfile(df, onset_col, dur_col, mod_col, fname, **dict_map):
 # %% parameters ________________________________________________________________________
 current_dir = os.getcwd()
 main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
-main_dir = '/Volumes/spacetop_projects_social'
+print(main_dir)
+# main_dir = '/Volumes/spacetop_projects_social'
 beh_dir = os.path.join(main_dir, 'data', 'd02_preproc-beh')
 fsl_dir = os.path.join(main_dir, 'data', 'd03_onset', 'onset01_FSL')
 spm_dir = os.path.join(main_dir, 'data', 'd03_onset', 'onset02_SPM')
 
 # %%
-sub_list = next(os.walk(beh_dir))[1] # e.g. sub_list = [2,3,4,5,6,7,8,9,10,...]
+sub_folders = next(os.walk(beh_dir))[1] # e.g. sub_list = [2,3,4,5,6,7,8,9,10,...]
+sub_list = [i for i in sub_folders if i.startswith('sub-')]
+items_to_remove = ['sub-0001']
+for item in items_to_remove:
+    if item in sub_list:
+        sub_list.remove(item)
 ses_list = [1,3,4]
-sub_ses = list(itertools.product(sub_list, ses_list))
+sub_ses = list(itertools.product(sorted(sub_list), ses_list))
 for i, (sub, ses_ind) in enumerate(sub_ses):
 
     ses = 'ses-{:02d}'.format(ses_ind)
