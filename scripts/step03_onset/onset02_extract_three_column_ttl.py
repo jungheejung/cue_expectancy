@@ -86,7 +86,7 @@ sub_ses = list(itertools.product(sorted(sub_list), ses_list))
 date = datetime.now().strftime("%m-%d-%Y")
 
 txt_filename = os.path.join(
-    save_dir, f"biopac_flaglist_{datetime.date.today().isoformat()}.txt"
+    log_dir, f"biopac_flaglist_{datetime.date.today().isoformat()}.txt"
 )
 
 formatter = logging.Formatter("%(levelname)s - %(message)s")
