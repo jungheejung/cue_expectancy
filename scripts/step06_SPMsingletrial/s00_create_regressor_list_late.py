@@ -41,7 +41,7 @@ biopac_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/biopac/'
 csv_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd02_preprocessed')
 ev_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd03_EV_FSL')
 ev_bids_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd04_EV_SPM')
-ev_single_dir = os.path.join(main_dir, 'data', 'dartmouth', f'd06_singletrial_SPM_02-pain-{keyword}')
+ev_single_dir = os.path.join(main_dir, 'data', 'dartmouth', f'd06_singletrial-SPM_02-pain-{keyword}')
 
 dict_cue = {'low_cue':-1, 'high_cue':1}
 dict_stim = {'low_stim':-1, 'med_stim':0, 'high_stim':1}
