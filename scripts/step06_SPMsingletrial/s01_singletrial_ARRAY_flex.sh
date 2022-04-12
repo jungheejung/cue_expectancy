@@ -23,12 +23,8 @@ subjects=(6 7 8 9 10 11 13 14 15 16 17 18 19 20 21 23 24 25 26 28 29 30 31 32 33
 # echo "${SUB_DIR}
 # done
 
-#SUBDIRS="/home/vivek/lighttpd.tar.gz"
-#basename "$FILE"
-#f="$(basename -- $FILE)"
-#echo "$f"
 
-KEYWORD="'plateau'" #"'early'" "'late'" "'plateau'" "'post'"
+KEYWORD="'plateau'" #"'early'" "'late'" "'plateau'" "'post'" "'nottl'"
 
 # PARTICIPANT_LABEL=${subjects[$((SLURM_ARRAY_TASK_ID))]}
 echo "array id: " ${SLURM_ARRAY_TASK_ID}, "subject id: " ${PARTICIPANT_LABEL}
