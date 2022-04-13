@@ -1,0 +1,35 @@
+@REM dcmdump */0000011.dcm | grep -rl "[ORIGINAL\PRIMARY\FMRI\NONE\MB\ND\NORM\MOSAIC]" */0000011.dcm
+@REM dcmdump */*/*/*/0000051.dcm | grep -rl "[ORIGINAL\PRIMARY\FMRI\NONE\MB\ND\NORM\MOSAIC]" */*/*/*/0000051.dcm
+@REM dcmdump */*/*/*/0000051.dcm | grep -rnw "(0008,0008) CS [ORIGINAL\PRIMARY\M\MB\ND\NORM\MOSAIC]" ${PWD}
+
+@REM dcmdump +sd +r */*/*/*/0000051.dcm | grep -rnw "(0008,0008) CS [ORIGINAL\PRIMARY\FMRI\NONE\MB\ND\NORM\MOSAIC]"
+@REM dcmdump /inbox/DICOM/2021/*/*/*/*/0000051.dcm +P "0008,0008" | grep -rl "[ORIGINAL\PRIMARY\FMRI\NONE\MB\ND\NORM\MOSAIC]" |  awk '{split($0,a,"/"); print  a[1], a[2], a[3], a[4]}' > ${HOME}/dicoms_with_different_tag_0008_0008.txt
+
+@REM if dcmdump +P '0008,0008' 0005451.dcm  | grep -eH "[ORIGINAL\PRIMARY\FMRI\NONE\MB\ND\NORM\MOSAIC]"; then
+@REM     echo found
+@REM     @REM awk '{split($0,a,"/"); print  a[1], a[2], a[3], a[4]}' 
+@REM else
+@REM     echo not found
+@REM fi
+
+@REM  # 
+
+@REM dcmdump +P '0008,0008' */0005451.dcm  | grep -e  "[ORIGINAL\PRIMARY\FMRI\NONE\MB\ND\NORM\MOSAIC]" -lF */0005451.dcm 
+@REM find . -type f -exec dcmdump +P '0008,0008' */0005451.dcm  | grep -rl  "[ORIGINAL\PRIMARY\FMRI\NONE\MB\ND\NORM\MOSAIC]" */0005451.dcm {} +
+
+@REM awk '!found[FILENAME]++ && /string/ { fname = FILENAME; sub("\\.[^/]*$", "", fname); print fname }' file1.txt test2.txt file23.txt tact24.txt
+
+
+@REM THIS WORKS
+@REM find . -type f -exec dcmdump +P '0008,0008' /inbox/DICOM/2021/*/*/*/*/0000051.dcm | grep -rl "[ORIGINAL\PRIMARY\FMRI\NONE\MB\ND\NORM\MOSAIC]" /inbox/DICOM/2021/*/*/*/*/0000051.dcm {} +
+
+
+@REM if dcmdump +P '0008,0008' 0005451.dcm  | grep -eH "[ORIGINAL\PRIMARY\FMRI\NONE\MB\ND\NORM\MOSAIC]"; then
+@REM     echo found
+@REM     TODO: return filename
+@REM else
+@REM     echo not found
+@REM fi
+
+WORKS
+find /inbox/DICOM/2021/ -iname "0000051.dcm" | while read f; do /usr/local/bin/singularity exec --bind /inbox/DICOM/:/inbox/DICOM ${HOME}/reproin_0.8.0.1.sif dcmdump -M -L +P '0008,0008' $f | fgrep -qe "ORIGINAL\PRIMARY\FMRI\NONE\MB\ND\NORM\MOSAIC" && echo $f  || : ; done > ${HOME}/odd_dicoms_01-21-2022.txt
