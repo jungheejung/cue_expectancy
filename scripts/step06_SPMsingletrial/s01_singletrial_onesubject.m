@@ -24,11 +24,12 @@ disp(input);
 disp(strcat('[ STEP 01 ] setting parameters...'));
 
 % 1-1. directories _______________________________________________________
-fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/smooth_6mm'; % sub / ses
+smooth_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/smooth_6mm'
+fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/fmriprep'; % sub / ses
 main_dir = fileparts(fileparts(pwd)); % '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
 % motion_dir = fullfile(main_dir, 'data', 'dartmouth', 'd05_motion');
 motion_dir = fullfile(main_dir, 'data', 'd04_motion');
-onset_dir = fullfile(main_dir, 'data', 'onset03_SPMsingletrial');
+onset_dir = fullfile(main_dir, 'data','d03_onset' ,'onset03_SPMsingletrial');
 
 %% 2. for loop "subject-wise" _______________________________________________________
 sub = strcat('sub-', sprintf('%04d', input));
@@ -36,7 +37,7 @@ disp(strcat('[ STEP 02 ] PRINT VARIABLE'))
 disp(strcat('sub:    ', sub));
 
 % find nifti files _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-niilist = dir(fullfile(fmriprep_dir, sub, '*','func',strcat('smooth_', num2str(smooth),'mm_*task-social*_bold.nii')));
+niilist = dir(fullfile(smooth_dir, sub, '*','func',strcat('smooth_', num2str(smooth),'mm_*task-social*_bold.nii')));
 nT = struct2table(niilist); % convert the struct array to a table
 sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
 disp(sortedT); % TODO: DELETE
@@ -45,10 +46,10 @@ sortedT.ses_num(:) = str2double(extractBetween(sortedT.name, 'ses-', '_'));
 sortedT.run_num(:) = str2double(extractBetween(sortedT.name, 'run-', '_'));
 
 nii_col_names = sortedT.Properties.VariableNames;
-nii_num_colomn = nii_col_names(endsWith(nii_col_names, '_num'));
+nii_num_column = nii_col_names(endsWith(nii_col_names, '_num'));
 
 % find onset files _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-onsetlist = dir(fullfile(onset_dir, sub, strcat(sub, '_singletrial_plateau.csv')));
+onsetlist = dir(fullfile(onset_dir, sub, strcat(sub, '*_covariate-circularrating.csv')));
 onsetT = struct2table(onsetlist);
 sortedonsetT = sortrows(onsetT, 'name');
 disp(sortedT); % TODO: DELETE
@@ -57,10 +58,10 @@ sortedonsetT.ses_num(:) = str2double(extractBetween(sortedonsetT.name, 'ses-', '
 sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '_'));
 
 onset_col_names = sortedonsetT.Properties.VariableNames;
-onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
+onset_num_column = onset_col_names(endsWith(onset_col_names, '_num'));
 
 %intersection of nifti and onset files
-A = intersect(sortedT(:,nii_num_colomn),sortedonsetT(:,onset_num_colomn));
+A = intersect(sortedT(:,nii_num_column),sortedonsetT(:,onset_num_column));
 
 output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'multivariate','s02_isolatenifti', sub);
 if ~exist(output_dir, 'dir')
@@ -84,15 +85,15 @@ for run_ind = 1: size(A,1)
     run = strcat('run-', sprintf('%02d', A.run_num(run_ind)));
     fmriprep_run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
     disp(strcat('[ STEP 03 ] gunzip and saving nifti...'));
-    smooth_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
+    smooth_fname = fullfile(smooth_dir, sub, ses, 'func',...
                   strcat('smooth_',num2str(smooth),'mm_', sub, '_', ses, '_task-social_acq-mb8_', fmriprep_run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
-    smooth_nii = fullfile(fmriprep_dir, sub, ses, 'func',...
+    smooth_nii = fullfile(smooth_dir, sub, ses, 'func',...
                    strcat('smooth_',num2str(smooth),'mm_', sub, '_', ses, '_task-social_acq-mb8_', fmriprep_run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
     if ~exist(smooth_nii,'file'), gunzip(smooth_fname)
     end
 
     %% rating ______________________________________________________
-    rating_fname = fullfile(onset_dir, sub, strcat(sub, '_', ses, '_', run, '_rating.csv'));
+    rating_fname = fullfile(onset_dir, sub, strcat(sub, '_', ses, '_', run, '_covariate-circularrating.csv'));
     rating = readtable(rating_fname);
 
     %% regressor ______________________________________________________
