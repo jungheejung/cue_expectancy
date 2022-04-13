@@ -27,18 +27,18 @@ disp(strcat('[ STEP 01 ] setting parameters...'));
 %keyword = args{2};
 disp(strcat("input: ", num2str(input)));disp(strcat("input: ", keyword));
 % 1-1. directories _______________________________________________________
-key_set = {'early', 'late', 'post', 'plateau'};
-value_set = {'singletrial_SPM_01-pain-early', 'singletrial_SPM_02-pain-late',...
+key_set = {'early', 'late', 'post', 'plateau', 'nottl'};
+value_set = {'singletrial-SPM_01-pain-early', 'singletrial-SPM_02-pain-late',...
 'singletrial_SPM_03-pain-post', 'singletrial_SPM_04-pain-plateau'};
 M = containers.Map(key_set,value_set);
-fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'; % sub / ses
-f = dir(fullfile(fmriprep_dir, '*.html'));
+smooth_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/smooth_6mm'; % sub / ses
+f = dir(fullfile(smooth_dir, '*.html'));
 ftable = struct2table(f);
 F = regexprep(ftable.name, '.html', '');
 % contains(f.name, '.')
 
 
-main_dir = fileparts(fileparts(pwd)); % '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
+main_dir = fileparts(fileparts(pwd)); % '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social';
 motion_dir = fullfile(main_dir, 'data', 'dartmouth', 'd05_motion');
 onset_dir = fullfile(main_dir, 'data', 'dartmouth', strcat('d06_', M(keyword)));
 biopac_ttl_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/biopac/dartmouth/b03_extract_ttl';
@@ -59,7 +59,7 @@ disp(strcat('[ STEP 02 ] PRINT VARIABLE'))
 disp(strcat('sub:    ', sub));
 
 % find nifti files
-niilist = dir(fullfile(fmriprep_dir, sub, '*','func',strcat('smooth_', num2str(smooth),'mm_*task-social*_bold.nii')));
+niilist = dir(fullfile(smooth_dir, sub, '*','func',strcat('smooth_', num2str(smooth),'mm_*task-social*_bold.nii')));
 nT = struct2table(niilist); % convert the struct array to a table
 sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
 disp(sortedT); % TODO: DELETE
@@ -109,9 +109,9 @@ for run_ind = 1: size(A,1)
     run = strcat('run-', sprintf('%02d', A.run_num(run_ind)));
     fmriprep_run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
     disp(strcat('[ STEP 03 ] gunzip and saving nifti...'));
-    smooth_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
+    smooth_fname = fullfile(smooth_dir, sub, ses, 'func',...
                   strcat('smooth_',num2str(smooth),'mm_', sub, '_', ses, '_task-social_acq-mb8_', fmriprep_run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
-    smooth_nii = fullfile(fmriprep_dir, sub, ses, 'func',...
+    smooth_nii = fullfile(smooth_dir, sub, ses, 'func',...
                    strcat('smooth_',num2str(smooth),'mm_', sub, '_', ses, '_task-social_acq-mb8_', fmriprep_run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
     if ~exist(smooth_nii,'file'), gunzip(smooth_fname)
     end
@@ -127,7 +127,7 @@ for run_ind = 1: size(A,1)
     if ~isfile(motion_fname)
         if ~exist(fullfile(onset_dir, sub),'dir'), mkdir(fullfile(onset_dir, sub))
         end
-        m_fmriprep   = fullfile(fmriprep_dir, sub, ses, 'func', ...
+        m_fmriprep   = fullfile(smooth_dir, sub, ses, 'func', ...
                    strcat(sub, '_', ses, '_task-social_acq-mb8_', fmriprep_run, '_desc-confounds_timeseries.tsv'));
         m            = struct2table(tdfread(m_fmriprep));
         m_subset     = m(:, {'csf', 'white_matter', 'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z'});
