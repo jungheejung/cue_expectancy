@@ -24,7 +24,7 @@ disp(input);
 disp(strcat('[ STEP 01 ] setting parameters...'));
 
 % 1-1. directories _______________________________________________________
-fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'; % sub / ses
+fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/smooth_6mm'; % sub / ses
 main_dir = fileparts(fileparts(pwd)); % '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
 % motion_dir = fullfile(main_dir, 'data', 'dartmouth', 'd05_motion');
 motion_dir = fullfile(main_dir, 'data', 'd04_motion');
