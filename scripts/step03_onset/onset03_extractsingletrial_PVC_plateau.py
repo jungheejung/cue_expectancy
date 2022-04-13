@@ -3,8 +3,14 @@
 each row corresponds to each regressor
 contains nifti name, onset, duration ,modulation degree
 CUE, STIM, wm, csf, 6DOR, 6 dummy regressor
-next run...
-Each index corresponds to the 
+
+This code handles 3 types of files
+1) pain run that has TTL signal in it 
+    - in that case, it extracts pain onset from the ttl-plateau column
+2) pain run that does not have TTL signal in it
+    - in that case, it adds 3.5s to the stimulus onset
+3) cognitive and vicarious runs
+    - the stimulus onset is the time that we enter
 """
 # %%
 import os, glob, itertools
@@ -26,7 +32,8 @@ __status__ = "Development"
 
 def _event_sort(df, new_df, ind_first, ev, ev_name, dur, mod, regressor, cue_type, stim_type):
     # df, 0, 'event01_cue_onset', 'cue', 1, 1, True, 
-    new_df.loc[ind_first: ind_first+len(df[ev])-1, 'onset'] = df[ev] 
+    # print(f"range: {ind_first} ~ {ind_first+len(df[ev])-1}")
+    new_df.loc[ind_first: ind_first+len(df[ev])-1, 'onset'] = list(df[ev]) 
     new_df.loc[ind_first: ind_first+len(df[ev])-1, 'ev'] = ev_name
     new_df.loc[ind_first: ind_first+len(df[ev])-1, 'dur'] = dur
     new_df.loc[ind_first: ind_first+len(df[ev])-1, 'mod'] = mod
@@ -34,7 +41,7 @@ def _event_sort(df, new_df, ind_first, ev, ev_name, dur, mod, regressor, cue_typ
     new_df.loc[ind_first: ind_first+len(df[ev])-1, 'num'] = list(range(len(df[ev])))
     new_df.loc[ind_first: ind_first+len(df[ev])-1, 'cue_type'] = cue_type
     new_df.loc[ind_first: ind_first+len(df[ev])-1, 'stim_type'] = stim_type
-    return new_df
+    return new_df.copy()
 
 def _extract_bids(fname):
     entities = dict(
@@ -118,7 +125,6 @@ for sub in sorted(sub_list):
     
     subject_dataframe = pd.DataFrame([])
 
-
     for ind, fpath in enumerate(sorted(beh_list)):
         fname = os.path.basename(fpath)
         sub_num, ses_num, run_num, run_type = _extract_bids(fname)
@@ -143,7 +149,7 @@ for sub in sorted(sub_list):
                 'cue_type', 'stim_type','expect_rating','actual_rating','cue_con', 'stim_lin', 'stim_quad'])
 
             # CUE event fill in parameters for CUE event ____________________________________________
-            _event_sort(df,new, 
+            new = _event_sort(df,new, 
             ind_first = 0, 
             ev = 'event01_cue_onset', 
             ev_name = 'cue', 
@@ -153,8 +159,8 @@ for sub in sorted(sub_list):
             stim_type = list(df.param_stimulus_type))
 
             # STIM fill in parameters for STIM event _____________________________________________
-            _event_sort(df,new, 
-            ind_first = cue_num, 
+            new = _event_sort(df,new, 
+            ind_first = trial_num, 
             ev = 'event03_stim_ttl-plateau', 
             ev_name = 'stim', 
             dur = 5, mod = 1, 
@@ -162,6 +168,47 @@ for sub in sorted(sub_list):
             cue_type = list(df.param_cue_type), 
             stim_type = list(df.param_stimulus_type))
 
+            # Rating information ________________________________________________________________
+            new.loc[0:cue_num+trial_num-1, 'expect_rating'] = list(pd.concat([df['event02_expect_angle']]*2, ignore_index=True))
+            new.loc[0:cue_num+trial_num-1, 'actual_rating'] = list(pd.concat([df['event04_actual_angle']]*2, ignore_index=True))
+
+            rating = pd.concat( [df.event02_expect_displayonset, df.event04_actual_displayonset])
+            rt = pd.concat( [df.event02_expect_RT, df.event04_actual_RT]).reset_index(drop = True)
+            rt.fillna(4, inplace = True)
+            rating.sort_values(ascending = True, inplace = True, ignore_index=True)
+            new.loc[cue_num+trial_num, 'onset'] = list(rating.repeat(2).reset_index(drop = True))
+            new.loc[cue_num+trial_num, 'ev'] = 'rating'
+            new.loc[cue_num+trial_num, 'dur'] = list(rt)
+            new.loc[cue_num+trial_num, 'mod'] = 1
+            new.loc[cue_num+trial_num, 'regressor'] = False
+
+            matlab_rating = pd.concat([rating, rt], axis = 1)
+            matlabname = f'{sub}_ses-{ses_num:02d}_run-{run_num:02d}_covariate-circularrating.csv'
+            matlab_rating.to_csv(join(single_dir, sub, matlabname), index = False, header = ['rating', 'rt'] ) #sub-####_ses-##_run-##_event-rating.csv
+
+            # parameter information for each single trial ________________________________________________________________
+            new.loc[0:cue_num+trial_num-1,'cue_con'] = pd.concat([df['param_cue_type'].map(dict_cue)]*2, ignore_index=True)
+            new.loc[0:cue_num+trial_num-1,'stim_lin'] = pd.concat([df['param_stimulus_type'].map(dict_stim)]*2, ignore_index=True)
+            new.loc[0:cue_num+trial_num-1,'stim_quad'] = pd.concat([df['param_stimulus_type'].map(dict_stim_q)]*2, ignore_index=True)
+            
+            new['sub'] = sub_num
+            new['ses'] = ses_num
+            new['run'] = run_num
+            new['run_type'] = run_type
+
+            # filename build string e.g. sub-0005_ses-04_run-06-pain_ev-stim-0011.nii.gz
+            new['nifti_name'] = 'sub-' + new['sub'].astype(str).str.zfill(4) + \
+            '_ses-' + new['ses'].astype(str).str.zfill(2) + \
+            '_run-' + new['run'].astype(str).str.zfill(2) + '-' + new['run_type'] + \
+                '_ev-' + new['ev'] + '-' + new['num'].astype(str).str.zfill(4)
+
+            # dummy regressors _____________________________________________
+            new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1, 'nifti_name'] = list(nuissance)
+            new['sub'] = sub_num
+            new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'ses'] = ses_num
+            new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'run'] = run_num
+            new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'run_type'] = run_type
+            new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'regressor'] = False
         elif bool(run_type == 'pain') and fname.endswith('events.tsv'):
             # open behavio fram and add average seconds to dataframe.
             df = pd.DataFrame()
@@ -177,7 +224,7 @@ for sub in sorted(sub_list):
                 'cue_type', 'stim_type','expect_rating','actual_rating','cue_con', 'stim_lin', 'stim_quad'])
             df['adjust_event03_stimulus'] = df['event03_stimulus_displayonset'] + 3.5
             # CUE event fill in parameters for CUE event ____________________________________________
-            _event_sort(df,new, 
+            new = _event_sort(df,new, 
             ind_first = 0, 
             ev = 'event01_cue_onset', 
             ev_name = 'cue', 
@@ -187,15 +234,56 @@ for sub in sorted(sub_list):
             stim_type = list(df.param_stimulus_type))
 
             # STIM fill in parameters for STIM event _____________________________________________
-            _event_sort(df,new, 
-            ind_first = cue_num, 
+            new = _event_sort(df,new, 
+            ind_first = trial_num, 
             ev = 'adjust_event03_stimulus', 
             ev_name = 'stim', 
             dur = 5, mod = 1, 
             regressor = True, 
             cue_type = list(df.param_cue_type), 
             stim_type = list(df.param_stimulus_type))
-        
+            
+                    # Rating information ________________________________________________________________
+            new.loc[0:cue_num+trial_num-1, 'expect_rating'] = list(pd.concat([df['event02_expect_angle']]*2, ignore_index=True))
+            new.loc[0:cue_num+trial_num-1, 'actual_rating'] = list(pd.concat([df['event04_actual_angle']]*2, ignore_index=True))
+
+            rating = pd.concat( [df.event02_expect_displayonset, df.event04_actual_displayonset])
+            rt = pd.concat( [df.event02_expect_RT, df.event04_actual_RT]).reset_index(drop = True)
+            rt.fillna(4, inplace = True)
+            rating.sort_values(ascending = True, inplace = True, ignore_index=True)
+            new.loc[cue_num+trial_num, 'onset'] = list(rating.repeat(2).reset_index(drop = True))
+            new.loc[cue_num+trial_num, 'ev'] = 'rating'
+            new.loc[cue_num+trial_num, 'dur'] = list(rt)
+            new.loc[cue_num+trial_num, 'mod'] = 1
+            new.loc[cue_num+trial_num, 'regressor'] = False
+
+            matlab_rating = pd.concat([rating, rt], axis = 1)
+            matlabname = f'{sub}_ses-{ses_num:02d}_run-{run_num:02d}_covariate-circularrating.csv'
+            matlab_rating.to_csv(join(single_dir, sub, matlabname), index = False, header = ['rating', 'rt'] ) #sub-####_ses-##_run-##_event-rating.csv
+
+            # parameter information for each single trial ________________________________________________________________
+            new.loc[0:cue_num+trial_num-1,'cue_con'] = pd.concat([df['param_cue_type'].map(dict_cue)]*2, ignore_index=True)
+            new.loc[0:cue_num+trial_num-1,'stim_lin'] = pd.concat([df['param_stimulus_type'].map(dict_stim)]*2, ignore_index=True)
+            new.loc[0:cue_num+trial_num-1,'stim_quad'] = pd.concat([df['param_stimulus_type'].map(dict_stim_q)]*2, ignore_index=True)
+            
+            new['sub'] = sub_num
+            new['ses'] = ses_num
+            new['run'] = run_num
+            new['run_type'] = run_type
+
+            # filename build string e.g. sub-0005_ses-04_run-06-pain_ev-stim-0011.nii.gz
+            new['nifti_name'] = 'sub-' + new['sub'].astype(str).str.zfill(4) + \
+            '_ses-' + new['ses'].astype(str).str.zfill(2) + \
+            '_run-' + new['run'].astype(str).str.zfill(2) + '-' + new['run_type'] + \
+                '_ev-' + new['ev'] + '-' + new['num'].astype(str).str.zfill(4)
+
+            # dummy regressors _____________________________________________
+            new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1, 'nifti_name'] = list(nuissance)
+            new['sub'] = sub_num
+            new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'ses'] = ses_num
+            new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'run'] = run_num
+            new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'run_type'] = run_type
+            new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'regressor'] = False
         elif bool(run_type == 'vicarious') or bool(run_type == 'cognitive'):
             df = pd.DataFrame()
             df = pd.read_csv(fpath, sep = '\t')
@@ -211,7 +299,7 @@ for sub in sorted(sub_list):
                 'cue_type', 'stim_type','expect_rating','actual_rating','cue_con', 'stim_lin', 'stim_quad'])
 
             # CUE event fill in parameters for CUE event ____________________________________________
-            _event_sort(df,new, 
+            new = _event_sort(df,new, 
             ind_first = 0, 
             ev = 'event01_cue_onset', 
             ev_name = 'cue', 
@@ -221,60 +309,60 @@ for sub in sorted(sub_list):
             stim_type = list(df.param_stimulus_type))
 
             # STIM fill in parameters for STIM event _____________________________________________
-            _event_sort(df,new, 
-            ind_first = cue_num, 
+            new = _event_sort(df,new, 
+            ind_first = trial_num, 
             ev = 'event03_stimulus_displayonset', 
             ev_name = 'stim', 
             dur = 5, mod = 1, 
             regressor = True, 
             cue_type = list(df.param_cue_type), 
             stim_type = list(df.param_stimulus_type))
+            # Rating information ________________________________________________________________
+            new.loc[0:cue_num+trial_num-1, 'expect_rating'] = list(pd.concat([df['event02_expect_angle']]*2, ignore_index=True))
+            new.loc[0:cue_num+trial_num-1, 'actual_rating'] = list(pd.concat([df['event04_actual_angle']]*2, ignore_index=True))
 
-        # expect actual rating ________________________________________________________________
-        new.loc[0:cue_num+trial_num-1, 'expect_rating'] = list(pd.concat([df.event02_expect_angle]*2, ignore_index=True))
-        new.loc[0:cue_num+trial_num-1, 'actual_rating'] = list(pd.concat([df.event04_actual_angle]*2, ignore_index=True))
+            rating = pd.concat( [df.event02_expect_displayonset, df.event04_actual_displayonset])
+            rt = pd.concat( [df.event02_expect_RT, df.event04_actual_RT]).reset_index(drop = True)
+            rt.fillna(4, inplace = True)
+            rating.sort_values(ascending = True, inplace = True, ignore_index=True)
+            new.loc[cue_num+trial_num, 'onset'] = list(rating.repeat(2).reset_index(drop = True))
+            new.loc[cue_num+trial_num, 'ev'] = 'rating'
+            new.loc[cue_num+trial_num, 'dur'] = list(rt)
+            new.loc[cue_num+trial_num, 'mod'] = 1
+            new.loc[cue_num+trial_num, 'regressor'] = False
 
-        # RATING fill in parameters for STIM event ____________________________________________
-        # trial_num = len(df.ISI03_onset - df.param_trigger_onset) 
-        rating = pd.concat( [df.event02_expect_displayonset, df.event04_actual_displayonset])
-        rt = pd.concat( [df.event02_expect_RT, df.event04_actual_RT]).reset_index(drop = True)
-        rt.fillna(4, inplace = True)
-        rating.sort_values(ascending = True, inplace = True, ignore_index=True)
-        new.loc[cue_num+trial_num, 'onset'] = list(rating.repeat(2).reset_index(drop = True))
-        new.loc[cue_num+trial_num, 'ev'] = 'rating'
-        new.loc[cue_num+trial_num, 'dur'] = list(rt)
-        new.loc[cue_num+trial_num, 'mod'] = 1
-        new.loc[cue_num+trial_num, 'regressor'] = False
+            matlab_rating = pd.concat([rating, rt], axis = 1)
+            matlabname = f'{sub}_ses-{ses_num:02d}_run-{run_num:02d}_covariate-circularrating.csv'
+            matlab_rating.to_csv(join(single_dir, sub, matlabname), index = False, header = ['rating', 'rt'] ) #sub-####_ses-##_run-##_event-rating.csv
 
-        matlab_rating = pd.concat([rating, rt], axis = 1)
-        matlabname = f'{sub}_ses-{ses_num:02d}_run-{run_num:02d}_covariate-circularrating.csv'
-        matlab_rating.to_csv(join(single_dir, sub, matlabname), index = False, header = ['rating', 'rt'] ) #sub-####_ses-##_run-##_event-rating.csv
+            # parameter information for each single trial ________________________________________________________________
+            new.loc[0:cue_num+trial_num-1,'cue_con'] = pd.concat([df['param_cue_type'].map(dict_cue)]*2, ignore_index=True)
+            new.loc[0:cue_num+trial_num-1,'stim_lin'] = pd.concat([df['param_stimulus_type'].map(dict_stim)]*2, ignore_index=True)
+            new.loc[0:cue_num+trial_num-1,'stim_quad'] = pd.concat([df['param_stimulus_type'].map(dict_stim_q)]*2, ignore_index=True)
+            
+            new['sub'] = sub_num
+            new['ses'] = ses_num
+            new['run'] = run_num
+            new['run_type'] = run_type
 
-        new.loc[0:cue_num+trial_num-1,'cue_con'] = pd.concat([df['param_cue_type'].map(dict_cue)]*2, ignore_index=True)
-        new.loc[0:cue_num+trial_num-1,'stim_lin'] = pd.concat([df['param_stimulus_type'].map(dict_stim)]*2, ignore_index=True)
-        new.loc[0:cue_num+trial_num-1,'stim_quad'] = pd.concat([df['param_stimulus_type'].map(dict_stim_q)]*2, ignore_index=True)
-        #
-        new['sub'] = sub_num
-        new['ses'] = ses_num
-        new['run'] = run_num
-        new['run_type'] = run_type
+            # filename build string e.g. sub-0005_ses-04_run-06-pain_ev-stim-0011.nii.gz
+            new['nifti_name'] = 'sub-' + new['sub'].astype(str).str.zfill(4) + \
+            '_ses-' + new['ses'].astype(str).str.zfill(2) + \
+            '_run-' + new['run'].astype(str).str.zfill(2) + '-' + new['run_type'] + \
+                '_ev-' + new['ev'] + '-' + new['num'].astype(str).str.zfill(4)
 
-        # filename build string e.g. sub-0005_ses-04_run-06-pain_ev-stim-0011.nii.gz
-        new['nifti_name'] = 'sub-' + new['sub'].astype(str).str.zfill(4) + \
-        '_ses-' + new['ses'].astype(str).str.zfill(2) + \
-        '_run-' + new['run'].astype(str).str.zfill(2) + '-' + new['run_type'] + \
-            '_ev-' + new['ev'] + '-' + new['num'].astype(str).str.zfill(4)
+            # dummy regressors _____________________________________________
+            new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1, 'nifti_name'] = list(nuissance)
+            new['sub'] = sub_num
+            new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'ses'] = ses_num
+            new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'run'] = run_num
+            new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'run_type'] = run_type
+            new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'regressor'] = False
 
-        # dummy regressors _____________________________________________
-        new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1, 'nifti_name'] = list(nuissance)
-        new['sub'] = sub_num
-        new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'ses'] = ses_num
-        new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'run'] = run_num
-        new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'run_type'] = run_type
-        new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'regressor'] = False
-        subject_dataframe = subject_dataframe.append(new)
+            # subject_dataframe = subject_dataframe.append(new)
+            subject_dataframe = pd.concat([subject_dataframe, new])
 
     subject_dataframe.reset_index(inplace = True)
-    subject_dataframe.to_csv(join(single_dir, sub,  f'{sub}_singletrial_{keyword}.csv'))
+    subject_dataframe.to_csv(join(single_dir,sub,f'{sub}_singletrial_{keyword}.csv'))
 
 # %%
