@@ -8,6 +8,7 @@ Each index corresponds to the
 """
 # %%
 import os, glob, itertools
+from os.path import join
 import pandas as pd
 from pathlib import Path 
 import numpy as np
@@ -22,26 +23,26 @@ __maintainer__ = "Heejung Jung"
 __email__ = "heejung.jung@colorado.edu"
 __status__ = "Development" 
 
-def _event_sort(df, ind_first, ev, ev_name, dur, mod, regressor, cue_type, stim_type):
+def _event_sort(df, new_df, ind_first, ev, ev_name, dur, mod, regressor, cue_type, stim_type):
     # df, 0, 'event01_cue_onset', 'cue', 1, 1, True, 
-    df.loc[ind_first: ind_first+len(df[ev])-1, 'onset'] = df[ev] - df['param_trigger_onset']
-    df.loc[ind_first: len(df['ev']), 'ev'] = ev_name
-    df.loc[ind_first: len(df['ev']), 'dur'] = dur
-    df.loc[ind_first: len(df['ev']), 'mod'] = mod
-    df.loc[ind_first: len(df['ev']), 'regressor'] = regressor
-    df.loc[ind_first: len(df['ev']), 'num'] = list(range(len(df[ev])))
-    df.loc[ind_first: len(df['ev']), 'cue_type'] = cue_type
-    df.loc[ind_first: len(df['ev']), 'stim_type'] = stim_type
-    return df
+    new_df.loc[ind_first: ind_first+len(df[ev])-1, 'onset'] = df[ev] - df['param_trigger_onset']
+    new_df.loc[ind_first: ind_first+len(df[ev])-1, 'ev'] = ev_name
+    new_df.loc[ind_first: ind_first+len(df[ev])-1, 'dur'] = dur
+    new_df.loc[ind_first: ind_first+len(df[ev])-1, 'mod'] = mod
+    new_df.loc[ind_first: ind_first+len(df[ev])-1, 'regressor'] = regressor
+    new_df.loc[ind_first: ind_first+len(df[ev])-1, 'num'] = list(range(len(df[ev])))
+    new_df.loc[ind_first: ind_first+len(df[ev])-1, 'cue_type'] = cue_type
+    new_df.loc[ind_first: ind_first+len(df[ev])-1, 'stim_type'] = stim_type
+    return new_df
 # %% parameters ________________________________________________________________________
 keyword = 'post'
 current_dir = os.getcwd()
 main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
 biopac_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/biopac/'
-csv_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd02_preprocessed')
-ev_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd03_EV_FSL')
-ev_bids_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd04_EV_SPM')
-ev_single_dir = os.path.join(main_dir, 'data', 'dartmouth', f'd06_singletrial-SPM_01-pain-{keyword}')
+beh_dir = join(main_dir, 'data', 'd02_preproc-beh')
+fsl_dir = join(main_dir, 'data', 'd03_onset', 'onset01_FSL')
+spm_dir = join(main_dir, 'data', 'd03_onset', 'onset02_SPM')
+single_dir = join(main_dir, 'data','d03_onset','onset03_SPMsingletrial')
 dict_cue = {'low_cue':-1, 'high_cue':1}
 dict_stim = {'low_stim':-1, 'med_stim':0, 'high_stim':1}
 dict_stim_q = {'low_stim':1, 'med_stim':-2, 'high_stim':1}
@@ -66,15 +67,15 @@ dict_col = {
 'onset03_stim_ttl-plateau-dur':'event03_stim_ttl-plateau-dur'
 }
 # %%
-sub_list = next(os.walk(csv_dir))[1]
+sub_list = next(os.walk(beh_dir))[1]
 print(sub_list)
 sub_list.remove('sub-0001')
 for sub in sub_list:
     beh_list = []
-    beh_list = glob.glob(os.path.join(biopac_dir, 'dartmouth', 'b03_extract_ttl', sub, '*', 'task-social', '*_physio-ttl.csv' ))
+    beh_list = glob.glob(join(biopac_dir, 'dartmouth', 'b03_extract_ttl', sub, '*', 'task-social', '*_physio-ttl.csv' ))
     subject_dataframe = pd.DataFrame([])
     print(beh_list)
-    if beh_list:
+    if 'pain' in beh_list:
         for ind, fpath in enumerate(sorted(beh_list)):
             fname = os.path.basename(fpath)
             
@@ -88,7 +89,7 @@ for sub in sub_list:
             run_num = int(re.findall('\d+', [match for match in fname.split('_') if "run" in match][0])[0])
             task_name = [match for match in fname.split('_') if "task" in match][0]
 
-            Path(os.path.join(ev_single_dir, sub)).mkdir(parents=True, exist_ok=True)
+            Path(join(single_dir, sub)).mkdir(parents=True, exist_ok=True)
 
             cue_num = len(df.event01_cue_onset)
             trial_num = len(df.event03_stimulus_displayonset) 
@@ -111,6 +112,14 @@ for sub in sub_list:
             new.loc[0:cue_num-1, 'cue_type'] = list(df.param_cue_type)
             new.loc[0:cue_num-1, 'stim_type'] = list(df.param_stimulus_type)
 
+            _event_sort(df,new, 
+            ind_first = 0, 
+            ev = 'event01_cue_onset', 
+            ev_name = 'cue', 
+            dur = 1, mod = 1, 
+            regressor = True, 
+            cue_type = list(df.param_cue_type), 
+            stim_type = list(df.param_stimulus_type))
 
             # STIM fill in parameters for STIM event _____________________________________________
             trial_num = len(df.event03_stimulus_displayonset) 
@@ -143,7 +152,7 @@ for sub in sub_list:
 
             matlab_rating = pd.concat([rating, rt], axis = 1)
             matlabname = f'{sub}_ses-{ses_num:02d}_run-{run_num:02d}_rating_post.csv'
-            matlab_rating.to_csv(os.path.join(ev_single_dir, sub, matlabname), index = False, header = ['rating', 'rt'] ) #sub-####_ses-##_run-##_event-rating.csv
+            matlab_rating.to_csv(join(single_dir, sub, matlabname), index = False, header = ['rating', 'rt'] ) #sub-####_ses-##_run-##_event-rating.csv
 
             new.loc[0:cue_num+trial_num-1,'cue_con'] = pd.concat([df['param_cue_type'].map(dict_cue)]*2, ignore_index=True)
             new.loc[0:cue_num+trial_num-1,'stim_lin'] = pd.concat([df['param_stimulus_type'].map(dict_stim)]*2, ignore_index=True)
@@ -172,7 +181,7 @@ for sub in sub_list:
             subject_dataframe = subject_dataframe.append(new)
 
         subject_dataframe.reset_index(inplace = True)
-        subject_dataframe.to_csv(os.path.join(ev_single_dir, sub,  f'{sub}_singletrial_{keyword}.csv'), index_col=False)
+        subject_dataframe.to_csv(join(single_dir, sub,  f'{sub}_singletrial_{keyword}.csv'), index_col=False)
     else:
         print(f"{sub} doesnt exist")
 # %%
