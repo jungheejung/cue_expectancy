@@ -12,6 +12,15 @@ import pandas as pd
 import logging
 import datetime
 
+__author__ = "Heejung Jung"
+__copyright__ = "Spatial Topology Project"
+__credits__ = ["Heejung"] # people who reported bug fixes, made suggestions, etc. but did not actually write the code.
+__license__ = "GPL"
+__version__ = "0.0.1"
+__maintainer__ = "Heejung Jung"
+__email__ = "heejung.jung@colorado.edu"
+__status__ = "Development" 
+
 # %% parameters ________________________________________________________________________
 current_dir = os.getcwd()
 main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
@@ -53,8 +62,8 @@ logger.setLevel(logging.INFO)
 # sub = sub_list[0]
 for sub in sub_list:
     T = pd.read_csv(os.path.join(meta_dir, sub, f'{sub}_singletrial_plateau.csv'))
-    T['spm_index'] = T.index.tolist() 
-    T['spm_index'] = T['spm_index'] +1
+    T['python_index'] = T.index.tolist() 
+    T['spm_index'] = T['python_index'] +1
 
     subset = T[T.regressor == True].copy()
     subset['source_name'] = subset["spm_index"].astype(int).apply(lambda x: f'beta_{x:04d}.nii')
