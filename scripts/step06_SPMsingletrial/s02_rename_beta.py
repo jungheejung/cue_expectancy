@@ -62,15 +62,15 @@ for sub in sub_list:
     for ind, row in subset.iterrows():
 #        print(ind, row)
         source_name = os.path.join(singletrial_dir, sub, row.source_name)
-        nifti_name = f"sub-{row['sub']:04d}_ses-{row['ses']:02d}_run-{row['run']:02d}-{row['task']}_task-social_ev-{row['ev']}-{int(row['num']):04d}.nii"
+        nifti_name = f"sub-{row['sub']:04d}_ses-{row['ses']:02d}_run-{row['run']:02d}-{row['run_type']}_task-social_ev-{row['ev']}-{int(row['num']):04d}.nii"
         dest_name = os.path.join(output_dir, sub, nifti_name)
         Path(os.path.join(output_dir, sub)).mkdir(parents=True, exist_ok=True)
         print(source_name)
         print(dest_name)
         if os.path.exists(source_name):
             shutil.copy(source_name, dest_name)
-            logger.info(msg="Success - {nifti_name}")
+            logger.info(msg=f"Success - {nifti_name}")
         else:
-            logger.warning(msg="Failed to copy - {nifti_name}")
+            logger.warning(msg=f"Failed to copy - {nifti_name}")
             break
 
