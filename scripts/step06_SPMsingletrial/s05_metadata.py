@@ -1,18 +1,38 @@
+#!/usr/bin/env python3
+"""
+based on concatenated niftis, 
+extract metadata from _singletrial.csv
+"""
 # %% libraries ________________________________________________________________________
 import os, sys, glob, shutil
 import pdb
 from pathlib import Path
 import itertools
 import pandas as pd
+
+__author__ = "Heejung Jung"
+__copyright__ = "Spatial Topology Project"
+__credits__ = ["Heejung"] # people who reported bug fixes, made suggestions, etc. but did not actually write the code.
+__license__ = "GPL"
+__version__ = "0.0.1"
+__maintainer__ = "Heejung Jung"
+__email__ = "heejung.jung@colorado.edu"
+__status__ = "Development" 
 # %% parameters ________________________________________________________________________
 current_dir = os.getcwd()
 main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
 nifti_dir = os.path.join(main_dir, 'analysis', 'fmri', 'spm', 'multivariate', 's03_concatnifti')
-sub_list = next(os.walk(nifti_dir))[1]
-items_to_remove = ['sub-0000', 'sub-0002', 'singletrial_SPM_01-pain-early']
+
+sub_folders = next(os.walk(nifti_dir))[1]
+sub_folder = [i for i in sub_folders if i.startswith('sub-')]
+remove_int = [1,2,3,4,5]
+remove_list = [f"sub-{x:04d}" for x in remove_int]
+sub_list = [i for i in sub_folder if i not in remove_list]
+items_to_remove = ['singletrial_SPM_03-pain-post', 'singletrial_SPM_02-pain-late','singletrial_SPM_04-pain-plateau','singletrial_SPM_01-pain-early']
 for item in items_to_remove:
     if item in sub_list:
         sub_list.remove(item)
+sub_list = sorted(sub_list)
 
 param_list = [sub_list, 
 ['pain', 'vicarious', 'cognitive'],
@@ -21,7 +41,7 @@ param_list = [sub_list,
 full_list = list(itertools.product(*param_list))
 for sub, task, ev in full_list:
 
-    subject_csv = os.path.join(main_dir, 'data', 'dartmouth', 'd06_singletrial_SPM', sub, f"{sub}_singletrial.csv" )
+    subject_csv = os.path.join(main_dir, 'data', 'dartmouth', 'd06_singletrial_SPM', sub, f"{sub}_singletrial_plateau.csv" )
     nifti_fname = os.path.join(nifti_dir, sub, f"niftifname_{sub}_task-{task}_ev-{ev}.txt")
 
     if os.path.exists(subject_csv) & os.path.exists(nifti_fname):

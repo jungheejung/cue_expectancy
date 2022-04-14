@@ -2,21 +2,21 @@
 """
 remove contaminated nifti files
 create new sub folder, move select niftifiles to sub folder
-__author__ = "Heejung Jung"
-__copyright__ = "Copyright 2021, The Cogent Project"
-__credits__ = ["Heejung Jung"]
-__license__ = "GPL"
-__version__ = "1.0.1"
-__maintainer__ = "Heejung Jung"
-__email__ = "heejung.jung@colorado.edu"
-__status__ = "Production"
 """
-
 # %% libraries ________________________________________________________________________
 import os, sys, glob, shutil
 import pdb
 from pathlib import Path
 import itertools
+
+__author__ = "Heejung Jung"
+__copyright__ = "Spatial Topology Project"
+__credits__ = ["Heejung"] # people who reported bug fixes, made suggestions, etc. but did not actually write the code.
+__license__ = "GPL"
+__version__ = "0.0.1"
+__maintainer__ = "Heejung Jung"
+__email__ = "heejung.jung@colorado.edu"
+__status__ = "Development" 
 
 sub_num = int(float(sys.argv[1]))
 ses = int(float(sys.argv[2]))
