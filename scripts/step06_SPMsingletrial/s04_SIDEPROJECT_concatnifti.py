@@ -24,7 +24,13 @@ nifti_dir = os.path.join(main_dir, 'analysis', 'fmri', 'spm', 'multivariate', 's
 outputnifti_dir = os.path.join(main_dir, 'analysis/fmri/spm/multivariate', 's03_concatnifti')
 sub_folders = next(os.walk(nifti_dir))[1]
 sub_list = [i for i in sub_folders if i.startswith('sub-')]
-task_list = ['pain', 'vicarious', 'cognitive', 'pain-early', 'pain-late', 'pain-post', 'pain-plateau']
+items_to_remove = ['sub-0001','sub-0026' ]
+for item in items_to_remove:
+    if item in sub_list:
+        sub_list.remove(item)
+sub_list = sorted(sub_list)
+
+task_list = ['pain', 'vicarious', 'cognitive']# 'pain-early', 'pain-late', 'pain-post', 'pain-plateau']
 event_list = ['cue', 'stim']
 total_list = list(itertools.product(sub_list, task_list, event_list))
 for i, (sub, task, event) in enumerate(total_list):
@@ -33,7 +39,7 @@ for i, (sub, task, event) in enumerate(total_list):
     # niis = [log for log in glob.glob(os.path.join(sub_nifti_dir, '*.nii.gz')) if not os.path.isdir(log)]
     print("nilearn file concatenation")
     print(f"subject: {sub}")
-    niis = glob.glob(join(nifti_dir, sub, f"{sub}_*_run-*-{task}*_ev-{event}*.nii"))
+    niis = glob.glob(join(nifti_dir, sub, f"{sub}_*_run-*-{task}_task-social_ev-{event}*.nii"))
     if niis:
         nifti_list = sorted(niis)
         concat_nii = nl.image.concat_imgs(nifti_list)
