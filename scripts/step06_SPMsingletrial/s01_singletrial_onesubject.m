@@ -63,7 +63,9 @@ onset_num_column = onset_col_names(endsWith(onset_col_names, '_num'));
 %intersection of nifti and onset files
 A = intersect(sortedT(:,nii_num_column),sortedonsetT(:,onset_num_column));
 
-output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'multivariate','s02_isolatenifti', sub);
+
+%output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'multivariate','s02_isolatenifti', sub);
+output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'multivariate', 's01_singletrial', sub);
 if ~exist(output_dir, 'dir')
     mkdir(output_dir)
 end
