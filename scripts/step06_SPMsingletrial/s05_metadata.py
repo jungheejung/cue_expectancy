@@ -9,6 +9,7 @@ import pdb
 from pathlib import Path
 import itertools
 import pandas as pd
+import numpy as np
 
 __author__ = "Heejung Jung"
 __copyright__ = "Spatial Topology Project"
@@ -18,6 +19,7 @@ __version__ = "0.0.1"
 __maintainer__ = "Heejung Jung"
 __email__ = "heejung.jung@colorado.edu"
 __status__ = "Development" 
+
 # %% parameters ________________________________________________________________________
 current_dir = os.getcwd()
 main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
@@ -38,11 +40,12 @@ param_list = [sub_list,
 ['pain', 'vicarious', 'cognitive'],
 ['cue', 'stim']]
 
+# %% for loop _____________________________________________________________________________
 full_list = list(itertools.product(*param_list))
 for sub, run_type, ev in full_list:
     # /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/data/d03_onset/onset03_SPMsingletrial/sub-0055
     subject_csv = os.path.join(main_dir, 'data', 'd03_onset', 'onset03_SPMsingletrial', sub, f"{sub}_singletrial_plateau.csv" )
-    nifti_fname = os.path.join(nifti_dir, sub, f"niftifname_{sub}_task-social_run_{run_type}_ev-{ev}.txt")
+    nifti_fname = os.path.join(nifti_dir, sub, f"niftifname_{sub}_task-social_run-{run_type}_ev-{ev}.txt")
 
     if os.path.exists(subject_csv) & os.path.exists(nifti_fname):
         print(f"loading {sub} {run_type} {ev}")
