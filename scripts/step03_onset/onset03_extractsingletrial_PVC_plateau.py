@@ -38,7 +38,7 @@ def _event_sort(df, new_df, ind_first, ev, ev_name, dur, mod, regressor, cue_typ
     new_df.loc[ind_first: ind_first+len(df[ev])-1, 'dur'] = dur
     new_df.loc[ind_first: ind_first+len(df[ev])-1, 'mod'] = mod
     new_df.loc[ind_first: ind_first+len(df[ev])-1, 'regressor'] = regressor
-    new_df.loc[ind_first: ind_first+len(df[ev])-1, 'num'] = list(range(len(df[ev])))
+    new_df.loc[ind_first: ind_first+len(df[ev])-1, 'num'] = list(range(1,len(df[ev])+1))
     new_df.loc[ind_first: ind_first+len(df[ev])-1, 'cue_type'] = cue_type
     new_df.loc[ind_first: ind_first+len(df[ev])-1, 'stim_type'] = stim_type
     return new_df.copy()
