@@ -4,7 +4,7 @@
 % 2. grab metadata
 % 3. provide input as XMY
 % 4. create folder
-run_type = 'pain'; % string(run_type)
+run_type = 'cognitive'; % string(run_type)
 event = 'cue'; %string(event);
 csv = 'cue-expect'; %string(csv);
 y_rating = 'expect';% string(y_rating);
