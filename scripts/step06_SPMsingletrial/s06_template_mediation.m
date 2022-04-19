@@ -18,8 +18,12 @@ rmpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip/external/st
 main_dir = fileparts(fileparts(fileparts(pwd)));
 nifti_dir = fullfile(main_dir, 'analysis','fmri','spm','multivariate','s03_concatnifti')
 
+<<<<<<< HEAD
 % sublist = [3,4,5,6,7,8,9,10,14,15,16,18,19,20,21,23,24,25,26,28,29,30,31,32,33,35,37,43,47,51,53,55,58,60];
 sublist = [6,7,8,9,10,11,13,14,15,16,17,20,21,23,24,28,29,30,31,32,33,35,37,43,47,51,53,55,58,60,61,62,64,65,66,68,69,70,71,73,74,75,76,77,78,79,80,81,84,85];
+=======
+sublist = [6,7,8,9,10,11,13,14,15,16,17,18,20,21,23,24,28,29,30,31,32,33,35,37,43,47,51,53,55,58,60,61,62,64,65,66,68,69,70,71,73,74,75,76,77,78,79,80,81,84,85];
+>>>>>>> 8f421d534e5cc24259ee71f74c30e537f7fbc1e5
 X = cell(1, length(sublist));
 M = cell(1, length(sublist));
 Y = cell(1, length(sublist));
@@ -82,7 +86,11 @@ SETUP.fdr_p_thresh, 'size', 5, ...
 
 % Results for Path a*b
 % Generate results for the mediation effect. Here, we'll return some clusters structures with results to the workspace as output so we can examine them later. (We can also load them from disk).
+<<<<<<< HEAD
 printhdr(strcat('Path a*b: Brain Mediators (M) of ',event, '(X) Effects on ', run_type))
+=======
+printhdr(strcat('Path a*b: Brain Mediators (M) of ',event '(X) Effects on ', run_type))
+>>>>>>> 8f421d534e5cc24259ee71f74c30e537f7fbc1e5
 
 [clpos, clneg, clpos_data, clneg_data, clpos_data2, clneg_data2] = mediation_brain_results('ab', 'thresh', ...
     SETUP.fdr_p_thresh, 'size', 5, ...
