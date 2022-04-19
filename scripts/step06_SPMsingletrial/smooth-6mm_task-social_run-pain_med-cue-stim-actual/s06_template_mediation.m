@@ -5,7 +5,7 @@
 % 3. provide input as XMY
 % 4. create folder
 run_type = 'pain'; % string(run_type)
-event = 'cue'; %string(event);
+event = 'stim'; %string(event);
 csv = 'stim-actual'; %string(csv);
 y_rating = 'actual';% string(y_rating);
 addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/MediationToolbox'));

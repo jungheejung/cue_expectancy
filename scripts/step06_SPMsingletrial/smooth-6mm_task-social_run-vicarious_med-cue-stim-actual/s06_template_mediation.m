@@ -4,10 +4,10 @@
 % 2. grab metadata
 % 3. provide input as XMY
 % 4. create folder
-run_type = 'pain'; % string(run_type)
-event = 'cue'; %string(event);
-csv = 'cue-expect'; %string(csv);
-y_rating = 'expect';% string(y_rating);
+run_type = 'vicarious'; % string(run_type)
+event = 'stim'; %string(event);
+csv = 'stim-actual'; %string(csv);
+y_rating = 'actual';% string(y_rating);
 addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/MediationToolbox'));
 addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore'));
 addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12'));
@@ -47,7 +47,7 @@ for s = 1:length(sublist)
     % provide input as XMY
     X{1, s} = T.cue_con; % table2array(T(:, 'cue_con'));% T.cue; %
     M{1, s} = char(fname_nii);
-    Y{1, s} = T.expect_rating;% table2array(T(:,strcat(y_rating, '_rating'))); %T.actual_rating;
+    Y{1, s} = T.actual_rating;% table2array(T(:,strcat(y_rating, '_rating'))); %T.actual_rating;
 
 end
 disp(X);
