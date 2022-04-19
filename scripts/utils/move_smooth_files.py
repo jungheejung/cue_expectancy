@@ -5,11 +5,7 @@ We want to keep files modular
 * fmriprep smooth source: /dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/fmriprep/sub-0066/ses-03/func
 * smooth destination: /dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/smooth_6mm
 """
-import pandas as pd
-import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
-import itertools
+
 import os, shutil, glob
 from pathlib import Path
 from os.path import join
