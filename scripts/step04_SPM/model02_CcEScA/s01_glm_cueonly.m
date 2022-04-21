@@ -1,4 +1,4 @@
-function s01_glm(input)
+function s01_glm(input, fmriprep_dir, main_dir)
 %-----------------------------------------------------------------------
 % Job saved on 30-Jun-2021 19:26:24 by cfg_util (rev $Rev: 7345 $)
 % spm SPM - SPM12 (7771)
@@ -23,6 +23,7 @@ rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = 'v7.3';
 numscans = 56;
 disacqs = 0;
 disp(input);
+disp(fmriprep_dir)
 disp(strcat('[ STEP 01 ] setting parameters...'));
 
 % contrast mapper _______________________________________________________
@@ -33,11 +34,11 @@ m2 = containers.Map(keySet,con2);
 m3 = containers.Map(keySet,con3);
 m4 = containers.Map(keySet,con4);
 % 1-1. directories _______________________________________________________
-fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'; % sub / ses
+%fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'; % sub / ses
 % main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
-main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social';
-motion_dir = fullfile(main_dir, 'data', 'dartmouth', 'd05_motion');
-onset_dir = fullfile(main_dir, 'data', 'dartmouth', 'd04_EV_SPM');
+% main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social';
+motion_dir = fullfile(main_dir, 'data', 'd04_motion');
+onset_dir = fullfile(main_dir, 'data', 'd03_onset', 'onset02_SPM');
 %% 2. for loop "subject-wise" _______________________________________________________
 %sub_num = sscanf(char(input),'%d');
 %sub = strcat('sub-', sprintf('%04d', sub_num));
@@ -47,7 +48,7 @@ disp(strcat('[ STEP 02 ] PRINT VARIABLE'))
 disp(strcat('sub:    ', sub));
 
 % find nifti files
-niilist = dir(fullfile(fmriprep_dir, sub, '*/func/smooth_5mm_*task-social*_bold.nii'));
+niilist = dir(fullfile(fmriprep_dir, sub, '*/func/*task-social*_bold.nii'));
 nT = struct2table(niilist); % convert the struct array to a table
 sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
 
@@ -59,6 +60,9 @@ nii_col_names = sortedT.Properties.VariableNames;
 nii_num_colomn = nii_col_names(endsWith(nii_col_names, '_num'));
 
 % find onset files
+%%%%%%% TODO: if pain run, check if * sub-0055_*_task-social_*_events_ttl.tsv  exists
+% else if, look for _events.tsv
+
 onsetlist = dir(fullfile(onset_dir, sub, '*', strcat(sub, '_*_task-social_*_events.tsv')));
 onsetT = struct2table(onsetlist);
 sortedonsetT = sortrows(onsetT, 'name');
@@ -73,7 +77,7 @@ onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
 %intersection of nifti and onset files
 A = intersect(sortedT(:,nii_num_colomn),sortedonsetT(:,onset_num_colomn));
 
-output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm','univariate', 'model-02_CcEScA',...
+output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'univariate', 'model-02_CcEScA',...
 '1stLevel',sub);
 if ~exist(output_dir, 'dir')
     mkdir(output_dir)
@@ -105,9 +109,9 @@ for run_ind = 1: size(A,1)
     % smooth_5mm_sub-0006_ses-01_task-social_acq-mb8_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold.nii
     % smooth_5mm_sub-0003_ses-01_task-social_acq-mb8_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold_masked.nii.gz
     smooth_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
-                   strcat('smooth_5mm_', sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
+                   strcat('smooth_6mm_', sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
     smooth_nii = fullfile(fmriprep_dir, sub, ses, 'func',...
-                   strcat('smooth_5mm_', sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
+                   strcat('smooth_6mm_', sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
     if ~exist(smooth_nii,'file'), gunzip(smooth_fname)
     end
 
@@ -124,6 +128,9 @@ for run_ind = 1: size(A,1)
     social        = struct2table(tdfread(onset_fname));
     keyword       = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
     task          = char(extractAfter(keyword, '-'));
+
+    % if task == 'pain'
+    % see if ttl file exists. load it
 
     disp(strcat('task: ', task));
 
@@ -172,7 +179,7 @@ for run_ind = 1: size(A,1)
     matlabbatch{1}.spm.stats.fmri_spec.global = 'None';
     matlabbatch{1}.spm.stats.fmri_spec.mthresh = -Inf;
     matlabbatch{1}.spm.stats.fmri_spec.mask = {''};
-    matlabbatch{1}.spm.stats.fmri_spec.cvi = 'AR(1)';
+    matlabbatch{1}.spm.stats.fmri_spec.cvi = 'none';
 
     % RUN 01 _________________________________________________________________________
     scans = spm_select('Expand',smooth_nii);
@@ -214,7 +221,7 @@ for run_ind = 1: size(A,1)
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).multi = {''};
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).regress = struct('name', {}, 'val', {});
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).multi_reg = cellstr(motion_fname);
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).hpf = 128;
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).hpf = 180;          % tor changed; 128 can be too low; should choose yourself % 128;
 end
 
 
