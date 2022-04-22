@@ -1,4 +1,4 @@
-function s01_glm(input, fmriprep_dir, main_dir)
+function s01_glm(input, fmriprep_dir, smooth_dir, main_dir)
 %-----------------------------------------------------------------------
 % Job saved on 30-Jun-2021 19:26:24 by cfg_util (rev $Rev: 7345 $)
 % spm SPM - SPM12 (7771)
@@ -25,6 +25,8 @@ disacqs = 0;
 disp(input);
 disp(fmriprep_dir)
 disp(strcat('[ STEP 01 ] setting parameters...'));
+sub = strcat('sub-', sprintf('%04d', input));
+disp(strcat('____________________________', sub, '____________________________'))
 
 % contrast mapper _______________________________________________________
 keySet = {'pain','vicarious','cognitive'};
@@ -42,7 +44,7 @@ onset_dir = fullfile(main_dir, 'data', 'd03_onset', 'onset02_SPM');
 %% 2. for loop "subject-wise" _______________________________________________________
 %sub_num = sscanf(char(input),'%d');
 %sub = strcat('sub-', sprintf('%04d', sub_num));
-sub = input
+
 disp(strcat('[ STEP 02 ] PRINT VARIABLE'))
 %disp(strcat('sub_num:  ', sub_num));
 disp(strcat('sub:    ', sub));
@@ -108,9 +110,9 @@ for run_ind = 1: size(A,1)
     disp(strcat('[ STEP 03 ] gunzip and saving nifti...'));
     % smooth_5mm_sub-0006_ses-01_task-social_acq-mb8_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold.nii
     % smooth_5mm_sub-0003_ses-01_task-social_acq-mb8_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold_masked.nii.gz
-    smooth_fname = fullfile(fmriprep_dir, sub, ses, 'func',...
+    smooth_fname = fullfile(smooth_dir, sub, ses, 'func',...
                    strcat('smooth_6mm_', sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
-    smooth_nii = fullfile(fmriprep_dir, sub, ses, 'func',...
+    smooth_nii = fullfile(smooth_dir, sub, ses, 'func',...
                    strcat('smooth_6mm_', sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
     if ~exist(smooth_nii,'file'), gunzip(smooth_fname)
     end
@@ -129,19 +131,31 @@ for run_ind = 1: size(A,1)
     keyword       = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
     task          = char(extractAfter(keyword, '-'));
 
-    % if task == 'pain'
+    % 
+    if task == 'pain'
+        test = dir(fullfile(onset_glob.folder, strcat(sub, '_', ses, '_task-social_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '-*_events_ttl.tsv')))
+        if isfile(test)
+            onset_fname = fullfile(char(test.folder), char(test.name))
+            disp(strcat('this is a pain run with a ttl file: ', onset_fname))
+        else
+            disp(strcat('this is a pain run without a ttl file'))
+        end
+    end
+    
+    
+
     % see if ttl file exists. load it
 
     disp(strcat('task: ', task));
 
     disp(strcat('[ STEP 05 ]creating motion covariate text file...'));
 
-    mask_fname = fullfile(fmriprep_dir, sub, 'ses-01', 'anat',...
-    strcat(sub, '_ses-01_acq-MPRAGEXp3X08mm_desc-brain_mask.nii.gz'));
-    mask_nii = fullfile(fmriprep_dir, sub, 'ses-01', 'anat',...
-    strcat(sub, '_ses-01_acq-MPRAGEXp3X08mm_desc-brain_mask.nii'));
-    if ~exist(mask_nii,'file'), gunzip(mask_fname)
-    end
+    % mask_fname = fullfile(fmriprep_dir, sub, 'ses-01', 'anat',...
+    % strcat(sub, '_ses-01_acq-MPRAGEXp3X08mm_desc-brain_mask.nii.gz'));
+    % mask_nii = fullfile(fmriprep_dir, sub, 'ses-01', 'anat',...
+    % strcat(sub, '_ses-01_acq-MPRAGEXp3X08mm_desc-brain_mask.nii'));
+    % if ~exist(mask_nii,'file'), gunzip(mask_fname)
+    % end
 
 %% regressor ______________________________________________________
     motion_fname = fullfile(motion_dir, sub, ses,...
