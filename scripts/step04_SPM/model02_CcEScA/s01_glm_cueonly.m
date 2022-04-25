@@ -1,11 +1,12 @@
-function s01_glm(input, fmriprep_dir, smooth_dir, main_dir)
+function s01_glm_cueonly(input)
 %-----------------------------------------------------------------------
 % Job saved on 30-Jun-2021 19:26:24 by cfg_util (rev $Rev: 7345 $)
 % spm SPM - SPM12 (7771)
 % cfg_basicio BasicIO - Unknown
 %-----------------------------------------------------------------------
+spm_get_defaults('cmdline',true);
 disp('...STARTING JOBS');
-
+%defaults ('restoredefaultpath') 
 rootgroup = settings; rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = 'v7.3'
 rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = 'v7.3';
 %-----------------------------------------------------------------------
@@ -23,7 +24,7 @@ rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = 'v7.3';
 numscans = 56;
 disacqs = 0;
 disp(input);
-disp(fmriprep_dir)
+
 disp(strcat('[ STEP 01 ] setting parameters...'));
 sub = strcat('sub-', sprintf('%04d', input));
 disp(strcat('____________________________', sub, '____________________________'))
@@ -36,11 +37,16 @@ m2 = containers.Map(keySet,con2);
 m3 = containers.Map(keySet,con3);
 m4 = containers.Map(keySet,con4);
 % 1-1. directories _______________________________________________________
-%fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'; % sub / ses
+fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'; % sub / ses
+fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/fmriprep';
+smooth_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/smooth_6mm';
 % main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
-% main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social';
+main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social';
 motion_dir = fullfile(main_dir, 'data', 'd04_motion');
 onset_dir = fullfile(main_dir, 'data', 'd03_onset', 'onset02_SPM');
+disp(strcat('fmriprep_dir', fmriprep_dir));
+disp(strcat('smooth_dir', smooth_dir));
+disp(strcat('main_dir', main_dir));
 %% 2. for loop "subject-wise" _______________________________________________________
 %sub_num = sscanf(char(input),'%d');
 %sub = strcat('sub-', sprintf('%04d', sub_num));
@@ -50,7 +56,7 @@ disp(strcat('[ STEP 02 ] PRINT VARIABLE'))
 disp(strcat('sub:    ', sub));
 
 % find nifti files
-niilist = dir(fullfile(fmriprep_dir, sub, '*/func/*task-social*_bold.nii'));
+niilist = dir(fullfile(smooth_dir, sub, '*/func/*task-social*_bold.nii'));
 nT = struct2table(niilist); % convert the struct array to a table
 sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
 
@@ -79,14 +85,14 @@ onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
 %intersection of nifti and onset files
 A = intersect(sortedT(:,nii_num_colomn),sortedonsetT(:,onset_num_colomn));
 
-output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'univariate', 'model-02_CcEScA',...
-'1stLevel',sub);
+output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'univariate', 'model-02_CcEScA','1stLevel',sub);
+disp(strcat('output_dir:', output_dir));
 if ~exist(output_dir, 'dir')
     mkdir(output_dir)
 end
-if isfile(fullfile(output_dir,'SPM.mat'))
-   delete *.nii
-   delete SPM.mat
+if ~isempty(dir(fullfile(output_dir,'SPM.mat')))
+   delete(fullfile(output_dir, '*.nii'));
+   delete(fullfile(output_dir, 'SPM.mat'));
 end
 
 % contrasts (initialize per run)
@@ -132,9 +138,9 @@ for run_ind = 1: size(A,1)
     task          = char(extractAfter(keyword, '-'));
 
     % 
-    if task == 'pain'
+    if strcmp(task,'pain')
         test = dir(fullfile(onset_glob.folder, strcat(sub, '_', ses, '_task-social_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '-*_events_ttl.tsv')))
-        if isfile(test)
+        if ~isempty(test)
             onset_fname = fullfile(char(test.folder), char(test.name))
             disp(strcat('this is a pain run with a ttl file: ', onset_fname))
         else
@@ -255,6 +261,7 @@ save( batch_fname,'matlabbatch') %, '-v7.3');
 
 
 %% 4. run __________________________________________________________
+spm_get_defaults('cmdline',true);
 spm('defaults', 'FMRI');
 spm_jobman('run',matlabbatch);
 clearvars matlabbatch
@@ -262,3 +269,4 @@ clearvars matlabbatch
 disp(strcat('FINISH - subject ', sub,  ' complete'))
 
 end
+
