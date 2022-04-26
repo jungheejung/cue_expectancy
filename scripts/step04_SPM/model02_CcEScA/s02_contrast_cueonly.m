@@ -31,8 +31,9 @@ motion_dir = fullfile(main_dir, 'data', 'd04_motion');
 onset_dir = fullfile(main_dir, 'data', 'd03_onset', 'onset02_SPM');
 
 
-sub_num = sscanf(char(input),'%d');
-sub = strcat('sub-', sprintf('%04d', sub_num));
+% sub_num = sscanf(char(input),'%d');
+% sub = strcat('sub-', sprintf('%04d', sub_num));
+sub = strcat('sub-', sprintf('%04d', input));
 disp( sub );
 fmri_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'univariate', 'model-02_CcEScA',...
     '1stLevel', sub); % first level spm mat.
