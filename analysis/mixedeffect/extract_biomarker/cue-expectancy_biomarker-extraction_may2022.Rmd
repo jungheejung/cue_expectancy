@@ -1,0 +1,656 @@
+---
+title: "cue-expectancy_biomarker-extraction_May2022"
+author: "Heejung Jung"
+date: "5/5/2022"
+output: html_document
+---
+
+
+* load csv file in 
+* calculate summary of dataframe
+* average NPS rating per temperature
+* average NPS rating per session
+* calculate ICC "two-way random effects"
+
+```{r}
+library(psych)
+library(car)
+library(lmSupport)
+library(lme4)
+library(lmerTest)
+library(plyr)
+#library(dplyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+library(ggpubr)
+library(irr)
+library(ICC)
+source('http://psych.colorado.edu/~jclab/R/mcSummaryLm.R')
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
+source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+                          pattern="*.R", 
+                          full.names=TRUE, 
+                          ignore.case=TRUE)
+sapply(file.sources,source,.GlobalEnv)
+```
+
+# Functions _____________________________________________________________________
+
+
+### FUNCTION: normdatawithin
+```{r}
+normDataWithin <- function(data=NULL, idvar, measurevar, betweenvars=NULL,
+                           na.rm=FALSE, .drop=TRUE) {
+  ## Norms the data within specified groups in a data frame; it normalizes each
+## subject (identified by idvar) so that they have the same mean, within each group
+## specified by betweenvars.
+##   data: a data frame.
+##   idvar: the name of a column that identifies each subject (or matched subjects)
+##   measurevar: the name of a column that contains the variable to be summariezed
+##   betweenvars: a vector containing names of columns that are between-subjects variables
+##   na.rm: a boolean that indicates whether to ignore NA's
+    library(plyr)
+
+    # Measure var on left, idvar + between vars on right of formula.
+    data.subjMean <- ddply(data, c(idvar, betweenvars), .drop=.drop,
+     .fun = function(xx, col, na.rm) {
+        c(subjMean = mean(xx[,col], na.rm=na.rm))
+      },
+      measurevar,
+      na.rm
+    )
+
+    # Put the subject means with original data
+    data <- merge(data, data.subjMean)
+
+    # Get the normalized data in a new column
+    measureNormedVar <- paste(measurevar, "_norm", sep="")
+    data[,measureNormedVar] <- data[,measurevar] - data[,"subjMean"] +
+                               mean(data[,measurevar], na.rm=na.rm)
+
+    # Remove this subject mean column
+    data$subjMean <- NULL
+
+    return(data)
+}
+```
+
+### FUNCTION: summarySEwithin
+```{r}
+summarySEwithin <- function(data=NULL, measurevar, betweenvars=NULL, withinvars=NULL,
+                            idvar=NULL, na.rm=FALSE, conf.interval=.95, .drop=TRUE) {
+
+  ## Summarizes data, handling within-subjects variables by removing inter-subject variability.
+## It will still work if there are no within-S variables.
+## Gives count, un-normed mean, normed mean (with same between-group mean),
+##   standard deviation, standard error of the mean, and confidence interval.
+## If there are within-subject variables, calculate adjusted values using method from Morey (2008).
+##   data: a data frame.
+##   measurevar: the name of a column that contains the variable to be summariezed
+##   betweenvars: a vector containing names of columns that are between-subjects variables
+##   withinvars: a vector containing names of columns that are within-subjects variables
+##   idvar: the name of a column that identifies each subject (or matched subjects)
+##   na.rm: a boolean that indicates whether to ignore NA's
+##   conf.interval: the percent range of the confidence interval (default is 95%)
+  # Ensure that the betweenvars and withinvars are factors
+  factorvars <- vapply(data[, c(betweenvars, withinvars), drop=FALSE],
+    FUN=is.factor, FUN.VALUE=logical(1))
+
+  if (!all(factorvars)) {
+    nonfactorvars <- names(factorvars)[!factorvars]
+    message("Automatically converting the following non-factors to factors: ",
+            paste(nonfactorvars, collapse = ", "))
+    data[nonfactorvars] <- lapply(data[nonfactorvars], factor)
+  }
+
+  # Get the means from the un-normed data
+  datac <- summarySE(data, measurevar, groupvars=c(betweenvars, withinvars),
+                     na.rm=na.rm, conf.interval=conf.interval, .drop=.drop)
+
+  # Drop all the unused columns (these will be calculated with normed data)
+  datac$sd <- NULL
+  datac$se <- NULL
+  datac$ci <- NULL
+
+  # Norm each subject's data
+  ndata <- normDataWithin(data, idvar, measurevar, betweenvars, na.rm, .drop=.drop)
+
+  # This is the name of the new column
+  measurevar_n <- paste(measurevar, "_norm", sep="")
+
+  # Collapse the normed data - now we can treat between and within vars the same
+  ndatac <- summarySE(ndata, measurevar_n, groupvars=c(betweenvars, withinvars),
+                      na.rm=na.rm, conf.interval=conf.interval, .drop=.drop)
+
+  # Apply correction from Morey (2008) to the standard error and confidence interval
+  #  Get the product of the number of conditions of within-S variables
+  nWithinGroups    <- prod(vapply(ndatac[,withinvars, drop=FALSE], FUN=nlevels,
+                           FUN.VALUE=numeric(1)))
+  correctionFactor <- sqrt( nWithinGroups / (nWithinGroups-1) )
+
+  # Apply the correction factor
+  ndatac$sd <- ndatac$sd * correctionFactor
+  ndatac$se <- ndatac$se * correctionFactor
+  ndatac$ci <- ndatac$ci * correctionFactor
+
+  # Combine the un-normed means with the normed results
+  df = merge(datac, ndatac)
+  return(df)
+  
+}
+```
+
+### FUNCTION: meanSummary
+```{r}
+meanSummary <- function(DATA, GROUP, DV){
+  z <- ddply(DATA, GROUP, .fun = function(xx){
+                         c(mean_per_sub = mean(xx[,DV],na.rm=TRUE),
+                         sd = sd(xx[,DV],na.rm=TRUE) ) })
+  return(z)
+  }
+```
+
+### FUNCTION: plot_expect_rainclouds
+```{r}
+# data within_average
+# DV = mean_per_sub
+# IV = param_cue_type
+plot_expect_rainclouds = function(within_average, group_level_condition_average, 
+                                  fill_IV, SUB_MEAN, GROUP_MEAN, SE, SUBJECT,
+                                  GGTITLE, TITLE, XLAB, YLAB,task_name, w, h, DV_KEYWORD,COLOR, SAVE_FNAME) {
+g <- ggplot(data = within_average, 
+            aes(y = .data[[SUB_MEAN]], x = factor(.data[[fill_IV]]), fill =  factor(.data[[fill_IV]]))) +
+  geom_flat_violin(aes(fill =  factor(.data[[fill_IV]])), position = position_nudge(x = .1, y = 0), 
+                   adjust = 1.5, trim = FALSE, alpha = .3, colour = NA) +
+  geom_line(data = within_average,
+           aes(group = .data[[SUBJECT]], y = .data[[SUB_MEAN]], x = as.numeric( .data[[fill_IV]] )-.15, 
+               fill =  factor(.data[[fill_IV]])), linetype = "solid", color = "grey", alpha = .3) +
+  geom_point(aes(x = as.numeric( .data[[fill_IV]])-.15, y = .data[[SUB_MEAN]], color = factor(.data[[fill_IV]])),
+             position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+  geom_boxplot(aes(x =  .data[[fill_IV]], y = .data[[SUB_MEAN]], fill =  .data[[fill_IV]]), width = .1,
+               outlier.shape = NA, alpha = 0.8, width = .1, colour = "black") +
+  geom_errorbar(data = group_level_condition_average, 
+                aes(x = as.numeric( .data[[fill_IV]])+.1, y = as.numeric(.data[[GROUP_MEAN]]), 
+                   colour =  factor(.data[[fill_IV]]), 
+                   ymin =  .data[[GROUP_MEAN]] - .data[[SE]], 
+                   ymax =  .data[[GROUP_MEAN]] + .data[[SE]]), width = .05) +
+
+  # legend stuff __________________________________________________________________________________
+  expand_limits(x = 2.8) +
+  guides(fill = FALSE) +
+  guides(color = FALSE) +
+  guides(fill=guide_legend(title=TITLE))+
+  scale_fill_manual(values = COLOR)+
+  scale_color_manual(values = COLOR)+
+
+  ggtitle(GGTITLE) +
+  # coord_flip() + #vertical vs horizontal
+  xlab(XLAB) +
+  ylab(YLAB) +
+  theme_bw() 
+ggsave(SAVE_FNAME, width = w, height = h)
+return(g)
+
+}
+```
+### FUNCTION: plot_actual_rainclouds
+```{r}
+plot_actual_rainclouds = function(subjectwise, groupwise, 
+                                  IV1, IV2, SUB_MEAN, GROUP_MEAN, SE, SUBJECT, GGTITLE, TITLE, XLAB,YLAB,task_name, w, h, DV_KEYWORD,COLOR,SAVE_FNAME) {
+
+g <- ggplot(data = subjectwise, aes(y = .data[[SUB_MEAN]], x = .data[[IV1]], fill = .data[[IV2]])) +
+  geom_flat_violin(aes(fill = .data[[IV2]]), position = position_nudge(x = .1, y = 0), adjust = 1.5,
+                   trim = FALSE, alpha = .3, colour = NA) +
+  geom_line(data = subjectwise, aes(group = .data[[SUBJECT]], y = .data[[SUB_MEAN]], x = as.numeric(.data[[IV1]])-.15, fill = .data[[IV2]]), linetype = 3, color = "grey") +
+  #geom_point(aes(group = subject, x = as.numeric(IV1)-.15, y = mean_per_sub, color = IV2),
+ #            position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+  geom_point(data = subjectwise, aes(x = as.numeric(.data[[IV1]])-.15, 
+                                     y = .data[[SUB_MEAN]], color =.data[[IV2]]),
+             position = position_jitter(width = .05), size = 1, alpha = 0.8, shape = 20) +
+  geom_boxplot(data = subjectwise, aes(x = .data[[IV1]], y = .data[[SUB_MEAN]], fill = .data[[IV2]]),width = .1,
+               outlier.shape = NA, alpha = 0.8, width = .1, colour = "black") +
+
+  # use summary stats __________________________________________________________________________________
+
+  geom_errorbar(data = groupwise, aes(x = as.numeric(.data[[IV1]])+.1, y = .data[[GROUP_MEAN]],
+                              group = .data[[IV2]], colour = .data[[IV2]], 
+                              ymin = .data[[GROUP_MEAN]] - .data[[SE]], 
+                              ymax = .data[[GROUP_MEAN]] + .data[[SE]]), width = .05) +
+
+  # legend stuff __________________________________________________________________________________
+  expand_limits(x = 3.25) +
+  guides(fill = FALSE) +
+  guides(color = FALSE) +
+  guides(fill=guide_legend(title="social cues"))+
+  #scale_color_brewer(palette = "Dark2") +
+  #scale_fill_brewer(palette = "Dark2") +
+  scale_fill_manual(values = COLOR)+
+  scale_color_manual(values = COLOR)+
+  ggtitle(GGTITLE) +
+  # coord_flip() + #vertical vs horizontal
+  xlab("Stimulus intensity levels") +
+  ylab("Degrees of actual ratings") +
+  theme_bw() 
+
+g
+#w = 5
+#h = 3
+
+ggsave(SAVE_FNAME, width = w, height = h)
+
+}
+```
+
+
+```{r}
+run_cue_lmer = function(DATA,TASKNAME, IV, DV, SUBJECT, DV_KEYWORD, MODEL_SAVE){
+  model.cue = lmer( DATA[,DV] ~ DATA[,IV] + (DATA[,IV] | DATA[,SUBJECT]) )
+  print(paste("model: ", str_to_title(DV_KEYWORD), " ratings - ", TASKNAME))
+  print(summary(model.cue))
+  sink(MODEL_SAVE)
+  print(summary(model.cue))
+  sink()
+  cooksd <- cooks.distance(model.cue)
+  return(cooksd)
+  }
+```
+
+# load csv file in 
+```{r}
+
+main_dir = '/Volumes/spacetop_projects_social'
+# Stim P > VC
+p.fname = '/Volumes/spacetop_projects_social/analysis/fmri/spm/univariate/model-02_CcEScA/extract_nps/model-02_CcEScA_con_0009/model-02_CcEScA_con_0009.csv'
+# Stim P > VC
+v.fname = '/Volumes/spacetop_projects_social/analysis/fmri/spm/univariate/model-02_CcEScA/extract_nps/model-02_CcEScA_con_0010/model-02_CcEScA_con_0010.csv'
+c.fname = '/Volumes/spacetop_projects_social/analysis/fmri/spm/univariate/model-02_CcEScA/extract_nps/model-02_CcEScA_con_0011/model-02_CcEScA_con_0011.csv'
+p.df = read.csv(p.fname)
+v.df = read.csv(v.fname)
+c.df = read.csv(c.fname)
+p.df$con = 'pain_gt_VC'
+v.df$con = 'vicarious_gt_PC'
+c.df$con = 'cognitive_gt_PV'
+```
+
+# model summary
+```{r}
+model.p.nps = lm( nps~1 , p.df)
+model.v.nps = lm( nps~1 , v.df)
+model.c.nps = lm( nps~1, c.df)
+summary(model.p.nps)
+summary(model.v.nps)
+summary(model.c.nps)
+```
+# contrasts
+```{r}
+stim_contrast = rbind(p.df, v.df, c.df)
+```
+
+# plot NPS pain rating per temperature
+
+```{r}
+a = ggplot(data = stim_contrast, aes(x = con, y = nps)) +
+  geom_point(color = 'black') +
+  #stat_smooth(method = 'lm') +
+  theme_classic()
+
+# e = ggplot(data = stim_contrast, aes(x = expect_rating, y = nps)) +
+#   geom_point(color = 'red') +
+#   stat_smooth(method = 'lm') + 
+#   theme_classic()
+a
+```
+
+
+
+# test out raincloud one factor
+
+```{r}
+subject_varkey <- "src_subject_id"
+iv <- "con_factor"
+dv <- "nps"
+dv_keyword <- "nps"
+subject <- "subject_factor"
+xlab <- ""
+ylab <- "NPS (dotproduct)"
+
+w <- 10
+h <- 6
+data = stim_contrast
+# /Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect/extract_biomarker
+main_dir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis'
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect","extract_biomarker", "glm_stimcontrast",as.character(Sys.Date()))
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+
+# [ CONTRASTS ]  ----------------------------------------------------------------------------
+# DATA = cue_stim_contrast(DATA)
+# STIMC1 = "stim_con_linear"
+# STIMC2 = "stim_con_quad"
+taskname = "stimulus"
+# for (taskname in c("pain", "vicarious", "cognitive")) {
+    # [ MODEL ] ----------------------------------------------------------------------------
+    model_savefname <- file.path(
+        analysis_dir,
+        paste("lmer_", dv_keyword,
+            "_", as.character(Sys.Date()), ".txt",
+            sep = ""
+        )
+    )
+    # data <- load_task_social_df(taskname, subject_varkey, iv, dv, exclude)
+  
+    data$subject_factor <- factor(data$subject)
+
+    data$con_factor = factor(data$con)
+
+    cooksd <- lmer_onefactor_cooksd_randomintercept(
+        data, taskname, iv, dv, subject, dv_keyword, model_savefname
+    )
+    influential <- as.numeric(names(cooksd)[
+        (cooksd > (4 / as.numeric(length(unique(data$subject)))))
+    ])
+    data_screen <- data[-influential, ]
+    
+
+    # summary stats
+    # subjectwise <- meanSummary(data_screen, c(subject, iv), dv)
+    groupwise <- summarySEwithin(
+        data = subjectwise,
+        measurevar = "mean_per_sub", # variable created from above
+        withinvars = c(iv), # iv
+        idvar = "subject"
+    )
+    if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color <- c("#1B9E77", "#D95F02")
+    } else {
+        color <- c("#4575B4", "#D73027")
+    }
+    subject_mean <- "mean_per_sub"
+    group_mean <- "mean_per_sub_norm_mean"
+    se <- "se"
+    ylim <- c(-10, 190)
+    subject <- "subject"
+    ggtitle <- paste(taskname, " - actual judgment (degree)")
+    title <- paste(taskname, " - actual")
+    xlab <- ""
+    ylab <- "judgment (degree)"
+    plot2_savefname <- file.path(
+        analysis_dir,
+        paste("raincloudplots_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), ".png",
+            sep = ""
+        )
+    )
+    plot_rainclouds_onefactor(
+      subjectwise, groupwise, iv, 
+      subject_mean, group_mean, se, subject, 
+      ggtitle, title, xlab, ylab, taskname, ylim,
+      w, h, dv_keyword, color, plot2_savefname)
+# }
+```
+```{r}
+title = 'nps extraction per task'
+g <- ggplot(data = data, aes(y = nps, x = con_factor, fill = con_factor)) +
+geom_flat_violin(position = position_nudge(x = .2, y = 0), adjust = 1.5, trim = FALSE, alpha = .3, colour = NA) +
+geom_point(aes(y = nps, color = con_factor), position = position_jitter(width = .15), size = .5, alpha = 0.8) +
+# geom_boxplot(width = .1, guides = FALSE, outlier.shape = NA, alpha = 0.8) +
+      geom_boxplot(
+      aes(y = nps, color = con_factor),
+      outlier.shape = NA, alpha = 0.8, width = .1, colour = "black"
+    ) +
+expand_limits(x = 2.8) +
+guides(fill = FALSE) +
+guides(color = FALSE) +
+  guides(fill = guide_legend(title = title)) +
+# scale_color_brewer(palette = "Spectral") +
+# scale_fill_brewer(palette = "Spectral") +
+  scale_fill_manual(values = c('#171893','#941100', '#019052')) +
+  scale_color_manual(values = c('#171893','#941100', '#019052')) +
+#coord_flip() +
+  ggtitle("stimulus contrast - NPS") +
+  xlab("stimulus event contrasts") +
+  ylab("NPS value") +
+theme_bw() + raincloud_theme
+
+g
+```
+```{r}
+es = data %>%
+  group_by(con_factor) %>%
+  mutate(effectsize = mean(nps)/sd(nps))
+```
+
+
+
+
+# 1. average NPS rating per temperature 
+# rescale NPS and pain rating
+# fit a linear model (pain_rating ~ NPS) and grab the beta coefficients
+# plot beta
+```{r}
+# DATA = subset(df, task == 'pain-plateau')
+main_dir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis/'
+for (TASKNAME in c("pain-early", "pain-late", "pain-post", "pain-plateau")){
+DATA = subset(df, task == TASKNAME)
+DATA =  DATA %>%
+  group_by(sub_num) %>%
+  mutate_at(vars(actual_rating), list(scaled = scale))
+# run_cue_lmer( DATA,"NPS pain rating", "scaled", "nps", "sub_num", "NPS response", MODEL_SAVE)
+DATA$demean_ACTUAL = DATA$actual_rating -mean(DATA$actual_rating)
+DATA$demean_EXPECT = DATA$expect_rating -mean(DATA$expect_rating)
+model.npspain = lmer(  nps_corr~demean_ACTUAL + (demean_ACTUAL | sub_num) , DATA)
+summary(model.npspain)
+model.npspainexpect = lmer( nps_corr~demean_EXPECT + (demean_EXPECT | sub_num) , DATA)
+fixEffect_expect <<-as.data.frame(fixef(model.npspainexpect))
+randEffect_expect <<-as.data.frame(ranef(model.npspainexpect))
+rand_subset = subset(randEffect_expect, select  = -c(grpvar, term, condsd))
+# wide_rand = spread(rand_subset, key = grp, value = condval)
+rand_subset$task = TASKNAME
+wide_fix = do.call("rbind", replicate(nrow(rand_subset), as.data.frame(t(as.matrix(fixEffect_expect))), simplify = FALSE))
+rownames(wide_fix)<-NULL
+
+summary(model.npspainexpect)
+
+# TODO:
+# plot random effect slope and NPS average rating
+a = ggplot(data = DATA, aes(x = actual_rating, y = nps)) +
+  geom_point(color = 'black') +
+  stat_smooth(method = 'lm') +
+  theme_classic()
+
+e = ggplot(data = DATA, aes(x = expect_rating, y = nps)) +
+  geom_point(color = 'red') +
+  stat_smooth(method = 'lm') + 
+  theme_classic()
+ggpubr::ggarrange(a,e,ncol =2, nrow = 1, common.legend = FALSE,legend = "bottom")
+plot_filename = file.path(main_dir, 'analysis','mixedeffect','nps', paste('socialinfluence_task-',TASKNAME,'_',DV_KEYWORD,'_icc','_', as.character(Sys.Date()),'.png', sep = ""))
+ggsave(plot_filename, width = 10, height = 3)
+}
+
+```
+```{r}
+ggplot(data = DATA, aes(x = actual_rating, y = nps)) +
+  geom_point(color = 'black') +
+  stat_smooth(method = 'lm') +
+  theme_classic()
+
+ggplot(data = DATA, aes(x = expect_rating, y = nps)) +
+  geom_point(color = 'red') +
+  stat_smooth(method = 'lm') + 
+  theme_classic()
+
+```
+```{r}
+ggplot(data = DATA, aes(x = expect_rating, y = nps)) +
+  geom_point(color = 'red') +
+  stat_smooth(method = 'lm')
+
+```
+
+
+# 
+```{r}
+DATA = subset(df, task == 'pain-plateau')
+SUBJECT = "sub_num"
+IV1 = "actual_rating"
+IV2 = "stim_type"
+DV = "nps"
+DATA$sub_num = factor(DATA$sub_num)
+# DATA$task <- factor(DATA$task, levels = c("pain-early", "pain-late", "pain-post", "pain-plateau", "pain"))
+subjectwise_npstemp = meanSummary(DATA, c(SUBJECT, IV1,IV2), DV)
+groupwise_npstemp = summarySEwithin(data=subjectwise_npstemp, 
+                  measurevar = "mean_per_sub", # variable created from above
+                    withinvars = c(IV1,IV2), # IV
+                    idvar = "sub_num")
+groupwise_npstempdrp <- na.omit(groupwise_npstemp)
+```
+
+```{r}
+temp_nps = subset(subjectwise_temp,select = c("sub_num", "stim_type", "mean_per_sub"))
+temp_nps_wide = reshape(temp_nps, idvar = "sub_num", timevar = "stim_type", direction = "wide")
+```
+```{r}
+ICC(temp_nps_wide[,c("mean_per_sub.high_stim", "mean_per_sub.low_stim")])
+c50_icc = icc(
+  temp_nps_wide[,c("mean_per_sub.high_stim", "mean_per_sub.low_stim")], model = "twoway", 
+  type = "agreement", unit = "single"
+  )
+c50_icc
+
+ICC(temp_nps_wide[,c("mean_per_sub.high_stim", "mean_per_sub.med_stim")])
+c49_icc = icc(
+  temp_nps_wide[,c("mean_per_sub.high_stim", "mean_per_sub.med_stim")], model = "twoway", 
+  type = "agreement", unit = "single"
+  )
+c49_icc
+
+ICC(temp_nps_wide[,c("mean_per_sub.med_stim", "mean_per_sub.low_stim")])
+c48_icc = icc(
+  temp_nps_wide[,c("mean_per_sub.med_stim", "mean_per_sub.low_stim")], model = "twoway", 
+  type = "agreement", unit = "single"
+  )
+c48_icc
+```
+```{r}
+ggplot(data = temp_nps_wide, aes(x = mean_per_sub.high_stim, y = mean_per_sub.low_stim)) +
+  geom_point(color = 'red') +
+  stat_smooth(method = 'lm')
+
+ggplot(data = temp_nps_wide, aes(x = mean_per_sub.high_stim, y = mean_per_sub.med_stim)) +
+  geom_point(color = 'red') +
+  stat_smooth(method = 'lm')
+
+ggplot(data = temp_nps_wide, aes(x = mean_per_sub.med_stim, y = mean_per_sub.low_stim)) +
+  geom_point(color = 'red') +
+  stat_smooth(method = 'lm')
+```
+
+
+# 2. ICC per session
+```{r}
+DATA = subset(df, task == 'pain-plateau')
+SUBJECT = "sub_num"
+IV = "ses_num"
+DV = "nps"
+DATA$sub_num = factor(DATA$sub_num)
+# DATA$task <- factor(DATA$task, levels = c("pain-early", "pain-late", "pain-post", "pain-plateau", "pain"))
+subjectwise_ses = meanSummary(DATA, c(SUBJECT, IV), DV)
+groupwise_ses = summarySEwithin(data=subjectwise_ses, 
+                  measurevar = "mean_per_sub", # variable created from above
+                    withinvars = c(IV), # IV
+                    idvar = "sub_num")
+groupwise_drop_ses <- na.omit(groupwise_ses)
+```
+```{r}
+ses_nps = subset(subjectwise_ses,select = c("sub_num", "ses_num", "mean_per_sub"))
+ses_nps_wide = reshape(ses_nps, idvar = "sub_num", timevar = "ses_num", direction = "wide")
+```
+```{r}
+ICC(ses_nps_wide[,c("mean_per_sub.4", "mean_per_sub.1")])
+ses4_1_icc = icc(
+  ses_nps_wide[,c("mean_per_sub.4", "mean_per_sub.1")], model = "twoway", 
+  type = "agreement", unit = "single"
+  )
+ses4_1_icc
+
+ICC(ses_nps_wide[,c("mean_per_sub.4", "mean_per_sub.3")])
+ses4_3_icc = icc(
+  ses_nps_wide[,c("mean_per_sub.4", "mean_per_sub.3")], model = "twoway", 
+  type = "agreement", unit = "single"
+  )
+ses4_3_icc
+
+ICC(ses_nps_wide[,c("mean_per_sub.3", "mean_per_sub.1")])
+ses3_1_icc = icc(
+  ses_nps_wide[,c("mean_per_sub.3", "mean_per_sub.1")], model = "twoway", 
+  type = "agreement", unit = "single"
+  )
+ses3_1_icc
+```
+```{r}
+ggplot(data = ses_nps_wide, aes(x = mean_per_sub.4, y = mean_per_sub.1)) +
+  geom_point(color = 'red') +
+  stat_smooth(method = 'lm')
+
+ggplot(data = ses_nps_wide, aes(x = mean_per_sub.4, y = mean_per_sub.3)) +
+  geom_point(color = 'red') +
+  stat_smooth(method = 'lm')
+
+ggplot(data = ses_nps_wide, aes(x = mean_per_sub.3, y = mean_per_sub.1)) +
+  geom_point(color = 'red') +
+  stat_smooth(method = 'lm')
+```
+
+
+
+```{r}
+c = subset(temp_nps_wide, stim_type == "high_stim")
+c50_icc = icc(
+  c50[,-1], model = "twoway", 
+  type = "agreement", unit = "average"
+  )
+c50_icc
+```
+
+# ICC for temp
+```{r}
+DATA = subset(df, task == 'pain-plateau' & stim_type == "high_stim")
+TDATA <- DATA %>%
+        group_by(sub_num) %>%
+        mutate(index = seq_along(sub_num))
+temp_nps = subset(TDATA,select = c("sub_num", "index", "nps"))
+
+temp_nps_wide = temp_nps %>% 
+  group_by(index) %>% 
+  spread(sub_num,nps)
+
+c50_icc = icc(
+  temp_nps_wide[,-1], model = "twoway", 
+  type = "agreement", unit = "single"
+  )
+c50_icc
+ICC(temp_nps_wide[,-1])
+```
+
+# average NPS rating per session
+```{r}
+DATA = subset(df, task == 'pain-plateau')
+SUBJECT = "sub_num"
+IV1 = "stim_type"
+IV2 = "ses_num"
+DV = "nps"
+DATA$sub_num = factor(DATA$sub_num)
+# DATA$task <- factor(DATA$task, levels = c("pain-early", "pain-late", "pain-post", "pain-plateau", "pain"))
+subjectwise_temp_ses = meanSummary(DATA, c(SUBJECT, IV1, IV2), DV)
+groupwise_temp_ses = summarySEwithin(data=subjectwise_temp_ses, 
+                  measurevar = "mean_per_sub", # variable created from above
+                    withinvars = c(IV1, IV2), # IV
+                    idvar = "sub_num")
+groupwise_drop_temp_ses <- na.omit(groupwise_temp_ses)
+```
+
+* calculate ICC "two-way random effects"
