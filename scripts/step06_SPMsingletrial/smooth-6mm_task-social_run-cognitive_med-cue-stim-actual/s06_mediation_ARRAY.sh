@@ -1,8 +1,7 @@
 #!/bin/bash -l
 #SBATCH --job-name=med
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=4
-#SBATCH --ntasks=1 
+#SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=8gb
 #SBATCH --time=01:00:00
 #SBATCH -o ./med_%A_%a.o
