@@ -6,7 +6,9 @@ sublist = [71,73,74,75,76,77,78,79,80,81,84,85];
 %event = {'cue', 'stim'};
 task = char(task)
 event = char(event)
+event = {'cue', 'stim'};
 for s = 1:length(sublist)
+    task = 'pain'; event = 'stim'
     sub = strcat('sub-', sprintf('%04d', sublist(s)));
     a = dir(fullfile(singletrial_dir, 's03_concatnifti', sub, strcat(sub, '_task-social_run-', task, '_ev-', event,'.nii')));
     if ~isempty(a)
