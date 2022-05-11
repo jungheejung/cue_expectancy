@@ -138,7 +138,7 @@ for sub = 1:length(sub_list)
         end
         subject = sub_list(sub);
         s = table(subject);
-        f = table(fname);
+        f = table(cellstr(fname));
         sub_table = [s f dat.metadata_table];
         group = [group; sub_table];
         
