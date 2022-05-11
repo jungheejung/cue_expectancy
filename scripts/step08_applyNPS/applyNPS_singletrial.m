@@ -137,11 +137,13 @@ for sub = 1:length(sub_list)
             dat.metadata_table = [dat.metadata_table temp_npsneg temp_npsneg_corr temp_npsneg_cosine];
         end
         subject = sub_list(sub);
+        fname = fname_key(input)
         s = table(subject);
-        f = table(cellstr(fname));
-        sub_table = [s f dat.metadata_table];
+        f = table(fname);
+        sub_table = [repmat(a, size(dat.metadata_table,1),1) dat.metadata_table];
         group = [group; sub_table];
-        
+        sub_fname = fullfile(nps_dir, sub, strcat('extract-NPS_', sub, '_', fname, '.csv'));
+        writetable(sub_table, table_fname);
     else
         disp(strcat('participant ', sub_list(sub), ' does not have ', 'con', ' nifti file'));
     end
@@ -150,7 +152,7 @@ for sub = 1:length(sub_list)
     end
     disp(strcat("complete job", sub_list(sub)));
 end
-    table_fname = fullfile(nps_dir, sub, strcat('extract-NPS_', fname, '.csv'));
+    table_fname = fullfile(nps_dir, strcat('extract-NPS_', fname, '.csv'));
     writetable(group, table_fname);
     % clear dat meta_nifti test_file
     
