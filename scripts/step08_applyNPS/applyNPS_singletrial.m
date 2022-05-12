@@ -137,13 +137,15 @@ for sub = 1:length(sub_list)
             dat.metadata_table = [dat.metadata_table temp_npsneg temp_npsneg_corr temp_npsneg_cosine];
         end
         subject = sub_list(sub);
-        fname = fname_key(input)
+        fname_noext = fname_key(input)
         s = table(subject);
-        f = table(fname);
+        f = table(fname_noext);
+	a = [s f];
         sub_table = [repmat(a, size(dat.metadata_table,1),1) dat.metadata_table];
         group = [group; sub_table];
-        sub_fname = fullfile(nps_dir, sub, strcat('extract-NPS_', sub, '_', fname, '.csv'));
-        writetable(sub_table, table_fname);
+        sub_fname = fullfile(nps_dir, sub_list(sub), strcat('extract-NPS_', sub_list(sub), '_', fname_noext, '.csv'));
+disp(sub_fname);        
+writetable(sub_table, sub_fname);
     else
         disp(strcat('participant ', sub_list(sub), ' does not have ', 'con', ' nifti file'));
     end
