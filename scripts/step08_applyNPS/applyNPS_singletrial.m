@@ -44,7 +44,7 @@ fname_key = {'cognitive_ev-cue_l2norm', 'cognitive_ev-cue', 'cognitive_ev-stim_l
 current_dir = pwd;
 % con = strcat('con_', sprintf('%04d', input));
 main_dir = fileparts(fileparts(current_dir));
-%main_dir = '/Volumes/spacetop_projects_social';
+main_dir = '/Volumes/spacetop_projects_social';
 singletrial_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'multivariate', 's03_concatnifti');
 nps_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'multivariate','s04_extract_biomarker');
 d = dir(singletrial_dir);
@@ -54,7 +54,9 @@ sub_list = {dfolders_remove.name};
 group = [];
 
 for sub = 1:length(sub_list)
-
+    if ~exist(char(fullfile(nps_dir, sub_list(sub))), 'dir')
+        mkdir(char(fullfile(nps_dir, sub_list(sub))))
+    end
     dat = [];    subject = [];   s = []; sub_table = [];    test_file = [];
     meta_nifti = [];
     nii_files = dir(char(fullfile(singletrial_dir, sub_list(sub), char(strcat('*',fname_key(input),'*.nii')))));
@@ -62,7 +64,7 @@ for sub = 1:length(sub_list)
     test_file = fullfile(nii_files.folder, nii_files.name);
     disp(strcat('loading ', sub_list(sub), ' test file: ', test_file));
     if isfile(test_file)
-
+        
         dat = fmri_data(test_file);
         fname = nii_files.name(1:strfind(nii_files.name,'.')-1);
         refmask = fmri_data(which('brainmask.nii'));  % shell image
@@ -137,27 +139,25 @@ for sub = 1:length(sub_list)
             dat.metadata_table = [dat.metadata_table temp_npsneg temp_npsneg_corr temp_npsneg_cosine];
         end
         subject = sub_list(sub);
-        fname_noext = fname_key(input)
+        fname_noext = fname_key(input);
         s = table(subject);
         f = table(fname_noext);
-	a = [s f];
+        a = [s f];
         sub_table = [repmat(a, size(dat.metadata_table,1),1) dat.metadata_table];
         group = [group; sub_table];
         sub_fname = fullfile(nps_dir, sub_list(sub), strcat('extract-NPS_', sub_list(sub), '_', fname_noext, '.csv'));
-disp(sub_fname);        
-writetable(sub_table, sub_fname);
+        disp(sub_fname);
+        writetable(sub_table, char(sub_fname));
     else
         disp(strcat('participant ', sub_list(sub), ' does not have ', 'con', ' nifti file'));
     end
-    if ~exist(char(fullfile(nps_dir)), 'dir')
-        mkdir(char(fullfile(nps_dir)))
-    end
+    
     disp(strcat("complete job", sub_list(sub)));
 end
-    table_fname = fullfile(nps_dir, strcat('extract-NPS_', fname, '.csv'));
-    writetable(group, table_fname);
-    % clear dat meta_nifti test_file
-    
+table_fname = fullfile(nps_dir, strcat('extract-NPS_', fname_key(input), '.csv'));
+writetable(group, char(table_fname));
+% clear dat meta_nifti test_file
+
 
 end
 
