@@ -44,7 +44,7 @@ fname_key = {'cognitive_ev-cue_l2norm', 'cognitive_ev-cue', 'cognitive_ev-stim_l
 current_dir = pwd;
 % con = strcat('con_', sprintf('%04d', input));
 main_dir = fileparts(fileparts(current_dir));
-main_dir = '/Volumes/spacetop_projects_social';
+%main_dir = '/Volumes/spacetop_projects_social';
 singletrial_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'multivariate', 's03_concatnifti');
 nps_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'multivariate','s04_extract_biomarker');
 d = dir(singletrial_dir);
@@ -59,11 +59,13 @@ for sub = 1:length(sub_list)
     end
     dat = [];    subject = [];   s = []; sub_table = [];    test_file = [];
     meta_nifti = [];
-    nii_files = dir(char(fullfile(singletrial_dir, sub_list(sub), char(strcat('*',fname_key(input),'*.nii')))));
-    % for fl = 1:length(nii_files)
+    nii_files = dir(char(fullfile(singletrial_dir, sub_list(sub), char(strcat('*',fname_key(input),'.nii')))));
+    % for fl = 1:length(nii_files)i
+    disp(nii_files)
+    if ~isempty(nii_files)
     test_file = fullfile(nii_files.folder, nii_files.name);
     disp(strcat('loading ', sub_list(sub), ' test file: ', test_file));
-    if isfile(test_file)
+    %if isfile(test_file)
         
         dat = fmri_data(test_file);
         fname = nii_files.name(1:strfind(nii_files.name,'.')-1);
@@ -148,13 +150,15 @@ for sub = 1:length(sub_list)
         sub_fname = fullfile(nps_dir, sub_list(sub), strcat('extract-NPS_', sub_list(sub), '_', fname_noext, '.csv'));
         disp(sub_fname);
         writetable(sub_table, char(sub_fname));
+	
     else
         disp(strcat('participant ', sub_list(sub), ' does not have ', 'con', ' nifti file'));
     end
     
     disp(strcat("complete job", sub_list(sub)));
 end
-table_fname = fullfile(nps_dir, strcat('extract-NPS_', fname_key(input), '.csv'));
+class(group);
+table_fname = fullfile(nps_dir, char(strcat('extract-NPS_', fname_key(input), '.csv')));
 writetable(group, char(table_fname));
 % clear dat meta_nifti test_file
 
