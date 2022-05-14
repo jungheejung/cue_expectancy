@@ -1,17 +1,9 @@
 ---
-title: "cue-expectancy_biomarker-extraction_May2022"
+title: "cue-expectancy_biomarker-NPSVPS_singletrial"
 author: "Heejung Jung"
-date: "5/5/2022"
+date: "5/13/2022"
 output: html_document
 ---
-
-
-* load csv file in 
-* calculate summary of dataframe
-* average NPS rating per temperature
-* average NPS rating per session
-* calculate ICC "two-way random effects"
-
 ```{r}
 library(psych)
 library(car)
@@ -259,313 +251,322 @@ run_cue_lmer = function(DATA,TASKNAME, IV, DV, SUBJECT, DV_KEYWORD, MODEL_SAVE){
   }
 ```
 
-# load csv file in 
+
+
+# I. STIM l2norm NPS  ______________________________________
+## l2norm for stimulus single trials
 ```{r}
 
 main_dir = '/Volumes/spacetop_projects_social'
+
 # Stim P > VC
-p.fname = '/Volumes/spacetop_projects_social/analysis/fmri/spm/univariate/model-02_CcEScA/extract_nps/model-02_CcEScA/model-02_CcEScA_con_0009.csv'
-# Stim P > VC
-v.fname = '/Volumes/spacetop_projects_social/analysis/fmri/spm/univariate/model-02_CcEScA/extract_nps/model-02_CcEScA/model-02_CcEScA_con_0010.csv'
-c.fname = '/Volumes/spacetop_projects_social/analysis/fmri/spm/univariate/model-02_CcEScA/extract_nps/model-02_CcEScA/model-02_CcEScA_con_0011.csv'
+p.fname = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate/s04_extract_biomarker/extract-NPS_pain_ev-stim_l2norm.csv'
+c.fname = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate/s04_extract_biomarker/extract-NPS_cognitive_ev-stim_l2norm.csv'
+v.fname = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate/s04_extract_biomarker/extract-NPS_vicarious_ev-stim_l2norm.csv'
 p.df = read.csv(p.fname)
 v.df = read.csv(v.fname)
 c.df = read.csv(c.fname)
-p.df$con = 'pain_gt_VC'
-v.df$con = 'vicarious_gt_PC'
-c.df$con = 'cognitive_gt_PV'
+p.df$con = 'pain'
+v.df$con = 'vicarious'
+c.df$con = 'cognitive'
 ```
 
-# model summary
 ```{r}
-model.p.nps = lm( nps~1 , p.df)
-model.v.nps = lm( nps~1 , v.df)
-model.c.nps = lm( nps~1, c.df)
-summary(model.p.nps)
-summary(model.v.nps)
-summary(model.c.nps)
-```
-# contrasts
-```{r}
-stim_contrast = rbind(p.df, v.df, c.df)
+pvc <- rbind(p.df, v.df, c.df)
 ```
 
-# plot NPS pain rating per temperature
-
 ```{r}
-a = ggplot(data = stim_contrast, aes(x = con, y = nps)) +
-  geom_point(color = 'black') +
-  #stat_smooth(method = 'lm') +
-  theme_classic()
+# parameters for lmer function
+pvc$subject = factor(pvc$subject)
+pvc$fname_noext = factor(pvc$fname_noext)
+data = pvc; iv = 'fname_noext'; dv = 'nps'; subject = 'subject'; dv_keyword = 'nps'
+taskname = 'nps'
 
-# e = ggplot(data = stim_contrast, aes(x = expect_rating, y = nps)) +
-#   geom_point(color = 'red') +
-#   stat_smooth(method = 'lm') + 
-#   theme_classic()
-a
+#directories
+local_dir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis'
+analysis_dir <- file.path(local_dir, "analysis", "mixedeffect", "extract_biomarker", "glm_singletrial", as.character(Sys.Date()))
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+model_savefname <- file.path(
+        analysis_dir,
+        paste("extract-", taskname, "_glmresults", as.character(Sys.Date()), ".txt",
+            sep = ""
+        ))
+
+# linear model + cooks d outlier removal
+cooksd <- lmer_onefactor_cooksd(
+        pvc, taskname, iv, dv, subject, dv_keyword, model_savefname
+    )
+influential <- as.numeric(names(cooksd)[
+(cooksd > (4 / as.numeric(length(unique(data$subject)))))])
+data_screen <- data[-influential, ]
 ```
-
-
-
 ```{r}
-title = 'nps extraction per task'
-g <- ggplot(data = data, aes(y = nps, x = con_factor, fill = con_factor)) +
-geom_flat_violin(position = position_nudge(x = .2, y = 0), adjust = 1.5, trim = FALSE, alpha = .3, colour = NA) +
-geom_point(aes(y = nps, color = con_factor), position = position_jitter(width = .15), size = .5, alpha = 0.8) +
-geom_boxplot(
-      aes(y = nps, color = con_factor),
-      outlier.shape = NA, alpha = 0.8, width = .1, colour = "black"
-    ) +
-expand_limits(x = 4) +
-guides(fill = FALSE) +
-guides(color = FALSE) +
-guides(fill = guide_legend(title = title)) +
-scale_x_discrete(labels=c("cognitive_gt_PV" = "Cognitive > PV", 
-                              "pain_gt_VC" = "Pain > VC", 
-                              "vicarious_gt_PC" = "Vicarious > PC")) +
-  scale_fill_manual(values = c('#171893','#941100', '#019052')) +
-  scale_color_manual(values = c('#171893','#941100', '#019052')) +
-  ggtitle("stimulus contrast - NPS") +
-  xlab("stimulus event contrasts") +
-  ylab("NPS value") +
-theme_bw() + theme_classic()
-  
+# combhine cell with previous IF IT WORKS
+
+    # summary statistics
+    subjectwise <- meanSummary(data_screen, c(subject, iv), dv)
+    groupwise <- summarySEwithin(
+        data = subjectwise,
+        measurevar = "mean_per_sub", # variable created from above
+        withinvars = c(iv), # iv
+        idvar = "subject"
+    )
+
+    subjectwise_mean <- "mean_per_sub";    group_mean <- "mean_per_sub_norm_mean"
+    se <- "se";    subject <- "subject"
+    ggtitle <- paste(taskname, " - stimulus event, l2normed");    title <- paste(taskname, " - stimulus, l2norm")
+    xlab <- "";    ylab <- "nps (dot product)";    
+    w = 5; h = 3; dv_keyword <- "expect"
+    
+
+    ylim <- c(-30, 30)
+
+    if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color <- c('#941100', '#019052','#171893')
+    } else {
+        color <- c('#941100', '#019052','#171893')
+    }
+    plot_savefname <- file.path(
+        analysis_dir,
+        paste("raincloud_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), ".png",
+            sep = ""
+        )
+    )
+    
+   g <- plot_rainclouds_onefactor(
+        subjectwise, groupwise,
+        iv, subjectwise_mean, group_mean, se, subject,
+        ggtitle, title, xlab, ylab, task_name,ylim,
+        w, h, dv_keyword, color, plot_savefname
+    )
+   
+g +
+  scale_x_discrete(labels=c("pain_ev-stim_l2norm" = "Pain", 
+                              "vicarious_ev-stim_l2norm" = "Vicarious", 
+                              "cognitive_ev-stim_l2norm" = "Cognitive")) +
+  theme_classic() 
 
 g
 ```
+
+
+
+# II. STIM l2norm VPS  ______________________________________
+## l2norm for stimulus single trials
 ```{r}
-es = data %>%
-  group_by(con_factor) %>%
-  mutate(effectsize = mean(nps)/sd(nps))
+
+main_dir = '/Volumes/spacetop_projects_social'
+
+# Stim P > VC
+p.vps = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate/s04_extract_biomarker/extract-VPS_pain_ev-stim_l2norm.csv'
+c.vps = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate/s04_extract_biomarker/extract-VPS_cognitive_ev-stim_l2norm.csv'
+v.vps = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate/s04_extract_biomarker/extract-VPS_vicarious_ev-stim_l2norm.csv'
+p.vpsdf = read.csv(p.vps)
+v.vpsdf = read.csv(v.vps)
+c.vpsdf = read.csv(c.vps)
+p.vpsdf$con = 'pain'
+v.vpsdf$con = 'vicarious'
+c.vpsdf$con = 'cognitive'
+```
+
+```{r}
+pvcvps <- rbind(p.vpsdf, v.vpsdf, c.vpsdf)
+```
+
+```{r}
+# parameters for lmer function
+pvcvps$subject = factor(pvcvps$subject)
+pvcvps$fname_noext = factor(pvcvps$fname_noext)
+data = pvcvps; iv = 'fname_noext'; dv = 'vps'; subject = 'subject'; dv_keyword = 'vps'
+taskname = 'vps'
+
+#directories
+local_dir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis'
+analysis_dir <- file.path(local_dir, "analysis", "mixedeffect", "extract_biomarker", "glm_singletrial", as.character(Sys.Date()))
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+model_savefname <- file.path(
+        analysis_dir,
+        paste("extract-", taskname, "_glmresults", as.character(Sys.Date()), ".txt",
+            sep = ""
+        ))
+
+# linear model + cooks d outlier removal
+cooksd <- lmer_onefactor_cooksd(
+        data, taskname, iv, dv, subject, dv_keyword, model_savefname
+    )
+influential <- as.numeric(names(cooksd)[
+(cooksd > (4 / as.numeric(length(unique(data$subject)))))])
+data_screen <- data[-influential, ]
+```
+```{r}
+# combhine cell with previous IF IT WORKS
+
+    # summary statistics
+    subjectwise <- meanSummary(data_screen, c(subject, iv), dv)
+    groupwise <- summarySEwithin(
+        data = subjectwise,
+        measurevar = "mean_per_sub", # variable created from above
+        withinvars = c(iv), # iv
+        idvar = "subject"
+    )
+
+    subjectwise_mean <- "mean_per_sub";    group_mean <- "mean_per_sub_norm_mean"
+    se <- "se";    subject <- "subject"
+    ggtitle <- paste(taskname, " - stimulus event, l2normed");    title <- paste(taskname, " - stimulus, l2norm")
+    xlab <- "";    ylab <- "ratings (degree)";    
+    w = 5; h = 3; dv_keyword <- "vps"
+    
+
+    ylim <- c(-30, 30)
+
+    if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color <- c('#171893','#941100', '#019052')
+    } else {
+        color <- c('#171893','#941100', '#019052')
+    }
+    plot_savefname <- file.path(
+        analysis_dir,
+        paste("raincloud_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), ".png",
+            sep = ""
+        )
+    )
+    
+    g <- plot_rainclouds_onefactor(
+        subjectwise, groupwise,
+        iv, subjectwise_mean, group_mean, se, subject,
+        ggtitle, title, xlab, ylab, task_name,ylim,
+        w, h, dv_keyword, color, plot_savefname
+    )
+    
+    g +
+  scale_x_discrete(labels=c("pain_ev-stim_l2norm" = "Pain", 
+                              "vicarious_ev-stim_l2norm" = "Vicarious", 
+                              "cognitive_ev-stim_l2norm" = "Cognitive")) +
+  theme_classic() 
 ```
 
 
 
 
-# 1. average NPS rating per temperature 
-# rescale NPS and pain rating
-# fit a linear model (pain_rating ~ NPS) and grab the beta coefficients
-# plot beta
+
+
+
+
+
+
+
+
+
+
+
+
+
+## 1) COPIED FROM OTHER SOURCElmer
 ```{r}
-# DATA = subset(df, task == 'pain-plateau')
-main_dir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis/'
-for (TASKNAME in c("pain-early", "pain-late", "pain-post", "pain-plateau")){
-DATA = subset(df, task == TASKNAME)
-DATA =  DATA %>%
-  group_by(sub_num) %>%
-  mutate_at(vars(actual_rating), list(scaled = scale))
-# run_cue_lmer( DATA,"NPS pain rating", "scaled", "nps", "sub_num", "NPS response", MODEL_SAVE)
-DATA$demean_ACTUAL = DATA$actual_rating -mean(DATA$actual_rating)
-DATA$demean_EXPECT = DATA$expect_rating -mean(DATA$expect_rating)
-model.npspain = lmer(  nps_corr~demean_ACTUAL + (demean_ACTUAL | sub_num) , DATA)
-summary(model.npspain)
-model.npspainexpect = lmer( nps_corr~demean_EXPECT + (demean_EXPECT | sub_num) , DATA)
-fixEffect_expect <<-as.data.frame(fixef(model.npspainexpect))
-randEffect_expect <<-as.data.frame(ranef(model.npspainexpect))
-rand_subset = subset(randEffect_expect, select  = -c(grpvar, term, condsd))
-# wide_rand = spread(rand_subset, key = grp, value = condval)
-rand_subset$task = TASKNAME
-wide_fix = do.call("rbind", replicate(nrow(rand_subset), as.data.frame(t(as.matrix(fixEffect_expect))), simplify = FALSE))
-rownames(wide_fix)<-NULL
+# parameters _____________________________________ # nolint
+subject_varkey <- "src_subject_id"
+iv <- "param_cue_type"
+dv <- "event02_expect_angle"
+dv_keyword <- "expect"
+xlab <- ""
 
-summary(model.npspainexpect)
+ylab <- "ratings (degree)"
+subject <- "subject"
+exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 
-# TODO:
-# plot random effect slope and NPS average rating
-a = ggplot(data = DATA, aes(x = actual_rating, y = nps)) +
-  geom_point(color = 'black') +
-  stat_smooth(method = 'lm') +
-  theme_classic()
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model01_iv-cue_dv-expect", as.character(Sys.Date()))
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
-e = ggplot(data = DATA, aes(x = expect_rating, y = nps)) +
-  geom_point(color = 'red') +
-  stat_smooth(method = 'lm') + 
-  theme_classic()
-ggpubr::ggarrange(a,e,ncol =2, nrow = 1, common.legend = FALSE,legend = "bottom")
-plot_filename = file.path(main_dir, 'analysis','mixedeffect','nps', paste('socialinfluence_task-',TASKNAME,'_',DV_KEYWORD,'_icc','_', as.character(Sys.Date()),'.png', sep = ""))
-ggsave(plot_filename, width = 10, height = 3)
+for (taskname in c("pain", "vicarious", "cognitive")) {
+    model_savefname <- file.path(
+        analysis_dir,
+        paste("lmer_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), ".txt",
+            sep = ""
+        )
+    )
+    # load data, run model, and exclude outliers
+    data <- load_task_social_df(taskname, subject_varkey, iv, dv, exclude)
+    data$subject = factor(data$src_subject_id)
+    cooksd <- lmer_onefactor_cooksd(
+        data, taskname, iv, dv, subject, dv_keyword, model_savefname
+    )
+    influential <- as.numeric(names(cooksd)[
+    (cooksd > (4 / as.numeric(length(unique(data$subject)))))])
+    data_screen <- data[-influential, ]
+    # summary statistics
+    subjectwise <- meanSummary(data_screen, c(subject, iv), dv)
+    groupwise <- summarySEwithin(
+        data = subjectwise,
+        measurevar = "mean_per_sub", # variable created from above
+        withinvars = c(iv), # iv
+        idvar = "subject"
+    )
+
+    subjectwise_mean <- "mean_per_sub";    group_mean <- "mean_per_sub_norm_mean"
+    se <- "se";    subject <- "subject"
+    ggtitle <- paste(taskname, " - Expectation Rating (degree)");    title <- paste(taskname, " - Expect")
+    xlab <- "";    ylab <- "ratings (degree)";    
+    w = 5; h = 3; dv_keyword <- "expect"
+    if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color <- c("#1B9E77", "#D95F02")
+    } else {
+        color <- c("#4575B4", "#D73027")
+    }
+    plot_savefname <- file.path(
+        analysis_dir,
+        paste("raincloud_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), ".png",
+            sep = ""
+        )
+    )
+    plot_rainclouds_onefactor(
+        subjectwise, groupwise,
+        iv, subjectwise_mean, group_mean, se, subject,
+        ggtitle, title, xlab, ylab, task_name,
+        w, h, dv_keyword, color, plot_savefname
+    )
+randEffect$newcoef <- mapvalues(randEffect$term,
+    from = c("(Intercept)", 
+             "data[, iv]low_cue"
+             ),
+    to = c("rand_intercept", "rand_cue")
+)
+
+rand_subset <- subset(randEffect, select = -c(grpvar, term, condsd))
+wide_rand <- spread(rand_subset, key = newcoef, value = condval)
+
+wide_fix <- do.call(
+    "rbind",
+    replicate(nrow(wide_rand),
+        as.data.frame(t(as.matrix(fixEffect))),
+        simplify = FALSE
+    )
+)
+rownames(wide_fix) <- NULL
+new_wide_fix <- dplyr::rename(wide_fix,
+    fix_intercept = `(Intercept)`,
+    fix_cue = `data[, iv]low_cue`,
+)
+
+total <- cbind(wide_rand, new_wide_fix)
+total$task <- taskname
+new_total <- total %>% dplyr::select(task, everything())
+new_total <- dplyr::rename(total, subj = grp)
+
+rand_savefname <- file.path(
+    analysis_dir,
+    paste("randeffect_task-", taskname, "_",
+        as.character(Sys.Date()), "_outlier-cooksd.csv",
+        sep = ""
+    )
+)
+write.csv(new_total, rand_savefname, row.names = FALSE)
 }
-
 ```
-```{r}
-ggplot(data = DATA, aes(x = actual_rating, y = nps)) +
-  geom_point(color = 'black') +
-  stat_smooth(method = 'lm') +
-  theme_classic()
-
-ggplot(data = DATA, aes(x = expect_rating, y = nps)) +
-  geom_point(color = 'red') +
-  stat_smooth(method = 'lm') + 
-  theme_classic()
-
-```
-```{r}
-ggplot(data = DATA, aes(x = expect_rating, y = nps)) +
-  geom_point(color = 'red') +
-  stat_smooth(method = 'lm')
-
-```
-
-
-# 
-```{r}
-DATA = subset(df, task == 'pain-plateau')
-SUBJECT = "sub_num"
-IV1 = "actual_rating"
-IV2 = "stim_type"
-DV = "nps"
-DATA$sub_num = factor(DATA$sub_num)
-# DATA$task <- factor(DATA$task, levels = c("pain-early", "pain-late", "pain-post", "pain-plateau", "pain"))
-subjectwise_npstemp = meanSummary(DATA, c(SUBJECT, IV1,IV2), DV)
-groupwise_npstemp = summarySEwithin(data=subjectwise_npstemp, 
-                  measurevar = "mean_per_sub", # variable created from above
-                    withinvars = c(IV1,IV2), # IV
-                    idvar = "sub_num")
-groupwise_npstempdrp <- na.omit(groupwise_npstemp)
-```
-
-```{r}
-temp_nps = subset(subjectwise_temp,select = c("sub_num", "stim_type", "mean_per_sub"))
-temp_nps_wide = reshape(temp_nps, idvar = "sub_num", timevar = "stim_type", direction = "wide")
-```
-```{r}
-ICC(temp_nps_wide[,c("mean_per_sub.high_stim", "mean_per_sub.low_stim")])
-c50_icc = icc(
-  temp_nps_wide[,c("mean_per_sub.high_stim", "mean_per_sub.low_stim")], model = "twoway", 
-  type = "agreement", unit = "single"
-  )
-c50_icc
-
-ICC(temp_nps_wide[,c("mean_per_sub.high_stim", "mean_per_sub.med_stim")])
-c49_icc = icc(
-  temp_nps_wide[,c("mean_per_sub.high_stim", "mean_per_sub.med_stim")], model = "twoway", 
-  type = "agreement", unit = "single"
-  )
-c49_icc
-
-ICC(temp_nps_wide[,c("mean_per_sub.med_stim", "mean_per_sub.low_stim")])
-c48_icc = icc(
-  temp_nps_wide[,c("mean_per_sub.med_stim", "mean_per_sub.low_stim")], model = "twoway", 
-  type = "agreement", unit = "single"
-  )
-c48_icc
-```
-```{r}
-ggplot(data = temp_nps_wide, aes(x = mean_per_sub.high_stim, y = mean_per_sub.low_stim)) +
-  geom_point(color = 'red') +
-  stat_smooth(method = 'lm')
-
-ggplot(data = temp_nps_wide, aes(x = mean_per_sub.high_stim, y = mean_per_sub.med_stim)) +
-  geom_point(color = 'red') +
-  stat_smooth(method = 'lm')
-
-ggplot(data = temp_nps_wide, aes(x = mean_per_sub.med_stim, y = mean_per_sub.low_stim)) +
-  geom_point(color = 'red') +
-  stat_smooth(method = 'lm')
-```
-
-
-# 2. ICC per session
-```{r}
-DATA = subset(df, task == 'pain-plateau')
-SUBJECT = "sub_num"
-IV = "ses_num"
-DV = "nps"
-DATA$sub_num = factor(DATA$sub_num)
-# DATA$task <- factor(DATA$task, levels = c("pain-early", "pain-late", "pain-post", "pain-plateau", "pain"))
-subjectwise_ses = meanSummary(DATA, c(SUBJECT, IV), DV)
-groupwise_ses = summarySEwithin(data=subjectwise_ses, 
-                  measurevar = "mean_per_sub", # variable created from above
-                    withinvars = c(IV), # IV
-                    idvar = "sub_num")
-groupwise_drop_ses <- na.omit(groupwise_ses)
-```
-```{r}
-ses_nps = subset(subjectwise_ses,select = c("sub_num", "ses_num", "mean_per_sub"))
-ses_nps_wide = reshape(ses_nps, idvar = "sub_num", timevar = "ses_num", direction = "wide")
-```
-```{r}
-ICC(ses_nps_wide[,c("mean_per_sub.4", "mean_per_sub.1")])
-ses4_1_icc = icc(
-  ses_nps_wide[,c("mean_per_sub.4", "mean_per_sub.1")], model = "twoway", 
-  type = "agreement", unit = "single"
-  )
-ses4_1_icc
-
-ICC(ses_nps_wide[,c("mean_per_sub.4", "mean_per_sub.3")])
-ses4_3_icc = icc(
-  ses_nps_wide[,c("mean_per_sub.4", "mean_per_sub.3")], model = "twoway", 
-  type = "agreement", unit = "single"
-  )
-ses4_3_icc
-
-ICC(ses_nps_wide[,c("mean_per_sub.3", "mean_per_sub.1")])
-ses3_1_icc = icc(
-  ses_nps_wide[,c("mean_per_sub.3", "mean_per_sub.1")], model = "twoway", 
-  type = "agreement", unit = "single"
-  )
-ses3_1_icc
-```
-```{r}
-ggplot(data = ses_nps_wide, aes(x = mean_per_sub.4, y = mean_per_sub.1)) +
-  geom_point(color = 'red') +
-  stat_smooth(method = 'lm')
-
-ggplot(data = ses_nps_wide, aes(x = mean_per_sub.4, y = mean_per_sub.3)) +
-  geom_point(color = 'red') +
-  stat_smooth(method = 'lm')
-
-ggplot(data = ses_nps_wide, aes(x = mean_per_sub.3, y = mean_per_sub.1)) +
-  geom_point(color = 'red') +
-  stat_smooth(method = 'lm')
-```
-
-
-
-```{r}
-c = subset(temp_nps_wide, stim_type == "high_stim")
-c50_icc = icc(
-  c50[,-1], model = "twoway", 
-  type = "agreement", unit = "average"
-  )
-c50_icc
-```
-
-# ICC for temp
-```{r}
-DATA = subset(df, task == 'pain-plateau' & stim_type == "high_stim")
-TDATA <- DATA %>%
-        group_by(sub_num) %>%
-        mutate(index = seq_along(sub_num))
-temp_nps = subset(TDATA,select = c("sub_num", "index", "nps"))
-
-temp_nps_wide = temp_nps %>% 
-  group_by(index) %>% 
-  spread(sub_num,nps)
-
-c50_icc = icc(
-  temp_nps_wide[,-1], model = "twoway", 
-  type = "agreement", unit = "single"
-  )
-c50_icc
-ICC(temp_nps_wide[,-1])
-```
-
-# average NPS rating per session
-```{r}
-DATA = subset(df, task == 'pain-plateau')
-SUBJECT = "sub_num"
-IV1 = "stim_type"
-IV2 = "ses_num"
-DV = "nps"
-DATA$sub_num = factor(DATA$sub_num)
-# DATA$task <- factor(DATA$task, levels = c("pain-early", "pain-late", "pain-post", "pain-plateau", "pain"))
-subjectwise_temp_ses = meanSummary(DATA, c(SUBJECT, IV1, IV2), DV)
-groupwise_temp_ses = summarySEwithin(data=subjectwise_temp_ses, 
-                  measurevar = "mean_per_sub", # variable created from above
-                    withinvars = c(IV1, IV2), # IV
-                    idvar = "sub_num")
-groupwise_drop_temp_ses <- na.omit(groupwise_temp_ses)
-```
-
-* calculate ICC "two-way random effects"
