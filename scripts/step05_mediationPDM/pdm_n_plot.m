@@ -1,13 +1,15 @@
-function pdm_n_plot(single_nii)
+function pdm_n_plot(task)
+single_nii = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/analysis/fmri/spm/multivariate/s03_concatnifti/sub-0065/sub-0065_task-social_run-cognitive_ev-cue.nii';
+save_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/analysis/fmri/mediation/pdm';
 
-run = {'pain', 'vicarious', 'cognitive'};
-for r = 1:length(run)
-    dat_fname =  fullfile(save_dir, strcat('task-',run{r}, '_PDM_stimlin-stim-actual_DAT.mat'));
+%run = {'pain', 'vicarious', 'cognitive'};
+%for r = 1:length(run)
+    dat_fname =  fullfile(save_dir, strcat('task-',task, '_PDM_stimlin-stim-actual_DAT.mat'));
     load(dat_fname)
     new_m = mm; new_x = xx; new_y = yy;
 
     %% plot diagnostics
-    plot(mm)
+    %plot(mm)
     %% check dimensions and remove nans
     remove_sub = [];
     for s = 1:length(new_y)
@@ -48,14 +50,14 @@ for r = 1:length(run)
     min_comp = min(cellfun('size',yy,1))
     % project onto lower dimensional space keeping th max number of components
     pdm_min = multivariateMediation(xx,yy,mm,'noPDMestimation','B',min_comp);
-    save_fname = fullfile(save_dir, strcat('task-',run{r}, '_PDM-mincomp_stimlin-stim-actual.mat'));
-    save(save_fname,'pdm_min','-append');
+    save_fname = fullfile(save_dir, strcat('task-',task, '_PDM-mincomp_stimlin-stim-actual.mat'));
+    save(save_fname,'pdm_min');
 
     %% Compute the multivariate brain mediators
     % use previous PVD dimension reduction, compute PDMs, and plot path coeff
     pdm = multivariateMediation(pdm_min,'nPDM', min_comp, 'plots');
-    save_fname = fullfile(save_dir, strcat('task-',run{r}, '_PDM-plot_stimlin-stim-actual.mat'));
-    save(save_fname,'pdm','-append');
+    save_fname = fullfile(save_dir, strcat('task-',task, '_PDM-plot_stimlin-stim-actual.mat'));
+    save(save_fname,'pdm');
     % select the number of PDMs (3) based on the |ab| coeff plot, like a scree-plot
     % pdm = multivariateMediation(pdm,'nPDM',3);
 
@@ -66,12 +68,12 @@ for r = 1:length(run)
     pdm_boot = multivariateMediation(xx,yy,mm,'B',min_comp,'nPDM',3,'bootPDM',1:3,'bootJPDM','Bsamp',100,'save2file',save_fname);
 
     %% plot
-    dat = fmri_data(single_nii,single_nii,'noverbose');
+    dat = fmri_data(single_nii);
     [obj,figh] = plotPDM(pdm_boot,dat);
     % save(save_fname,'pdm','-append');
 
 
-    %% plot --------------------
+    % plot --------------------
     % load signle trial nifti
     % sngl = fname_nii;
     % m = mean(sngl);
@@ -93,5 +95,4 @@ for r = 1:length(run)
 
 
 % o1 = canlab_results_fmridisplay(reg_all_fdr{1,r},'outline','linewidth',0.5,'montagetype','full hcp','splitcolor',{[.1 .8 .8] [.1 .1 .8] [.9 .4 0] [1 1 0]},'overlay','mni_icbm152_t1_tal_nlin_sym_09a_brainonly.img'); % o1 is an fmridisplay object - methods fmridisplay for help
-end
 end
