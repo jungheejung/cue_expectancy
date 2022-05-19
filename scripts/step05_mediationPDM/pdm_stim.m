@@ -81,9 +81,9 @@ end
 
 save(dat_fname,'xx','yy','mm','-v7.3');
 end
-options.codeToEvaluate = 'single_nii=fname_nii'; options.format = 'html'; 
+options.codeToEvaluate = 'single_nii=fname_nii; save_dir=save_dir'; options.format = 'html'; 
 options.outputDir = save_dir;    options.imageFormat = 'png';
 pdm_output = publish('pdm_n_plot.m',options);
 % pdm_output = publish(pdm_n_plot(fname_nii));
 [folder, name] = fileparts(pdm_output);
-movefile(mydoc, fullfile(save_dir, ['singletrial-pdm_',datestr(now,'mm-dd-yy'), '.html']));
+movefile(pdm_output, fullfile(save_dir, ['singletrial-pdm_',datestr(now,'mm-dd-yy'), '.html']));
