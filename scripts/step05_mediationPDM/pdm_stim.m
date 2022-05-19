@@ -66,9 +66,10 @@ for s = 1:length(sublist)
 %     mm{s, 1} = char(fname_nii);
     yy{s, 1} = T.actual_rating;% table2array(T(:,strcat(y_rating, '_rating'))); %T.actual_rating;
     % publish(plot(dat));
-    mydoc          = publish(plot(dat), 'html');
+    options.codeToEvaluate = 'dat=dat'; options.format = 'html'; mydoc = publish('plot.m',options);
+    % mydoc          = publish(plot(dat), 'html');
     [folder, name] = fileparts(mydoc);
-    movefile(mydoc, fullfile(save_dir, ['singletrial-diagnostics_', datestr(now,0), '.html']);
+    movefile(mydoc, fullfile(save_dir, ['singletrial-diagnostics_', datestr(now,0), '.html']));
 end
 else
 load(dat_fname);
@@ -77,7 +78,7 @@ end
 
 save(dat_fname,'xx','yy','mm','-v7.3');
 end
-
-pdm_output = publish(pdm_n_plot(fname_nii));
+options.codeToEvaluate = 'single_nii=fname_nii'; options.format = 'html'; pdm_output = publish('plot.m',options);
+% pdm_output = publish(pdm_n_plot(fname_nii));
 [folder, name] = fileparts(pdm_output);
-movefile(mydoc, fullfile(save_dir, ['singletrial-pdm_', datestr(now,0), '.html']);
+movefile(mydoc, fullfile(save_dir, ['singletrial-pdm_', datestr(now,0), '.html']));
