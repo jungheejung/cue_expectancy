@@ -69,7 +69,7 @@ for s = 1:length(sublist)
     options.codeToEvaluate = 'dat=dat'; options.format = 'html'; options.outputDir = save_dir;
     options.imageFormat = 'png';
 
-    mydoc = publish('plot.m',options);
+    mydoc = publish('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/@fmri_data/plot.m',options);
     % mydoc          = publish(plot(dat), 'html');
     [folder, name] = fileparts(mydoc);
     movefile(mydoc, fullfile(save_dir, 'diagnostics',['singletrial-diagnostics_run-', run{r},'_sub-' , sub,'_',datestr(now,'mm-dd-yy'), '.html']));
