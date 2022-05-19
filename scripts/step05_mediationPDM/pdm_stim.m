@@ -72,7 +72,7 @@ for s = 1:length(sublist)
     mydoc = publish('plot.m',options);
     % mydoc          = publish(plot(dat), 'html');
     [folder, name] = fileparts(mydoc);
-    movefile(mydoc, fullfile(save_dir, ['singletrial-diagnostics_', datestr(now,0), '.html']));
+    movefile(mydoc, fullfile(save_dir, 'diagnostics',['singletrial-diagnostics_run-', run{r},'_sub-' , sub,'_',datestr(now,'mm-dd-yy'), '.html']));
 end
 else
 load(dat_fname);
@@ -83,7 +83,7 @@ save(dat_fname,'xx','yy','mm','-v7.3');
 end
 options.codeToEvaluate = 'single_nii=fname_nii'; options.format = 'html'; 
 options.outputDir = save_dir;    options.imageFormat = 'png';
-pdm_output = publish('plot.m',options);
+pdm_output = publish('pdm_n_plot.m',options);
 % pdm_output = publish(pdm_n_plot(fname_nii));
 [folder, name] = fileparts(pdm_output);
-movefile(mydoc, fullfile(save_dir, ['singletrial-pdm_', datestr(now,0), '.html']));
+movefile(mydoc, fullfile(save_dir, ['singletrial-pdm_',datestr(now,'mm-dd-yy'), '.html']));
