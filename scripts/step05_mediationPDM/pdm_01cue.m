@@ -65,11 +65,16 @@ for s = 1:length(sublist)
     %% diagnostics
     assignin('base','dat',dat);
     options.codeToEvaluate = sprintf('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/@fmri_data/plot(%s)','dat'); 
-    options.format = 'html'; options.outputDir = fullfile(save_dir, 'diagnostics');
+    options.format = 'html'; 
+    options.showCode = false;
+    if not(exist(fullfile(task_subfldr,'diagnostics'),'dir'));
+        mkdir(fullfile(task_subfldr,'diagnostics')) 
+    end
+    options.outputDir = fullfile(task_subfldr, 'diagnostics');
     options.imageFormat = 'png';
     mydoc = publish('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/@fmri_data/plot.m',options);
     [folder, name] = fileparts(mydoc);
-    movefile(mydoc, fullfile(save_dir, task_subfldr,'diagnostics',['singletrial-diagnostics_run-', run{r},'_sub-' , sub,'_',datestr(now,'mm-dd-yy'), '.html']));
+    movefile(mydoc, fullfile(task_subfldr,'diagnostics',['singletrial-diagnostics_run-', run{r},'_sub-' , sub,'_',datestr(now,'mm-dd-yy'), '.html']));
 end
 else
 load(dat_fname);
