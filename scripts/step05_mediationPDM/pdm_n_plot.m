@@ -1,9 +1,16 @@
 function pdm_n_plot(task)
+sublist = [6,7,8,9,10,11,13,14,15,16,17,21,23,24,28,29,30,31,32,33,35,37,43,47,51,53,55,58,60,61,62,64,65,66,68,69,70,73,74,76,78,79,80,81,84,85];
 single_nii = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/analysis/fmri/spm/multivariate/s03_concatnifti/sub-0065/sub-0065_task-social_run-cognitive_ev-cue.nii';
 save_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/analysis/fmri/mediation/pdm';
-
+task= char(task);
+disp(task)
 %run = {'pain', 'vicarious', 'cognitive'};
 %for r = 1:length(run)
+
+if not(exist(fullfile(save_dir, strcat('task-',task,'_stimlin-stim-actual')), 'dir'))
+mkdir(fullfile(save_dir, strcat('task-',task,'_stimlin-stim-actual')))
+end
+
     dat_fname =  fullfile(save_dir, strcat('task-',task, '_PDM_stimlin-stim-actual_DAT.mat'));
     load(dat_fname)
     new_m = mm; new_x = xx; new_y = yy;
@@ -50,13 +57,13 @@ save_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_socia
     min_comp = min(cellfun('size',yy,1))
     % project onto lower dimensional space keeping th max number of components
     pdm_min = multivariateMediation(xx,yy,mm,'noPDMestimation','B',min_comp);
-    save_fname = fullfile(save_dir, strcat('task-',task, '_PDM-mincomp_stimlin-stim-actual.mat'));
+    save_fname = fullfile(save_dir, strcat('task-',task,'_stimlin-stim-actual'), strcat('task-',task, '_PDM-mincomp_stimlin-stim-actual.mat'));
     save(save_fname,'pdm_min');
 
     %% Compute the multivariate brain mediators
     % use previous PVD dimension reduction, compute PDMs, and plot path coeff
     pdm = multivariateMediation(pdm_min,'nPDM', min_comp, 'plots');
-    save_fname = fullfile(save_dir, strcat('task-',task, '_PDM-plot_stimlin-stim-actual.mat'));
+    save_fname = fullfile(save_dir, strcat('task-',task,'_stimlin-stim-actual'), strcat('task-',task, '_PDM-plot_stimlin-stim-actual.mat'));
     save(save_fname,'pdm');
     % select the number of PDMs (3) based on the |ab| coeff plot, like a scree-plot
     % pdm = multivariateMediation(pdm,'nPDM',3);
@@ -64,7 +71,7 @@ save_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_socia
 
     %% bootstrap voxel weights for significance
     % bootstrap the first 3 PDM with 100 samples
-    save_fname = fullfile(save_dir, strcat('task-',run{r}, '_PDM-bootstrap_stimlin-stim-actual.mat'));
+    save_fname = fullfile(save_dir,strcat('task-',task,'_stimlin-stim-actual'), strcat('task-',task, '_PDM-bootstrap_stimlin-stim-actual.mat'));
     pdm_boot = multivariateMediation(xx,yy,mm,'B',min_comp,'nPDM',3,'bootPDM',1:3,'bootJPDM','Bsamp',100,'save2file',save_fname);
 
     %% plot
