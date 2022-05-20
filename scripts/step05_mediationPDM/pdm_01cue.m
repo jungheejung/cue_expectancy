@@ -39,7 +39,7 @@ task_subfldr = fullfile(save_dir, strcat('task-',run{r},'_', x_keyword, '-', m_k
     if not(exist(task_subfldr, 'dir'))
         mkdir(task_subfldr)
     end
-dat_fname =  fullfile(task_subfldr, strcat('task-',run{r},'_', x_keyword, '-', m_keyword,'-',y_keyword, '_DAT.mat'));
+dat_fname =  fullfile(task_subfldr, strcat('task-',run{r},'_PDM_', x_keyword, '-', m_keyword,'-',y_keyword, '_DAT.mat'));
 if ~isfile(dat_fname)
 for s = 1:length(sublist)
     % step 01 __________________________________________________________________
