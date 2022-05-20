@@ -9,7 +9,7 @@ csv = 'cue-actual'; %string(csv);
 y_rating = 'actual';% string(y_rating);
 x_keyword = 'cue';
 m_keyword = 'stim';
-y_keyword = 'actual'
+y_keyword = 'actual';
 addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/MediationToolbox'));
 addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore'));
 addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12'));
@@ -34,12 +34,12 @@ mm_fdata = cell( length(sublist), 1);
 yy = cell( length(sublist), 1);
 
 run = {'pain', 'vicarious', 'cognitive'};
-task_subfldr = fullfile(save_dir, strcat('task-',run{r},'_', x_keyword, '-', m_keyword,'-',y_keyword));
-if not(exist(task_subfldr, 'dir'))
-    mkdir(task_subfldr)
-end
+
 for r = 1:length(run)
-    
+    task_subfldr = fullfile(save_dir, strcat('task-',run{r},'_', x_keyword, '-', m_keyword,'-',y_keyword));
+    if not(exist(task_subfldr, 'dir'))
+        mkdir(task_subfldr)
+    end
     dat_fname =  fullfile(task_subfldr, strcat('task-',run{r},'_PDM_', x_keyword, '-', m_keyword,'-',y_keyword, '_DAT.mat'));
     if ~isfile(dat_fname)
         for s = 1:length(sublist)
