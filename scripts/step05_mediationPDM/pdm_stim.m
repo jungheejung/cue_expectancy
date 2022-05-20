@@ -66,7 +66,7 @@ for s = 1:length(sublist)
 %     mm{s, 1} = char(fname_nii);
     yy{s, 1} = T.actual_rating;% table2array(T(:,strcat(y_rating, '_rating'))); %T.actual_rating;
     % publish(plot(dat));
-    options.codeToEvaluate = 'dat=dat'; options.format = 'html'; options.outputDir = save_dir;
+    options.codeToEvaluate = 'fmridat=dat'; options.format = 'html'; options.outputDir = save_dir;
     options.imageFormat = 'png';
 
     mydoc = publish('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/@fmri_data/plot.m',options);
@@ -81,9 +81,15 @@ end
 
 save(dat_fname,'xx','yy','mm','-v7.3');
 end
-options.codeToEvaluate = 'single_nii=fname_nii; save_dir=save_dir'; options.format = 'html'; 
-options.outputDir = save_dir;    options.imageFormat = 'png';
+
+for r = 1:length(run)
+assignin('base','task',run{r});
+assignin('base','sublist', sublist); 
+options.codeToEvaluate = sprintf('pdm_n_plot(%s)','task');%strcat('task=', run{r});
+options.format = 'html'; 
+options.outputDir = fullfile(save_dir,strcat('task-',task,'_stimlin-stim-actual'));    options.imageFormat = 'png';
 pdm_output = publish('pdm_n_plot.m',options);
 % pdm_output = publish(pdm_n_plot(fname_nii));
 [folder, name] = fileparts(pdm_output);
-movefile(pdm_output, fullfile(save_dir, ['singletrial-pdm_',datestr(now,'mm-dd-yy'), '.html']));
+movefile(pdm_output, fullfile(save_dir,strcat('task-',task,'_stimlin-stim-actual'), ['singletrial-pdm_task-',run{r},'_stimlevel-stim-actual',datestr(now,'mm-dd-yy'), '.html']));
+end
