@@ -9,25 +9,22 @@ clear; close all;
 event = 'stim'; %string(event);
 csv = 'cue-actual'; %string(csv);
 y_rating = 'actual';% string(y_rating);
+x_keyword = 'stimlin';
+m_keyword = 'stim';
+y_keyword = 'actual';
+
 addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/MediationToolbox'));
 addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore'));
 addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12'));
 rmpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip'));
 rmpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip/external/stats');
 
-%addpath(genpath('/Users/h/Documents/MATLAB/MediationToolbox'));
-%addpath(genpath('/Users/h/Documents/MATLAB/CanlabCore'));
-%addpath(genpath('/Users/h/Documents/MATLAB/spm12'));
-%rmpath(genpath('/Users/h/Documents/MATLAB/spm12/external/fieldtrip'));
-%rmpath('/Users/h/Documents/MATLAB/spm12/external/fieldtrip/external/stats');
 % parameters __________________________________________________________________
 % nifti_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/analysis/fmri/fsl/multivariate/concat_nifti';
 main_dir = fileparts(fileparts(pwd));
 disp(main_dir);
-%main_dir = '/Volumes/spacetop_projects_social';
 nifti_dir = fullfile(main_dir,'analysis','fmri','spm','multivariate','s03_concatnifti');
 save_dir = fullfile(main_dir,'analysis','fmri','mediation','pdm');
-% sublist = [3,4,5,6,7,8,9,10,14,15,16,18,19,20,21,23,24,25,26,28,29,30,31,32,33,35,37,43,47,51,53,55,58,60];
 sublist = [6,7,8,9,10,11,13,14,15,16,17,21,23,24,28,29,30,31,32,33,35,37,43,47,51,53,55,58,60,61,62,64,65,66,68,69,70,73,74,76,78,79,80,81,84,85];
 sublist = [6,7,8,9,10,11,13,14,15,16,17,28,29,30,31,32,33,35,37,43,47,51,53,55,58,60,61,62,64,65,66,68,69,70,73,76,78,79,80,81,84,85]; 
 % sublist = [6,7,8];
@@ -41,6 +38,10 @@ yy = cell( length(sublist), 1);
 %x_col =
 run = {'pain', 'vicarious', 'cognitive'};
 for r = 1:length(run)
+    task_subfldr = fullfile(save_dir, strcat('task-',run{r},'_', x_keyword, '-', m_keyword,'-',y_keyword));
+    if not(exist(task_subfldr, 'dir'))
+        mkdir(task_subfldr)
+    end
 dat_fname =  fullfile(save_dir, strcat('task-',run{r}, '_PDM_stimlin-stim-actual_DAT.mat'));
 if ~isfile(dat_fname)
 for s = 1:length(sublist)
@@ -66,13 +67,21 @@ for s = 1:length(sublist)
 %     mm{s, 1} = char(fname_nii);
     yy{s, 1} = T.actual_rating;% table2array(T(:,strcat(y_rating, '_rating'))); %T.actual_rating;
     % publish(plot(dat));
-    options.codeToEvaluate = 'fmridat=dat'; options.format = 'html'; options.outputDir = save_dir;
-    options.imageFormat = 'png';
+
+            assignin('base','dat',dat);
+            options.codeToEvaluate = sprintf('plot(%s)','dat');
+            options.format = 'pdf';
+    %options.codeToEvaluate = 'fmridat=dat'; options.format = 'html';
+            if not(exist(fullfile(task_subfldr,'diagnostics'),'dir'))
+                mkdir(fullfile(task_subfldr,'diagnostics'))
+            end 
+    options.outputDir = fullfile(task_subfldr, 'diagnostics');
+    options.imageFormat = 'jpg';
 
     mydoc = publish('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/@fmri_data/plot.m',options);
     % mydoc          = publish(plot(dat), 'html');
     [folder, name] = fileparts(mydoc);
-    movefile(mydoc, fullfile(save_dir, 'diagnostics',['singletrial-diagnostics_run-', run{r},'_sub-' , sub,'_',datestr(now,'mm-dd-yy'), '.html']));
+    movefile(mydoc, fullfile(task_subfldr, 'diagnostics',strcat('singletrial-diagnostics_run-', run{r},'_sub-' , sub,'_',datestr(now,'mm-dd-yy'), '.pdf')));
 end
 else
 load(dat_fname);
@@ -84,12 +93,12 @@ end
 
 for r = 1:length(run)
 assignin('base','task',run{r});
-assignin('base','sublist', sublist); 
-options.codeToEvaluate = sprintf('pdm_n_plot(%s)','task');%strcat('task=', run{r});
-options.format = 'html'; 
-options.outputDir = fullfile(save_dir,strcat('task-',task,'_stimlin-stim-actual'));    options.imageFormat = 'png';
-pdm_output = publish('pdm_n_plot.m',options);
+%assignin('base','sublist', sublist); 
+options.codeToEvaluate = sprintf('pdm_02stim_plot(%s)','task');%strcat('task=', run{r});
+options.format = 'pdf'; 
+options.outputDir = fullfile(save_dir,strcat('task-',run{r},'_stimlin-stim-actual'));    options.imageFormat = 'jpg';
+pdm_output = publish('pdm_02stim_plot.m',options);
 % pdm_output = publish(pdm_n_plot(fname_nii));
 [folder, name] = fileparts(pdm_output);
-movefile(pdm_output, fullfile(save_dir,strcat('task-',task,'_stimlin-stim-actual'), ['singletrial-pdm_task-',run{r},'_stimlevel-stim-actual',datestr(now,'mm-dd-yy'), '.html']));
+movefile(pdm_output, fullfile(save_dir,strcat('task-',run{r},'_stimlin-stim-actual'),strcat('singletrial-pdm_task-',run{r},'_stimlevel-stim-actual',datestr(now,'mm-dd-yy'), '.pdf')));
 end

@@ -67,7 +67,7 @@ save(save_fname,'pdm');
 %% bootstrap voxel weights for significance
 % bootstrap the first 3 PDM with 100 samples
 save_fname = fullfile(task_subfldr, strcat('task-',task, '_PDM-bootstrap_stimlin-stim-actual.mat'));
-pdm_boot = multivariateMediation(xx,yy,mm,'B',min_comp,'nPDM',min_comp,'bootPDM',1:min_comp,'bootJPDM','Bsamp',10000,'save2file',save_fname);
+pdm_boot = multivariateMediation(xx,yy,mm,'B',min_comp,'nPDM',min_comp,'bootPDM',1:min_comp,'bootJPDM','Bsamp',1000,'save2file',save_fname);
 
 %% plot
 dat = fmri_data(single_nii);
