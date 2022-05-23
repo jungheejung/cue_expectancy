@@ -45,7 +45,7 @@ for r = 1:length(run)
         for s = 1:length(sublist)
             % step 01 __________________________________________________________________
             % grab metadata
-            sub = strcat('sub-', sprintf("%04d", sublist(s)));
+            sub = strcat('sub-', sprintf('%04d', sublist(s)));
             fname = strcat('metadata_', sub ,'_task-social_run-', run{r}, '_ev-', event, '.csv');
             T = readtable(fullfile(nifti_dir, sub, fname));
             basename = strrep(strrep(fname,'metadata_',''), '.csv', '');
@@ -65,7 +65,7 @@ for r = 1:length(run)
             yy{s, 1} = T.actual_rating;% table2array(T(:,strcat(y_rating, '_rating'))); %T.actual_rating;
             %% diagnostics
             assignin('base','dat',dat);
-            options.codeToEvaluate = sprintf('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/@fmri_data/plot(%s)','dat');
+            options.codeToEvaluate = sprintf('plot(%s)','dat');
             options.format = 'html';
             options.showCode = false;
             if not(exist(fullfile(task_subfldr,'diagnostics'),'dir'))
@@ -73,9 +73,10 @@ for r = 1:length(run)
             end
             options.outputDir = fullfile(task_subfldr, 'diagnostics');
             options.imageFormat = 'png';
-            mydoc = publish('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/@fmri_data/plot.m',options);
-            [folder, name] = fileparts(mydoc);
-            movefile(mydoc, fullfile(task_subfldr,'diagnostics',['singletrial-diagnostics_run-', run{r},'_sub-' , sub,'_',datestr(now,'mm-dd-yy'), '.html']));
+            %mydoc = publish('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/@fmri_data/plot.m',options);
+            %[folder, name] = fileparts(mydoc);
+            %movefile(fullfile(task_subfldr,'diagnostics','plot.html'), fullfile(task_subfldr,'diagnostics',['singletrial-diagnostics_run-', run{r},'_' , sub, '.html']));
+	    %movefile(fullfile(task_subfldr,'diagnostics','plot.html'), fullfile(task_subfldr,'diagnostics',['singletrial-diagnostics_run-', run{r},'_' , sub, '.html']));
         end
     else
         load(dat_fname);
@@ -85,14 +86,15 @@ end
 
 %% PDM
 for r = 1:length(run)
+    task_subfldr = fullfile(save_dir, strcat('task-',run{r},'_', x_keyword, '-', m_keyword,'-',y_keyword));
     assignin('base','task',run{r});
     assignin('base','sublist', sublist);
     options.codeToEvaluate = sprintf('pdm_01cue_plot(%s)','task');%strcat('task=', run{r});
-    options.format = 'html';
+    options.format = 'pdf';
     options.outputDir = task_subfldr;
-    options.imageFormat = 'png';
+    options.imageFormat = 'jpg';
     pdm_output = publish('pdm_01cue_plot.m',options);
     
     [folder, name] = fileparts(pdm_output);
-    movefile(pdm_output, fullfile(task_subfldr, ['singletrial-pdm_task-',run{r},'_stimlevel-stim-actual',datestr(now,'mm-dd-yy'), '.html']));
+    movefile(pdm_output, fullfile(task_subfldr,strcat('singletrial-pdm_task-',run{r},'_', x_keyword, '-', m_keyword, '-', y_keyword, '_',datestr(now,'mm-dd-yy'), '.pdf')));
 end
