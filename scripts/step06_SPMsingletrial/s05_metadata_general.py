@@ -44,7 +44,10 @@ param_list = [sub_list,
 full_list = list(itertools.product(*param_list))
 for sub, run_type, ev in full_list:
     # /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/data/d03_onset/onset03_SPMsingletrial/sub-0055
+
     subject_csv = os.path.join(main_dir, 'data', 'd03_onset', 'onset03_SPMsingletrial', sub, f"{sub}_singletrial_plateau.csv" )
+    if not os.path.exist(subject_csv):
+        subject_csv = os.path.join(main_dir, 'data', 'd03_onset', 'onset03_SPMsingletrial', sub, f"{sub}_singletrial.csv" )
     nifti_fname = os.path.join(nifti_dir, sub, f"niftifname_{sub}_task-social_run-{run_type}_ev-{ev}.txt")
 
     if os.path.exists(subject_csv) & os.path.exists(nifti_fname):
