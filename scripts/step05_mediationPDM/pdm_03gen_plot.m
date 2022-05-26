@@ -3,14 +3,14 @@ function pdm_03gen_plot(input)
 x_keyword = input.x_keyword;
 m_keyword = input.m_keyword;
 y_keyword = input.y_keyword;
-main_dir = input.main_dir = main_dir;
+main_dir = input.main_dir;
 single_nii = input.single_nii;
-sub_list = input.sublist;
+sublist = input.sublist;
 task = input.task;
 iter = input.iter;
 num_components = input.num_components;
 
-save_dir = fullfile(main-dir, 'analysis/fmri/mediation/pdm');
+save_dir = fullfile(main_dir, 'analysis/fmri/mediation/pdm');
 
 task_subfldr = fullfile(save_dir, strcat('task-',task,'_', x_keyword, '-', m_keyword,'-',y_keyword));
 if not(exist(task_subfldr, 'dir'))
