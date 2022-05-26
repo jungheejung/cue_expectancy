@@ -77,7 +77,7 @@ if ~isfile(dat_fname)
         yy{s, 1} = T.actual_rating;% table2array(T(:,strcat(y_rating, '_rating'))); %T.actual_rating;
         %% diagnostics
         [wh_outlier_uncorr, wh_outlier_corr]  = plot(dat);
-        outlier{s,1} = wh_outlier_corr
+        outlier{s,1} = wh_outlier_corr;
         assignin('base','dat',dat);
         options.codeToEvaluate = sprintf('plot(%s)','dat');
         options.format = 'pdf';
@@ -89,14 +89,7 @@ if ~isfile(dat_fname)
         options.imageFormat = 'jpg';
         mydoc = publish('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/@fmri_data/plot.m',options);
         [folder, name] = fileparts(mydoc);
-        %ifiles = dir(fullfile(task_subfldr, 'diagnostics', 'plot*.png'));
-        % Loop through each file 
-        %for id = 1:length(files)
-        %    % Get the file name 
-        %    [~, f,ext] = fileparts(files(id).name);
-        %    rename = strcat('singletrial-diagnostics_run-', run{r},'_sub-' , sub,f,'_',ext) ; 
-        %    movefile(files(id).name, rename); 
-        %end
+
         movefile(mydoc, fullfile(task_subfldr,'diagnostics',strcat('singletrial-diagnostics_run-', char(run{r}),'_sub-' , sub, '.pdf')));
     end
 else
