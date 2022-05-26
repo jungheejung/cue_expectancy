@@ -67,7 +67,12 @@ disp(strcat('ultimate subject list: ', sublist))
 
 %% Reduce the dimensionality of the brain-mediator data using PVD
 pdmX = X; pdmY= Y; pdmM = M;
-min_comp = min(cellfun('size',pdmY,1))
+min_comp = min(cellfun('size',pdmY,1));
+if min_comp < 25
+min_comp = min_comp;
+else
+min_comp = 25;
+end
 % project onto lower dimensional space keeping th max number of components
 pdm_min = multivariateMediation(pdmX,pdmY,pdmM,'noPDMestimation','B',min_comp);
 save_fname = fullfile(task_subfldr, strcat('task-',task, '_PDM-mincomp_', x_keyword, '-', m_keyword,'-',y_keyword,'.mat'));
@@ -86,7 +91,7 @@ save(save_fname,'pdm');
 save_fname = fullfile(task_subfldr, strcat('task-',task, '_PDM-bootstrap_',  x_keyword, '-', m_keyword,'-',y_keyword,'.mat'));
 pdm_boot = multivariateMediation(pdmX,pdmY,pdmM,...
 'B',num_components,'nPDM',num_components,'bootPDM',1:num_components,...
-'jointPDM',1,'bootJoinPDM',1,'Bsamp',iter,'plots','save2file',save_fname);
+'jointPDM',1,'bootJointPDM',1,'Bsamp',iter,'plots','save2file',save_fname);
 
 %% plot
 dat = fmri_data(single_nii);
