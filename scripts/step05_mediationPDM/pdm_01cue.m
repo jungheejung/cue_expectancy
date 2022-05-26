@@ -42,7 +42,7 @@ for r = 1:length(run)
     mm_fdata = cell( length(sublist), 1);
     yy = cell( length(sublist), 1);
     outlier = cell( length(sublist),1);
-
+    
     % save dir
     task_subfldr = fullfile(save_dir, strcat('task-',run{r},'_', x_keyword, '-', m_keyword,'-',y_keyword));
     if not(exist(task_subfldr, 'dir'))
@@ -75,7 +75,7 @@ for r = 1:length(run)
             % step 04 __________________________________________________________________
             % diagnostics
             [wh_outlier_uncorr, wh_outlier_corr]  = plot(dat);
-            outlier{s,1} = wh_outlier_corr
+            outlier{s,1} = wh_outlier_corr;
             assignin('base','dat',dat);
             options.codeToEvaluate = sprintf('plot(%s)','dat');
             options.format = 'pdf';
@@ -88,6 +88,7 @@ for r = 1:length(run)
             mydoc = publish('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/@fmri_data/plot.m',options);
             [folder, name] = fileparts(mydoc);
             movefile(mydoc, fullfile(task_subfldr, 'diagnostics',strcat('singletrial-diagnostics_run-', run{r},'_sub-' , sub,'_',datestr(now,'mm-dd-yy'), '.pdf')));
+        end
     else
         load(dat_fname);
     end
@@ -96,10 +97,10 @@ end
 
 %% PDM
 for r = 1:length(run)
-
+    
     % input variables
     cue_input = struct();
-
+    
     cue_input.x_keyword = x_keyword;
     cue_input.m_keyword = m_keyword;
     cue_input.y_keyword = y_keyword;
@@ -109,7 +110,7 @@ for r = 1:length(run)
     cue_input.task = run{r};
     cue_input.iter = 5000;
     cue_input.num_components = 2;
-
+    
     
     task_subfldr = fullfile(save_dir, strcat('task-',run{r},'_', x_keyword, '-', m_keyword,'-',y_keyword));
     assignin('base','input',cue_input);

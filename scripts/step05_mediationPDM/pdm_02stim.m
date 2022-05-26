@@ -48,57 +48,58 @@ for r = 1:length(run)
     dat_fname =  fullfile(task_subfldr, strcat('task-',run{r}, '_PDM_', x_keyword, '-', m_keyword,'-',y_keyword, '_DAT.mat'));
     if ~isfile(dat_fname)
         for s = 1:length(sublist)
-        % step 01 __________________________________________________________________
-        % grab metadata
-        sub = strcat('sub-', sprintf("%04d", sublist(s)));
-        fname = strcat('metadata_', sub ,'_task-social_run-', run{r}, '_ev-', event, '.csv');
-        T = readtable(fullfile(nifti_dir, sub, fname));
-        basename = strrep(strrep(fname,'metadata_',''), '.csv', '');
-
-        % step 02 __________________________________________________________________
-        % grab nifti and unzip
-        fname_nifti = fullfile(nifti_dir, sub, strcat(basename, '.nii.gz'));
-        fname_nii = fullfile(nifti_dir, sub, strcat(basename, '.nii'));
-        if ~exist(fname_nii,'file'), gunzip(fname_nifti)
+            % step 01 __________________________________________________________________
+            % grab metadata
+            sub = strcat('sub-', sprintf("%04d", sublist(s)));
+            fname = strcat('metadata_', sub ,'_task-social_run-', run{r}, '_ev-', event, '.csv');
+            T = readtable(fullfile(nifti_dir, sub, fname));
+            basename = strrep(strrep(fname,'metadata_',''), '.csv', '');
+            
+            % step 02 __________________________________________________________________
+            % grab nifti and unzip
+            fname_nifti = fullfile(nifti_dir, sub, strcat(basename, '.nii.gz'));
+            fname_nii = fullfile(nifti_dir, sub, strcat(basename, '.nii'));
+            if ~exist(fname_nii,'file'), gunzip(fname_nifti)
+            end
+            
+            % step 03 __________________________________________________________________
+            % provide input as XMY
+            xx{s, 1} = T.stim_lin; % table2array(T(:, 'cue_con'));% T.cue; %
+            dat =  fmri_data(char(fname_nii));
+            mm{s, 1} = dat.dat;
+            yy{s, 1} = T.actual_rating;% table2array(T(:,strcat(y_rating, '_rating'))); %T.actual_rating;
+            
+            % step 04 __________________________________________________________________
+            % diagnostics
+            [wh_outlier_uncorr, wh_outlier_corr]  = plot(dat);
+            outlier{s,1} = wh_outlier_corr;
+            assignin('base','dat',dat);
+            options.codeToEvaluate = sprintf('plot(%s)','dat');
+            options.format = 'pdf';
+            options.showCode = false;
+            if not(exist(fullfile(task_subfldr,'diagnostics'),'dir'))
+                mkdir(fullfile(task_subfldr,'diagnostics'))
+            end
+            options.outputDir = fullfile(task_subfldr, 'diagnostics');
+            options.imageFormat = 'jpg';
+            mydoc = publish('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/@fmri_data/plot.m',options);
+            [folder, name] = fileparts(mydoc);
+            movefile(mydoc, fullfile(task_subfldr, 'diagnostics',strcat('singletrial-diagnostics_run-', run{r},'_sub-' , sub,'_',datestr(now,'mm-dd-yy'), '.pdf')));
         end
-
-        % step 03 __________________________________________________________________
-        % provide input as XMY
-        xx{s, 1} = T.stim_lin; % table2array(T(:, 'cue_con'));% T.cue; %
-        dat =  fmri_data(char(fname_nii));
-        mm{s, 1} = dat.dat;
-        yy{s, 1} = T.actual_rating;% table2array(T(:,strcat(y_rating, '_rating'))); %T.actual_rating;
-
-        % step 04 __________________________________________________________________
-        % diagnostics
-        [wh_outlier_uncorr, wh_outlier_corr]  = plot(dat);
-        outlier{s,1} = wh_outlier_corr
-        assignin('base','dat',dat);
-        options.codeToEvaluate = sprintf('plot(%s)','dat');
-        options.format = 'pdf';
-        options.showCode = false;
-        if not(exist(fullfile(task_subfldr,'diagnostics'),'dir'))
-            mkdir(fullfile(task_subfldr,'diagnostics'))
-        end
-        options.outputDir = fullfile(task_subfldr, 'diagnostics');
-        options.imageFormat = 'jpg';
-        mydoc = publish('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/@fmri_data/plot.m',options);
-        [folder, name] = fileparts(mydoc);
-        movefile(mydoc, fullfile(task_subfldr, 'diagnostics',strcat('singletrial-diagnostics_run-', run{r},'_sub-' , sub,'_',datestr(now,'mm-dd-yy'), '.pdf')));
     else
         load(dat_fname);
     end
-%save_dat = fullfile(save_dir, strcat('task-',run{r}, '_PDM_stimlin-stim-actual_DAT.mat'));
-save(dat_fname,'xx','yy','mm','outlier','-v7.3');
+    %save_dat = fullfile(save_dir, strcat('task-',run{r}, '_PDM_stimlin-stim-actual_DAT.mat'));
+    save(dat_fname,'xx','yy','mm','outlier','-v7.3');
 end
 
 %% PDM
 
 for r = 1:length(run)
-
+    
     % input variables
     stim_input = struct();
-
+    
     stim_input.x_keyword = x_keyword;
     stim_input.m_keyword = m_keyword;
     stim_input.y_keyword = y_keyword;
@@ -108,8 +109,8 @@ for r = 1:length(run)
     stim_input.task = run{r};
     stim_input.iter = 5000;
     stim_input.num_components = 2;
-
-
+    
+    
     task_subfldr = fullfile(save_dir, strcat('task-',run{r},'_', x_keyword, '-', m_keyword,'-',y_keyword));
     assignin('base','input',stim_input);
     options.codeToEvaluate = sprintf('pdm_02stim_plot(%s)','stim_input');%strcat('task=', run{r});
