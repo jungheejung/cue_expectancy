@@ -64,7 +64,7 @@ disp(strcat('ultimate subject list: ', sublist))
 
 %% Reduce the dimensionality of the brain-mediator data using PVD
 pdmX = X; pdmY= Y; pdmM = M;
-min_comp = min(cellfun('size',yy,1))
+min_comp = min(cellfun('size',pdmY,1))
 % project onto lower dimensional space keeping th max number of components
 pdm_min = multivariateMediation(pdmX,pdmY,pdmM,'noPDMestimation','B',min_comp);
 save_fname = fullfile(task_subfldr, strcat('task-',task, '_PDM-mincomp_', x_keyword, '-', m_keyword,'-',y_keyword,'.mat'));
