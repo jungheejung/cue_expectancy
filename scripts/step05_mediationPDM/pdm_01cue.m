@@ -92,7 +92,7 @@ for r = 1:length(run)
     else
         load(dat_fname);
     end
-    save(dat_fname,'xx','yy','mm','-v7.3');
+    save(dat_fname,'xx','yy','mm','outlier','-v7.3');
 end
 
 %% PDM
