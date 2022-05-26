@@ -38,7 +38,7 @@ cue_input.main_dir = main_dir;
 cue_input.single_nii = fullfile(main_dir, '/analysis/fmri/spm/multivariate/s03_concatnifti/sub-0065/sub-0065_task-social_run-general_ev-cue.nii');
 cue_input.sublist = sublist;
 cue_input.task = 'general';
-cue_input.iter = 1000;
+cue_input.iter = 5000;
 cue_input.num_components = 2;
 
 
@@ -161,7 +161,7 @@ cue_input.main_dir = main_dir;
 cue_input.single_nii = fullfile(main_dir, '/analysis/fmri/spm/multivariate/s03_concatnifti/sub-0065/sub-0065_task-social_run-general_ev-stim.nii');
 cue_input.sublist = sublist;
 cue_input.task = 'general';
-cue_input.iter = 1000;
+cue_input.iter = 5000;
 cue_input.num_components = 2;
 
 
