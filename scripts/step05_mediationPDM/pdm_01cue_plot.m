@@ -1,4 +1,4 @@
-function pdm_01cue_plot(task)
+function pdm_01cue_plot(input)
 
 x_keyword = input.x_keyword;
 m_keyword = input.m_keyword;
