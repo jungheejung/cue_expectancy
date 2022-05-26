@@ -35,8 +35,8 @@ cue_input.x_keyword = x_keyword;
 cue_input.m_keyword = m_keyword;
 cue_input.y_keyword = y_keyword;
 cue_input.main_dir = main_dir;
-cue_input.single_nii = single_nii = fullfile(main_dir, '/analysis/fmri/spm/multivariate/s03_concatnifti/sub-0065/sub-0065_task-social_run-cognitive_ev-cue.nii');
-cue_input.sublist = sub_list;
+cue_input.single_nii = fullfile(main_dir, '/analysis/fmri/spm/multivariate/s03_concatnifti/sub-0065/sub-0065_task-social_run-general_ev-cue.nii');
+cue_input.sublist = sublist;
 cue_input.task = 'general';
 cue_input.iter = 1000;
 cue_input.num_components = 2;
@@ -46,7 +46,7 @@ xx = cell( length(sublist), 1);
 mm = cell( length(sublist), 1);
 mm_fdata = cell( length(sublist), 1);
 yy = cell( length(sublist), 1);
-
+outlier = cell( length(sublist),1);
 
 task_subfldr = fullfile(save_dir, strcat('task-',run{r},'_', x_keyword, '-', m_keyword,'-',y_keyword));
 if not(exist(task_subfldr, 'dir'))
@@ -76,31 +76,33 @@ if ~isfile(dat_fname)
         mm{s, 1} = dat.dat;
         yy{s, 1} = T.actual_rating;% table2array(T(:,strcat(y_rating, '_rating'))); %T.actual_rating;
         %% diagnostics
+        [wh_outlier_uncorr, wh_outlier_corr]  = plot(dat);
+        outlier{s,1} = wh_outlier_corr
         assignin('base','dat',dat);
-        options.codeToEvaluate = sprintf('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/@fmri_data/plot(%s)','dat');
-        options.format = 'html';
+        options.codeToEvaluate = sprintf('plot(%s)','dat');
+        options.format = 'pdf';
         options.showCode = false;
         if not(exist(fullfile(task_subfldr,'diagnostics'),'dir'))
             mkdir(fullfile(task_subfldr,'diagnostics'))
         end
         options.outputDir = fullfile(task_subfldr, 'diagnostics');
-        options.imageFormat = 'png';
+        options.imageFormat = 'jpg';
         mydoc = publish('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/@fmri_data/plot.m',options);
         [folder, name] = fileparts(mydoc);
-        files = dir(fullfile(task_subfldr, 'diagnostics', 'plot*.png'));
+        %ifiles = dir(fullfile(task_subfldr, 'diagnostics', 'plot*.png'));
         % Loop through each file 
-        for id = 1:length(files)
-            % Get the file name 
-            [~, f,ext] = fileparts(files(id).name);
-            rename = strcat('singletrial-diagnostics_run-', run{r},'_sub-' , sub,f,'_',ext) ; 
-            movefile(files(id).name, rename); 
-        end
-        movefile(mydoc, fullfile(task_subfldr,'diagnostics',['singletrial-diagnostics_run-', run{r},'_sub-' , sub, '.html']));
+        %for id = 1:length(files)
+        %    % Get the file name 
+        %    [~, f,ext] = fileparts(files(id).name);
+        %    rename = strcat('singletrial-diagnostics_run-', run{r},'_sub-' , sub,f,'_',ext) ; 
+        %    movefile(files(id).name, rename); 
+        %end
+        movefile(mydoc, fullfile(task_subfldr,'diagnostics',strcat('singletrial-diagnostics_run-', char(run{r}),'_sub-' , sub, '.pdf')));
     end
 else
     load(dat_fname);
 end
-save(dat_fname,'xx','yy','mm','-v7.3');
+save(dat_fname,'xx','yy','mm','outlier','-v7.3');
 
 
 %% PDM
@@ -156,8 +158,8 @@ cue_input.x_keyword = x_keyword;
 cue_input.m_keyword = m_keyword;
 cue_input.y_keyword = y_keyword;
 cue_input.main_dir = main_dir;
-cue_input.single_nii = single_nii = fullfile(main_dir, '/analysis/fmri/spm/multivariate/s03_concatnifti/sub-0065/sub-0065_task-social_run-cognitive_ev-cue.nii');
-cue_input.sublist = sub_list;
+cue_input.single_nii = fullfile(main_dir, '/analysis/fmri/spm/multivariate/s03_concatnifti/sub-0065/sub-0065_task-social_run-general_ev-stim.nii');
+cue_input.sublist = sublist;
 cue_input.task = 'general';
 cue_input.iter = 1000;
 cue_input.num_components = 2;
@@ -192,7 +194,7 @@ if ~isfile(dat_fname)
         
         % step 03 __________________________________________________________________
         % provide input as XMY
-        xx{s, 1} = T.cue_con; % table2array(T(:, 'cue_con'));% T.cue; %
+        xx{s, 1} = T.stim_lin; % table2array(T(:, 'cue_con'));% T.cue; %
         dat =  fmri_data(char(fname_nii));
         mm{s, 1} = dat.dat;
         yy{s, 1} = T.actual_rating;% table2array(T(:,strcat(y_rating, '_rating'))); %T.actual_rating;
@@ -200,25 +202,25 @@ if ~isfile(dat_fname)
         [wh_outlier_uncorr, wh_outlier_corr]  = plot(dat);
         outlier{s,1} = wh_outlier_corr
         assignin('base','dat',dat);
-        options.codeToEvaluate = sprintf('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/@fmri_data/plot(%s)','dat');
-        options.format = 'html';
+        options.codeToEvaluate = sprintf('plot(%s)','dat');
+        options.format = 'pdf';
         options.showCode = false;
         if not(exist(fullfile(task_subfldr,'diagnostics'),'dir'))
             mkdir(fullfile(task_subfldr,'diagnostics'))
         end
         options.outputDir = fullfile(task_subfldr, 'diagnostics');
-        options.imageFormat = 'png';
+        options.imageFormat = 'jpg';
         mydoc = publish('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/@fmri_data/plot.m',options);
         [folder, name] = fileparts(mydoc);
-        files = dir(fullfile(task_subfldr, 'diagnostics', 'plot*.png'));
+        % files = dir(fullfile(task_subfldr, 'diagnostics', 'plot*.png'));
         % Loop through each file 
-        for id = 1:length(files)
+        % for id = 1:length(files)
             % Get the file name 
-            [~, f,ext] = fileparts(files(id).name);
-            rename = strcat('singletrial-diagnostics_run-', run{r},'_sub-' , sub,f,'_',ext) ; 
-            movefile(files(id).name, rename); 
-        end
-        movefile(mydoc, fullfile(task_subfldr,'diagnostics',['singletrial-diagnostics_run-', run{r},'_sub-' , sub, '.html']));
+         %   [~, f,ext] = fileparts(files(id).name);
+         %   rename = strcat('singletrial-diagnostics_run-', run{r},'_sub-' , sub,f,'_',ext) ; 
+         %   movefile(files(id).name, rename); 
+        % end
+        movefile(mydoc, fullfile(task_subfldr,'diagnostics',strcat('singletrial-diagnostics_run-',char( run{r}),'_sub-' , sub, '.pdf')));
     end
 else
     load(dat_fname);
