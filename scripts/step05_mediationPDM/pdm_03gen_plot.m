@@ -19,12 +19,23 @@ end
 
 dat_fname =  fullfile(task_subfldr, strcat('task-',task,'_PDM_', x_keyword, '-', m_keyword,'-',y_keyword, '_DAT.mat'));
 load(dat_fname)
-new_m = mm; new_x = xx; new_y = yy;
 
-%% check dimensions and remove nans
+% remove outlier single trials based on mahalanobis distance
+new_m = mm; new_x = xx; new_y = yy; new_outlier = outlier;
+Xoutlier = cell( size(xx,1), 1);    Youtlier = cell( size(xx,1), 1);    Moutlier = cell( size(xx,1), 1);
+for s = 1:length(outlier)
+    disp(strcat("-------subject", num2str(s), "------"))
+disp(strcat("current length is ", num2str(size(yy{s,1},1))))
+Xoutlier{s,1} = xx{s,1}(~outlier{s,1},:) ;
+Youtlier{s,1} = yy{s,1}(~outlier{s,1},:) ;
+Moutlier{s,1} = mm{s,1}(:,~outlier{s,1}) ;
+disp(strcat("after removing", num2str(s), "size is now ",num2str(size(Youtlier{s,1},1))))
+end
+
+% check dimensions - some participants have mismatch in single trial brain data, and outcome ratings
 remove_sub = [];
-for s = 1:length(new_y)
-    if ~isequal(size(new_m{s},2), size(new_y{s},1))
+for s = 1:length(Youtlier)
+    if ~isequal(size(Moutlier{s},2), size(Youtlier{s},1))
         remove_sub = [remove_sub ;s];
     end
 end
@@ -36,24 +47,26 @@ for s = 1:length(remove_sub)
 end
 
 if ~isempty(remove_sub)
-new_x(remove_sub) = [];    new_y(remove_sub) = [];    new_m(remove_sub) = [];
+    Xoutlier(remove_sub) = [];    Youtlier(remove_sub) = [];    Moutlier(remove_sub) = []; sublist(remove_sub) = [];
 end
 disp('SIZE -------------')
-disp(size(new_x));    disp(size(new_m));    disp(size(new_y));
-X = cell( size(new_x,1), 1);    Y = cell( size(new_x,1), 1);    M = cell( size(new_x,1), 1);
-for s = 1:length(new_y)
+disp(size(Xoutlier));    disp(size(Moutlier));    disp(size(Youtlier));
+X = cell( size(Xoutlier,1), 1);    Y = cell( size(Xoutlier,1), 1);    M = cell( size(Xoutlier,1), 1);
+for s = 1:length(Youtlier)
 idx_nan = [];
-idx_nan = ~isnan(new_y{s});
-Y{s} = new_y{s}(idx_nan,:);
-M{s} = new_m{s}(:,idx_nan');
-X{s} = new_x{s}(idx_nan,:);
+idx_nan = ~isnan(Youtlier{s});
+Y{s} = Youtlier{s}(idx_nan,:);
+M{s} = Moutlier{s}(:,idx_nan');
+X{s} = Xoutlier{s}(idx_nan,:);
 end
 
+disp(strcat('ultimate subject list: ', sublist))
+
 %% Reduce the dimensionality of the brain-mediator data using PVD
-xx = X; yy= Y; mm = M;
+pdmX = X; pdmY= Y; pdmM = M;
 min_comp = min(cellfun('size',yy,1))
 % project onto lower dimensional space keeping th max number of components
-pdm_min = multivariateMediation(xx,yy,mm,'noPDMestimation','B',min_comp);
+pdm_min = multivariateMediation(pdmX,pdmY,pdmM,'noPDMestimation','B',min_comp);
 save_fname = fullfile(task_subfldr, strcat('task-',task, '_PDM-mincomp_', x_keyword, '-', m_keyword,'-',y_keyword,'.mat'));
 save(save_fname,'pdm_min');
 
@@ -68,7 +81,7 @@ save(save_fname,'pdm');
 %% bootstrap voxel weights for significance
 % bootstrap the first 3 PDM with 100 samples
 save_fname = fullfile(task_subfldr, strcat('task-',task, '_PDM-bootstrap_',  x_keyword, '-', m_keyword,'-',y_keyword,'.mat'));
-pdm_boot = multivariateMediation(xx,yy,mm,'B',num_components,'nPDM',num_components,'bootPDM',1:num_components,'bootJPDM','Bsamp',iter,'save2file',save_fname);
+pdm_boot = multivariateMediation(pdmX,pdmY,pdmM,'B',num_components,'nPDM',num_components,'bootPDM',1:num_components,'bootJPDM','Bsamp',iter,'save2file',save_fname);
 
 %% plot
 dat = fmri_data(single_nii);
