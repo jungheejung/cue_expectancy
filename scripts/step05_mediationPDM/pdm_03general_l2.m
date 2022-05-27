@@ -40,7 +40,7 @@ cue_input.single_nii = fullfile(main_dir, strcat('/analysis/fmri/spm/multivariat
 cue_input.sublist = sublist;
 cue_input.task = run{r};
 cue_input.iter = 5000;
-cue_input.num_components = 2;
+cue_input.num_components = 6;
 cue_input.dat_fpath = fullfile(task_subfldr, strcat('task-',run{r},'_PDM_', x_keyword, '-', m_keyword,'-',y_keyword, '_l2norm_DAT.mat'));
 cue_input.task_subfldr = task_subfldr
 
@@ -158,7 +158,7 @@ stim_input.single_nii = fullfile(main_dir, strcat('/analysis/fmri/spm/multivaria
 stim_input.sublist = sublist;
 stim_input.task = run{r};
 stim_input.iter = 5000;
-stim_input.num_components = 2;
+stim_input.num_components = 6;
 stim_input.dat_fpath = fullfile(task_subfldr, strcat('task-',run{r},'_PDM_', x_keyword, '-', m_keyword,'-',y_keyword, '_l2norm_DAT.mat'));
 stim_input.task_subfldr = task_subfldr
 
