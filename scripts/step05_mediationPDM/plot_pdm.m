@@ -11,7 +11,8 @@ iter = input.iter;
 num_components = input.num_components;
 dat_fname = input.dat_fpath
 task_subfldr = input.task_subfldr;
-
+alpha = input.alpha;
+sig = input.sig;
 save_dir = fullfile(main_dir, 'analysis/fmri/mediation/pdm');
 
 % task_subfldr = fullfile(save_dir, strcat('task-',task,'_', x_keyword, '-', m_keyword,'-',y_keyword));
@@ -94,7 +95,6 @@ save_fname = fullfile(task_subfldr, strcat('task-',task, '_PDM-bootstrap_',  x_k
 pdm_boot = multivariateMediation(pdmX,pdmY,pdmM,...
 'B',num_components,'nPDM',num_components,'bootPDM',1:num_components,...
 'bootjPDM','Bsamp',iter,'plots','save2file',save_fname);
-
 %% plot
 dat = fmri_data(single_nii);
 [obj,figh] = plotPDM(pdm_boot,dat);
