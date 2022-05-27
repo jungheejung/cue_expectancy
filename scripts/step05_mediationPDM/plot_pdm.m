@@ -93,7 +93,7 @@ save(save_fname,'pdm');
 save_fname = fullfile(task_subfldr, strcat('task-',task, '_PDM-bootstrap_',  x_keyword, '-', m_keyword,'-',y_keyword,'.mat'));
 pdm_boot = multivariateMediation(pdmX,pdmY,pdmM,...
 'B',num_components,'nPDM',num_components,'bootPDM',1:num_components,...
-'jointPDM',1,'bootJointPDM',1,'Bsamp',iter,'plots','save2file',save_fname);
+'bootjPDM','Bsamp',iter,'plots','save2file',save_fname);
 
 %% plot
 dat = fmri_data(single_nii);
