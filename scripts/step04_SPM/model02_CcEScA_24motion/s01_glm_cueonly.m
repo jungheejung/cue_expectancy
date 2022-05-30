@@ -161,7 +161,11 @@ for run_ind = 1: size(A,1)
         end
         m_fmriprep   = fullfile(fmriprep_dir, sub, ses, 'func', ...
                    strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_desc-confounds_timeseries.tsv'));
-        m            = struct2table(tdfread(m_fmriprep));
+        opts = setvaropts(opts,'TreatAsMissing',{'n/a','NA'});
+        opts = detectImportOptions(m_fmriprep, 'FileType', 'text');
+        m = readtable(m_fmriprep, opts);
+                %    m = readtable(tdfread(m_fmriprep),'Format','auto')
+                %    m            = struct2table(tdfread(m_fmriprep));
         m_subset     = m(:, {'csf', 'trans_x',	'trans_x_derivative1',	'trans_x_power2',	'trans_x_derivative1_power2',...
         	'trans_y',	'trans_y_derivative1',	'trans_y_derivative1_power2',	'trans_y_power2',...
             	'trans_z',	'trans_z_derivative1',	'trans_z_derivative1_power2',	'trans_z_power2',...
@@ -170,11 +174,18 @@ for run_ind = 1: size(A,1)
                         	'rot_z',	'rot_z_derivative1',	'rot_z_derivative1_power2',	'rot_z_power2'});
         
         hasMatch = ~cellfun('isempty', regexp(m.Properties.VariableNames, 'motion_outlier', 'once')) ;
-        motion_outlier = m(:, m.Properties.VariableNames(hasMatch))
+        motion_outlier = m(:, m.Properties.VariableNames(hasMatch));
         dummy = array2table(zeros(size(m,1),1), 'VariableNames',{'dummy'});
         dummy.dummy(1:6,:) = 1;
         m_cov = [m_subset,motion_outlier, dummy];
-        m_double     = table2array(m_cov);
+        m_clean = standardizeMissing(m_cov,'n/a');
+        % for i=1:40
+        %     m_clean.(i) = str2double(m_clean{:,i});
+        % end
+        % m_cov(strcmpi(m_cov,'n/a')) = {nan}; 
+        % m_cov(:,1:25)(strcmp(m_cov(:,1:25),'n/a')) = {''};
+        m_double     = table2array(m_clean);
+        
         dlmwrite(motion_fname, m_double, 'delimiter','\t','precision',13);
         R = dlmread(motion_fname);
         save_m_fname = fullfile(motion_dir, '24dof_csf_spike_dummy', sub, ses,...
