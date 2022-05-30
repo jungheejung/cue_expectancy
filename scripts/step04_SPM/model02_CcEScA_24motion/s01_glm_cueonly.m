@@ -85,7 +85,7 @@ onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
 %intersection of nifti and onset files
 A = intersect(sortedT(:,nii_num_colomn),sortedonsetT(:,onset_num_colomn));
 
-output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'univariate', 'model-02_CcEScA','1stLevel',sub);
+output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'univariate', 'model-02_CcEScA_24dof_csd','1stLevel',sub);
 disp(strcat('output_dir:', output_dir));
 if ~exist(output_dir, 'dir')
     mkdir(output_dir)
@@ -154,7 +154,7 @@ for run_ind = 1: size(A,1)
     disp(strcat('[ STEP 05 ]creating motion covariate text file...'));
 
 %% regressor ______________________________________________________
-    motion_fname = fullfile(motion_dir, sub, ses,...
+    motion_fname = fullfile(motion_dir,  '24dof_csf_spike_dummy', sub, ses,...
                    strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d',A.run_num(run_ind)), '_confounds-subset.txt'));
     if ~isfile(motion_fname)
         if ~exist(fullfile(motion_dir, sub, ses),'dir'), mkdir(fullfile(motion_dir, sub, ses))
@@ -177,7 +177,7 @@ for run_ind = 1: size(A,1)
         m_double     = table2array(m_cov);
         dlmwrite(motion_fname, m_double, 'delimiter','\t','precision',13);
         R = dlmread(motion_fname);
-        save_m_fname = fullfile(motion_dir, sub, ses,...
+        save_m_fname = fullfile(motion_dir, '24dof_csf_spike_dummy', sub, ses,...
             strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d',A.run_num(run_ind)), '_confounds-subset.mat'));
         save(save_m_fname, 'R');
     else
@@ -228,9 +228,9 @@ for run_ind = 1: size(A,1)
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(1).name = 'cue';
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(1).param = double(social.cue_con);
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(1).poly = 1;
-    % matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(2).name = 'actual_rating';
-    % matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(2).param = double(social.event04_actual_angle);
-    % matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(2).poly = 1;
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(2).name = 'stimulus_intensity';
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(2).param = double(social.stim_lin);
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(2).poly = 1;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).orth = 0;
 
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).name = 'ACTUAL_RATING';
