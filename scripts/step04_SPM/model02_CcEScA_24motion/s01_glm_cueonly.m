@@ -104,10 +104,7 @@ matlabbatch = cell(1,2);
 %% 3. for loop "run-wise" _______________________________________________________
 for run_ind = 1: size(A,1)
     disp(strcat('______________________run', num2str(run_ind), '____________________________'));
-    % [x] extract sub, ses, run info
-    % sub_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'sub-', '_')),'%d'); sub = strcat('sub-', sprintf('%04d', sub_num));
-    % ses_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'ses-', '_')),'%d'); ses = strcat('ses-', sprintf('%02d', ses_num));
-    % run_num = sscanf(char(extractBetween(sortedT.name(run_ind), 'run-', '_')),'%d'); run = strcat('run-', sprintf('%01d', run_num));
+
     sub=[]; ses=[]; run = [];
     sub = strcat('sub-', sprintf('%04d', A.sub_num(run_ind)));
     ses = strcat('ses-', sprintf('%02d', A.ses_num(run_ind)));
@@ -156,13 +153,6 @@ for run_ind = 1: size(A,1)
 
     disp(strcat('[ STEP 05 ]creating motion covariate text file...'));
 
-    % mask_fname = fullfile(fmriprep_dir, sub, 'ses-01', 'anat',...
-    % strcat(sub, '_ses-01_acq-MPRAGEXp3X08mm_desc-brain_mask.nii.gz'));
-    % mask_nii = fullfile(fmriprep_dir, sub, 'ses-01', 'anat',...
-    % strcat(sub, '_ses-01_acq-MPRAGEXp3X08mm_desc-brain_mask.nii'));
-    % if ~exist(mask_nii,'file'), gunzip(mask_fname)
-    % end
-
 %% regressor ______________________________________________________
     motion_fname = fullfile(motion_dir, sub, ses,...
                    strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d',A.run_num(run_ind)), '_confounds-subset.txt'));
@@ -184,8 +174,6 @@ for run_ind = 1: size(A,1)
         dummy = array2table(zeros(size(m,1),1), 'VariableNames',{'dummy'});
         dummy.dummy(1:6,:) = 1;
         m_cov = [m_subset,motion_outlier, dummy];
-
-        % 'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z'});
         m_double     = table2array(m_cov);
         dlmwrite(motion_fname, m_double, 'delimiter','\t','precision',13);
         R = dlmread(motion_fname);
