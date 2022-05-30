@@ -8,7 +8,7 @@
 #SBATCH -e ./log_glm_cueonly/GLM_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1-50%5
+#SBATCH --array=1-11%5
 
 mkdir -p log_glm_cueonly
 # 7,8,10,11,24,28,29,30,31,32,33,34,35,36,37,38,39,40,41,43,44,46,47,50,51,52,53,55,56,57,58,59,60,61,62,64,65 complete
