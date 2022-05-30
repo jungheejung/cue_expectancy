@@ -85,7 +85,7 @@ onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
 %intersection of nifti and onset files
 A = intersect(sortedT(:,nii_num_colomn),sortedonsetT(:,onset_num_colomn));
 
-output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'univariate', 'model-02_CcEScA_24dof_csd','1stLevel',sub);
+output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'univariate', 'model-02_CcEScsA_24dofcsd','1stLevel',sub);
 disp(strcat('output_dir:', output_dir));
 if ~exist(output_dir, 'dir')
     mkdir(output_dir)
@@ -157,12 +157,13 @@ for run_ind = 1: size(A,1)
     motion_fname = fullfile(motion_dir,  '24dof_csf_spike_dummy', sub, ses,...
                    strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d',A.run_num(run_ind)), '_confounds-subset.txt'));
     if ~isfile(motion_fname)
-        if ~exist(fullfile(motion_dir, sub, ses),'dir'), mkdir(fullfile(motion_dir, sub, ses))
+        if ~exist(fullfile(motion_dir,'24dof_csf_spike_dummy', sub, ses),'dir'), mkdir(fullfile(motion_dir, '24dof_csf_spike_dummy',sub, ses))
         end
         m_fmriprep   = fullfile(fmriprep_dir, sub, ses, 'func', ...
                    strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_desc-confounds_timeseries.tsv'));
-        opts = setvaropts(opts,'TreatAsMissing',{'n/a','NA'});
         opts = detectImportOptions(m_fmriprep, 'FileType', 'text');
+        opts = setvaropts(opts,'TreatAsMissing',{'n/a','NA'});
+        %opts = detectImportOptions(m_fmriprep, 'FileType', 'text');
         m = readtable(m_fmriprep, opts);
                 %    m = readtable(tdfread(m_fmriprep),'Format','auto')
                 %    m            = struct2table(tdfread(m_fmriprep));
@@ -179,7 +180,12 @@ for run_ind = 1: size(A,1)
         dummy.dummy(1:6,:) = 1;
         m_cov = [m_subset,motion_outlier, dummy];
         m_clean = standardizeMissing(m_cov,'n/a');
-        % for i=1:40
+	for i=1:25
+		m_clean.(i)(isnan(m_clean.(i)))=nanmean(m_clean.(i))
+	end        
+
+
+% for i=1:40
         %     m_clean.(i) = str2double(m_clean{:,i});
         % end
         % m_cov(strcmpi(m_cov,'n/a')) = {nan}; 
