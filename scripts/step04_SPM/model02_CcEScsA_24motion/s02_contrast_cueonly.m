@@ -90,7 +90,7 @@ c01 = []; c02 = []; c03 = []; c04 = []; c05 = []; c06 = []; c07 = []; c08 = []; 
 c11 = []; c12 = []; c13 = []; c14 = []; c15 = []; c16 = []; c17 = []; c18 = []; c19 = []; c20 = []; 
 c21 = []; c22 = []; c23 = []; c24 = []; c25 = []; c26 = []; c27 = []; c28 = []; c29 = []; c30 = [];
 c31 = []; c32 = []; c33 = []; c34 = []; c35 = []; c36 = [];
-
+n_cov = [];
 matlabbatch = cell(1,1);
 
 for run_ind = 1: size(A,1)
@@ -162,19 +162,14 @@ for run_ind = 1: size(A,1)
     simple_stimXint_C    = [ 0,0,0,0,0,m7(task),0  ]; % 35
     simple_stimXint_G    = [ 0,0,0,0,0,m4(task),0  ]; % 36
 
-
     disp(strcat('task: ', task));
-
-    
 
     c01 = [ c01  cue_P       n_cov];   c02 = [ c02  cue_V       n_cov];   c03 = [ c03  cue_C       n_cov];      
     c04 = [ c04  cueXcue_P   n_cov];   c05 = [ c05  cueXcue_V   n_cov];   c06 = [ c06  cueXcue_C   n_cov];   
     c07 = [ c07  stim_P      n_cov];   c08 = [ c08  stim_V      n_cov];   c09 = [ c09  stim_C      n_cov];      
-    c10 = [ c10  stimXcue_P  n_cov];   c11 = [ c11  stimXcue_V  n_cov];   c12 = [ c12  stimXcue_C  n_cov];  
+    c10 = [ c10  stimXcue_P  n_cov];   c11 = [ c11  stimXcue_V  n_cov];   c12 = [ c12  stimXcue_C  n_cov];
     c13 = [ c13  stimXint_P  n_cov];   c14 = [ c14  stimXint_V  n_cov];   c15 = [ c15  stimXint_C  n_cov];
-    
-    c16 = [ c16  motor   n_cov]; 
-
+    c16 = [ c16  motor   n_cov];
     c17 = [ c17  simple_cue_P       n_cov];   c18 = [ c18  simple_cue_V       n_cov];   c19 = [ c19  simple_cue_C       n_cov];   c20 = [ c20  simple_cue_G       n_cov];
     c21 = [ c21  simple_cueXcue_P   n_cov];   c22 = [ c22  simple_cueXcue_V   n_cov];   c23 = [ c23  simple_cueXcue_C   n_cov];   c24 = [ c24  simple_cueXcue_G   n_cov];
     c25 = [ c25  simple_stim_P      n_cov];   c26 = [ c26  simple_stim_V      n_cov];   c27 = [ c27  simple_stim_C      n_cov];   c28 = [ c28  simple_stim_G      n_cov];
@@ -197,9 +192,9 @@ contrast_vector{23} = c23; contrast_vector{24} = c24;
 contrast_vector{25} = c25; contrast_vector{26} = c26;
 contrast_vector{27} = c27; contrast_vector{28} = c28;
 contrast_vector{29} = c29; contrast_vector{30} = c30; 
-contrast_vector{31} = c31; contrast_vector{32} = c32; 
+contrast_vector{31} = c31; contrast_vector{32} = c32;
 contrast_vector{33} = c33; contrast_vector{34} = c34; 
-contrast_vector{35} = c35; contrast_vector{36} = c36; 
+contrast_vector{35} = c35; contrast_vector{36} = c36;
 %% 1. contrast batch _______________________________________________________
 for con_num = 1: length(contrast_name)
 disp(contrast_name{con_num});
