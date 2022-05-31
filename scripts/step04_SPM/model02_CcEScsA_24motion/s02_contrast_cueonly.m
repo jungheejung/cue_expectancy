@@ -57,13 +57,13 @@ nii_num_colomn = nii_col_names(endsWith(nii_col_names, '_num'));
 % onsetlist = dir(fullfile(onset_dir, sub, '*', strcat(sub, '_*_task-social_*_events.tsv')));
 % onsetT = struct2table(onsetlist);
 % sortedonsetT = sortrows(onsetT, 'name');
-mlist = dir(fullfile(motino_dir, '24dof_csf_spike_dummy', sun, '*',  strcat(sub, '_*_task-social_*.txt')));
+mlist = dir(fullfile(motion_dir, '24dof_csf_spike_dummy', sub, '*',  strcat(sub, '_*_task-social_*.txt')));
 mlistT = struct2table(mlist);
 sortedonsetT = sortrows(mlistT, 'name');
 
 sortedonsetT.sub_num(:) = str2double(extractBetween(sortedonsetT.name, 'sub-', '_'));
 sortedonsetT.ses_num(:) = str2double(extractBetween(sortedonsetT.name, 'ses-', '_'));
-sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '-'));
+sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '_'));
 
 onset_col_names = sortedonsetT.Properties.VariableNames;
 onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
