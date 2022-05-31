@@ -70,7 +70,7 @@ onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
 
 %intersection of nifti and onset files
 A = intersect(sortedT(:,nii_num_colomn),sortedonsetT(:,onset_num_colomn));
-
+disp(A);
 % NOTE 04 define contrast
 
 contrast_name = {'cue_P', 'cue_V', 'cue_C',...
@@ -164,17 +164,17 @@ for run_ind = 1: size(A,1)
 
     disp(strcat('task: ', task));
 
-    c01 = [ c01  cue_P       n_cov];   c02 = [ c02  cue_V       n_cov];   c03 = [ c03  cue_C       n_cov];      
-    c04 = [ c04  cueXcue_P   n_cov];   c05 = [ c05  cueXcue_V   n_cov];   c06 = [ c06  cueXcue_C   n_cov];   
-    c07 = [ c07  stim_P      n_cov];   c08 = [ c08  stim_V      n_cov];   c09 = [ c09  stim_C      n_cov];      
-    c10 = [ c10  stimXcue_P  n_cov];   c11 = [ c11  stimXcue_V  n_cov];   c12 = [ c12  stimXcue_C  n_cov];
-    c13 = [ c13  stimXint_P  n_cov];   c14 = [ c14  stimXint_V  n_cov];   c15 = [ c15  stimXint_C  n_cov];
-    c16 = [ c16  motor   n_cov];
-    c17 = [ c17  simple_cue_P       n_cov];   c18 = [ c18  simple_cue_V       n_cov];   c19 = [ c19  simple_cue_C       n_cov];   c20 = [ c20  simple_cue_G       n_cov];
-    c21 = [ c21  simple_cueXcue_P   n_cov];   c22 = [ c22  simple_cueXcue_V   n_cov];   c23 = [ c23  simple_cueXcue_C   n_cov];   c24 = [ c24  simple_cueXcue_G   n_cov];
-    c25 = [ c25  simple_stim_P      n_cov];   c26 = [ c26  simple_stim_V      n_cov];   c27 = [ c27  simple_stim_C      n_cov];   c28 = [ c28  simple_stim_G      n_cov];
-    c29 = [ c29  simple_stimXcue_P  n_cov];   c30 = [ c30  simple_stimXcue_V  n_cov];   c31 = [ c31  simple_stimXcue_C  n_cov];   c32 = [ c32  simple_stimXcue_G  n_cov];
-    c33 = [ c23  simple_stimXint_P  n_cov];   c34 = [ c34  simple_stimXint_V  n_cov];   c35 = [ c35  simple_stimXint_C  n_cov];   c36 = [ c36  simple_stimXint_G  n_cov];
+    c01 = [ c01,  cue_P,       n_cov];   c02 = [ c02, cue_V,      n_cov];   c03 = [ c03, cue_C,      n_cov];      
+    c04 = [ c04,  cueXcue_P,   n_cov];   c05 = [ c05, cueXcue_V,  n_cov];   c06 = [ c06, cueXcue_C,  n_cov];   
+    c07 = [ c07,  stim_P,      n_cov];   c08 = [ c08, stim_V,     n_cov];   c09 = [ c09, stim_C,     n_cov];      
+    c10 = [ c10,  stimXcue_P,  n_cov];   c11 = [ c11, stimXcue_V, n_cov];   c12 = [ c12, stimXcue_C, n_cov];
+    c13 = [ c13,  stimXint_P,  n_cov];   c14 = [ c14, stimXint_V, n_cov];   c15 = [ c15, stimXint_C, n_cov];
+    c16 = [ c16,  motor,   n_cov];
+    c17 = [ c17,  simple_cue_P,       n_cov];   c18 = [ c18, simple_cue_V,       n_cov];   c19 = [ c19, simple_cue_C,       n_cov];   c20 = [ c20,  simple_cue_G,      n_cov];
+    c21 = [ c21,  simple_cueXcue_P,   n_cov];   c22 = [ c22, simple_cueXcue_V,   n_cov];   c23 = [ c23, simple_cueXcue_C,   n_cov];   c24 = [ c24,  simple_cueXcue_G,  n_cov];
+    c25 = [ c25,  simple_stim_P,      n_cov];   c26 = [ c26, simple_stim_V,      n_cov];   c27 = [ c27, simple_stim_C,      n_cov];   c28 = [ c28,  simple_stim_G,     n_cov];
+    c29 = [ c29,  simple_stimXcue_P,  n_cov];   c30 = [ c30, simple_stimXcue_V,  n_cov];   c31 = [ c31, simple_stimXcue_C,  n_cov];   c32 = [ c32,  simple_stimXcue_G, n_cov];
+    c33 = [ c23,  simple_stimXint_P,  n_cov];   c34 = [ c34, simple_stimXint_V,  n_cov];   c35 = [ c35, simple_stimXint_C,  n_cov];   c36 = [ c36,  simple_stimXint_G, n_cov];
 end
 disp(strcat('contrast length c09', num2str(size(c09))));
 contrast_vector{1} = c01;  contrast_vector{2} = c02;
