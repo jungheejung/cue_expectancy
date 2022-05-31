@@ -54,9 +54,12 @@ nii_col_names = sortedT.Properties.VariableNames;
 nii_num_colomn = nii_col_names(endsWith(nii_col_names, '_num'));
 
 % find onset files
-onsetlist = dir(fullfile(onset_dir, sub, '*', strcat(sub, '_*_task-social_*_events.tsv')));
-onsetT = struct2table(onsetlist);
-sortedonsetT = sortrows(onsetT, 'name');
+% onsetlist = dir(fullfile(onset_dir, sub, '*', strcat(sub, '_*_task-social_*_events.tsv')));
+% onsetT = struct2table(onsetlist);
+% sortedonsetT = sortrows(onsetT, 'name');
+mlist = dir(fullfile(motino_dir, '24dof_csf_spike_dummy', sun, '*',  strcat(sub, '_*_task-social_*.txt')));
+mlistT = struct2table(mlist);
+sortedonsetT = sortrows(mlistT, 'name');
 
 sortedonsetT.sub_num(:) = str2double(extractBetween(sortedonsetT.name, 'sub-', '_'));
 sortedonsetT.ses_num(:) = str2double(extractBetween(sortedonsetT.name, 'ses-', '_'));
