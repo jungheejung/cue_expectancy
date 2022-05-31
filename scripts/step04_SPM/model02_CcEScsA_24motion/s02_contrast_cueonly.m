@@ -95,8 +95,10 @@ for run_ind = 1: size(A,1)
     sub = strcat('sub-', sprintf('%04d', A.sub_num(run_ind)));
     ses = strcat('ses-', sprintf('%02d', A.ses_num(run_ind)));
     run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
-    motion_fname = fullfile(motion_dir, '24dof_csf_spike_dummy', sub, ses, strcat(sub, '_', ses, '_task-social_', run, '_confounds-subset.txt'));
+    run2d = strcat('run-', sprintf('%02d', A.run_num(run_ind)));
+    motion_fname = fullfile(motion_dir, '24dof_csf_spike_dummy', sub, ses, strcat(sub, '_', ses, '_task-social_', run2d, '_confounds-subset.txt'));
     mdf = dlmread(motion_fname);
+    n_cov = [];
     n_cov = zeros(1, size(mdf,2));
     disp(strcat('[ STEP 04 ]constructing contrasts...'));
     onset_glob    = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-social_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '-*_events.tsv')));
@@ -164,7 +166,7 @@ for run_ind = 1: size(A,1)
 
     c01 = [ c01  cue_P       n_cov];   c02 = [ c02  cue_V       n_cov];   c03 = [ c03  cue_C       n_cov];      
     c04 = [ c04  cueXcue_P   n_cov];   c05 = [ c05  cueXcue_V   n_cov];   c06 = [ c06  cueXcue_C   n_cov];   
-    c07 = [ c07  stim_P      n_cov];   c08 = [ c08  stim_V      n_cov]    c09 = [ c09  stim_C      n_cov];      
+    c07 = [ c07  stim_P      n_cov];   c08 = [ c08  stim_V      n_cov];   c09 = [ c09  stim_C      n_cov];      
     c10 = [ c10  stimXcue_P  n_cov];   c11 = [ c11  stimXcue_V  n_cov];   c12 = [ c12  stimXcue_C  n_cov];  
     c13 = [ c13  stimXint_P  n_cov];   c14 = [ c14  stimXint_V  n_cov];   c15 = [ c15  stimXint_C  n_cov];
     
@@ -176,7 +178,7 @@ for run_ind = 1: size(A,1)
     c29 = [ c29  simple_stimXcue_P  n_cov];   c30 = [ c30  simple_stimXcue_V  n_cov];   c31 = [ c31  simple_stimXcue_C  n_cov];   c32 = [ c32  simple_stimXcue_G  n_cov];
     c33 = [ c23  simple_stimXint_P  n_cov];   c34 = [ c34  simple_stimXint_V  n_cov];   c35 = [ c35  simple_stimXint_C  n_cov];   c36 = [ c36  simple_stimXint_G  n_cov];
 end
-
+disp(strcat('contrast length c09', num2str(size(c09))));
 contrast_vector{1} = c01;  contrast_vector{2} = c02;
 contrast_vector{3} = c03;  contrast_vector{4} = c04;
 contrast_vector{5} = c05;  contrast_vector{6} = c06;
@@ -197,7 +199,7 @@ contrast_vector{33} = c33; contrast_vector{34} = c34;
 contrast_vector{35} = c35; contrast_vector{36} = c36; 
 %% 1. contrast batch _______________________________________________________
 for con_num = 1: length(contrast_name)
-
+disp(contrast_name{con_num});
     matlabbatch{1}.spm.stats.con.spmmat = cellstr( spm_fname );
     matlabbatch{1}.spm.stats.con.consess{con_num}.tcon.name = contrast_name{con_num};
     matlabbatch{1}.spm.stats.con.consess{con_num}.tcon.convec = contrast_vector{con_num};
