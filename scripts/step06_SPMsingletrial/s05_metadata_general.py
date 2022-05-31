@@ -46,7 +46,7 @@ for sub, run_type, ev in full_list:
     # /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/data/d03_onset/onset03_SPMsingletrial/sub-0055
 
     subject_csv = os.path.join(main_dir, 'data', 'd03_onset', 'onset03_SPMsingletrial', sub, f"{sub}_singletrial_plateau.csv" )
-    if not os.path.exist(subject_csv):
+    if not os.path.exists(subject_csv):
         subject_csv = os.path.join(main_dir, 'data', 'd03_onset', 'onset03_SPMsingletrial', sub, f"{sub}_singletrial.csv" )
     nifti_fname = os.path.join(nifti_dir, sub, f"niftifname_{sub}_task-social_run-{run_type}_ev-{ev}.txt")
 
@@ -88,7 +88,7 @@ for sub, run_type, ev in full_list:
     if os.path.exists(save_fname):
         os.remove(save_fname)
     else:
-        print(f"{sub}_task-social_run-{run_type}_ev-{ev} doesnt exist")
+        print(f"{sub}_task-social_run-{run_type}_ev-{ev} doesnt exist- SAVED")
     filtered.to_csv(save_fname)
 
 # # general
