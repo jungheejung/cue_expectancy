@@ -95,6 +95,9 @@ for run_ind = 1: size(A,1)
     sub = strcat('sub-', sprintf('%04d', A.sub_num(run_ind)));
     ses = strcat('ses-', sprintf('%02d', A.ses_num(run_ind)));
     run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
+    motion_fname = fullfile(motion_dir, '24dof_csf_spike_dummy', sub, ses, strcat(sub, '_', ses, '_task-social_', run, '_confounds-subset.txt'));
+    mdf = dlmread(motion_fname);
+    n_cov = zeros(1, size(mdf,2));
     disp(strcat('[ STEP 04 ]constructing contrasts...'));
     onset_glob    = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-social_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '-*_events.tsv')));
     onset_fname   = fullfile(char(onset_glob.folder), char(onset_glob.name));
@@ -108,68 +111,70 @@ for run_ind = 1: size(A,1)
     keyword       = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
     task          = char(extractAfter(keyword, '-'));
 
-    cue_P         = [ m1(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ]; % 01
-    cue_V         = [ m2(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ]; % 02
-    cue_C         = [ m3(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ]; % 03
+    cue_P         = [ m1(task),0,0,0,0,0,0  ]; % 01
+    cue_V         = [ m2(task),0,0,0,0,0,0  ]; % 02
+    cue_C         = [ m3(task),0,0,0,0,0,0  ]; % 03
     
-    cueXcue_P     = [ 0,m1(task),0,0,0,0,0,0,0,0,0,0,0,0  ]; % 04
-    cueXcue_V     = [ 0,m2(task),0,0,0,0,0,0,0,0,0,0,0,0  ]; % 05
-    cueXcue_C     = [ 0,m3(task),0,0,0,0,0,0,0,0,0,0,0,0  ]; % 06
+    cueXcue_P     = [ 0,m1(task),0,0,0,0,0  ]; % 04
+    cueXcue_V     = [ 0,m2(task),0,0,0,0,0  ]; % 05
+    cueXcue_C     = [ 0,m3(task),0,0,0,0,0  ]; % 06
     
-    stim_P        = [ 0,0,0,m1(task),0,0,0,0,0,0,0,0,0,0  ]; % 07
-    stim_V        = [ 0,0,0,m2(task),0,0,0,0,0,0,0,0,0,0  ]; % 08
-    stim_C        = [ 0,0,0,m3(task),0,0,0,0,0,0,0,0,0,0  ]; % 09
+    stim_P        = [ 0,0,0,m1(task),0,0,0  ]; % 07
+    stim_V        = [ 0,0,0,m2(task),0,0,0  ]; % 08
+    stim_C        = [ 0,0,0,m3(task),0,0,0  ]; % 09
     
-    stimXcue_P    = [ 0,0,0,0,m1(task),0,0,0,0,0,0,0,0,0  ]; % 10
-    stimXcue_V    = [ 0,0,0,0,m2(task),0,0,0,0,0,0,0,0,0  ]; % 11
-    stimXcue_C    = [ 0,0,0,0,m3(task),0,0,0,0,0,0,0,0,0  ]; % 12
+    stimXcue_P    = [ 0,0,0,0,m1(task),0,0  ]; % 10
+    stimXcue_V    = [ 0,0,0,0,m2(task),0,0  ]; % 11
+    stimXcue_C    = [ 0,0,0,0,m3(task),0,0  ]; % 12
  
-    stimXint_P    = [ 0,0,0,0,0,m1(task),0,0,0,0,0,0,0,0  ]; % 13
-    stimXint_V    = [ 0,0,0,0,0,m2(task),0,0,0,0,0,0,0,0  ]; % 14
-    stimXint_C    = [ 0,0,0,0,0,m3(task),0,0,0,0,0,0,0,0  ]; % 15
+    stimXint_P    = [ 0,0,0,0,0,m1(task),0  ]; % 13
+    stimXint_V    = [ 0,0,0,0,0,m2(task),0  ]; % 14
+    stimXint_C    = [ 0,0,0,0,0,m3(task),0  ]; % 15
 
-    motor         = [ 0,0,1,0,0,0,1,0,0,0,0,0,0,0,    ];  % 16
-    simple_cue_P         = [ m5(task),0,0,0,0,0,0,0,0,0,0,0,0,0,0  ];  % 17
-    simple_cue_V         = [ m6(task),0,0,0,0,0,0,0,0,0,0,0,0,0,0  ]; % 18
-    simple_cue_C         = [ m7(task),0,0,0,0,0,0,0,0,0,0,0,0,0,0  ]; % 19
-    simple_cue_G         = [ m4(task),0,0,0,0,0,0,0,0,0,0,0,0,0,0  ]; % 20
+    motor         = [ 0,0,1,0,0,0,1    ];  % 16
+    simple_cue_P         = [ m5(task),0,0,0,0,0,0  ];  % 17
+    simple_cue_V         = [ m6(task),0,0,0,0,0,0  ]; % 18
+    simple_cue_C         = [ m7(task),0,0,0,0,0,0  ]; % 19
+    simple_cue_G         = [ m4(task),0,0,0,0,0,0  ]; % 20
 
-    simple_cueXcue_P     = [ 0,m5(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ]; % 21
-    simple_cueXcue_V     = [ 0,m6(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ]; % 22
-    simple_cueXcue_C     = [ 0,m7(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ]; % 23
-    simple_cueXcue_G     = [ 0,m4(task),0,0,0,0,0,0,0,0,0,0,0,0  ]; % 24
+    simple_cueXcue_P     = [ 0,m5(task),0,0,0,0,0  ]; % 21
+    simple_cueXcue_V     = [ 0,m6(task),0,0,0,0,0  ]; % 22
+    simple_cueXcue_C     = [ 0,m7(task),0,0,0,0,0  ]; % 23
+    simple_cueXcue_G     = [ 0,m4(task),0,0,0,0,0  ]; % 24
 
-    simple_stim_P        = [ 0,0,0,m5(task),0,0,0,0,0,0,0,0,0,0,0  ]; % 25
-    simple_stim_V        = [ 0,0,0,m6(task),0,0,0,0,0,0,0,0,0,0,0  ]; % 26
-    simple_stim_C        = [ 0,0,0,m7(task),0,0,0,0,0,0,0,0,0,0,0  ]; % 27
-    simple_stim_G        = [ 0,0,0,m4(task),0,0,0,0,0,0,0,0,0,0  ]; % 28
+    simple_stim_P        = [ 0,0,0,m5(task),0,0,0  ]; % 25
+    simple_stim_V        = [ 0,0,0,m6(task),0,0,0  ]; % 26
+    simple_stim_C        = [ 0,0,0,m7(task),0,0,0  ]; % 27
+    simple_stim_G        = [ 0,0,0,m4(task),0,0,0  ]; % 28
 
-    simple_stimXcue_P    = [ 0,0,0,0,m5(task),0,0,0,0,0,0,0,0,0,0  ]; % 29
-    simple_stimXcue_V    = [ 0,0,0,0,m6(task),0,0,0,0,0,0,0,0,0,0  ]; % 30
-    simple_stimXcue_C    = [ 0,0,0,0,m7(task),0,0,0,0,0,0,0,0,0,0  ]; % 31
-    simple_stimXcue_G    = [ 0,0,0,0,m4(task),0,0,0,0,0,0,0,0,0  ]; % 32
+    simple_stimXcue_P    = [ 0,0,0,0,m5(task),0,0  ]; % 29
+    simple_stimXcue_V    = [ 0,0,0,0,m6(task),0,0  ]; % 30
+    simple_stimXcue_C    = [ 0,0,0,0,m7(task),0,0  ]; % 31
+    simple_stimXcue_G    = [ 0,0,0,0,m4(task),0,0  ]; % 32
 
-    simple_stimXint_P    = [ 0,0,0,0,0,m5(task),0,0,0,0,0,0,0,0,0,0  ]; % 33
-    simple_stimXint_V    = [ 0,0,0,0,0,m6(task),0,0,0,0,0,0,0,0,0,0  ]; % 34
-    simple_stimXint_C    = [ 0,0,0,0,0,m7(task),0,0,0,0,0,0,0,0,0,0  ]; % 35
-    simple_stimXint_G    = [ 0,0,0,0,0,m4(task),0,0,0,0,0,0,0,0,0  ]; % 36
+    simple_stimXint_P    = [ 0,0,0,0,0,m5(task),0  ]; % 33
+    simple_stimXint_V    = [ 0,0,0,0,0,m6(task),0  ]; % 34
+    simple_stimXint_C    = [ 0,0,0,0,0,m7(task),0  ]; % 35
+    simple_stimXint_G    = [ 0,0,0,0,0,m4(task),0  ]; % 36
 
 
     disp(strcat('task: ', task));
 
-    c01 = [ c01  cue_P];       c02 = [ c02  cue_V];       c03 = [ c03  cue_C];      
-    c04 = [ c04  cueXcue_P];   c05 = [ c05  cueXcue_V];   c06 = [ c06  cueXcue_C];   
-    c07 = [ c07  stim_P];      c08 = [ c08  stim_V];      c09 = [ c09  stim_C];      
-    c10 = [ c10  stimXcue_P];  c11 = [ c11  stimXcue_V];  c12 = [ c12  stimXcue_C];  
-    c13 = [ c13 stimXint_P];   c14 = [ c14 stimXint_V];   c15 = [ c15 stimXint_C];
     
-    c16 = [ c16  motor];
 
-    c17 = [ c17  simple_cue_P];      c18 = [ c18  simple_cue_V];      c19 = [ c19  simple_cue_C];      c20 = [ c20  simple_cue_G];
-    c21 = [ c21  simple_cueXcue_P];  c22 = [ c22  simple_cueXcue_V];  c23 = [ c23  simple_cueXcue_C];  c24 = [ c24  simple_cueXcue_G];
-    c25 = [ c25  simple_stim_P];     c26 = [ c26  simple_stim_V];     c27 = [ c27  simple_stim_C];     c28 = [ c28  simple_stim_G];
-    c29 = [ c29  simple_stimXcue_P]; c30 = [ c30  simple_stimXcue_V]; c31 = [ c31  simple_stimXcue_C]; c32 = [ c32  simple_stimXcue_G];
-    c33 = [ c23  simple_stimXint_P]; c34 = [ c34  simple_stimXint_V]; c35 = [ c35  simple_stimXint_C]; c36 = [ c36  simple_stimXint_G];
+    c01 = [ c01  cue_P       n_cov];   c02 = [ c02  cue_V       n_cov];   c03 = [ c03  cue_C       n_cov];      
+    c04 = [ c04  cueXcue_P   n_cov];   c05 = [ c05  cueXcue_V   n_cov];   c06 = [ c06  cueXcue_C   n_cov];   
+    c07 = [ c07  stim_P      n_cov];   c08 = [ c08  stim_V      n_cov]    c09 = [ c09  stim_C      n_cov];      
+    c10 = [ c10  stimXcue_P  n_cov];   c11 = [ c11  stimXcue_V  n_cov];   c12 = [ c12  stimXcue_C  n_cov];  
+    c13 = [ c13  stimXint_P  n_cov];   c14 = [ c14  stimXint_V  n_cov];   c15 = [ c15  stimXint_C  n_cov];
+    
+    c16 = [ c16  motor   n_cov]; 
+
+    c17 = [ c17  simple_cue_P       n_cov];   c18 = [ c18  simple_cue_V       n_cov];   c19 = [ c19  simple_cue_C       n_cov];   c20 = [ c20  simple_cue_G       n_cov];
+    c21 = [ c21  simple_cueXcue_P   n_cov];   c22 = [ c22  simple_cueXcue_V   n_cov];   c23 = [ c23  simple_cueXcue_C   n_cov];   c24 = [ c24  simple_cueXcue_G   n_cov];
+    c25 = [ c25  simple_stim_P      n_cov];   c26 = [ c26  simple_stim_V      n_cov];   c27 = [ c27  simple_stim_C      n_cov];   c28 = [ c28  simple_stim_G      n_cov];
+    c29 = [ c29  simple_stimXcue_P  n_cov];   c30 = [ c30  simple_stimXcue_V  n_cov];   c31 = [ c31  simple_stimXcue_C  n_cov];   c32 = [ c32  simple_stimXcue_G  n_cov];
+    c33 = [ c23  simple_stimXint_P  n_cov];   c34 = [ c34  simple_stimXint_V  n_cov];   c35 = [ c35  simple_stimXint_C  n_cov];   c36 = [ c36  simple_stimXint_G  n_cov];
 end
 
 contrast_vector{1} = c01;  contrast_vector{2} = c02;
