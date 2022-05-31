@@ -40,7 +40,37 @@ fmri_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'univariate', 'model-02_
 spm_fname = fullfile(fmri_dir, 'SPM.mat');
 
 
-% NOTE 03 find intersection of nifti and onset files
+% % NOTE 03 find intersection of nifti and onset files
+% % find nifti files
+% niilist = dir(fullfile(smooth_dir, sub, '*/func/*task-social*_bold.nii'));
+% nT = struct2table(niilist); % convert the struct array to a table
+% sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
+
+% sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
+% sortedT.ses_num(:) = str2double(extractBetween(sortedT.name, 'ses-', '_'));
+% sortedT.run_num(:) = str2double(extractBetween(sortedT.name, 'run-', '_'));
+
+% nii_col_names = sortedT.Properties.VariableNames;
+% nii_num_colomn = nii_col_names(endsWith(nii_col_names, '_num'));
+
+% % find onset files
+% % onsetlist = dir(fullfile(onset_dir, sub, '*', strcat(sub, '_*_task-social_*_events.tsv')));
+% % onsetT = struct2table(onsetlist);
+% % sortedonsetT = sortrows(onsetT, 'name');
+% mlist = dir(fullfile(motion_dir, '24dof_csf_spike_dummy', sub, '*',  strcat(sub, '_*_task-social_*.txt')));
+% mlistT = struct2table(mlist);
+% sortedonsetT = sortrows(mlistT, 'name');
+
+% sortedonsetT.sub_num(:) = str2double(extractBetween(sortedonsetT.name, 'sub-', '_'));
+% sortedonsetT.ses_num(:) = str2double(extractBetween(sortedonsetT.name, 'ses-', '_'));
+% sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '_'));
+
+% onset_col_names = sortedonsetT.Properties.VariableNames;
+% onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
+
+% %intersection of nifti and onset files
+% A = intersect(sortedT(:,nii_num_colomn),sortedonsetT(:,onset_num_colomn));
+
 % find nifti files
 niilist = dir(fullfile(smooth_dir, sub, '*/func/*task-social*_bold.nii'));
 nT = struct2table(niilist); % convert the struct array to a table
@@ -54,16 +84,16 @@ nii_col_names = sortedT.Properties.VariableNames;
 nii_num_colomn = nii_col_names(endsWith(nii_col_names, '_num'));
 
 % find onset files
-% onsetlist = dir(fullfile(onset_dir, sub, '*', strcat(sub, '_*_task-social_*_events.tsv')));
-% onsetT = struct2table(onsetlist);
-% sortedonsetT = sortrows(onsetT, 'name');
-mlist = dir(fullfile(motion_dir, '24dof_csf_spike_dummy', sub, '*',  strcat(sub, '_*_task-social_*.txt')));
-mlistT = struct2table(mlist);
-sortedonsetT = sortrows(mlistT, 'name');
+%%%%%%% TODO: if pain run, check if * sub-0055_*_task-social_*_events_ttl.tsv  exists
+% else if, look for _events.tsv
+
+onsetlist = dir(fullfile(onset_dir, sub, '*', strcat(sub, '_*_task-social_*_events.tsv')));
+onsetT = struct2table(onsetlist);
+sortedonsetT = sortrows(onsetT, 'name');
 
 sortedonsetT.sub_num(:) = str2double(extractBetween(sortedonsetT.name, 'sub-', '_'));
 sortedonsetT.ses_num(:) = str2double(extractBetween(sortedonsetT.name, 'ses-', '_'));
-sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '_'));
+sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '-'));
 
 onset_col_names = sortedonsetT.Properties.VariableNames;
 onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
