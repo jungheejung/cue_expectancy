@@ -49,7 +49,12 @@ dict_stim = {'low_stim':-1, 'med_stim':0, 'high_stim':1}
 dict_stim_q = {'low_stim':1, 'med_stim':-2, 'high_stim':1}
 # %%
 sub_list = next(os.walk(beh_dir))[1]
-sub_list.remove('sub-0001', 'sub-0066')
+sub_list.remove('sub-0001')
+sub_list.remove('sub-0066')
+sub_list.remove('sub-0041')
+sub_list.remove('sub-0034')
+sub_list.remove('sub-0064')
+sub_list.remove('sub-0074')
 for sub in sorted(sub_list):
     beh_list = []
     beh_list = glob.glob(join(spm_dir, sub, '*','*_events.tsv'))
