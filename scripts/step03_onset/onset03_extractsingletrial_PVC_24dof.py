@@ -87,6 +87,7 @@ for sub in sorted(sub_list):
         #  TODO: load fmriprep nuissance tsv file. 
         # TODO: figure out how many columns it has. then insert the column names
         nuissance_fname = join(fmriprep_dir, sub, f"ses-{ses_num:02d}", 'func', f"{sub}_ses-{ses_num:02d}_task-social_acq-mb8_run-{run_num}_desc-confounds_timeseries.tsv")
+        
         if os.path.exists(nuissance_fname):
             C = pd.read_csv(nuissance_fname, sep = '\t')
             # C.loc[:, C.columns.str.startswith('motion_outlier')].columns
