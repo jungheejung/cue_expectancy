@@ -124,15 +124,26 @@ for run_ind = 1: size(A,1)
         
         hasMatch = ~cellfun('isempty', regexp(m.Properties.VariableNames, 'motion_outlier', 'once')) ;
         motion_outlier = m(:, m.Properties.VariableNames(hasMatch));
-        dummy = array2table(zeros(size(m,1),1), 'VariableNames',{'dummy'});
+        spike = sum(motion_outlier);
+	dummy = array2table(zeros(size(m,1),1), 'VariableNames',{'dummy'});
         dummy.dummy(1:6,:) = 1;
-        m_cov = [m_subset,motion_outlier, dummy];
+        m_cov = [m_subset,spike, dummy];
         m_clean = standardizeMissing(m_cov,'n/a');
 	for i=1:25
 		m_clean.(i)(isnan(m_clean.(i)))=nanmean(m_clean.(i))
 	end   
 
-
+        m_double     = table2array(m_clean);
+        
+        dlmwrite(motion_fname, m_double, 'delimiter','\t','precision',13);
+        R = dlmread(motion_fname);
+        save_m_fname = fullfile(motion_dir, '24dof_csf_spike_dummy', sub, ses,...
+            strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d',A.run_num(run_ind)), '_confounds-subset.mat'));
+        save(save_m_fname, 'R');
+    else
+        disp('motion subset file exists');
+    end
+    
 
 
 % TODO START TOMORROW DEC 13
