@@ -2,6 +2,7 @@
 #SBATCH --job-name=lsa
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
 #SBATCH --mem=40gb
 #SBATCH --time=10:00:00
 #SBATCH -o ./log/single_%A_%a.o
@@ -23,8 +24,9 @@ echo "array id: " ${SLURM_ARRAY_TASK_ID}, "subject id: " ${PARTICIPANT_LABEL}
 MAIN_DIR=$(dirname $(dirname "$PWD"))
 CANLABCORE_DIR="'/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore'"
 SPM12_DIR="'/dartfs-hpc/rc/lab/C/CANlab/modules/spm12'"
+MAIN_DIR="'/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social'"
 
 # SUBJECT=${SLURM_ARRAY_TASK_ID//[!0-9]/}
 # echo ${PARTICIPANT_LABEL}
 module load matlab/r2020a
-matlab -nodisplay -nosplash -batch "opengl('save','hardware'); rootgroup = settings; rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = 'v7.3'; rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = 'v7.3';  addpath(${SPM12_DIR}); addpath(genpath(${CANLABCORE_DIR})); addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/scripts/step06_SPMsingletrial')); s01_singletrial_onesubject($PARTICIPANT_LABEL);"
+matlab -nodisplay -nosplash -batch "opengl('save','hardware'); rootgroup = settings; rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = 'v7.3'; rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = 'v7.3';  addpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12'); addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore')); addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/scripts/step06_SPMsingletrial_24motion')); s01_singletrial_onesubject($PARTICIPANT_LABEL);"
