@@ -48,7 +48,12 @@ dict_cue = {'low_cue':-1, 'high_cue':1}
 dict_stim = {'low_stim':-1, 'med_stim':0, 'high_stim':1}
 dict_stim_q = {'low_stim':1, 'med_stim':-2, 'high_stim':1}
 # %%
-sub_list = next(os.walk(beh_dir))[1]
+sub_folders = next(os.walk(beh_dir))[1]
+sub_folder = [i for i in sub_folders if i.startswith('sub-')]
+remove_int = [1,2,3,4,5]
+remove_list = [f"sub-{x:04d}" for x in remove_int]
+sub_list = [i for i in sub_folder if i not in remove_list]
+
 # sub_list.remove('sub-0001', 'sub-0066')
 for sub in sorted(sub_list):
     beh_list = []
