@@ -6,7 +6,10 @@ function s01_singletrial_onesubject(input)
     %-----------------------------------------------------------------------
     % Dec 13 2021. Heejung Jung
 %% _________________________________________________________________________
+
 disp('...STARTING JOBS');
+addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12'));
+addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore'));
 rootgroup = settings; rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = 'v7.3'
 rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = 'v7.3';
 %-----------------------------------------------------------------------
@@ -184,6 +187,9 @@ end
 
 
 %% 2. estimation __________________________________________________________
+batch_fname = fullfile(output_dir, strcat(strcat(sub, '_batch.mat')));
+save( batch_fname,'matlabbatch')
+
 disp(strcat('[ STEP 07 ] estimation '))
 SPM_fname= fullfile(output_dir, 'SPM.mat' );
 matlabbatch{2}.spm.stats.fmri_est.spmmat(1) = cfg_dep('fMRI model specification: SPM.mat File', substruct('.','val', '{}',{1}, '.','val', '{}',{1}, '.','val', '{}',{1}), substruct('.','spmmat'));
