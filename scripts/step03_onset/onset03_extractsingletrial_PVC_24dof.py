@@ -49,12 +49,7 @@ dict_stim = {'low_stim':-1, 'med_stim':0, 'high_stim':1}
 dict_stim_q = {'low_stim':1, 'med_stim':-2, 'high_stim':1}
 # %%
 sub_list = next(os.walk(beh_dir))[1]
-sub_list.remove('sub-0001')
-sub_list.remove('sub-0066')
-sub_list.remove('sub-0041')
-sub_list.remove('sub-0034')
-sub_list.remove('sub-0064')
-sub_list.remove('sub-0074')
+# sub_list.remove('sub-0001', 'sub-0066')
 for sub in sorted(sub_list):
     beh_list = []
     beh_list = glob.glob(join(spm_dir, sub, '*','*_events.tsv'))
@@ -87,14 +82,14 @@ for sub in sorted(sub_list):
         #  TODO: load fmriprep nuissance tsv file. 
         # TODO: figure out how many columns it has. then insert the column names
         nuissance_fname = join(fmriprep_dir, sub, f"ses-{ses_num:02d}", 'func', f"{sub}_ses-{ses_num:02d}_task-social_acq-mb8_run-{run_num}_desc-confounds_timeseries.tsv")
-        
         if os.path.exists(nuissance_fname):
             C = pd.read_csv(nuissance_fname, sep = '\t')
             # C.loc[:, C.columns.str.startswith('motion_outlier')].columns
             trans = list(C.loc[:, C.columns.str.startswith('trans_')].columns)
             rot = list(C.loc[:, C.columns.str.startswith('rot_')].columns)
             spike = list(C.loc[:, C.columns.str.startswith('motion_outlier')].columns)
-            nuissance = [trans, rot, spike, ['dummy', 'csf']]
+            C['spike_1col'] = C[spike].sum(axis = 1)
+            nuissance = [trans, rot, ['spike_1col', 'dummy', 'csf']]
             n_list = [item for sublist in nuissance for item in sublist]
             # nuissance = ['csf', 'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z', 'dummy']
             
@@ -171,7 +166,6 @@ for sub in sorted(sub_list):
             subject_dataframe = subject_dataframe.append(new)
         else:
             break
-        
 
     subject_dataframe.reset_index(inplace = True)
     subject_dataframe.to_csv(join(single_dir, sub,  f'{sub}_singletrial.csv'))
