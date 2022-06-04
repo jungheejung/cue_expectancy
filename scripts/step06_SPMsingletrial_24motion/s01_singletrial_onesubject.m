@@ -121,18 +121,26 @@ for run_ind = 1: size(A,1)
                 	'rot_x',	'rot_x_derivative1',	'rot_x_derivative1_power2',	'rot_x_power2',...
                     	'rot_y',	'rot_y_derivative1',	'rot_y_derivative1_power2',	'rot_y_power2',...
                         	'rot_z',	'rot_z_derivative1',	'rot_z_derivative1_power2',	'rot_z_power2'});
+        dummy = array2table(zeros(size(m,1),1), 'VariableNames',{'dummy'});
+        dummy.dummy(1:6,:) = 1;
         
         hasMatch = ~cellfun('isempty', regexp(m.Properties.VariableNames, 'motion_outlier', 'once')) ;
-        motion_outlier = m(:, m.Properties.VariableNames(hasMatch));
-        spike = sum(motion_outlier);
-	dummy = array2table(zeros(size(m,1),1), 'VariableNames',{'dummy'});
-        dummy.dummy(1:6,:) = 1;
-        m_cov = [m_subset,spike, dummy];
-        m_clean = standardizeMissing(m_cov,'n/a');
-	for i=1:25
-		m_clean.(i)(isnan(m_clean.(i)))=nanmean(m_clean.(i))
-	end   
-
+        if ~isempty(hasMatch)
+            motion_outlier = m(:, m.Properties.VariableNames(hasMatch));
+            spike = sum(motion_outlier);
+        
+            m_cov = [m_subset,dummy,spike];
+            m_clean = standardizeMissing(m_cov,'n/a');
+            for i=1:25
+                m_clean.(i)(isnan(m_clean.(i)))=nanmean(m_clean.(i))
+            end   
+        else
+            m_cov = [m_subset, dummy];
+            m_clean = standardizeMissing(m_cov,'n/a');
+            for i=1:25
+                m_clean.(i)(isnan(m_clean.(i)))=nanmean(m_clean.(i))
+            end   
+        end
         m_double     = table2array(m_clean);
         
         dlmwrite(motion_fname, m_double, 'delimiter','\t','precision',13);
