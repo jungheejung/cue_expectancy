@@ -36,7 +36,7 @@ cue_input.m_keyword = m_keyword;
 cue_input.y_keyword = y_keyword;
 cue_input.main_dir = main_dir;
 cue_input.single_nii = fullfile(main_dir, strcat('/analysis/fmri/spm/multivariate_24dofcsd/s03_concatnifti/sub-0065/sub-0065_task-social_run-', run{r}, '_ev-', event,'_l2norm.nii'));
-cue_input.sublist = sublist;
+% cue_input.sublist = sublist;
 cue_input.task = run{r};
 cue_input.iter = 5000;
 cue_input.num_components = 6;
@@ -58,8 +58,8 @@ if ~isfile(dat_fname)
     niilist = dir(fullfile(nifti_dir, '*', strcat('metadata_*_task-social_run-', run{r}, '_ev-', event, '.csv')));
     nT = struct2table(niilist); % convert the struct array to a table
     sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
-
     sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
+    cue_input.sublist = sortedT.sub_num;
     for s = 1:size(sortedT,1)
         % step 01 __________________________________________________________________
         % grab metadata
