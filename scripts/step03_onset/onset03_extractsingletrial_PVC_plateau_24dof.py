@@ -237,8 +237,13 @@ for sub in sorted(sub_list):
                 trans = list(C.loc[:, C.columns.str.startswith('trans_')].columns)
                 rot = list(C.loc[:, C.columns.str.startswith('rot_')].columns)
                 spike = list(C.loc[:, C.columns.str.startswith('motion_outlier')].columns)
-                C['spike_1col'] = C[spike].sum(axis = 1)
-                nuissance = [trans, rot, ['spike_1col', 'dummy', 'csf']]
+                #C['spike_1col'] = C[spike].sum(axis = 1)
+                #nuissance = [trans, rot, ['spike_1col', 'dummy', 'csf']]
+                if spike:
+                    C['spike_1col'] = C[spike].sum(axis = 1)
+                    nuissance = [['csf'], trans, rot, ['dummy','spike_1col']]
+                else:
+                    nuissance = [['csf'], trans, rot, ['dummy']]
                 n_list = [item for sublist in nuissance for item in sublist]
                 nuissance_num = len(n_list) 
                 new = pd.DataFrame(
@@ -323,8 +328,13 @@ for sub in sorted(sub_list):
                 trans = list(C.loc[:, C.columns.str.startswith('trans_')].columns)
                 rot = list(C.loc[:, C.columns.str.startswith('rot_')].columns)
                 spike = list(C.loc[:, C.columns.str.startswith('motion_outlier')].columns)
-                C['spike_1col'] = C[spike].sum(axis = 1)
-                nuissance = [trans, rot, ['spike_1col', 'dummy', 'csf']]
+                #C['spike_1col'] = C[spike].sum(axis = 1)
+                #nuissance = [trans, rot, ['spike_1col', 'dummy', 'csf']]
+                if spike:
+                    C['spike_1col'] = C[spike].sum(axis = 1)
+                    nuissance = [['csf'], trans, rot, ['dummy','spike_1col']]
+                else:
+                    nuissance = [['csf'], trans, rot, ['dummy']]                
                 n_list = [item for sublist in nuissance for item in sublist]
                 nuissance_num = len(n_list) 
                 new = pd.DataFrame(
