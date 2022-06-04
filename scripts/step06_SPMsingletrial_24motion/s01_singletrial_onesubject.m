@@ -43,7 +43,6 @@ disp(strcat('sub:    ', sub));
 niilist = dir(fullfile(smooth_dir, sub, '*','func',strcat('smooth_', num2str(smooth),'mm_*task-social*_bold.nii')));
 nT = struct2table(niilist); % convert the struct array to a table
 sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
-disp(sortedT); % TODO: DELETE
 sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
 sortedT.ses_num(:) = str2double(extractBetween(sortedT.name, 'ses-', '_'));
 sortedT.run_num(:) = str2double(extractBetween(sortedT.name, 'run-', '_'));
@@ -55,7 +54,6 @@ nii_num_column = nii_col_names(endsWith(nii_col_names, '_num'));
 onsetlist = dir(fullfile(onset_dir, sub, strcat(sub, '*_covariate-circularrating.csv')));
 onsetT = struct2table(onsetlist);
 sortedonsetT = sortrows(onsetT, 'name');
-disp(sortedT); % TODO: DELETE
 sortedonsetT.sub_num(:) = str2double(extractBetween(sortedonsetT.name, 'sub-', '_'));
 sortedonsetT.ses_num(:) = str2double(extractBetween(sortedonsetT.name, 'ses-', '_'));
 sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '_'));
@@ -102,10 +100,10 @@ for run_ind = 1: size(A,1)
     rating = readtable(rating_fname);
 
     %% regressor ______________________________________________________
-    motion_fname = fullfile(motion_dir,  '24dof_csf_spike_dummy', sub, ses,...
+    motion_fname = fullfile(motion_dir,  'csf_24dof_dummy_spike', sub, ses,...
                    strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d',A.run_num(run_ind)), '_confounds-subset.txt'));
-    if ~isfile(motion_fname)
-        if ~exist(fullfile(motion_dir,'24dof_csf_spike_dummy', sub, ses),'dir'), mkdir(fullfile(motion_dir, '24dof_csf_spike_dummy',sub, ses))
+%    if ~isfile(motion_fname)
+        if ~exist(fullfile(motion_dir,'csf_24dof_dummy_spike', sub, ses),'dir'), mkdir(fullfile(motion_dir,'csf_24dof_dummy_spike',sub, ses))
         end
         m_fmriprep   = fullfile(fmriprep_dir, sub, ses, 'func', ...
                    strcat(sub, '_', ses, '_task-social_acq-mb8_', fmriprep_run, '_desc-confounds_timeseries.tsv'));
@@ -125,11 +123,8 @@ for run_ind = 1: size(A,1)
         dummy.dummy(1:6,:) = 1;
         
         hasMatch = ~cellfun('isempty', regexp(m.Properties.VariableNames, 'motion_outlier', 'once')) ;
-        disp(hasMatch);
-	    if any(hasMatch)
+        if any(hasMatch)
             motion_outlier = m(:, m.Properties.VariableNames(hasMatch));
-            disp(motion_outlier);
-            class(motion_outlier);
             spike = sum(motion_outlier{:,:},2);
         
             m_cov = [m_subset,dummy,array2table(spike)];
@@ -148,12 +143,12 @@ for run_ind = 1: size(A,1)
         
         dlmwrite(motion_fname, m_double, 'delimiter','\t','precision',13);
         R = dlmread(motion_fname);
-        save_m_fname = fullfile(motion_dir, '24dof_csf_spike_dummy', sub, ses,...
+        save_m_fname = fullfile(motion_dir, 'csf_24dof_dummy_spike', sub, ses,...
             strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d',A.run_num(run_ind)), '_confounds-subset.mat'));
         save(save_m_fname, 'R');
-    else
-        disp('motion subset file exists');
-    end
+ %   else
+ %       disp('motion subset file exists');
+ %   end
     
 
 
@@ -209,8 +204,6 @@ end
 
 
 %% 2. estimation __________________________________________________________
-batch_fname = fullfile(output_dir, strcat(strcat(sub, '_batch.mat')));
-save( batch_fname,'matlabbatch')
 
 disp(strcat('[ STEP 07 ] estimation '))
 SPM_fname= fullfile(output_dir, 'SPM.mat' );
@@ -220,7 +213,7 @@ matlabbatch{2}.spm.stats.fmri_est.method.Classical = 1;
 
 
 batch_fname = fullfile(output_dir, strcat(strcat(sub, '_batch.mat')));
-save( batch_fname,'matlabbatch') %, '-v7.3');
+save( batch_fname,'matlabbatch', '-v7.3');
 
 %% 3. run __________________________________________________________
 spm('defaults', 'FMRI');
