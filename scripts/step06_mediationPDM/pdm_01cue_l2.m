@@ -45,7 +45,7 @@ for r = 1:length(run)
         sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
 
         sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
-
+	%stim_input.sublist = sortedT.sub_num;
         for s = 1:size(sortedT,1)
             % step 01 __________________________________________________________________
             % grab metadata
@@ -109,7 +109,8 @@ for r = 1:length(run)
     cue_input.y_keyword = y_keyword;
     cue_input.main_dir = main_dir;
     cue_input.single_nii = fullfile(main_dir, strcat('/analysis/fmri/spm/multivariate_24dofcsd/s03_concatnifti/sub-0065/sub-0065_task-social_run-', run{r}, '_ev-', event,'_l2norm.nii'));
-    cue_input.sublist = sublist;
+    %cue_input.sublist = sublist;
+    cue_input.sublist = sortedT.sub_num;
     cue_input.task = run{r};
     cue_input.iter = 5000;
     cue_input.num_components = 6;
