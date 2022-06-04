@@ -54,7 +54,6 @@ remove_int = [1,2,3,4,5]
 remove_list = [f"sub-{x:04d}" for x in remove_int]
 sub_list = [i for i in sub_folder if i not in remove_list]
 
-# sub_list.remove('sub-0001', 'sub-0066')
 for sub in sorted(sub_list):
     beh_list = []
     beh_list = glob.glob(join(spm_dir, sub, '*','*_events.tsv'))
@@ -72,14 +71,8 @@ for sub in sorted(sub_list):
         sub_num = int(entities['sub'])
         ses_num = int(entities['ses'])
         run_num = int(entities['run'].split('-')[0])
-        # run_type = entities['run'].split('-')[-1]
         run_type = entities['run'].split('-')[-1]
-
-        # sub_num = df.src_subject_id[0].astype(int)
-        # ses_num= df.session_id[0].astype(int)
-        # run_num = int(fname.split('_')[3].split('-')[1])
-        # run_type = df.param_task_name[0]
-
+        
         Path(join(single_dir, sub)).mkdir(parents=True, exist_ok=True)
 
         cue_num = len(df.event01_cue_onset)
@@ -94,9 +87,8 @@ for sub in sorted(sub_list):
             rot = list(C.loc[:, C.columns.str.startswith('rot_')].columns)
             spike = list(C.loc[:, C.columns.str.startswith('motion_outlier')].columns)
             C['spike_1col'] = C[spike].sum(axis = 1)
-            nuissance = [trans, rot, ['spike_1col', 'dummy', 'csf']]
+            nuissance = [['csf'], trans, rot, ['dummy','spike_1col']]
             n_list = [item for sublist in nuissance for item in sublist]
-            # nuissance = ['csf', 'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z', 'dummy']
             
             nuissance_num = len(n_list)
             new = pd.DataFrame(
