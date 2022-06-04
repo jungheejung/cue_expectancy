@@ -1,15 +1,14 @@
 #!/bin/bash -l
 #SBATCH --job-name=lsa
 #SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
-#SBATCH --mem=40gb
+#SBATCH --cpus-per-task=5
+#SBATCH --mem-per-cpu=8gb
 #SBATCH --time=10:00:00
 #SBATCH -o ./log/single_%A_%a.o
 #SBATCH -e ./log/single_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1-3
+#SBATCH --array=6
 
 # sub-0002  sub-0009  sub-0017  sub-0025  sub-0033  sub-0040  sub-0051  sub-0059  sub-0066  sub-0075  sub-0083
 # sub-0003  sub-0010  sub-0018  sub-0026  sub-0034  sub-0041  sub-0052  sub-0060  sub-0068  sub-0076  sub-0084
