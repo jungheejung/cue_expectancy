@@ -125,9 +125,12 @@ for run_ind = 1: size(A,1)
         dummy.dummy(1:6,:) = 1;
         
         hasMatch = ~cellfun('isempty', regexp(m.Properties.VariableNames, 'motion_outlier', 'once')) ;
-        if ~isempty(hasMatch)
+        disp(hasMatch);
+	if any(hasMatch)
             motion_outlier = m(:, m.Properties.VariableNames(hasMatch));
-            spike = sum(motion_outlier);
+            disp(motion_outlier);
+            class(motion_outlier);
+            spike = sum(motion_outlier,2);
         
             m_cov = [m_subset,dummy,spike];
             m_clean = standardizeMissing(m_cov,'n/a');
