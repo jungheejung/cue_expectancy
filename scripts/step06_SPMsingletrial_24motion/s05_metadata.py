@@ -10,6 +10,8 @@ from pathlib import Path
 import itertools
 import pandas as pd
 import numpy as np
+import logging
+from os.path import join
 
 __author__ = "Heejung Jung"
 __copyright__ = "Spatial Topology Project"
@@ -19,6 +21,8 @@ __version__ = "0.0.1"
 __maintainer__ = "Heejung Jung"
 __email__ = "heejung.jung@colorado.edu"
 __status__ = "Development" 
+
+
 
 # %% parameters ________________________________________________________________________
 current_dir = os.getcwd()
@@ -40,6 +44,17 @@ param_list = [sub_list,
 ['pain', 'vicarious', 'cognitive'],
 ['cue', 'stim']]
 
+formatter = logging.Formatter('%(levelname)s - %(message)s')
+log_fname = join(current_dir, 'LOG_s05_metadata_error.txt')
+handler = logging.FileHandler(log_fname)
+handler.setFormatter(formatter)
+ch = logging.StreamHandler()
+ch.setFormatter(formatter)
+ch.setLevel(logging.INFO)
+logging.getLogger().addHandler(handler)
+logging.getLogger().addHandler(ch)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 # %% for loop _____________________________________________________________________________
 full_list = list(itertools.product(*param_list))
 for sub, run_type, ev in full_list:
@@ -84,8 +99,9 @@ for sub, run_type, ev in full_list:
     save_fname = os.path.join(nifti_dir, sub, f"metadata_{sub}_task-social_run-{run_type}_ev-{ev}.csv")
     if os.path.exists(save_fname):
         os.remove(save_fname)
-    else:
-        print(f"{sub}_task-social_run-{run_type}_ev-{ev} doesnt exist")
+    # else:
+        # print(f"{sub}_task-social_run-{run_type}_ev-{ev} doesnt exist")
+        # logger.warning(msg=f"Failed to copy - {sub}_task-social_run-{run_type}_ev-{ev} doesnt exist")
     filtered.to_csv(save_fname)
 
 # general
@@ -95,21 +111,45 @@ param_list = [sub_list,
 full_list = list(itertools.product(*param_list))
 for sub, ev in full_list:
 # load niftifname txt 
+    # nifti_fname = os.path.join(nifti_dir, sub, f"niftifname_{sub}_task-social_run-general_ev-{ev}.txt")
+    subject_csv = os.path.join(main_dir, 'data', 'd03_onset', 'onset03_SPMsingletrial_24dof', sub, f"{sub}_singletrial_plateau.csv" )
     nifti_fname = os.path.join(nifti_dir, sub, f"niftifname_{sub}_task-social_run-general_ev-{ev}.txt")
-    nifti = pd.read_csv(nifti_fname, sep = '\t', header = None)
-    # load f'{sub}_singletrial.csv
-    subject_csv = os.path.join(main_dir, 'data', 'd03_onset', 'onset03_SPMsingletrial', sub, f"{sub}_singletrial.csv" )
-    meta = pd.read_csv(subject_csv)
-    # subset task and ev, # based on text file, # only grab rows that exist
-    nifti['fname'] = nifti[0].map(lambda x: x.lstrip('./').rstrip('.nii'))
-    subset = meta[(meta.ev == ev)].reset_index(drop = True)
 
-    # %%
-    filtered = subset[subset.nifti_name  == nifti.fname]
-    filtered.rename(columns={0:"beta_index_fsl"})
-    save_genfname = os.path.join(nifti_dir, sub, f"metadata_{sub}_task-social_run-general_ev-{ev}.csv")
-    if os.path.exists(save_genfname):
-        os.remove(save_genfname)
+    if os.path.exists(subject_csv) & os.path.exists(nifti_fname):
+        print(f"loading {sub} {run_type} {ev}")
+        nifti = pd.read_csv(nifti_fname, sep = '\t', header = None)
+        meta = pd.read_csv(subject_csv)
+    # subset task and ev, # based on text file, # only grab rows that exist
+        nifti['fname'] = nifti[0].map(lambda x: os.path.basename(x).lstrip('./').rstrip('.nii'))
+        nifti['sub'] = nifti['fname'].str.split(
+            f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_task-social_ev-([A-Za-z-]+)-(\d+)', expand=True)[1].astype(int)
+        nifti['ses'] = nifti['fname'].str.split(
+            f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_task-social_ev-([A-Za-z-]+)-(\d+)', expand=True)[2].astype(int)
+        nifti['run'] = nifti['fname'].str.split(
+            f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_task-social_ev-([A-Za-z-]+)-(\d+)', expand=True)[3].astype(int)
+        nifti['run_type'] = nifti['fname'].str.split(
+            f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_task-social_ev-([A-Za-z-]+)-(\d+)', expand=True)[4]
+        # nifti['fname'].str.split(
+            # f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_task-social_ev-([A-Za-z-]+)-(\d+)', expand=True)[4]
+        nifti['ev'] = nifti['fname'].str.split(
+            f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_task-social_ev-([A-Za-z-]+)-(\d+)', expand=True)[5]
+        nifti['num'] = nifti['fname'].str.split(
+            f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_task-social_ev-([A-Za-z-]+)-(\d+)', expand=True)[6].astype(int)
+
+        meta = meta.dropna(subset=['num'])
+        meta['num'] = meta['num'].astype(np.int64)
+
+        mask = meta[['sub', 'ses', 'run', 'ev', 'num']].apply(lambda x: all(
+            np.in1d(x, nifti[['sub', 'ses', 'run', 'ev', 'num']])), axis=1)
+        filtered = meta.loc[mask, ]
+        filtered['nifti_name'] = filtered['sub'].apply(lambda x: f"sub-{x:04d}") +'_'+ filtered['sub'].apply(lambda x: f"ses-{x:02d}") +'_'+ \
+        filtered['run'].apply(lambda x: f"run-{x:02d}") +'-'+ filtered['run_type'] + '_task-social-' + filtered['num'].apply(lambda x: f"ev-stim-{x:04d}")
+
+        save_genfname = os.path.join(nifti_dir, sub, f"metadata_{sub}_task-social_run-general_ev-{ev}.csv")
+        if os.path.exists(save_genfname):
+            os.remove(save_genfname)
+        filtered.to_csv(save_genfname)
     else:
         print(f"{sub}_task-social_run-general_ev-{ev} doesnt exist")
-    filtered.to_csv(save_genfname)
+        logger.warning(msg=f"Failed to copy - {sub}_task-social_run-{run_type}_ev-{ev} doesnt exist")
+    
