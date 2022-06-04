@@ -25,7 +25,7 @@ rmpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip/external/st
 % nifti_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/analysis/fmri/fsl/multivariate/concat_nifti';
 main_dir = fileparts(fileparts(pwd));
 disp(main_dir); %main_dir = '/Volumes/spacetop_projects_social';
-nifti_dir = fullfile(main_dir,'analysis','fmri','spm','multivariate','s03_concatnifti');
+nifti_dir = fullfile(main_dir,'analysis','fmri','spm','multivariate_24dofcsd','s03_concatnifti');
 save_dir = fullfile(main_dir,'analysis','fmri','mediation','pdm');
 sublist = [6,7,8,9,10,11,13,14,15,16,17,21,23,24,28,29,30,31,32,33,35,37,43,47,51,53,55,58,60,61,62,64,65,66,68,69,70,73,74,76,78,79,80,81,84,85];
 xx = cell( length(sublist), 1);
@@ -105,7 +105,7 @@ for r = 1:length(run)
     cue_input.m_keyword = m_keyword;
     cue_input.y_keyword = y_keyword;
     cue_input.main_dir = main_dir;
-    cue_input.single_nii = fullfile(main_dir, strcat('/analysis/fmri/spm/multivariate/s03_concatnifti/sub-0065/sub-0065_task-social_run-', run{r}, '_ev-', event,'_l2norm.nii'));
+    cue_input.single_nii = fullfile(main_dir, strcat('/analysis/fmri/spm/multivariate_24dofcsd/s03_concatnifti/sub-0065/sub-0065_task-social_run-', run{r}, '_ev-', event,'_l2norm.nii'));
     cue_input.sublist = sublist;
     cue_input.task = run{r};
     cue_input.iter = 5000;

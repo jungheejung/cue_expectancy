@@ -18,11 +18,9 @@ rmpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip'));
 rmpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip/external/stats');
 % parameters __________________________________________________________________
 % nifti_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/analysis/fmri/fsl/multivariate/concat_nifti';
-main_dir = fileparts(fileparts(pwd));
-disp(main_dir); %main_dir = '/Volumes/spacetop_projects_social';
+disp(main_dir);
 nifti_dir = fullfile(main_dir,'analysis','fmri','spm','multivariate_24dofcsd','s03_concatnifti');
 save_dir = fullfile(main_dir,'analysis','fmri','mediation','pdm');
-sublist = [6,7,8,9,10,11,13,14,15,16,17,21,23,24,28,29,30,31,32,33,35,37,43,47,51,53,55,58,60,61,62,64,65,66,68,69,70,73,74,76,78,79,80,81,84,85];
 task_subfldr = fullfile(save_dir, strcat('task-',run{r},'_', x_keyword, '-', m_keyword,'-',y_keyword, '_l2norm'));
 % input variables
 stim_input = struct();
@@ -51,21 +49,36 @@ if not(exist(task_subfldr, 'dir'))
     mkdir(task_subfldr)
 end
 dat_fname =  fullfile(task_subfldr, strcat('task-',run{r},'_PDM_', x_keyword, '-', m_keyword,'-',y_keyword, '_l2norm_DAT.mat'));
+
 if ~isfile(dat_fname)
-    for s = 1:length(sublist)
+    niilist = dir(fullfile(nifti_dir, '*', strcat('*_task-social_run-', run{r}, '_ev-', event, '_l2norm.nii')));
+    nT = struct2table(niilist); % convert the struct array to a table
+    sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
+    sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
+
+    for s = 1:size(sortedT,1)
         % step 01 __________________________________________________________________
         % grab metadata
-        sub = strcat('sub-', sprintf("%04d", sublist(s)));
-        fname = strcat('metadata_', sub ,'_task-social_run-', run{r}, '_ev-', event, '.csv');
-        T = readtable(fullfile(nifti_dir, sub, fname));
-        basename = strrep(strrep(fname,'metadata_',''), '.csv', '');
+        basename = strrep(char(sortedT.name(s)), '.nii', '');
+        sub = strcat('sub-', sprintf('%04d',  sortedT.sub_num(s)));
+        % fname = strcat('metadata_', sub ,'_task-social_run-', run{r}, '_ev-', event, '.csv');
+
+        T = readtable(fullfile(nifti_dir, sub, strcat('metadata_', basename, '.csv')));
+        % basename = strrep(strrep(char(sortedT.name(s)),'metadata_',''), '.csv', '');
+
+        % build cells based on subject length
+        xx = cell( size(sortedT,1), 1);
+        mm = cell( size(sortedT,1), 1);
+        mm_fdata = cell( size(sortedT,1), 1);
+        yy = cell( size(sortedT,1), 1);
+        outlier = cell( size(sortedT,1),1);
         
         % step 02 __________________________________________________________________
         % grab nifti and unzip
-        fname_nifti = fullfile(nifti_dir, sub, strcat(basename, '_l2norm.nii.gz'));
-        fname_nii = fullfile(nifti_dir, sub, strcat(basename, '_l2norm.nii'));
-        if ~exist(fname_nii,'file'), gunzip(fname_nifti)
-        end
+        % fname_nifti = fullfile(nifti_dir, sub, strcat(basename, '_l2norm.nii.gz'));
+        % fname_nii = fullfile(nifti_dir, sub, strcat(basename, '_l2norm.nii'));
+        % if ~exist(fname_nii,'file'), gunzip(fname_nifti)
+        % end
         
         % step 03 __________________________________________________________________
         % provide input as XMY
