@@ -54,7 +54,7 @@ if ~isfile(dat_fname)
     for s = 1:size(sortedT,1)
         % step 01 __________________________________________________________________
         % grab metadata
-        basename = strrep(char(sortedT.name(s)), '.nii', '');
+        basename = strrep(char(sortedT.name(s)), '_l2norm.nii', '');
         sub = strcat('sub-', sprintf('%04d',  sortedT.sub_num(s)));
         % fname = strcat('metadata_', sub ,'_task-social_run-', run{r}, '_ev-', event, '.csv');
 
