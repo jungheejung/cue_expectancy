@@ -75,7 +75,7 @@ for sub, run_type, ev in full_list:
             np.in1d(x, nifti[['sub', 'ses', 'run', 'ev', 'num']])), axis=1)
         filtered = meta.loc[mask, ]
         filtered['nifti_name'] = filtered['sub'].apply(lambda x: f"sub-{x:04d}") +'_'+ filtered['sub'].apply(lambda x: f"ses-{x:02d}") +'_'+ \
-        filtered['run'].apply(lambda x: f"run-{x:02d}") +'-'+ run_type + '_task-social-' + filtered['num'].apply(lambda x: f"ev-stim-{x:04d}")
+        filtered['run'].apply(lambda x: f"run-{x:02d}") +'-'+ filtered['run_type'] + '_task-social-' + filtered['num'].apply(lambda x: f"ev-stim-{x:04d}")
     # subset = meta[(meta.task == task ) & (meta.ev == ev)].reset_index(drop = True)
 
     # %%
