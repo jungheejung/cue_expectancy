@@ -72,10 +72,10 @@ if ~isfile(dat_fname)
         
         % step 02 __________________________________________________________________
         % grab nifti and unzip
-        % fname_nifti = fullfile(nifti_dir, sub, strcat(basename, '_l2norm.nii.gz'));
-        % fname_nii = fullfile(nifti_dir, sub, strcat(basename, '_l2norm.nii'));
-        % if ~exist(fname_nii,'file'), gunzip(fname_nifti)
-        % end
+        fname_nifti = fullfile(nifti_dir, sub, strcat(basename, '_l2norm.nii.gz'));
+        fname_nii = fullfile(nifti_dir, sub, strcat(basename, '_l2norm.nii'));
+        if ~exist(fname_nii,'file'), gunzip(fname_nifti)
+        end
         
         % step 03 __________________________________________________________________
         % provide input as XMY
