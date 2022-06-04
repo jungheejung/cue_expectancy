@@ -149,7 +149,7 @@ for sub in sorted(sub_list):
                 rot = list(C.loc[:, C.columns.str.startswith('rot_')].columns)
                 spike = list(C.loc[:, C.columns.str.startswith('motion_outlier')].columns)
                 C['spike_1col'] = C[spike].sum(axis = 1)
-                nuissance = [trans, rot, ['spike_1col', 'dummy', 'csf']]
+                nuissance = [['csf'], trans, rot, ['dummy','spike_1col']]
                 n_list = [item for sublist in nuissance for item in sublist]
                 nuissance_num = len(n_list) 
                 new = pd.DataFrame(
