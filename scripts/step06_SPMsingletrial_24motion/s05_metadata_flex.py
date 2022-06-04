@@ -9,12 +9,20 @@ import itertools
 import pandas as pd
 import re
 import numpy as np
+
+__author__ = "Heejung Jung"
+__copyright__ = "Spatial Topology Project"
+__credits__ = [ ] # people who reported bug fixes, made suggestions, etc. but did not actually write the code.
+__license__ = "GPL"
+__version__ = "0.0.1"
+__maintainer__ = "Heejung Jung"
+__email__ = "heejung.jung@colorado.edu"
+__status__ = "Development" 
+
 # %% parameters ________________________________________________________________________
 current_dir = os.getcwd()
-# discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
-main_dir = Path(current_dir).parents[1]
-nifti_dir = os.path.join(main_dir, 'analysis', 'fmri',
-                         'spm', 'multivariate', 's03_concatnifti')
+main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
+nifti_dir = os.path.join(main_dir, 'analysis', 'fmri', 'spm', 'multivariate_24dofcsd', 's03_concatnifti')
 sub_list = next(os.walk(nifti_dir))[1]
 items_to_remove = ['sub-0000', 'sub-0002']
 for item in items_to_remove:
@@ -33,8 +41,9 @@ ttl_dict = {
 full_list = list(itertools.product(*param_list))
 for sub, task, ev in full_list:
     # load niftifname txt
-    subject_csv = os.path.join(main_dir, 'data', 'dartmouth',
-                               ttl_dict[task], sub, f"{sub}_singletrial_{task}.csv")
+    subject_csv = os.path.join(main_dir, 'data', 'd03_onset', 'onset03_SPMsingletrial_24dof', sub, f"{sub}_singletrial_plateau.csv" )
+    if not os.path.exist(subject_csv):
+        subject_csv = os.path.join(main_dir, 'data', 'd03_onset', 'onset03_SPMsingletrial_24dof', sub, f"{sub}_singletrial.csv" )
     nifti_fname = os.path.join(
         nifti_dir, sub, f"niftifname_{sub}_task-pain-{task}_ev-{ev}.txt")
     if os.path.exists(subject_csv) & os.path.exists(nifti_fname):
@@ -43,8 +52,6 @@ for sub, task, ev in full_list:
         nifti = pd.read_csv(nifti_fname, sep='\t', header=None)
         nifti['fname'] = nifti[0].map(
             lambda x: os.path.basename(x.lstrip('./').rstrip('.nii')))
-        # int(re.findall('\d+', [match for match in nifti['fname'].str.split('_') if "sub" in match][0])[0])
-        # result = nifti['fname'].str.split(f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_task-social_ev-stim-(\d+)', expand=True) # ([A-Za-z]+)_task-social_ev-stim-(\d+)
         nifti['sub'] = nifti['fname'].str.split(
             f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_task-social_ev-([A-Za-z-]+)-(\d+)', expand=True)[1].astype(int)
         nifti['ses'] = nifti['fname'].str.split(

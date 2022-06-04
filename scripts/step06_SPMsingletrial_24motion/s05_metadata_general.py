@@ -13,7 +13,7 @@ import numpy as np
 
 __author__ = "Heejung Jung"
 __copyright__ = "Spatial Topology Project"
-__credits__ = ["Heejung"] # people who reported bug fixes, made suggestions, etc. but did not actually write the code.
+__credits__ = [ ] # people who reported bug fixes, made suggestions, etc. but did not actually write the code.
 __license__ = "GPL"
 __version__ = "0.0.1"
 __maintainer__ = "Heejung Jung"
@@ -23,7 +23,7 @@ __status__ = "Development"
 # %% parameters ________________________________________________________________________
 current_dir = os.getcwd()
 main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
-nifti_dir = os.path.join(main_dir, 'analysis', 'fmri', 'spm', 'multivariate', 's03_concatnifti')
+nifti_dir = os.path.join(main_dir, 'analysis', 'fmri', 'spm', 'multivariate_24dofcsd', 's03_concatnifti')
 
 sub_folders = next(os.walk(nifti_dir))[1]
 sub_folder = [i for i in sub_folders if i.startswith('sub-')]
@@ -43,11 +43,10 @@ param_list = [sub_list,
 # %% for loop _____________________________________________________________________________
 full_list = list(itertools.product(*param_list))
 for sub, run_type, ev in full_list:
-    # /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/data/d03_onset/onset03_SPMsingletrial/sub-0055
 
-    subject_csv = os.path.join(main_dir, 'data', 'd03_onset', 'onset03_SPMsingletrial', sub, f"{sub}_singletrial_plateau.csv" )
+    subject_csv = os.path.join(main_dir, 'data', 'd03_onset', 'onset03_SPMsingletrial_24dof', sub, f"{sub}_singletrial_plateau.csv" )
     if not os.path.exist(subject_csv):
-        subject_csv = os.path.join(main_dir, 'data', 'd03_onset', 'onset03_SPMsingletrial', sub, f"{sub}_singletrial.csv" )
+        subject_csv = os.path.join(main_dir, 'data', 'd03_onset', 'onset03_SPMsingletrial_24dof', sub, f"{sub}_singletrial.csv" )
     nifti_fname = os.path.join(nifti_dir, sub, f"niftifname_{sub}_task-social_run-{run_type}_ev-{ev}.txt")
 
     if os.path.exists(subject_csv) & os.path.exists(nifti_fname):
@@ -64,8 +63,6 @@ for sub, run_type, ev in full_list:
             f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_task-social_ev-([A-Za-z-]+)-(\d+)', expand=True)[3].astype(int)
         nifti['run_type'] = nifti['fname'].str.split(
             f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_task-social_ev-([A-Za-z-]+)-(\d+)', expand=True)[4]
-        # nifti['fname'].str.split(
-            # f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_task-social_ev-([A-Za-z-]+)-(\d+)', expand=True)[4]
         nifti['ev'] = nifti['fname'].str.split(
             f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_task-social_ev-([A-Za-z-]+)-(\d+)', expand=True)[5]
         nifti['num'] = nifti['fname'].str.split(
@@ -82,37 +79,9 @@ for sub, run_type, ev in full_list:
     # subset = meta[(meta.task == task ) & (meta.ev == ev)].reset_index(drop = True)
 
     # %%
-    # filtered = subset[subset.nifti_name  == nifti.fname]
-    # filtered.rename(columns={0:"beta_index_fsl"})
     save_fname = os.path.join(nifti_dir, sub, f"metadata_{sub}_task-social_run-{run_type}_ev-{ev}.csv")
     if os.path.exists(save_fname):
         os.remove(save_fname)
     else:
         print(f"{sub}_task-social_run-{run_type}_ev-{ev} doesnt exist")
     filtered.to_csv(save_fname)
-
-# # general
-# param_list = [sub_list, 
-# ['cue', 'stim']]
-
-# full_list = list(itertools.product(*param_list))
-# for sub, ev in full_list:
-# # load niftifname txt 
-#     nifti_fname = os.path.join(nifti_dir, sub, f"niftifname_{sub}_task-social_run-general_ev-{ev}.txt")
-#     nifti = pd.read_csv(nifti_fname, sep = '\t', header = None)
-#     # load f'{sub}_singletrial.csv
-#     subject_csv = os.path.join(main_dir, 'data', 'd03_onset', 'onset03_SPMsingletrial', sub, f"{sub}_singletrial.csv" )
-#     meta = pd.read_csv(subject_csv)
-#     # subset task and ev, # based on text file, # only grab rows that exist
-#     nifti['fname'] = nifti[0].map(lambda x: x.lstrip('./').rstrip('.nii'))
-#     subset = meta[(meta.ev == ev)].reset_index(drop = True)
-
-#     # %%
-#     filtered = subset[subset.nifti_name  == nifti.fname]
-#     filtered.rename(columns={0:"beta_index_fsl"})
-#     save_genfname = os.path.join(nifti_dir, sub, f"metadata_{sub}_task-social_run-general_ev-{ev}.csv")
-#     if os.path.exists(save_genfname):
-#         os.remove(save_genfname)
-#     else:
-#         print(f"{sub}_task-social_run-general_ev-{ev} doesnt exist")
-#     filtered.to_csv(save_genfname)
