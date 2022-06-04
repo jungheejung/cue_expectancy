@@ -18,6 +18,7 @@ rmpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip'));
 rmpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip/external/stats');
 % parameters __________________________________________________________________
 % nifti_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/analysis/fmri/fsl/multivariate/concat_nifti';
+main_dir = fileparts(fileparts(pwd));
 disp(main_dir);
 nifti_dir = fullfile(main_dir,'analysis','fmri','spm','multivariate_24dofcsd','s03_concatnifti');
 save_dir = fullfile(main_dir,'analysis','fmri','mediation','pdm');
