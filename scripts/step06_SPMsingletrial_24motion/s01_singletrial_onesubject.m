@@ -126,13 +126,13 @@ for run_ind = 1: size(A,1)
         
         hasMatch = ~cellfun('isempty', regexp(m.Properties.VariableNames, 'motion_outlier', 'once')) ;
         disp(hasMatch);
-	if any(hasMatch)
+	    if any(hasMatch)
             motion_outlier = m(:, m.Properties.VariableNames(hasMatch));
             disp(motion_outlier);
             class(motion_outlier);
-            spike = sum(motion_outlier,2);
+            spike = sum(motion_outlier{:,:},2);
         
-            m_cov = [m_subset,dummy,spike];
+            m_cov = [m_subset,dummy,array2table(spike)];
             m_clean = standardizeMissing(m_cov,'n/a');
             for i=1:25
                 m_clean.(i)(isnan(m_clean.(i)))=nanmean(m_clean.(i))
