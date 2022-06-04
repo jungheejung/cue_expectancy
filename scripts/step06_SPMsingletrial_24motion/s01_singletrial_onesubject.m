@@ -108,7 +108,7 @@ for run_ind = 1: size(A,1)
         if ~exist(fullfile(motion_dir,'24dof_csf_spike_dummy', sub, ses),'dir'), mkdir(fullfile(motion_dir, '24dof_csf_spike_dummy',sub, ses))
         end
         m_fmriprep   = fullfile(fmriprep_dir, sub, ses, 'func', ...
-                   strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_desc-confounds_timeseries.tsv'));
+                   strcat(sub, '_', ses, '_task-social_acq-mb8_', fmriprep_run, '_desc-confounds_timeseries.tsv'));
         opts = detectImportOptions(m_fmriprep, 'FileType', 'text');
         opts = setvaropts(opts,'TreatAsMissing',{'n/a','NA'});
         %opts = detectImportOptions(m_fmriprep, 'FileType', 'text');
