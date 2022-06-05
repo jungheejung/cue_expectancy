@@ -105,6 +105,10 @@ end
 
 for r = 1:length(run)
     task_subfldr = fullfile(save_dir, strcat('task-',run{r},'_', x_keyword, '-', m_keyword,'-',y_keyword, '_l2norm'));
+    niilist = dir(fullfile(nifti_dir, '*', strcat('metadata_*_task-social_run-', run{r}, '_ev-', event, '.csv')));
+    nT = struct2table(niilist); % convert the struct array to a table
+    sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
+    sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
     
     % input variables
     stim_input = struct();
@@ -114,7 +118,7 @@ for r = 1:length(run)
     stim_input.y_keyword = y_keyword;
     stim_input.main_dir = main_dir;
     stim_input.single_nii = fullfile(main_dir, strcat('/analysis/fmri/spm/multivariate_24dofcsd/s03_concatnifti/sub-0065/sub-0065_task-social_run-', run{r}, '_ev-', event,'_l2norm.nii'));
-    stim_input.sublist = sublist;
+    stim_input.sublist = sortedT.sub_num;
     stim_input.task = run{r};
     stim_input.iter = 5000;
     stim_input.num_components = 6;
