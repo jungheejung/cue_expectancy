@@ -37,7 +37,13 @@ for r = 1:length(run)
         nT = struct2table(niilist); % convert the struct array to a table
         sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
         sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
-
+        
+        xx = cell( size(sortedT,1), 1);
+        mm = cell( size(sortedT,1), 1);
+        mm_fdata = cell( size(sortedT,1), 1);
+        yy = cell( size(sortedT,1), 1);
+        outlier = cell( size(sortedT,1),1);
+        
         for s = 1:size(sortedT,1)
             % step 01 __________________________________________________________________
             % grab metadata
@@ -47,12 +53,7 @@ for r = 1:length(run)
             basename = strrep(strrep(char(sortedT.name(s)),'metadata_',''), '.csv', '');
 
             % build cells based on subject length
-            xx = cell( size(sortedT,1), 1);
-            mm = cell( size(sortedT,1), 1);
-            mm_fdata = cell( size(sortedT,1), 1);
-            yy = cell( size(sortedT,1), 1);
-            outlier = cell( size(sortedT,1),1);
-            
+
             % step 02 __________________________________________________________________
             % grab nifti and unzip
             fname_nifti = fullfile(nifti_dir, sub, strcat(basename, '_l2norm.nii.gz'));
