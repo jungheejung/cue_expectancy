@@ -37,7 +37,7 @@ for r = 1:length(run)
         nT = struct2table(niilist); % convert the struct array to a table
         sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
         sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
-        
+
         xx = cell( size(sortedT,1), 1);
         mm = cell( size(sortedT,1), 1);
         mm_fdata = cell( size(sortedT,1), 1);
@@ -93,6 +93,12 @@ end
 
 %% PDM
 for r = 1:length(run)
+
+    niilist = dir(fullfile(nifti_dir, '*', strcat('metadata_*_task-social_run-', run{r}, '_ev-', event, '.csv')));
+    nT = struct2table(niilist); % convert the struct array to a table
+    sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
+    sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
+    
     task_subfldr = fullfile(save_dir, strcat('task-',run{r},'_', x_keyword, '-', m_keyword,'-',y_keyword, '_l2norm'));
     niilist = dir(fullfile(nifti_dir, '*', strcat('metadata_*_task-social_run-', run{r}, '_ev-', event, '.csv')));
     nT = struct2table(niilist); % convert the struct array to a table
