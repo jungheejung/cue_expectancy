@@ -56,6 +56,14 @@ if ~isfile(dat_fname)
     sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
     sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
     cue_input.sublist = sortedT.sub_num;
+
+    % build cells based on subject length
+    xx = cell( size(sortedT,1), 1);
+    mm = cell( size(sortedT,1), 1);
+    mm_fdata = cell( size(sortedT,1), 1);
+    yy = cell( size(sortedT,1), 1);
+    outlier = cell( size(sortedT,1),1);   
+
     for s = 1:size(sortedT,1)
         % step 01 __________________________________________________________________
         % grab metadata
@@ -63,13 +71,6 @@ if ~isfile(dat_fname)
         % fname = strcat('metadata_', sub ,'_task-social_run-', run{r}, '_ev-', event, '.csv');
         T = readtable(fullfile(nifti_dir, sub, char(sortedT.name(s))));
         basename = strrep(strrep(char(sortedT.name(s)),'metadata_',''), '.csv', '');
-
-        % build cells based on subject length
-        xx = cell( size(sortedT,1), 1);
-        mm = cell( size(sortedT,1), 1);
-        mm_fdata = cell( size(sortedT,1), 1);
-        yy = cell( size(sortedT,1), 1);
-        outlier = cell( size(sortedT,1),1);
 
         % step 02 __________________________________________________________________
         % grab nifti and unzip
@@ -96,10 +97,9 @@ if ~isfile(dat_fname)
         end
         options.outputDir = fullfile(task_subfldr, 'diagnostics');
         options.imageFormat = 'jpg';
-        mydoc = publish('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/@fmri_data/plot.m',options);
-        [folder, name] = fileparts(mydoc);
-
-        movefile(mydoc, fullfile(task_subfldr,'diagnostics',strcat('singletrial-diagnostics_run-', char(run{r}),'_sub-' , sub, '_l2norm.pdf')));
+        %mydoc = publish('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/@fmri_data/plot.m',options);
+        %[folder, name] = fileparts(mydoc);
+        %movefile(mydoc, fullfile(task_subfldr,'diagnostics',strcat('singletrial-diagnostics_run-', char(run{r}),'_sub-' , sub, '_l2norm.pdf')));
     end
 else
     load(dat_fname);
