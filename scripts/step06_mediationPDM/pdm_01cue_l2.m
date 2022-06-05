@@ -16,13 +16,7 @@ addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12'));
 rmpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip'));
 rmpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip/external/stats');
 
-%addpath(genpath('/Users/h/Documents/MATLAB/MediationToolbox'));
-%addpath(genpath('/Users/h/Documents/MATLAB/CanlabCore'));
-%addpath(genpath('/Users/h/Documents/MATLAB/spm12'));
-%rmpath(genpath('/Users/h/Documents/MATLAB/spm12/external/fieldtrip'));
-%rmpath('/Users/h/Documents/MATLAB/spm12/external/fieldtrip/external/stats');
 % parameters __________________________________________________________________
-% nifti_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/analysis/fmri/fsl/multivariate/concat_nifti';
 main_dir = fileparts(fileparts(pwd));
 disp(main_dir); %main_dir = '/Volumes/spacetop_projects_social';
 nifti_dir = fullfile(main_dir,'analysis','fmri','spm','multivariate_24dofcsd','s03_concatnifti');
@@ -31,8 +25,7 @@ save_dir = fullfile(main_dir,'analysis','fmri','mediation','pdm');
 run = {'pain', 'vicarious', 'cognitive'};
 
 for r = 1:length(run)
-    % create empty dat
-   
+
     % save dir
     task_subfldr = fullfile(save_dir, strcat('task-',run{r},'_', x_keyword, '-', m_keyword,'-',y_keyword,'_l2norm' ));
     if not(exist(task_subfldr, 'dir'))
@@ -43,9 +36,8 @@ for r = 1:length(run)
         niilist = dir(fullfile(nifti_dir, '*', strcat('metadata_*_task-social_run-', run{r}, '_ev-', event, '.csv')));
         nT = struct2table(niilist); % convert the struct array to a table
         sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
-
         sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
-	%stim_input.sublist = sortedT.sub_num;
+
         for s = 1:size(sortedT,1)
             % step 01 __________________________________________________________________
             % grab metadata
@@ -88,9 +80,9 @@ for r = 1:length(run)
             end
             options.outputDir = fullfile(task_subfldr, 'diagnostics');
             options.imageFormat = 'jpg';
-            mydoc = publish('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/@fmri_data/plot.m',options);
-            [folder, name] = fileparts(mydoc);
-            movefile(mydoc, fullfile(task_subfldr, 'diagnostics',strcat('singletrial-diagnostics_run-', run{r},'_sub-' , sub,'_',datestr(now,'mm-dd-yy'), '_l2norm.pdf')));
+            %mydoc = publish('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/@fmri_data/plot.m',options);
+            %[folder, name] = fileparts(mydoc);
+            %movefile(mydoc, fullfile(task_subfldr, 'diagnostics',strcat('singletrial-diagnostics_run-', run{r},'_sub-' , sub,'_',datestr(now,'mm-dd-yy'), '_l2norm.pdf')));
         end
     else
         load(dat_fname);
@@ -119,7 +111,7 @@ for r = 1:length(run)
     cue_input.iter = 5000;
     cue_input.num_components = 6;
     cue_input.alpha = 0.05;
-    cue_input.sig = 'unc';
+    cue_input.sig = 'fdr';
     cue_input.dat_fpath = fullfile(task_subfldr, strcat('task-',run{r},'_PDM_', x_keyword, '-', m_keyword,'-',y_keyword, '_l2norm_DAT.mat'));
     cue_input.task_subfldr = task_subfldr
     assignin('base','input',cue_input);
