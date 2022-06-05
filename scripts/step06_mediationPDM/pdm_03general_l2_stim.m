@@ -53,22 +53,21 @@ if ~isfile(dat_fname)
     sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
     sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
     stim_input.sublist = sortedT.sub_num;
+
+    % build cells based on subject length
+    xx = cell( size(sortedT,1), 1);
+    mm = cell( size(sortedT,1), 1);
+    mm_fdata = cell( size(sortedT,1), 1);
+    yy = cell( size(sortedT,1), 1);
+    outlier = cell( size(sortedT,1),1);   
+
     for s = 1:size(sortedT,1)
         % step 01 __________________________________________________________________
         % grab metadata
         basename = strrep(char(sortedT.name(s)), '_l2norm.nii', '');
         sub = strcat('sub-', sprintf('%04d',  sortedT.sub_num(s)));
-        % fname = strcat('metadata_', sub ,'_task-social_run-', run{r}, '_ev-', event, '.csv');
-
         T = readtable(fullfile(nifti_dir, sub, strcat('metadata_', basename, '.csv')));
         % basename = strrep(strrep(char(sortedT.name(s)),'metadata_',''), '.csv', '');
-
-        % build cells based on subject length
-        xx = cell( size(sortedT,1), 1);
-        mm = cell( size(sortedT,1), 1);
-        mm_fdata = cell( size(sortedT,1), 1);
-        yy = cell( size(sortedT,1), 1);
-        outlier = cell( size(sortedT,1),1);
         
         % step 02 __________________________________________________________________
         % grab nifti and unzip
@@ -105,7 +104,7 @@ if ~isfile(dat_fname)
          %   rename = strcat('singletrial-diagnostics_run-', run{r},'_sub-' , sub,f,'_',ext) ; 
          %   movefile(files(id).name, rename); 
         % end
-        movefile(mydoc, fullfile(task_subfldr,'diagnostics',strcat('singletrial-diagnostics_run-',char( run{r}),'_sub-' , sub, '_l2norm.pdf')));
+       % movefile(mydoc, fullfile(task_subfldr,'diagnostics',strcat('singletrial-diagnostics_run-',char( run{r}),'_sub-' , sub, '_l2norm.pdf')));
     end
 else
     load(dat_fname);
