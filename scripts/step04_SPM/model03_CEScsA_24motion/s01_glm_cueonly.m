@@ -154,52 +154,52 @@ for run_ind = 1: size(A,1)
     disp(strcat('[ STEP 05 ]creating motion covariate text file...'));
 
 %% regressor ______________________________________________________
-    motion_fname = fullfile(motion_dir,  '24dof_csf_spike_dummy', sub, ses,...
-                   strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d',A.run_num(run_ind)), '_confounds-subset.txt'));
-    if ~isfile(motion_fname)
-        if ~exist(fullfile(motion_dir,'24dof_csf_spike_dummy', sub, ses),'dir'), mkdir(fullfile(motion_dir, '24dof_csf_spike_dummy',sub, ses))
-        end
-        m_fmriprep   = fullfile(fmriprep_dir, sub, ses, 'func', ...
-                   strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_desc-confounds_timeseries.tsv'));
-        opts = detectImportOptions(m_fmriprep, 'FileType', 'text');
-        opts = setvaropts(opts,'TreatAsMissing',{'n/a','NA'});
-        %opts = detectImportOptions(m_fmriprep, 'FileType', 'text');
-        m = readtable(m_fmriprep, opts);
-                %    m = readtable(tdfread(m_fmriprep),'Format','auto')
-                %    m            = struct2table(tdfread(m_fmriprep));
-        m_subset     = m(:, {'csf', 'trans_x',	'trans_x_derivative1',	'trans_x_power2',	'trans_x_derivative1_power2',...
-        	'trans_y',	'trans_y_derivative1',	'trans_y_derivative1_power2',	'trans_y_power2',...
-            	'trans_z',	'trans_z_derivative1',	'trans_z_derivative1_power2',	'trans_z_power2',...
-                	'rot_x',	'rot_x_derivative1',	'rot_x_derivative1_power2',	'rot_x_power2',...
-                    	'rot_y',	'rot_y_derivative1',	'rot_y_derivative1_power2',	'rot_y_power2',...
-                        	'rot_z',	'rot_z_derivative1',	'rot_z_derivative1_power2',	'rot_z_power2'});
-        
-        hasMatch = ~cellfun('isempty', regexp(m.Properties.VariableNames, 'motion_outlier', 'once')) ;
-        motion_outlier = m(:, m.Properties.VariableNames(hasMatch));
-        dummy = array2table(zeros(size(m,1),1), 'VariableNames',{'dummy'});
-        dummy.dummy(1:6,:) = 1;
-        m_cov = [m_subset,motion_outlier, dummy];
-        m_clean = standardizeMissing(m_cov,'n/a');
-	for i=1:25
-		m_clean.(i)(isnan(m_clean.(i)))=nanmean(m_clean.(i))
-	end        
+motion_fname = fullfile(motion_dir,  'csf_24dof_dummy_spike', sub, ses,...
+strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d',A.run_num(run_ind)), '_confounds-subset.txt'));
+%    if ~isfile(motion_fname)
+if ~exist(fullfile(motion_dir,'csf_24dof_dummy_spike', sub, ses),'dir'), mkdir(fullfile(motion_dir,'csf_24dof_dummy_spike',sub, ses))
+end
+m_fmriprep   = fullfile(fmriprep_dir, sub, ses, 'func', ...
+strcat(sub, '_', ses, '_task-social_acq-mb8_', fmriprep_run, '_desc-confounds_timeseries.tsv'));
+opts = detectImportOptions(m_fmriprep, 'FileType', 'text');
+opts = setvaropts(opts,'TreatAsMissing',{'n/a','NA'});
+%opts = detectImportOptions(m_fmriprep, 'FileType', 'text');
+m = readtable(m_fmriprep, opts);
+%    m = readtable(tdfread(m_fmriprep),'Format','auto')
+%    m            = struct2table(tdfread(m_fmriprep));
+m_subset     = m(:, {'csf', 'trans_x',	'trans_x_derivative1',	'trans_x_power2',	'trans_x_derivative1_power2',...
+'trans_y',	'trans_y_derivative1',	'trans_y_derivative1_power2',	'trans_y_power2',...
+'trans_z',	'trans_z_derivative1',	'trans_z_derivative1_power2',	'trans_z_power2',...
+ 'rot_x',	'rot_x_derivative1',	'rot_x_derivative1_power2',	'rot_x_power2',...
+     'rot_y',	'rot_y_derivative1',	'rot_y_derivative1_power2',	'rot_y_power2',...
+         'rot_z',	'rot_z_derivative1',	'rot_z_derivative1_power2',	'rot_z_power2'});
+dummy = array2table(zeros(size(m,1),1), 'VariableNames',{'dummy'});
+dummy.dummy(1:6,:) = 1;
 
+hasMatch = ~cellfun('isempty', regexp(m.Properties.VariableNames, 'motion_outlier', 'once')) ;
+if any(hasMatch)
+motion_outlier = m(:, m.Properties.VariableNames(hasMatch));
+spike = sum(motion_outlier{:,:},2);
 
-% for i=1:40
-        %     m_clean.(i) = str2double(m_clean{:,i});
-        % end
-        % m_cov(strcmpi(m_cov,'n/a')) = {nan}; 
-        % m_cov(:,1:25)(strcmp(m_cov(:,1:25),'n/a')) = {''};
-        m_double     = table2array(m_clean);
-        
-        dlmwrite(motion_fname, m_double, 'delimiter','\t','precision',13);
-        R = dlmread(motion_fname);
-        save_m_fname = fullfile(motion_dir, '24dof_csf_spike_dummy', sub, ses,...
-            strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d',A.run_num(run_ind)), '_confounds-subset.mat'));
-        save(save_m_fname, 'R');
-    else
-        disp('motion subset file exists');
-    end
+m_cov = [m_subset,dummy,array2table(spike)];
+m_clean = standardizeMissing(m_cov,'n/a');
+for i=1:25
+m_clean.(i)(isnan(m_clean.(i)))=nanmean(m_clean.(i))
+end   
+else
+m_cov = [m_subset, dummy];
+m_clean = standardizeMissing(m_cov,'n/a');
+for i=1:25
+m_clean.(i)(isnan(m_clean.(i)))=nanmean(m_clean.(i))
+end   
+end
+m_double     = table2array(m_clean);
+
+dlmwrite(motion_fname, m_double, 'delimiter','\t','precision',13);
+R = dlmread(motion_fname);
+save_m_fname = fullfile(motion_dir, 'csf_24dof_dummy_spike', sub, ses,...
+strcat(sub, '_', ses, '_task-social_run-' , sprintf('%02d',A.run_num(run_ind)), '_confounds-subset.mat'));
+save(save_m_fname, 'R');
 
 
     disp(strcat('[ STEP 06 ]starting spmbatch...'));
