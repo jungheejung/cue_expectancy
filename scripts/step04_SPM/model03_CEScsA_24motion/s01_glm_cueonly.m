@@ -145,8 +145,6 @@ for run_ind = 1: size(A,1)
         end
     end
     
-    
-
     % see if ttl file exists. load it
 
     disp(strcat('task: ', task));
@@ -184,12 +182,6 @@ for run_ind = 1: size(A,1)
 		m_clean.(i)(isnan(m_clean.(i)))=nanmean(m_clean.(i))
 	end        
 
-
-% for i=1:40
-        %     m_clean.(i) = str2double(m_clean{:,i});
-        % end
-        % m_cov(strcmpi(m_cov,'n/a')) = {nan}; 
-        % m_cov(:,1:25)(strcmp(m_cov(:,1:25),'n/a')) = {''};
         m_double     = table2array(m_clean);
         
         dlmwrite(motion_fname, m_double, 'delimiter','\t','precision',13);
