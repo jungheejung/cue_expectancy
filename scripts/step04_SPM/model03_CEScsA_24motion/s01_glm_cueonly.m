@@ -109,7 +109,7 @@ for run_ind = 1: size(A,1)
     sub = strcat('sub-', sprintf('%04d', A.sub_num(run_ind)));
     ses = strcat('ses-', sprintf('%02d', A.ses_num(run_ind)));
     run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
-
+    fmriprep_run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
     disp(strcat('[ STEP 03 ] gunzip and saving nifti...'));
     % smooth_5mm_sub-0006_ses-01_task-social_acq-mb8_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold.nii
     % smooth_5mm_sub-0003_ses-01_task-social_acq-mb8_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold_masked.nii.gz
