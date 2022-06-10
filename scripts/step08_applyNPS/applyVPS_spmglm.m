@@ -44,8 +44,8 @@ con = strcat('con_', sprintf('%04d', input));
 main_dir = fileparts(fileparts(current_dir));
 disp(main_dir);
 %main_dir = '/Volumes/spacetop_projects_social';
-singletrial_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model-02_CcEScA', '1stLevel');
-vps_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate','model-02_CcEScA', 'extract_vps');
+singletrial_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model-03_CEScsA_24dofcsd', '1stLevel');
+vps_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate','model-03_CEScsA_24dofcsd', 'extract_vps');
 d = dir(singletrial_dir);
 dfolders = d([d(:).isdir]);
 dfolders_remove = dfolders(~ismember({dfolders(:).name},{'.','..','sub-0000','sub-0002'}));
@@ -83,12 +83,12 @@ for sub = 1:length(sub_list)
     else
         disp(strcat('participant ', sub_list(sub), ' does not have ', 'con', ' nifti file'));
     end
-    if ~exist(char(fullfile(vps_dir, 'model-02_CcEScA')), 'dir')
-        mkdir(char(fullfile(vps_dir, 'model-02_CcEScA')))
+    if ~exist(char(fullfile(vps_dir, 'model-03_CEScsA_24dofcsd')), 'dir')
+        mkdir(char(fullfile(vps_dir, 'model-03_CEScsA_24dofcsd')))
     end
     disp(strcat("complete job", sub_list(sub)));
 end
-    table_fname = fullfile(vps_dir, 'model-02_CcEScA', strcat('model-02_CcEScA_', con, '_biomarker-VPS.csv'));
+    table_fname = fullfile(vps_dir, 'model-03_CEScsA_24dofcsd', strcat('model-03_CEScsA_24dofcsd_', con, '_biomarker-VPS.csv'));
     writetable(group, table_fname);
     % clear dat meta_nifti test_file
     

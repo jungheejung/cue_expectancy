@@ -42,8 +42,8 @@ fname_key = {'cognitive_ev-cue_l2norm', 'cognitive_ev-cue', 'cognitive_ev-stim_l
     'vicarious_ev-cue_l2norm', 'vicarious_ev-cue', 'vicarious_ev-stim_l2norm', 'vicarious_ev-stim'};
 %% 2. test run
 
-singletrial_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'multivariate', 's03_concatnifti');
-vps_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'multivariate','s04_extract_biomarker');
+singletrial_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'multivariate_24dofcsd', 's03_concatnifti');
+vps_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'multivariate_24dofcsd','s04_extractbiomarker');
 d = dir(singletrial_dir);
 dfolders = d([d(:).isdir]);
 dfolders_remove = dfolders(~ismember({dfolders(:).name},{'.','..','sub-0000','sub-0002'}));
