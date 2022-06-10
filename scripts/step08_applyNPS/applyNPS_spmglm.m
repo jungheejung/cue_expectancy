@@ -1,4 +1,4 @@
-function applynps_spmglm(input)
+function applynps_spmglm_model03(input)
 % This code is to apply NPS to the TTL extracted pain onsets.
 % The purpose is to identify the correct way to model HRF of pain elicited BOLD signals.
 %%  TODO:
@@ -28,23 +28,23 @@ function applynps_spmglm(input)
 %% 1. Data directories and parameters
 % current_dir = pwd;
 % main_dir = fileparts(fileparts(current_dir));
-contrast_name = {'cue_P', 'cue_V', 'cue_C', 'cue_G',...
-    'cueXcue_P', 'cueXcue_V', 'cueXcue_C', 'cueXcue_G',...
-    'stim_P', 'stim_V', 'stim_C', 'stim_G',...
-    'stimXcue_P', 'stimXcue_V', 'stimXcue_C', 'stimXcue_G',...
-    'motor', ...
-    'simple_cue_P', 'simple_cue_V', 'simple_cue_C',...
-    'simple_cueXcue_P', 'simple_cueXcue_V', 'simple_cueXcue_C', ...
-    'simple_stim_P', 'simple_stim_V', 'simple_stim_C',...
-    'simple_stimXcue_P', 'simple_stimXcue_V', 'simple_stimXcue_C'};
+contrast_name = {'cue_P', 'cue_V', 'cue_C',...
+'stim_P', 'stim_V', 'stim_C',...
+'stimXcue_P', 'stimXcue_V', 'stimXcue_C',...
+'stimXint_P', 'stimXint_V', 'stimXint_C',...
+'motor', ...
+'simple_cue_P', 'simple_cue_V', 'simple_cue_C','simple_cue_G',...
+'simple_stim_P', 'simple_stim_V', 'simple_stim_C','simple_stim_G',...
+'simple_stimXcue_P', 'simple_stimXcue_V', 'simple_stimXcue_C','simple_stimXcue_G',...
+'simple_stimXint_P', 'simple_stimXint_V','simple_stimXint_C', 'simple_stimXint_G'};
 
 %% 2. test run
 current_dir = pwd;
 con = strcat('con_', sprintf('%04d', input));
 main_dir = fileparts(fileparts(current_dir));
 %main_dir = '/Volumes/spacetop_projects_social';
-singletrial_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model-02_CcEScA', '1stLevel');
-nps_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate','model-02_CcEScA', 'extract_nps');
+singletrial_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model-03_CEScsA_24dofcsd', '1stLevel');
+nps_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate','model-03_CEScsA_24dofcsd', 'extract_nps');
 d = dir(singletrial_dir);
 dfolders = d([d(:).isdir]);
 dfolders_remove = dfolders(~ismember({dfolders(:).name},{'.','..','sub-0000','sub-0002'}));
@@ -52,9 +52,8 @@ sub_list = {dfolders_remove.name};
 % key_list = {'pain-early', 'pain-late', 'pain-post', 'pain-plateau', 'pain'};
 % sub = char(sub_list(input));
 group = [];
-% for k = 5:length(key_list)
+
 for sub = 1:length(sub_list)
-%     key = char(key_list(k));
     dat = [];
     subject = [];
     s = []; sub_table = [];
@@ -63,18 +62,7 @@ for sub = 1:length(sub_list)
     test_file = fullfile(singletrial_dir, sub_list(sub), strcat(con, '.nii'));
     disp(strcat('loading ', sub_list(sub), ' test file: ', test_file));
     if isfile(test_file)
-%         nifti_metafname = fullfile(singletrial_dir, sub, strcat('niftifname_',sub,'_task-',key,'_ev-stim.txt'));
-%         meta_nifti = readtable(char(nifti_metafname),'ReadVariableNames',0);
-        % input_images = filenames('image_data/Pain_Sub*ANP_001.img', 'char', 'absolute');
-        % [nps_values, image_names, data_objects] = apply_nps(input_images, 'noverbose');
-        
-        %% apply NPS
-        %             [nps_values, ...
-        %                 image_names, ...
-        %                 data_objects, ...
-        %                 npspos_exp_by_region, ...
-        %                 npsneg_exp_by_region, ...
-        %                 clpos, clneg]  = apply_nps(test_file);
+
         %
         %% Xiaochun code
         dat = fmri_data(test_file);
@@ -154,23 +142,18 @@ for sub = 1:length(sub_list)
         s = table(subject);
         sub_table = [s dat.metadata_table];
         group = [group; sub_table];
-%         
-%         %             name = 'filename';
-%         %             dat.metadata_table{name} = meta_nifti(:,end);
-%         %             filename_meta = table(meta_nifti(:,end), 'VariableNames', 'filename');
-%         meta_nifti.Properties.VariableNames(end) = {'filename'};
-%         dat.metadata_table = [dat.metadata_table meta_nifti(:,end)];
+
 
         
     else
         disp(strcat('participant ', sub_list(sub), ' does not have ', 'con', ' nifti file'));
     end
-    if ~exist(char(fullfile(nps_dir, 'model-02_CcEScA')), 'dir')
-        mkdir(char(fullfile(nps_dir, 'model-02_CcEScA')))
+    if ~exist(char(fullfile(nps_dir, 'model-03_CEScsA_24dofcsd')), 'dir')
+        mkdir(char(fullfile(nps_dir, 'model-03_CEScsA_24dofcsd')))
     end
     disp(strcat("complete job", sub_list(sub)));
 end
-    table_fname = fullfile(nps_dir, 'model-02_CcEScA', strcat('model-02_CcEScA_', con, '.csv'));
+    table_fname = fullfile(nps_dir, 'model-03_CEScsA_24dofcsd', strcat('model-03_CEScsA_24dofcsd_', con, '.csv'));
     writetable(group, table_fname);
     % clear dat meta_nifti test_file
     
