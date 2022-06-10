@@ -95,7 +95,7 @@ for sub = 1:length(sub_list)
     
     disp(strcat("complete job", sub_list(sub)));
 end
-table_fname = fullfile(vps_dir, char(strcat('extract-NPS_', fname_key(input), '.csv')));
+table_fname = fullfile(vps_dir, char(strcat('extract-VPS_', fname_key(input), '.csv')));
 writetable(group, char(table_fname));
 % clear dat meta_nifti test_file
 
