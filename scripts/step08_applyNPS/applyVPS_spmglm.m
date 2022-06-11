@@ -74,15 +74,25 @@ for sub = 1:length(sub_list)
         dat.metadata_table.vps = vps_values;
         dat.metadata_table.vps_corr = vps_corr_values;
         dat.metadata_table.vps_cosine = vps_cosine_values;
-       
-        s = table(subject);
-        f = table(fname_noext);
-        a = [s f];
+        
+        % subject = repmat(sub_list(sub),size(dat.metadata_table,1),1);
+        % fname = repmat(fname_noext,size(dat.metadata_table,1),1);
+        % s = table(subject)
+        % f = table(fname)
+        % sub_table = [s dat.metadata_table];
+        % group = [group; sub_table];
+        subject = sub_list(sub);
+        fname_noext = fname_key(input);
+        % s = table(subject);
+        % f = table(fname_noext);
+        a = table(subject, fname_noext);
+        % a = table(s, fname)
         sub_table = [repmat(a, size(dat.metadata_table,1),1) dat.metadata_table];
-        group = [group; sub_table];
+        group = [group; a];
         sub_fname = fullfile(vps_dir, sub_list(sub), strcat('extract-VPS_', sub_list(sub), '_', fname_noext, '.csv'));
         disp(sub_fname);
         writetable(sub_table, char(sub_fname));
+
     else
         disp(strcat('participant ', sub_list(sub), ' does not have ', 'con', ' nifti file'));
     end
