@@ -66,7 +66,7 @@ for sub = 1:length(sub_list)
         dat = fmri_data(test_file);
         fname = nii_files.name(1:strfind(nii_files.name,'.')-1);
         refmask = fmri_data(which('brainmask.nii'));  % shell image
-        vps = which('bmrk4_VPS_unthresholded.nii');
+        vps = '/dartfs-hpc/rc/lab/C/CANlab/modules/Neuroimaging_Pattern_Masks/Multivariate_signature_patterns/2016_Krishnan_eLife_VPS/bmrk4_VPS_unthresholded.nii';
         vpsw = resample_space(fmri_data(vps), refmask);
         vps_values = apply_mask(dat, vpsw, 'pattern_expression', 'ignore_missing');
         vps_corr_values = apply_mask(dat, vpsw, 'pattern_expression', 'correlation', 'ignore_missing');
@@ -76,20 +76,25 @@ for sub = 1:length(sub_list)
         dat.metadata_table.vps_corr = vps_corr_values;
         dat.metadata_table.vps_cosine = vps_cosine_values;
         
-        subject = sub_list(sub);
-        s = table(subject);
-        sub_table = [s dat.metadata_table];
-        group = [group; sub_table];
+        % subject = repmat(sub_list(sub),size(dat.metadata_table,1),1);
+        % fname = repmat(fname_noext,size(dat.metadata_table,1),1);
+        % s = table(subject)
+        % f = table(fname)
+        % sub_table = [s dat.metadata_table];
+        % group = [group; sub_table];
         subject = sub_list(sub);
         fname_noext = fname_key(input);
-        s = table(subject);
-        f = table(fname_noext);
-        a = [s f];
+        % s = table(subject);
+        % f = table(fname_noext);
+        a = table(subject, fname_noext);
+        % a = table(s, fname)
         sub_table = [repmat(a, size(dat.metadata_table,1),1) dat.metadata_table];
-        group = [group; sub_table];
+        group = [group; a];
         sub_fname = fullfile(vps_dir, sub_list(sub), strcat('extract-VPS_', sub_list(sub), '_', fname_noext, '.csv'));
         disp(sub_fname);
         writetable(sub_table, char(sub_fname));
+
+
     else
         disp(strcat('participant ', sub_list(sub), ' does not have ', 'con', ' nifti file'));
     end
