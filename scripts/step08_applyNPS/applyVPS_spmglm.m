@@ -63,7 +63,7 @@ for sub = 1:length(sub_list)
         dat = fmri_data(test_file);
         
         refmask = fmri_data(which('brainmask.nii'));  % shell image
-        vps = which('bmrk4_VPS_unthresholded.nii');
+        vps = '/dartfs-hpc/rc/lab/C/CANlab/modules/Neuroimaging_Pattern_Masks/Multivariate_signature_patterns/2016_Krishnan_eLife_VPS/bmrk4_VPS_unthresholded.nii';
         vpsw = resample_space(fmri_data(vps), refmask);
 %         
         vps_values = apply_mask(dat, vpsw, 'pattern_expression', 'ignore_missing');
