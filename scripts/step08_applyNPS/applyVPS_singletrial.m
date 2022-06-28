@@ -107,5 +107,15 @@ writetable(group, char(table_fname));
 
 end
 
+% subject = sub_list(sub);
+% fname_noext = fname_key(input);
+% s = table(subject);
+% f = table(fname_noext);
+% a = [s f];
+% sub_table = [repmat(a, size(dat.metadata_table,1),1) dat.metadata_table];
+% group = [group; sub_table];
+% sub_fname = fullfile(nps_dir, sub_list(sub), strcat('extract-NPS_', sub_list(sub), '_', fname_noext, '.csv'));
+% disp(sub_fname);
+% writetable(sub_table, char(sub_fname));
 
 
