@@ -38,7 +38,13 @@
 echo "SLURMSARRAY: " ${SLURM_ARRAY_TASK_ID}
 IND=$((SLURM_ARRAY_TASK_ID+1))
 INFILE=`awk -F '\r\t\n' "NR==${SLURM_ARRAY_TASK_ID}" ./s06_mediation_list.txt`
+INFILE=`awk -F ','  "NR==${IND}" ./s06_mediation_list.txt`
 echo $INFILE
+task=$(echo $INFILE | cut -d, -f1)
+x_event=$(echo $INFILE | cut -d, -f2)
+csv=$(echo $INFILE | cut -d, -f3)
+y_rating=$(echo $INFILE | cut -d, -f4)
+
 task=$(echo $INFILE | cut -d$' ' -f1)
 x_event=$(echo $INFILE | cut -d$' ' -f2)
 csv=$(echo $INFILE | cut -d$' ' -f3)
@@ -46,7 +52,8 @@ y_rating=$(echo $INFILE | cut -d$' ' -f4)
 echo ${task} ${x_event} ${csv} ${y_rating}
 
 # create folder and move template script to said folder
-FOLDER=task-smooth-${task}_med-cue-${csv}
+FOLDER="smooth-6mm_task-social_run-${task}_med-cue-${csv}"
+echo ${FOLDER}
 mkdir -p ${FOLDER}
 cp s06_template_mediation.m ${FOLDER}
 cd ${FOLDER}

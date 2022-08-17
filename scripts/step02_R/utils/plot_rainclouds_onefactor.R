@@ -55,8 +55,8 @@ plot_rainclouds_onefactor <- function(subjectwise, groupwise, iv,
     ) +
     # legend stuff ________________________________________________________ # nolint
     expand_limits(x = 2.8) +
-    guides(fill = FALSE) +
-    guides(color = FALSE) +
+    #guides(fill = "none") +
+    guides(color = "none") +
     guides(fill = guide_legend(title = title)) +
     scale_fill_manual(values = color) +
     scale_color_manual(values = color) +
@@ -64,6 +64,6 @@ plot_rainclouds_onefactor <- function(subjectwise, groupwise, iv,
     xlab(xlab) +
     ylab(ylab) +
     theme_bw()
-  # ggsave(save_fname, width = w, height = h)
+  ggsave(save_fname, width = w, height = h)
   return(g)
 }

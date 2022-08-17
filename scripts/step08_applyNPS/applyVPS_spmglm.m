@@ -1,0 +1,112 @@
+function applyVPS_spmglm(input)
+% This code is to apply NPS to the TTL extracted pain onsets.
+% The purpose is to identify the correct way to model HRF of pain elicited BOLD signals.
+%%  TODO:
+% 1. load filenames as fmri_data
+% Inputs
+
+% Inputs:
+% -------------------------------------------------------------------------
+% input_images           multiple formats:
+%                        - fmri_data object (or other image_vector object)
+%                        - fmri_data objects (or other image_vector objects) in cell { }
+%                        - list of image names
+%                        - cell { } with multiple lists of image names
+%                        - image wildcard (NOTE: uses filenames.m, needs
+%                        system compatibility)
+%                        - cell { } with multiple image wildcards
+% Optional inputs:
+% 'noverbose'           suppress screen output
+%                       not recommended for first run, as verbose output
+%                       prints info about missing voxels in each image
+% 'notables'            suppress text table output with images and values
+%
+%                       Note:Similarity metric passed through to canlab_pattern_similarity
+% 'cosine_similarity'   Use cosine similarity measure instead of dot product
+% 'correlation'         Use correlation measure instead of dot product
+
+%% 1. Data directories and parameters
+% current_dir = pwd;
+% main_dir = fileparts(fileparts(current_dir));
+
+contrast_name = {'cue_P', 'cue_V', 'cue_C',...
+'stim_P', 'stim_V', 'stim_C',...
+'stimXcue_P', 'stimXcue_V', 'stimXcue_C',...
+'stimXint_P', 'stimXint_V', 'stimXint_C',...
+'motor', ...
+'simple_cue_P', 'simple_cue_V', 'simple_cue_C','simple_cue_G',...
+'simple_stim_P', 'simple_stim_V', 'simple_stim_C','simple_stim_G',...
+'simple_stimXcue_P', 'simple_stimXcue_V', 'simple_stimXcue_C','simple_stimXcue_G',...
+'simple_stimXint_P', 'simple_stimXint_V','simple_stimXint_C', 'simple_stimXint_G'};
+%% 2. test run
+current_dir = pwd;
+con = strcat('con_', sprintf('%04d', input));
+main_dir = fileparts(fileparts(current_dir));
+disp(main_dir);
+%main_dir = '/Volumes/spacetop_projects_social';
+singletrial_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model-03_CEScsA_24dofcsd', '1stLevel');
+vps_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate','model-03_CEScsA_24dofcsd', 'extract_vps');
+d = dir(singletrial_dir);
+dfolders = d([d(:).isdir]);
+dfolders_remove = dfolders(~ismember({dfolders(:).name},{'.','..','sub-0000','sub-0002'}));
+sub_list = {dfolders_remove.name};
+group = [];
+for sub = 1:length(sub_list)
+    dat = [];
+    subject = [];
+    s = []; sub_table = [];
+    test_file = [];
+    meta_nifti = [];
+    test_file = fullfile(singletrial_dir, sub_list(sub), strcat(con, '.nii'));
+    disp(strcat('loading ', sub_list(sub), ' test file: ', test_file));
+    if isfile(test_file)
+        dat = fmri_data(test_file);
+        
+        refmask = fmri_data(which('brainmask.nii'));  % shell image
+        vps = '/dartfs-hpc/rc/lab/C/CANlab/modules/Neuroimaging_Pattern_Masks/Multivariate_signature_patterns/2016_Krishnan_eLife_VPS/bmrk4_VPS_unthresholded.nii';
+        vpsw = resample_space(fmri_data(vps), refmask);
+%         
+        vps_values = apply_mask(dat, vpsw, 'pattern_expression', 'ignore_missing');
+        vps_corr_values = apply_mask(dat, vpsw, 'pattern_expression', 'correlation', 'ignore_missing');
+        vps_cosine_values = apply_mask(dat, vpsw, 'pattern_expression', 'cosine_similarity', 'ignore_missing');
+        
+        
+        dat.metadata_table.vps = vps_values;
+        dat.metadata_table.vps_corr = vps_corr_values;
+        dat.metadata_table.vps_cosine = vps_cosine_values;
+        
+        % subject = repmat(sub_list(sub),size(dat.metadata_table,1),1);
+        % fname = repmat(fname_noext,size(dat.metadata_table,1),1);
+        % s = table(subject)
+        % f = table(fname)
+        % sub_table = [s dat.metadata_table];
+        % group = [group; sub_table];
+        subject = sub_list(sub);
+        fname_noext = fname_key(input);
+        % s = table(subject);
+        % f = table(fname_noext);
+        a = table(subject, fname_noext);
+        % a = table(s, fname)
+        sub_table = [repmat(a, size(dat.metadata_table,1),1) dat.metadata_table];
+        group = [group; a];
+        sub_fname = fullfile(vps_dir, sub_list(sub), strcat('extract-VPS_', sub_list(sub), '_', fname_noext, '.csv'));
+        disp(sub_fname);
+        writetable(sub_table, char(sub_fname));
+
+    else
+        disp(strcat('participant ', sub_list(sub), ' does not have ', 'con', ' nifti file'));
+    end
+    if ~exist(char(fullfile(vps_dir, 'model-03_CEScsA_24dofcsd')), 'dir')
+        mkdir(char(fullfile(vps_dir, 'model-03_CEScsA_24dofcsd')))
+    end
+    disp(strcat("complete job", sub_list(sub)));
+end
+    table_fname = fullfile(vps_dir, 'model-03_CEScsA_24dofcsd', strcat('model-03_CEScsA_24dofcsd_', con, '_biomarker-VPS.csv'));
+    writetable(group, table_fname);
+    % clear dat meta_nifti test_file
+    
+
+end
+
+
+

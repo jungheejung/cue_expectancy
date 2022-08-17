@@ -65,7 +65,7 @@ print(f'directory to save example1 outputs:\n\t{outputdir}\n')
 
 # sub = 'sub-0051'
 # ses = 'ses-04'
-sub = sys.argv[1] # 'sub-0051'
+sub = [sys.argv[1]] # 'sub-0051'
 ttl_key = sys.argv[2] # 'early', 'late', 'post', 'plateau'
 task = 'pain'
 ses_list = [1,3,4]

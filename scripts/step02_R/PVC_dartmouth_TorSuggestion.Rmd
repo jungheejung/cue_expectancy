@@ -237,7 +237,7 @@ expect_df = function(TASKNAME, SUBJECT_VARKEY, IV, DV, EXCLUDE ) {
   # * SUBJECT_VARKEY (e.g. src_subject_id or subject)
   # A. load data ______________________________________________________________
   FILENAME = paste('*_task-social_*-' ,TASKNAME, '_beh.csv', sep = "")
-  common_path = Sys.glob(file.path(main_dir,'data', 'dartmouth', 'preprocessed',
+  common_path = Sys.glob(file.path(main_dir,'data', 'dartmouth', 'd02_preprocessed',
                                    'sub-*','ses-*',FILENAME))
   filter_path = common_path[!str_detect(common_path,pattern="sub-0001")]
   
@@ -263,29 +263,6 @@ expect_df = function(TASKNAME, SUBJECT_VARKEY, IV, DV, EXCLUDE ) {
   
   DF_remove_NA = DF[!is.na(  DF[DV]  ),]
   return(DF_remove_NA)
-  # cog_dataset[!is.na(cog_dataset["event02_expect_angle"]),]
-    # c1. contrastcode
-  # stimulus intensity
-  # DF_remove_NA$stim[DF_remove_NA$event03_stimulus_type == "low_stim"] <- -0.5 # social influence task
-  # DF_remove_NA$stim[DF_remove_NA$event03_stimulus_type == "med_stim"] <- 0 # no influence task
-  # DF_remove_NA$stim[DF_remove_NA$event03_stimulus_type == "high_stim"] <- 0.5 # no influence task
-  # 
-  # DF_remove_NA$stim_factor = factor(DF_remove_NA$event03_stimulus_type)
-  # 
-  # #contrast code 1 linear
-  # DF_remove_NA$stim_con_linear[DF_remove_NA$event03_stimulus_type == "low_stim"] <- -0.5
-  # DF_remove_NA$stim_con_linear[DF_remove_NA$event03_stimulus_type == "med_stim"] <- 0
-  # DF_remove_NA$stim_con_linear[DF_remove_NA$event03_stimulus_type == "high_stim"] <- 0.5
-  # 
-  # # contrast code 2 quadratic
-  # DF_remove_NA$stim_con_quad[DF_remove_NA$event03_stimulus_type == "low_stim"] <- -0.33
-  # DF_remove_NA$stim_con_quad[DF_remove_NA$event03_stimulus_type == "med_stim"] <- 0.66
-  # DF_remove_NA$stim_con_quad[DF_remove_NA$event03_stimulus_type == "high_stim"] <- -0.33
-  # 
-  # # social cude contrast
-  # DF_remove_NA$social_cue[DF_remove_NA[,IV] == 'low_cue'] <- -0.5 # social influence task
-  # DF_remove_NA$social_cue[DF_remove_NA[,IV] == 'high_cue'] <- 0.5 # no influence task
-  # DF_remove_NA$cue_factor = factor(DF_remove_NA[,IV])
   return(as.data.frame(DF_remove_NA))
 }
 
@@ -302,8 +279,8 @@ run_cue_lmer = function(DATA,TASKNAME, IV, DV, SUBJECT, DV_KEYWORD){
   print("--------------------------")
   print(summary(model.cue))
   
-  model_filename = file.path(main_dir, 'analysis', 'semicircle_degree', 
-                   paste('lmer_task-' ,TASKNAME, '_rating-', DV_KEYWORD,'_torsuggest.txt', sep = ""))
+  model_filename = file.path(main_dir, 'analysis', 'archive', 'wideform', 
+                   paste('lmer_task-' ,TASKNAME, '_rating-', DV_KEYWORD,'_torsuggest-wideform.txt', sep = ""))
   sink(model_filename)
   print("--------------------------")
   print(paste("model: ", str_to_title(DV_KEYWORD), " ratings - ", TASKNAME))
@@ -374,6 +351,10 @@ DF$social_cue[DF$param_cue_type == 'high_cue'] <- 0.5 # no influence task
 DF$cue_factor = factor(DF$param_cue_type)
 ```
 
+```
+IV: cue
+DV: expectation rating
+```
 ```{r}
 # parameters
 TASKNAME = 'vicarious'
