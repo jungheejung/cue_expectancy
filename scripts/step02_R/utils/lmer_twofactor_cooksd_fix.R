@@ -32,6 +32,8 @@ lmer_two_factor_cooksd_fix <- function(data, taskname,
             model_string = paste0(dv, "~ ", iv,"*",stim_con1, "+", iv,"*",stim_con2, "+","(1|", subject, ")")
       } else if (effects == "random_slopes"){
             model_string = paste0(dv, "~ ", iv,"*",stim_con1, "+", iv,"*",stim_con2, "+ (", iv,"*",stim_con1, "+", iv,"*",stim_con2,"|", subject, ")")
+      } else if (effects == "no_random"){
+            model_string = paste0(dv, "~ ", iv,"*",stim_con1, "+", iv,"*",stim_con2)
       }
       
       model_full <- lmer(as.formula(model_string), data = data)
@@ -45,10 +47,15 @@ lmer_two_factor_cooksd_fix <- function(data, taskname,
       print(paste("model: ", str_to_title(dv_keyword), " ratings - ", taskname))
       print(model_string)
       print(summary(model_full))
+      print(model_string)
+      print(equatiomatic::extract_eq(model_full))
+
       sink()
+
       print(summary(model_full))
       fixEffect <<- as.data.frame(fixef(model_full))
       randEffect <<- as.data.frame(ranef(model_full))
       cooksd <- cooks.distance(model_full)
+      print(equatiomatic::extract_eq(model_full))
       return(cooksd)
 }
