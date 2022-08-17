@@ -38,7 +38,7 @@ def _event_sort(df, new_df, ind_first, ev, ev_name, dur, mod, regressor, cue_typ
     new_df.loc[ind_first: ind_first+len(df[ev])-1, 'dur'] = dur
     new_df.loc[ind_first: ind_first+len(df[ev])-1, 'mod'] = mod
     new_df.loc[ind_first: ind_first+len(df[ev])-1, 'regressor'] = regressor
-    new_df.loc[ind_first: ind_first+len(df[ev])-1, 'num'] = list(range(len(df[ev])))
+    new_df.loc[ind_first: ind_first+len(df[ev])-1, 'num'] = list(range(1,len(df[ev])+1))
     new_df.loc[ind_first: ind_first+len(df[ev])-1, 'cue_type'] = cue_type
     new_df.loc[ind_first: ind_first+len(df[ev])-1, 'stim_type'] = stim_type
     return new_df.copy()
@@ -131,9 +131,9 @@ for sub in sorted(sub_list):
 
         Path(join(single_dir, sub)).mkdir(parents=True, exist_ok=True)
 
-        if bool(run_type == 'pain') and fname.endswith('events_ttl.tsv'):
+        if run_type == 'pain' and fname.endswith('events_ttl.tsv'):
 
-            fpath = join(spm_dir, f"sub-{sub_num:04d}",  f"ses-{ses_num:02d}", f"sub-{sub_num:04d}_ses-{ses_num:02d}_task-social_run-{run_num:02d}-pain_events_ttl.tsv")
+            # fpath = join(spm_dir, f"sub-{sub_num:04d}",  f"ses-{ses_num:02d}", f"sub-{sub_num:04d}_ses-{ses_num:02d}_task-social_run-{run_num:02d}-pain_events_ttl.tsv")
             os.path.exists(fpath)
             df = pd.DataFrame()
             df = pd.read_csv(fpath, sep = '\t')
@@ -194,7 +194,7 @@ for sub in sorted(sub_list):
             new['sub'] = sub_num
             new['ses'] = ses_num
             new['run'] = run_num
-            new['run_type'] = run_type
+            new['run_type'] = 'pain-plateau'
 
             # filename build string e.g. sub-0005_ses-04_run-06-pain_ev-stim-0011.nii.gz
             new['nifti_name'] = 'sub-' + new['sub'].astype(str).str.zfill(4) + \
@@ -209,7 +209,8 @@ for sub in sorted(sub_list):
             new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'run'] = run_num
             new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'run_type'] = run_type
             new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'regressor'] = False
-        elif bool(run_type == 'pain') and fname.endswith('events.tsv'):
+            subject_dataframe = pd.concat([subject_dataframe, new])
+        elif run_type == 'pain' and fname.endswith('events.tsv'):
             # open behavio fram and add average seconds to dataframe.
             df = pd.DataFrame()
             df = pd.read_csv(fpath, sep = '\t')
@@ -269,7 +270,7 @@ for sub in sorted(sub_list):
             new['sub'] = sub_num
             new['ses'] = ses_num
             new['run'] = run_num
-            new['run_type'] = run_type
+            new['run_type'] = 'pain-ptb'
 
             # filename build string e.g. sub-0005_ses-04_run-06-pain_ev-stim-0011.nii.gz
             new['nifti_name'] = 'sub-' + new['sub'].astype(str).str.zfill(4) + \
@@ -284,6 +285,7 @@ for sub in sorted(sub_list):
             new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'run'] = run_num
             new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'run_type'] = run_type
             new.loc[cue_num+trial_num+1:cue_num+trial_num+nuissance_num+1,'regressor'] = False
+            subject_dataframe = pd.concat([subject_dataframe, new])
         elif bool(run_type == 'vicarious') or bool(run_type == 'cognitive'):
             df = pd.DataFrame()
             df = pd.read_csv(fpath, sep = '\t')
