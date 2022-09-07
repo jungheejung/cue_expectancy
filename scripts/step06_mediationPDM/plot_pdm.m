@@ -66,6 +66,14 @@ M{s} = Moutlier{s}(:,idx_nan');
 X{s} = Xoutlier{s}(idx_nan,:);
 end
 
+for s = 1:length(Youtlier)
+    idx_nan = [];
+    idx_nan = find(~Youtlier{s});
+    Y{s} = Youtlier{s}(idx_nan,:);
+    M{s} = Moutlier{s}(:,idx_nan');
+    X{s} = Xoutlier{s}(idx_nan,:);
+    end
+
 disp(strcat('ultimate subject list: ', sublist))
 
 %% Reduce the dimensionality of the brain-mediator data using PVD
