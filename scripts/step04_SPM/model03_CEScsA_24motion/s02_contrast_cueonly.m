@@ -73,13 +73,11 @@ disp(A);
 % NOTE 04 define contrast
 
 contrast_name = {'cue_P', 'cue_V', 'cue_C',...
-    'cueXcue_P', 'cueXcue_V', 'cueXcue_C',...
     'stim_P', 'stim_V', 'stim_C',...
     'stimXcue_P', 'stimXcue_V', 'stimXcue_C',...
     'stimXint_P', 'stimXint_V', 'stimXint_C',...
     'motor', ...
     'simple_cue_P', 'simple_cue_V', 'simple_cue_C','simple_cue_G',...
-    'simple_cueXcue_P', 'simple_cueXcue_V', 'simple_cueXcue_C','simple_cueXcue_G', ...
     'simple_stim_P', 'simple_stim_V', 'simple_stim_C','simple_stim_G',...
     'simple_stimXcue_P', 'simple_stimXcue_V', 'simple_stimXcue_C','simple_stimXcue_G',...
     'simple_stimXint_P', 'simple_stimXint_V','simple_stimXint_C', 'simple_stimXint_G'};
@@ -115,9 +113,9 @@ for run_ind = 1: size(A,1)
     keyword       = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
     task          = char(extractAfter(keyword, '-'));
 
-    cue_P         = [ m1(task),0,0,0,0,0,0  ]; % 01
-    cue_V         = [ m2(task),0,0,0,0,0,0  ]; % 02
-    cue_C         = [ m3(task),0,0,0,0,0,0  ]; % 03
+    cue_P         = [ m1(task),0,0,0,0,0  ]; % 01
+    cue_V         = [ m2(task),0,0,0,0,0  ]; % 02
+    cue_C         = [ m3(task),0,0,0,0,0  ]; % 03
     
     stim_P        = [ 0,0,m1(task),0,0,0  ]; % 04
     stim_V        = [ 0,0,m2(task),0,0,0  ]; % 05
@@ -133,10 +131,10 @@ for run_ind = 1: size(A,1)
 
     motor         = [ 0,1,0,0,0,1    ];  % 13
 
-    simple_cue_P         = [ m5(task),0,0,0,0,0,0  ]; % 14
-    simple_cue_V         = [ m6(task),0,0,0,0,0,0  ]; % 15
-    simple_cue_C         = [ m7(task),0,0,0,0,0,0  ]; % 16
-    simple_cue_G         = [ m4(task),0,0,0,0,0,0  ]; % 17
+    simple_cue_P         = [ m5(task),0,0,0,0,0  ]; % 14
+    simple_cue_V         = [ m6(task),0,0,0,0,0  ]; % 15
+    simple_cue_C         = [ m7(task),0,0,0,0,0  ]; % 16
+    simple_cue_G         = [ m4(task),0,0,0,0,0  ]; % 17
 
     simple_stim_P        = [ 0,0,m5(task),0,0,0  ]; % 18
     simple_stim_V        = [ 0,0,m6(task),0,0,0  ]; % 19
