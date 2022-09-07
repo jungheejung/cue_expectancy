@@ -47,7 +47,7 @@ if not(exist(task_subfldr, 'dir'))
 end
 dat_fname =  fullfile(task_subfldr, strcat('task-',run{r},'_PDM_', x_keyword, '-', m_keyword,'-',y_keyword, '_l2norm_DAT.mat'));
 
-if ~isfile(dat_fname)
+% if ~isfile(dat_fname)
     niilist = dir(fullfile(nifti_dir, '*', strcat('*_task-social_run-', run{r}, '_ev-', event, '_l2norm.nii')));
     nT = struct2table(niilist); % convert the struct array to a table
     sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
@@ -106,9 +106,9 @@ if ~isfile(dat_fname)
         % end
        % movefile(mydoc, fullfile(task_subfldr,'diagnostics',strcat('singletrial-diagnostics_run-',char( run{r}),'_sub-' , sub, '_l2norm.pdf')));
     end
-else
-    load(dat_fname);
-end
+% else
+    % load(dat_fname);
+% end
 save(dat_fname,'xx','yy','mm','outlier','-v7.3');
 
 
