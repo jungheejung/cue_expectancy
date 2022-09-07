@@ -56,7 +56,7 @@ for sub = 1:length(sub_list)
     end
     dat = [];    subject = [];   s = []; sub_table = [];    test_file = [];
     meta_nifti = [];
-    nii_files = dir(char(fullfile(singletrial_dir, sub_list(sub), char(strcat('*',fname_key(input),'*.nii')))));
+    nii_files = dir(char(fullfile(singletrial_dir, sub_list(sub), char(strcat('*',fname_key(input),'.nii')))));
     % for fl = 1:length(nii_files)
     test_file = fullfile(nii_files.folder, nii_files.name);
     disp(strcat('loading ', sub_list(sub), ' test file: ', test_file));
