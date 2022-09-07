@@ -20,8 +20,10 @@ load_task_social_df <- function(taskname, subject_varkey, iv, dv, exclude) {
   df[, "subject"] <- factor(df[, subject_varkey])
 
   # B. plot expect rating NA ___________________________________________________
+  if (hasArg(dv)){
   df_expect_NA <- aggregate(df[, dv], list(df$subject), function(x) sum(is.na(x)))
   df_remove_NA <- df[!is.na(df[dv]), ]
   df_remove_NA <- as.data.frame(df_remove_NA)
-  return(df_remove_NA)
+      return(df_remove_NA)}
+  else {return(df)}
 }

@@ -58,6 +58,7 @@ disp(size(Xoutlier));    disp(size(Moutlier));    disp(size(Youtlier));
 
 % 3. remove nan trials
 X = cell( size(Xoutlier,1), 1);    Y = cell( size(Xoutlier,1), 1);    M = cell( size(Xoutlier,1), 1);
+% TODO: Use this method?
 for s = 1:length(Youtlier)
 idx_nan = [];
 idx_nan = ~isnan(Youtlier{s});
@@ -65,6 +66,15 @@ Y{s} = Youtlier{s}(idx_nan,:);
 M{s} = Moutlier{s}(:,idx_nan');
 X{s} = Xoutlier{s}(idx_nan,:);
 end
+
+% TODO: Use this method?
+for s = 1:length(Youtlier)
+    idx_nan = [];
+    idx_nan = find(~Youtlier{s});
+    Y{s} = Youtlier{s}(idx_nan,:);
+    M{s} = Moutlier{s}(:,idx_nan');
+    X{s} = Xoutlier{s}(idx_nan,:);
+    end
 
 disp(strcat('ultimate subject list: ', sublist))
 

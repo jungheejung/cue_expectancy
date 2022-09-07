@@ -31,7 +31,7 @@ nifti_dir = os.path.join(main_dir, 'analysis', 'fmri', 'spm', 'multivariate_24do
 
 sub_folders = next(os.walk(nifti_dir))[1]
 sub_folder = [i for i in sub_folders if i.startswith('sub-')]
-remove_int = [1,2,3,4,5]
+remove_int = [1,2,3,4]
 remove_list = [f"sub-{x:04d}" for x in remove_int]
 sub_list = [i for i in sub_folder if i not in remove_list]
 items_to_remove = ['singletrial_SPM_03-pain-post', 'singletrial_SPM_02-pain-late','singletrial_SPM_04-pain-plateau','singletrial_SPM_01-pain-early']
@@ -84,10 +84,10 @@ for sub, run_type, ev in full_list:
             f'sub-(\d+)_ses-(\d+)_run-(\d+)-([A-Za-z-]+)_task-social_ev-([A-Za-z-]+)-(\d+)', expand=True)[6].astype(int)
 
         meta = meta.dropna(subset=['num'])
-        meta['num'] = meta['num'].astype(np.int64)
+        meta['num'] = meta['num'].astype(np.int64).copy()
 
-        mask = meta[['sub', 'ses', 'run', 'ev', 'num']].apply(lambda x: all(
-            np.in1d(x, nifti[['sub', 'ses', 'run', 'ev', 'num']])), axis=1)
+        mask = meta[['sub', 'ses', 'run_type', 'ev', 'num']].apply(lambda x: all(
+            np.in1d(x, nifti[['sub', 'ses', 'run_type', 'ev', 'num']])), axis=1)
         filtered = meta.loc[mask, ]
         filtered['nifti_name'] = filtered['sub'].apply(lambda x: f"sub-{x:04d}") +'_'+ filtered['sub'].apply(lambda x: f"ses-{x:02d}") +'_'+ \
         filtered['run'].apply(lambda x: f"run-{x:02d}") +'-'+ filtered['run_type'] + '_task-social-' + filtered['num'].apply(lambda x: f"ev-stim-{x:04d}")
@@ -116,7 +116,7 @@ for sub, ev in full_list:
     nifti_fname = os.path.join(nifti_dir, sub, f"niftifname_{sub}_task-social_run-general_ev-{ev}.txt")
 
     if os.path.exists(subject_csv) & os.path.exists(nifti_fname):
-        print(f"loading {sub} {run_type} {ev}")
+        print(f"loading {sub}  {ev}")
         nifti = pd.read_csv(nifti_fname, sep = '\t', header = None)
         meta = pd.read_csv(subject_csv)
     # subset task and ev, # based on text file, # only grab rows that exist
@@ -151,5 +151,5 @@ for sub, ev in full_list:
         filtered.to_csv(save_genfname)
     else:
         print(f"{sub}_task-social_run-general_ev-{ev} doesnt exist")
-        logger.warning(msg=f"Failed to copy - {sub}_task-social_run-{run_type}_ev-{ev} doesnt exist")
+        logger.warning(msg=f"Failed to copy - {sub}_task-social_run-general_ev-{ev} doesnt exist")
     
