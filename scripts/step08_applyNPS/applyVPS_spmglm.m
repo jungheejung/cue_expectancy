@@ -28,16 +28,16 @@ function applyVPS_spmglm(input)
 %% 1. Data directories and parameters
 % current_dir = pwd;
 % main_dir = fileparts(fileparts(current_dir));
+contrast_name = {'cue_P', 'cue_V', 'cue_C', 'cue_G',...
+    'cueXcue_P', 'cueXcue_V', 'cueXcue_C', 'cueXcue_G',...
+    'stim_P', 'stim_V', 'stim_C', 'stim_G',...
+    'stimXcue_P', 'stimXcue_V', 'stimXcue_C', 'stimXcue_G',...
+    'motor', ...
+    'simple_cue_P', 'simple_cue_V', 'simple_cue_C',...
+    'simple_cueXcue_P', 'simple_cueXcue_V', 'simple_cueXcue_C', ...
+    'simple_stim_P', 'simple_stim_V', 'simple_stim_C',...
+    'simple_stimXcue_P', 'simple_stimXcue_V', 'simple_stimXcue_C'};
 
-contrast_name = {'cue_P', 'cue_V', 'cue_C',...
-'stim_P', 'stim_V', 'stim_C',...
-'stimXcue_P', 'stimXcue_V', 'stimXcue_C',...
-'stimXint_P', 'stimXint_V', 'stimXint_C',...
-'motor', ...
-'simple_cue_P', 'simple_cue_V', 'simple_cue_C','simple_cue_G',...
-'simple_stim_P', 'simple_stim_V', 'simple_stim_C','simple_stim_G',...
-'simple_stimXcue_P', 'simple_stimXcue_V', 'simple_stimXcue_C','simple_stimXcue_G',...
-'simple_stimXint_P', 'simple_stimXint_V','simple_stimXint_C', 'simple_stimXint_G'};
 %% 2. test run
 current_dir = pwd;
 con = strcat('con_', sprintf('%04d', input));
@@ -63,7 +63,7 @@ for sub = 1:length(sub_list)
         dat = fmri_data(test_file);
         
         refmask = fmri_data(which('brainmask.nii'));  % shell image
-        vps = '/dartfs-hpc/rc/lab/C/CANlab/modules/Neuroimaging_Pattern_Masks/Multivariate_signature_patterns/2016_Krishnan_eLife_VPS/bmrk4_VPS_unthresholded.nii';
+        vps = which('/dartfs-hpc/rc/lab/C/CANlab/modules/Neuroimaging_Pattern_Masks/Multivariate_signature_patterns/2016_Krishnan_eLife_VPS/bmrk4_VPS_unthresholded.nii');
         vpsw = resample_space(fmri_data(vps), refmask);
 %         
         vps_values = apply_mask(dat, vpsw, 'pattern_expression', 'ignore_missing');
@@ -75,24 +75,11 @@ for sub = 1:length(sub_list)
         dat.metadata_table.vps_corr = vps_corr_values;
         dat.metadata_table.vps_cosine = vps_cosine_values;
         
-        % subject = repmat(sub_list(sub),size(dat.metadata_table,1),1);
-        % fname = repmat(fname_noext,size(dat.metadata_table,1),1);
-        % s = table(subject)
-        % f = table(fname)
-        % sub_table = [s dat.metadata_table];
-        % group = [group; sub_table];
         subject = sub_list(sub);
-        fname_noext = fname_key(input);
-        % s = table(subject);
-        % f = table(fname_noext);
-        a = table(subject, fname_noext);
-        % a = table(s, fname)
-        sub_table = [repmat(a, size(dat.metadata_table,1),1) dat.metadata_table];
-        group = [group; a];
-        sub_fname = fullfile(vps_dir, sub_list(sub), strcat('extract-VPS_', sub_list(sub), '_', fname_noext, '.csv'));
-        disp(sub_fname);
-        writetable(sub_table, char(sub_fname));
-
+        s = table(subject);
+        sub_table = [s dat.metadata_table];
+        group = [group; sub_table];
+        
     else
         disp(strcat('participant ', sub_list(sub), ' does not have ', 'con', ' nifti file'));
     end
