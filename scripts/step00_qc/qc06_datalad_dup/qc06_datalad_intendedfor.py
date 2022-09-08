@@ -73,12 +73,12 @@ with open(txt_filename, 'w') as f:
 
 # TODO: delete later. clean up anything below __________________________________________
 # 3-3. if the file is at the end of the list, deleted 
-# if dup_index[0] == len(copy_list)-1:
-#     copy_list.pop(-1)
-#     print(f"removed {dup_fname} from list")
-#     f['IntendedFor'] = copy_list
+if dup_index[0] == len(copy_list)-1:
+    copy_list.pop(-1)
+    print(f"removed {dup_fname} from list")
+    f['IntendedFor'] = copy_list
 # 3-4. if the file is in the middle of the list, simply delete
-# elif dup_index[0] < len(copy_list)-1:
+elif dup_index[0] < len(copy_list)-1:
 
 # conda activate spacetop_env (within shell script)
 # /dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/dartmouth/sub-0009/ses-01/fmap/sub-0009_ses-01_acq-mb8_dir-ap_run-01_epi.json

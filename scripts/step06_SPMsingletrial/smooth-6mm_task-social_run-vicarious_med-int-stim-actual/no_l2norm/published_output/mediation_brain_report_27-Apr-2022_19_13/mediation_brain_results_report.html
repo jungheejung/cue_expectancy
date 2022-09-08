@@ -1,0 +1,806 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>mediation_brain_results_report</title><meta name="generator" content="MATLAB 9.9"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-04-27"><meta name="DC.source" content="mediation_brain_results_report.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#3">Loading results and mask</a></li><li><a href="#4">FDR-corrected results</a></li><li><a href="#6">Path a results table, FDR-corrected</a></li><li><a href="#7">Path b results table, FDR-corrected</a></li><li><a href="#8">Path ab results table, FDR-corrected</a></li><li><a href="#9">Combined montage plot with slices, FDR-corrected</a></li><li><a href="#11">Uncorrected results</a></li><li><a href="#12">Path a results table, uncorrected</a></li><li><a href="#13">Path b results table, uncorrected</a></li><li><a href="#14">Path ab results table, uncorrected</a></li><li><a href="#15">Montage plot with slices, uncorrected</a></li><li><a href="#16">Savefile information for objects with extracted data</a></li></ul></div><h2 id="3">Loading results and mask</h2><p>----------------------------------------------------------------</p><pre class="codeoutput">----------------------------------------------
+LOADING mediation results and images
+----------------------------------------------
+Calculating FDR threshold across family of tests in these images:
+X-M_pvals.img  
+M-Y_pvals.img  
+X-M-Y_pvals.img
+Direct calls to spm_defauts are deprecated.
+Please use spm('Defaults',modality) or spm_get_defaults instead.
+Total p-values:  530172
+FDR threshold is    -Inf
+Saving in SETUP.fdr_p_thresh
+Using mask.img stored in current directory (automatically written for mediation analyses) for mask.
+
+sampleto =
+
+    '/Volumes/spacetop_projects_social/scripts/step06_SPMsingletrial/smooth-6mm_task-social_run-vicarious_med-int-stim-actual/mask.img'
+
+
+sampleto =
+
+    'X-M_pvals.img'
+
+
+sampleto =
+
+    'X-M_effect.img'
+
+
+sampleto =
+
+    'M-Y_pvals.img'
+
+
+sampleto =
+
+    'M-Y_effect.img'
+
+
+sampleto =
+
+    'X-M-Y_pvals.img'
+
+
+sampleto =
+
+    'X-M-Y_effect.img'
+
+----------------------------------------------
+Loaded mediation:
+----------------------------------------------
+              mask: '/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/gray_matter_mask.nii'
+          preprocX: 0
+          preprocY: 0
+          preprocM: 0
+    wh_is_mediator: 'M'
+         cmdstring: 'Search for mediators'
+                TR: NaN
+          HPlength: []
+        dummyscans: [1 2]
+       preproc_any: 0
+             names: {'X'  'Y'  'M'}
+       outputnames: {1&times;25 cell}
+     preprochandle: []
+           fhandle: @(M)mediation_brain_multilev_wrapper(X,Y,M,varargin{:})
+              data: [1&times;1 struct]
+      inputOptions: {'nopreproc'}
+      fdr_p_thresh: -Inf
+
+----------------------------------------------
+Mask for analysis:
+----------------------------------------------
+Grouping contiguous voxels:   9 regions
+sagittal montage: 4165 voxels displayed, 77215 not displayed on these slices
+axial montage: 22284 voxels displayed, 59096 not displayed on these slices
+</pre><img vspace="5" hspace="5" src="mediation_brain_results_report_01.png" alt=""> <img vspace="5" hspace="5" src="mediation_brain_results_report_02.png" alt=""> <h2 id="4">FDR-corrected results</h2><p>----------------------------------------------------------------</p><h2 id="6">Path a results table, FDR-corrected</h2><h2 id="7">Path b results table, FDR-corrected</h2><h2 id="8">Path ab results table, FDR-corrected</h2><h2 id="9">Combined montage plot with slices, FDR-corrected</h2><pre class="codeoutput">No FDR-significant results
+</pre><h2 id="11">Uncorrected results</h2><p>----------------------------------------------------------------</p><pre class="codeoutput">----------------------------------------------
+Uncorrected (p &lt; .01)  results
+----------------------------------------------
+</pre><h2 id="12">Path a results table, uncorrected</h2><pre class="codeoutput">----------------------------------------------
+Path a, Uncorrected (p &lt; .01)
+----------------------------------------------
+
+Image   1
+ 68 contig. clusters, sizes   3 to 1355
+Positive effect: 4742 voxels, min p-value: 0.00000132
+Negative effect: 768 voxels, min p-value: 0.00001372
+Grouping contiguous voxels:  68 regions
+
+____________________________________________________________________________________________________________________________________________
+Positive Effects
+
+sampleto =
+
+    '/Users/h/Documents/MATLAB/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask.nii'
+
+           Region           Volume           XYZ             maxZ        modal_label_descriptions       Perc_covered_by_label    Atlas_regions_covered    region_index
+    ____________________    ______    _________________    ________    _____________________________    _____________________    _____________________    ____________
+
+    {'Amygdala_LB_'    }      688     -27     -1    -22     0.10413    {'Amygdala'                 }              79                       0                   17     
+    {'Multiple regions'}    55808     -27     15      3     0.37729    {'Basal_ganglia'            }               5                      30                   15     
+    {'Putamen_Pp_L'    }     1304     -29    -17     -8     0.13945    {'Basal_ganglia'            }              25                       1                   26     
+    {'GPe_L'           }      240     -21     -1      5    0.076619    {'Basal_ganglia'            }              57                       0                   34     
+    {'Bstem_Pons_L'    }      480      -3    -25    -33     0.11495    {'Brainstem'                }              55                       0                   12     
+    {'Bstem_Ponscd'    }     5112     -16    -12    -14     0.24096    {'Brainstem'                }              30                       5                   19     
+    {'Bstem_Midb_R'    }     1232      11    -22    -11     0.14305    {'Brainstem'                }              34                       4                   22     
+    {'Bstem_Midbrv_R'  }      552      22    -17    -11     0.10929    {'Brainstem'                }              42                       0                   27     
+    {'Cblm_VIIb_R'     }      480      32    -71    -54    0.091011    {'Cerebellum'               }              98                       0                    1     
+    {'Cblm_VIIb_L'     }      448     -27    -71    -57    0.090177    {'Cerebellum'               }              66                       0                    2     
+    {'Cblm_VIIb_L'     }      336     -37    -57    -54    0.062728    {'Cerebellum'               }              67                       0                    3     
+    {'Cblm_CrusII_L'   }     3000     -21    -73    -35      0.1148    {'Cerebellum'               }              44                       0                    4     
+    {'Cblm_Vermis_IX'  }     1976       3    -55    -38     0.12771    {'Cerebellum'               }              38                       2                    5     
+    {'Cblm_Dentate_R'  }      240      19    -47    -35    0.065598    {'Cerebellum'               }              87                       0                    7     
+    {'Cblm_CrusII_R'   }      384      19    -79    -35    0.078234    {'Cerebellum'               }             100                       0                    9     
+    {'Cblm_CrusI_R'    }      408      38    -82    -35    0.076968    {'Cerebellum'               }              53                       0                   10     
+    {'Cblm_CrusI_R'    }      448      11    -71    -30    0.090757    {'Cerebellum'               }              20                       0                   11     
+    {'Cblm_V_L'        }     3832      -3    -52    -14     0.11039    {'Cerebellum'               }              37                       0                   16     
+    {'Ctx_9m_R'        }     3000       8     58     27     0.15171    {'Cortex_Default_ModeA'     }              64                       1                   38     
+    {'Ctx_23d_L'       }     1168      -5    -25     32     0.10774    {'Cortex_Default_ModeA'     }              12                       0                   39     
+    {'Ctx_23d_L'       }     1688       0    -14     43     0.13292    {'Cortex_Default_ModeA'     }              27                       1                   43     
+    {'Ctx_STSdp_L'     }      824     -56    -28      0    0.077284    {'Cortex_Default_ModeB'     }              55                       0                   29     
+    {'Multiple regions'}    33544      -3     26     43     0.20977    {'Cortex_Default_ModeB'     }               8                      17                   37     
+    {'Ctx_9m_L'        }      432      -8     50     43    0.072011    {'Cortex_Default_ModeB'     }              31                       0                   45     
+    {'Ctx_PreS_L'      }     3368     -13    -44     -3     0.19083    {'Cortex_Default_ModeC'     }              16                       1                   24     
+    {'Ctx_i6_8_L'      }     2136     -24     15     54     0.08205    {'Cortex_Dorsal_AttentionB' }              24                       2                   47     
+    {'Ctx_i6_8_L'      }      888     -32     -1     57    0.075538    {'Cortex_Dorsal_AttentionB' }              32                       0                   49     
+    {'Ctx_8C_R'        }      704      38     10     30     0.12599    {'Cortex_Fronto_ParietalA'  }              48                       1                   40     
+    {'Ctx_p9_46v_R'    }      288      51     20     30     0.14505    {'Cortex_Fronto_ParietalA'  }              28                       0                   41     
+    {'Ctx_p47r_L'      }      528     -54     42      0    0.096558    {'Cortex_Fronto_ParietalB'  }              33                       0                   30     
+    {'Ctx_TGd_R'       }      384      40      2    -41    0.069044    {'Cortex_Limbic'            }              52                       0                    6     
+    {'Ctx_TGd_R'       }     1008      30     18    -35    0.085433    {'Cortex_Limbic'            }              90                       0                    8     
+    {'Multiple regions'}    22928      43     18     -8     0.22265    {'Cortex_Limbic'            }               9                      11                   13     
+    {'Ctx_Pir_L'       }     1184     -24     12    -22     0.14521    {'Cortex_Limbic'            }              21                       0                   14     
+    {'Ctx_25_R'        }      536       3     23    -19      0.1034    {'Cortex_Limbic'            }              31                       0                   18     
+    {'Ctx_Pir_L'       }      480     -40      4    -19     0.15035    {'Cortex_Limbic'            }              37                       0                   20     
+    {'Ctx_3b_L'        }      688     -43    -17     51     0.09052    {'Cortex_SomatomotorA'      }              47                       0                   46     
+    {'Ctx_3b_L'        }      776     -27    -28     54      0.0646    {'Cortex_SomatomotorA'      }              24                       0                   48     
+    {'Ctx_TPOJ1_R'     }    13448      56    -33      3     0.21072    {'Cortex_Temporal_Parietal' }              17                       5                   25     
+    {'Ctx_STV_L'       }     7280     -59    -47      8     0.15676    {'Cortex_Temporal_Parietal' }              26                       3                   32     
+    {'Ctx_PoI2_L'      }      928     -40     -6     -8     0.10121    {'Cortex_Ventral_AttentionA'}              41                       0                   28     
+    {'Ctx_55b_R'       }     2688      51      4     46     0.16627    {'Cortex_Ventral_AttentionA'}              47                       1                   44     
+    {'Ctx_V3_L'        }     3304     -29    -95     -6     0.12229    {'Cortex_Visual_Central'    }              21                       0                   21     
+    {'Ctx_V2_R'        }     2744      30    -95     -6     0.12666    {'Cortex_Visual_Central'    }              25                       0                   23     
+    {'Ctx_V1_R'        }    10736      14    -65     11     0.14038    {'Cortex_Visual_Peripheral' }              42                       3                   31     
+    {'Ctx_V1_L'        }     6392     -13    -68     16     0.13954    {'Cortex_Visual_Peripheral' }              37                       1                   33     
+    {'Ctx_V1_L'        }      560       0    -82     13     0.10517    {'Cortex_Visual_Peripheral' }              54                       0                   35     
+    {'Thal_VPL'        }      224     -19    -17     13    0.075505    {'Diencephalon'             }              36                       0                   36     
+    {'No label'        }      160       5     -4     30    0.071379    {'No description'           }               0                       0                   42     
+
+
+Negative Effects
+           Region           Volume           XYZ             maxZ         modal_label_descriptions       Perc_covered_by_label    Atlas_regions_covered    region_index
+    ____________________    ______    _________________    _________    _____________________________    _____________________    _____________________    ____________
+
+    {'Ctx_2_R'         }     8648      32    -41     59     -0.14742    {'Cortex_Dorsal_AttentionB' }             21                        3                   63     
+    {'Ctx_2_L'         }      552     -37    -36     46    -0.079076    {'Cortex_Dorsal_AttentionB' }             67                        0                   64     
+    {'Ctx_7PC_L'       }     1664     -37    -47     65     -0.15533    {'Cortex_Dorsal_AttentionB' }             53                        1                   65     
+    {'Ctx_7Am_R'       }      336      11    -52     67    -0.058126    {'Cortex_Dorsal_AttentionB' }             29                        0                   66     
+    {'Ctx_7AL_L'       }      552     -24    -49     73    -0.099401    {'Cortex_Dorsal_AttentionB' }             29                        0                   68     
+    {'Ctx_5m_L'        }      432       0    -44     65    -0.079823    {'Cortex_SomatomotorA'      }             26                        0                   67     
+    {'Ctx_43_R'        }      416      51     -4     11    -0.050185    {'Cortex_SomatomotorB'      }             37                        0                   56     
+    {'Ctx_PFcm_R'      }      528      48    -28     24     -0.08427    {'Cortex_SomatomotorB'      }             59                        0                   57     
+    {'Ctx_PF_L'        }     1648     -62    -28     40     -0.10062    {'Cortex_Ventral_AttentionA'}             56                        0                   60     
+    {'Ctx_PF_R'        }     2440      59    -22     43     -0.12646    {'Cortex_Ventral_AttentionA'}             31                        1                   61     
+    {'Ctx_V3_R'        }      656      24    -76     -8    -0.079927    {'Cortex_Visual_Central'    }             55                        0                   50     
+    {'Ctx_V8_L'        }      512     -27    -68     -8     -0.08623    {'Cortex_Visual_Central'    }             47                        0                   51     
+    {'Multiple regions'}     5800     -48    -73      3      -0.1579    {'Cortex_Visual_Central'    }             20                        6                   52     
+    {'Multiple regions'}     6640      48    -71      5     -0.13131    {'Cortex_Visual_Central'    }             18                        6                   53     
+    {'Ctx_V2_R'        }     3104      22    -98     16     -0.10477    {'Cortex_Visual_Central'    }             26                        0                   54     
+    {'Ctx_V3_L'        }     1496     -21    -98     16     -0.10399    {'Cortex_Visual_Central'    }             51                        0                   55     
+    {'Ctx_V6A_L'       }     2256     -21    -90     35     -0.11816    {'Cortex_Visual_Peripheral' }             23                        2                   58     
+    {'Ctx_V7_R'        }      896      24    -84     32    -0.072106    {'Cortex_Visual_Peripheral' }             25                        0                   59     
+    {'Ctx_V6A_R'       }      600      24    -87     43    -0.073983    {'Cortex_Visual_Peripheral' }             37                        0                   62     
+
+
+____________________________________________________________________________________________________________________________________________
+Regions labeled by reference atlas CANlab_2018_combined
+                                                       
+Volume: Volume of contiguous region in cubic mm.
+MaxZ: Signed max over p
+Atlas_regions_covered: Number of reference atlas regions covered at least 25% by the region. This relates to whether the region covers 
+multiple reference atlas regions                                                                                                       
+Region: Best reference atlas label, defined as reference region with highest number of in-region voxels. Regions covering &gt;25% of &gt;5 
+regions labeled as "Multiple regions"                                                                                                
+Perc_covered_by_label: Percentage of the region covered by the label.
+Ref_region_perc: Percentage of the label region within the target region.
+modal_atlas_index: Index number of label region in reference atlas
+all_regions_covered: All regions covered &gt;5% in descending order of importance
+ 
+For example, if a region is labeled 'TE1a' and Perc_covered_by_label = 8, Ref_region_perc = 38, and Atlas_regions_covered = 17, this means 
+that 8% of the region's voxels are labeled TE1a, which is the highest percentage among reference label regions. 38% of the region TE1a is  
+covered by the region. However, the region covers at least 25% of 17 distinct labeled reference regions.                                   
+                                                                                                                                           
+References for atlases:
+                       
+Beliveau, Vincent, Claus Svarer, Vibe G. Frokjaer, Gitte M. Knudsen, Douglas N. Greve, and Patrick M. Fisher. 2015. &#8220;Functional 
+Connectivity of the Dorsal and Median Raphe Nuclei at Rest.&#8221; NeuroImage 116 (August): 187&#8211;95.                                   
+B&auml;r, Karl-J&uuml;rgen, Feliberto de la Cruz, Andy Schumann, Stefanie Koehler, Heinrich Sauer, Hugo Critchley, and Gerd Wagner. 2016. ?Functional 
+Connectivity and Network Analysis of Midbrain and Brainstem Nuclei.? NeuroImage 134 (July):53?63.                                           
+Diedrichsen, J&ouml;rn, Joshua H. Balsters, Jonathan Flavell, Emma Cussans, and Narender Ramnani. 2009. A Probabilistic MR Atlas of the Human 
+Cerebellum. NeuroImage 46 (1): 39?46.                                                                                                    
+Fairhurst, Merle, Katja Wiech, Paul Dunckley, and Irene Tracey. 2007. ?Anticipatory Brainstem Activity Predicts Neural Processing of Pain 
+in Humans.? Pain 128 (1-2):101?10.                                                                                                        
+Fan 2016 Cerebral Cortex; doi:10.1093/cercor/bhw157
+Glasser, Matthew F., Timothy S. Coalson, Emma C. Robinson, Carl D. Hacker, John Harwell, Essa Yacoub, Kamil Ugurbil, et al. 2016. A 
+Multi-Modal Parcellation of Human Cerebral Cortex. Nature 536 (7615): 171?78.                                                       
+Keren, Noam I., Carl T. Lozar, Kelly C. Harris, Paul S. Morgan, and Mark A. Eckert. 2009. &#8220;In Vivo Mapping of the Human Locus Coeruleus.&#8221; 
+NeuroImage 47 (4): 1261&#8211;67.                                                                                                               
+Keuken, M. C., P-L Bazin, L. Crown, J. Hootsmans, A. Laufer, C. M&uuml;ller-Axt, R. Sier, et al. 2014. &#8220;Quantifying Inter-Individual Anatomical 
+Variability in the Subcortex Using 7 T Structural MRI.&#8221; NeuroImage 94 (July): 40&#8211;46.                                                       
+Krauth A, Blanc R, Poveda A, Jeanmonod D, Morel A, Sz&eacute;kely G. (2010) A mean three-dimensional atlas of the human thalamus: generation from 
+multiple histological data. Neuroimage. 2010 Feb 1;49(3):2053-62. Jakab A, Blanc R, Ber&eacute;nyi EL, Sz&eacute;kely G. (2012) Generation of            
+Individualized Thalamus Target Maps by Using Statistical Shape Models and Thalamocortical Tractography. AJNR Am J Neuroradiol. 33:         
+2110-2116, doi: 10.3174/ajnr.A3140                                                                                                         
+Nash, Paul G., Vaughan G. Macefield, Iven J. Klineberg, Greg M. Murray, and Luke A. Henderson. 2009. ?Differential Activation of the Human 
+Trigeminal Nuclear Complex by Noxious and Non-Noxious Orofacial Stimulation.? Human Brain Mapping 30 (11):3772?82.                         
+Pauli 2018 Bioarxiv: CIT168 from Human Connectome Project data
+Pauli, Wolfgang M., Amanda N. Nili, and J. Michael Tyszka. 2018. ?A High-Resolution Probabilistic in Vivo Atlas of Human Subcortical Brain 
+Nuclei.? Scientific Data 5 (April): 180063.                                                                                                
+Pauli, Wolfgang M., Randall C. O?Reilly, Tal Yarkoni, and Tor D. Wager. 2016. ?Regional Specialization within the Human Striatum for 
+Diverse Psychological Functions.? Proceedings of the National Academy of Sciences of the United States of America 113 (7): 1907?12.  
+Sclocco, Roberta, Florian Beissner, Gaelle Desbordes, Jonathan R. Polimeni, Lawrence L. Wald, Norman W. Kettner, Jieun Kim, et al. 2016. 
+?Neuroimaging Brainstem Circuitry Supporting Cardiovagal Response to Pain: A Combined Heart Rate Variability/ultrahigh-Field (7 T)       
+Functional Magnetic Resonance Imaging Study.? Philosophical Transactions. Series A, Mathematical, Physical, and Engineering Sciences 374 
+(2067). rsta.royalsocietypublishing.org. https://doi.org/10.1098/rsta.2015.0189.                                                         
+Shen, X., F. Tokoglu, X. Papademetris, and R. T. Constable. 2013. &#8220;Groupwise Whole-Brain Parcellation from Resting-State fMRI Data for 
+Network Node Identification.&#8221; NeuroImage 82 (November): 403&#8211;15.                                                                        
+Zambreanu, L., R. G. Wise, J. C. W. Brooks, G. D. Iannetti, and I. Tracey. 2005. ?A Role for the Brainstem in Central Sensitisation in 
+Humans. Evidence from Functional Magnetic Resonance Imaging.? Pain 114 (3):397?407.                                                    
+                                                                                                     
+Note: Region object r(i).title contains full list of reference atlas regions covered by each cluster.
+____________________________________________________________________________________________________________________________________________
+
+
+</pre><img vspace="5" hspace="5" src="mediation_brain_results_report_03.png" alt=""> <h2 id="13">Path b results table, uncorrected</h2><pre class="codeoutput">----------------------------------------------
+Path b, Uncorrected (p &lt; .01)
+----------------------------------------------
+
+Image   1
+  3 contig. clusters, sizes   3 to   9
+Positive effect:   0 voxels, min p-value: 0.00739601
+Negative effect:  16 voxels, min p-value: 0.00132336
+Grouping contiguous voxels:   3 regions
+
+____________________________________________________________________________________________________________________________________________
+Positive Effects
+
+sampleto =
+
+    '/Users/h/Documents/MATLAB/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask.nii'
+
+No regions to display
+
+Negative Effects
+         Region         Volume           XYZ             maxZ        modal_label_descriptions      Perc_covered_by_label    Atlas_regions_covered    region_index
+    ________________    ______    _________________    ________    ____________________________    _____________________    _____________________    ____________
+
+    {'V_Striatum_L'}     704        0      4      5    -0.88086    {'Basal_ganglia'           }             28                        0                   1      
+    {'Ctx_9m_R'    }     320       14     50     21     -2.6002    {'Cortex_Default_ModeA'    }              5                        0                   3      
+    {'Ctx_DVT_L'   }     360      -24    -60     16     -1.9095    {'Cortex_Visual_Peripheral'}             11                        0                   2      
+
+
+____________________________________________________________________________________________________________________________________________
+Regions labeled by reference atlas CANlab_2018_combined
+                                                       
+Volume: Volume of contiguous region in cubic mm.
+MaxZ: Signed max over p
+Atlas_regions_covered: Number of reference atlas regions covered at least 25% by the region. This relates to whether the region covers 
+multiple reference atlas regions                                                                                                       
+Region: Best reference atlas label, defined as reference region with highest number of in-region voxels. Regions covering &gt;25% of &gt;5 
+regions labeled as "Multiple regions"                                                                                                
+Perc_covered_by_label: Percentage of the region covered by the label.
+Ref_region_perc: Percentage of the label region within the target region.
+modal_atlas_index: Index number of label region in reference atlas
+all_regions_covered: All regions covered &gt;5% in descending order of importance
+ 
+For example, if a region is labeled 'TE1a' and Perc_covered_by_label = 8, Ref_region_perc = 38, and Atlas_regions_covered = 17, this means 
+that 8% of the region's voxels are labeled TE1a, which is the highest percentage among reference label regions. 38% of the region TE1a is  
+covered by the region. However, the region covers at least 25% of 17 distinct labeled reference regions.                                   
+                                                                                                                                           
+References for atlases:
+                       
+Beliveau, Vincent, Claus Svarer, Vibe G. Frokjaer, Gitte M. Knudsen, Douglas N. Greve, and Patrick M. Fisher. 2015. &#8220;Functional 
+Connectivity of the Dorsal and Median Raphe Nuclei at Rest.&#8221; NeuroImage 116 (August): 187&#8211;95.                                   
+B&auml;r, Karl-J&uuml;rgen, Feliberto de la Cruz, Andy Schumann, Stefanie Koehler, Heinrich Sauer, Hugo Critchley, and Gerd Wagner. 2016. ?Functional 
+Connectivity and Network Analysis of Midbrain and Brainstem Nuclei.? NeuroImage 134 (July):53?63.                                           
+Diedrichsen, J&ouml;rn, Joshua H. Balsters, Jonathan Flavell, Emma Cussans, and Narender Ramnani. 2009. A Probabilistic MR Atlas of the Human 
+Cerebellum. NeuroImage 46 (1): 39?46.                                                                                                    
+Fairhurst, Merle, Katja Wiech, Paul Dunckley, and Irene Tracey. 2007. ?Anticipatory Brainstem Activity Predicts Neural Processing of Pain 
+in Humans.? Pain 128 (1-2):101?10.                                                                                                        
+Fan 2016 Cerebral Cortex; doi:10.1093/cercor/bhw157
+Glasser, Matthew F., Timothy S. Coalson, Emma C. Robinson, Carl D. Hacker, John Harwell, Essa Yacoub, Kamil Ugurbil, et al. 2016. A 
+Multi-Modal Parcellation of Human Cerebral Cortex. Nature 536 (7615): 171?78.                                                       
+Keren, Noam I., Carl T. Lozar, Kelly C. Harris, Paul S. Morgan, and Mark A. Eckert. 2009. &#8220;In Vivo Mapping of the Human Locus Coeruleus.&#8221; 
+NeuroImage 47 (4): 1261&#8211;67.                                                                                                               
+Keuken, M. C., P-L Bazin, L. Crown, J. Hootsmans, A. Laufer, C. M&uuml;ller-Axt, R. Sier, et al. 2014. &#8220;Quantifying Inter-Individual Anatomical 
+Variability in the Subcortex Using 7 T Structural MRI.&#8221; NeuroImage 94 (July): 40&#8211;46.                                                       
+Krauth A, Blanc R, Poveda A, Jeanmonod D, Morel A, Sz&eacute;kely G. (2010) A mean three-dimensional atlas of the human thalamus: generation from 
+multiple histological data. Neuroimage. 2010 Feb 1;49(3):2053-62. Jakab A, Blanc R, Ber&eacute;nyi EL, Sz&eacute;kely G. (2012) Generation of            
+Individualized Thalamus Target Maps by Using Statistical Shape Models and Thalamocortical Tractography. AJNR Am J Neuroradiol. 33:         
+2110-2116, doi: 10.3174/ajnr.A3140                                                                                                         
+Nash, Paul G., Vaughan G. Macefield, Iven J. Klineberg, Greg M. Murray, and Luke A. Henderson. 2009. ?Differential Activation of the Human 
+Trigeminal Nuclear Complex by Noxious and Non-Noxious Orofacial Stimulation.? Human Brain Mapping 30 (11):3772?82.                         
+Pauli 2018 Bioarxiv: CIT168 from Human Connectome Project data
+Pauli, Wolfgang M., Amanda N. Nili, and J. Michael Tyszka. 2018. ?A High-Resolution Probabilistic in Vivo Atlas of Human Subcortical Brain 
+Nuclei.? Scientific Data 5 (April): 180063.                                                                                                
+Pauli, Wolfgang M., Randall C. O?Reilly, Tal Yarkoni, and Tor D. Wager. 2016. ?Regional Specialization within the Human Striatum for 
+Diverse Psychological Functions.? Proceedings of the National Academy of Sciences of the United States of America 113 (7): 1907?12.  
+Sclocco, Roberta, Florian Beissner, Gaelle Desbordes, Jonathan R. Polimeni, Lawrence L. Wald, Norman W. Kettner, Jieun Kim, et al. 2016. 
+?Neuroimaging Brainstem Circuitry Supporting Cardiovagal Response to Pain: A Combined Heart Rate Variability/ultrahigh-Field (7 T)       
+Functional Magnetic Resonance Imaging Study.? Philosophical Transactions. Series A, Mathematical, Physical, and Engineering Sciences 374 
+(2067). rsta.royalsocietypublishing.org. https://doi.org/10.1098/rsta.2015.0189.                                                         
+Shen, X., F. Tokoglu, X. Papademetris, and R. T. Constable. 2013. &#8220;Groupwise Whole-Brain Parcellation from Resting-State fMRI Data for 
+Network Node Identification.&#8221; NeuroImage 82 (November): 403&#8211;15.                                                                        
+Zambreanu, L., R. G. Wise, J. C. W. Brooks, G. D. Iannetti, and I. Tracey. 2005. ?A Role for the Brainstem in Central Sensitisation in 
+Humans. Evidence from Functional Magnetic Resonance Imaging.? Pain 114 (3):397?407.                                                    
+                                                                                                     
+Note: Region object r(i).title contains full list of reference atlas regions covered by each cluster.
+____________________________________________________________________________________________________________________________________________
+
+
+</pre><pre class="codeoutput error">Error using montage&gt;parse_inputs (line 298)
+Expected input number 2, PARAM, to match one of these values:
+
+'Size', 'Indices', 'DisplayRange', 'Parent', 'ThumbnailSize', 'BorderSize', 'BackgroundColor', 'Interpolation'
+
+The input, 'colormap', did not match any of the valid values.
+
+Error in montage (line 187)
+    parse_inputs(varargin{:});
+
+Error in mediation_brain_results_report (line 174)
+    montage(b_regions_01unc, 'colormap', 'regioncenters');
+</pre><h2 id="14">Path ab results table, uncorrected</h2><h2 id="15">Montage plot with slices, uncorrected</h2><h2 id="16">Savefile information for objects with extracted data</h2><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function mediation_brain_results_report(varargin)
+% This function runs and saves tables, images, and clusters
+% for a, b, and ab effects of a two-level mediation model
+% 
+% - Run from mediation results directory
+%
+% - Preliminary version: This is "version 1" and does not have the full functionality of 
+% mediation_brain_results_all_script, but is complementary. 
+%   Does not do: 
+%       - Extraction of region data into region objects (sig clusters) for multi-level analyses
+%       - Multiple threshold with pruning 
+%   For these, see mediation_brain_results_all_script
+%   Does do: (which mediation_brain_results_all_script does not) 
+%       - Autolabeling of regions
+%
+% - Saves region objects with extracted data within each region
+% - Requires object oriented tools in CANlab_Core_Tools
+% - Used in publish_mediation_brain_results_report to create published reports.
+%
+% The thresholds are fixed right now, and two sets of results are run:
+% One at .01, and one with an across-contrast FDR correction at q < .05
+%
+% See also: mediation_brain_results_all_script.m
+%           publish_mediation_report.m
+
+% Default options - could be changed later
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+
+whmontage = 5;  % which montage to put name on
+kthresh = 3;    % cluster extent threshold
+pthresh = .01;  % P-value threshold for uncorrected results
+
+% Display helper functions: Called by later scripts
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+
+dashes = 'REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH';
+%printstr = @(dashes) disp(dashes);
+printhdr = @(str) fprintf('%s\n%s\n%s\n', dashes, str, dashes);
+
+
+%% Loading results and mask
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+
+printhdr('LOADING mediation results and images');
+
+% load data_obj for single-level only. Multi-level data can be too large to load all
+% objects - extract data on-demand from clusters.
+
+[SETUP, mask_obj, a_obj, b_obj, ab_obj, data_obj] = load_mediation_results_objects; % and run FDR if needed
+
+printhdr('Loaded mediation:');
+disp(SETUP)
+
+
+% Initialize fmridisplay if needed and show mask
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+printhdr('Mask for analysis:');
+[o2, fig_number] = setup_slice_display([], 1);
+o2 = title_montage(o2, 2, 'Mask for analysis');
+
+addblobs(o2, region(mask_obj), 'trans');
+
+drawnow, snapnow
+
+%% FDR-corrected results
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+if isempty(SETUP.fdr_p_thresh) || SETUP.fdr_p_thresh <= 0
+        disp('No FDR-significant results');
+else 
+    printhdr('FDR-corrected results');
+    disp('Results corrected across set of a, b, ab images using mediation_brain_corrected_threshold');
+    fprintf('FDR q < .05 = p < %3.8f\n', SETUP.fdr_p_thresh);
+
+    %% Path a results table, FDR-corrected 
+
+    printhdr('Path a, FDR-corrected q < .05')
+
+    a_obj = threshold(a_obj, SETUP.fdr_p_thresh, 'unc', 'k', kthresh);
+
+    a_regions_fdr = region(a_obj, data_obj, 'noverbose');                   % Create regions; extract average data in each region into obj.dat
+    a_regions_fdr = table(a_regions_fdr);                                   % Print table
+    fprintf('\n\n');
+    
+    if min(a_obj.p) < SETUP.fdr_p_thresh
+        montage(a_regions_fdr, 'colormap', 'regioncenters');
+        drawnow, snapnow;
+    end
+
+    %% Path b results table, FDR-corrected 
+
+    printhdr('Path b, FDR-corrected q < .05')
+
+    b_obj = threshold(b_obj, SETUP.fdr_p_thresh, 'unc', 'k', kthresh);
+
+    b_regions_fdr = region(b_obj, data_obj);      % Create regions; extract average data in each region into obj.dat
+    b_regions_fdr = table(b_regions_fdr);                             % Print table
+    fprintf('\n\n');
+    
+    if min(b_obj.p) < SETUP.fdr_p_thresh
+        montage(b_regions_fdr, 'colormap', 'regioncenters');
+        drawnow, snapnow;
+    end
+
+    %% Path ab results table, FDR-corrected 
+
+    printhdr('Path ab, FDR-corrected q < .05')
+
+    ab_obj = threshold(ab_obj, SETUP.fdr_p_thresh, 'unc', 'k', kthresh);
+
+    ab_regions_fdr = region(ab_obj, data_obj);      % Create regions; extract average data in each region into obj.dat
+    ab_regions_fdr = table(ab_regions_fdr);                             % Print table
+    fprintf('\n\n');
+    
+    if min(ab_obj.p) < SETUP.fdr_p_thresh
+        montage(ab_regions_fdr, 'colormap', 'regioncenters');
+        drawnow, snapnow;
+    end
+
+    %% Combined montage plot with slices, FDR-corrected
+
+    [o2, fig_number] = setup_slice_display([], 3);
+
+    o2 = addblobs(o2, region(a_obj), 'wh_montages', 1:2);
+    o2 = title_montage(o2, 2, 'Path a');
+
+    % axes(o2.montage{2}.axis_handles(whmontage))
+    % title('Path a');
+
+    o2 = addblobs(o2, region(b_obj), 'wh_montages', 3:4);
+    % axes(o2.montage{4}.axis_handles(whmontage))
+    % title('Path b');
+    o2 = title_montage(o2, 4, 'Path b');
+
+    o2 = addblobs(o2, region(ab_obj), 'wh_montages', 5:6);
+    % axes(o2.montage{6}.axis_handles(whmontage))
+    % title('Path ab');
+    o2 = title_montage(o2, 6, 'Path ab');
+
+    drawnow, snapnow  % flush figure to report
+    
+end
+
+%% Uncorrected results
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+
+printhdr('Uncorrected (p < .01)  results');
+
+%% Path a results table, uncorrected 
+
+printhdr('Path a, Uncorrected (p < .01)')
+
+a_obj = threshold(a_obj, pthresh, 'unc', 'k', kthresh);
+
+a_regions_01unc = region(a_obj, data_obj);      % Create regions; extract average data in each region into obj.dat
+a_regions_01unc = table(a_regions_01unc);                             % Print table
+fprintf('\n\n');
+
+if min(a_obj.p) < pthresh
+    montage(a_regions_01unc, 'colormap', 'regioncenters');
+    drawnow, snapnow;
+end
+
+%% Path b results table, uncorrected 
+
+printhdr('Path b, Uncorrected (p < .01)')
+
+b_obj = threshold(b_obj, pthresh, 'unc', 'k', kthresh);
+
+b_regions_01unc = region(b_obj, data_obj);      % Create regions; extract average data in each region into obj.dat
+b_regions_01unc = table(b_regions_01unc);                             % Print table
+fprintf('\n\n');
+
+if min(b_obj.p) < pthresh
+    montage(b_regions_01unc, 'colormap', 'regioncenters');
+    drawnow, snapnow;
+end
+
+%% Path ab results table, uncorrected 
+
+printhdr('Path ab, Uncorrected (p < .01)')
+
+ab_obj = threshold(ab_obj, pthresh, 'unc', 'k', kthresh);
+
+ab_regions_01unc = region(ab_obj, data_obj);      % Create regions; extract average data in each region into obj.dat
+ab_regions_01unc = table(ab_regions_01unc);                             % Print table
+fprintf('\n\n');
+
+if min(ab_obj.p) < pthresh
+    montage(ab_regions_01unc, 'colormap', 'regioncenters');
+    drawnow, snapnow;
+end
+
+%% Montage plot with slices, uncorrected
+
+[o2, fig_number] = setup_slice_display([], 3);
+
+o2 = addblobs(o2, region(a_obj), 'wh_montages', 1:2);
+o2 = title_montage(o2, 2, 'Path a');
+
+
+o2 = addblobs(o2, region(b_obj), 'wh_montages', 3:4);
+o2 = title_montage(o2, 4, 'Path b');
+
+
+o2 = addblobs(o2, region(ab_obj), 'wh_montages', 5:6);
+o2 = title_montage(o2, 6, 'Path ab');
+
+
+drawnow, snapnow  % flush figure to report
+
+
+
+%% Savefile information for objects with extracted data
+
+% Save
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+
+printhdr('Saving extracted objects to disk.');
+disp('a_obj, b_obj, ab_obj : statistic_image objects for paths a, b, ab');
+disp('a_regions_fdr, etc.  : region objects for paths a, b, ab at FDR threshold');
+disp('a_regions_unc, etc.  : region objects for paths a, b, ab at uncorrected threshold');
+disp('In region objects, region_obj(i).dat contains extracted data for the i-th significant region, averaged over voxels');
+disp('Use these data in plots, secondary analyses, or to re-run mediation.m within individual regions');
+
+cldir = fullfile(pwd, 'clusters_with_extracted_data');
+if ~exist(cldir, 'dir'), mkdir(cldir); end
+
+savefilename = fullfile(cldir, 'Statistic_image_and_region_objects.mat');
+
+save(savefilename, 'a_*', 'b_*', 'ab_*'); 
+
+fprintf('Saved objects in:\n%s\n', savefilename)
+
+fprintf('\n\n');
+    
+end % main function
+
+
+
+
+
+
+% Sub-functions
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+
+
+function [SETUP, mask_obj, a_obj, b_obj, ab_obj, data_obj] = load_mediation_results_objects
+
+% load data_obj for single-level only. Multi-level data can be too large to load all
+% objects - extract data on-demand from clusters.
+
+% Load SETUP
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+if ~exist(fullfile(pwd, 'mediation_SETUP.mat'), 'file')
+    error('Cannot find mediation_SETUP.mat in current directory. Please go to a valid mediation directory.');
+else
+    load(fullfile(pwd, 'mediation_SETUP.mat'))
+end
+
+% FDR correction across images
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+if ~isfield(SETUP, 'fdr_p_thresh')
+    SETUP = mediation_brain_corrected_threshold('fdr');
+end
+
+% single or multi-level dir?
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+is_multilev = @(SETUP) exist(fullfile(pwd, 'mask.img'), 'file') && isfield(SETUP, 'data') && iscell(SETUP.data.X);  % multilevel mediation dirs have this image
+
+if is_multilev(SETUP)
+    
+    %ismultilevel = true;
+    
+    disp('Using mask.img stored in current directory (automatically written for mediation analyses) for mask.');
+    mask = fullfile(pwd, 'mask.img');
+    
+elseif isfield(SETUP, 'data') && iscell(SETUP.data.X)
+    warning('Multilevel mediation: mask.img is missing');
+else
+    % SETUP.X, Y Z instead of SETUP.data
+    %ismultilevel = false;
+    
+    % single-level mask stored here
+    mask = SETUP.mask;
+    
+end
+
+if ~exist(mask, 'file')
+    disp('Mask cannot be found/is not a valid file.  Using gray_matter_mask.img in CANlab core.');
+    
+    mask = which('gray_matter_mask.img');
+    
+end
+
+% Load objects
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+
+mask_obj = fmri_data(mask, 'noverbose');
+
+a_obj = create_stat_object('X-M_effect.img', 'X-M_pvals.img');
+b_obj = create_stat_object('M-Y_effect.img', 'M-Y_pvals.img');
+ab_obj = create_stat_object('X-M-Y_effect.img', 'X-M-Y_pvals.img');
+
+% load for single-level only. Multi-level data can be too large to load all
+% objects - extract data on-demand from clusters.
+
+data_obj = load_image_data_object(SETUP, is_multilev(SETUP));
+
+end
+
+
+
+function data_obj = load_image_data_object(SETUP, is_multilevel)
+
+% load for single-level only. Multi-level data can be too large to load all
+% objects - extract data on-demand from clusters.
+
+if is_multilevel
+    data_obj = [];
+    return
+end
+
+image_names = SETUP.M;
+if ~ischar(image_names), image_names = SETUP.X; end
+if ~ischar(image_names), image_names = SETUP.Y; end
+if ~ischar(image_names), disp('Cannot find image names'); end
+
+image_names = check_valid_imagename(image_names, 0); % returns empty if missing
+
+if isempty(image_names)
+    disp(' ')
+    disp('Warning!! Cannot find original data images. Extracted data from regions will be missing in saved .mat files');
+    disp(' ')
+    
+    data_obj = [];
+else
+    data_obj = fmri_data(image_names, [], 'noverbose');
+end
+
+end
+
+
+function [o2, fig_number] = setup_slice_display(o2, num_rows)
+
+whmontage = 5;
+
+% Check conditions:
+fmridisplay_is_ok = true;
+if ~exist('o2', 'var') || ~isa(o2, 'fmridisplay')
+    fmridisplay_is_ok = false;
+    
+elseif length(o2.montage) < whmontage
+    % wrong fmridisplay object for this plot
+    fmridisplay_is_ok = false;
+    
+elseif ~all(ishandle(o2.montage{whmontage}.axis_handles))
+    % Figure was closed or axes deleted
+    fmridisplay_is_ok = false;
+    
+end
+
+if ~fmridisplay_is_ok
+    
+    create_figure('fmridisplay'); axis off
+    o2 = canlab_results_fmridisplay([], 'multirow', num_rows, 'noverbose');
+    
+else % Ok, reactivate, clear blobs, and clear name
+    
+    o2 = removeblobs(o2);
+    axes(o2.montage{whmontage}.axis_handles(5));
+    title(' ');
+end
+
+% Get figure number - to reactivate figure later, even if we are changing its tag
+hh = get(o2.montage{1}.axis_handles, 'Parent');  %findobj('Tag', 'fmridisplay');
+if iscell(hh), hh = hh{1}; end
+fig_number = hh(1).Number;
+
+end
+
+
+
+
+function pstat = create_stat_object(effectimgname, pimgname)
+
+% a_obj = create_stat_object('X-M_effect.img', 'X-M_pvals.img');
+% b_obj = create_stat_object('M-Y_effect.img', 'M-Y_pvals.img');
+% ab_obj = create_stat_object('X-M-Y_effect.img', 'X-M-Y_pvals.img');
+
+pstat = statistic_image(pimgname, 'type', 'p');
+
+mstat = fmri_data(effectimgname, [], 'noverbose');
+
+% add effects/sign
+pstat.dat = mstat.dat;
+
+end
+
+
+
+##### SOURCE END #####
+--></body></html>
