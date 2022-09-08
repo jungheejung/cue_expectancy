@@ -1,4 +1,4 @@
-function applynps_spmglm_model03(input)
+function applynps_spmglm(input)
 % This code is to apply NPS to the TTL extracted pain onsets.
 % The purpose is to identify the correct way to model HRF of pain elicited BOLD signals.
 %%  TODO:
