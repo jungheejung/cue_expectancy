@@ -8,9 +8,8 @@
 #SBATCH -e ./log_l2norm/exclude_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=3-10
+#SBATCH --array=2-10
 
-MAINDIR=/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/scripts/step06_SPMsingletrial
 echo "SLURMSARRAY: " ${SLURM_ARRAY_TASK_ID}
 IND=$((SLURM_ARRAY_TASK_ID+1))
 INFILE=`awk -F '\r\t\n' "NR==${SLURM_ARRAY_TASK_ID}" ./s06_l2normtasklist.txt`

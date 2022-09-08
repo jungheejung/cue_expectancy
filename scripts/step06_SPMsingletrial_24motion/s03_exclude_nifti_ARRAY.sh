@@ -8,7 +8,7 @@
 #SBATCH -e ./log/exclude_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1-40
+#SBATCH --array=1-90
 
 source /optnfs/common/miniconda3/etc/profile.d/conda.sh
 conda activate spacetop_env

@@ -1,8 +1,7 @@
 #!/bin/bash -l
-#SBATCH --job-name=med
+#SBATCH --job-name=med_gen_cue
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=16
-#SBATCH --ntasks=1 
 #SBATCH --mem-per-cpu=8gb
 #SBATCH --time=1-12:00:00
 #SBATCH -o ./log_gen/med_%A_%a.o

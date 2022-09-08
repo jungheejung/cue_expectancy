@@ -114,6 +114,11 @@ save(dat_fname,'xx','yy','mm','outlier','-v7.3');
 
 %% PDM
 task_subfldr = fullfile(save_dir, strcat('task-',run{r},'_', x_keyword, '-', m_keyword,'-',y_keyword, '_l2norm'));
+    niilist = dir(fullfile(nifti_dir, '*', strcat('*_task-social_run-', run{r}, '_ev-', event, '_l2norm.nii')));
+    nT = struct2table(niilist); % convert the struct array to a table
+    sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
+    sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
+    stim_input.sublist = sortedT.sub_num;
 assignin('base','input',stim_input);
 options.codeToEvaluate = sprintf('plot_pdm(%s)','input');
 options.format = 'pdf';
