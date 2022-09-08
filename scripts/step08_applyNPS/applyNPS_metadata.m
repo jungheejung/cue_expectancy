@@ -33,7 +33,7 @@ function applynps_metadata(input)
 current_dir = pwd;
 main_dir = fileparts(fileparts(current_dir));
 % main_dir = '/Volumes/spacetop_projects_social';
-singletrial_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'multivariate', 's03_concatnifti');
+singletrial_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'multivariate_24dofcsd', 's03_concatnifti');
 nps_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'extract_nps');
 d = dir(singletrial_dir);
 dfolders = d([d(:).isdir]);

@@ -1,0 +1,861 @@
+---
+title: "model06_iv-cue-stim_dv-tradeoff_withinsubject"
+author: "Heejung Jung"
+date: '2022-07-17'
+output:
+  html_document:
+    toc: true
+    theme: united
+    code_folding: hide
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+
+# Overview
+
+The purpose of this notebook is to example within subject analysis. More
+specifically, we want to compare diverging methods and check if the end
+results are identical.
+
+------------------------------------------------------------------------
+
+# Why use multilevel models?
+
+-   content copied from
+    <http://www.bristol.ac.uk/cmm/learning/multilevel-models/what-why.html>
+
+> There are a number of reasons for using multilevel models:
+>
+> 1.  Correct inferences: Traditional multiple regression techniques
+>     treat the units of analysis as independent observations. One
+>     consequence of failing to recognise hierarchical structures is
+>     that standard errors of regression coefficients will be
+>     underestimated, leading to an overstatement of statistical
+>     significance. Standard errors for the coefficients of higher-level
+>     predictor variables will be the most affected by ignoring
+>     grouping.
+>
+> 2.  Substantive interest in group effects: In many situations a key
+>     research question concerns the extent of grouping in individual
+>     outcomes, and the identification of 'outlying' groups. In
+>     evaluations of school performance, for example, interest centres
+>     on obtaining 'value-added' school effects on pupil attainment.
+>     Such effects correspond to school-level residuals in a multilevel
+>     model which adjusts for prior attainment.
+>
+> 3.  Estimating group effects simultaneously with the effects of
+>     group-level predictors: An alternative way to allow for group
+>     effects is to include dummy variables for groups in a traditional
+>     (ordinary least squares) regression model. Such a model is called
+>     an analysis of variance or fixed effects model. In many cases
+>     there will be predictors defined at the group level, eg type of
+>     school (mixed vs. single sex). In a fixed effects model, the
+>     effects of group-level predictors are confounded with the effects
+>     of the group dummies, ie it is not possible to separate out
+>     effects due to observed and unobserved group characteristics. In a
+>     multilevel (random effects) model, the effects of both types of
+>     variable can be estimated.
+>
+> 4.  Inference to a population of groups: In a multilevel model the
+>     groups in the sample are treated as a random sample from a
+>     population of groups. Using a fixed effects model, inferences
+>     cannot be made beyond the groups in the sample.
+
+------------------------------------------------------------------------
+
+load libraries
+
+```{r load libraries, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
+library(psych)
+library(car)
+library(lmSupport)
+library(lme4)
+library(lmerTest)
+library(dplyr)
+library(plyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+library(png)
+library(knitr)
+library(TMB)
+library(sjPlot)
+library(ggpubr)
+library(gridExtra)
+library(merTools)
+library(sjstats) #to get ICC
+library(broom)
+library(tidyverse)
+library(GGally)
+library(RCurl)
+library(rstanarm)
+library(reshape)
+library(boot)
+library(afex)
+library(cowplot)
+library(readr)
+library(lavaan)
+library(rmarkdown)
+library(readr)
+library(caTools)
+library(bitops)
+library(stringr)
+library(stats)
+library(ggpubr)
+library(equatiomatic)
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
+library(lme4)
+library(effectsize)
+library(brms)
+#library(Hmisc)
+#library(Rmisc)
+## library(extraoperators)
+##library(JWileymisc)
+##library(multilevelTools)
+# library(PupillometryR)
+source('http://psych.colorado.edu/~jclab/R/mcSummaryLm.R')
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
+source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+
+library(r2mlm)
+file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+                          pattern="*.R", 
+                          full.names=TRUE, 
+                          ignore.case=TRUE)
+sapply(file.sources,source,.GlobalEnv)
+```
+
+# Terminology
+
+factor
+
+:   In experimental designs, factor is the equivalent of independent
+    variable. In R, one can factorize a categorical variable by using
+    the `factor` function. Thereby we interchangeably use the term
+    factor in lieu of independent variable.
+
+    From this, the term `factorial design` originates.
+
+level
+
+:   within each independent variable, a researcher may determine
+    different levels. Since the purpose of linear models is to compare
+    at least one condition to another, a factor contains more than one
+    level.
+
+group variable
+
+:   Unit of analysis. In most fMRI experiments that collect individual
+    data, the group variable would be the individual participant.
+    However, in other research questions, the group variable could
+    easily be more than one individual. For instance, a dyad of
+    participants that carry out conversations, multiple patients that
+    see an identical doctor, a classroom full of individuals, or voting
+    districts could serve as a grouping variable, depending on the
+    research question.
+
+-   <div>
+
+        factor:
+        group
+
+    </div>
+
+# Model versions {.tabset}
+
+## Summary of models
+
+### Method 1: repeated measures and `one-sample t-tests`
+
+-   Data Matrix: Wide form
+    -   row (83 subject)
+    -   column (6 conditions: highCue x highStim, highCue x medStim,
+        highCue x lowStim, lowCue x highStim,lowCue x medStim, lowCue x
+        lowStim)
+-   Model: Use "lm". One-sample t-test
+-   Effect size (cohen's d): mean / sd (intersubject slope) \> use
+    degrees of freedom.
+
+### Method 1-1: repeated measures using `**aov**` in R
+
+repeated measures in R using aov link
+<https://www.statology.org/repeated-measures-anova-in-r/#>[:\~:text=A%20repeated%20measures%20ANOVA%20is,show%20up%20in%20each%20group](https://www.statology.org/repeated-measures-anova-in-r/#:~:text=A%20repeated%20measures%20ANOVA%20is,show%20up%20in%20each%20group)
+using aov, includes subject as error term
+
+### Method 2: multilevel modeling using `**glmfit_multilevel**` in matlab
+
+-   Data Matrix: Long form
+    -   Cell (1x83 subject)
+        -   double (1x6 condition) (6 conditions: highCue*highStim,
+            highCue*medStim, highCue*lowStim,
+            lowCue*highStim,lowCue*medStim, lowCue*lowStim)
+
+        -   e.g. X_factor{1,83}(6)
+-   Model: Use
+    "glmfit_multilevel\<<https://github.com/canlab/CanlabCore/blob/master/CanlabCore/Statistics_tools/glmfit_multilevel.m>\>"
+-   Effect size: output from the Stats variable.
+-   TODO: need to identify if multiple factors are allowed as input
+
+### Method 3: multilevel modeling using `**lmer**` in R
+
+-   Data Matrix: Long form
+    -   Row (498: 83 subject \* 2 cue \* 3 stimulus intensity)
+    -   Columns (4: subject, cue type, stimulus intensity type,
+        tradeoff)
+-   Model: Use "lmer" multilevel-modeling
+    -   grouping variable: subjects (i.e. src_subject_id)
+    -   fixed effects - cue (2 levels, contrast-coded [high, low: 1,
+        -1]) - stim_linear (3 levels, [low, med, high: -1, 0, 1]) -
+        stim_quadratic (3 levels, [low, med, high: -1, 2, -1])
+    -   random effects - cue - stim_linear - cue\*stim_linear
+    -   NOTE: due to convergence failure, cue\*stim_quadratic term was
+        removed
+-   Effect size (cohen's d): beta_coefficient/ sqrt(sum of all random
+    variance)
+
+load data and combine participant data
+
+```{r load data and exclude}
+main_dir = dirname(dirname(getwd()))
+# parameters _____________________________________ # nolint
+subject_varkey <- "src_subject_id"
+iv <- "param_cue_type"
+dv <- "event03_RT"
+dv_keyword <- "RT"
+xlab <- ""
+taskname <- "cognitive"
+
+ylab <- "ratings (degree)"
+subject <- "subject"
+exclude <- "sub-0999|sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0007|sub-0008|sub-0009|sub-0010|sub-0011"
+
+# load data _____________________________________
+data <- load_task_social_df(taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
+# data['event03_RT'], data.event03_RT - pandas
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model06_iv-cue-stim_dv-tradeoff_withinsubject", as.character(Sys.Date()))
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+
+data$event03_response_samediff <- mapvalues(data$event03_stimulusC_response,
+                                                from = c(1, 2),
+                                                to = c("diff", "same"))
+
+data$event03_correct <- ifelse(data$event03_C_stim_match == data$event03_response_samediff, 1, ifelse(data$event03_C_stim_match != data$event03_response_samediff, 0, "NA"))
+```
+
+```{r Method1 :: organize data}
+# 1) calculate accuracy of cognitive mental rotation task
+data_perf <- data %>%
+  group_by(src_subject_id, param_cue_type, param_stimulus_type) %>%
+  dplyr::summarise(
+    accuracy = sum(as.numeric(event03_correct), na.rm = TRUE), 
+    count = sum(!is.na(as.numeric(event03_correct))),
+    .groups = 'drop') %>%
+  ungroup() %>%
+  group_by(src_subject_id) %>%
+  dplyr::mutate(zscore_acc = as.numeric(scale(accuracy)))
+
+
+# 2) calculate average RT within subject, for each condition type
+data_RT <- data %>%
+  group_by(src_subject_id, param_cue_type, param_stimulus_type) %>%
+  dplyr::summarise(subjectwise_RT = mean(as.numeric(event03_RT), na.rm = TRUE), .groups = 'drop') %>%
+ ungroup() %>%
+     group_by(src_subject_id) %>%
+  dplyr::mutate(zscore_RT = as.numeric(scale(subjectwise_RT)))
+
+# 3) calculate tradeoff based on RT and accuracy
+df_tradeoff = merge(x = data_RT, y = data_perf, by = c("src_subject_id", "param_cue_type", "param_stimulus_type"), all = TRUE)
+df_tradeoff$tradeoff = df_tradeoff$zscore_acc - df_tradeoff$zscore_RT
+
+```
+
+```{r include=FALSE}
+df_tradeoff$condition <- paste(df_tradeoff$param_cue_type, df_tradeoff$param_stimulus_type, sep="_")
+df_tradeoff$con_num <- as.numeric(factor(df_tradeoff$condition))
+df_tradeoff = df_tradeoff[!is.na(df_tradeoff$tradeoff),]
+
+write.csv(df_tradeoff,file.path(main_dir,"analysis","mixedeffect","model06_iv-cue-stim_dv-tradeoff_withinsubject","model06_iv-cue-stim_dv-tradeoff_withinsubject.csv"))
+```
+
+This is the data that we will use
+
+```{r echo=FALSE}
+head(df_tradeoff)
+```
+
+## Method 1 one-sample t
+
+### Method 1 one-sample t
+
+-   Data Matrix: Wide form
+    -   row (83 subject)
+    -   column (6 conditions: highCue x highStim, highCue x medStim,
+        highCue x lowStim, lowCue x highStim,lowCue x medStim, lowCue x
+        lowStim)
+-   Model: Use "lm". One-sample t-test
+-   Effect size (cohen's d): mean / sd (intersubject slope) \> use
+    degrees of freedom.
+
+```{r Method1 :: subset dataframe}
+w1.perf = df_tradeoff[c("src_subject_id","param_cue_type", "param_stimulus_type","zscore_acc" )] %>% 
+   pivot_wider(names_from = c(param_cue_type, param_stimulus_type), values_from = zscore_acc) 
+w1.rt = df_tradeoff[c("src_subject_id","param_cue_type", "param_stimulus_type","zscore_RT" )] %>% 
+   pivot_wider(names_from = c(param_cue_type, param_stimulus_type), values_from = zscore_RT) 
+w1.tradeoff = df_tradeoff[c("src_subject_id","param_cue_type", "param_stimulus_type","tradeoff" )] %>% 
+   pivot_wider(names_from = c(param_cue_type, param_stimulus_type), values_from = tradeoff) 
+```
+
+```{r Method1 :: performance - one sample t-test, eval=FALSE, include=FALSE}
+# modeling the average performance (intercept)
+w1.perf$ave = (+1) * w1.perf$high_cue_high_stim + 
+  (+1) * w1.perf$high_cue_med_stim + 
+  (+1) * w1.perf$high_cue_low_stim + 
+  (+1) * w1.perf$low_cue_high_stim + 
+  (+1) * w1.perf$low_cue_med_stim + 
+  (+1) * w1.perf$low_cue_low_stim 
+t.ave = lm(w1.perf$ave ~ 1)
+summary(t.ave)
+
+# model :: cue effect
+w1.perf$cue_effect = (+1) * w1.perf$high_cue_high_stim + 
+  (+1) * w1.perf$high_cue_med_stim + 
+  (+1) * w1.perf$high_cue_low_stim + 
+  (-1) * w1.perf$low_cue_high_stim + 
+  (-1) * w1.perf$low_cue_med_stim + 
+  (-1) * w1.perf$low_cue_low_stim 
+t.cue = lm(w1.perf$cue_effect ~ 1)
+summary(t.cue)
+
+# model :: stim effect
+w1.perf$stim_effect = 
+  (+1) * w1.perf$high_cue_high_stim + 
+  (0) * w1.perf$high_cue_med_stim + 
+  (-1) * w1.perf$high_cue_low_stim + 
+  (+1) * w1.perf$low_cue_high_stim + 
+  (0) * w1.perf$low_cue_med_stim + 
+  (-1) * w1.perf$low_cue_low_stim 
+t.stim = lm(w1.perf$stim_effect ~ 1)
+summary(t.stim)
+
+# model :: interaction
+w1.perf$interaction = 
+  (+1) * w1.perf$high_cue_high_stim + 
+  (0) * w1.perf$high_cue_med_stim + 
+  (-1) * w1.perf$high_cue_low_stim + 
+  (-1) * w1.perf$low_cue_high_stim + 
+  (0) * w1.perf$low_cue_med_stim + 
+  (+1) * w1.perf$low_cue_low_stim 
+t.int = lm(w1.perf$interaction ~ 1)
+summary(t.int)
+
+
+```
+
+```{r}
+# library(effectsize)
+# eta_squared(t.int, partial = FALSE)
+```
+
+**Creating within subject effect** Each participants data point is
+transformed from long-to-wide format. Rows represent participants;
+columns represent conditions. In our case, we have a 2x3 design.
+Therefore, we have 6 columns. By linear combining these 6 combination
+with contrast-code weights, we can obtain one column, that is the cue
+effect. Ultimately, we test whether this cue effect is different from
+zero, using a one sample t-test.
+
+**1) cue effect** The cue effect is not significant, b = -0.0987 , se =
+0.1798, t(82) = -0.549, p = 0.585
+
+```{r Method1 :: tradeoff one sample t, class.source = 'fold-show'}
+# average
+
+# cue effect
+w1.tradeoff$cue_effect = (+1/2) * w1.tradeoff$high_cue_high_stim + 
+  (+1/2) * w1.tradeoff$high_cue_med_stim + 
+  (+1/2) * w1.tradeoff$high_cue_low_stim + 
+  (-1/2) * w1.tradeoff$low_cue_high_stim + 
+  (-1/2) * w1.tradeoff$low_cue_med_stim + 
+  (-1/2) * w1.tradeoff$low_cue_low_stim 
+tradeoff.cue = lm(w1.tradeoff$cue_effect ~ 1)
+t.test(w1.tradeoff$cue_effect, mu = 0, alternative = "two.sided")
+
+# output of cue effect
+summary(tradeoff.cue)
+```
+
+We sill continue to calculate this within subject effect for the
+stimulus and interaction contrast. \n
+
+**2) linear stimulus effect** The linear stimulus effect is significant,
+b = -0.8343, se = 0.0787, t(82) = -10.6, p \< 2e-16 \*\*\*
+
+```{r Method1 :: tradeoff stim interaction, class.source = 'fold-show'}
+# linear stim effect
+w1.tradeoff$lin_stim_effect = 
+  (+1/4) * w1.tradeoff$high_cue_high_stim + 
+  (0) * w1.tradeoff$high_cue_med_stim + 
+  (-1/4) * w1.tradeoff$high_cue_low_stim + 
+  (+1/4) * w1.tradeoff$low_cue_high_stim + 
+  (0) * w1.tradeoff$low_cue_med_stim + 
+  (-1/4) * w1.tradeoff$low_cue_low_stim 
+tradeoff.lin_stim = lm(w1.tradeoff$lin_stim_effect ~ 1)
+
+# output of stimulus linear contrast effect
+summary(tradeoff.lin_stim)
+```
+
+**3) quadratic stimulus effect** The quadratic stimulus effect is
+significant, b = -0.31599, se = 0.07563, t(82) = -4.178, p \< 2e-16
+\*\*\*
+
+```{r}
+# quadratic stimulus effect
+w1.tradeoff$quad_stim_effect = 
+  (-1/6) * w1.tradeoff$high_cue_high_stim + 
+  (2/6) * w1.tradeoff$high_cue_med_stim + 
+  (-1/6) * w1.tradeoff$high_cue_low_stim + 
+  (-1/6) * w1.tradeoff$low_cue_high_stim + 
+  (2/6) * w1.tradeoff$low_cue_med_stim + 
+  (-1/6) * w1.tradeoff$low_cue_low_stim 
+tradeoff.quad_stim = lm(w1.tradeoff$quad_stim_effect ~ 1)
+summary(tradeoff.quad_stim)
+```
+
+**4) interaction effect** The interaction is significant, b = 0.19646,
+se = 0.07542, t(82) = 2.605, p = 0.0109 \*\*
+
+```{r}
+# interaction
+w1.tradeoff$interaction = 
+  (+1/4) * w1.tradeoff$high_cue_high_stim + 
+  (0) * w1.tradeoff$high_cue_med_stim + 
+  (-1/4) * w1.tradeoff$high_cue_low_stim + 
+  (-1/4) * w1.tradeoff$low_cue_high_stim + 
+  (0/4) * w1.tradeoff$low_cue_med_stim + 
+  (+1/4) * w1.tradeoff$low_cue_low_stim 
+tradeoff.int = lm(w1.tradeoff$interaction ~ 1)
+summary(tradeoff.int)
+
+
+```
+
+### Method 1 effectsize
+
+```{r}
+# tradeoff$cue_effect:
+cohens_d = -0.1974/(0.3597*sqrt(82))
+cat(paste("\ncohen's d of the cue effect:  -0.1974/(0.3597*sqrt(82)) = ", cohens_d))
+# tradeoff lin_effect
+cat(paste("\ncohen's d of the linear stimulus intensity effect: ", -3.3371/(0.3148*sqrt(82))))
+
+# tradeoff stim_quad_effect
+cat(paste("\ncohen's d of the quadratic stimulus intensity effect: ",-1.8960/(0.4538*sqrt(82))))
+# tradeoff interaction_effect
+cat(paste("\ncohen's d of the quadratic stimulus intensity effect: ",
+0.7858/(0.3017*sqrt(82))))
+```
+
+```{r}
+cohens_f =  as.numeric(cohens_d)*0.5
+cat(paste("\ncohen's f of the cue effect: 1/2 * cohen's d = ",as.numeric(cohens_d)*0.5 ))
+
+```
+
+-   Keep note of this Cohen's f value, -0.03. It will appear in the next
+    model as well.
+
+## Method 1-1 aov
+
+contrast-coding for aov modeling (code-hidden)
+
+```{r Method_1-1 contrast coding for Method 1-1 }
+#contrast code 1 linear
+df_tradeoff$stim_con_linear[df_tradeoff$param_stimulus_type == "low_stim"] <- -0.5
+df_tradeoff$stim_con_linear[df_tradeoff$param_stimulus_type == "med_stim"] <- 0
+df_tradeoff$stim_con_linear[df_tradeoff$param_stimulus_type == "high_stim"] <- 0.5
+
+# contrast code 2 quadratic
+df_tradeoff$stim_con_quad[df_tradeoff$param_stimulus_type == "low_stim"] <- -0.33
+df_tradeoff$stim_con_quad[df_tradeoff$param_stimulus_type == "med_stim"] <- 0.66
+df_tradeoff$stim_con_quad[df_tradeoff$param_stimulus_type == "high_stim"] <- -0.33
+
+# social cue contrast
+df_tradeoff$social_cue[df_tradeoff$param_cue_type == 'low_cue'] <- -0.5 # social influence task
+df_tradeoff$social_cue[df_tradeoff$param_cue_type == 'high_cue'] <- 0.5 # no influence task
+df_tradeoff$cue_factor = factor(df_tradeoff$param_cue_type)
+```
+
+```{r Method 1-1 :: long form, class.source = 'fold-show'}
+model_1_1 <- aov(tradeoff~factor(param_cue_type)*factor(param_stimulus_type)+Error(factor(src_subject_id)), data = df_tradeoff)
+summary(model_1_1)
+#knitr::kable(nice(model_1_1))
+coefficients(model_1_1)
+```
+
+### Method 1-1 effectsize
+
+Note that the effectsize of the cue effect ("cue_factor") is 5.64e-04.
+We'll check that this is equivalent to the effectsize estimate in the
+next model
+
+```{r}
+cohens_f(model_1_1)
+eta_squared(model_1_1, partial = FALSE)
+```
+
+## Method 1-2 aov contrast-coding
+
+```{r Method_1-2, class.source = 'fold-show'}
+# because the coefficients don't match, instead of adding one factor, I plan to contrast code each factor and include it in model
+model_1_2 <- aov(tradeoff ~ 1+ cue_factor + stim_con_linear + stim_con_quad + cue_factor*stim_con_linear + cue_factor*stim_con_quad + +Error(factor(src_subject_id)), data = df_tradeoff)
+summary(model_1_2)
+coefficients(model_1_2)
+```
+
+### Method 1-2 effectsize
+
+Note that the effectsize of the cue effect ("cue_factor") is 5.64e-04.
+This is identical to the effect size of the cue effect from Method 1-1.
+For the other estimates, we can't really compare, because the estimates
+arre collapsed into omnibus models in Method 1-1, where as Method 1-2
+uses orthogonalized contrast codes, parsing out the stimulus effect into
+two contrasts.
+
+```{r}
+cohens_f(model_1_2)
+eta_squared(model_1_2, partial = FALSE)
+```
+
+    UPDATE OR DELETE
+    y_{ij} = \mu + \beta_{j} + \b_{i} + \epsilon_{ij}
+    * y_{ij} is the response value for the ith individual at the jth period (day)
+
+```{r rough plot }
+Within_Data.BarGraph<-ggplot(df_tradeoff, aes(param_stimulus_type, tradeoff, fill=param_stimulus_type)) +
+  geom_bar(stat="summary", fun.y="mean") + 
+  scale_y_continuous() + # breaks = seq(0, 101, 10), limits =c(0,101)
+  facet_grid(.~param_cue_type) +
+  xlab("Cue") + ylab("Tradeoff") +
+  scale_fill_brewer(palette="Dark2") +
+  theme(legend.position="none")
+Within_Data.BarGraph
+```
+
+## Method 1 effectsize
+
+### Method 1 effectsize estimate (one-sample t-test)
+
+```{r}
+# tradeoff$cue_effect:
+cohens_d = -0.1974/(0.3597*sqrt(82))
+cat(paste("\ncohen's d of the cue effect:  -0.1974/(0.3597*sqrt(82)) = ", cohens_d))
+# tradeoff lin_effect
+cat(paste("\ncohen's d of the linear stimulus intensity effect: ", -3.3371/(0.3148*sqrt(82))))
+
+# tradeoff stim_quad_effect
+cat(paste("\ncohen's d of the quadratic stimulus intensity effect: ",-1.8960/(0.4538*sqrt(82))))
+# tradeoff interaction_effect
+cat(paste("\ncohen's d of the quadratic stimulus intensity effect: ",
+0.7858/(0.3017*sqrt(82))))
+```
+
+### Method 1-1 effectsize estimate (one-sample t-test)
+
+```{r}
+cohens_f(model_1_1)
+eta_squared(model_1_1, partial = FALSE)
+```
+
+### Method 1-2 effectsize estimate (one-sample t-test)
+
+```{r}
+cohens_f(model_1_2)
+eta_squared(model_1_2, partial = FALSE)
+```
+
+Note that the effectsize of the cue effect ("cue_factor") is 5.64e-04.
+We'll check that this is equivalent to the effectsize estimate in the
+next model
+
+## Method 2 matlab {.tabset}
+
+### Method 2 matlab
+
+-   Data Matrix: Long form
+
+    -   row (83 subject) x column (6 conditions: highCue*highStim,
+        highCue*medStim, highCue*lowStim,
+        lowCue*highStim,lowCue*medStim, lowCue*lowStim)
+
+-   Model: Use "lm". One-sample t-test
+
+-   Effect size (cohen's d): mean / sd (intersubject slope) \> use
+    degrees of freedom.
+
+-   See function help here:
+    <https://canlabcore.readthedocs.io/_/downloads/en/latest/pdf/>
+
+-   `Question ::` How do I indicate that that is a 2 factor dataset?
+
+````{=html}
+```{r, echo=FALSE, results='asis'}
+xfun::file_string('/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/matlab_model05_iv_cue_stim_dv_tradeoff_withinsubject.html')
+```
+````
+
+## Method 3 multilevel modeling
+
+### Method 3 multilevel modeling
+
+-   Data Matrix: Long form
+    -   Row (498: 83 subject \* 2 cue \* 3 stimulus intensity)
+    -   Columns (4: subject, cue type, stimulus intensity type,
+        tradeoff)
+-   Model: Use "lmer" multilevel-modeling
+    -   grouping variable: subjects (i.e. src_subject_id)
+    -   fixed effects - cue (2 levels, contrast-coded [high, low: 1,
+        -1]) - stim_linear (3 levels, [low, med, high: -1, 0, 1]) -
+        stim_quadratic (3 levels, [low, med, high: -1, 2, -1])
+    -   random effects - cue - stim_linear - cue\*stim_linear
+    -   NOTE: due to convergence failure, cue\*stim_quadratic term was
+        removed
+-   Effect size (cohen's d): beta_coefficient/ sqrt(sum of all random
+    variance)
+
+contrast-coding for multi-level modeling (code-hidden)
+
+```{r model 3 contrast coding}
+#contrast code 1 linear
+df_tradeoff$stim_con_linear[df_tradeoff$param_stimulus_type == "low_stim"] <- -0.5
+df_tradeoff$stim_con_linear[df_tradeoff$param_stimulus_type == "med_stim"] <- 0
+df_tradeoff$stim_con_linear[df_tradeoff$param_stimulus_type == "high_stim"] <- 0.5
+
+# contrast code 2 quadratic
+df_tradeoff$stim_con_quad[df_tradeoff$param_stimulus_type == "low_stim"] <- -0.33
+df_tradeoff$stim_con_quad[df_tradeoff$param_stimulus_type == "med_stim"] <- 0.66
+df_tradeoff$stim_con_quad[df_tradeoff$param_stimulus_type == "high_stim"] <- -0.33
+
+# social cue contrast
+df_tradeoff$social_cue[df_tradeoff$param_cue_type == 'low_cue'] <- -0.5 # social influence task
+df_tradeoff$social_cue[df_tradeoff$param_cue_type == 'high_cue'] <- 0.5 # no influence task
+df_tradeoff$cue_factor = factor(df_tradeoff$social_cue)
+```
+
+```{r}
+# parameters ___________________________________________________________________
+df_tradeoff$subject = factor(df_tradeoff$src_subject_id)
+subject_varkey <- "subject"
+iv <- "cue_factor"
+stim_con1 = "stim_con_linear"
+stim_con2 = "stim_con_quad"
+dv <- "tradeoff"
+iv_keyword <- "cue-stim"
+dv_keyword <- "tradeoff"
+xlab <- ""
+taskname <- "cognitive"
+ylim = c(-1,1)
+```
+
+Method-3 multi-level modeling using **lmer**
+
+```{r lmer fullmodel, class.source = 'fold-show'}
+Method3_fullmodel = lmer(tradeoff ~ 1+ cue_factor + stim_con_linear + stim_con_quad + cue_factor:stim_con_linear + cue_factor:stim_con_quad + (1  |subject), data = df_tradeoff)
+
+# output of Method-3 model
+summary(Method3_fullmodel)
+
+```
+
+```{r plot results}
+cooksd <- cooks.distance(Method3_fullmodel)
+influential <- as.numeric(names(cooksd)[
+    (cooksd > (4 / as.numeric(length(unique(df_tradeoff$subject)))))])
+data_screen <- df_tradeoff[-influential, ]
+
+# reordering for plots _________________________________________________________
+df_tradeoff$cue_name[df_tradeoff$param_cue_type == "high_cue"] <- "high cue"
+df_tradeoff$cue_name[df_tradeoff$param_cue_type == "low_cue"] <- "low cue" # no influence task
+
+df_tradeoff$stim_name[df_tradeoff$param_stimulus_type == "high_stim"] <- "high" # no influence task
+df_tradeoff$stim_name[df_tradeoff$param_stimulus_type == "med_stim"] <- "med" # no influence task
+df_tradeoff$stim_name[df_tradeoff$param_stimulus_type == "low_stim"] <- "low" # no influence task
+
+df_tradeoff$stim_ordered <- factor(df_tradeoff$stim_name, levels=c("low", "med", "high"))
+df_tradeoff$cue_ordered <- factor(df_tradeoff$cue_name, levels=c("low cue", "high cue"))
+model_iv1 = "stim_ordered";model_iv2 = "cue_ordered"
+
+# summary statistics for plots _________________________________________________
+subjectwise <- meanSummary(df_tradeoff, c(subject, model_iv1, model_iv2), dv)
+groupwise <- summarySEwithin(
+        data = subjectwise,
+        measurevar = "mean_per_sub", # variable created from above
+        withinvars = c(model_iv1, model_iv2), # iv
+        idvar = "subject"
+    )
+
+subjectwise_mean <- "mean_per_sub";    
+group_mean <- "mean_per_sub_norm_mean"
+se <- "se";   
+ggtitle <- paste(taskname, dv_keyword);    
+title <- paste(taskname, " - RT")
+xlab <- "";    
+ylab <- "Reaction Time (s)";    
+w = 5; h = 3; 
+ylim = c(-5,5)
+if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color <- c("#1B9E77", "#D95F02")
+    } else {
+        color <- c("#4575B4", "#D73027")
+    }
+plot_savefname <- file.path(
+        analysis_dir,
+        paste("raincloud_task-", taskname,
+              "_iv-", iv_keyword,"_dv-", dv_keyword,
+              "_", as.character(Sys.Date()), ".png",
+              sep = ""
+        )
+    )
+plot_rainclouds_twofactor(
+        subjectwise, groupwise,
+        model_iv1, model_iv2, subjectwise_mean, group_mean, se, subject,
+        ggtitle, title, xlab, ylab, task_name, ylim,
+        w, h, dv_keyword, color, plot_savefname
+    )
+
+```
+
+```{r}
+fixef(Method3_fullmodel)
+```
+
+```{r}
+sd_raw_pre_t <- filter(df_tradeoff, cue_factor ==  "0.5") %>% summarise(s = sd(tradeoff)) %>% pull()  # treatment baseline SD
+sd_raw_pre_c <- filter(df_tradeoff, cue_factor == "-0.5") %>% summarise(s = sd(tradeoff)) %>% pull()  # control baseline SD
+
+sd_raw_pre_t
+sd_raw_pre_c
+
+# pooled PRE based on addition of two group conditions
+sd_raw_pre_p <- sqrt((sd_raw_pre_c^2 + sd_raw_pre_t^2) / 2)
+sd_raw_pre_p
+```
+
+## Method 3 - Effect size estimates
+
+d = estimate for fixed effect / (sqrt of sum of variances of random
+effects)
+
+```{r, class.source = 'fold-show'}
+#https://www.journalofcognition.org/articles/10.5334/joc.10/
+cat(paste("effectsize of lmer cue effect:", 
+          0.0658 / sqrt(sum(0.0000,0.6077,1.1785,4.0424,0.8779))))
+
+#0.0658 / sqrt(sum(0.1519,0.6078,2.0258,4.0428,0.8779))
+#0.07/sqrt(sum(0.88,0.15,0.61,2.35,4.04,-1.00,0.37,-0.61))
+
+#cohen_f = 0.02540844**2 / (2*2)
+#cohen_f
+```
+
+
+## Method 3 plotting
+
+```{r}
+library(sjPlot)
+
+tab_model(Method3_fullmodel, p.val = "kr", show.df = TRUE)
+plot_model(Method3_fullmodel, vline.color = "red")
+
+# sort coefficients based on sizee
+# plot_model(Method3_fullmodel, sort.est = TRUE)
+
+# sjp.lmer(Method3_fullmodel, y.offset = .4)
+
+plot_model(Method3_fullmodel, type = "re")
+library(equatiomatic)
+equatiomatic::extract_eq(Method3_fullmodel)
+```
+
+--
+
+## Conclusion: Method 1 vs Method 3 {.unnumbered}
+
+-   TODO: find a way to plot the results side-by-side
+
+```{r}
+#sjPlot::sjt.lmer(Method3_fullmodel)
+```
+
+### **Comparison between Method 1 and Method 3**
+
+While the coefficients vary from model to model, the t and p values are
+identical. Please note that the multilevel modeling does not include the
+quadratic stimulus x cue interaction term int he random slopes. Thereby
+the t values do differ in this case. TODO: expand and clean \* update
+the beta coefficients
+
+#### 1) Statistics of Cue effect
+
+-   **Method 1 onesample-t version**: *b* = -0.1974, *se* = 0.3597,
+    *t*(82) = -0.549, *p* = .585
+
+<!-- -->
+
+-   **Method 3 lmer version**: *b* = 0.06580, *se* = 0.11989, *t*(81.99)
+    = 0.549, *p* = .5846
+
+#### 4) Interaction effect
+
+-   **Method 1 onesample-t version:** *b* = 0.7858, *se* = 0.3017,
+    *t*(82) = 2.605, *p* = 0.0109
+
+-   **Method 3 lmer version**: *b* = -0.78582, *se* = 0.30170,
+    *t*(81.99944) = -2.605, *p* = .0109
+
+### In otherwords, the results are identical.
+
+------------------------------------------------------------------------
+
+# References
+
+-   multilevel modelling ::
+    <http://www.bristol.ac.uk/cmm/learning/multilevel-models/what-why.html>
+-   multilevel modelling :: df
+    <https://bbolker.github.io/mixedmodels-misc/glmmFAQ.html#why-doesnt-lme4-display-denominator-degrees-of-freedomp-values-what-other-options-do-i-have>
+-   multilevel modelling :: <https://m-clark.github.io/>
+-   [Fixed vs random effects models for fMRI meta
+    analysis](https://biblio.ugent.be/publication/5775681/file/5775705.pdf)
+-   <https://rpsychologist.com/d3/ci/>
+-   power analysis :: <https://jakewestfall.shinyapps.io/crossedpower/>
+-   power analysis in lmm glmm ::
+    <https://lkumle.github.io/power_notebooks/>
+-   sjPlot :: <https://github.com/strengejacke/sjPlot/issues/311>
+-   sjPlot :: <https://strengejacke.wordpress.com/2017/10/23/one-function-to-rule-them-all-visualization-of-regression-models-in-rstats-w-sjplot/>
+
+# Other links
+
+-   Markdown formatting ::
+    <https://bookdown.org/yihui/rmarkdown-cookbook/embed-rmd.html>
+-   CANlab glmfit_multilevel ::
+    <https://github.com/canlab/CanlabCore/blob/master/CanlabCore/Statistics_tools/glmfit_multilevel.m>
+-   lmer results formatting ::
+    <http://www.strengejacke.de/sjPlot/articles/sjtlmer.html>
+-   lmer results formatting ::
+    <https://stats.stackexchange.com/questions/173335/two-regression-outputs-side-by-side-in-r>
+-   lmer and formulas :: <https://rpubs.com/rslbliss/r_mlm_ws>
+-   repeated measures using aov in R ::
+    <https://stackoverflow.com/questions/5694664/repeated-measures-within-subjects-anova-in-r>
+-   Matthew McCurdy anova using afex in R
+    <https://ademos.people.uic.edu/Chapter21.html>
+-   error term in repeated measures R ::
+    <https://stats.stackexchange.com/questions/247582/repeated-measures-anova-in-r-errorsubject-vs-errorsubject-day>
+-   effect sizes in anova R ::
+    <https://cran.r-project.org/web/packages/effectsize/vignettes/anovaES.html>

@@ -24,15 +24,16 @@ m6 = containers.Map(keySet,con6);
 m7 = containers.Map(keySet,con7);
 
 % NOTE 02 define directories _______________________________________________________
-fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'; % sub / ses
-main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
-motion_dir = fullfile(main_dir, 'data', 'dartmouth', 'd05_motion');
-onset_dir = fullfile(main_dir, 'data', 'dartmouth', 'd04_EV_SPM');
+fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/fmriprep';
+main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social';
+smooth_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/smooth_6mm';
+motion_dir = fullfile(main_dir, 'data', 'd04_motion');
+onset_dir = fullfile(main_dir, 'data', 'd03_onset', 'onset02_SPM');
 
 
-
-sub_num = sscanf(char(input),'%d');
-sub = strcat('sub-', sprintf('%04d', sub_num));
+% sub_num = sscanf(char(input),'%d');
+% sub = strcat('sub-', sprintf('%04d', sub_num));
+sub = strcat('sub-', sprintf('%04d', input));
 disp( sub );
 fmri_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'univariate', 'model-02_CcEScA',...
     '1stLevel', sub); % first level spm mat.
@@ -41,7 +42,7 @@ spm_fname = fullfile(fmri_dir, 'SPM.mat');
 
 % NOTE 03 find intersection of nifti and onset files
 % find nifti files
-niilist = dir(fullfile(fmriprep_dir, sub, '*/func/smooth_5mm_*task-social*_bold.nii'));
+niilist = dir(fullfile(smooth_dir, sub, '*/func/*task-social*_bold.nii'));
 nT = struct2table(niilist); % convert the struct array to a table
 sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
 
