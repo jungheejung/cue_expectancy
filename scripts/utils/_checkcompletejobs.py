@@ -17,9 +17,9 @@ sub = []
 for fname in sorted(log_files):
     with open(fname) as f:
         for line in f:
-            if line.startswith("FINISH"):
+            if line.startswith("FINISH") :
                 sub.append(int(re.findall('\d+', line)[0]))
 
-
-with open( join(batchscript_dir, 'complete_{date}.txt'), "w") as output:
-    output.write(str(sub))
+sorted_sub = sorted(sub)
+with open( join(batchscript_dir,f'complete_{date}.txt'), "w") as output:
+    output.write(str(sorted_sub))
