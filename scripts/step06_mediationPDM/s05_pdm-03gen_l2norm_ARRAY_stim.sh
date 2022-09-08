@@ -1,5 +1,5 @@
 #!/bin/bash -l
-#SBATCH --job-name=med
+#SBATCH --job-name=med_gen_stim
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=16
 #SBATCH --ntasks=1 

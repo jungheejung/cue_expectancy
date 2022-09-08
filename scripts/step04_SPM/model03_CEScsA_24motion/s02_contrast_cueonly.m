@@ -96,7 +96,9 @@ for run_ind = 1: size(A,1)
     ses = strcat('ses-', sprintf('%02d', A.ses_num(run_ind)));
     run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
     run2d = strcat('run-', sprintf('%02d', A.run_num(run_ind)));
-    motion_fname = fullfile(motion_dir, '24dof_csf_spike_dummy', sub, ses, strcat(sub, '_', ses, '_task-social_', run2d, '_confounds-subset.txt'));
+
+
+    motion_fname = fullfile(motion_dir, 'csf_24dof_dummy_spike', sub, ses, strcat(sub, '_', ses, '_task-social_', run2d, '_confounds-subset.txt'));
     mdf = dlmread(motion_fname);
     n_cov = [];
     n_cov = zeros(1, size(mdf,2));
@@ -198,5 +200,7 @@ save( con_batch  ,'matlabbatch');
 % 2. Run ___________________________________________________________________
 spm_jobman('run',matlabbatch);
 clearvars matlabbatch
+
+disp(strcat('FINISH - subject ', sub,  ' complete'))
 
 end

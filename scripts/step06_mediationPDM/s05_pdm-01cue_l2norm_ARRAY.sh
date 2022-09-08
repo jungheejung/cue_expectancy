@@ -1,12 +1,12 @@
 #!/bin/bash -l
-#SBATCH --job-name=med
+#SBATCH --job-name=med_cue
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=16
 #SBATCH --ntasks=1 
 #SBATCH --mem-per-cpu=8gb
 #SBATCH --time=24:00:00
-#SBATCH -o ./log_cue/med_%A_%a.o
-#SBATCH -e ./log_cue/med_%A_%a.e
+#SBATCH -o ./log_cue/med_cue_%A_%a.o
+#SBATCH -e ./log_cue/med_cue_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
 
