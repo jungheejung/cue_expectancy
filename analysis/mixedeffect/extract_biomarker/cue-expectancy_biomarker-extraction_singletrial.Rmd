@@ -260,9 +260,9 @@ run_cue_lmer = function(DATA,TASKNAME, IV, DV, SUBJECT, DV_KEYWORD, MODEL_SAVE){
 main_dir = '/Volumes/spacetop_projects_social'
 
 # Stim P > VC
-p.fname = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate/s04_extract_biomarker/extract-NPS_pain_ev-stim_l2norm.csv'
-c.fname = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate/s04_extract_biomarker/extract-NPS_cognitive_ev-stim_l2norm.csv'
-v.fname = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate/s04_extract_biomarker/extract-NPS_vicarious_ev-stim_l2norm.csv'
+p.fname = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate_24dofcsd/s04_extractbiomarker/extract-NPS_pain_ev-stim_l2norm.csv'
+c.fname = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate_24dofcsd/s04_extractbiomarker/extract-NPS_cognitive_ev-stim_l2norm.csv'
+v.fname = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate_24dofcsd/s04_extractbiomarker/extract-NPS_vicarious_ev-stim_l2norm.csv'
 p.df = read.csv(p.fname)
 v.df = read.csv(v.fname)
 c.df = read.csv(c.fname)
@@ -314,7 +314,7 @@ data_screen <- data[-influential, ]
 
     subjectwise_mean <- "mean_per_sub";    group_mean <- "mean_per_sub_norm_mean"
     se <- "se";    subject <- "subject"
-    ggtitle <- paste(taskname, " - stimulus event, l2normed");    title <- paste(taskname, " - stimulus, l2norm")
+    ggtitle <- paste(taskname, " - stimulus event, l2normed, N = ", length(unique(subjectwise$subject)));    title <- paste(taskname, " - stimulus, l2norm")
     xlab <- "";    ylab <- "nps (dot product)";    
     w = 5; h = 3; dv_keyword <- "expect"
     
@@ -360,9 +360,9 @@ g
 main_dir = '/Volumes/spacetop_projects_social'
 
 # Stim P > VC
-p.vps = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate/s04_extract_biomarker/extract-VPS_pain_ev-stim_l2norm.csv'
-c.vps = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate/s04_extract_biomarker/extract-VPS_cognitive_ev-stim_l2norm.csv'
-v.vps = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate/s04_extract_biomarker/extract-VPS_vicarious_ev-stim_l2norm.csv'
+p.vps = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate_24dofcsd/s04_extractbiomarker/extract-VPS_pain_ev-cue_l2norm.csv'
+c.vps = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate_24dofcsd/s04_extractbiomarker/extract-VPS_cognitive_ev-cue_l2norm.csv'
+v.vps = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate_24dofcsd/s04_extractbiomarker/extract-VPS_vicarious_ev-cue_l2norm.csv'
 p.vpsdf = read.csv(p.vps)
 v.vpsdf = read.csv(v.vps)
 c.vpsdf = read.csv(c.vps)
@@ -400,6 +400,9 @@ influential <- as.numeric(names(cooksd)[
 (cooksd > (4 / as.numeric(length(unique(data$subject)))))])
 data_screen <- data[-influential, ]
 ```
+
+
+
 ```{r}
 # combhine cell with previous IF IT WORKS
 
@@ -414,17 +417,17 @@ data_screen <- data[-influential, ]
 
     subjectwise_mean <- "mean_per_sub";    group_mean <- "mean_per_sub_norm_mean"
     se <- "se";    subject <- "subject"
-    ggtitle <- paste(taskname, " - stimulus event, l2normed");    title <- paste(taskname, " - stimulus, l2norm")
-    xlab <- "";    ylab <- "ratings (degree)";    
-    w = 5; h = 3; dv_keyword <- "vps"
+    ggtitle <- paste(taskname, " - cue event, l2normed, N = ", length(unique(subjectwise$subject)));    title <- paste(taskname, " - cue, l2norm")
+    xlab <- "";    ylab <- "nps (dot product)";    
+    w = 5; h = 3; dv_keyword <- "expect"
     
 
     ylim <- c(-30, 30)
 
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
-        color <- c('#171893','#941100', '#019052')
+        color <- c('#941100', '#019052','#171893')
     } else {
-        color <- c('#171893','#941100', '#019052')
+        color <- c('#941100', '#019052','#171893')
     }
     plot_savefname <- file.path(
         analysis_dir,
@@ -435,18 +438,20 @@ data_screen <- data[-influential, ]
         )
     )
     
-    g <- plot_rainclouds_onefactor(
+   g <- plot_rainclouds_onefactor(
         subjectwise, groupwise,
         iv, subjectwise_mean, group_mean, se, subject,
         ggtitle, title, xlab, ylab, task_name,ylim,
         w, h, dv_keyword, color, plot_savefname
     )
-    
-    g +
-  scale_x_discrete(labels=c("pain_ev-stim_l2norm" = "Pain", 
-                              "vicarious_ev-stim_l2norm" = "Vicarious", 
-                              "cognitive_ev-stim_l2norm" = "Cognitive")) +
+   
+g +
+  scale_x_discrete(labels=c("pain_ev-cue_l2norm" = "Pain", 
+                              "vicarious_ev-cue_l2norm" = "Vicarious", 
+                              "cognitive_ev-cue_l2norm" = "Cognitive")) +
   theme_classic() 
+
+g
 ```
 
 
@@ -460,47 +465,253 @@ data_screen <- data[-influential, ]
 
 
 
-
-
-
-
-
-## 1) COPIED FROM OTHER SOURCElmer
+# I. STIM l2norm NPS x high cue low cue ______________________________________
+## l2norm for stimulus single trials
 ```{r}
-# parameters _____________________________________ # nolint
-subject_varkey <- "src_subject_id"
-iv <- "param_cue_type"
-dv <- "event02_expect_angle"
-dv_keyword <- "expect"
-xlab <- ""
 
-ylab <- "ratings (degree)"
-subject <- "subject"
-exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
+main_dir = '/Volumes/spacetop_projects_social'
 
-analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model01_iv-cue_dv-expect", as.character(Sys.Date()))
+# Stim P > VC
+p.fname = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate_24dofcsd/s04_extractbiomarker/extract-NPS_pain_ev-stim_l2norm.csv'
+c.fname = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate_24dofcsd/s04_extractbiomarker/extract-NPS_cognitive_ev-stim_l2norm.csv'
+v.fname = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate_24dofcsd/s04_extractbiomarker/extract-NPS_vicarious_ev-stim_l2norm.csv'
+p.df = read.csv(p.fname)
+v.df = read.csv(v.fname)
+c.df = read.csv(c.fname)
+p.df$con = 'pain'
+v.df$con = 'vicarious'
+c.df$con = 'cognitive'
+```
+
+## append metadata NPS
+
+```{r}
+load_task_social_df <- function(taskname, subject_varkey,event,  exclude) {
+  # INPUT:
+  # * taskname (e.g. pain, cognitive, vicarious)
+  # * subject_varkey (e.g. src_subject_id or subject)
+  # A. load data ______________________________________________________________
+
+ filename <- paste("metadata_*_task-social_run-", taskname, "_ev-", event,".csv", sep = "")
+  common_path <- Sys.glob(file.path(
+    main_dir, "analysis","fmri","spm","multivariate_24dofcsd", "s03_concatnifti","sub-*",filename  ))
+  filter_path <- common_path[!str_detect(common_path, pattern = exclude)]
+
+  df <- do.call("rbind", lapply(filter_path, FUN = function(files) {
+    read.csv(files)
+  }))
+  is.nan.data.frame <- function(x) {
+    do.call(cbind, lapply(x, is.nan))
+  }
+  df[is.nan(df)] <- NA
+  df[, "subject"] <- factor(df[, subject_varkey])
+
+  # B. plot expect rating NA ___________________________________________________
+  # df_expect_NA <- aggregate(df[, dv], list(df$subject), function(x) sum(is.na(x)))
+  # df_remove_NA <- df[!is.na(df[dv]), ]
+  # df_remove_NA <- as.data.frame(df_remove_NA)
+  return(df)
+}
+
+```
+```{r}
+meta.P.df = load_task_social_df("pain", "sub","stim","sub-0001" )
+metadatacount.P = table(meta.P.df['sub'])
+npscount.P=table(p.df['subject'])
+NPSremove.plist <- paste(c("sub-0005","sub-0018","sub-0019","sub-0020","sub-0021","sub-0023","sub-0024","sub-0052"), collapse = '|') 
+metaremove.Plist <- paste(c("5","18","19","20","21","23","24","52"), collapse = '|') 
+filter_meta_P <- meta.P.df[!(meta.P.df$sub %in% c("5","18","19","20","21","23","24","52")),]
+filter_NPS_P <- p.df[!(p.df$subject %in% c("sub-0005","sub-0018","sub-0019","sub-0020","sub-0021","sub-0023","sub-0024","sub-0052")),]
+
+
+meta.V.df = load_task_social_df("vicarious", "sub","stim","sub-0001" )
+metadatacount.V = table(meta.V.df['sub'])
+npscount.V=table(v.df['subject'])
+NPSremove.Vlist <- paste(c("sub-0005","sub-0018","sub-0019","sub-0020","sub-0021","sub-0023","sub-0024","sub-0052"), collapse = '|') 
+metaremove.Vlist <- paste(c("5","18","19","20","21","23","24","52"), collapse = '|') 
+filter_meta_V <- meta.V.df[!(meta.V.df$sub %in% c("5","18","19","20","21","23","24","52")),]
+filter_NPS_V <- v.df[!(v.df$subject %in% c("sub-0005","sub-0018","sub-0019","sub-0020","sub-0021","sub-0023","sub-0024","sub-0052")),]
+
+
+meta.C.df = load_task_social_df("cognitive", "sub","stim","sub-0001" )
+metadatacount.C = table(meta.C.df['sub'])
+npscount.C=table(c.df['subject'])
+NPSremove.Clist <- paste(c("sub-0005","sub-0015","sub-0018","sub-0019","sub-0020","sub-0021","sub-0023","sub-0024","sub-0052"), collapse = '|') 
+metaremove.Clist <- paste(c("5","15","18","19","20","21","23","24","52"), collapse = '|') 
+filter_meta_C <- meta.C.df[!(meta.C.df$sub %in% c("5","15","18","19","20","21","23","24","52")),]
+filter_NPS_C <- c.df[!(c.df$subject %in% c("sub-0005","sub-0015","sub-0018","sub-0019","sub-0020","sub-0021","sub-0023","sub-0024","sub-0052")),]
+
+
+
+
+```
+
+```{r}
+Cog = cbind(filter_meta_C,filter_NPS_C)
+Vic = cbind(filter_meta_V,filter_NPS_V)
+Pain = cbind(filter_meta_P,filter_NPS_P)
+write.csv(Cog, "/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-NPS_task-cognitive_metadata.csv")
+write.csv(Vic, "/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-NPS_task-vicarious_metadata.csv")
+write.csv(Pain, "/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-NPS_task-pain_metadata.csv")
+```
+
+########################
+# VPS append
+########################
+
+```{r}
+
+main_dir = '/Volumes/spacetop_projects_social'
+
+# Stim P > VC
+p.fname = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate_24dofcsd/s04_extractbiomarker/extract-VPS_pain_ev-stim_l2norm.csv'
+c.fname = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate_24dofcsd/s04_extractbiomarker/extract-VPS_cognitive_ev-stim_l2norm.csv'
+v.fname = '/Volumes/spacetop_projects_social/analysis/fmri/spm/multivariate_24dofcsd/s04_extractbiomarker/extract-VPS_vicarious_ev-stim_l2norm.csv'
+p.df = read.csv(p.fname)
+v.df = read.csv(v.fname)
+c.df = read.csv(c.fname)
+p.df$con = 'pain'
+v.df$con = 'vicarious'
+c.df$con = 'cognitive'
+```
+
+## append metadata
+
+```{r}
+load_task_social_df <- function(taskname, subject_varkey,event,  exclude) {
+  # INPUT:
+  # * taskname (e.g. pain, cognitive, vicarious)
+  # * subject_varkey (e.g. src_subject_id or subject)
+  # A. load data ______________________________________________________________
+
+ filename <- paste("metadata_*_task-social_run-", taskname, "_ev-", event,".csv", sep = "")
+  common_path <- Sys.glob(file.path(
+    main_dir, "analysis","fmri","spm","multivariate_24dofcsd", "s03_concatnifti","sub-*",filename  ))
+  filter_path <- common_path[!str_detect(common_path, pattern = exclude)]
+
+  df <- do.call("rbind", lapply(filter_path, FUN = function(files) {
+    read.csv(files)
+  }))
+  is.nan.data.frame <- function(x) {
+    do.call(cbind, lapply(x, is.nan))
+  }
+  df[is.nan(df)] <- NA
+  df[, "subject"] <- factor(df[, subject_varkey])
+
+  # B. plot expect rating NA ___________________________________________________
+  # df_expect_NA <- aggregate(df[, dv], list(df$subject), function(x) sum(is.na(x)))
+  # df_remove_NA <- df[!is.na(df[dv]), ]
+  # df_remove_NA <- as.data.frame(df_remove_NA)
+  return(df)
+}
+
+```
+```{r}
+meta.P.df = load_task_social_df("pain", "sub","stim","sub-0001" )
+metadatacount.P = table(meta.P.df['sub'])
+npscount.P=table(p.df['subject'])
+NPSremove.plist <- paste(c("sub-0005","sub-0018","sub-0019","sub-0020","sub-0021","sub-0023","sub-0024","sub-0052"), collapse = '|') 
+metaremove.Plist <- paste(c("5","18","19","20","21","23","24","52"), collapse = '|') 
+filter_meta_P <- meta.P.df[!(meta.P.df$sub %in% c("5","18","19","20","21","23","24","52","73","74","76","78","79","80","81","84","85")),]
+filter_NPS_P <- p.df[!(p.df$subject %in% c("sub-0005","sub-0018","sub-0019","sub-0020","sub-0021","sub-0023","sub-0024","sub-0052","sub-0073","sub-0074","sub-0076","sub-0078","sub-0079","sub-0080","sub-0081","sub-0084","sub-0085")),]
+
+
+meta.V.df = load_task_social_df("vicarious", "sub","stim","sub-0001" )
+metadatacount.V = table(meta.V.df['sub'])
+npscount.V=table(v.df['subject'])
+NPSremove.Vlist <- paste(c("sub-0005","sub-0018","sub-0019","sub-0020","sub-0021","sub-0023","sub-0024","sub-0052"), collapse = '|') 
+metaremove.Vlist <- paste(c("5","18","19","20","21","23","24","52"), collapse = '|') 
+filter_meta_V <- meta.V.df[!(meta.V.df$sub %in% c("5","18","19","20","21","23","24","52")),]
+filter_NPS_V <- v.df[!(v.df$subject %in% c("sub-0005","sub-0018","sub-0019","sub-0020","sub-0021","sub-0023","sub-0024","sub-0052")),]
+
+
+meta.C.df = load_task_social_df("cognitive", "sub","stim","sub-0001" )
+metadatacount.C = table(meta.C.df['sub'])
+npscount.C=table(c.df['subject'])
+NPSremove.Clist <- paste(c("sub-0005","sub-0015","sub-0018","sub-0019","sub-0020","sub-0021","sub-0023","sub-0024","sub-0052"), collapse = '|') 
+metaremove.Clist <- paste(c("5","15","18","19","20","21","23","24","52"), collapse = '|') 
+filter_meta_C <- meta.C.df[!(meta.C.df$sub %in% c("5","15","18","19","20","21","23","24","52")),]
+filter_NPS_C <- c.df[!(c.df$subject %in% c("sub-0005","sub-0015","sub-0018","sub-0019","sub-0020","sub-0021","sub-0023","sub-0024","sub-0052")),]
+
+
+
+
+```
+
+```{r}
+Cog = cbind(filter_meta_C,filter_NPS_C)
+Vic = cbind(filter_meta_V,filter_NPS_V)
+Pain = cbind(filter_meta_P,filter_NPS_P)
+write.csv(Cog, "/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-VPS_task-cognitive_metadata.csv")
+write.csv(Vic, "/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-VPS_task-vicarious_metadata.csv")
+write.csv(Pain, "/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-VPS_task-pain_metadata.csv")
+```
+
+
+```{r}
+taskname = 'cognitive'
+event = 'stim'
+exclude = 'sub-0001'
+subject_varkey = 'sub'
+ filename <- paste("metadata_*_task-social_run-", taskname, "_ev-", event,".csv", sep = "")
+  common_path <- Sys.glob(file.path(
+    main_dir, "analysis","fmri","spm","multivariate_24dofcsd", "s03_concatnifti","sub-*",filename  ))
+  filter_path <- common_path[!str_detect(common_path, pattern = exclude)]
+
+  df <- do.call("rbind", lapply(filter_path, FUN = function(files) {
+    read.csv(files)
+  }))
+  is.nan.data.frame <- function(x) {
+    do.call(cbind, lapply(x, is.nan))
+  }
+  df[is.nan(df)] <- NA
+  df[, "subject"] <- factor(df[, subject_varkey])
+```
+
+
+
+```{r}
+library(dplyr)
+library(readr)
+df <- list.files(path="yourpath", full.names = TRUE) %>% 
+  lapply(read_csv) %>% 
+  bind_rows 
+```
+
+```{r}
+pvc <- rbind(p.df, v.df, c.df)
+```
+
+```{r}
+# parameters for lmer function
+pvc$subject = factor(pvc$subject)
+pvc$fname_noext = factor(pvc$fname_noext)
+data = pvc; iv = 'fname_noext'; dv = 'nps'; subject = 'subject'; dv_keyword = 'nps'
+taskname = 'nps'
+
+#directories
+local_dir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis'
+analysis_dir <- file.path(local_dir, "analysis", "mixedeffect", "extract_biomarker", "glm_singletrial", as.character(Sys.Date()))
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
-
-for (taskname in c("pain", "vicarious", "cognitive")) {
-    model_savefname <- file.path(
+model_savefname <- file.path(
         analysis_dir,
-        paste("lmer_task-", taskname,
-            "_rating-", dv_keyword,
-            "_", as.character(Sys.Date()), ".txt",
+        paste("extract-", taskname, "_glmresults", as.character(Sys.Date()), "cue.txt",
             sep = ""
-        )
+        ))
+
+# linear model + cooks d outlier removal
+cooksd <- lmer_onefactor_cooksd(
+        pvc, taskname, iv, dv, subject, dv_keyword, model_savefname
     )
-    # load data, run model, and exclude outliers
-    data <- load_task_social_df(taskname, subject_varkey, iv, dv, exclude)
-    data$subject = factor(data$src_subject_id)
-    cooksd <- lmer_onefactor_cooksd(
-        data, taskname, iv, dv, subject, dv_keyword, model_savefname
-    )
-    influential <- as.numeric(names(cooksd)[
-    (cooksd > (4 / as.numeric(length(unique(data$subject)))))])
-    data_screen <- data[-influential, ]
+influential <- as.numeric(names(cooksd)[
+(cooksd > (4 / as.numeric(length(unique(data$subject)))))])
+data_screen <- data[-influential, ]
+```
+```{r}
+# combhine cell with previous IF IT WORKS
+
     # summary statistics
-    subjectwise <- meanSummary(data_screen, c(subject, iv), dv)
+    subjectwise <- meanSummary(pvc, c(subject, iv), dv)
     groupwise <- summarySEwithin(
         data = subjectwise,
         measurevar = "mean_per_sub", # variable created from above
@@ -510,13 +721,17 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
 
     subjectwise_mean <- "mean_per_sub";    group_mean <- "mean_per_sub_norm_mean"
     se <- "se";    subject <- "subject"
-    ggtitle <- paste(taskname, " - Expectation Rating (degree)");    title <- paste(taskname, " - Expect")
-    xlab <- "";    ylab <- "ratings (degree)";    
+    ggtitle <- paste(taskname, " - cue event, l2normed, N = ", length(unique(subjectwise$subject)));    title <- paste(taskname, " - cue, l2norm")
+    xlab <- "";    ylab <- "nps (dot product)";    
     w = 5; h = 3; dv_keyword <- "expect"
+    
+
+    ylim <- c(-30, 30)
+
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
-        color <- c("#1B9E77", "#D95F02")
+        color <- c('#941100', '#019052','#171893')
     } else {
-        color <- c("#4575B4", "#D73027")
+        color <- c('#941100', '#019052','#171893')
     }
     plot_savefname <- file.path(
         analysis_dir,
@@ -526,47 +741,22 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
             sep = ""
         )
     )
-    plot_rainclouds_onefactor(
+    
+   g <- plot_rainclouds_onefactor(
         subjectwise, groupwise,
         iv, subjectwise_mean, group_mean, se, subject,
-        ggtitle, title, xlab, ylab, task_name,
+        ggtitle, title, xlab, ylab, task_name,ylim,
         w, h, dv_keyword, color, plot_savefname
     )
-randEffect$newcoef <- mapvalues(randEffect$term,
-    from = c("(Intercept)", 
-             "data[, iv]low_cue"
-             ),
-    to = c("rand_intercept", "rand_cue")
-)
+   
+g +
+  scale_x_discrete(labels=c("pain_ev-cue_l2norm" = "Pain", 
+                              "vicarious_ev-cue_l2norm" = "Vicarious", 
+                              "cognitive_ev-cue_l2norm" = "Cognitive")) +
+  theme_classic() 
 
-rand_subset <- subset(randEffect, select = -c(grpvar, term, condsd))
-wide_rand <- spread(rand_subset, key = newcoef, value = condval)
-
-wide_fix <- do.call(
-    "rbind",
-    replicate(nrow(wide_rand),
-        as.data.frame(t(as.matrix(fixEffect))),
-        simplify = FALSE
-    )
-)
-rownames(wide_fix) <- NULL
-new_wide_fix <- dplyr::rename(wide_fix,
-    fix_intercept = `(Intercept)`,
-    fix_cue = `data[, iv]low_cue`,
-)
-
-total <- cbind(wide_rand, new_wide_fix)
-total$task <- taskname
-new_total <- total %>% dplyr::select(task, everything())
-new_total <- dplyr::rename(total, subj = grp)
-
-rand_savefname <- file.path(
-    analysis_dir,
-    paste("randeffect_task-", taskname, "_",
-        as.character(Sys.Date()), "_outlier-cooksd.csv",
-        sep = ""
-    )
-)
-write.csv(new_total, rand_savefname, row.names = FALSE)
-}
+g
 ```
+
+
+v
