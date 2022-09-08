@@ -8,7 +8,7 @@
 #SBATCH -e ./log_con/contrast_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1-61%5
+#SBATCH --array=1-80%20
 
 subjects=(7 8 9 10 11 13 14 15 16 17 18 19 20 21 23 24 28 29 30 31 32 33 35 36 37 38 39 40 41 43 44 46 47 50 51 52 53 55 56 57 58 59 60 61 62 64 65 66 68 69 70 71 73 74 75 76 77 78 79 80 81)
 PARTICIPANT_LABEL=${subjects[$((SLURM_ARRAY_TASK_ID - 1 ))]}
@@ -22,4 +22,4 @@ MAIN_DIR="'/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
 
 module load matlab/r2021a 
 #-nosplash -nojvm -nodesktop -r
-matlab -nodisplay -nosplash -batch "opengl('save','hardware'); rootgroup = settings; rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = 'v7.3'; rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = 'v7.3';  addpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12'); addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore')); addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/scripts/step04_SPM/model02_CcEScsA_24motion')); s02_contrast_cueonly(${PARTICIPANT_LABEL});"
+matlab -nodisplay -nosplash -batch "opengl('save','hardware'); rootgroup = settings; rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = 'v7.3'; rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = 'v7.3';  addpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12'); addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore')); addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/scripts/step04_SPM/model03_CEScsA_24motion')); s02_contrast_cueonly(${PARTICIPANT_LABEL});"
