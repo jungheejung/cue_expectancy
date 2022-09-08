@@ -42,7 +42,7 @@ full_list = list(itertools.product(*param_list))
 for sub, task, ev in full_list:
     # load niftifname txt
     subject_csv = os.path.join(main_dir, 'data', 'd03_onset', 'onset03_SPMsingletrial_24dof', sub, f"{sub}_singletrial_plateau.csv" )
-    if not os.path.exist(subject_csv):
+    if not os.path.exists(subject_csv):
         subject_csv = os.path.join(main_dir, 'data', 'd03_onset', 'onset03_SPMsingletrial_24dof', sub, f"{sub}_singletrial.csv" )
     nifti_fname = os.path.join(
         nifti_dir, sub, f"niftifname_{sub}_task-pain-{task}_ev-{ev}.txt")
