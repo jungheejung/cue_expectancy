@@ -1,0 +1,796 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>mediation_brain_results_report</title><meta name="generator" content="MATLAB 9.8"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-10-31"><meta name="DC.source" content="mediation_brain_results_report.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#3">Loading results and mask</a></li><li><a href="#4">FDR-corrected results</a></li><li><a href="#6">Path a results table, FDR-corrected</a></li><li><a href="#7">Path b results table, FDR-corrected</a></li><li><a href="#8">Path ab results table, FDR-corrected</a></li><li><a href="#9">Combined montage plot with slices, FDR-corrected</a></li><li><a href="#11">Uncorrected results</a></li><li><a href="#12">Path a results table, uncorrected</a></li><li><a href="#13">Path b results table, uncorrected</a></li><li><a href="#14">Path ab results table, uncorrected</a></li><li><a href="#15">Montage plot with slices, uncorrected</a></li><li><a href="#16">Savefile information for objects with extracted data</a></li></ul></div><h2 id="3">Loading results and mask</h2><p>----------------------------------------------------------------</p><pre class="codeoutput">----------------------------------------------
+LOADING mediation results and images
+----------------------------------------------
+Calculating FDR threshold across family of tests in these images:
+X-M_pvals.img  
+M-Y_pvals.img  
+X-M-Y_pvals.img
+Direct calls to spm_defauts are deprecated.
+Please use spm('Defaults',modality) or spm_get_defaults instead.
+Total p-values:  530172
+FDR threshold is 0.000010
+Saving in SETUP.fdr_p_thresh
+Using mask.img stored in current directory (automatically written for mediation analyses) for mask.
+----------------------------------------------
+Loaded mediation:
+----------------------------------------------
+              mask: '/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/gray_matter_mask.nii'
+          preprocX: 0
+          preprocY: 0
+          preprocM: 0
+    wh_is_mediator: 'M'
+         cmdstring: 'Search for mediators'
+                TR: NaN
+          HPlength: []
+        dummyscans: [1 2]
+       preproc_any: 0
+             names: {'X'  'Y'  'M'}
+       outputnames: {1x25 cell}
+     preprochandle: []
+           fhandle: @(M)mediation_brain_multilev_wrapper(X,Y,M,varargin{:})
+              data: [1x1 struct]
+      inputOptions: {'nopreproc'}
+      fdr_p_thresh: 1.0167e-05
+
+----------------------------------------------
+Mask for analysis:
+----------------------------------------------
+Grouping contiguous voxels:   9 regions
+sagittal montage: 4165 voxels displayed, 77215 not displayed on these slices
+axial montage: 22284 voxels displayed, 59096 not displayed on these slices
+</pre><img vspace="5" hspace="5" src="mediation_brain_results_report_01.png" alt=""> <img vspace="5" hspace="5" src="mediation_brain_results_report_02.png" alt=""> <h2 id="4">FDR-corrected results</h2><p>----------------------------------------------------------------</p><pre class="codeoutput">----------------------------------------------
+FDR-corrected results
+----------------------------------------------
+Results corrected across set of a, b, ab images using mediation_brain_corrected_threshold
+FDR q &lt; .05 = p &lt; 0.00001017
+</pre><h2 id="6">Path a results table, FDR-corrected</h2><pre class="codeoutput">----------------------------------------------
+Path a, FDR-corrected q &lt; .05
+----------------------------------------------
+
+Image   1
+  7 contig. clusters, sizes   6 to  30
+Positive effect:  69 voxels, min p-value: 0.00000008
+Negative effect:  30 voxels, min p-value: 0.00000002
+
+____________________________________________________________________________________________________________________________________________
+Positive Effects
+Region autolabel did not work; add Neuroimaging_Pattern_Masks repository (see canlab_toolbox_setup.m)
+ 
+Region: a group of voxels.
+Some methods: orthviews, montage, surface, extract_data, table
+Z field contains: p (shown in maxstat)
+ 
+Name	index	x	y	z	corr	voxels	volume_mm3	maxstat	numpeaks	
+Region001	  1	-37	-49	-19	NaN	  6	117	14.44	NaN	
+Region002	  2	-32	-79	-14	NaN	 21	408	16.77	NaN	
+Region004	  3	 16	-98	  5	NaN	  7	136	16.44	NaN	
+Region005	  4	-21	-76	 43	NaN	 14	272	13.03	NaN	
+Region006	  5	 24	-71	 51	NaN	 12	233	11.86	NaN	
+Region007	  6	-24	-65	 51	NaN	  9	175	14.95	NaN	
+
+Negative Effects
+ 
+Region: a group of voxels.
+Some methods: orthviews, montage, surface, extract_data, table
+Z field contains: p (shown in maxstat)
+ 
+Name	index	x	y	z	corr	voxels	volume_mm3	maxstat	numpeaks	
+Region003	  1	 -5	-87	 -8	NaN	 30	583	-28.98	NaN	
+
+
+</pre><img vspace="5" hspace="5" src="mediation_brain_results_report_03.png" alt=""> <h2 id="7">Path b results table, FDR-corrected</h2><pre class="codeoutput">----------------------------------------------
+Path b, FDR-corrected q &lt; .05
+----------------------------------------------
+
+Image   1
+  0 contig. clusters, sizes     to    
+Positive effect:   0 voxels, min p-value: 0.00067380
+Negative effect:   0 voxels, min p-value: 0.00124520
+Grouping contiguous voxels:   0 regions
+
+____________________________________________________________________________________________________________________________________________
+Positive Effects
+No regions to display
+
+Negative Effects
+No regions to display
+____________________________________________________________________________________________________________________________________________
+
+
+</pre><h2 id="8">Path ab results table, FDR-corrected</h2><pre class="codeoutput">----------------------------------------------
+Path ab, FDR-corrected q &lt; .05
+----------------------------------------------
+
+Image   1
+  0 contig. clusters, sizes     to    
+Positive effect:   0 voxels, min p-value: 0.00141743
+Negative effect:   0 voxels, min p-value: 0.00713712
+Grouping contiguous voxels:   0 regions
+
+____________________________________________________________________________________________________________________________________________
+Positive Effects
+No regions to display
+
+Negative Effects
+No regions to display
+____________________________________________________________________________________________________________________________________________
+
+
+</pre><h2 id="9">Combined montage plot with slices, FDR-corrected</h2><pre class="codeoutput">Grouping contiguous voxels:   7 regions
+sagittal montage:   7 voxels displayed,  92 not displayed on these slices
+axial montage:  35 voxels displayed,  64 not displayed on these slices
+Grouping contiguous voxels:   0 regions
+Grouping contiguous voxels:   0 regions
+</pre><img vspace="5" hspace="5" src="mediation_brain_results_report_04.png" alt=""> <img vspace="5" hspace="5" src="mediation_brain_results_report_05.png" alt=""> <h2 id="11">Uncorrected results</h2><p>----------------------------------------------------------------</p><pre class="codeoutput">----------------------------------------------
+Uncorrected (p &lt; .01)  results
+----------------------------------------------
+</pre><h2 id="12">Path a results table, uncorrected</h2><pre class="codeoutput">----------------------------------------------
+Path a, Uncorrected (p &lt; .01)
+----------------------------------------------
+
+Image   1
+104 contig. clusters, sizes   3 to 2456
+Positive effect: 5220 voxels, min p-value: 0.00000008
+Negative effect: 320 voxels, min p-value: 0.00000002
+Grouping contiguous voxels: 104 regions
+
+____________________________________________________________________________________________________________________________________________
+Positive Effects
+Region autolabel did not work; add Neuroimaging_Pattern_Masks repository (see canlab_toolbox_setup.m)
+ 
+Region: a group of voxels.
+Some methods: orthviews, montage, surface, extract_data, table
+Z field contains: p (shown in maxstat)
+ 
+Name	index	x	y	z	corr	voxels	volume_mm3	maxstat	numpeaks	
+Region001	  1	 14	-49	-51	NaN	 41	797	14.10	NaN	
+Region002	  2	-16	-73	-46	NaN	 25	486	8.87	NaN	
+Region003	  3	  3	-49	-43	NaN	  4	 78	10.46	NaN	
+Region004	  4	-32	-71	 21	NaN	2456	47735	17.81	NaN	
+Region005	  5	-19	-73	-35	NaN	  5	 97	6.65	NaN	
+Region006	  6	  0	-52	-33	NaN	  8	155	10.01	NaN	
+Region007	  7	 -8	-79	-30	NaN	  4	 78	6.16	NaN	
+Region008	  8	 35	-71	-27	NaN	 17	330	7.68	NaN	
+Region009	  9	-16	-73	-24	NaN	 15	292	6.83	NaN	
+Region010	 10	 27	-79	 -6	NaN	478	9290	16.44	NaN	
+Region011	 11	 27	-36	-19	NaN	 81	1574	13.96	NaN	
+Region012	 12	 11	-73	-22	NaN	  3	 58	4.91	NaN	
+Region013	 13	-27	 -9	-16	NaN	 41	797	11.24	NaN	
+Region014	 14	 22	-17	-19	NaN	  4	 78	7.90	NaN	
+Region015	 15	 30	  2	-19	NaN	  3	 58	8.88	NaN	
+Region016	 16	  0	 20	-16	NaN	  6	117	10.57	NaN	
+Region018	 17	-19	-41	-14	NaN	  6	117	8.55	NaN	
+Region019	 18	 32	 37	-14	NaN	 25	486	7.61	NaN	
+Region020	 19	 30	-22	-11	NaN	 12	233	7.86	NaN	
+Region021	 20	-13	 -6	-14	NaN	  9	175	15.25	NaN	
+Region022	 21	-56	 -6	-11	NaN	 12	233	6.73	NaN	
+Region023	 22	 -5	 37	-11	NaN	  6	117	10.17	NaN	
+Region024	 23	-56	-25	 -6	NaN	 18	350	8.13	NaN	
+Region025	 24	-64	-12	 -8	NaN	 11	214	6.87	NaN	
+Region026	 25	-29	 45	 -8	NaN	  9	175	7.09	NaN	
+Region027	 26	 24	 47	-11	NaN	  3	 58	6.07	NaN	
+Region028	 27	  0	 47	-11	NaN	  3	 58	12.39	NaN	
+Region030	 28	 48	-68	 -0	NaN	 42	816	7.29	NaN	
+Region031	 29	  5	-28	 -6	NaN	 10	194	9.10	NaN	
+Region032	 30	  0	-12	 -6	NaN	  3	 58	13.33	NaN	
+Region033	 31	 35	 18	 -6	NaN	  3	 58	6.64	NaN	
+Region034	 32	 27	-65	 -6	NaN	  8	155	8.20	NaN	
+Region035	 33	-27	-63	 -3	NaN	  7	136	5.07	NaN	
+Region036	 34	 62	-12	 -6	NaN	  5	 97	5.07	NaN	
+Region037	 35	 22	 -6	 -6	NaN	  6	117	10.41	NaN	
+Region038	 36	-27	  4	 -3	NaN	  9	175	9.12	NaN	
+Region039	 37	-40	 18	 -6	NaN	  4	 78	6.51	NaN	
+Region040	 38	 11	 47	 -6	NaN	  9	175	6.41	NaN	
+Region041	 39	-16	-47	  3	NaN	 10	194	8.49	NaN	
+Region042	 40	 59	-25	 -3	NaN	  3	 58	5.87	NaN	
+Region043	 41	  5	 -4	  5	NaN	  4	 78	9.79	NaN	
+Region044	 42	 -3	 45	  3	NaN	  5	 97	7.89	NaN	
+Region045	 43	-11	 53	  3	NaN	  4	 78	6.43	NaN	
+Region046	 44	-46	 31	  3	NaN	  3	 58	5.30	NaN	
+Region047	 45	-37	 31	  5	NaN	  5	 97	8.50	NaN	
+Region048	 46	 30	 50	  5	NaN	  9	175	4.35	NaN	
+Region049	 47	-46	-68	  8	NaN	 20	389	6.99	NaN	
+Region050	 48	-13	-60	 16	NaN	 49	952	10.92	NaN	
+Region051	 49	-59	-17	  8	NaN	  7	136	6.98	NaN	
+Region052	 50	-40	 23	  5	NaN	  7	136	7.96	NaN	
+Region053	 51	 40	 26	 11	NaN	 33	641	8.89	NaN	
+Region055	 52	-19	-28	 11	NaN	  6	117	6.84	NaN	
+Region056	 53	-11	-25	 13	NaN	 11	214	10.09	NaN	
+Region057	 54	-35	-20	 11	NaN	  7	136	7.91	NaN	
+Region058	 55	-40	 -4	 11	NaN	 16	311	8.33	NaN	
+Region059	 56	-56	  4	 30	NaN	154	2993	11.14	NaN	
+Region060	 57	-62	-57	 16	NaN	 19	369	7.62	NaN	
+Region061	 58	 19	-63	 46	NaN	433	8416	12.55	NaN	
+Region062	 59	 51	-39	 16	NaN	  8	155	6.28	NaN	
+Region063	 60	-19	 12	 13	NaN	  3	 58	7.22	NaN	
+Region066	 61	 64	-36	 24	NaN	 21	408	6.36	NaN	
+Region068	 62	 46	-20	 21	NaN	 14	272	6.86	NaN	
+Region069	 63	 -8	 31	 19	NaN	  5	 97	5.32	NaN	
+Region070	 64	 43	 34	 24	NaN	  7	136	5.96	NaN	
+Region071	 65	-37	 42	 21	NaN	 11	214	6.34	NaN	
+Region072	 66	-11	 45	 21	NaN	 14	272	8.77	NaN	
+Region073	 67	 46	-31	 24	NaN	  6	117	6.39	NaN	
+Region075	 68	 54	 10	 30	NaN	 31	603	7.34	NaN	
+Region076	 69	  5	 20	 27	NaN	  4	 78	6.65	NaN	
+Region077	 70	-32	 53	 24	NaN	  3	 58	5.86	NaN	
+Region078	 71	 54	-20	 43	NaN	113	2196	6.44	NaN	
+Region079	 72	-40	 10	 30	NaN	 11	214	7.73	NaN	
+Region080	 73	 -8	-14	 35	NaN	  3	 58	4.99	NaN	
+Region081	 74	-11	 23	 35	NaN	  6	117	6.74	NaN	
+Region082	 75	 11	 18	 38	NaN	 15	292	9.46	NaN	
+Region083	 76	-48	 26	 40	NaN	  9	175	8.50	NaN	
+Region084	 77	-32	 34	 40	NaN	 11	214	4.88	NaN	
+Region085	 78	 38	 37	 43	NaN	 11	214	8.50	NaN	
+Region086	 79	-21	 53	 40	NaN	  7	136	11.44	NaN	
+Region087	 80	 -8	-49	 43	NaN	 12	233	9.11	NaN	
+Region088	 81	-13	-17	 43	NaN	  4	 78	5.86	NaN	
+Region089	 82	  3	-47	 48	NaN	  8	155	7.58	NaN	
+Region090	 83	 32	 -6	 59	NaN	279	5423	9.83	NaN	
+Region091	 84	-46	 -6	 51	NaN	 10	194	4.34	NaN	
+Region092	 85	-40	 20	 51	NaN	 15	292	7.22	NaN	
+Region093	 86	-11	-36	 57	NaN	 65	1263	6.18	NaN	
+Region094	 87	 38	-36	 57	NaN	 36	700	6.97	NaN	
+Region095	 88	 -8	 -9	 59	NaN	 58	1127	8.70	NaN	
+Region096	 89	-27	  2	 57	NaN	 97	1885	10.31	NaN	
+Region097	 90	 11	  7	 51	NaN	  8	155	8.02	NaN	
+Region098	 91	-29	-22	 54	NaN	  3	 58	4.90	NaN	
+Region099	 92	 11	-44	 59	NaN	  4	 78	4.20	NaN	
+Region100	 93	 19	-39	 67	NaN	 62	1205	4.89	NaN	
+Region101	 94	 16	-20	 67	NaN	 12	233	3.41	NaN	
+Region102	 95	 32	-41	 67	NaN	  9	175	6.68	NaN	
+Region103	 96	  8	-20	 73	NaN	  5	 97	3.69	NaN	
+Region104	 97	-24	  2	 70	NaN	  4	 78	6.62	NaN	
+
+Negative Effects
+ 
+Region: a group of voxels.
+Some methods: orthviews, montage, surface, extract_data, table
+Z field contains: p (shown in maxstat)
+ 
+Name	index	x	y	z	corr	voxels	volume_mm3	maxstat	numpeaks	
+Region017	  1	 -5	-84	 -8	NaN	268	5209	-28.98	NaN	
+Region029	  2	  5	-65	 -6	NaN	  5	 97	-6.09	NaN	
+Region054	  3	 27	-49	 11	NaN	  3	 58	-5.89	NaN	
+Region064	  4	  3	-90	 30	NaN	 28	544	-15.20	NaN	
+Region065	  5	-13	 -6	 21	NaN	 10	194	-9.44	NaN	
+Region067	  6	 22	-28	 19	NaN	  3	 58	-6.74	NaN	
+Region074	  7	 19	-20	 21	NaN	  3	 58	-9.33	NaN	
+
+
+</pre><img vspace="5" hspace="5" src="mediation_brain_results_report_06.png" alt=""> <h2 id="13">Path b results table, uncorrected</h2><pre class="codeoutput">----------------------------------------------
+Path b, Uncorrected (p &lt; .01)
+----------------------------------------------
+
+Image   1
+  6 contig. clusters, sizes   3 to  12
+Positive effect:  18 voxels, min p-value: 0.00067380
+Negative effect:  16 voxels, min p-value: 0.00124520
+Grouping contiguous voxels:   6 regions
+
+____________________________________________________________________________________________________________________________________________
+Positive Effects
+Region autolabel did not work; add Neuroimaging_Pattern_Masks repository (see canlab_toolbox_setup.m)
+ 
+Region: a group of voxels.
+Some methods: orthviews, montage, surface, extract_data, table
+Z field contains: p (shown in maxstat)
+ 
+Name	index	x	y	z	corr	voxels	volume_mm3	maxstat	numpeaks	
+Region003	  1	  5	 20	 -3	NaN	  3	 58	0.01	NaN	
+Region004	  2	 -5	 20	 32	NaN	  4	 78	0.01	NaN	
+Region005	  3	-29	  4	 54	NaN	  5	 97	0.03	NaN	
+Region006	  4	 11	 12	 67	NaN	  6	117	0.03	NaN	
+
+Negative Effects
+ 
+Region: a group of voxels.
+Some methods: orthviews, montage, surface, extract_data, table
+Z field contains: p (shown in maxstat)
+ 
+Name	index	x	y	z	corr	voxels	volume_mm3	maxstat	numpeaks	
+Region001	  1	 40	-63	-38	NaN	 12	233	-0.02	NaN	
+Region002	  2	 22	-44	-38	NaN	  4	 78	-0.02	NaN	
+
+
+</pre><img vspace="5" hspace="5" src="mediation_brain_results_report_07.png" alt=""> <h2 id="14">Path ab results table, uncorrected</h2><pre class="codeoutput">----------------------------------------------
+Path ab, Uncorrected (p &lt; .01)
+----------------------------------------------
+
+Image   1
+  0 contig. clusters, sizes     to    
+Positive effect:   0 voxels, min p-value: 0.00141743
+Negative effect:   0 voxels, min p-value: 0.00713712
+Grouping contiguous voxels:   0 regions
+
+____________________________________________________________________________________________________________________________________________
+Positive Effects
+No regions to display
+
+Negative Effects
+No regions to display
+____________________________________________________________________________________________________________________________________________
+
+
+</pre><pre class="codeoutput error">Index in position 1 exceeds array bounds.
+
+Error in canlab_results_fmridisplay (line 343)
+                    [o2, dat] = montage(o2, orientation, 'wh_slice', xyz(i, :), 'onerow', 'existing_axes', axh(i), 'existing_figure', 'noverbose');
+
+Error in region/montage (line 226)
+    o2 = canlab_results_fmridisplay(obj, 'noverbose', varargin{:}, 'noblobs', 'nooutline');
+
+Error in mediation_brain_results_report (line 189)
+    montage(ab_regions_01unc, 'colormap', 'regioncenters');
+</pre><h2 id="15">Montage plot with slices, uncorrected</h2><h2 id="16">Savefile information for objects with extracted data</h2><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function mediation_brain_results_report(varargin)
+% This function runs and saves tables, images, and clusters
+% for a, b, and ab effects of a two-level mediation model
+% 
+% - Run from mediation results directory
+%
+% - Preliminary version: This is "version 1" and does not have the full functionality of 
+% mediation_brain_results_all_script, but is complementary. 
+%   Does not do: 
+%       - Extraction of region data into region objects (sig clusters) for multi-level analyses
+%       - Multiple threshold with pruning 
+%   For these, see mediation_brain_results_all_script
+%   Does do: (which mediation_brain_results_all_script does not) 
+%       - Autolabeling of regions
+%
+% - Saves region objects with extracted data within each region
+% - Requires object oriented tools in CANlab_Core_Tools
+% - Used in publish_mediation_brain_results_report to create published reports.
+%
+% The thresholds are fixed right now, and two sets of results are run:
+% One at .01, and one with an across-contrast FDR correction at q < .05
+%
+% See also: mediation_brain_results_all_script.m
+%           publish_mediation_report.m
+
+% Default options - could be changed later
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+
+whmontage = 5;  % which montage to put name on
+kthresh = 3;    % cluster extent threshold
+pthresh = .01;  % P-value threshold for uncorrected results
+
+% Display helper functions: Called by later scripts
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+
+dashes = 'REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH';
+%printstr = @(dashes) disp(dashes);
+printhdr = @(str) fprintf('%s\n%s\n%s\n', dashes, str, dashes);
+
+
+%% Loading results and mask
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+
+printhdr('LOADING mediation results and images');
+
+% load data_obj for single-level only. Multi-level data can be too large to load all
+% objects - extract data on-demand from clusters.
+
+[SETUP, mask_obj, a_obj, b_obj, ab_obj, data_obj] = load_mediation_results_objects; % and run FDR if needed
+
+printhdr('Loaded mediation:');
+disp(SETUP)
+
+
+% Initialize fmridisplay if needed and show mask
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+printhdr('Mask for analysis:');
+[o2, fig_number] = setup_slice_display([], 1);
+o2 = title_montage(o2, 2, 'Mask for analysis');
+
+addblobs(o2, region(mask_obj), 'trans');
+
+drawnow, snapnow
+
+%% FDR-corrected results
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+if isempty(SETUP.fdr_p_thresh) || SETUP.fdr_p_thresh <= 0
+        disp('No FDR-significant results');
+else 
+    printhdr('FDR-corrected results');
+    disp('Results corrected across set of a, b, ab images using mediation_brain_corrected_threshold');
+    fprintf('FDR q < .05 = p < %3.8f\n', SETUP.fdr_p_thresh);
+
+    %% Path a results table, FDR-corrected 
+
+    printhdr('Path a, FDR-corrected q < .05')
+
+    a_obj = threshold(a_obj, SETUP.fdr_p_thresh, 'unc', 'k', kthresh);
+
+    a_regions_fdr = region(a_obj, data_obj, 'noverbose');                   % Create regions; extract average data in each region into obj.dat
+    a_regions_fdr = table(a_regions_fdr);                                   % Print table
+    fprintf('\n\n');
+    
+    if min(a_obj.p) < SETUP.fdr_p_thresh
+        montage(a_regions_fdr, 'colormap', 'regioncenters');
+        drawnow, snapnow;
+    end
+
+    %% Path b results table, FDR-corrected 
+
+    printhdr('Path b, FDR-corrected q < .05')
+
+    b_obj = threshold(b_obj, SETUP.fdr_p_thresh, 'unc', 'k', kthresh);
+
+    b_regions_fdr = region(b_obj, data_obj);      % Create regions; extract average data in each region into obj.dat
+    b_regions_fdr = table(b_regions_fdr);                             % Print table
+    fprintf('\n\n');
+    
+    if min(b_obj.p) < SETUP.fdr_p_thresh
+        montage(b_regions_fdr, 'colormap', 'regioncenters');
+        drawnow, snapnow;
+    end
+
+    %% Path ab results table, FDR-corrected 
+
+    printhdr('Path ab, FDR-corrected q < .05')
+
+    ab_obj = threshold(ab_obj, SETUP.fdr_p_thresh, 'unc', 'k', kthresh);
+
+    ab_regions_fdr = region(ab_obj, data_obj);      % Create regions; extract average data in each region into obj.dat
+    ab_regions_fdr = table(ab_regions_fdr);                             % Print table
+    fprintf('\n\n');
+    
+    if min(ab_obj.p) < SETUP.fdr_p_thresh
+        montage(ab_regions_fdr, 'colormap', 'regioncenters');
+        drawnow, snapnow;
+    end
+
+    %% Combined montage plot with slices, FDR-corrected
+
+    [o2, fig_number] = setup_slice_display([], 3);
+
+    o2 = addblobs(o2, region(a_obj), 'wh_montages', 1:2);
+    o2 = title_montage(o2, 2, 'Path a');
+
+    % axes(o2.montage{2}.axis_handles(whmontage))
+    % title('Path a');
+
+    o2 = addblobs(o2, region(b_obj), 'wh_montages', 3:4);
+    % axes(o2.montage{4}.axis_handles(whmontage))
+    % title('Path b');
+    o2 = title_montage(o2, 4, 'Path b');
+
+    o2 = addblobs(o2, region(ab_obj), 'wh_montages', 5:6);
+    % axes(o2.montage{6}.axis_handles(whmontage))
+    % title('Path ab');
+    o2 = title_montage(o2, 6, 'Path ab');
+
+    drawnow, snapnow  % flush figure to report
+    
+end
+
+%% Uncorrected results
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+
+printhdr('Uncorrected (p < .01)  results');
+
+%% Path a results table, uncorrected 
+
+printhdr('Path a, Uncorrected (p < .01)')
+
+a_obj = threshold(a_obj, pthresh, 'unc', 'k', kthresh);
+
+a_regions_01unc = region(a_obj, data_obj);      % Create regions; extract average data in each region into obj.dat
+a_regions_01unc = table(a_regions_01unc);                             % Print table
+fprintf('\n\n');
+
+if min(a_obj.p) < pthresh
+    montage(a_regions_01unc, 'colormap', 'regioncenters');
+    drawnow, snapnow;
+end
+
+%% Path b results table, uncorrected 
+
+printhdr('Path b, Uncorrected (p < .01)')
+
+b_obj = threshold(b_obj, pthresh, 'unc', 'k', kthresh);
+
+b_regions_01unc = region(b_obj, data_obj);      % Create regions; extract average data in each region into obj.dat
+b_regions_01unc = table(b_regions_01unc);                             % Print table
+fprintf('\n\n');
+
+if min(b_obj.p) < pthresh
+    montage(b_regions_01unc, 'colormap', 'regioncenters');
+    drawnow, snapnow;
+end
+
+%% Path ab results table, uncorrected 
+
+printhdr('Path ab, Uncorrected (p < .01)')
+
+ab_obj = threshold(ab_obj, pthresh, 'unc', 'k', kthresh);
+
+ab_regions_01unc = region(ab_obj, data_obj);      % Create regions; extract average data in each region into obj.dat
+ab_regions_01unc = table(ab_regions_01unc);                             % Print table
+fprintf('\n\n');
+
+if min(ab_obj.p) < pthresh
+    montage(ab_regions_01unc, 'colormap', 'regioncenters');
+    drawnow, snapnow;
+end
+
+%% Montage plot with slices, uncorrected
+
+[o2, fig_number] = setup_slice_display([], 3);
+
+o2 = addblobs(o2, region(a_obj), 'wh_montages', 1:2);
+o2 = title_montage(o2, 2, 'Path a');
+
+
+o2 = addblobs(o2, region(b_obj), 'wh_montages', 3:4);
+o2 = title_montage(o2, 4, 'Path b');
+
+
+o2 = addblobs(o2, region(ab_obj), 'wh_montages', 5:6);
+o2 = title_montage(o2, 6, 'Path ab');
+
+
+drawnow, snapnow  % flush figure to report
+
+
+
+%% Savefile information for objects with extracted data
+
+% Save
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+
+printhdr('Saving extracted objects to disk.');
+disp('a_obj, b_obj, ab_obj : statistic_image objects for paths a, b, ab');
+disp('a_regions_fdr, etc.  : region objects for paths a, b, ab at FDR threshold');
+disp('a_regions_unc, etc.  : region objects for paths a, b, ab at uncorrected threshold');
+disp('In region objects, region_obj(i).dat contains extracted data for the i-th significant region, averaged over voxels');
+disp('Use these data in plots, secondary analyses, or to re-run mediation.m within individual regions');
+
+cldir = fullfile(pwd, 'clusters_with_extracted_data');
+if ~exist(cldir, 'dir'), mkdir(cldir); end
+
+savefilename = fullfile(cldir, 'Statistic_image_and_region_objects.mat');
+
+save(savefilename, 'a_*', 'b_*', 'ab_*'); 
+
+fprintf('Saved objects in:\n%s\n', savefilename)
+
+fprintf('\n\n');
+    
+end % main function
+
+
+
+
+
+
+% Sub-functions
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-
+
+
+function [SETUP, mask_obj, a_obj, b_obj, ab_obj, data_obj] = load_mediation_results_objects
+
+% load data_obj for single-level only. Multi-level data can be too large to load all
+% objects - extract data on-demand from clusters.
+
+% Load SETUP
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+if ~exist(fullfile(pwd, 'mediation_SETUP.mat'), 'file')
+    error('Cannot find mediation_SETUP.mat in current directory. Please go to a valid mediation directory.');
+else
+    load(fullfile(pwd, 'mediation_SETUP.mat'))
+end
+
+% FDR correction across images
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+if ~isfield(SETUP, 'fdr_p_thresh')
+    SETUP = mediation_brain_corrected_threshold('fdr');
+end
+
+% single or multi-level dir?
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+is_multilev = @(SETUP) exist(fullfile(pwd, 'mask.img'), 'file') && isfield(SETUP, 'data') && iscell(SETUP.data.X);  % multilevel mediation dirs have this image
+
+if is_multilev(SETUP)
+    
+    %ismultilevel = true;
+    
+    disp('Using mask.img stored in current directory (automatically written for mediation analyses) for mask.');
+    mask = fullfile(pwd, 'mask.img');
+    
+elseif isfield(SETUP, 'data') && iscell(SETUP.data.X)
+    warning('Multilevel mediation: mask.img is missing');
+else
+    % SETUP.X, Y Z instead of SETUP.data
+    %ismultilevel = false;
+    
+    % single-level mask stored here
+    mask = SETUP.mask;
+    
+end
+
+if ~exist(mask, 'file')
+    disp('Mask cannot be found/is not a valid file.  Using gray_matter_mask.img in CANlab core.');
+    
+    mask = which('gray_matter_mask.img');
+    
+end
+
+% Load objects
+% REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH
+
+mask_obj = fmri_data(mask, 'noverbose');
+
+a_obj = create_stat_object('X-M_effect.img', 'X-M_pvals.img');
+b_obj = create_stat_object('M-Y_effect.img', 'M-Y_pvals.img');
+ab_obj = create_stat_object('X-M-Y_effect.img', 'X-M-Y_pvals.img');
+
+% load for single-level only. Multi-level data can be too large to load all
+% objects - extract data on-demand from clusters.
+
+data_obj = load_image_data_object(SETUP, is_multilev(SETUP));
+
+end
+
+
+
+function data_obj = load_image_data_object(SETUP, is_multilevel)
+
+% load for single-level only. Multi-level data can be too large to load all
+% objects - extract data on-demand from clusters.
+
+if is_multilevel
+    data_obj = [];
+    return
+end
+
+image_names = SETUP.M;
+if ~ischar(image_names), image_names = SETUP.X; end
+if ~ischar(image_names), image_names = SETUP.Y; end
+if ~ischar(image_names), disp('Cannot find image names'); end
+
+image_names = check_valid_imagename(image_names, 0); % returns empty if missing
+
+if isempty(image_names)
+    disp(' ')
+    disp('Warning!! Cannot find original data images. Extracted data from regions will be missing in saved .mat files');
+    disp(' ')
+    
+    data_obj = [];
+else
+    data_obj = fmri_data(image_names, [], 'noverbose');
+end
+
+end
+
+
+function [o2, fig_number] = setup_slice_display(o2, num_rows)
+
+whmontage = 5;
+
+% Check conditions:
+fmridisplay_is_ok = true;
+if ~exist('o2', 'var') || ~isa(o2, 'fmridisplay')
+    fmridisplay_is_ok = false;
+    
+elseif length(o2.montage) < whmontage
+    % wrong fmridisplay object for this plot
+    fmridisplay_is_ok = false;
+    
+elseif ~all(ishandle(o2.montage{whmontage}.axis_handles))
+    % Figure was closed or axes deleted
+    fmridisplay_is_ok = false;
+    
+end
+
+if ~fmridisplay_is_ok
+    
+    create_figure('fmridisplay'); axis off
+    o2 = canlab_results_fmridisplay([], 'multirow', num_rows, 'noverbose');
+    
+else % Ok, reactivate, clear blobs, and clear name
+    
+    o2 = removeblobs(o2);
+    axes(o2.montage{whmontage}.axis_handles(5));
+    title(' ');
+end
+
+% Get figure number - to reactivate figure later, even if we are changing its tag
+hh = get(o2.montage{1}.axis_handles, 'Parent');  %findobj('Tag', 'fmridisplay');
+if iscell(hh), hh = hh{1}; end
+fig_number = hh(1).Number;
+
+end
+
+
+
+
+function pstat = create_stat_object(effectimgname, pimgname)
+
+% a_obj = create_stat_object('X-M_effect.img', 'X-M_pvals.img');
+% b_obj = create_stat_object('M-Y_effect.img', 'M-Y_pvals.img');
+% ab_obj = create_stat_object('X-M-Y_effect.img', 'X-M-Y_pvals.img');
+
+pstat = statistic_image(pimgname, 'type', 'p');
+
+mstat = fmri_data(effectimgname, [], 'noverbose');
+
+% add effects/sign
+pstat.dat = mstat.dat;
+
+end
+
+
+
+##### SOURCE END #####
+--></body></html>
