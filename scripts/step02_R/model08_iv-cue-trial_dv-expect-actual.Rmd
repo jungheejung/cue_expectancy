@@ -1,0 +1,371 @@
+---
+title: "model07_iv-cue-trial_dv-expect-actual"
+author: "Heejung Jung"
+date: '2022-09-13'
+output: 
+  html_document:
+    toc: true
+    theme: united
+    code_folding: hide
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+Overview purpose plot plan load data organize data plot
+
+# TODO: 
+plot 2
+TODO: there's something to account for - some runs were repeated or omitted
+for the subjects that have more than 72 trials, 
+I need to identify that list and word on the behavioral data
+
+library
+```{r load libraries, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
+library(psych)
+library(car)
+library(lmSupport)
+library(lme4)
+library(lmerTest)
+library(dplyr)
+library(plyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+library(png)
+library(knitr)
+library(TMB)
+library(sjPlot)
+library(ggpubr)
+library(gridExtra)
+library(merTools)
+library(sjstats) #to get ICC
+library(broom)
+library(tidyverse)
+library(GGally)
+library(RCurl)
+library(rstanarm)
+library(reshape)
+library(boot)
+library(afex)
+library(cowplot)
+library(readr)
+library(lavaan)
+library(rmarkdown)
+library(readr)
+library(caTools)
+library(bitops)
+library(stringr)
+library(stats)
+library(ggpubr)
+library(equatiomatic)
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
+library(lme4)
+library(effectsize)
+library(brms)
+#library(Hmisc)
+#library(Rmisc)
+## library(extraoperators)
+##library(JWileymisc)
+##library(multilevelTools)
+# library(PupillometryR)
+source('http://psych.colorado.edu/~jclab/R/mcSummaryLm.R')
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
+source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+
+library(r2mlm)
+file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+                          pattern="*.R", 
+                          full.names=TRUE, 
+                          ignore.case=TRUE)
+sapply(file.sources,source,.GlobalEnv)
+```
+
+load data and combine participant data
+
+```{r load data and exclude}
+main_dir = dirname(dirname(getwd()))
+# parameters _____________________________________ # nolint
+subject_varkey <- "src_subject_id"
+iv <- "param_cue_type"
+dv <- "event03_RT"
+dv_keyword <- "RT"
+xlab <- ""
+taskname <- "cognitive"
+
+ylab <- "ratings (degree)"
+subject <- "subject"
+exclude <- "sub-0999|sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0007|sub-0008|sub-0009|sub-0010|sub-0011"
+
+# load data _____________________________________
+data <- load_task_social_df(taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
+# data['event03_RT'], data.event03_RT - pandas
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model08_iv-cue-trial_dv-expect-actual", as.character(Sys.Date()))
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+```
+
+
+# plot 1 - one run, average across participants
+```{r transform data to longform}
+
+# subject # run # param_cue # param_stim # rating_type # rating_value
+#tidyr::pivot(data, key = "rating_value", value = c('event02_expect_angle', 'event04_actual_angle'))
+# TODO: need to add tirla numbers
+
+#data$trial = lapply(c("src_subject_id", "session_id", "param_run_num"), factor)
+data_trial= data %>%
+  arrange(src_subject_id, session_id, param_run_num) %>%
+  group_by(src_subject_id) %>%
+  mutate(trial_index = rep_len(1:12, length.out = n()))
+```
+
+```{r}
+data_long = data_trial %>% 
+  pivot_longer(cols = c('event02_expect_angle', 'event04_actual_angle'),
+               names_to = "rating_type", 
+               values_to = "rating_value")
+```
+
+```{r plot data}
+# PLOT
+    data_long$cue_name[data_long$param_cue_type == "high_cue"] <- "high cue"
+    data_long$cue_name[data_long$param_cue_type == "low_cue"] <- "low cue"
+
+    data_long$stim_name[data_long$param_stimulus_type == "high_stim"] <- "high"
+    data_long$stim_name[data_long$param_stimulus_type == "med_stim"] <- "med"
+    data_long$stim_name[data_long$param_stimulus_type == "low_stim"] <- "low"
+    
+    data_long$stim_ordered <- factor(
+        data_long$stim_name,
+        levels = c("low", "med", "high")
+    )
+    data_long$cue_ordered <- factor(
+        data_long$cue_name,
+        levels = c("low cue", "high cue")
+    )
+    model_iv1 <- "stim_ordered"
+    model_iv2 <- "cue_ordered"
+    rating <- "rating_type"
+    dv <- "rating_value"
+    
+    trialorder_subjectwise <- meanSummary(
+        data_long,
+        c(subject, model_iv2, rating, "trial_index"), dv
+    )
+    subjectwise_naomit <- na.omit(trialorder_subjectwise) 
+    trialorder_groupwise <- summarySEwithin(
+        data = subjectwise_naomit,
+        measurevar = "mean_per_sub",
+        withinvars = c("cue_ordered", "rating_type",  "trial_index"), idvar = subject
+    )
+```
+
+```{r}
+trialorder_subjectwise$rating_type_key <- mapvalues(trialorder_subjectwise$rating_type,
+                                                from = c("event02_expect_angle", "event04_actual_angle"),
+                                                to = c("expect", "actual"))
+trialorder_groupwise$rating_type_key <- mapvalues(trialorder_groupwise$rating_type,
+                                                from = c("event02_expect_angle", "event04_actual_angle"),
+                                                to = c("expect", "actual"))
+actual_trialorder_groupwise <- trialorder_groupwise[which(trialorder_groupwise$rating_type_key == "actual"),]
+expect_trialorder_groupwise <-trialorder_groupwise[which(trialorder_groupwise$rating_type_key == "expect"),]
+actual_trialorder_subjectwise <- trialorder_subjectwise[which(trialorder_subjectwise$rating_type_key == "actual"),]
+expect_trialorder_subjectwise <-trialorder_subjectwise[which(trialorder_subjectwise$rating_type_key == "expect"),]
+```
+
+ggplot
+
+```{r}
+# * dataset: trialorder_groupwise
+# * x-axis: trial_index (sorted)
+# * y-axis: rating
+# * group: cue_ordered, rating_type
+# * DV: mean_per_sub_norm_mean
+# * error bar: se
+
+iv1 = "trial_index"
+iv2 = "cue_ordered"
+data = 
+g <- ggplot(
+  data = trialorder_groupwise,
+  aes(x = trial_index,
+      y = mean_per_sub_norm_mean, 
+      color = cue_ordered,
+      group = rating_type_key
+      )
+  ) +
+    geom_point(
+    data = trialorder_groupwise,
+    aes(
+      shape = as.character(rating_type_key),
+      x =trial_index,
+      y = mean_per_sub_norm_mean,
+      group = rating_type_key,
+      #color = cue_ordered
+      ),
+    #position = position_jitter(width = .05),
+    size = 6
+    ) +
+  scale_shape_manual(values=c(16, 21))+
+
+  # geom_point(
+  #   data = trialorder_subjectwise,
+  #   aes(
+  #     x = as.numeric(trial_index) - .15,
+  #     y = mean_per_sub,
+  #     color = cue_ordered
+  #     ),
+  #   position = position_jitter(width = .05),
+  #   size = 1, alpha = 0.8, shape = 20
+  #   ) +
+  geom_errorbar(
+    data = trialorder_groupwise,
+    aes(
+      x = as.numeric(trial_index),
+      y = mean_per_sub_norm_mean,
+      group = rating_type_key,
+      colour = cue_ordered,
+      ymin = mean_per_sub_norm_mean - se,
+      ymax = mean_per_sub_norm_mean + se
+      ), width = .01, size = 0.5
+    ) +
+  scale_color_manual(values = c("high cue" = "red", 
+                                "low cue" = "blue"))
+g 
+```
+
+# plot 2 - average across participant, but spread all 6 runs in one x axis
+```{r transform data to longform}
+
+data_p2= data %>%
+  arrange(src_subject_id ) %>%
+  group_by(src_subject_id) %>%
+  mutate(trial_index = row_number())
+```
+```{r identify erroneous participant}
+# participants who have more than 72 trials will be flagged
+# excluded for now
+# TODO: resolve subject 98
+count_trial <- data_p2 %>% count("src_subject_id") 
+count_trial[count_trial$freq > 72,]
+```
+
+
+```{r}
+data_p2 <- data_p2[data_p2$src_subject_id != 98, ]
+data_p2_long = data_p2 %>% 
+  pivot_longer(cols = c('event02_expect_angle', 'event04_actual_angle'),
+               names_to = "rating_type", 
+               values_to = "rating_value")
+```
+
+```{r plot data}
+# PLOT
+    data_p2_long$cue_name[data_p2_long$param_cue_type == "high_cue"] <- "high cue"
+    data_p2_long$cue_name[data_p2_long$param_cue_type == "low_cue"] <- "low cue"
+
+    data_p2_long$stim_name[data_p2_long$param_stimulus_type == "high_stim"] <- "high"
+    data_p2_long$stim_name[data_p2_long$param_stimulus_type == "med_stim"] <- "med"
+    data_p2_long$stim_name[data_p2_long$param_stimulus_type == "low_stim"] <- "low"
+    
+    data_p2_long$stim_ordered <- factor(
+        data_p2_long$stim_name,
+        levels = c("low", "med", "high")
+    )
+    data_p2_long$cue_ordered <- factor(
+        data_p2_long$cue_name,
+        levels = c("low cue", "high cue")
+    )
+    model_iv1 <- "stim_ordered"
+    model_iv2 <- "cue_ordered"
+    rating <- "rating_type"
+    dv <- "rating_value"
+    
+    trialorder_groupwise_p2 <- meanSummary(
+        data_p2_long,
+        c( model_iv2, rating, "trial_index"), dv
+    )
+    # subjectwise_naomit_p2 <- na.omit(trialorder_subjectwise_p2) 
+    # trialorder_groupwise_p2 <- summarySEwithin(
+    #     data = subjectwise_naomit_p2, trial_index, 
+    #     measurevar = "mean_per_sub",
+    #     withinvars = c("cue_ordered", "rating_type", "trial_index"), idvar = subject
+    # )
+```
+
+
+
+```{r}
+trialorder_groupwise_p2$rating_type_key <- mapvalues(trialorder_groupwise_p2$rating_type,
+                                                from = c("event02_expect_angle", "event04_actual_angle"),
+                                                to = c("expect", "actual"))
+# trialorder_groupwise_p2$rating_type_key <- mapvalues(trialorder_groupwise_p2$rating_type,
+#                                                 from = c("event02_expect_angle", "event04_actual_angle"),
+#                                                 to = c("expect", "actual"))
+# actual_trialorder_groupwise <- trialorder_groupwise_p2[which(trialorder_groupwise_p2$rating_type_key == "actual"),]
+# expect_trialorder_groupwise <-trialorder_groupwise_p2[which(trialorder_groupwise_p2$rating_type_key == "expect"),]
+# actual_trialorder_subjectwise <- trialorder_subjectwise_p2[which(trialorder_subjectwise_p2$rating_type_key == "actual"),]
+# expect_trialorder_subjectwise <-trialorder_subjectwise_p2[which(trialorder_subjectwise_p2$rating_type_key == "expect"),]
+```
+
+ggplot
+
+
+
+```{r}
+# * dataset: trialorder_groupwise_p2
+# * x-axis: trial_index (sorted)
+# * y-axis: rating
+# * group: cue_ordered, rating_type
+# * DV: mean_per_sub_norm_mean
+# * error bar: se
+
+iv1 = "trial_index"
+iv2 = "cue_ordered"
+data = 
+g <- ggplot(
+  data = trialorder_groupwise_p2,
+  aes(x = trial_index,
+      y = mean_per_sub, 
+      color = cue_ordered,
+      group = rating_type_key
+      )
+  ) +
+    geom_point(
+    data = trialorder_groupwise_p2,
+    aes(
+      shape = as.character(rating_type_key),
+      x =trial_index,
+      y = mean_per_sub,
+      group = rating_type_key,
+      #color = cue_ordered
+      ),
+    #position = position_jitter(width = .05),
+    size = 3
+    ) +
+  scale_shape_manual(values=c(16, 21))+
+
+  geom_errorbar(
+    data = trialorder_groupwise_p2,
+    aes(
+      x = as.numeric(trial_index),
+      y = mean_per_sub,
+      group = rating_type_key,
+      colour = cue_ordered,
+      ymin = mean_per_sub - sd/sqrt(length(unique(data_p2_long$src_subject_id))),
+      ymax = mean_per_sub + sd/sqrt(length(unique(data_p2_long$src_subject_id)))
+      ), width = .1, size = 0.5
+    ) +
+  scale_color_manual(values = c("high cue" = "red", 
+                                "low cue" = "blue")) +
+  xlab("no. of trials") +
+  ylab("rating") +
+  ylim(0,100) +
+  theme_bw() 
+g 
+```
