@@ -45,15 +45,23 @@ __status__ = "Development"
 
 # %% directories _______________________________________________________________
 # get path to the directory to which GLMsingle was installed
+cluster = 1
+if cluster:
+    glmsingle_dir = '/dartfs-hpc/rc/lab/C/CANlab/modules/GLMsingle'
 
-glmsingle_dir = '/dartfs-hpc/rc/lab/C/CANlab/modules/GLMsingle'
-fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep'
-
-current_dir = os.getcwd()
+    fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/fmriprep'
+    current_dir = os.getcwd()
+    main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
+else:
+    glmsingle_dir = '/dartfs-hpc/rc/lab/C/CANlab/modules/GLMsingle'
+    fmriprep_dir = '/Volumes/spacetop/derivatives/fmriprep'
+    
+    main_dir = '/Volumes/spacetop_projects_social'
 #current_dir = '/Volumes/spacetop_projects_social'
 # smb://dartfs-hpc.dartmouth.edu/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/analysis
-main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
-main_dir = '/Volumes/spacetop_projects_social'
+# main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
+
+
 # create directory for saving data
 datadir = join(main_dir,'analysis','fmri','glmsingle','data')
 outputdir = join(main_dir,'analysis','fmri','glmsingle','output')
@@ -91,7 +99,7 @@ ttl_dir = {
 design = []
 extra = []
 data = []
-ses_ind = []
+ses_indicator = []
 
 sub_ses = list(itertools.product(sub_ind, ses_list))
 for i, (sub_ind, ses_ind) in enumerate(sub_ses):
@@ -166,12 +174,12 @@ for beh_fname in beh_list:
     extra.append(np.array(extra_df))
 
 # TODO: LOCAL 
-fmriprep_dir = '/Volumes/spacetop/derivatives/fmriprep/'
+    #fmriprep_dir = '/Volumes/spacetop/derivatives/fmriprep/'
     nii_name = join(fmriprep_dir, sub, ses, 'func', f"{sub}_{ses}_task-social_acq-mb8_run-{run_num}_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz")
     nilearn_data = image.load_img(nii_name) 
     data.append(nilearn_data.get_fdata())
 
-    ses_ind.append(ses_num)
+    ses_indicator.append(ses_num)
 
 # %% visualize design
 def forceAspect(ax,aspect=1):
@@ -191,6 +199,7 @@ plt.imshow(design[1],origin = 'lower', interpolation='none')
 plt.title('example design matrix from run 2',fontsize=16)
 plt.xlabel('conditions',fontsize=16)
 plt.ylabel('time (TR)',fontsize=16);
+#  plt.savefig('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/figure/glmsingle/designmatrix.png')
 # forceAspect(plt,aspect=1)
 # plt.gca().set_aspect('equal')
 # %%
