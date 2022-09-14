@@ -12,7 +12,14 @@ editor_options:
     wrap: 72
 ---
 
-Overview purpose plot plan load data organize data plot
+# Overview 
+The purpose of this markdown is to benchmark the plots from Jepma et al. (2018). 
+Here, we plot the expectancy ratings and the actual ratings, with the high and low cues -- in one panel. 
+
+# Some thoughts, TODOs
+* plot 2. some runs were repeated or omitted for the subjects that have more than 72 trials. I need to identify that list and work on the behavioral data. 
+* I need to check whether the counterbalancing was done correctly. 
+* 
 
 # TODO: 
 plot 2
@@ -209,7 +216,7 @@ g <- ggplot(
       #color = cue_ordered
       ),
     #position = position_jitter(width = .05),
-    size = 6
+    size = 3
     ) +
   scale_shape_manual(values=c(16, 21))+
 
@@ -235,19 +242,44 @@ g <- ggplot(
       ), width = .01, size = 0.5
     ) +
   scale_color_manual(values = c("high cue" = "red", 
-                                "low cue" = "blue"))
+                                "low cue" = "blue")) +
+    xlab("no. of trials") +
+  ylab("rating") +
+  ylim(0,100) +
+  theme_bw() 
 g 
 ```
 
 # plot 2 - average across participant, but spread all 6 runs in one x axis
-```{r transform data to longform}
+load data and combine participant data
 
+```{r p2 :: load data and exclude}
+main_dir = dirname(dirname(getwd()))
+# parameters _____________________________________ # nolint
+subject_varkey <- "src_subject_id"
+iv <- "param_cue_type"
+dv <- "event03_RT"
+dv_keyword <- "RT"
+xlab <- ""
+taskname <- "cognitive"
+
+ylab <- "ratings (degree)"
+subject <- "subject"
+exclude <- "sub-0999|sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0007|sub-0008|sub-0009|sub-0010|sub-0011"
+
+# load data _____________________________________
+data <- load_task_social_df(taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+```
+### p2 :: check number of trials per participant
+
+```{r p2 check number of trials per participant}
 data_p2= data %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number())
 ```
-```{r identify erroneous participant}
+### p2 :: identify erroneous participant
+```{r p2 identify erroneous participant}
 # participants who have more than 72 trials will be flagged
 # excluded for now
 # TODO: resolve subject 98
@@ -255,8 +287,8 @@ count_trial <- data_p2 %>% count("src_subject_id")
 count_trial[count_trial$freq > 72,]
 ```
 
-
-```{r}
+### p2 :: convert to long form
+```{r p2 convert to long form}
 data_p2 <- data_p2[data_p2$src_subject_id != 98, ]
 data_p2_long = data_p2 %>% 
   pivot_longer(cols = c('event02_expect_angle', 'event04_actual_angle'),
@@ -264,8 +296,12 @@ data_p2_long = data_p2 %>%
                values_to = "rating_value")
 ```
 
-```{r plot data}
+### p2 :: plot data
+I'm plotting all of the trials per participant. In this case, there is no trialwise variability, because we're plotting all 72 trials. 
+Averaging across participants will be the only source of variability, reflected in the error bars
+```{r p2 plot data}
 # PLOT
+  # I'm plotting
     data_p2_long$cue_name[data_p2_long$param_cue_type == "high_cue"] <- "high cue"
     data_p2_long$cue_name[data_p2_long$param_cue_type == "low_cue"] <- "low cue"
 
