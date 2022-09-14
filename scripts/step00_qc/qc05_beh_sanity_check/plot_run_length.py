@@ -15,7 +15,7 @@ __email__ = "heejung.jung@colorado.edu"
 __status__ = "Development" 
 
 # %%
-filename = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step00_qc/qc05_check_run_length/experiment_length.csv'
+filename = './run_length.csv'
 df = pd.read_csv(filename)
 
 runlength = {
