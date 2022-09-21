@@ -85,5 +85,5 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         # save error in log file
     # if file exists
 # %%
-filename = os.path.join(current_dir, 'experiment_length.csv')
+filename = os.path.join(current_dir, 'run_length.csv')
 total_df.to_csv(filename, index=False)
