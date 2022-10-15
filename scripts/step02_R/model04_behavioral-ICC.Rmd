@@ -449,8 +449,8 @@ GGTITLE = paste(TASKNAME, " - Expectation Rating (degree)")
 TITLE = paste(TASKNAME, " - Expect")
 SUBJECT = "subject"
 EXCLUDE = ""
-analysis_dir =file.path(main_dir,'analysis', 'mixedeffect', 'model04_ICC_actualrating_02-2022')
-
+analysis_dir =file.path(main_dir,'analysis', 'mixedeffect', 'model04_behavioral-ICC', as.character(Sys.Date()))
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 for (TASKNAME in c("pain", "vicarious", "cognitive")){
 
 SAVE_FNAME = file.path(analysis_dir, paste('lmer_task-', TASKNAME, '_rating-',DV_KEYWORD,'_', as.character(Sys.Date()),'.txt',sep = ''))
@@ -571,7 +571,7 @@ beh41 = ggplot(data = sub_ses, aes(x = mean_per_sub.4, y = mean_per_sub.1)) +
 
 
 ggpubr::ggarrange(beh13,beh34,beh41,ncol = 3, nrow = 1, common.legend = FALSE,legend = "bottom")
-plot_filename = file.path(main_dir, 'analysis','mixedeffect','model04_behavioral_ICC', paste('socialinfluence_task-',TASKNAME,'_',DV_KEYWORD,'_icc','_', as.character(Sys.Date()),'.png', sep = ""))
+plot_filename = file.path(main_dir, 'analysis','mixedeffect','model04_behavioral-ICC', paste('socialinfluence_task-',TASKNAME,'_',DV_KEYWORD,'_icc','_', as.character(Sys.Date()),'.png', sep = ""))
 ggsave(plot_filename, width = 10, height = 3)
 }
 ```

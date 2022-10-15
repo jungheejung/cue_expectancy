@@ -55,3 +55,4 @@ for ind, run_path in enumerate(sorted(run_list)):
     df_run.loc[(df_run['sub'] == sub_bids) & (df_run['ses'] == ses_bids), run_bids] = str(" ".join(re.findall("[a-zA-Z]+", entities['run'])))
 
 df_run.to_csv(join(main_dir,'data','spacetop_task-social_run-metadata.csv'), index = False)
+# %%

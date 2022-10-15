@@ -62,8 +62,8 @@ plot_rainclouds_twofactor <- function(subjectwise, groupwise,
 
         # legend stuff __________________________________________________________________________________ # nolint
         expand_limits(x = 3.25) +
-        guides(fill = FALSE) +
-        guides(color = FALSE) +
+        guides(fill = "none") +
+        guides(color = "none") +
         guides(fill = guide_legend(title = "title")) +
         # geom_text()
 
