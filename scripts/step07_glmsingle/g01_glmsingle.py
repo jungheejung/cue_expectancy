@@ -73,7 +73,7 @@ args = parser.parse_args()
 # parser.add_argument("-o", "--operating",
 #                     choices=['local', 'discovery'],
 #                     help="specify where jobs will run: local or discovery")
-sub_ind = int(args.slurm_id) # e.g. 1, 2
+sub_ind = list(int(args.slurm_id)) # e.g. 1, 2
 runtype = args.runtype # e.g. 'task-social' 'task-fractional' 'task-alignvideos'
 
 
@@ -141,7 +141,7 @@ for beh_fname in flat_list:
     task_name = re.match("(run)-(\d+)-(\w+)", [match for match in beh_basename.split('_') if "run" in match][0])[3]
     ses = 'ses-{:02d}'.format(ses_num)
     run = 'run-{:02d}'.format(run_num)
-
+    print(f"sub: {sub}, ses: {ses}, run: {run}")
     # load csv and clean 
     beh = pd.read_csv(beh_fname, sep = '\t')
     # TODO, check if plataeu exists
@@ -200,7 +200,8 @@ for beh_fname in flat_list:
 
 a = np.array(ses_ind)
 x,ses_ind_zerobased = np.unique(a,return_inverse = True)
-
+print(f"number of runs in this dataset: {len(data)}")
+print(f"list of sessions: {ses_ind}")
 
 outputdir_glmsingle = join(outputdir,sub, runtype)
 Path(join(outputdir_glmsingle)).mkdir(parents=True, exist_ok=True) # (main_dir,'analysis','fmri','glmsingle','output', 'sub-0001', 'task-social')
