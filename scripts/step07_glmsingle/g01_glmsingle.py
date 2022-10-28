@@ -73,9 +73,10 @@ args = parser.parse_args()
 # parser.add_argument("-o", "--operating",
 #                     choices=['local', 'discovery'],
 #                     help="specify where jobs will run: local or discovery")
-sub_ind = list(int(args.slurm_id)) # e.g. 1, 2
+print(args.slurm_id)
+sub_ind = [args.slurm_id] # e.g. 1, 2
 runtype = args.runtype # e.g. 'task-social' 'task-fractional' 'task-alignvideos'
-
+print(sub_ind)
 
 # ttl_dir = {
 #     'early':'d06_singletrial_SPM_01-pain-early',
@@ -119,13 +120,6 @@ flat_list = [item for sublist in beh_list for item in sublist]
 
 stimdur = 5
 tr = 0.46
-# print some relevant metadata
-print(f'* There are {len(data)} runs in total')
-print(f'* N = {data[0].shape[3]} TRs per run')
-print(f'* The dimensions of the data for each run are: {data[0].shape}')
-print(f'* The stimulus duration is {stimdur} seconds')
-print(f'* XYZ dimensionality is: {data[0].shape[:3]} (one slice only in this example)')
-print(f'* Numeric precision of data is: {type(data[0][0,0,0,0])}')
 
 
 ses_ind = []
@@ -198,11 +192,19 @@ for beh_fname in flat_list:
 
     ses_ind.append(ses_num)
 
+
 a = np.array(ses_ind)
 x,ses_ind_zerobased = np.unique(a,return_inverse = True)
 print(f"number of runs in this dataset: {len(data)}")
 print(f"list of sessions: {ses_ind}")
 
+# print some relevant metadata
+print(f'* There are {len(data)} runs in total')
+print(f'* N = {data[0].shape[3]} TRs per run')
+print(f'* The dimensions of the data for each run are: {data[0].shape}')
+print(f'* The stimulus duration is {stimdur} seconds')
+print(f'* XYZ dimensionality is: {data[0].shape[:3]} (one slice only in this example)')
+print(f'* Numeric precision of data is: {type(data[0][0,0,0,0])}')
 outputdir_glmsingle = join(outputdir,sub, runtype)
 Path(join(outputdir_glmsingle)).mkdir(parents=True, exist_ok=True) # (main_dir,'analysis','fmri','glmsingle','output', 'sub-0001', 'task-social')
 opt = dict()
@@ -214,7 +216,7 @@ opt['wantfracridge'] = 1
 opt['wantfileoutputs'] = [1,1,1,1]
 opt['wantmemoryoutputs'] = [1,1,1,1]
 # opt['sessionindicator'] = [1, 1]
-opt['extra_regressors'] = False
+#opt['extra_regressors'] = False
 opt['sessionindicator'] = list(ses_ind_zerobased +1)
 opt['chunklen'] = 50000
 glmsingle_obj = GLM_single(opt)
@@ -224,7 +226,7 @@ pprint(glmsingle_obj.params)
 
 start_time = time.time()
 
-if not exists(join(outputdir_glmsingle,'TYPEA_ONOFF.npy')):
+if not exists(join(outputdir_glmsingle,'TYPED_FITHRF_GLMDENOISE_RR.npy')):
 
     print(f'running GLMsingle...')
     
