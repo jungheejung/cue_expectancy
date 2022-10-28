@@ -206,14 +206,16 @@ print(f'* The stimulus duration is {stimdur} seconds')
 print(f'* XYZ dimensionality is: {data[0].shape[:3]} (one slice only in this example)')
 print(f'* Numeric precision of data is: {type(data[0][0,0,0,0])}')
 outputdir_glmsingle = join(outputdir,sub, runtype)
+figuredur = join(outputdir, sub, runtype, 'figure')
 Path(join(outputdir_glmsingle)).mkdir(parents=True, exist_ok=True) # (main_dir,'analysis','fmri','glmsingle','output', 'sub-0001', 'task-social')
+Path(figuredur).mkdir(parents=True,exist_ok=True)
 opt = dict()
 
 opt['wantlibrary'] = 1
-opt['wantglmdenoise'] = 1
+opt['wantglmdenoise'] = 0
 opt['wantfracridge'] = 1
 
-opt['wantfileoutputs'] = [1,1,1,1]
+opt['wantfileoutputs'] = [1,1,0,1]
 opt['wantmemoryoutputs'] = [1,1,1,1]
 # opt['sessionindicator'] = [1, 1]
 #opt['extra_regressors'] = False
@@ -236,7 +238,8 @@ if not exists(join(outputdir_glmsingle,'TYPED_FITHRF_GLMDENOISE_RR.npy')):
        data,
        stimdur,
        tr,
-       outputdir=outputdir_glmsingle)
+       outputdir=outputdir_glmsingle,
+        figuredir=figuredur)
     # we assign outputs of GLMsingle to the "results_glmsingle" variable.
     # note that results_glmsingle['typea'] contains GLM estimates from an ONOFF model,
     # where all images are treated as the same condition. these estimates
