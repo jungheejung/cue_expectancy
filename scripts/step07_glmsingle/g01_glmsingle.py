@@ -148,6 +148,7 @@ for beh_fname in flat_list:
     rating = pd.read_csv(join(main_dir, 'data', 'd03_onset', 'onset03_SPMsingletrial', sub, f"{sub}_{ses}_{run}_covariate-circularrating.csv"))
     run_df = meta[((meta['ses'] == ses_num)& (meta['run'] == run_num) & (meta['ev'] == 'stim'))]
     run_df.insert(2, 'cond_name', np.nan)
+    cue_df = meta[((meta['ses'] == ses_num)& (meta['run'] == run_num) & (meta['ev'] == 'cue'))]
     # %% building <design> from glmsingle _______________________________________________________________
     run_df.loc[((run_df['cue_type'] == 'low_cue') & (run_df['stim_type']  =='low_stim')), 'cond_name'] = int(0)
     run_df.loc[((run_df['cue_type'] == 'low_cue') & (run_df['stim_type']  =='med_stim')), 'cond_name'] = int(1)
@@ -182,8 +183,18 @@ for beh_fname in flat_list:
     rating_df = pd.DataFrame(np.zeros(dim_x), dtype = int)
     for x in rating_tr:
         rating_df.iloc[x-1, 0] = 1
-    extra_df = pd.concat([rating_df, motion_df], axis = 1)
+
+    cue_to_tr = np.array(cue_onset.to_list(), dtype='float')/0.46
+    cue_tr = [np.round(x) for x in cue_to_tr]
+    cue_df = pd.DataFrame(np.zeros(dim_x), dtype = int)
+    for x in cue_tr:
+        cue_df.iloc[int(x)-1, 0] = 1
+    # load motion covariates and concat
+    extra_df = pd.concat([cue_df, rating_df, motion_df], axis = 1)
     extra.append(np.array(extra_df))
+
+    # extra_df = pd.concat([rating_df, motion_df], axis = 1)
+    # extra.append(np.array(extra_df))
 
     nii_name = join(fmriprep_dir, sub, ses, 'func', f"{sub}_{ses}_task-social_acq-mb8_run-{run_num}_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz")
     print(nii_name)
@@ -218,7 +229,7 @@ opt['wantfracridge'] = 1
 opt['wantfileoutputs'] = [1,1,0,1]
 opt['wantmemoryoutputs'] = [1,1,1,1]
 # opt['sessionindicator'] = [1, 1]
-#opt['extra_regressors'] = False
+opt['extra_regressors'] = extra
 opt['sessionindicator'] = list(ses_ind_zerobased +1)
 opt['chunklen'] = 50000
 glmsingle_obj = GLM_single(opt)

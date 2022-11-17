@@ -8,7 +8,11 @@
 #SBATCH -e ./log/single_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
+<<<<<<< HEAD
 #SBATCH --array=1
+=======
+#####SBATCH --array=1-2
+>>>>>>> d0653f69e99ef355fa490d84aedfc6e011c7030b
 
 SLURM_ID=${SLURM_ARRAY_TASK_ID}
 conda activate spacetop_env
