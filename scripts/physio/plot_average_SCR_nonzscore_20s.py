@@ -28,24 +28,29 @@ import pandas as pd
 
 # %% glob data ________________________
 physio_dir = '/Volumes/spacetop_projects_social/analysis/physio'
+task = 'cognitive'
+epochstart = -1
+epochend = 20
+resample = 25
+ttlindex = 2
 # /Volumes/spacetop_projects_social/analysis/physio/physio01_SCL/sub-0016/ses-01
 flist = glob.glob(
-    join(physio_dir, '**', '*pain*_epochend-20_resample-25_ttlindex-2_physio-scltimecourse.csv'), recursive=True)
+    join(physio_dir, '**', f'*{task}*_epochend-{epochend}_resample-{resample}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), recursive=True)
 # sub-0016_ses-01_run-01_runtype-vicarious_epochstart--1_epochend-20_resample-25_physio-scltimecourse
     # ../physio01_SCL/sub-0081/ses-01/sub-0081_ses-01_run-01_runtype-pain_epochstart--1_epochend-20_resample-25_physio-scltimecourse.csv
 # %% NOTE: stack all data and save as .csv ________________________
 li = []
-
+frame = pd.DataFrame()
 for filename in flist:
     df = pd.read_csv(filename, index_col=None, header=0)
     li.append(df)
 frame = pd.concat(li, axis=0, ignore_index=True)
 frame.to_csv(join(physio_dir, 'physio01_SCL',
-             'sub-all_ses-all_run-all_runtype-pain_epochstart--1_epochend-20_resample-25_ttlindex-2_physio-scltimecourse.csv'))
+             f'sub-all_ses-all_run-all_runtype-{task}_epochstart-{epochstart}_epochend-{epochend}_resample-{resample}_ttlindex-{ttlindex}_physio-scltimecourse.csv'))
 
 # %% NOTE: downsample via neurokit ________________________
 frame = pd.read_csv(join(physio_dir, 'physio01_SCL',
-                    'sub-all_ses-all_run-all_runtype-pain_epochstart--1_epochend-20_resample-25_ttlindex-2_physio-scltimecourse.csv'))
+                    f'sub-all_ses-all_run-all_runtype-{task}_epochstart-{epochstart}_epochend-{epochend}_resample-{resample}_ttlindex-{ttlindex}_physio-scltimecourse.csv'))
 # %%
 # filter_col = [col for col in frame if col.startswith('time_')]
 # timeframe = frame[filter_col]
@@ -69,7 +74,7 @@ frame = pd.read_csv(join(physio_dir, 'physio01_SCL',
 
 # %%
 subset_df = frame.drop(columns=['session_id', 'param_task_name', 'param_run_num',
-                          'param_cond_type', 'trial_num', 'trial_order', 'iv_stim', 'mean_signal', 'Unnamed: 0', 'Unnamed: 0.1'])
+                          'param_cond_type', 'trial_order', 'trial_order', 'iv_stim', 'mean_signal', 'Unnamed: 0', 'Unnamed: 0.1'])
 
 # # %% plot grand average ________________________
 
@@ -113,7 +118,7 @@ plot_condition_timeseries(
     col_end='time_524',
     color_list=['#E23201', '#FD9415', '#848484'], 
     line_style = ['solid'])
-plt.title('stimulus SCR')
+plt.title(f'{task} stimulus SCR')
 plt.show()
 
 plot_condition_timeseries(
@@ -124,7 +129,7 @@ plot_condition_timeseries(
     col_end='time_524',
     color_list=['#FAAE7B', '#432371'],
     line_style = ['dashed'])
-plt.title('cue SCR')
+plt.title(f'{task} cue SCR')
 plt.show()
 
 # %% int
@@ -154,7 +159,7 @@ plot_condition_timeseries(
     col_end='time_524',
     color_list=['#848484','#848484'],#['#00B9EC', '#00B9EC'],
     line_style = ['solid', 'dashed'])
-plt.title('stimulus * cue SCR')
+plt.title(f'{task} stimulus * cue SCR')
 plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
 plt.show()
 
