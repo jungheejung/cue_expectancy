@@ -1,12 +1,10 @@
-load_task_social_df <- function(taskname, subject_varkey, iv, dv, exclude) {
+load_task_social_df <- function(datadir, taskname, subject_varkey, iv, dv, exclude) {
   # INPUT:
   # * taskname (e.g. pain, cognitive, vicarious)
   # * subject_varkey (e.g. src_subject_id or subject)
   # A. load data ______________________________________________________________
   filename <- paste("*_task-social_*-", taskname, "_beh.csv", sep = "")
-  common_path <- Sys.glob(file.path(
-    main_dir, "data", "dartmouth", "d02_preprocessed",
-    "sub-*", "ses-*", filename
+  common_path <- Sys.glob(file.path(datadir, "sub-*", "ses-*", filename
   ))
   filter_path <- common_path[!str_detect(common_path, pattern = exclude)]
 

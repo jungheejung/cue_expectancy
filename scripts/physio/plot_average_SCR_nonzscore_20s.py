@@ -27,142 +27,132 @@ import pandas as pd
 """
 
 # %% glob data ________________________
-physio_dir = '/Volumes/spacetop_projects_social/analysis/physio'
-task = 'cognitive'
+physio_dir = '/Volumes/spacetop_projects_social/analysis/physio/'
+# task = 'cognitive'
 epochstart = -1
 epochend = 20
-resample = 25
+samplingrate = 25
 ttlindex = 2
-# /Volumes/spacetop_projects_social/analysis/physio/physio01_SCL/sub-0016/ses-01
-flist = glob.glob(
-    join(physio_dir, '**', f'*{task}*_epochend-{epochend}_resample-{resample}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), recursive=True)
-# sub-0016_ses-01_run-01_runtype-vicarious_epochstart--1_epochend-20_resample-25_physio-scltimecourse
-    # ../physio01_SCL/sub-0081/ses-01/sub-0081_ses-01_run-01_runtype-pain_epochstart--1_epochend-20_resample-25_physio-scltimecourse.csv
-# %% NOTE: stack all data and save as .csv ________________________
-li = []
-frame = pd.DataFrame()
-for filename in flist:
-    df = pd.read_csv(filename, index_col=None, header=0)
-    li.append(df)
-frame = pd.concat(li, axis=0, ignore_index=True)
-frame.to_csv(join(physio_dir, 'physio01_SCL',
-             f'sub-all_ses-all_run-all_runtype-{task}_epochstart-{epochstart}_epochend-{epochend}_resample-{resample}_ttlindex-{ttlindex}_physio-scltimecourse.csv'))
+fig_savedir = '/Volumes/spacetop_projects_social/figure/physio/physio01_SCL'
+for task in ['pain', 'cognitive', 'vicarious']:
+    # NOTE: <<--------only run once
+    # flist = glob.glob(
+    #     join(physio_dir, '**', f'*{task}*_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), recursive=True)
+    # # sub-0053_ses-01_run-02_runtype-vicarious_epochstart--1_epochend-20_samplingrate-25_ttlindex-2_physio-scltimecourse
+    # #  NOTE: stack all data and save as .csv ________________________
+    # li = []
+    # frame = pd.DataFrame()
+    # for filename in sorted(flist):
+    #     df = pd.read_csv(filename, index_col=None, header=0)
+    #     li.append(df)
+    # frame = pd.concat(li, axis=0, ignore_index=True)
+    # frame.to_csv(join(physio_dir, 'physio01_SCL',
+    #             f'sub-all_ses-all_run-all_runtype-{task}_epochstart-{epochstart}_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'))
+    # NOTE: only run once -------- >>
 
-# %% NOTE: downsample via neurokit ________________________
-frame = pd.read_csv(join(physio_dir, 'physio01_SCL',
-                    f'sub-all_ses-all_run-all_runtype-{task}_epochstart-{epochstart}_epochend-{epochend}_resample-{resample}_ttlindex-{ttlindex}_physio-scltimecourse.csv'))
-# %%
-# filter_col = [col for col in frame if col.startswith('time_')]
-# timeframe = frame[filter_col]
-# timeframe.dropna(axis=1, how='all')
-# # timeframe_snip = timeframe.iloc[:, 1999:41999]
-# downsampled_interpolation = pd.DataFrame(index=list(range(frame.shape[0])),
-#                                          columns=list(range(525)))
-# new_rows = []
 
-# # for index, row in timeframe.iterrows():
-# #     ds = []
-# #     downsampled_interpolation.loc[index, :] = nk.signal_resample(
-# #         row,  method = 'interpolation', sampling_rate=2000, desired_sampling_rate=25)
-#     # new_rows.append(ds)
-# # %% append metadata and behavioral ratings ________________________
-# metadata_col = [col for col in frame if not col.startswith(
-#     ('time_', 'Unnamed:'))]
-# metadata_df = frame[metadata_col]
-# merge_df = pd.concat(
-#     [metadata_df, downsampled_interpolation.reindex()], axis=1)
 
-# %%
-subset_df = frame.drop(columns=['session_id', 'param_task_name', 'param_run_num',
-                          'param_cond_type', 'trial_order', 'trial_order', 'iv_stim', 'mean_signal', 'Unnamed: 0', 'Unnamed: 0.1'])
+    # NOTE: downsample via neurokit ________________________
+    frame = pd.read_csv(join(physio_dir, 'physio01_SCL',
+                        f'sub-all_ses-all_run-all_runtype-{task}_epochstart-{epochstart}_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'))
 
-# # %% plot grand average ________________________
+    # NOTE: drop columns
+    subset_df = frame.drop(columns=['session_id', 'param_task_name', 'param_run_num',
+                            'param_cond_type', 'trial_order', 'trial_order', 'iv_stim', 'mean_signal', 'Unnamed: 0'])
 
-# # TODO: scale per participant!
-# mdf = subset_df.loc[:, 0:499].add_prefix('col_')
-# merge_df2 = pd.concat([metadata_df, mdf], axis=1)
-# subset_df = merge_df2.drop(columns=['session_id', 'param_task_name', 'param_run_num',
-#                            'param_cond_type', 'trial_num', 'trial_order', 'iv_stim', 'mean_signal'])
-# %% average signal per condition
-M = subset_df.groupby(by=['src_subject_id', 'param_cue_type',
-                      'param_stimulus_type']).apply(lambda x: x.mean())
-M.drop(columns=['src_subject_id'], inplace=True)
-Mr = M.reset_index()
-# %% group by first
-def plot_condition_timeseries(df, cond, level_list, col_start, col_end, color_list, line_style):
-    for ind, stim in enumerate(level_list):
-        stim_df = df[df[cond] == stim]
-        stim_mean = stim_df.loc[:, col_start:col_end].mean()
-        stim_sd = stim_df.loc[:, col_start:col_end].std()
-        timeseries = np.arange(len(stim_mean))
-        N = len(list(subset_df.src_subject_id.unique()))
-        if len(line_style) > 1:
-            linesty = line_style[ind]
-        else: 
-            linesty = line_style[0]
-        plt.plot(timeseries, stim_mean,
-                 color = f'{color_list[ind]}',
-                 linestyle=linesty, 
-                 label=f"mean_{stim}")
-        plt.fill_between(timeseries, stim_mean - stim_sd/np.sqrt(N), stim_mean +
-                         stim_sd/np.sqrt(N), color=f'{color_list[ind]}', alpha=0.1)
-    plt.plot()
+    # NOTE: plot grand average ________________________
+
+    # # TODO: scale per participant!
+    # mdf = subset_df.loc[:, 0:499].add_prefix('col_')
+    # merge_df2 = pd.concat([metadata_df, mdf], axis=1)
+    # subset_df = merge_df2.drop(columns=['session_id', 'param_task_name', 'param_run_num',
+    #                            'param_cond_type', 'trial_num', 'trial_order', 'iv_stim', 'mean_signal'])
+    # average signal per condition
+    M = subset_df.groupby(by=['src_subject_id', 'param_cue_type',
+                        'param_stimulus_type']).apply(lambda x: x.mean())
+    M.drop(columns=['src_subject_id'], inplace=True)
+    Mr = M.reset_index()
+    Mr.to_csv(join(physio_dir, 'physio01_SCL',
+    f'sub-all_condition-mean_runtype-{task}_epochstart-{epochstart}_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'))
+    # group by first
+    def plot_condition_timeseries(df, cond, level_list, col_start, col_end, color_list, line_style):
+        for ind, stim in enumerate(level_list):
+            stim_df = df[df[cond] == stim]
+            stim_mean = stim_df.loc[:, col_start:col_end].mean()
+            stim_sd = stim_df.loc[:, col_start:col_end].std()
+            timeseries = np.arange(len(stim_mean))
+            N = len(list(subset_df.src_subject_id.unique()))
+            if len(line_style) > 1:
+                linesty = line_style[ind]
+            else: 
+                linesty = line_style[0]
+            plt.plot(timeseries, stim_mean,
+                    color = f'{color_list[ind]}',
+                    linestyle=linesty, 
+                    label=f"mean_{stim}")
+            plt.fill_between(timeseries, stim_mean - stim_sd/np.sqrt(N), stim_mean +
+                            stim_sd/np.sqrt(N), color=f'{color_list[ind]}', alpha=0.1)
+        plt.plot()
+        # plt.show()
+
+    # NOTE: plot stimulus intensity factor
+    plot_condition_timeseries(
+        df = Mr,
+        cond='param_stimulus_type',
+        level_list=['high_stim', 'med_stim', 'low_stim'],
+        col_start='time_0',
+        col_end='time_524',
+        color_list=['#E23201', '#FD9415', '#848484'], 
+        line_style = ['solid'])
+    plt.title(f'{task} stimulus SCR')
+    plt.savefig(join(fig_savedir, f"task-{task}_sample-25_iv-time_dv-stim.png"))
+    plt.close()
+    
+    # NOTE: plot cue factor
+    plot_condition_timeseries(
+        df = Mr,
+        cond='param_cue_type',
+        level_list=['high_cue', 'low_cue'],
+        col_start='time_0',
+        col_end='time_524',
+        color_list=['#FAAE7B', '#432371'],
+        line_style = ['dashed'])
+    plt.title(f'{task} cue SCR')
+    plt.savefig(join(fig_savedir, f"task-{task}_sample-25_iv-time_dv-cue.png"))
+    plt.close()
+
+    # NOTE: plot interaction
+    plot_condition_timeseries(
+        df =Mr[Mr['param_stimulus_type'] == 'high_stim'],
+        cond='param_cue_type',
+        level_list=['high_cue', 'low_cue'],
+        col_start='time_0',
+        col_end='time_524',
+        color_list=['#E23201', '#E23201'],
+        line_style = ['solid', 'dashed'])
+
+    plot_condition_timeseries(
+        df =Mr[Mr['param_stimulus_type'] == 'med_stim'],
+        cond='param_cue_type',
+        level_list=['high_cue', 'low_cue'],
+        col_start='time_0',
+        col_end='time_524',
+        color_list=['#FD9415', '#FD9415'],
+        line_style = ['solid', 'dashed'])
+
+    plot_condition_timeseries(
+        df =Mr[Mr['param_stimulus_type'] == 'low_stim'],
+        cond='param_cue_type',
+        level_list=['high_cue', 'low_cue'],
+        col_start='time_0',
+        col_end='time_524',
+        color_list=['#848484','#848484'],#['#00B9EC', '#00B9EC'],
+        line_style = ['solid', 'dashed'])
+    plt.title(f'{task} stimulus * cue SCR')
+    plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
     # plt.show()
-
-
-plot_condition_timeseries(
-    df = Mr,
-    cond='param_stimulus_type',
-    level_list=['high_stim', 'med_stim', 'low_stim'],
-    col_start='time_0',
-    col_end='time_524',
-    color_list=['#E23201', '#FD9415', '#848484'], 
-    line_style = ['solid'])
-plt.title(f'{task} stimulus SCR')
-plt.show()
-
-plot_condition_timeseries(
-    df = Mr,
-    cond='param_cue_type',
-    level_list=['high_cue', 'low_cue'],
-    col_start='time_0',
-    col_end='time_524',
-    color_list=['#FAAE7B', '#432371'],
-    line_style = ['dashed'])
-plt.title(f'{task} cue SCR')
-plt.show()
-
-# %% int
-plot_condition_timeseries(
-    df =Mr[Mr['param_stimulus_type'] == 'high_stim'],
-    cond='param_cue_type',
-    level_list=['high_cue', 'low_cue'],
-    col_start='time_0',
-    col_end='time_524',
-    color_list=['#E23201', '#E23201'],
-    line_style = ['solid', 'dashed'])
-
-plot_condition_timeseries(
-    df =Mr[Mr['param_stimulus_type'] == 'med_stim'],
-    cond='param_cue_type',
-    level_list=['high_cue', 'low_cue'],
-    col_start='time_0',
-    col_end='time_524',
-    color_list=['#FD9415', '#FD9415'],
-    line_style = ['solid', 'dashed'])
-
-plot_condition_timeseries(
-    df =Mr[Mr['param_stimulus_type'] == 'low_stim'],
-    cond='param_cue_type',
-    level_list=['high_cue', 'low_cue'],
-    col_start='time_0',
-    col_end='time_524',
-    color_list=['#848484','#848484'],#['#00B9EC', '#00B9EC'],
-    line_style = ['solid', 'dashed'])
-plt.title(f'{task} stimulus * cue SCR')
-plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
-plt.show()
-
+    plt.savefig(join(fig_savedir, f"task-{task}_sample-25_iv-time_dv-stimXcue.png"))
+    plt.close()
 # TODO:
 # combine behavioral data
 # col = ['r', 'y', 'b']
