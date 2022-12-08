@@ -38,18 +38,18 @@ ttlindex = 2
 fig_savedir = join(main_dir, 'figure/physio/physio01_SCL')
 for task in ['pain', 'cognitive', 'vicarious']:
     # NOTE: <<--------only run once
-    # flist = glob.glob(
-    #     join(physio_dir, '**', f'*{task}*_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), recursive=True)
-    # # sub-0053_ses-01_run-02_runtype-vicarious_epochstart--1_epochend-20_samplingrate-25_ttlindex-2_physio-scltimecourse
-    # #  NOTE: stack all data and save as .csv ________________________
-    # li = []
-    # frame = pd.DataFrame()
-    # for filename in sorted(flist):
-    #     df = pd.read_csv(filename, index_col=None, header=0)
-    #     li.append(df)
-    # frame = pd.concat(li, axis=0, ignore_index=True)
-    # frame.to_csv(join(physio_dir, 'physio01_SCL',
-    #             f'sub-all_ses-all_run-all_runtype-{task}_epochstart-{epochstart}_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'))
+    flist = glob.glob(
+        join(physio_dir, '**', f'*{task}*_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), recursive=True)
+    # sub-0053_ses-01_run-02_runtype-vicarious_epochstart--1_epochend-20_samplingrate-25_ttlindex-2_physio-scltimecourse
+    #  NOTE: stack all data and save as .csv ________________________
+    li = []
+    frame = pd.DataFrame()
+    for filename in sorted(flist):
+        df = pd.read_csv(filename, index_col=None, header=0)
+        li.append(df)
+    frame = pd.concat(li, axis=0, ignore_index=True)
+    frame.to_csv(join(physio_dir, 'physio01_SCL',
+                f'sub-all_ses-all_run-all_runtype-{task}_epochstart-{epochstart}_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), index = False)
     # NOTE: only run once -------- >>
 
 
