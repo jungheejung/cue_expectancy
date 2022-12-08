@@ -55,7 +55,7 @@ def _build_evfile(df, onset_col, dur_col, mod_col, fname, **dict_map):
             new_df['mod'] = df[mod_col]
     else:
         new_df['mod'] = mod_col
-    new_df.to_csv(fname, header = None, index = None, sep='\t', mode='w')
+    new_df.to_csv(fname, header = None, index = False, sep='\t', mode='w')
 
 
 # %% parameters ________________________________________________________________________
@@ -175,7 +175,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                 # merge biopac data
                 mri_ttl.rename(dict_col, axis='columns',inplace = True)
                 mri_ttl_fname = os.path.join(ev_bids_dir, sub, ses, label+'_events_ttl.tsv' )
-                mri_ttl.to_csv(mri_ttl_fname, index=None,sep='\t')
+                mri_ttl.to_csv(mri_ttl_fname, index = False,sep='\t')
                 # II. create EV ________________________________________________________________________
                 # column 1: onset, column 2: duration, column 3: value of the input during period (parametric modulator)
 

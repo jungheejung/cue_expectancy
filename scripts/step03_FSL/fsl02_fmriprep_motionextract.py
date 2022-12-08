@@ -66,7 +66,7 @@ for sub in sub_list:
             Path(new_dir).mkdir(parents=True, exist_ok=True)
             new_fname = os.path.join(new_dir, '{0}_{1}_task-social_run-{2}_confounds-subset.txt'.format(sub,ses,run_num))
             
-            data.to_csv(new_fname, header=None, index=None, sep='\t')
+            data.to_csv(new_fname, header=None, index = False, sep='\t')
     print("sub motion list complete")
 
 # confounds-subset.json
