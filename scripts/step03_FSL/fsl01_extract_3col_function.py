@@ -112,7 +112,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
 
         datalad.rename(dict_col, inplace = True)
         datalad_fname = os.path.join(ev_bids_dir, sub, ses, label+'_events.tsv' )
-        datalad.to_csv(datalad_fname, index=None,sep='\t')
+        datalad.to_csv(datalad_fname, index = False,sep='\t')
         # II. create EV ________________________________________________________________________
         # column 1: onset, column 2: duration, column 3: value of the input during period (parametric modulator)
 
@@ -141,7 +141,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         # ev_cue_pmod_cue['dur'] = 1
         # ev_cue_pmod_cue['mod'] = df['param_cue_type'].map(dict_cue)
         # fname_1_2 = os.path.join(ev_dir, sub, ses, label+'_EV01-CUE_pmod-cue.txt')
-        # ev_cue_pmod_cue.to_csv(fname_1_2, header=None, index=None, sep='\t', mode='w')
+        # ev_cue_pmod_cue.to_csv(fname_1_2, header=None, index=False, sep='\t', mode='w')
 
         # 1-3. CUE modulated with cue type
         ev_cue_pmod_expect = pd.DataFrame()
@@ -152,7 +152,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         # ev_cue_pmod_expect['dur'] = 1
         # ev_cue_pmod_expect['mod'] = df['event02_expect_angle']
         # fname_1_3 = os.path.join(ev_dir, sub, ses, label+'_EV01-CUE_pmod-expect.txt')
-        # ev_cue_pmod_expect.to_csv(fname_1_3, header=None, index=None, sep='\t', mode='w')
+        # ev_cue_pmod_expect.to_csv(fname_1_3, header=None, index = False, sep='\t', mode='w')
 
         # 2. RATING EXPECT ______________________ DUR: RT
         # 2-1. RATING onset only
@@ -164,7 +164,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         # ev_expect_onset_only['dur'] = df['event02_expect_RT']
         # ev_expect_onset_only['mod'] = 1
         # fname_2_1 = os.path.join(ev_dir, sub, ses, label+'_EV02-EXPECT_onsetonly.txt')
-        # ev_expect_onset_only.to_csv(fname_2_1, header=None, index=None, sep='\t', mode='w')
+        # ev_expect_onset_only.to_csv(fname_2_1, header=None, index = False, sep='\t', mode='w')
 
         # 3. STIM ___________________________________________________________________________
         # 3-1. stim x 5s x no pmod
@@ -176,7 +176,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         # ev_stim_onset_only['dur'] = 5
         # ev_stim_onset_only['mod'] = 1
         # fname_3_1 = os.path.join(ev_dir, sub, ses, label+'_EV03-STIM_onsetonly.txt')
-        # ev_stim_onset_only.to_csv(fname_3_1, header=None, index=None, sep='\t', mode='w')
+        # ev_stim_onset_only.to_csv(fname_3_1, header=None, index = False, sep='\t', mode='w')
 
         # 3-2. stim x 5s x cue
         ev_stim_pmod_cue = pd.DataFrame()
@@ -187,7 +187,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         ev_stim_pmod_cue['dur'] = 5
         ev_stim_pmod_cue['mod'] = df['param_cue_type'].map(dict_cue)
         fname_3_2 = os.path.join(ev_dir, sub, ses, label+'_EV03-STIM_pmod-cue.txt')
-        ev_stim_pmod_cue.to_csv(fname_3_2, header=None, index=None, sep='\t', mode='w')
+        ev_stim_pmod_cue.to_csv(fname_3_2, header=None, index = False, sep='\t', mode='w')
 
         # 3-3. stim x 5s x actual rating
         ev_stim_pmod_actual = pd.DataFrame()
@@ -195,7 +195,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         ev_stim_pmod_actual['dur'] = 5
         ev_stim_pmod_actual['mod'] = df['event04_actual_angle']
         fname_3_3 = os.path.join(ev_dir, sub, ses, label+'_EV03-STIM_pmod-actual.txt')
-        ev_stim_pmod_actual.to_csv(fname_3_3, header=None, index=None, sep='\t', mode='w')
+        ev_stim_pmod_actual.to_csv(fname_3_3, header=None, index = False, sep='\t', mode='w')
 
         # 3-4. stim x 5s x expect rating
         ev_stim_pmod_expect = pd.DataFrame()
@@ -203,7 +203,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         ev_stim_pmod_expect['dur'] = 5
         ev_stim_pmod_expect['mod'] = df['event02_expect_angle']
         fname_3_4 = os.path.join(ev_dir, sub, ses, label+'_EV03-STIM_pmod-expect.txt')
-        ev_stim_pmod_expect.to_csv(fname_3_4, header=None, index=None, sep='\t', mode='w')
+        ev_stim_pmod_expect.to_csv(fname_3_4, header=None, index = False, sep='\t', mode='w')
 
         # 3-5. stim x 5s x stimulus intensity level
         ev_stim_pmod_stim = pd.DataFrame()
@@ -211,7 +211,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         ev_stim_pmod_stim['dur'] = 5
         ev_stim_pmod_stim['mod'] = df['param_stimulus_type'].map(dict_stim)
         fname_3_5 = os.path.join(ev_dir, sub, ses, label+'_EV03-STIM-pmod-level.txt')
-        ev_stim_pmod_expect.to_csv(fname_3_5, header=None, index=None, sep='\t', mode='w')
+        ev_stim_pmod_expect.to_csv(fname_3_5, header=None, index = False, sep='\t', mode='w')
 
 
         # 4. RATING ACTUAL __________________________________________________________________
@@ -221,7 +221,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         ev_expect_onset_only['dur'] = df['event04_actual_RT']
         ev_expect_onset_only['mod'] = 1
         fname_4_1 = os.path.join(ev_dir, sub, ses, label+'_EV04-ACTUAL-onsetonly.txt')
-        ev_expect_onset_only.to_csv(fname_4_1, header=None, index=None, sep='\t', mode='w')
+        ev_expect_onset_only.to_csv(fname_4_1, header=None, index = False, sep='\t', mode='w')
 
 
 
