@@ -28,7 +28,7 @@ final_df = pd.concat(appended_data)
 final_df.reset_index(inplace=True)
 
 # %% 
-final_df.to_csv('/Users/h/Desktop/biopac_ttl_onset.csv')
+final_df.to_csv('/Users/h/Desktop/biopac_ttl_onset.csv', index = False)
 # f"{sub}_{ses}_{task}_{run}_physio-ttl.csv"
 # %% plot
 # MATPLOTLIB

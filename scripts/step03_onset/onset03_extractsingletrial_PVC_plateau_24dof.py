@@ -409,4 +409,4 @@ for sub in sorted(sub_list):
             else:
                 break
     subject_dataframe.reset_index(inplace = True)
-    subject_dataframe.to_csv(join(single_dir,sub,f'{sub}_singletrial_{keyword}.csv'))
+    subject_dataframe.to_csv(join(single_dir,sub,f'{sub}_singletrial_{keyword}.csv'), index = False)

@@ -76,7 +76,7 @@ with open(txt_filename, 'w') as f:
 # load {sub}_{ses}_scans.tsv sub-0001_ses-01_scans.tsv
 scandf = pd.read_csv(join(main_dir,sub,ses,f"{sub}_{ses}_scans.tsv" ))
 new_scan = scandf[scandf["filename"].str.contains(dup_fname)==False]
-new_scan.to_csv(join(main_dir,sub,ses,f"{sub}_{ses}_scans.tsv" )) # overwrite scans.tsv
+new_scan.to_csv(join(main_dir,sub,ses,f"{sub}_{ses}_scans.tsv" ), index = False) # overwrite scans.tsv
 # find if dup_fname exists
 # if so, remove
 # if not, flag

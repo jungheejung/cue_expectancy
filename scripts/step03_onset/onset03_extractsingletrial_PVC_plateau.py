@@ -365,6 +365,6 @@ for sub in sorted(sub_list):
             subject_dataframe = pd.concat([subject_dataframe, new])
 
     subject_dataframe.reset_index(inplace = True)
-    subject_dataframe.to_csv(join(single_dir,sub,f'{sub}_singletrial_{keyword}.csv'))
+    subject_dataframe.to_csv(join(single_dir,sub,f'{sub}_singletrial_{keyword}.csv'), index = False)
 
 # %%

@@ -84,4 +84,4 @@ for sub, run_type, ev in full_list:
         os.remove(save_fname)
     else:
         print(f"{sub}_task-social_run-{run_type}_ev-{ev} doesnt exist")
-    filtered.to_csv(save_fname)
+    filtered.to_csv(save_fname,index = False)

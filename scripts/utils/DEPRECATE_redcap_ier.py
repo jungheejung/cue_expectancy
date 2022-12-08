@@ -18,4 +18,4 @@ piv = df_ier.pivot_table(index='Race',
                columns=['Ethnicity', 'Sex:'],
                aggfunc=len,
                fill_value=0)
-piv.to_csv('./output_table_.csv')
+piv.to_csv('./output_table_.csv', index = False)

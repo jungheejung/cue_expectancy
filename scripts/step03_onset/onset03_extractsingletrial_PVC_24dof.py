@@ -168,4 +168,4 @@ for sub in sorted(sub_list):
             break
 
     subject_dataframe.reset_index(inplace = True)
-    subject_dataframe.to_csv(join(single_dir, sub,  f'{sub}_singletrial.csv'))
+    subject_dataframe.to_csv(join(single_dir, sub,  f'{sub}_singletrial.csv'), index = False)

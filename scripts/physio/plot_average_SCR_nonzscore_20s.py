@@ -27,13 +27,15 @@ import pandas as pd
 """
 
 # %% glob data ________________________
-physio_dir = '/Volumes/spacetop_projects_social/analysis/physio/'
+# main_dir = '/Volumes/spacetop_projects_social'
+main_dir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis'
+physio_dir = join(main_dir, 'analysis/physio/')
 # task = 'cognitive'
 epochstart = -1
 epochend = 20
 samplingrate = 25
 ttlindex = 2
-fig_savedir = '/Volumes/spacetop_projects_social/figure/physio/physio01_SCL'
+fig_savedir = join(main_dir, 'figure/physio/physio01_SCL')
 for task in ['pain', 'cognitive', 'vicarious']:
     # NOTE: <<--------only run once
     # flist = glob.glob(
@@ -73,7 +75,7 @@ for task in ['pain', 'cognitive', 'vicarious']:
     M.drop(columns=['src_subject_id'], inplace=True)
     Mr = M.reset_index()
     Mr.to_csv(join(physio_dir, 'physio01_SCL',
-    f'sub-all_condition-mean_runtype-{task}_epochstart-{epochstart}_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'))
+    f'sub-all_condition-mean_runtype-{task}_epochstart-{epochstart}_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), index = False)
     # group by first
     def plot_condition_timeseries(df, cond, level_list, col_start, col_end, color_list, line_style):
         for ind, stim in enumerate(level_list):
@@ -167,3 +169,24 @@ for task in ['pain', 'cognitive', 'vicarious']:
 # plt.plot()
 
 # %%
+level_list = ['low_stim', 'med_stim', 'high_stim']
+for ind, stim in enumerate(level_list):
+    stim = 'low_stim'
+    stim_df = frame[frame['param_stimulus_type'] == stim]
+    stim_mean = stim_df.loc[:, 'event04_actual_angle'].mean()
+    stim_sd = stim_df.loc[:, 'event04_actual_angle'].std()
+    timeseries = np.arange(len(stim_mean))
+    line_style = 'solid'
+    color_list=['#E23201', '#FD9415', '#848484'], 
+    N = len(list(subset_df.src_subject_id.unique()))
+    if len(line_style) > 1:
+        linesty = line_style[ind]
+    else: 
+        linesty = line_style[0]
+    plt.plot(timeseries, stim_mean,
+            color = f'{color_list[ind]}',
+            linestyle=linesty, 
+            label=f"mean_{stim}")
+    plt.fill_between(timeseries, stim_mean - stim_sd/np.sqrt(N), stim_mean +
+                    stim_sd/np.sqrt(N), color=f'{color_list[ind]}', alpha=0.1)
+plt.plot()

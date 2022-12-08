@@ -169,7 +169,7 @@ df_123 = pd.merge(df_12, ses_03, on='sub-ID', how='outer')
 stdf = pd.merge(df_123, ses_04, on='sub-ID', how='outer')
 # %%
 st = stdf.set_index('sub-ID')
-st.to_csv(os.path.join(main_dir, 'spacetop_scannotes_01142022.csv'))
+st.to_csv(os.path.join(main_dir, 'spacetop_scannotes_01142022.csv'), index = False)
 
 # s1.index.name = None
 

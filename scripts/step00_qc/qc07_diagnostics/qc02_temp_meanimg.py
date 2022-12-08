@@ -94,9 +94,9 @@ for i, (task, sub, ses, run) in enumerate(total_list):
             # plot gray matter mask and data alignment
             nl.plotting.plot_roi(masker.mask_img_, A)
 
-fmriprep_fmriprepmask.to_csv(csv_fmriprep_fmriprepmask)
-beta_nomask.to_csv(csv_beta_nomask)
-beta_canlab.to_csv(beta_canlab)
+fmriprep_fmriprepmask.to_csv(csv_fmriprep_fmriprepmask, index = False)
+beta_nomask.to_csv(csv_beta_nomask, index = False)
+beta_canlab.to_csv(beta_canlab, index = False)
 # %%
 # FIX:
 # /dartfs-hpc/rc/home/1/f0042x1/.conda/envs/spacetop_env/lib/python3.7/site-packages/nilearn/plotting/displays.py:667: 

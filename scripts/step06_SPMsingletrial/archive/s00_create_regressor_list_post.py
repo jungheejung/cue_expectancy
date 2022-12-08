@@ -181,7 +181,7 @@ for sub in sub_list:
             subject_dataframe = subject_dataframe.append(new)
 
         subject_dataframe.reset_index(inplace = True)
-        subject_dataframe.to_csv(join(single_dir, sub,  f'{sub}_singletrial_{keyword}.csv'), index_col=False)
+        subject_dataframe.to_csv(join(single_dir, sub,  f'{sub}_singletrial_{keyword}.csv'), index=False)
     else:
         print(f"{sub} doesnt exist")
 # %%

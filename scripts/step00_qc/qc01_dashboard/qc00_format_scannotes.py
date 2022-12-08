@@ -187,6 +187,6 @@ stdf = pd.merge(df_123, ses_04, on='sub-ID', how='outer')
 # %% save with timestamp _____________________________________________________________
 st = stdf.set_index('sub-ID')
 date = datetime.now().strftime("%m-%d-%Y")
-st.to_csv(os.path.join(main_dir, f"spacetop-scannotes_{date}.csv"))
+st.to_csv(os.path.join(main_dir, f"spacetop-scannotes_{date}.csv"), index = False)
 
 # %%

@@ -84,7 +84,7 @@ for beh_fpath in flist:
                 new_num = behdf_num + 3
                 if beh_fname_num == new_num:
                     behdf['param_run_num'] = new_num
-                    behdf.to_csv(join(save_dir, sub, ses, beh_fname))
+                    behdf.to_csv(join(save_dir, sub, ses, beh_fname), index = False)
                     print(f"--------- update complete ---------\n")
                 else:
 

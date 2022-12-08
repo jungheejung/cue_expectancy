@@ -37,7 +37,7 @@ for filename in flist:
     li.append(df)
 frame = pd.concat(li, axis=0, ignore_index=True)
 frame.to_csv(join(physio_dir, 'physio01_SCL',
-             'sub-all_ses-all_run-all_runtype-pain_epochstart--1_epochend-8_physio-scltimecourse.csv'))
+             'sub-all_ses-all_run-all_runtype-pain_epochstart--1_epochend-8_physio-scltimecourse.csv'), index = False)
 # sub-0016_ses-03_run-01_runtype-cognitive_epochstart--1_epochend-8_physio-scltimecourse
 # %%downsample via neurokit ________________________
 frame = pd.read_csv(join(physio_dir, 'physio01_SCL',

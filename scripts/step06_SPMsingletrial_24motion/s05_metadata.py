@@ -102,7 +102,7 @@ for sub, run_type, ev in full_list:
     # else:
         # print(f"{sub}_task-social_run-{run_type}_ev-{ev} doesnt exist")
         # logger.warning(msg=f"Failed to copy - {sub}_task-social_run-{run_type}_ev-{ev} doesnt exist")
-    filtered.to_csv(save_fname)
+    filtered.to_csv(save_fname,index = False)
 
 # general
 param_list = [sub_list, 
@@ -148,7 +148,7 @@ for sub, ev in full_list:
         save_genfname = os.path.join(nifti_dir, sub, f"metadata_{sub}_task-social_run-general_ev-{ev}.csv")
         if os.path.exists(save_genfname):
             os.remove(save_genfname)
-        filtered.to_csv(save_genfname)
+        filtered.to_csv(save_genfname, index = False)
     else:
         print(f"{sub}_task-social_run-general_ev-{ev} doesnt exist")
         logger.warning(msg=f"Failed to copy - {sub}_task-social_run-general_ev-{ev} doesnt exist")

@@ -26,7 +26,7 @@ for ind,sub in enumerate(sublist):
         if not os.path.exists(savefile_dir):
             os.makedirs(savefile_dir)
         savefilename = savefile_dir + os.sep + 'sub-' + str(('%04d' % sub)) +  '_task-vicarious_meta_beh.csv'
-        result.to_csv(savefilename)
+        result.to_csv(savefilename, index = False)
 
 
 # cognitive ____________________________________________________________________
@@ -50,7 +50,7 @@ for ind,sub in enumerate(sublist):
         if not os.path.exists(savefile_dir):
             os.makedirs(savefile_dir)
         savefilename = savefile_dir + os.sep + 'sub-' + str(('%04d' % sub))  + '_task-cognitive_meta_beh.csv'
-        result.to_csv(savefilename)
+        result.to_csv(savefilename, index = False)
 
 
 # pain _________________________________________________________________________
@@ -74,4 +74,4 @@ for ind,sub in enumerate([95,97]):
         if not os.path.exists(savefile_dir):
             os.makedirs(savefile_dir)
         savefilename = savefile_dir + os.sep + 'sub-0' + str(sub) + '_task-pain_meta_beh.csv'
-        result.to_csv(savefilename)
+        result.to_csv(savefilename, index = False)

@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 group_bold = pd.read_csv('/Volumes/spacetop/derivatives/dartmouth/mriqc/group_bold.tsv', sep = '\t')
 foo = lambda x: pd.Series([i for i in reversed(group_bold['bids_name'].split('_'))])
 group_bold[['sub', 'ses', 'task', 'acq', 'run', 'bold']] = group_bold["bids_name"].str.split(pat="_", expand=True)
-group_bold.to_csv('/Users/h/Documents/group_bold.csv')
+group_bold.to_csv('/Users/h/Documents/group_bold.csv', index = False)
 stat_keys = [ 'spikes_num','summary_bg_k','summary_bg_mad','summary_bg_mean','summary_bg_median','summary_bg_n','summary_bg_p05','summary_bg_p95','summary_bg_stdv','summary_fg_k','summary_fg_mad','summary_fg_mean','summary_fg_median','summary_fg_n','summary_fg_p05','summary_fg_p95','summary_fg_stdv','tsnr']
 
 # TODO: identify min and max. Scale based on the two values

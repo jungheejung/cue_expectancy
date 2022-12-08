@@ -53,12 +53,11 @@ def _build_evfile(df, onset_col, dur_col, mod_col, fname, **dict_map):
             new_df["mod"] = df[mod_col]
     else:
         new_df["mod"] = mod_col
-    new_df.to_csv(fname, header=None, index=None, sep="\t")
+    new_df.to_csv(fname, header=None, index=False, sep="\t")
 
 
 # %% parameters ________________________________________________________________________
 current_dir = os.getcwd()
-<<<<<<< HEAD
 main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
 print(main_dir)
 # main_dir = '/Volumes/spacetop_projects_social'
@@ -75,20 +74,6 @@ for item in items_to_remove:
         sub_list.remove(item)
 ses_list = [1,3,4]
 sub_ses = list(itertools.product(sorted(sub_list), ses_list))
-=======
-main_dir = Path(current_dir).parents[
-    1
-]  # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
-main_dir = "/Volumes/spacetop_projects_social"
-beh_dir = os.path.join(main_dir, "data", "d02_preproc-beh")
-fsl_dir = os.path.join(main_dir, "data", "d03_onset", "onset01_FSL")
-spm_dir = os.path.join(main_dir, "data", "d03_onset", "onset02_SPM")
-
-# %%
-sub_list = next(os.walk(beh_dir))[1]  # e.g. sub_list = [2,3,4,5,6,7,8,9,10,...]
-ses_list = [1, 3, 4]
-sub_ses = list(itertools.product(sub_list, ses_list))
->>>>>>> 2a482aa106b260168e2c69ef6e59a6db341ee14d
 for i, (sub, ses_ind) in enumerate(sub_ses):
 
     ses = "ses-{:02d}".format(ses_ind)
@@ -176,7 +161,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         # 3) save as SPM format
         datalad.rename(dict_col, inplace=True)
         datalad_fname = os.path.join(spm_dir, sub, ses, label + "_events.tsv")
-        datalad.to_csv(datalad_fname, index=None, sep="\t")
+        datalad.to_csv(datalad_fname, index=False, sep="\t")
 
         # B. create EV ________________________________________________________________________
         # column 1: onset, column 2: duration, column 3: value of the input during period (parametric modulator)
