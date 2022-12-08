@@ -10,7 +10,9 @@ load_task_social_df <- function(datadir, taskname, subject_varkey, iv, dv, exclu
 
   df <- do.call("rbind", lapply(filter_path, FUN = function(files) {
     read.csv(files)
+    
   }))
+
   is.nan.data.frame <- function(x) {
     do.call(cbind, lapply(x, is.nan))
   }

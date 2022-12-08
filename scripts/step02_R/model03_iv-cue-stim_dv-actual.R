@@ -10,7 +10,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     title <- paste(taskname, " - actual")
     subject <- "subject"
 
-    data <- load_task_social_df(
+    data <- load_task_social_df(datadir, 
         taskname = taskname,
         subject_varkey = "src_subject_id",
         iv = "param_cue_type",
