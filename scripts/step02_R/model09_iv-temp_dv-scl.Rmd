@@ -1,0 +1,432 @@
+---
+title: "model09_iv-temp_dv-scl"
+author: "Heejung Jung"
+date: '2022-12-07'
+output:
+  html_document:
+    toc: true
+    theme: united
+    code_folding: hide
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+TODO:
+split data into task (full -> P, v, c subset)
+push code to git
+create code map
+log transform
+* SCL: mean signal
+* SCR: log transform
+# Overview
+
+The purpose of this notebook is to analyze biopac phasic data. 
+Data has been preprocessed with neurokit
+
+We load a dataframe that contains the following outcome measures:
+'Event_Onset', 'EDA_Peak_Amplitude', 'EDA_SCR', 'SCR_Peak_Amplitude',
+'SCR_Peak_Amplitude_Time', 'SCR_RiseTime', 'SCR_RecoveryTime'
+
+We model this as a function of "cue" and "stimulus intensity",
+while allowing for random effects from participants. 
+
+------------------------------------------------------------------------
+
+# Why use multilevel models?
+
+-   content copied from
+    <http://www.bristol.ac.uk/cmm/learning/multilevel-models/what-why.html>
+
+> There are a number of reasons for using multilevel models:
+>
+> 1.  Correct inferences: Traditional multiple regression techniques
+>     treat the units of analysis as independent observations. One
+>     consequence of failing to recognise hierarchical structures is
+>     that standard errors of regression coefficients will be
+>     underestimated, leading to an overstatement of statistical
+>     significance. Standard errors for the coefficients of higher-level
+>     predictor variables will be the most affected by ignoring
+>     grouping.
+>
+> 2.  Substantive interest in group effects: In many situations a key
+>     research question concerns the extent of grouping in individual
+>     outcomes, and the identification of 'outlying' groups. In
+>     evaluations of school performance, for example, interest centres
+>     on obtaining 'value-added' school effects on pupil attainment.
+>     Such effects correspond to school-level residuals in a multilevel
+>     model which adjusts for prior attainment.
+>
+> 3.  Estimating group effects simultaneously with the effects of
+>     group-level predictors: An alternative way to allow for group
+>     effects is to include dummy variables for groups in a traditional
+>     (ordinary least squares) regression model. Such a model is called
+>     an analysis of variance or fixed effects model. In many cases
+>     there will be predictors defined at the group level, eg type of
+>     school (mixed vs. single sex). In a fixed effects model, the
+>     effects of group-level predictors are confounded with the effects
+>     of the group dummies, ie it is not possible to separate out
+>     effects due to observed and unobserved group characteristics. In a
+>     multilevel (random effects) model, the effects of both types of
+>     variable can be estimated.
+>
+> 4.  Inference to a population of groups: In a multilevel model the
+>     groups in the sample are treated as a random sample from a
+>     population of groups. Using a fixed effects model, inferences
+>     cannot be made beyond the groups in the sample.
+
+------------------------------------------------------------------------
+
+load libraries
+
+```{r load libraries, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
+library(psych)
+library(car)
+library(lme4)
+library(lmerTest)
+library(dplyr)
+library(plyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+library(png)
+library(knitr)
+library(TMB)
+library(sjPlot)
+library(ggpubr)
+library(gridExtra)
+library(merTools)
+library(sjstats) #to get ICC
+library(broom)
+library(tidyverse)
+library(GGally)
+library(RCurl)
+library(rstanarm)
+library(reshape)
+library(boot)
+library(afex)
+library(cowplot)
+library(readr)
+library(lavaan)
+library(rmarkdown)
+library(readr)
+library(caTools)
+library(bitops)
+library(stringr)
+library(stats)
+library(ggpubr)
+library(equatiomatic)
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
+library(lme4)
+library(effectsize)
+library(brms)
+#library(Hmisc)
+#library(Rmisc)
+## library(extraoperators)
+##library(JWileymisc)
+##library(multilevelTools)
+# library(PupillometryR)
+source('http://psych.colorado.edu/~jclab/R/mcSummaryLm.R')
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
+source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+
+library(r2mlm)
+file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+                          pattern="*.R", 
+                          full.names=TRUE, 
+                          ignore.case=TRUE)
+sapply(file.sources,source,.GlobalEnv)
+```
+
+# Terminology
+
+factor
+
+:   In experimental designs, factor is the equivalent of independent
+    variable. In R, one can factorize a categorical variable by using
+    the `factor` function. Thereby we interchangeably use the term
+    factor in lieu of independent variable.
+
+    From this, the term `factorial design` originates.
+
+level
+
+:   within each independent variable, a researcher may determine
+    different levels. Since the purpose of linear models is to compare
+    at least one condition to another, a factor contains more than one
+    level.
+
+group variable
+
+:   Unit of analysis. In most fMRI experiments that collect individual
+    data, the group variable would be the individual participant.
+    However, in other research questions, the group variable could
+    easily be more than one individual. For instance, a dyad of
+    participants that carry out conversations, multiple patients that
+    see an identical doctor, a classroom full of individuals, or voting
+    districts could serve as a grouping variable, depending on the
+    research question.
+
+-   <div>
+
+        factor:
+        group
+
+    </div>
+
+# Model versions {.tabset}
+
+## Summary of models
+
+### Method 1: repeated measures and `one-sample t-tests`
+
+-   Data Matrix: Wide form
+    -   row (83 subject)
+    -   column (6 conditions: highCue x highStim, highCue x medStim,
+        highCue x lowStim, lowCue x highStim,lowCue x medStim, lowCue x
+        lowStim)
+-   Model: Use "lm". One-sample t-test
+-   Effect size (cohen's d): mean / sd (intersubject slope) \> use
+    degrees of freedom.
+
+### 
+load data and combine participant data
+
+
+
+```{r load data and exclude}
+main_dir = dirname(dirname(getwd()))
+analysis_dir <- file.path(main_dir, "analysis", "physio", "physio01_SCL", as.character(Sys.Date()))
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+```
+
+```{r}
+analysis_dir
+```
+
+
+```{r}
+# parameters _____________________________________ # nolint
+tonic = read.csv("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/physio/physio01_SCL/sub-all_ses-all_run-all_runtype-pain_epochstart--1_epochend-15_samplingrate-25_ttlindex-2_physio-scltimecourse.csv")
+```
+
+This is the data that we will use
+
+```{r echo=FALSE}
+head(tonic)
+```
+
+
+## Method 3 multilevel modeling
+
+### Method 3 multilevel modeling
+
+-   Data Matrix: Long form
+    -   Row (5412: 83 subject \* 2 cue \* 3 stimulus intensity \* 12 trials)
+    -   Columns (4: subject, session, task type, run_num, cue type, stimulus intensity type,
+        EDA metrics)
+-   Model: Use "lmer" multilevel-modeling
+    -   grouping variable: subjects (i.e. src_subject_id)
+    -   fixed effects - cue (2 levels, contrast-coded [high, low: 1,
+        -1]) - stim_linear (3 levels, [low, med, high: -1, 0, 1]) -
+        stim_quadratic (3 levels, [low, med, high: -1, 2, -1])
+    -   random effects - cue - stim_linear - cue\*stim_linear
+    -   NOTE: due to convergence failure, cue\*stim_quadratic term was
+        removed
+-   Effect size (cohen's d): beta_coefficient/ sqrt(sum of all random
+    variance)
+
+contrast-coding for multi-level modeling (code-hidden)
+
+```{r model 3 contrast coding}
+#contrast code 1 linear
+tonic$stim_con_linear[tonic$param_stimulus_type == "low_stim"] <- -0.5
+tonic$stim_con_linear[tonic$param_stimulus_type == "med_stim"] <- 0
+tonic$stim_con_linear[tonic$param_stimulus_type == "high_stim"] <- 0.5
+
+# contrast code 2 quadratic
+tonic$stim_con_quad[tonic$param_stimulus_type == "low_stim"] <- -0.33
+tonic$stim_con_quad[tonic$param_stimulus_type == "med_stim"] <- 0.66
+tonic$stim_con_quad[tonic$param_stimulus_type == "high_stim"] <- -0.33
+
+# social cue contrast
+tonic$social_cue[tonic$param_cue_type == 'low_cue'] <- -0.5 # social influence task
+tonic$social_cue[tonic$param_cue_type == 'high_cue'] <- 0.5 # no influence task
+tonic$cue_factor = factor(tonic$social_cue)
+```
+
+```{r}
+# parameters ___________________________________________________________________
+tonic$subject = factor(tonic$src_subject_id)
+subject_varkey <- "subject"
+iv <- "cue_factor"
+stim_con1 = "stim_con_linear"
+stim_con2 = "stim_con_quad"
+dv <- "mean_signal" # DON"T USE EDA_Peak_Amplitude (misleading)
+iv_keyword <- "cue-stim"
+dv_keyword <- "scl_peak"
+xlab <- ""
+taskname <- "full"
+#ylim = c(-1,1)
+#tonic_task = 
+```
+
+multi-level modeling using **lmer**
+
+```{r lmer fullmodel, class.source = 'fold-show'}
+fullmodel = lmer(mean_signal ~ 1+ cue_factor + stim_con_linear + stim_con_quad + cue_factor:stim_con_linear + cue_factor:stim_con_quad + (1  |subject), data = tonic)
+
+# output of model
+summary(fullmodel)
+
+```
+
+
+
+```{r plot results}
+
+cooksd <- cooks.distance(fullmodel)
+influential <- as.numeric(names(cooksd)[
+    (cooksd > (4 / as.numeric(length(unique(tonic$subject)))))])
+data_screen <- tonic[-influential, ]
+
+# reordering for plots _________________________________________________________
+tonic$cue_name[tonic$param_cue_type == "high_cue"] <- "high cue"
+tonic$cue_name[tonic$param_cue_type == "low_cue"] <- "low cue" # no influence task
+
+tonic$stim_name[tonic$param_stimulus_type == "high_stim"] <- "high" # no influence task
+tonic$stim_name[tonic$param_stimulus_type == "med_stim"] <- "med" # no influence task
+tonic$stim_name[tonic$param_stimulus_type == "low_stim"] <- "low" # no influence task
+
+tonic$stim_ordered <- factor(tonic$stim_name, levels=c("low", "med", "high"))
+tonic$cue_ordered <- factor(tonic$cue_name, levels=c("low cue", "high cue"))
+model_iv1 = "stim_ordered";model_iv2 = "cue_ordered"
+
+# summary statistics for plots _________________________________________________
+subjectwise <- meanSummary(tonic, c("subject", model_iv1, model_iv2), dv)
+try <- na.omit(subjectwise)
+groupwise <- summarySEwithin(
+        data = try,
+        measurevar = "mean_per_sub", # variable created from above
+        withinvars = c(model_iv1, model_iv2), # iv
+        idvar = "subject"
+    )
+
+subjectwise_mean <- "mean_per_sub";    
+group_mean <- "mean_per_sub_norm_mean"
+se <- "se";   
+ggtitle <- paste(taskname, dv_keyword);    
+title <- paste(taskname, " - RT")
+xlab <- "";    
+ylab <- "SCL peak amplitude ";    
+w = 5; h = 3; 
+ylim = c(-1,3)
+if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color <- c("#1B9E77", "#D95F02")
+    } else {
+        color <- c("#4575B4", "#D73027")
+    }
+plot_savefname <- file.path(
+        analysis_dir,
+        paste("raincloud_task-", taskname,
+              "_iv-", iv_keyword,"_dv-", dv_keyword,
+              "_", as.character(Sys.Date()), ".png",
+              sep = ""
+        )
+    )
+plot_rainclouds_twofactor(
+        try, groupwise,
+        model_iv1, model_iv2, subjectwise_mean, group_mean, se, "subject",
+        ggtitle, title, xlab, ylab, task_name, ylim,
+        w, h, dv_keyword, color, plot_savefname
+    )
+
+```
+# Temperature predicting rating
+
+```{r temperature fullmodel, class.source = 'fold-show'}
+temp_pain = lmer(event02_expect_angle ~ 1+ stim_con_linear + stim_con_quad + (1  |subject), data = tonic)
+
+# output of model
+summary(temp_pain)
+
+```
+```{r}
+key = 'actual'
+if (any(startsWith(key, c("expect", "Expect")))) {
+        dv = 'event02_expect_angle'
+        dv_keyword = 'expect_rating'
+        ylab <- "expect rating "; 
+    } else {
+        dv = 'event04_actual_angle'
+        dv_keyword = 'actual_rating'
+        ylab <- "actual rating "; 
+    }
+# dv = 'event02_expect_angle'
+iv_keyword = 'temp'
+# dv_keyword = 'expect_rating'
+task_name = 'pain'
+subjectwise_mean <- "mean_per_sub";    
+group_mean <- "mean_per_sub_norm_mean"
+se <- "se";   
+ggtitle <- paste(task_name, dv_keyword);    
+title <- paste(task_name, " - temperature")
+xlab <- "";    
+# ylab <- "expect rating ";    
+w = 5; h = 3; 
+ylim = c(-1,180)
+
+
+cooksd_temp <- cooks.distance(temp_pain)
+influential_temp <- as.numeric(names(cooksd_temp)[
+    (cooksd > (4 / as.numeric(length(unique(tonic$subject)))))])
+data_screen_temp <- tonic[-influential_temp, ]
+
+# reordering for plots _________________________________________________________
+
+tonic$stim_name[tonic$param_stimulus_type == "high_stim"] <- "high" # no influence task
+tonic$stim_name[tonic$param_stimulus_type == "med_stim"] <- "med" # no influence task
+tonic$stim_name[tonic$param_stimulus_type == "low_stim"] <- "low" # no influence task
+
+tonic$stim_ordered <- factor(tonic$stim_name, levels=c("low", "med", "high"))
+#tonic$cue_ordered <- factor(tonic$cue_name, levels=c("low cue", "high cue"))
+model_iv1 = "stim_ordered"; #model_iv2 = "cue_ordered"
+
+# summary statistics for plots _________________________________________________
+subjectwise_temp <- meanSummary(tonic, c("subject", model_iv1), dv)
+try <- na.omit(subjectwise_temp)
+groupwise_temp <- summarySEwithin(
+        data = try,
+        measurevar = "mean_per_sub", # variable created from above
+        withinvars = c(model_iv1), # iv
+        idvar = "subject"
+    )
+
+if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color <- c("#7678ed", "#f7b801", "#f18701")
+    } else {
+        color <- c("#4575B4",  "#D95F02", "#D73027")
+    }
+plot_savefname <- file.path(
+        analysis_dir,
+        paste("raincloud_task-", taskname,
+              "_iv-", iv_keyword,"_dv-", dv_keyword,
+              "_", as.character(Sys.Date()), ".png",
+              sep = ""
+        )
+    )
+plot_rainclouds_onefactor(
+        subjectwise = try, groupwise = groupwise_temp,
+        iv = model_iv1, subjectwise_mean = subjectwise_mean, group_mean = group_mean, 
+        se = se, subject = "subject",
+        ggtitle = ggtitle, title = title, xlab = xlab, ylab = ylab, taskname = task_name, ylim = ylim,
+        w = w, h = h, dv_keyword = dv_keyword, color, plot_savefname
+    )
+
+```
+
+

@@ -1,0 +1,753 @@
+---
+title: "model09_iv-cue-stim_dv-scl"
+author: "Heejung Jung"
+date: '2022-09-17'
+output:
+  html_document:
+    toc: true
+    theme: united
+    code_folding: hide
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+TODO:
+split data into task (full -> P, v, c subset)
+push code to git
+create code map
+log transform
+* SCL: mean signal
+* SCR: log transform
+# Overview
+
+The purpose of this notebook is to analyze biopac phasic data. 
+Data has been preprocessed with neurokit
+
+We load a dataframe that contains the following outcome measures:
+'Event_Onset', 'EDA_Peak_Amplitude', 'EDA_SCR', 'SCR_Peak_Amplitude',
+'SCR_Peak_Amplitude_Time', 'SCR_RiseTime', 'SCR_RecoveryTime'
+
+We model this as a function of "cue" and "stimulus intensity",
+while allowing for random effects from participants. 
+
+------------------------------------------------------------------------
+
+# Why use multilevel models?
+
+-   content copied from
+    <http://www.bristol.ac.uk/cmm/learning/multilevel-models/what-why.html>
+
+> There are a number of reasons for using multilevel models:
+>
+> 1.  Correct inferences: Traditional multiple regression techniques
+>     treat the units of analysis as independent observations. One
+>     consequence of failing to recognise hierarchical structures is
+>     that standard errors of regression coefficients will be
+>     underestimated, leading to an overstatement of statistical
+>     significance. Standard errors for the coefficients of higher-level
+>     predictor variables will be the most affected by ignoring
+>     grouping.
+>
+> 2.  Substantive interest in group effects: In many situations a key
+>     research question concerns the extent of grouping in individual
+>     outcomes, and the identification of 'outlying' groups. In
+>     evaluations of school performance, for example, interest centres
+>     on obtaining 'value-added' school effects on pupil attainment.
+>     Such effects correspond to school-level residuals in a multilevel
+>     model which adjusts for prior attainment.
+>
+> 3.  Estimating group effects simultaneously with the effects of
+>     group-level predictors: An alternative way to allow for group
+>     effects is to include dummy variables for groups in a traditional
+>     (ordinary least squares) regression model. Such a model is called
+>     an analysis of variance or fixed effects model. In many cases
+>     there will be predictors defined at the group level, eg type of
+>     school (mixed vs. single sex). In a fixed effects model, the
+>     effects of group-level predictors are confounded with the effects
+>     of the group dummies, ie it is not possible to separate out
+>     effects due to observed and unobserved group characteristics. In a
+>     multilevel (random effects) model, the effects of both types of
+>     variable can be estimated.
+>
+> 4.  Inference to a population of groups: In a multilevel model the
+>     groups in the sample are treated as a random sample from a
+>     population of groups. Using a fixed effects model, inferences
+>     cannot be made beyond the groups in the sample.
+
+------------------------------------------------------------------------
+
+load libraries
+
+```{r load libraries, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
+library(psych)
+library(car)
+library(lme4)
+library(lmerTest)
+library(dplyr)
+library(plyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+library(png)
+library(knitr)
+library(TMB)
+library(sjPlot)
+library(ggpubr)
+library(gridExtra)
+library(merTools)
+library(sjstats) #to get ICC
+library(broom)
+library(tidyverse)
+library(GGally)
+library(RCurl)
+library(rstanarm)
+library(reshape)
+library(boot)
+library(afex)
+library(cowplot)
+library(readr)
+library(lavaan)
+library(rmarkdown)
+library(readr)
+library(caTools)
+library(bitops)
+library(stringr)
+library(stats)
+library(ggpubr)
+library(equatiomatic)
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
+library(lme4)
+library(effectsize)
+library(brms)
+#library(Hmisc)
+#library(Rmisc)
+## library(extraoperators)
+##library(JWileymisc)
+##library(multilevelTools)
+# library(PupillometryR)
+source('http://psych.colorado.edu/~jclab/R/mcSummaryLm.R')
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
+source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+
+library(r2mlm)
+file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+                          pattern="*.R", 
+                          full.names=TRUE, 
+                          ignore.case=TRUE)
+sapply(file.sources,source,.GlobalEnv)
+```
+
+# Terminology
+
+factor
+
+:   In experimental designs, factor is the equivalent of independent
+    variable. In R, one can factorize a categorical variable by using
+    the `factor` function. Thereby we interchangeably use the term
+    factor in lieu of independent variable.
+
+    From this, the term `factorial design` originates.
+
+level
+
+:   within each independent variable, a researcher may determine
+    different levels. Since the purpose of linear models is to compare
+    at least one condition to another, a factor contains more than one
+    level.
+
+group variable
+
+:   Unit of analysis. In most fMRI experiments that collect individual
+    data, the group variable would be the individual participant.
+    However, in other research questions, the group variable could
+    easily be more than one individual. For instance, a dyad of
+    participants that carry out conversations, multiple patients that
+    see an identical doctor, a classroom full of individuals, or voting
+    districts could serve as a grouping variable, depending on the
+    research question.
+
+-   <div>
+
+        factor:
+        group
+
+    </div>
+
+# Model versions {.tabset}
+
+## Summary of models
+
+### Method 1: repeated measures and `one-sample t-tests`
+
+-   Data Matrix: Wide form
+    -   row (83 subject)
+    -   column (6 conditions: highCue x highStim, highCue x medStim,
+        highCue x lowStim, lowCue x highStim,lowCue x medStim, lowCue x
+        lowStim)
+-   Model: Use "lm". One-sample t-test
+-   Effect size (cohen's d): mean / sd (intersubject slope) \> use
+    degrees of freedom.
+
+### 
+load data and combine participant data
+```{r}
+analysis_dir
+```
+
+
+```{r load data and exclude}
+main_dir = dirname(dirname(getwd()))
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model09_iv-cue-stim_dv-scl", as.character(Sys.Date()))
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+```
+```{r}
+# parameters _____________________________________ # nolint
+# phasic = read.csv("/Volumes/spacetop_projects_social/data/physio/physio02_preproc/group_epochstart-0_epochend-9_physio-phasic.csv")
+tonic = read.csv("/Volumes/spacetop_projects_social/data/physio/physio02_preproc/group_epochstart--1_epochend-8_physio-scl.csv")
+```
+
+This is the data that we will use
+
+```{r echo=FALSE}
+head(tonic)
+```
+
+
+## Method 3 multilevel modeling
+
+### Method 3 multilevel modeling
+
+-   Data Matrix: Long form
+    -   Row (5412: 83 subject \* 2 cue \* 3 stimulus intensity \* 12 trials)
+    -   Columns (4: subject, session, task type, run_num, cue type, stimulus intensity type,
+        EDA metrics)
+-   Model: Use "lmer" multilevel-modeling
+    -   grouping variable: subjects (i.e. src_subject_id)
+    -   fixed effects - cue (2 levels, contrast-coded [high, low: 1,
+        -1]) - stim_linear (3 levels, [low, med, high: -1, 0, 1]) -
+        stim_quadratic (3 levels, [low, med, high: -1, 2, -1])
+    -   random effects - cue - stim_linear - cue\*stim_linear
+    -   NOTE: due to convergence failure, cue\*stim_quadratic term was
+        removed
+-   Effect size (cohen's d): beta_coefficient/ sqrt(sum of all random
+    variance)
+
+contrast-coding for multi-level modeling (code-hidden)
+
+```{r model 3 contrast coding}
+#contrast code 1 linear
+tonic$stim_con_linear[tonic$param_stimulus_type == "low_stim"] <- -0.5
+tonic$stim_con_linear[tonic$param_stimulus_type == "med_stim"] <- 0
+tonic$stim_con_linear[tonic$param_stimulus_type == "high_stim"] <- 0.5
+
+# contrast code 2 quadratic
+tonic$stim_con_quad[tonic$param_stimulus_type == "low_stim"] <- -0.33
+tonic$stim_con_quad[tonic$param_stimulus_type == "med_stim"] <- 0.66
+tonic$stim_con_quad[tonic$param_stimulus_type == "high_stim"] <- -0.33
+
+# social cue contrast
+tonic$social_cue[tonic$param_cue_type == 'low_cue'] <- -0.5 # social influence task
+tonic$social_cue[tonic$param_cue_type == 'high_cue'] <- 0.5 # no influence task
+tonic$cue_factor = factor(tonic$social_cue)
+```
+
+```{r}
+# parameters ___________________________________________________________________
+tonic$subject = factor(tonic$src_subject_id)
+subject_varkey <- "subject"
+iv <- "cue_factor"
+stim_con1 = "stim_con_linear"
+stim_con2 = "stim_con_quad"
+dv <- "mean_signal" # DON"T USE EDA_Peak_Amplitude (misleading)
+iv_keyword <- "cue-stim"
+dv_keyword <- "scl_peak"
+xlab <- ""
+taskname <- "full"
+#ylim = c(-1,1)
+#tonic_task = 
+```
+
+multi-level modeling using **lmer**
+
+```{r lmer fullmodel, class.source = 'fold-show'}
+fullmodel = lmer(mean_signal ~ 1+ cue_factor + stim_con_linear + stim_con_quad + cue_factor:stim_con_linear + cue_factor:stim_con_quad + (1  |subject), data = tonic)
+
+# output of model
+summary(fullmodel)
+
+```
+
+
+
+```{r plot results}
+
+cooksd <- cooks.distance(fullmodel)
+influential <- as.numeric(names(cooksd)[
+    (cooksd > (4 / as.numeric(length(unique(tonic$subject)))))])
+data_screen <- tonic[-influential, ]
+
+# reordering for plots _________________________________________________________
+tonic$cue_name[tonic$param_cue_type == "high_cue"] <- "high cue"
+tonic$cue_name[tonic$param_cue_type == "low_cue"] <- "low cue" # no influence task
+
+tonic$stim_name[tonic$param_stimulus_type == "high_stim"] <- "high" # no influence task
+tonic$stim_name[tonic$param_stimulus_type == "med_stim"] <- "med" # no influence task
+tonic$stim_name[tonic$param_stimulus_type == "low_stim"] <- "low" # no influence task
+
+tonic$stim_ordered <- factor(tonic$stim_name, levels=c("low", "med", "high"))
+tonic$cue_ordered <- factor(tonic$cue_name, levels=c("low cue", "high cue"))
+model_iv1 = "stim_ordered";model_iv2 = "cue_ordered"
+
+# summary statistics for plots _________________________________________________
+subjectwise <- meanSummary(tonic, c("subject", model_iv1, model_iv2), dv)
+try <- na.omit(subjectwise)
+groupwise <- summarySEwithin(
+        data = try,
+        measurevar = "mean_per_sub", # variable created from above
+        withinvars = c(model_iv1, model_iv2), # iv
+        idvar = "subject"
+    )
+
+subjectwise_mean <- "mean_per_sub";    
+group_mean <- "mean_per_sub_norm_mean"
+se <- "se";   
+ggtitle <- paste(taskname, dv_keyword);    
+title <- paste(taskname, " - RT")
+xlab <- "";    
+ylab <- "SCL peak amplitude ";    
+w = 5; h = 3; 
+ylim = c(-1,3)
+if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color <- c("#1B9E77", "#D95F02")
+    } else {
+        color <- c("#4575B4", "#D73027")
+    }
+plot_savefname <- file.path(
+        analysis_dir,
+        paste("raincloud_task-", taskname,
+              "_iv-", iv_keyword,"_dv-", dv_keyword,
+              "_", as.character(Sys.Date()), ".png",
+              sep = ""
+        )
+    )
+plot_rainclouds_twofactor(
+        try, groupwise,
+        model_iv1, model_iv2, subjectwise_mean, group_mean, se, "subject",
+        ggtitle, title, xlab, ylab, task_name, ylim,
+        w, h, dv_keyword, color, plot_savefname
+    )
+
+```
+# COGNITIVE
+```{r lmer fullmodel cognitive, class.source = 'fold-show'}
+cognitive = lmer(mean_signal ~ 1+ cue_factor + stim_con_linear + stim_con_quad + cue_factor:stim_con_linear + cue_factor:stim_con_quad + (1  |subject), data = tonic[tonic$param_task_name == 'cognitive',])
+
+# output of model
+summary(cognitive)
+
+```
+# VICARIOUS
+```{r lmer fullmodel, class.source = 'fold-show'}
+vicarious = lmer(mean_signal ~ 1+ cue_factor + stim_con_linear + stim_con_quad + cue_factor:stim_con_linear + cue_factor:stim_con_quad + (1  |subject), data = tonic[tonic$param_task_name == 'vicarious',])
+
+# output of model
+summary(vicarious)
+
+```
+
+# PAIN
+```{r lmer fullmodel cognitive, class.source = 'fold-show'}
+pain = lmer(mean_signal ~ 1+ cue_factor + stim_con_linear + stim_con_quad + cue_factor:stim_con_linear + cue_factor:stim_con_quad + (1  |subject), data = tonic[tonic$param_task_name == 'pain',])
+
+# output of model
+summary(pain)
+
+```
+
+### TASKWISE
+```{r}
+for (taskname in c( "vicarious", "cognitive")) { #"pain"
+    ggtitle <- paste(taskname, " - SCR tonic signal")
+    title <- paste(taskname, " - EDA")
+    subject <- "subject"
+    #data <- tonic
+    
+    data = tonic[tonic$param_task_name == taskname,]
+    w <- 10
+    h <- 6
+
+    # [ CONTRASTS ]  ________________________________________________________________________________ # nolint
+    # contrast code ________________________________________
+    data$stim[data$param_stimulus_type == "low_stim"] <- -0.5 # social influence task
+    data$stim[data$param_stimulus_type == "med_stim"] <- 0 # no influence task
+    data$stim[data$param_stimulus_type == "high_stim"] <- 0.5 # no influence task
+
+    data$stim_factor <- factor(data$param_stimulus_type)
+
+    # contrast code 1 linear
+    data$stim_con_linear[data$param_stimulus_type == "low_stim"] <- -0.5
+    data$stim_con_linear[data$param_stimulus_type == "med_stim"] <- 0
+    data$stim_con_linear[data$param_stimulus_type == "high_stim"] <- 0.5
+
+    # contrast code 2 quadratic
+    data$stim_con_quad[data$param_stimulus_type == "low_stim"] <- -0.33
+    data$stim_con_quad[data$param_stimulus_type == "med_stim"] <- 0.66
+    data$stim_con_quad[data$param_stimulus_type == "high_stim"] <- -0.33
+
+    # social cude contrast
+    data$social_cue[data$param_cue_type == "low_cue"] <- -0.5 # social influence task
+    data$social_cue[data$param_cue_type == "high_cue"] <- 0.5 # no influence task
+
+
+    stim_con1 <- "stim_con_linear"
+    stim_con2 <- "stim_con_quad"
+    iv1 <- "cue_factor"
+    dv <- "SCR_Peak_Amplitude"
+    dv_keyword <- "EDA-tonic-peak-amplitude"
+
+    # [ MODEL ] _________________________________________________ # nolint
+    model_savefname <- file.path(
+        analysis_dir,
+        paste("lmer_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), "_cooksd.txt",
+            sep = ""
+        )
+    )
+    cooksd <- lmer_two_factor_cooksd(
+        data, taskname, iv1, stim_con1, stim_con2, dv,
+        subject, dv_keyword, model_savefname
+    )
+    influential <- as.numeric(names(cooksd)[
+        (cooksd > (4 / as.numeric(length(unique(data$src_subject_id)))))
+    ])
+    data_screen <- data[-influential, ]
+    # [ PLOT ] reordering for plots _________________________ # nolint
+    data_screen$cue_name[data_screen$param_cue_type == "high_cue"] <- "high cue"
+    data_screen$cue_name[data_screen$param_cue_type == "low_cue"] <- "low cue"
+
+    data_screen$stim_name[data_screen$param_stimulus_type == "high_stim"] <- "high"
+    data_screen$stim_name[data_screen$param_stimulus_type == "med_stim"] <- "med"
+    data_screen$stim_name[data_screen$param_stimulus_type == "low_stim"] <- "low"
+
+    # DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
+
+    data_screen$stim_ordered <- factor(
+        data_screen$stim_name,
+        levels = c("low", "med", "high")
+    )
+    data_screen$cue_ordered <- factor(
+        data_screen$cue_name,
+        levels = c("low cue", "high cue")
+    )
+    model_iv1 <- "stim_ordered"
+    model_iv2 <- "cue_ordered"
+
+    #  [ PLOT ] calculate mean and se  _________________________
+    actual_subjectwise <- meanSummary(
+        data_screen,
+        c(subject, model_iv1, model_iv2), dv
+    )
+    actual_groupwise <- summarySEwithin(
+        data = actual_subjectwise,
+        measurevar = "mean_per_sub",
+        withinvars = c(model_iv1, model_iv2), idvar = subject
+    )
+    actual_groupwise$task <- taskname
+    # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+    combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, actual_groupwise)
+    # if(any(startsWith(dv_keyword, c("expect", "Expect")))){color = c( "#1B9E77", "#D95F02")}else{color=c( "#4575B4", "#D73027")} # if keyword starts with
+    # print("groupwisemean")
+    #  [ PLOT ] calculate mean and se  ----------------------------------------------------------------------------
+    sub_mean <- "mean_per_sub"
+    group_mean <- "mean_per_sub_norm_mean"
+    se <- "se"
+    subject <- "subject"
+    ggtitle <- paste(taskname, " - Actual Rating (degree) Cooksd removed")
+    title <- paste(taskname, " - Actual")
+    xlab <- ""
+    ylab <- "ratings (degree)"
+    ylim <- c(-10,190)
+    dv_keyword <- "actual"
+    if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color <- c("#1B9E77", "#D95F02")
+    } else {
+        color <- c("#4575B4", "#D73027")
+    } # if keyword starts with
+    plot_savefname <- file.path(
+        analysis_dir,
+        paste("raincloud_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), "_cooksd.png",
+            sep = ""
+        )
+    )
+    g <- plot_rainclouds_twofactor(
+        actual_subjectwise, actual_groupwise, model_iv1, model_iv2,
+        sub_mean, group_mean, se, subject,
+        ggtitle, title, xlab, ylab, taskname,ylim,
+        w, h, dv_keyword, color, plot_savefname
+    )
+    g
+
+    
+    # ggsave(plot_savefname, width = w, height = h)
+
+    
+    
+
+    # save fixed random effects _______________________________
+    # randEffect$newcoef <- mapvalues(randEffect$term,
+    #     from = c("(Intercept)", "data[, iv]", 
+    #              "data[, stim_con1]", "data[, stim_con2]", 
+    #              "data[, iv]:data[, stim_con1]", 
+    #              "data[, iv]:data[, stim_con2]"),
+    #     to = c("rand_intercept", "rand_cue", "rand_stimlin", 
+    #            "rand_stimquad", "rand_int_cue_stimlin", "rand_int_cue_stimquad")
+    # )
+    # 
+    # #
+    # # # The arguments to spread():
+    # # # - data: Data object
+    # # # - key: Name of column containing the new column names
+    # # # - value: Name of column containing values
+    # #
+    # # # TODO: add fixed effects
+    # #
+    # rand_subset <- subset(randEffect, select = -c(grpvar, term, condsd))
+    # wide_rand <- spread(rand_subset, key = newcoef, value = condval)
+    # wide_fix <- do.call(
+    #     "rbind",
+    #     replicate(nrow(wide_rand), as.data.frame(t(as.matrix(fixEffect))),
+    #         simplify = FALSE
+    #     )
+    # )
+    # rownames(wide_fix) <- NULL
+    # new_wide_fix <- dplyr::rename(wide_fix,
+    #     fix_intercept = `(Intercept)`, 
+    #     fix_cue = `data[, iv]`,
+    #     fix_stimulus_linear = `data[, stim_con1]`,
+    #     fix_stimulus_quad = `data[, stim_con2]`, 
+    #     fix_int_cue_stimlin = `data[, iv]:data[, stim_con1]`,
+    #     fix_int_cue_stimquad = `data[, iv]:data[, stim_con2]`
+    # )
+    # 
+    # total <- cbind(wide_rand, new_wide_fix)
+    # total$task <- taskname
+    # new_total <- total %>% dplyr::select(task, everything())
+    # new_total <- dplyr::rename(total, subj = grp)
+    # 
+    # plot_savefname <- file.path(analysis_dir, 
+    #                             paste("randeffect_task-", taskname, 
+    #                                   "_", as.character(Sys.Date()), "_outlier-cooksd.csv", sep = ""))
+    # write.csv(new_total, plot_savefname, row.names = FALSE)
+}
+
+
+```
+
+```{r}
+library(ggpubr)
+DATA = as.data.frame(groupwise)
+color = c( "#4575B4", "#D73027")
+LINEIV1 = "stim_ordered"
+LINEIV2 = "cue_ordered"
+MEAN = "mean_per_sub_norm_mean"
+ERROR = "ci"
+dv_keyword = "actual"
+    
+    g <- ggplot(data = DATA, aes(
+        x = stim_ordered,
+        y = mean_per_sub_norm_mean,
+        group = factor(cue_ordered),
+        color = factor(cue_ordered)
+    ), cex.lab = 1.5, cex.axis = 2, cex.main = 1.5, cex.sub = 1.5) +
+        geom_errorbar(aes(
+            ymin = (mean_per_sub_norm_mean - se),
+            ymax = (mean_per_sub_norm_mean + se)
+        ), width = .1) +
+        geom_line() +
+        geom_point() +
+        # scale_x_continuous(breaks = seq(-3, +3, by = 1)) +
+        # scale_y_continuous(breaks = seq(0, 90, by=30), limits=c(0,90)) +
+        ggtitle(ggtitle) +
+        xlab("Stimulus intensity") +
+        ylab("Rating (degrees)") +
+        # guides(fill=guide_legend(title="Social Endorsement Position")) +
+        scale_color_manual(values = color) +
+        theme_classic() +
+        theme(legend.position = "none") +
+        theme(aspect.ratio = .6)
+g
+# 
+# p1 = plot_lineplot_twofactor(DATA, 'pain', 
+#                LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'pain' )
+# p2 = plot_lineplot_twofactor(DATA,'vicarious', 
+#                LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = 'vicarious')
+# p3 = plot_lineplot_twofactor(DATA, 'cognitive', 
+#                LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = 'cognitive')
+# #grid.arrange(p1, p2, p3, ncol=3 , common.legend = TRUE)
+# ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
+# plot_filename = file.path(analysis_dir,
+#                           paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
+# ggsave(plot_filename, width = 8, height = 4)
+```
+
+```{r}
+
+library(ggpubr)
+DATA = as.data.frame(combined_se_calc_cooksd)
+color = c( "#4575B4", "#D73027")
+LINEIV1 = "stim_ordered"
+LINEIV2 = "cue_ordered"
+MEAN = "mean_per_sub_norm_mean"
+ERROR = "ci"
+dv_keyword = "eda-mean-peak-amplitude"
+p1 = plot_lineplot_twofactor(DATA, 'pain', 
+               LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'pain' )
+p2 = plot_lineplot_twofactor(DATA,'vicarious', 
+               LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = 'vicarious')
+p3 = plot_lineplot_twofactor(DATA, 'cognitive', 
+               LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = 'cognitive')
+#grid.arrange(p1, p2, p3, ncol=3 , common.legend = TRUE)
+ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
+plot_filename = file.path(analysis_dir,
+                          paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
+ggsave(plot_filename, width = 8, height = 4)
+```
+```
+
+
+# ______ modify accordingly - brute copy pasted
+```{r}
+fixef(Method3_fullmodel)
+```
+
+```{r}
+sd_raw_pre_t <- filter(tonic, cue_factor ==  "0.5") %>% summarise(s = sd(tradeoff)) %>% pull()  # treatment baseline SD
+sd_raw_pre_c <- filter(tonic, cue_factor == "-0.5") %>% summarise(s = sd(tradeoff)) %>% pull()  # control baseline SD
+
+sd_raw_pre_t
+sd_raw_pre_c
+
+# pooled PRE based on addition of two group conditions
+sd_raw_pre_p <- sqrt((sd_raw_pre_c^2 + sd_raw_pre_t^2) / 2)
+sd_raw_pre_p
+```
+
+## Method 3 - Effect size estimates
+
+d = estimate for fixed effect / (sqrt of sum of variances of random
+effects)
+
+```{r, class.source = 'fold-show'}
+#https://www.journalofcognition.org/articles/10.5334/joc.10/
+cat(paste("effectsize of lmer cue effect:", 
+          0.0658 / sqrt(sum(0.0000,0.6077,1.1785,4.0424,0.8779))))
+
+#0.0658 / sqrt(sum(0.1519,0.6078,2.0258,4.0428,0.8779))
+#0.07/sqrt(sum(0.88,0.15,0.61,2.35,4.04,-1.00,0.37,-0.61))
+
+#cohen_f = 0.02540844**2 / (2*2)
+#cohen_f
+```
+
+
+## Method 3 plotting
+
+```{r}
+library(sjPlot)
+
+tab_model(fullmodel, p.val = "kr", show.df = TRUE)
+plot_model(fullmodel, vline.color = "red")
+
+# sort coefficients based on sizee
+# plot_model(Method3_fullmodel, sort.est = TRUE)
+
+# sjp.lmer(Method3_fullmodel, y.offset = .4)
+
+plot_model(fullmodel, type = "re")
+library(equatiomatic)
+equatiomatic::extract_eq(fullmodel)
+```
+
+--
+
+## Conclusion: Method 1 vs Method 3 {.unnumbered}
+
+-   TODO: find a way to plot the results side-by-side
+
+```{r}
+#sjPlot::sjt.lmer(Method3_fullmodel)
+```
+
+### **Comparison between Method 1 and Method 3**
+
+While the coefficients vary from model to model, the t and p values are
+identical. Please note that the multilevel modeling does not include the
+quadratic stimulus x cue interaction term int he random slopes. Thereby
+the t values do differ in this case. TODO: expand and clean \* update
+the beta coefficients
+
+#### 1) Statistics of Cue effect
+
+-   **Method 1 onesample-t version**: *b* = -0.1974, *se* = 0.3597,
+    *t*(82) = -0.549, *p* = .585
+
+<!-- -->
+
+-   **Method 3 lmer version**: *b* = 0.06580, *se* = 0.11989, *t*(81.99)
+    = 0.549, *p* = .5846
+
+#### 4) Interaction effect
+
+-   **Method 1 onesample-t version:** *b* = 0.7858, *se* = 0.3017,
+    *t*(82) = 2.605, *p* = 0.0109
+
+-   **Method 3 lmer version**: *b* = -0.78582, *se* = 0.30170,
+    *t*(81.99944) = -2.605, *p* = .0109
+
+### In otherwords, the results are identical.
+
+------------------------------------------------------------------------
+
+# References
+
+-   multilevel modelling ::
+    <http://www.bristol.ac.uk/cmm/learning/multilevel-models/what-why.html>
+-   multilevel modelling :: df
+    <https://bbolker.github.io/mixedmodels-misc/glmmFAQ.html#why-doesnt-lme4-display-denominator-degrees-of-freedomp-values-what-other-options-do-i-have>
+-   multilevel modelling :: <https://m-clark.github.io/>
+-   [Fixed vs random effects models for fMRI meta
+    analysis](https://biblio.ugent.be/publication/5775681/file/5775705.pdf)
+-   <https://rpsychologist.com/d3/ci/>
+-   power analysis :: <https://jakewestfall.shinyapps.io/crossedpower/>
+-   power analysis in lmm glmm ::
+    <https://lkumle.github.io/power_notebooks/>
+-   sjPlot :: <https://github.com/strengejacke/sjPlot/issues/311>
+-   sjPlot :: <https://strengejacke.wordpress.com/2017/10/23/one-function-to-rule-them-all-visualization-of-regression-models-in-rstats-w-sjplot/>
+
+# Other links
+
+-   Markdown formatting ::
+    <https://bookdown.org/yihui/rmarkdown-cookbook/embed-rmd.html>
+-   CANlab glmfit_multilevel ::
+    <https://github.com/canlab/CanlabCore/blob/master/CanlabCore/Statistics_tools/glmfit_multilevel.m>
+-   lmer results formatting ::
+    <http://www.strengejacke.de/sjPlot/articles/sjtlmer.html>
+-   lmer results formatting ::
+    <https://stats.stackexchange.com/questions/173335/two-regression-outputs-side-by-side-in-r>
+-   lmer and formulas :: <https://rpubs.com/rslbliss/r_mlm_ws>
+-   repeated measures using aov in R ::
+    <https://stackoverflow.com/questions/5694664/repeated-measures-within-subjects-anova-in-r>
+-   Matthew McCurdy anova using afex in R
+    <https://ademos.people.uic.edu/Chapter21.html>
+-   error term in repeated measures R ::
+    <https://stats.stackexchange.com/questions/247582/repeated-measures-anova-in-r-errorsubject-vs-errorsubject-day>
+-   effect sizes in anova R ::
+    <https://cran.r-project.org/web/packages/effectsize/vignettes/anovaES.html>
