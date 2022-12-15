@@ -1,15 +1,15 @@
 
 % """
-% This code
+% This code iteratively go through dataset and pull out last row
+% filename example: sub-096_task-cognitive_beh_trajectory.mat
+% variable name is "rating_Trajectory"
 % """
 % __author__ = "Heejung Jung"
 % __version__ = "1.0.1"
 % __email__ = "heejung.jung@colorado.edu"
 % __status__ = "Production"
 
-% iteratively go through dataset and pull out last row
-% filename example: sub-096_task-cognitive_beh_trajectory.mat
-% variable name is "rating_Trajectory"
+
 
 % sub = [1,2,3,4,5,6,7,8,9,10,11,12,15,16,19,25,26,27,28];%,96,97,99];
 sub = [2,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,23,24,25,26,28,29,30,...
