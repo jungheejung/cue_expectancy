@@ -8,6 +8,8 @@ from os.path import join
 import neurokit2 as nk
 import numpy as np
 import pandas as pd
+from datetime import datetime
+from pathlib import Path
 
 """
 20 seconds
@@ -27,40 +29,45 @@ import pandas as pd
 """
 
 # %% glob data ________________________
-# main_dir = '/Volumes/spacetop_projects_social'
-main_dir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis'
+main_dir = '/Volumes/spacetop_projects_social'
+# main_dir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis'
+local_physiodir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/physio'
 physio_dir = join(main_dir, 'analysis/physio/')
 # task = 'cognitive'
 epochstart = -1
-epochend = 20
+epochend = 15
 samplingrate = 25
 ttlindex = 2
-fig_savedir = join(main_dir, 'figure/physio/physio01_SCL')
-for task in ['pain', 'cognitive', 'vicarious']:
-    # NOTE: <<--------only run once
-    flist = glob.glob(
-        join(physio_dir, '**', f'*{task}*_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), recursive=True)
-    # sub-0053_ses-01_run-02_runtype-vicarious_epochstart--1_epochend-20_samplingrate-25_ttlindex-2_physio-scltimecourse
-    #  NOTE: stack all data and save as .csv ________________________
-    li = []
+date = datetime.now().strftime("%m-%d-%Y")
+fig_savedir = join('/Users/h/Dropbox/projects_dropbox/social_influence_analysis', 'figure/physio/physio01_SCL', date)
+Path(fig_savedir).mkdir( parents=True, exist_ok=True )
+# %%
+for task in [ 'pain', 'cognitive', 'vicarious']:
+    # # NOTE: <<--------only run once
+    # flist = glob.glob(
+    #     join(physio_dir, '**', f'sub-0*{task}*_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), recursive=True)
+    # # sub-0053_ses-01_run-02_runtype-vicarious_epochstart--1_epochend-20_samplingrate-25_ttlindex-2_physio-scltimecourse
+    # # sub-0062_ses-01_run-06_runtype-vicarious_epochstart--1_epochend-20_samplingrate-25_ttlindex-2_physio-scltimecourse
+    # #  NOTE: stack all data and save as .csv ________________________
+    # li = []
+    # frame = pd.DataFrame()
+    # for filename in sorted(flist):
+    #     df = pd.read_csv(filename, index_col=None, header=0)
+    #     li.append(df)
+    # frame = pd.concat(li, axis=0, ignore_index=True)
+    # frame.to_csv(join(local_physiodir, 'physio01_SCL',
+    #             f'sub-all_ses-all_run-all_runtype-{task}_epochstart-{epochstart}_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), index = False)
+    # # NOTE: only run once -------- >>
+
+
     frame = pd.DataFrame()
-    for filename in sorted(flist):
-        df = pd.read_csv(filename, index_col=None, header=0)
-        li.append(df)
-    frame = pd.concat(li, axis=0, ignore_index=True)
-    frame.to_csv(join(physio_dir, 'physio01_SCL',
-                f'sub-all_ses-all_run-all_runtype-{task}_epochstart-{epochstart}_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), index = False)
-    # NOTE: only run once -------- >>
-
-
-
     # NOTE: downsample via neurokit ________________________
-    frame = pd.read_csv(join(physio_dir, 'physio01_SCL',
+    frame = pd.read_csv(join(local_physiodir, 'physio01_SCL',
                         f'sub-all_ses-all_run-all_runtype-{task}_epochstart-{epochstart}_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'))
 
     # NOTE: drop columns
     subset_df = frame.drop(columns=['session_id', 'param_task_name', 'param_run_num',
-                            'param_cond_type', 'trial_order', 'trial_order', 'iv_stim', 'mean_signal', 'Unnamed: 0'])
+                            'param_cond_type', 'trial_order', 'trial_order', 'iv_stim', 'mean_signal', ])
 
     # NOTE: plot grand average ________________________
 
@@ -74,7 +81,7 @@ for task in ['pain', 'cognitive', 'vicarious']:
                         'param_stimulus_type']).apply(lambda x: x.mean())
     M.drop(columns=['src_subject_id'], inplace=True)
     Mr = M.reset_index()
-    Mr.to_csv(join(physio_dir, 'physio01_SCL',
+    Mr.to_csv(join(local_physiodir, 'physio01_SCL',
     f'sub-all_condition-mean_runtype-{task}_epochstart-{epochstart}_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), index = False)
     # group by first
     def plot_condition_timeseries(df, cond, level_list, col_start, col_end, color_list, line_style):
@@ -103,7 +110,7 @@ for task in ['pain', 'cognitive', 'vicarious']:
         cond='param_stimulus_type',
         level_list=['high_stim', 'med_stim', 'low_stim'],
         col_start='time_0',
-        col_end='time_524',
+        col_end='time_399',
         color_list=['#E23201', '#FD9415', '#848484'], 
         line_style = ['solid'])
     plt.title(f'{task} stimulus SCR')
@@ -116,7 +123,7 @@ for task in ['pain', 'cognitive', 'vicarious']:
         cond='param_cue_type',
         level_list=['high_cue', 'low_cue'],
         col_start='time_0',
-        col_end='time_524',
+        col_end='time_399',
         color_list=['#FAAE7B', '#432371'],
         line_style = ['dashed'])
     plt.title(f'{task} cue SCR')
@@ -129,7 +136,7 @@ for task in ['pain', 'cognitive', 'vicarious']:
         cond='param_cue_type',
         level_list=['high_cue', 'low_cue'],
         col_start='time_0',
-        col_end='time_524',
+        col_end='time_399',
         color_list=['#E23201', '#E23201'],
         line_style = ['solid', 'dashed'])
 
@@ -138,7 +145,7 @@ for task in ['pain', 'cognitive', 'vicarious']:
         cond='param_cue_type',
         level_list=['high_cue', 'low_cue'],
         col_start='time_0',
-        col_end='time_524',
+        col_end='time_399',
         color_list=['#FD9415', '#FD9415'],
         line_style = ['solid', 'dashed'])
 
@@ -147,7 +154,7 @@ for task in ['pain', 'cognitive', 'vicarious']:
         cond='param_cue_type',
         level_list=['high_cue', 'low_cue'],
         col_start='time_0',
-        col_end='time_524',
+        col_end='time_399',
         color_list=['#848484','#848484'],#['#00B9EC', '#00B9EC'],
         line_style = ['solid', 'dashed'])
     plt.title(f'{task} stimulus * cue SCR')
@@ -190,3 +197,4 @@ for ind, stim in enumerate(level_list):
     plt.fill_between(timeseries, stim_mean - stim_sd/np.sqrt(N), stim_mean +
                     stim_sd/np.sqrt(N), color=f'{color_list[ind]}', alpha=0.1)
 plt.plot()
+# %%
