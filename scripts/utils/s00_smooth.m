@@ -39,7 +39,7 @@ for run_ind = 1: size(sortedT,1)
     matlabbatch{1}.spm.spatial.smooth.fwhm = [6 6 6];
     matlabbatch{1}.spm.spatial.smooth.dtype = 0;
     matlabbatch{1}.spm.spatial.smooth.im = 0;
-    matlabbatch{1}.spm.spatial.smooth.prefix = 'smooth_6mm_';
+    matlabbatch{1}.spm.spatial.smooth.prefix = 'smooth-6mm_';
     
     spm_jobman('run',matlabbatch);
     clearvars matlabbatch
