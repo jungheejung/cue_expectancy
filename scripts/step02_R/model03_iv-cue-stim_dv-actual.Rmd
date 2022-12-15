@@ -9,7 +9,6 @@ output:
 ```{r include=FALSE}
 library(psych)
 library(car)
-library(lmSupport)
 library(lme4)
 library(lmerTest)
 library(plyr)
@@ -58,6 +57,7 @@ sapply(file.sources,source,.GlobalEnv)
 ```{r echo=TRUE}
 main_dir = dirname(dirname(getwd()))
 print(main_dir)
+datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
 ```
 
 # model 01 iv-cue dv-expect
@@ -72,7 +72,7 @@ iv <- "param_cue_type"
 dv <- "event02_expect_angle"
 dv_keyword <- "expect"
 xlab <- ""
-
+ylim = c(0,150)
 ylab <- "ratings (degree)"
 subject <- "subject"
 exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
@@ -128,7 +128,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     plot_rainclouds_onefactor(
         subjectwise, groupwise,
         iv, subjectwise_mean, group_mean, se, subject,
-        ggtitle, title, xlab, ylab, task_name,
+        ggtitle, title, xlab, ylab, task_name,ylim,
         w, h, dv_keyword, color, plot_savefname
     )
 randEffect$newcoef <- mapvalues(randEffect$term,
@@ -222,27 +222,27 @@ plots
 ggsave(save_plotname, width = 10, height = 3)
 ```
 
-```{r}
-# ICC(pvc_rand_cue[,c("vicarious", "pain")])
-vp_icc = icc(
-  pvc_rand_cue[,c("vicarious", "pain")], model = "twoway", 
-  type = "agreement", unit = "single"
-  )
-vp_icc
-
-# ICC(pvc_rand_cue[,c("cognitive", "vicarious")])
-cv_icc = icc(
-  pvc_rand_cue[,c("cognitive", "vicarious")], model = "twoway", 
-  type = "agreement", unit = "single"
-  )
-cv_icc
-
-# ICC(pvc_rand_cue[,c("pain", "cognitive")])
-pc_icc = icc(
-  pvc_rand_cue[,c("pain", "cognitive")], model = "twoway", 
-  type = "agreement", unit = "single"
-  )
-pc_icc
+```{r TODO}
+# # ICC(pvc_rand_cue[,c("vicarious", "pain")])
+# vp_icc = icc(
+#   pvc_rand_cue[,c("vicarious", "pain")], model = "twoway", 
+#   type = "agreement", unit = "single"
+#   )
+# vp_icc
+# 
+# # ICC(pvc_rand_cue[,c("cognitive", "vicarious")])
+# cv_icc = icc(
+#   pvc_rand_cue[,c("cognitive", "vicarious")], model = "twoway", 
+#   type = "agreement", unit = "single"
+#   )
+# cv_icc
+# 
+# # ICC(pvc_rand_cue[,c("pain", "cognitive")])
+# pc_icc = icc(
+#   pvc_rand_cue[,c("pain", "cognitive")], model = "twoway", 
+#   type = "agreement", unit = "single"
+#   )
+# pc_icc
 ```
 
 
@@ -553,9 +553,9 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
             sep = ""
         )
     )
-    cooksd <- lmer_two_factor_cooksd(
+    cooksd <- lmer_two_factor_cooksd_fix(
         data, taskname, iv1, stim_con1, stim_con2, dv,
-        subject, dv_keyword, model_savefname
+        subject, dv_keyword, model_savefname, 'random_slopes'
     )
     influential <- as.numeric(names(cooksd)[
         (cooksd > (4 / as.numeric(length(unique(data$src_subject_id)))))
@@ -681,11 +681,11 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     rownames(wide_fix) <- NULL
     new_wide_fix <- dplyr::rename(wide_fix,
         fix_intercept = `(Intercept)`, 
-        fix_cue = `data[, iv]`,
-        fix_stimulus_linear = `data[, stim_con1]`,
-        fix_stimulus_quad = `data[, stim_con2]`, 
-        fix_int_cue_stimlin = `data[, iv]:data[, stim_con1]`,
-        fix_int_cue_stimquad = `data[, iv]:data[, stim_con2]`
+        fix_cue = `social_cue`, # `data[, iv]`,
+        fix_stimulus_linear = `stim_con_linear`, # `data[, stim_con1]`,
+        fix_stimulus_quad = `stim_con_quad`, #`data[, stim_con2]`, 
+        fix_int_cue_stimlin = `social_cue:stim_con_linear`, #`data[, iv]:data[, stim_con1]`,
+        fix_int_cue_stimquad = `social_cue:stim_con_quad` #`data[, iv]:data[, stim_con2]`
     )
 
     total <- cbind(wide_rand, new_wide_fix)
@@ -716,8 +716,8 @@ write.csv(pvc, save_fname, row.names = FALSE)
 
 ```{r}
 # stack
-pvc_rand_cue_subset <- subset(pvc, select = c(task, subj, rand_cue))
-pvc_rand_cue <- spread(pvc_rand_cue_subset, key = task, value = rand_cue)
+pvc_rand_cue_subset <- subset(pvc, select = c(task, subj, social_cue))
+pvc_rand_cue <- spread(pvc_rand_cue_subset, key = task, value = social_cue)
 # plot individually
 pv <- plot_ggplot_correlation(data = pvc_rand_cue, x = 'vicarious', y = 'pain', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 20, label_position = 18)
 vc <- plot_ggplot_correlation(data = pvc_rand_cue, x = 'cognitive', y = 'vicarious', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 20, label_position = 18)
