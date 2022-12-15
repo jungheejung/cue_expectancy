@@ -1,4 +1,4 @@
-function s00_smooth(input)
+function s00_smooth(input, fmriprep_dir,smooth_savedir, main_dir )
 %-----------------------------------------------------------------------
 % Job saved on 08-Jul-2021 21:03:45 by cfg_util (rev $Rev: 7345 $)
 % spm SPM - SPM12 (7771)
@@ -11,11 +11,11 @@ sub_num = input;
 sub = strcat('sub-', sprintf('%04d', sub_num));
 
 disp(strcat('subject: ', sub));
-fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/fmriprep'
+% fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/fmriprep'
 % fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/';
-smooth_output_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/analysis/fmri/smooth6mm';
+% smooth_savedir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social/analysis/fmri/smooth6mm';
 % main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
-main_dir = fileparts(fileparts(pwd)); %'/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social';
+% main_dir = fileparts(fileparts(pwd)); %'/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social';
 filelist = dir(fullfile(fmriprep_dir, sub, '*/func/*task-social*_bold.nii.gz'));
 T = struct2table(filelist);
 sortedT = sortrows(T, 'name');
