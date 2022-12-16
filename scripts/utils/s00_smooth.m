@@ -55,6 +55,7 @@ for run_ind = 1: size(sortedT,1)
     strcat('smooth-6mm_', sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
     dest_fpath = fullfile(smooth_subdir,strcat('smooth-6mm_', sub, '_', ses, '_task-cue_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
     movefile(smooth_fpath, dest_fpath)
+    delete(nii_fname)
 end
 
 disp(strcat('FINISH - subject complete'))
