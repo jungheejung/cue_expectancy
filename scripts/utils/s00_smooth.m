@@ -48,7 +48,7 @@ for run_ind = 1: size(sortedT,1)
     %mkdir
     %smooth_nii = fullfile(input_dir, sub, ses, 'func', ...
     %strcat('smooth-6mm_', sub, '_', ses, '_task-cue_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
-    smooth_subdir = fullfile(main_dir, 'analysis', 'fmri',  'smooth6mm', sub, ses, 'func');
+    smooth_subdir = fullfile(main_dir, 'analysis', 'fmri',  'smooth6mm', sub, ses);
     if ~exist(smooth_subdir,'dir'), mkdir(smooth_subdir)
     end
     smooth_fpath = fullfile(fmriprep_dir, sub, ses, 'func',...
