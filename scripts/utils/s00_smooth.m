@@ -43,11 +43,18 @@ for run_ind = 1: size(sortedT,1)
     
     spm_jobman('run',matlabbatch);
     clearvars matlabbatch
+
+
+    %mkdir
+    %smooth_nii = fullfile(input_dir, sub, ses, 'func', ...
+    %strcat('smooth-6mm_', sub, '_', ses, '_task-cue_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
+    smooth_subdir = fullfile(main_dir, 'analysis', 'fmri',  'smooth6mm', sub, ses, 'func');
+    if ~exist(smooth_subdir,'dir'), mkdir(smooth_subdir)
+    end
     smooth_fpath = fullfile(fmriprep_dir, sub, ses, 'func',...
     strcat('smooth-6mm_', sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
-    dest_fpath = fullfile(main_dir, 'analysis', 'fmri',  'smooth6mm', sub, ses, 'func',...
-    strcat('smooth-6mm_', sub, '_', ses, '_task-cue_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
-    movefile smooth_fpath dest_fpath
+    dest_fpath = fullfile(smooth_subdir,strcat('smooth-6mm_', sub, '_', ses, '_task-cue_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
+    movefile(smooth_fpath, dest_fpath)
 end
 
 disp(strcat('FINISH - subject complete'))
