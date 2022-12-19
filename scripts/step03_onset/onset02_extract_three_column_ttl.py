@@ -60,6 +60,51 @@ def _build_evfile(df, onset_col, dur_col, mod_col, fname, **dict_map):
         new_df["mod"] = mod_col
     new_df.to_csv(fname, header=None, index=None, sep="\t", mode="w")
 
+def sublist(source_dir:str, remove_int:list,  sub_zeropad:int) -> list:
+    """
+    Create a subject list based on exclusion criterion.
+    Also, restricts the job to number of batches, based on slurm_ind and stride
+
+    Parameters
+    ----------
+    source_dir: str
+        path where the physio data lives
+    remove_int: list
+        list of numbers (subjuct numbers) to remove
+        e.g. [1, 2, 3, 120]
+    slurm_ind: int
+        number to indicate index of when batch begins
+        if running code via SLURM, slurm_ind is a parameter from slurm array
+    stride: int
+        default 10
+        based on slurm_ind, we're going to run "stride" number of participants at once
+    sub_zeropad: int
+        number of zeropadding that you add to your subject id
+        e.g. sub-0004 > sub_zeropad = 4
+             sub-000128 > sub_zeropad = 6
+
+    Returns
+    -------
+    sub_list: list
+        a list of subject ids to operate on
+
+    TODO: allow for user to indicate how much depth to go down
+    or, just do glob with matching pattern?
+    """
+    folder_list = [ f.name for f in os.scandir(join(source_dir)) if f.is_dir() and  'sub-' in f.name ]
+    #biopac_list = next(os.walk(join(source_dir)))[2]
+    remove_list = [f"sub-{x:0{sub_zeropad}d}" for x in remove_int]
+    # include_int = list(np.arange(slurm_id * stride + 1, (slurm_id + 1) * stride, 1))
+    # include_list = [f"sub-{x:0{sub_zeropad}d}" for x in include_int]
+    sub_list = [x for x in folder_list if x not in remove_list]
+    # sub_list = [x for x in sub_list if x in include_list]
+    return sorted(sub_list)
+
+# TODO:
+# parameters
+# * biopac_ttl_dir
+# * cue main_dir
+samplingrate = 2000
 
 # %% parameters ________________________________________________________________________
 current_dir = os.getcwd()
@@ -69,24 +114,30 @@ main_dir = Path(current_dir).parents[
 print("\nscript directory is: {0}".format(current_dir))
 print("\ntop directory is: {0}".format(main_dir))
 
-beh_dir = join(main_dir, "data", "d02_preproc-beh")
-fsl_dir = join(main_dir, "data", "d03_onset", "onset01_FSL")
-spm_dir = join(main_dir, "data", "d03_onset", "onset02_SPM")
+# beh_dir = join(main_dir, "data", "d02_preproc-beh")
+# fsl_dir = join(main_dir, "data", "d03_onset", "onset01_FSL")
+# spm_dir = join(main_dir, "data", "d03_onset", "onset02_SPM")
+beh_dir = join(main_dir, 'data', 'beh', 'beh02_preproc')
+fsl_dir = join(main_dir, 'data', 'fmri01_onset', 'onset01_FSL')
+spm_dir = join(main_dir, 'data', 'fmri01_onset', 'onset02_SPM')
 # biopac directory is outside of social influence repository. Set accordingly
-biopac_ttl_dir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/biopac/dartmouth/b03_extract_ttl/task-social"
-log_dir = join(main_dir, "scripts", "step03_onset", "flag")
+biopac_ttl_dir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop_data/physio/physio04_ttl/task-cue"
+log_dir = join(main_dir, "scripts", "logcenter")
 # %%  identify subjects with biopac data, remove unwanted subjects
-biopac_list = next(os.walk(biopac_ttl_dir))[1]
-remove_int = [1, 2, 3, 4, 5]
-remove_list = [f"sub-{x:04d}" for x in remove_int]
-sub_list = [x for x in biopac_list if x != remove_list]
+# biopac_list = next(os.walk(biopac_ttl_dir))[1]
+# remove_int = [1, 2, 3, 4, 5]
+# remove_list = [f"sub-{x:04d}" for x in remove_int]
+# sub_list = [x for x in biopac_list if x != remove_list]
+
+
+sub_list = sublist(source_dir= biopac_ttl_dir, remove_int = [1, 2, 3, 4, 5], sub_zeropad = 4)
 ses_list = [1, 3, 4]
 sub_ses = list(itertools.product(sorted(sub_list), ses_list))
 
 date = datetime.now().strftime("%m-%d-%Y")
 
 txt_filename = os.path.join(
-    log_dir, f"biopac_flaglist_{date}.txt"
+    log_dir, f"step03-onset_desc-behavioralttlcombine_flaglist_{date}.txt"
 )
 
 formatter = logging.Formatter("%(levelname)s - %(message)s")
@@ -115,7 +166,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         print(sub, ses_ind)
         ses = f"ses-{ses_ind:02d}"
         logger.info(f"\n\n__________________{sub} {ses} __________________")
-        biopac_flist = glob.glob(join(biopac_ttl_dir, sub, ses, "*ttl.csv"))
+        biopac_flist = glob.glob(join(biopac_ttl_dir, sub, ses, "*medocttl*.csv"))
     except:
         logger.error(f"\tno ttl file exists")
         # with open(join(log_dir, "flag_{date}.txt"), "a") as logfile:
@@ -132,6 +183,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         bio_fname = os.path.basename(bio_fpath)
         run = bio_fname.split("_")[3]
         biopac_df = pd.read_csv(bio_fpath)
+        biopac_df[["ttl_1", "ttl_2", "ttl_3", "ttl_4"]] = biopac_df[["ttl_1", "ttl_2", "ttl_3", "ttl_4"]]/samplingrate
 
         # load behavioral data
         beh_fpath = glob.glob(
