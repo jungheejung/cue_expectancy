@@ -120,6 +120,9 @@ print("\ntop directory is: {0}".format(main_dir))
 beh_dir = join(main_dir, 'data', 'beh', 'beh02_preproc')
 fsl_dir = join(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset01_FSL')
 spm_dir = join(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset02_SPM')
+print(beh_dir)
+print(fsl_dir)
+print(spm_dir)
 # biopac directory is outside of social influence repository. Set accordingly
 biopac_ttl_dir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop_data/physio/physio04_ttl/task-cue"
 log_dir = join(main_dir, "scripts", "logcenter")
@@ -288,7 +291,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
             mri_ttl.rename(dict_col, axis="columns", inplace=True)
             mri_ttl_fname = join(spm_dir, sub, ses, label + "_events_ttl.tsv")
             mri_ttl.to_csv(mri_ttl_fname, index=None, sep="\t")
-
+            logger.info("SPM events saved to : %s", spm_dir)
             # II. create EV ________________________________________________________________________
             # column 1: onset, column 2: duration, column 3: value of the input during period (parametric modulator)
 
