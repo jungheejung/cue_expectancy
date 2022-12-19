@@ -118,8 +118,8 @@ print("\ntop directory is: {0}".format(main_dir))
 # fsl_dir = join(main_dir, "data", "d03_onset", "onset01_FSL")
 # spm_dir = join(main_dir, "data", "d03_onset", "onset02_SPM")
 beh_dir = join(main_dir, 'data', 'beh', 'beh02_preproc')
-fsl_dir = join(main_dir, 'data', 'fmri01_onset', 'onset01_FSL')
-spm_dir = join(main_dir, 'data', 'fmri01_onset', 'onset02_SPM')
+fsl_dir = join(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset01_FSL')
+spm_dir = join(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset02_SPM')
 # biopac directory is outside of social influence repository. Set accordingly
 biopac_ttl_dir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop_data/physio/physio04_ttl/task-cue"
 log_dir = join(main_dir, "scripts", "logcenter")
