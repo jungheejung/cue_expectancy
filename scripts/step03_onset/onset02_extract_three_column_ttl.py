@@ -183,7 +183,9 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         bio_fname = os.path.basename(bio_fpath)
         run = bio_fname.split("_")[3]
         biopac_df = pd.read_csv(bio_fpath, sep = '\t')
-        biopac_df[["ttl_1", "ttl_2", "ttl_3", "ttl_4"]] = biopac_df[["ttl_1", "ttl_2", "ttl_3", "ttl_4"]]/samplingrate
+        biopac_copy = biopac_df.copy()
+        biopac_df[["ttl_1", "ttl_2", "ttl_3", "ttl_4"]]/samplingrate
+        #biopac_df[["ttl_1", "ttl_2", "ttl_3", "ttl_4"]] = biopac_cp
 
         # load behavioral data
         beh_fpath = glob.glob(
