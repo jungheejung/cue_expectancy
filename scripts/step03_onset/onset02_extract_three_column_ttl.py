@@ -166,7 +166,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         print(sub, ses_ind)
         ses = f"ses-{ses_ind:02d}"
         logger.info(f"\n\n__________________{sub} {ses} __________________")
-        biopac_flist = glob.glob(join(biopac_ttl_dir, sub, ses, "*medocttl*.csv"))
+        biopac_flist = glob.glob(join(biopac_ttl_dir, sub, ses, "*medocttl*.tsv"))
     except:
         logger.error(f"\tno ttl file exists")
         # with open(join(log_dir, "flag_{date}.txt"), "a") as logfile:
@@ -182,7 +182,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         # based on biopac run info, find corresponding behavioral file
         bio_fname = os.path.basename(bio_fpath)
         run = bio_fname.split("_")[3]
-        biopac_df = pd.read_csv(bio_fpath)
+        biopac_df = pd.read_csv(bio_fpath, sep = '\t')
         biopac_df[["ttl_1", "ttl_2", "ttl_3", "ttl_4"]] = biopac_df[["ttl_1", "ttl_2", "ttl_3", "ttl_4"]]/samplingrate
 
         # load behavioral data
