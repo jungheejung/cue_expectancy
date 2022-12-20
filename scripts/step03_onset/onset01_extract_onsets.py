@@ -258,7 +258,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         )
         _build_evfile(
             df=datalad,
-            onset_col="event01_cue_onset",
+            onset_col="onset01_cue",
             dur_col=1,
             mod_col=1,
             fname=fname_1_1,
@@ -269,9 +269,9 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         # label + "_ev01-cue_pmod-cue.txt")
         _build_evfile(
             df=datalad,
-            onset_col="event01_cue_onset",
+            onset_col="onset01_cue",
             dur_col=1,
-            mod_col="param_cue_type",
+            mod_col="pmod_cuetype",
             fname=fname_1_2,
             dict_map=dict_cue,
         )
@@ -282,9 +282,9 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         # )
         _build_evfile(
             df=datalad,
-            onset_col="event01_cue_onset",
+            onset_col="onset01_cue",
             dur_col=1,
-            mod_col="event02_expect_angle_demean",
+            mod_col="pmod_expectangle_demean",
             fname=fname_1_3,
         )
 
@@ -296,8 +296,8 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         )
         _build_evfile(
             df=datalad,
-            onset_col="event02_expect_displayonset",
-            dur_col="event02_expect_RT",
+            onset_col="onset02_ratingexpect",
+            dur_col="pmod_expectRT",
             mod_col=1,
             fname=fname_2_1,
         )
@@ -314,7 +314,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         )
         _build_evfile(
             df=datalad,
-            onset_col="event03_stimulus_displayonset",
+            onset_col="onset03_stim",
             dur_col=5,
             mod_col=1,
             fname=fname_3_1,
@@ -325,9 +325,9 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         # label + "_ev03-stim_pmod-cue.txt")
         _build_evfile(
             df=datalad,
-            onset_col="event03_stimulus_displayonset",
+            onset_col="onset03_stim",
             dur_col=5,
-            mod_col="param_cue_type",
+            mod_col="pmod_cuetype",
             fname=fname_3_2,
             dict_map=dict_cue,
         )
@@ -338,9 +338,9 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         # )
         _build_evfile(
             df=datalad,
-            onset_col="event03_stimulus_displayonset",
+            onset_col="onset03_stim",
             dur_col=5,
-            mod_col="event04_actual_angle_demean",
+            mod_col="pmod_outcomeangle_demean",
             fname=fname_3_3,
         )
 
@@ -350,9 +350,9 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         # )
         _build_evfile(
             df=datalad,
-            onset_col="event03_stimulus_displayonset",
+            onset_col="onset03_stim",
             dur_col=5,
-            mod_col="event02_expect_angle_demean",
+            mod_col="pmod_expectangle_demean",
             fname=fname_3_4,
         )
 
@@ -362,9 +362,9 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         # )
         _build_evfile(
             df=datalad,
-            onset_col="event03_stimulus_displayonset",
+            onset_col="onset03_stim",
             dur_col=5,
-            mod_col="param_stimulus_type",
+            mod_col="pmod_stimtype",
             fname=fname_3_5,
             dict_map=dict_stim,
         )
@@ -377,8 +377,8 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         # )
         _build_evfile(
             df=datalad,
-            onset_col="event04_actual_displayonset",
-            dur_col="event04_actual_RT",
+            onset_col="onset04_ratingoutcome",
+            dur_col="pmod_outcomeRT",
             mod_col=1,
             fname=fname_4_1,
         )
