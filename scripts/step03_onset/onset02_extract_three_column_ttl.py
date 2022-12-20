@@ -102,7 +102,7 @@ def sublist(source_dir:str, remove_int:list,  sub_zeropad:int) -> list:
 
 # TODO:
 # parameters
-# * biopac_ttl_dir
+# * biopac_tl_df
 # * cue main_dir
 samplingrate = 2000
 
@@ -114,9 +114,6 @@ main_dir = Path(current_dir).parents[
 print("\nscript directory is: {0}".format(current_dir))
 print("\ntop directory is: {0}".format(main_dir))
 
-# beh_dir = join(main_dir, "data", "d02_preproc-beh")
-# fsl_dir = join(main_dir, "data", "d03_onset", "onset01_FSL")
-# spm_dir = join(main_dir, "data", "d03_onset", "onset02_SPM")
 beh_dir = join(main_dir, 'data', 'beh', 'beh02_preproc')
 fsl_dir = join(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset01_FSL')
 spm_dir = join(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset02_SPM')
@@ -126,19 +123,12 @@ print(spm_dir)
 # biopac directory is outside of social influence repository. Set accordingly
 biopac_ttl_dir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop_data/physio/physio04_ttl/task-cue"
 log_dir = join(main_dir, "scripts", "logcenter")
+
 # %%  identify subjects with biopac data, remove unwanted subjects
-# biopac_list = next(os.walk(biopac_ttl_dir))[1]
-# remove_int = [1, 2, 3, 4, 5]
-# remove_list = [f"sub-{x:04d}" for x in remove_int]
-# sub_list = [x for x in biopac_list if x != remove_list]
-
-
 sub_list = sublist(source_dir= biopac_ttl_dir, remove_int = [1, 2, 3, 4, 5], sub_zeropad = 4)
 ses_list = [1, 3, 4]
 sub_ses = list(itertools.product(sorted(sub_list), ses_list))
-
 date = datetime.now().strftime("%m-%d-%Y")
-
 txt_filename = os.path.join(
     log_dir, f"step03-onset_desc-behavioralttlcombine_flaglist_{date}.txt"
 )
@@ -156,12 +146,6 @@ logging.getLogger().addHandler(ch)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-# textfile = open(join(log_dir, f"flag_{date}.txt"), "w")
-# textfile.write(
-#     "this file contains anomalies from biopac-extracted TTL data and behavioral data\n"
-# )
-# textfile.write("it raises a flag if biopac data doesn't match behavioral data\n")
-
 # %%
 flag = []
 for i, (sub, ses_ind) in enumerate(sub_ses):
@@ -176,7 +160,6 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         #     traceback.print_exc(file=logfile)
         continue
 
-    # beh_list = glob.glob(join(beh_dir, sub, ses,'*_beh.csv'))
     Path(join(fsl_dir, sub, ses)).mkdir(parents=True, exist_ok=True)
     Path(join(spm_dir, sub, ses)).mkdir(parents=True, exist_ok=True)
 
@@ -185,15 +168,16 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         # based on biopac run info, find corresponding behavioral file
         bio_fname = os.path.basename(bio_fpath)
         run = bio_fname.split("_")[3]
-        biopac_df = pd.read_csv(bio_fpath, sep = '\t')
+        biopac_df = pd.read_csv(bio_fpath)
         biopac_copy = biopac_df.copy()
-        biopac_df[["ttl_1", "ttl_2", "ttl_3", "ttl_4"]]/samplingrate
-        #biopac_df[["ttl_1", "ttl_2", "ttl_3", "ttl_4"]] = biopac_cp
-
+        print(biopac_copy.columns)
+        biopac_df.loc[:, ["ttl_1", "ttl_2", "ttl_3", "ttl_4"]] = biopac_copy.loc[:,["ttl_1", "ttl_2", "ttl_3", "ttl_4"]]/samplingrate
         # load behavioral data
         beh_fpath = glob.glob(
-            join(beh_dir, sub, ses, f"{sub}_{ses}_task-social_{run}-*_beh.csv")
+            join(beh_dir, sub, ses, f"{sub}_{ses}_task-social_{run}*_beh.csv")
         )
+        print("run_type %s" % run)
+        print("beh_dir: %s sub: %s ses: %s" % (beh_dir, sub, ses))
         try:
             beh_fname = os.path.basename(beh_fpath[0])
         except:
