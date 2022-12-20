@@ -28,7 +28,7 @@ Users:
 # __status__ = "Production"
 
 
-def _build_evfile(df, onset_col, dur_col, mod_col, fname, **dict_map):
+def build_evfile(df, onset_col, dur_col, mod_col, fname, **dict_map):
     """Creates a 3-column EV txt file for FSL, by combining behavioral and biopac data
     Args:
         df (dataframe):
@@ -59,7 +59,6 @@ def _build_evfile(df, onset_col, dur_col, mod_col, fname, **dict_map):
     else:
         new_df["mod"] = mod_col
     new_df.to_csv(fname, header=None, index=None, sep="\t", mode="w")
-
 def sublist(source_dir:str, remove_int:list,  sub_zeropad:int) -> list:
     """
     Create a subject list based on exclusion criterion.
@@ -99,6 +98,28 @@ def sublist(source_dir:str, remove_int:list,  sub_zeropad:int) -> list:
     sub_list = [x for x in folder_list if x not in remove_list]
     # sub_list = [x for x in sub_list if x in include_list]
     return sorted(sub_list)
+def check_run_type(beh_fname: str):
+    run_type = ([match for match in os.path.basename(
+        beh_fname).split('_') if "run" in match][0]).split('-')[2]
+    return run_type
+def extract_bids_num(filename: str, key: str) -> int:
+    """
+    Extracts BIDS information based on input "key" prefix.
+    If filename includes an extention, code will remove it.
+
+    Parameters
+    ----------
+    filename: str
+        acquisition filename
+    key: str
+        BIDS prefix, such as 'sub', 'ses', 'task'
+    """
+    bids_info = [match for match in filename.split('_') if key in match][0]
+    # bids_info_rmext = os.path.splitext(bids_info)[0]
+    bids_info_rmext = bids_info.split(os.extsep, 1)
+    bids_num = int(re.findall(r'\d+', bids_info_rmext[0])[0].lstrip('0'))
+    return bids_num
+
 
 # TODO:
 # parameters
@@ -185,6 +206,9 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
             continue
         run_type = beh_fname.split("_")[3]
         label = "_".join(beh_fname.split("_")[0:4])
+        runnum = extract_bids_num(beh_fname, 'run')
+        runtype = check_run_type(beh_fname)
+
         # IF loop 1) CHECK that run type is "pain"
         if "pain" in run_type:
             df = pd.read_csv(beh_fpath[0])
@@ -284,43 +308,39 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
             # 1-1. CUE onset only
             # 1-2. CUE modulated with cue type
             # 1-3. CUE modulated with cue type
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event01_cue_onset",
                 dur_col=1,
                 mod_col=1,
-                fname=join(fsl_dir, sub, ses, label + "_ev01-cue_pmod-onsetonly.txt"),
+                fname=join(fsl_dir, sub, ses, f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-01_evtype-cue_pmod-none.txt")
             )
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event01_cue_onset",
                 dur_col=1,
                 mod_col="param_cue_type",
-                fname=join(fsl_dir, sub, ses, label + "_ev01-cue_pmod-cue.txt"),
+                fname=join(fsl_dir, sub, ses, f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-01_evtype-cue_pmod-cue.txt"),
                 dict_map=dict_cue,
             )
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event01_cue_onset",
                 dur_col=1,
                 mod_col="event02_expect_angle_demean",
-                fname=join(
-                    fsl_dir, sub, ses, label + "_ev01-cue_pmod-expectdemean.txt"
-                ),
+                fname=join(fsl_dir, sub, ses, f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-01_evtype-cue_pmod-expectdemean.txt")
             )
 
             # 2. RATING EXPECT ______________________ DUR: RT
             # 2-1. RATING onset only
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event02_expect_displayonset",
                 dur_col="event02_expect_RT",
                 mod_col=1,
-                fname=join(
-                    fsl_dir, sub, ses, label + "_ev02-expect_pmod-onsetonly.txt"
-                ),
+                fname=join(fsl_dir, sub, ses, f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-02_evtype-expect_pmod-none.txt"),
             )
 
             # # 3. STIM :: expected time (2s after onset - 7s after onset) ___________________________________________________________________________
@@ -331,28 +351,28 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
             # 3-1-4. stim x 5s x expect rating
             # 3-1-5. stim x 5s x stimulus intensity level
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stimulus_displayonset",
                 dur_col=5,
                 mod_col=1,
                 fname=join(
-                    fsl_dir, sub, ses, label + "_ev03-stim_type-ptb_pmod-onsetonly.txt"
+                    fsl_dir, sub, ses, f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-ptb_pmod-none.txt"
                 ),
             )
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stimulus_displayonset",
                 dur_col=5,
                 mod_col="param_cue_type",
                 fname=join(
-                    fsl_dir, sub, ses, label + "_ev03-stim_type-ptb_pmod-cue.txt"
+                    fsl_dir, sub, ses, f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-ptb_pmod-cue.txt"
                 ),
                 dict_map=dict_cue,
             )
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stimulus_displayonset",
                 dur_col=5,
@@ -361,11 +381,11 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                     fsl_dir,
                     sub,
                     ses,
-                    label + "_ev03-stim_type-ptb_pmod-actualdemean.txt",
+                    f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-ptb_pmod-outcomedemean.txt",
                 ),
             )
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stimulus_displayonset",
                 dur_col=5,
@@ -374,11 +394,11 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                     fsl_dir,
                     sub,
                     ses,
-                    label + "_ev03-stim_type-ptb_pmod-expectdemean.txt",
+                    f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-ptb_pmod-expectdemean.txt",
                 ),
             )
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stimulus_displayonset",
                 dur_col=4.5,
@@ -386,7 +406,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                     fsl_dir,
                     sub,
                     ses,
-                    label + "_ev03-stim_type-ptb_pmod-stimintensity.txt",
+                    f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-ptb_pmod-stimintensity.txt",
                 ),
                 mod_col="param_stimulus_type",
                 dict_map=dict_stim,
@@ -398,7 +418,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
             # 3-2-4. stim x TTL early x expect rating
             # 3-2-5. stim x TTL early x onset time only
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stim_earlyphase_0-4500ms",
                 dur_col=4.5,
@@ -407,22 +427,22 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                     fsl_dir,
                     sub,
                     ses,
-                    label + "_ev03-stim_type-ttlearly_pmod-onsetonly.txt",
+                    f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-early_pmod-none.txt",
                 ),
             )
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stim_earlyphase_0-4500ms",
                 dur_col=4.5,
                 mod_col="param_cue_type",
                 fname=join(
-                    fsl_dir, sub, ses, label + "_ev03-stim_type-ttlearly_pmod-cue.txt"
+                    fsl_dir, sub, ses, f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-early_pmod-cue.txt"
                 ),
                 dict_map=dict_cue,
             )
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stim_earlyphase_0-4500ms",
                 dur_col=4.5,
@@ -431,11 +451,11 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                     fsl_dir,
                     sub,
                     ses,
-                    label + "_ev03-stim_type-ttlearly_pmod-actualdemean.txt",
+                    f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-early_pmod-outcomedemean.txt",
                 ),
             )
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stim_earlyphase_0-4500ms",
                 dur_col=4.5,
@@ -444,11 +464,11 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                     fsl_dir,
                     sub,
                     ses,
-                    label + "_ev03-stim_type-ttlearly_pmod-expectdemean.txt",
+                    f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-early_pmod-expectdemean.txt",
                 ),
             )
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stim_earlyphase_0-4500ms",
                 dur_col=4.5,
@@ -457,7 +477,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                     fsl_dir,
                     sub,
                     ses,
-                    label + "_ev03-stim_type-ttlearly_pmod-stimintensity.txt",
+                    f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-early_pmod-stimintensity.txt",
                 ),
                 dict_map=dict_stim,
             )
@@ -467,7 +487,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
             # 3-3-3. stim x TTL late x actual rating
             # 3-3-4. stim x TTL late x expect rating
             # 3-3-5. stim x TTL late x onset time only
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stim_latephase_4500-9000ms",
                 dur_col=4.5,
@@ -476,22 +496,22 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                     fsl_dir,
                     sub,
                     ses,
-                    label + "_ev03-stim_type-ttllate_pmod-onsetonly.txt",
+                    f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-late_pmod-none.txt",
                 ),
             )
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stim_latephase_4500-9000ms",
                 dur_col=4.5,
                 mod_col="param_cue_type",
                 fname=join(
-                    fsl_dir, sub, ses, label + "_ev03-stim_type-ttllate_pmod-cue.txt"
+                    fsl_dir, sub, ses, f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-late_pmod-cue.txt"
                 ),
                 dict_map=dict_cue,
             )
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stim_latephase_4500-9000ms",
                 dur_col=4.5,
@@ -500,11 +520,11 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                     fsl_dir,
                     sub,
                     ses,
-                    label + "_ev03-stim_type-ttllate_pmod-actualdemean.txt",
+                    f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-late_pmod-outcomedemean.txt",
                 ),
             )
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stim_latephase_4500-9000ms",
                 dur_col=4.5,
@@ -513,11 +533,11 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                     fsl_dir,
                     sub,
                     ses,
-                    label + "_ev03-stim_type-ttllate_pmod-expectdemean.txt",
+                    f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-late_pmod-expectdemean.txt",
                 ),
             )
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stim_latephase_4500-9000ms",
                 dur_col=4.5,
@@ -526,7 +546,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                     fsl_dir,
                     sub,
                     ses,
-                    label + "_ev03-stim_type-ttllate_pmod-stimintensity.txt",
+                    f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-late_pmod-stimintensity.txt",
                 ),
                 dict_map=dict_stim,
             )
@@ -536,7 +556,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
             # 3-4-3. stim x TTL post x actual rating
             # 3-4-4. stim x TTL post x expect rating
             # 3-4-5. stim x TTL post x onset time only
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stim_poststim_9000-135000ms",
                 dur_col=4.5,
@@ -545,22 +565,22 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                     fsl_dir,
                     sub,
                     ses,
-                    label + "_ev03-stim_type-ttlpost_pmod-onsetonly.txt",
+                    f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-post_pmod-none.txt",
                 ),
             )
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stim_poststim_9000-135000ms",
                 dur_col=4.5,
                 mod_col="param_cue_type",
                 fname=join(
-                    fsl_dir, sub, ses, label + "_ev03-stim_type-ttlpost_pmod-cue.txt"
+                    fsl_dir, sub, ses, f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-post_pmod-cue.txt"
                 ),
                 dict_map=dict_cue,
             )
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stim_poststim_9000-135000ms",
                 dur_col=4.5,
@@ -569,11 +589,11 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                     fsl_dir,
                     sub,
                     ses,
-                    label + "_ev03-stim_type-ttlpost_pmod-actualdemean.txt",
+                    f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-post_pmod-outcomedemean.txt",
                 ),
             )
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stim_poststim_9000-135000ms",
                 dur_col=4.5,
@@ -582,11 +602,11 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                     fsl_dir,
                     sub,
                     ses,
-                    label + "_ev03-stim_type-ttlpost_pmod-expectdemean.txt",
+                    f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-post_pmod-expectdemean.txt",
                 ),
             )
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stim_poststim_9000-135000ms",
                 dur_col=4.5,
@@ -595,7 +615,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                     fsl_dir,
                     sub,
                     ses,
-                    label + "_ev03-stim_type-ttlpost_pmod-stimintensity.txt",
+                    f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-post_pmod-stimintensity.txt",
                 ),
                 dict_map=dict_stim,
             )
@@ -606,7 +626,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
             # 3-5-4. stim x TTL plateau x expect rating
             # 3-5-5. stim x TTL plateau x onset time only
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stim_ttl-plateau",
                 dur_col="event03_stim_ttl-plateau-dur",
@@ -615,22 +635,22 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                     fsl_dir,
                     sub,
                     ses,
-                    label + "_ev03-stim_type-ttlplateau_pmod-onsetonly.txt",
+                    f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-plateau_pmod-none.txt",
                 ),
             )
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stim_ttl-plateau",
                 dur_col="event03_stim_ttl-plateau-dur",
                 mod_col="param_cue_type",
                 fname=join(
-                    fsl_dir, sub, ses, label + "_ev03-stim_type-ttlplateau_pmod-cue.txt"
+                    fsl_dir, sub, ses, f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-plateau_pmod-cue.txt"
                 ),
                 dict_map=dict_cue,
             )
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stim_ttl-plateau",
                 dur_col="event03_stim_ttl-plateau-dur",
@@ -639,11 +659,11 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                     fsl_dir,
                     sub,
                     ses,
-                    label + "_ev03-stim_type-ttlplateau_pmod-actualdemean.txt",
+                    f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-plateau_pmod-outcomedemean.txt",
                 ),
             )
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stim_ttl-plateau",
                 dur_col="event03_stim_ttl-plateau-dur",
@@ -652,11 +672,11 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                     fsl_dir,
                     sub,
                     ses,
-                    label + "_ev03-stim_type-ttlplateau_pmod-expectdemean.txt",
+                    f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-plateau_pmod-expectdemean.txt",
                 ),
             )
 
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event03_stim_ttl-plateau",
                 dur_col="event03_stim_ttl-plateau-dur",
@@ -665,19 +685,19 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                     fsl_dir,
                     sub,
                     ses,
-                    label + "_ev03-stim_type-ttlplateau_pmod-stimintensity.txt",
+                    f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_ttltype-plateau_pmod-stimintensity.txt",
                 ),
                 dict_map=dict_stim,
             )
 
             # 4. RATING ACTUAL __________________________________________________________________
             # 4-1. RATING onset only
-            _build_evfile(
+            build_evfile(
                 df=mri_ttl,
                 onset_col="event04_actual_displayonset",
                 dur_col="event04_actual_RT",
                 mod_col=1,
                 fname=join(
-                    fsl_dir, sub, ses, label + "_ev04-actual_pmod-onsetonly.txt"
+                    fsl_dir, sub, ses, f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-04_evtype-outcome_pmod-none.txt"
                 ),
             )

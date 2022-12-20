@@ -2,7 +2,8 @@
 # encoding: utf-8
 # %% libraries ________________________________________________________________________
 import pandas as pd
-import os, glob
+import os
+import glob
 from os.path import join
 import pdb
 from pathlib import Path
@@ -56,7 +57,9 @@ def _build_evfile(df, onset_col, dur_col, mod_col, fname, **dict_map):
     else:
         new_df["mod"] = mod_col
     new_df.to_csv(fname, header=None, index=None, sep="\t")
-def sublist(source_dir:str, remove_int:list,  sub_zeropad:int) -> list:
+
+
+def sublist(source_dir: str, remove_int: list,  sub_zeropad: int) -> list:
     """
     Create a subject list based on exclusion criterion.
     Also, restricts the job to number of batches, based on slurm_ind and stride
@@ -87,7 +90,8 @@ def sublist(source_dir:str, remove_int:list,  sub_zeropad:int) -> list:
     TODO: allow for user to indicate how much depth to go down
     or, just do glob with matching pattern?
     """
-    folder_list = [ f.name for f in os.scandir(join(source_dir)) if f.is_dir() and  'sub-' in f.name ]
+    folder_list = [f.name for f in os.scandir(
+        join(source_dir)) if f.is_dir() and 'sub-' in f.name]
     #biopac_list = next(os.walk(join(source_dir)))[2]
     remove_list = [f"sub-{x:0{sub_zeropad}d}" for x in remove_int]
     # include_int = list(np.arange(slurm_id * stride + 1, (slurm_id + 1) * stride, 1))
@@ -96,9 +100,36 @@ def sublist(source_dir:str, remove_int:list,  sub_zeropad:int) -> list:
     # sub_list = [x for x in sub_list if x in include_list]
     return sorted(sub_list)
 
+
+def check_run_type(beh_fname: str):
+    run_type = ([match for match in os.path.basename(
+        beh_fname).split('_') if "run" in match][0]).split('-')[2]
+    return run_type
+
+
+def extract_bids_num(filename: str, key: str) -> int:
+    """
+    Extracts BIDS information based on input "key" prefix.
+    If filename includes an extention, code will remove it.
+
+    Parameters
+    ----------
+    filename: str
+        acquisition filename
+    key: str
+        BIDS prefix, such as 'sub', 'ses', 'task'
+    """
+    bids_info = [match for match in filename.split('_') if key in match][0]
+    # bids_info_rmext = os.path.splitext(bids_info)[0]
+    bids_info_rmext = bids_info.split(os.extsep, 1)
+    bids_num = int(re.findall(r'\d+', bids_info_rmext[0])[0].lstrip('0'))
+    return bids_num
+
+
 # %% parameters ________________________________________________________________________
 current_dir = os.getcwd()
-main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
+# discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
+main_dir = Path(current_dir).parents[1]
 print(main_dir)
 # main_dir = '/Volumes/spacetop_projects_social'
 # beh_dir = os.path.join(main_dir, 'data', 'd02_preproc-beh')
@@ -107,16 +138,18 @@ print(main_dir)
 beh_dir = join(main_dir, 'data', 'beh', 'beh02_preproc')
 fsl_dir = join(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset01_FSL')
 spm_dir = join(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset02_SPM')
-single_dir = join(main_dir, 'data','fmri', 'fmri01_onset','onset03_SPMsingletrial_24dof')
+single_dir = join(main_dir, 'data', 'fmri', 'fmri01_onset',
+                  'onset03_SPMsingletrial_24dof')
 # %%
-sub_folders = next(os.walk(beh_dir))[1] # e.g. sub_list = [2,3,4,5,6,7,8,9,10,...]
+# e.g. sub_list = [2,3,4,5,6,7,8,9,10,...]
+sub_folders = next(os.walk(beh_dir))[1]
 sub_list = [i for i in sub_folders if i.startswith('sub-')]
 items_to_remove = ['sub-0001']
 for item in items_to_remove:
     if item in sub_list:
         sub_list.remove(item)
-sub_list = sublist(source_dir= beh_dir, remove_int = [1], sub_zeropad = 4)
-ses_list = [1,3,4]
+sub_list = sublist(source_dir=beh_dir, remove_int=[1], sub_zeropad=4)
+ses_list = [1, 3, 4]
 sub_ses = list(itertools.product(sorted(sub_list), ses_list))
 for i, (sub, ses_ind) in enumerate(sub_ses):
 
@@ -130,7 +163,9 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
     for ind, fpath in enumerate(beh_list):
         fname = os.path.basename(fpath)
         tasktype = fname.split("_")[2]
-        runtype = fname.split("_")[3]
+        # runtype = fname.split("_")[3]
+        runnum = extract_bids_num(fname, 'run')
+        runtype = check_run_type(fname)
 
         label = "_".join(fname.split("_")[0:4])
 
@@ -194,12 +229,14 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
             lambda df: df - df.mean()
         )
         datalad[["event02_expect_angle_demean", "event04_actual_angle_demean"]] = (
-            datalad[["event02_expect_angle_demean", "event04_actual_angle_demean"]]
+            datalad[["event02_expect_angle_demean",
+                     "event04_actual_angle_demean"]]
             .fillna(0)
             .copy()
         )
         datalad[["event02_expect_RT", "event04_actual_RT"]] = (
-            datalad[["event02_expect_RT", "event04_actual_RT"]].fillna(4).copy()
+            datalad[["event02_expect_RT", "event04_actual_RT"]].fillna(
+                4).copy()
         )
 
         # 3) save as SPM format
@@ -215,7 +252,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         # * 1-2. CUE x 1s x pmod cue type (high vs low)
         # * 1-3. CUE x 1s x pmod expect rating (demean)
         fname_1_1 = os.path.join(
-            fsl_dir, sub, ses, label + "_ev01-cue_pmod-onsetonly.txt"
+            fsl_dir, sub, ses, f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-01_evtype-cue_pmod-none.txt"
         )
         _build_evfile(
             df=datalad,
@@ -225,7 +262,9 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
             fname=fname_1_1,
         )
 
-        fname_1_2 = os.path.join(fsl_dir, sub, ses, label + "_ev01-cue_pmod-cue.txt")
+        fname_1_2 = os.path.join(
+            fsl_dir, sub, ses, f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-01_evtype-cue_pmod-cue.txt")
+        # label + "_ev01-cue_pmod-cue.txt")
         _build_evfile(
             df=datalad,
             onset_col="event01_cue_onset",
@@ -236,8 +275,9 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         )
 
         fname_1_3 = os.path.join(
-            fsl_dir, sub, ses, label + "_ev01-cue_pmod-expectdemean.txt"
-        )
+            fsl_dir, sub, ses, f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-01_evtype-cue_pmod-expectdemean.txt")
+        # label + "_ev01-cue_pmod-expectdemean.txt"
+        # )
         _build_evfile(
             df=datalad,
             onset_col="event01_cue_onset",
@@ -249,7 +289,8 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         # 2. RATING EXPECT ___________________________________________________________________________ DUR: RT
         # * 2-1. RATING onset only
         fname_2_1 = os.path.join(
-            fsl_dir, sub, ses, label + "_ev02-expect_pmod-onsetonly.txt"
+            fsl_dir, sub, ses, f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-02_evtype-expect_pmod-none.txt"
+            # label + "_ev02-expect_pmod-none.txt"
         )
         _build_evfile(
             df=datalad,
@@ -266,7 +307,8 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         # * 3-4. stim x 5s x expect rating (demean)
         # * 3-5. stim x 5s x stimulus intensity level
         fname_3_1 = os.path.join(
-            fsl_dir, sub, ses, label + "_ev03-stim_pmod-onsetonly.txt"
+            fsl_dir, sub, ses, f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_pmod-none.txt"
+            #  label + "_ev03-stim_pmod-none.txt"
         )
         _build_evfile(
             df=datalad,
@@ -276,7 +318,9 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
             fname=fname_3_1,
         )
 
-        fname_3_2 = os.path.join(fsl_dir, sub, ses, label + "_ev03-stim_pmod-cue.txt")
+        fname_3_2 = os.path.join(
+            fsl_dir, sub, ses, f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_pmod-cue.txt")
+        # label + "_ev03-stim_pmod-cue.txt")
         _build_evfile(
             df=datalad,
             onset_col="event03_stimulus_displayonset",
@@ -287,8 +331,9 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         )
 
         fname_3_3 = os.path.join(
-            fsl_dir, sub, ses, label + "_ev03-stim_pmod-actualdemean.txt"
-        )
+            fsl_dir, sub, ses, f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_pmod-outcomedemean.txt")
+            # label + "_ev03-stim_pmod-actualdemean.txt"
+        # )
         _build_evfile(
             df=datalad,
             onset_col="event03_stimulus_displayonset",
@@ -298,8 +343,9 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         )
 
         fname_3_4 = os.path.join(
-            fsl_dir, sub, ses, label + "_ev03-stim_pmod-expectdemean.txt"
-        )
+            fsl_dir, sub, ses,  f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_pmod-expectdemean.txt")
+            # label + "_ev03-stim_pmod-expectdemean.txt"
+        # )
         _build_evfile(
             df=datalad,
             onset_col="event03_stimulus_displayonset",
@@ -309,8 +355,9 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         )
 
         fname_3_5 = os.path.join(
-            fsl_dir, sub, ses, label + "_ev03-stim_pmod-stimintensity.txt"
-        )
+            fsl_dir, sub, ses, f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-03_evtype-stimulus_pmod-stimintensity.txt")
+            # label + "_ev03-stim_pmod-stimintensity.txt"
+        # )
         _build_evfile(
             df=datalad,
             onset_col="event03_stimulus_displayonset",
@@ -323,8 +370,9 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         # 4. RATING ACTUAL __________________________________________________________________
         # * 4-1. RATING onset only
         fname_4_1 = os.path.join(
-            fsl_dir, sub, ses, label + "_ev04-actual_pmod-onsetonly.txt"
-        )
+            fsl_dir, sub, ses, f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_ev-04_evtype-outcome_pmod-none.txt")
+            # label + "_ev04-actual_pmod-none.txt"
+        # )
         _build_evfile(
             df=datalad,
             onset_col="event04_actual_displayonset",
