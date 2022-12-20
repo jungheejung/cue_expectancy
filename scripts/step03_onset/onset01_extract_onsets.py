@@ -3,9 +3,11 @@
 # %% libraries ________________________________________________________________________
 import pandas as pd
 import os, glob
+from os.path import join
 import pdb
 from pathlib import Path
 import itertools
+import numpy as np
 
 # from utils import _build_evfile
 """
@@ -54,17 +56,58 @@ def _build_evfile(df, onset_col, dur_col, mod_col, fname, **dict_map):
     else:
         new_df["mod"] = mod_col
     new_df.to_csv(fname, header=None, index=None, sep="\t")
+def sublist(source_dir:str, remove_int:list,  sub_zeropad:int) -> list:
+    """
+    Create a subject list based on exclusion criterion.
+    Also, restricts the job to number of batches, based on slurm_ind and stride
 
+    Parameters
+    ----------
+    source_dir: str
+        path where the physio data lives
+    remove_int: list
+        list of numbers (subjuct numbers) to remove
+        e.g. [1, 2, 3, 120]
+    slurm_ind: int
+        number to indicate index of when batch begins
+        if running code via SLURM, slurm_ind is a parameter from slurm array
+    stride: int
+        default 10
+        based on slurm_ind, we're going to run "stride" number of participants at once
+    sub_zeropad: int
+        number of zeropadding that you add to your subject id
+        e.g. sub-0004 > sub_zeropad = 4
+             sub-000128 > sub_zeropad = 6
+
+    Returns
+    -------
+    sub_list: list
+        a list of subject ids to operate on
+
+    TODO: allow for user to indicate how much depth to go down
+    or, just do glob with matching pattern?
+    """
+    folder_list = [ f.name for f in os.scandir(join(source_dir)) if f.is_dir() and  'sub-' in f.name ]
+    #biopac_list = next(os.walk(join(source_dir)))[2]
+    remove_list = [f"sub-{x:0{sub_zeropad}d}" for x in remove_int]
+    # include_int = list(np.arange(slurm_id * stride + 1, (slurm_id + 1) * stride, 1))
+    # include_list = [f"sub-{x:0{sub_zeropad}d}" for x in include_int]
+    sub_list = [x for x in folder_list if x not in remove_list]
+    # sub_list = [x for x in sub_list if x in include_list]
+    return sorted(sub_list)
 
 # %% parameters ________________________________________________________________________
 current_dir = os.getcwd()
 main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
 print(main_dir)
 # main_dir = '/Volumes/spacetop_projects_social'
-beh_dir = os.path.join(main_dir, 'data', 'd02_preproc-beh')
-fsl_dir = os.path.join(main_dir, 'data', 'd03_onset', 'onset01_FSL')
-spm_dir = os.path.join(main_dir, 'data', 'd03_onset', 'onset02_SPM')
-
+# beh_dir = os.path.join(main_dir, 'data', 'd02_preproc-beh')
+# fsl_dir = os.path.join(main_dir, 'data', 'd03_onset', 'onset01_FSL')
+# spm_dir = os.path.join(main_dir, 'data', 'd03_onset', 'onset02_SPM')
+beh_dir = join(main_dir, 'data', 'beh', 'beh02_preproc')
+fsl_dir = join(main_dir, 'data', 'fmri01_onset', 'onset01_FSL')
+spm_dir = join(main_dir, 'data', 'fmri01_onset', 'onset02_SPM')
+single_dir = join(main_dir, 'data','fmri01_onset','onset03_SPMsingletrial_24dof')
 # %%
 sub_folders = next(os.walk(beh_dir))[1] # e.g. sub_list = [2,3,4,5,6,7,8,9,10,...]
 sub_list = [i for i in sub_folders if i.startswith('sub-')]
@@ -72,6 +115,7 @@ items_to_remove = ['sub-0001']
 for item in items_to_remove:
     if item in sub_list:
         sub_list.remove(item)
+sub_list = sublist(source_dir= beh_dir, remove_int = [1], sub_zeropad = 4)
 ses_list = [1,3,4]
 sub_ses = list(itertools.product(sorted(sub_list), ses_list))
 for i, (sub, ses_ind) in enumerate(sub_ses):
