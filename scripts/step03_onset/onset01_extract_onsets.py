@@ -176,18 +176,18 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         dict_stim = {"low_stim": -1, "med_stim": 0, "high_stim": 1}
         dict_stim_q = {"low_stim": 1, "med_stim": -2, "high_stim": 1}
         dict_col = {
-            "onset01_cue":"event01_cue_onset",
-            "onset02_ratingexpect":"event02_expect_displayonset",
-            "onset03_stim":"event03_stimulus_displayonset",
-            "onset04_ratingoutcome":"event04_actual_displayonset",
-            "pmod_cuetype":"param_cue_type",
-            "pmod_stimtype":"param_stimulus_type",
-            "pmod_expectRT":"event02_expect_RT",
-            "pmod_expectangle":  "event02_expect_angle",
-            "pmod_outcomeRT":"event04_actual_RT",
-            "pmod_outcomeangle":"event04_actual_angle",
-            "pmod_expectangle_demean":"event02_expect_angle_demean",
-            "pmod_outcomeangle_demean":"event04_actual_angle_demean"
+            "event01_cue_onset":"onset01_cue",
+            "event02_expect_displayonset":"onset02_ratingexpect",
+            "event03_stimulus_displayonset":"onset03_stim",
+            "event04_actual_displayonset":"onset04_ratingoutcome",
+            "param_cue_type":"pmod_cuetype",
+            "param_stimulus_type":"pmod_stimtype",
+            "event02_expect_RT":"pmod_expectRT",
+            "event02_expect_angle":"pmod_expectangle",  
+            "event04_actual_RT":"pmod_outcomeRT",
+            "event04_actual_angle":"pmod_outcomeangle",
+            "event02_expect_angle_demean":"pmod_expectangle_demean",
+            "event04_actual_angle_demean":"pmod_outcomeangle_demean"
         }
         trigger = df["param_trigger_onset"][0]
 
@@ -242,7 +242,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
         )
 
         # 3) save as SPM format
-        datalad.rename(dict_col, inplace=True)
+        datalad.rename(columns = dict_col, inplace=True)
         datalad_fname = os.path.join(spm_dir, sub, ses, f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_events.tsv")
         datalad.to_csv(datalad_fname, index=None, sep="\t")
 
