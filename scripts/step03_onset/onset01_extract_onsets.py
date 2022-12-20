@@ -179,13 +179,15 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
             "event01_cue_onset": "onset01_cue",
             "event02_expect_displayonset": "onset02_ratingexpect",
             "event03_stimulus_displayonset": "onset03_stim",
-            "event04_actual_displayonset": "onset04_ratingactual",
-            "param_cue_type": "pmod_cue_type",
-            "param_stimulus_type": "pmod_stim_type",
-            "event02_expect_RT": "pmod_expect_RT",
-            "event02_expect_angle": "pmod_expect_angle",
-            "event04_actual_RT": "pmod_actual_RT",
-            "event04_actual_angle": "pmod_actual_angle",
+            "event04_actual_displayonset": "onset04_ratingoutcome",
+            "param_cue_type": "pmod_cuetype",
+            "param_stimulus_type": "pmod_stimtype",
+            "event02_expect_RT": "pmod_expectRT",
+            "event02_expect_angle": "pmod_expectangle",
+            "event04_actual_RT": "pmod_outcomeRT",
+            "event04_actual_angle": "pmod_outcomeangle",
+            "event02_expect_angle_demean": "pmod_expectangle_demean",
+            "event04_actual_angle_demean": "pmod_outcomeangle_demean"
         }
         trigger = df["param_trigger_onset"][0]
 
@@ -241,7 +243,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
 
         # 3) save as SPM format
         datalad.rename(dict_col, inplace=True)
-        datalad_fname = os.path.join(spm_dir, sub, ses, label + "_events.tsv")
+        datalad_fname = os.path.join(spm_dir, sub, ses, label + f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_events.tsv")
         datalad.to_csv(datalad_fname, index=None, sep="\t")
 
         # B. create EV ________________________________________________________________________
