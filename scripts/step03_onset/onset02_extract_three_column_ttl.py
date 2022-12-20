@@ -310,7 +310,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
             mri_ttl["plateau_dur"] = mri_ttl["ttl_3"] - mri_ttl["ttl_2"]
             # merge biopac data
             mri_ttl.rename(dict_col, axis="columns", inplace=True)
-            mri_ttl_fname = join(spm_dir, sub, ses, f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_events_ttl.tsv")
+            mri_ttl_fname = join(spm_dir, sub, ses, f"{sub}_{ses}_task-cue_run-{runnum:02d}_runtype-{runtype}_events_ttl.tsv")
             mri_ttl.to_csv(mri_ttl_fname, index=None, sep="\t")
             logger.info("SPM events saved to : %s", spm_dir)
             # II. create EV ________________________________________________________________________
