@@ -105,9 +105,9 @@ print(main_dir)
 # fsl_dir = os.path.join(main_dir, 'data', 'd03_onset', 'onset01_FSL')
 # spm_dir = os.path.join(main_dir, 'data', 'd03_onset', 'onset02_SPM')
 beh_dir = join(main_dir, 'data', 'beh', 'beh02_preproc')
-fsl_dir = join(main_dir, 'data', 'fmri01_onset', 'onset01_FSL')
-spm_dir = join(main_dir, 'data', 'fmri01_onset', 'onset02_SPM')
-single_dir = join(main_dir, 'data','fmri01_onset','onset03_SPMsingletrial_24dof')
+fsl_dir = join(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset01_FSL')
+spm_dir = join(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset02_SPM')
+single_dir = join(main_dir, 'data','fmri', 'fmri01_onset','onset03_SPMsingletrial_24dof')
 # %%
 sub_folders = next(os.walk(beh_dir))[1] # e.g. sub_list = [2,3,4,5,6,7,8,9,10,...]
 sub_list = [i for i in sub_folders if i.startswith('sub-')]
