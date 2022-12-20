@@ -222,11 +222,24 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
                 "ttl_2": "TTL2",
                 "ttl_3": "TTL3",
                 "ttl_4": "TTL4",
-                "early": "event03_stim_earlyphase_0-4500ms",  # duration of 4.5s
-                "late": "event03_stim_latephase_4500-9000ms",  # duration of 4.5s
-                "post": "event03_stim_poststim_9000-135000ms",  # duration of 4.5s
-                "plateau": "event03_stim_ttl-plateau",  # calculate duration
-                "plateau_dur": "event03_stim_ttl-plateau-dur",
+                "early": "onset03_stim_earlyphase_0-4500ms",  # duration of 4.5s
+                "late": "onset03_stim_latephase_4500-9000ms",  # duration of 4.5s
+                "post": "onset03_stim_poststim_9000-135000ms",  # duration of 4.5s
+                "plateau": "onset03_stim_ttlplateau",  # calculate duration
+                "plateau_dur": "onset03_stim_ttlplateau_duration",
+            "event01_cue_onset":"onset01_cue",
+            "event02_expect_displayonset":"onset02_ratingexpect",
+            "event03_stimulus_displayonset":"onset03_stim",
+            "event04_actual_displayonset":"onset04_ratingoutcome",
+            "param_cue_type":"pmod_cuetype",
+            "param_stimulus_type":"pmod_stimtype",
+            "event02_expect_RT":"pmod_expectRT",
+            "event02_expect_angle":"pmod_expectangle",  
+            "event04_actual_RT":"pmod_outcomeRT",
+            "event04_actual_angle":"pmod_outcomeangle",
+            "event02_expect_angle_demean":"pmod_expectangle_demean",
+            "event04_actual_angle_demean":"pmod_outcomeangle_demean"
+
             }
             trigger = df["param_trigger_onset"][0]
 
@@ -297,7 +310,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
             mri_ttl["plateau_dur"] = mri_ttl["ttl_3"] - mri_ttl["ttl_2"]
             # merge biopac data
             mri_ttl.rename(dict_col, axis="columns", inplace=True)
-            mri_ttl_fname = join(spm_dir, sub, ses, label + "_events_ttl.tsv")
+            mri_ttl_fname = join(spm_dir, sub, ses, f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_events_ttl.tsv")
             mri_ttl.to_csv(mri_ttl_fname, index=None, sep="\t")
             logger.info("SPM events saved to : %s", spm_dir)
             # II. create EV ________________________________________________________________________
