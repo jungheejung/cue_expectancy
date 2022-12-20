@@ -243,7 +243,7 @@ for i, (sub, ses_ind) in enumerate(sub_ses):
 
         # 3) save as SPM format
         datalad.rename(columns = dict_col, inplace=True)
-        datalad_fname = os.path.join(spm_dir, sub, ses, f"{sub}_{ses}_run-{runnum:02d}_runtype-{runtype}_events.tsv")
+        datalad_fname = os.path.join(spm_dir, sub, ses, f"{sub}_{ses}_task-cue_run-{runnum:02d}_runtype-{runtype}_events.tsv")
         datalad.to_csv(datalad_fname, index=None, sep="\t")
 
         # B. create EV ________________________________________________________________________
