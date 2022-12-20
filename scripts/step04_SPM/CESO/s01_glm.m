@@ -265,6 +265,7 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
     save(batch_fname, 'matlabbatch') %,'-v7.3');
 
     %% 4. run __________________________________________________________
+    spm_get_defaults('cmdline',true);
     spm('defaults', 'FMRI');
     spm_jobman('run', matlabbatch);
     clearvars matlabbatch
