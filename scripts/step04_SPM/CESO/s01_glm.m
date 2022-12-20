@@ -1,4 +1,4 @@
-function s01_glm(sub, input_dir, main_dir)
+function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
     %-----------------------------------------------------------------------
     % spm SPM - SPM12 (7771)
     % cfg_basicio BasicIO - Unknown
@@ -41,7 +41,7 @@ function s01_glm(sub, input_dir, main_dir)
     disp(strcat('sub:    ', sub));
 
     % find nifti files
-    niilist = dir(fullfile(input_dir, sub, '*/func/smooth-6mm_*task-cue*_bold.nii'));
+    niilist = dir(fullfile(input_dir, sub, '*/smooth-6mm_*task-cue*_bold.nii'));
     nT = struct2table(niilist); % convert the struct array to a table
     sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
 
@@ -67,8 +67,7 @@ function s01_glm(sub, input_dir, main_dir)
     %intersection of nifti and onset files
     A = intersect(sortedT(:, nii_num_colomn), sortedonsetT(:, onset_num_colomn));
 
-    output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate' 'model01_CESO', ...
-        '1stLevel', sub);
+    output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_CESO', '1stLevel', sub);
 
     if ~exist(output_dir, 'dir')
         mkdir(output_dir)
@@ -95,9 +94,9 @@ function s01_glm(sub, input_dir, main_dir)
         run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
 
         disp(strcat('[ STEP 03 ] gunzip and saving nifti...'));
-        smooth_fname = fullfile(input_dir, sub, ses, 'func', ...
+        smooth_fname = fullfile(input_dir, sub, ses,...
             strcat('smooth-6mm_', sub, '_', ses, '_task-cue_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
-        smooth_nii = fullfile(input_dir, sub, ses, 'func', ...
+        smooth_nii = fullfile(input_dir, sub, ses, ...
             strcat('smooth-6mm_', sub, '_', ses, '_task-cue_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
 
         if ~exist(smooth_nii, 'file'), gunzip(smooth_fname)
@@ -142,6 +141,9 @@ function s01_glm(sub, input_dir, main_dir)
         % end
 
         %% regressor covariates ______________________________________________________
+        if ~exist(fullfile(motion_dir, 'csf_24dof_dummy_spike', sub, ses), 'dir')
+            mkdir(fullfile(motion_dir, 'csf_24dof_dummy_spike', sub, ses))
+        end
         motion_fname = fullfile(motion_dir, 'csf_24dof_dummy_spike', sub, ses, ...
         strcat(sub, '_', ses, '_task-cue_run-', sprintf('%02d', A.run_num(run_ind)), '_confounds-subset.txt'));
         %    if ~isfile(motion_fname)
