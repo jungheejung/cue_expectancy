@@ -36,7 +36,7 @@ onset_dir = fullfile(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset02_SPM');
 % sub = strcat('sub-', sprintf('%04d', sub_num));
 disp( sub );
 % /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/analysis/fmri/spm/model-01_CcEScaA/1stLevel/sub-0005
-output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate' 'model01_CESO', ...
+output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_CESO', ...
 '1stLevel', sub);
 spm_fname = fullfile(output_dir, 'SPM.mat');
 
