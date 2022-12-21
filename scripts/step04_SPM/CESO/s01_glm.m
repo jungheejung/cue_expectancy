@@ -32,10 +32,10 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
     % input_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'; % sub / ses
     motion_dir = fullfile(main_dir, 'data', 'fmri', 'fmri02_motion');
     onset_dir = fullfile(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset02_SPM');
-    disp(strcat('input_dir', input_dir));
-    disp(strcat('motion_dir', motion_dir));
-    disp(strcat('onset_dir', onset_dir));
-    disp(strcat('main_dir', main_dir));
+    disp(strcat('input_dir: ', input_dir));
+    disp(strcat('motion_dir: ', motion_dir));
+    disp(strcat('onset_dir: ', onset_dir));
+    disp(strcat('main_dir: ', main_dir));
     %% 2. for loop "subject-wise" _______________________________________________________
     disp(strcat('[ STEP 02 ] PRINT VARIABLE'))
     disp(strcat('sub:    ', sub));
@@ -237,7 +237,7 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).onset = double(cue.onset03_stim) + 2;
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).duration = double(repelem(5, 12)');
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).tmod = 0;
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).pmod = struct('name', {}, 'param', {}, 'poly', {});
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod = struct('name', {}, 'param', {}, 'poly', {});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).orth = 0;
 
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).name = 'OUTCOME_RATING';
