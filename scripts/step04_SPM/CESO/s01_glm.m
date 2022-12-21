@@ -83,8 +83,7 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
     c09 = []; c10 = []; c11 = []; c12 = []; c13 = []; c14 = []; c15 = []; c16 = []; c17 = [];
 
     matlabbatch = cell(1, 2);
-    % matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind) = cell(1,size(sortedT,1));
-    disp(A)
+    
     %% 3. for loop "run-wise" _______________________________________________________
     for run_ind = 1:size(A, 1)
         disp(strcat('______________________run', num2str(run_ind), '____________________________'));
@@ -176,7 +175,7 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
                 m_clean = standardizeMissing(m_cov, 'n/a');
 
                 for i = 1:25
-                    m_clean.(i)(isnan(m_clean.(i))) = nanmean(m_clean.(i))
+                    m_clean.(i)(isnan(m_clean.(i))) = nanmean(m_clean.(i));
                 end
 
             else
@@ -184,7 +183,7 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
                 m_clean = standardizeMissing(m_cov, 'n/a');
 
                 for i = 1:25
-                    m_clean.(i)(isnan(m_clean.(i))) = nanmean(m_clean.(i))
+                    m_clean.(i)(isnan(m_clean.(i))) = nanmean(m_clean.(i));
                 end
 
             end
