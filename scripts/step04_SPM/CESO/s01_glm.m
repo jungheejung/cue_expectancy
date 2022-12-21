@@ -95,12 +95,14 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
         run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
 
         disp(strcat('[ STEP 03 ] gunzip and saving nifti...'));
-        smooth_fname = fullfile(input_dir, sub, ses,  ...
-            strcat('smooth-6mm_', sub, '_', ses, '_task-cue_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
+        %smooth_fname = fullfile(input_dir, sub, ses,  ...
+        %    strcat('smooth-6mm_', sub, '_', ses, '_task-cue_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
         smooth_nii = fullfile(input_dir, sub, ses, 'func', ...
             strcat('smooth-6mm_', sub, '_', ses, '_task-cue_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
 
-        if ~exist(smooth_nii, 'file'), gunzip(smooth_fname)
+        if ~exist(smooth_nii, 'file')
+            disp('ABORT [!] ', smooth_nii, 'does not exist')
+            break 
         end
 
         disp(strcat('[ STEP 04 ]constructing contrasts...'));
