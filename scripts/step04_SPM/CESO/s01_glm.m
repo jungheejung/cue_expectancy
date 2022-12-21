@@ -1,4 +1,4 @@
-function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
+function s01_glm(sub, input_dir, main_dir)
     %-----------------------------------------------------------------------
     % spm SPM - SPM12 (7771)
     % cfg_basicio BasicIO - Unknown
@@ -32,16 +32,16 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
     % input_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'; % sub / ses
     motion_dir = fullfile(main_dir, 'data', 'fmri', 'fmri02_motion');
     onset_dir = fullfile(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset02_SPM');
-    disp(strcat('input_dir: ', input_dir));
-    disp(strcat('motion_dir: ', motion_dir));
-    disp(strcat('onset_dir: ', onset_dir));
-    disp(strcat('main_dir: ', main_dir));
+    disp(strcat('input_dir', input_dir));
+    disp(strcat('motion_dir', motion_dir));
+    disp(strcat('onset_dir', onset_dir));
+    disp(strcat('main_dir', main_dir));
     %% 2. for loop "subject-wise" _______________________________________________________
     disp(strcat('[ STEP 02 ] PRINT VARIABLE'))
     disp(strcat('sub:    ', sub));
 
     % find nifti files
-    niilist = dir(fullfile(input_dir, sub, '*/smooth-6mm_*task-cue*_bold.nii'));
+    niilist = dir(fullfile(input_dir, sub, '*/func/smooth-6mm_*task-social*_bold.nii'));
     nT = struct2table(niilist); % convert the struct array to a table
     sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
 
@@ -53,7 +53,7 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
     nii_num_colomn = nii_col_names(endsWith(nii_col_names, '_num'));
 
     % find onset files
-    onsetlist = dir(fullfile(onset_dir, sub, '*', strcat(sub, '_*_task-cue_*_events.tsv')));
+    onsetlist = dir(fullfile(onset_dir, sub, '*', strcat(sub, '_*_task-social_*_events.tsv')));
     onsetT = struct2table(onsetlist);
     sortedonsetT = sortrows(onsetT, 'name');
 
@@ -67,7 +67,8 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
     %intersection of nifti and onset files
     A = intersect(sortedT(:, nii_num_colomn), sortedonsetT(:, onset_num_colomn));
 
-    output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_CESO', '1stLevel', sub);
+    output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate' 'model01_CESO', ...
+        '1stLevel', sub);
 
     if ~exist(output_dir, 'dir')
         mkdir(output_dir)
@@ -94,9 +95,9 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
         run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
 
         disp(strcat('[ STEP 03 ] gunzip and saving nifti...'));
-        smooth_fname = fullfile(input_dir, sub, ses,...
+        smooth_fname = fullfile(input_dir, sub, ses, 'func', ...
             strcat('smooth-6mm_', sub, '_', ses, '_task-cue_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
-        smooth_nii = fullfile(input_dir, sub, ses, ...
+        smooth_nii = fullfile(input_dir, sub, ses, 'func', ...
             strcat('smooth-6mm_', sub, '_', ses, '_task-cue_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
 
         if ~exist(smooth_nii, 'file'), gunzip(smooth_fname)
@@ -119,7 +120,7 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
 
                 % 
         if strcmp(task,'pain')
-            test = dir(fullfile(onset_glob.folder, strcat(sub, '_', ses, '_task-cue_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '*_events_ttl.tsv')))
+            test = dir(fullfile(onset_glob.folder, strcat(sub, '_', ses, '_task-social_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '*_events_ttl.tsv')))
             if ~isempty(test)
                 onset_fname = fullfile(char(test.folder), char(test.name))
                 disp(strcat('this is a pain run with a ttl file: ', onset_fname))
@@ -141,9 +142,6 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
         % end
 
         %% regressor covariates ______________________________________________________
-        if ~exist(fullfile(motion_dir, 'csf_24dof_dummy_spike', sub, ses), 'dir')
-            mkdir(fullfile(motion_dir, 'csf_24dof_dummy_spike', sub, ses))
-        end
         motion_fname = fullfile(motion_dir, 'csf_24dof_dummy_spike', sub, ses, ...
         strcat(sub, '_', ses, '_task-cue_run-', sprintf('%02d', A.run_num(run_ind)), '_confounds-subset.txt'));
         %    if ~isfile(motion_fname)
@@ -237,7 +235,7 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).onset = double(cue.onset03_stim);
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).duration = double(repelem(5, 12)');
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).tmod = 0;
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod = struct('name', {}, 'param', {}, 'poly', {});
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).pmod = struct('name', {}, 'param', {}, 'poly', {});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).orth = 0;
 
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).name = 'OUTCOME_RATING';
@@ -265,7 +263,6 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
     save(batch_fname, 'matlabbatch') %,'-v7.3');
 
     %% 4. run __________________________________________________________
-    spm_get_defaults('cmdline',true);
     spm('defaults', 'FMRI');
     spm_jobman('run', matlabbatch);
     clearvars matlabbatch
