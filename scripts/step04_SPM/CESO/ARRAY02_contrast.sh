@@ -25,5 +25,5 @@ echo "* total of ${#mylist[@]} participants in ${INPUT_DIR}"
 echo "* array id: " ${SLURM_ARRAY_TASK_ID}, "subject id: " ${PARTICIPANT_LABEL}
 
 module load matlab/r2020a
-matlab -nodisplay -nosplash -batch "addpath('${SPM_DIR}'); addpath(genpath('${CANLABCORE_DIR}')); addpath(genpath('${MAIN_DIR}')); s02_contrast($PARTICIPANT_LABEL);"
+matlab -nodisplay -nosplash -batch "addpath('${SPM_DIR}'); addpath(genpath('${CANLABCORE_DIR}')); addpath(genpath('${MAIN_DIR}')); s02_contrast('${PARTICIPANT_LABEL}', '${INPUT_DIR}', '${MAIN_DIR});"
 
