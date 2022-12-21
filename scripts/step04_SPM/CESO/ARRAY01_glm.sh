@@ -8,8 +8,7 @@
 #SBATCH -e ./log_glm/GLM_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1-2
-##133%10
+#SBATCH --array=1-133%10
 
 CANLABCORE_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore"
 SPM_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/spm12"
@@ -26,4 +25,12 @@ module load matlab/r2020a
 matlab -nodesktop -nosplash -batch 'opengl("save","hardware"); rootgroup = settings;rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = "v7.3"; rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = "v7.3";addpath(genpath('"'${CANLABCORE_DIR}'"'));addpath(genpath('"'${SPM_DIR}'"'));addpath(genpath('"'${MAIN_DIR}'"'));addpath(genpath('"'${INPUT_DIR}'"'));addpath(genpath('"'${PWD}'"'));s01_glm('"'${PARTICIPANT_LABEL}'"','"'${INPUT_DIR}'"','"'${MAIN_DIR}'"', '"'${FMRIPREP_DIR}'"');'
 
 echo "matlab -nodesktop -nosplash -batch 'opengl("save","hardware"); 
-rootgroup = settings;rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = "v7.3"; rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = "v7.3"; addpath(genpath('"'${CANLABCORE_DIR}'"')); addpath(genpath('"'${SPM_DIR}'"')); addpath(genpath('"'${MAIN_DIR}'"')); addpath(genpath('"'${INPUT_DIR}'"')); addpath(genpath('"'${PWD}'"')); s01_glm('"'${PARTICIPANT_LABEL}'"','"'${INPUT_DIR}'"','"'${MAIN_DIR}'"');'"
+rootgroup = settings; 
+rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = "v7.3"; 
+rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = "v7.3";
+addpath(genpath('"'${CANLABCORE_DIR}'"'));
+addpath(genpath('"'${SPM_DIR}'"')); 
+addpath(genpath('"'${MAIN_DIR}'"')); 
+addpath(genpath('"'${INPUT_DIR}'"')); 
+addpath(genpath('"'${PWD}'"'))
+s01_glm('"'${PARTICIPANT_LABEL}'"','"'${INPUT_DIR}'"','"'${MAIN_DIR}'"');'"
