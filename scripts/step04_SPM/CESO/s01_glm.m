@@ -67,7 +67,7 @@ function s01_glm(sub, input_dir, main_dir)
     %intersection of nifti and onset files
     A = intersect(sortedT(:, nii_num_colomn), sortedonsetT(:, onset_num_colomn));
 
-    output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate' 'model01_CESO', ...
+    output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_CESO', ...
         '1stLevel', sub);
 
     if ~exist(output_dir, 'dir')
