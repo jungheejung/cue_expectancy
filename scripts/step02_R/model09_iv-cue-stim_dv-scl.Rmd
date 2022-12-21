@@ -419,9 +419,9 @@ for (taskname in c( "vicarious", "cognitive")) { #"pain"
             sep = ""
         )
     )
-    cooksd <- lmer_two_factor_cooksd(
+    cooksd <- lmer_two_factor_cooksd_fix(
         data, taskname, iv1, stim_con1, stim_con2, dv,
-        subject, dv_keyword, model_savefname
+        subject, dv_keyword, model_savefname, 'random_slopes'
     )
     influential <- as.numeric(names(cooksd)[
         (cooksd > (4 / as.numeric(length(unique(data$src_subject_id)))))
