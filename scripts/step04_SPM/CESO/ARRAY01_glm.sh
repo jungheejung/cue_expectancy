@@ -17,7 +17,7 @@ INPUT_DIR="${MAIN_DIR}/analysis/fmri/smooth6mm"
 FMRIPREP_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop_data/derivatives/fmriprep/results/fmriprep"
 mylist=($(find ${INPUT_DIR} -maxdepth 1 -mindepth 1 -type d -iname "sub-*"))
 IFS=$'\n' sorted=($(sort <<<"${mylist[*]}") )
-PARTICIPANT_LABEL="$(basename "${sorted[$((SLURM_ARRAY_TASK_ID))]}")"
+PARTICIPANT_LABEL="$(basename "${sorted[$((SLURM_ARRAY_TASK_ID-1))]}")"
 echo "* total of ${#mylist[@]} participants in ${INPUT_DIR}"
 echo "* array id: " ${SLURM_ARRAY_TASK_ID}, "subject id: " ${PARTICIPANT_LABEL}
 
