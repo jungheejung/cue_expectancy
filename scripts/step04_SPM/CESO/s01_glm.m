@@ -59,11 +59,11 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
 
     sortedonsetT.sub_num(:) = str2double(extractBetween(sortedonsetT.name, 'sub-', '_'));
     sortedonsetT.ses_num(:) = str2double(extractBetween(sortedonsetT.name, 'ses-', '_'));
-    sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '-'));
+    sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '_'));
 
     onset_col_names = sortedonsetT.Properties.VariableNames;
     onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
-
+    disp(nii_num_colomn)
     %intersection of nifti and onset files
     A = intersect(sortedT(:, nii_num_colomn), sortedonsetT(:, onset_num_colomn));
 
@@ -84,6 +84,7 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
 
     matlabbatch = cell(1, 2);
     % matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind) = cell(1,size(sortedT,1));
+    disp(A)
     %% 3. for loop "run-wise" _______________________________________________________
     for run_ind = 1:size(A, 1)
         disp(strcat('______________________run', num2str(run_ind), '____________________________'));
@@ -103,7 +104,7 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
         end
 
         disp(strcat('[ STEP 04 ]constructing contrasts...'));
-        onset_glob = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-cue_', strcat('run-', sprintf('%02d', A.run_num(run_ind))), '-*_events.tsv')));
+        onset_glob = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-cue_', strcat('run-', sprintf('%02d', A.run_num(run_ind))), '*_events.tsv')));
         onset_fname = fullfile(char(onset_glob.folder), char(onset_glob.name));
 
         if isempty(onset_glob)
@@ -152,7 +153,7 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
 
         if ~isfile(motion_fname)
             m_fmriprep = fullfile(fmriprep_dir, sub, ses, 'func', ...
-                strcat(sub, '_', ses, '_task-social_acq-mb8_', sprintf('%01d', A.run_num(run_ind)), '_desc-confounds_timeseries.tsv'));
+                strcat(sub, '_', ses, '_task-social_acq-mb8_run-', sprintf('%01d', A.run_num(run_ind)), '_desc-confounds_timeseries.tsv'));
             opts = detectImportOptions(m_fmriprep, 'FileType', 'text');
             opts = setvaropts(opts, 'TreatAsMissing', {'n/a', 'NA'});
             m = readtable(m_fmriprep, opts);
@@ -234,7 +235,7 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).orth = 0;
 
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).name = 'STIM';
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).onset = double(cue.onset03_stim) + 2;
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).onset = double(cue.onset03_stim);
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).duration = double(repelem(5, 12)');
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).tmod = 0;
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod = struct('name', {}, 'param', {}, 'poly', {});
