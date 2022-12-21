@@ -32,16 +32,16 @@ function s01_glm(sub, input_dir, main_dir)
     % input_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'; % sub / ses
     motion_dir = fullfile(main_dir, 'data', 'fmri', 'fmri02_motion');
     onset_dir = fullfile(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset02_SPM');
-    disp(strcat('input_dir', input_dir));
-    disp(strcat('motion_dir', motion_dir));
-    disp(strcat('onset_dir', onset_dir));
-    disp(strcat('main_dir', main_dir));
+    disp(strcat('input_dir: ', input_dir));
+    disp(strcat('motion_dir: ', motion_dir));
+    disp(strcat('onset_dir: ', onset_dir));
+    disp(strcat('main_dir: ', main_dir));
     %% 2. for loop "subject-wise" _______________________________________________________
     disp(strcat('[ STEP 02 ] PRINT VARIABLE'))
     disp(strcat('sub:    ', sub));
 
     % find nifti files
-    niilist = dir(fullfile(input_dir, sub, '*/func/smooth-6mm_*task-social*_bold.nii'));
+    niilist = dir(fullfile(input_dir, sub, '*/smooth-6mm_*task-cue*_bold.nii'));
     nT = struct2table(niilist); % convert the struct array to a table
     sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
 
@@ -53,7 +53,7 @@ function s01_glm(sub, input_dir, main_dir)
     nii_num_colomn = nii_col_names(endsWith(nii_col_names, '_num'));
 
     % find onset files
-    onsetlist = dir(fullfile(onset_dir, sub, '*', strcat(sub, '_*_task-social_*_events.tsv')));
+    onsetlist = dir(fullfile(onset_dir, sub, '*', strcat(sub, '_*_task-cue_*_events.tsv')));
     onsetT = struct2table(onsetlist);
     sortedonsetT = sortrows(onsetT, 'name');
 
@@ -120,7 +120,7 @@ function s01_glm(sub, input_dir, main_dir)
 
                 % 
         if strcmp(task,'pain')
-            test = dir(fullfile(onset_glob.folder, strcat(sub, '_', ses, '_task-social_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '*_events_ttl.tsv')))
+            test = dir(fullfile(onset_glob.folder, strcat(sub, '_', ses, '_task-cue_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '*_events_ttl.tsv')))
             if ~isempty(test)
                 onset_fname = fullfile(char(test.folder), char(test.name))
                 disp(strcat('this is a pain run with a ttl file: ', onset_fname))
@@ -235,7 +235,7 @@ function s01_glm(sub, input_dir, main_dir)
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).onset = double(cue.onset03_stim);
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).duration = double(repelem(5, 12)');
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).tmod = 0;
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).pmod = struct('name', {}, 'param', {}, 'poly', {});
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod = struct('name', {}, 'param', {}, 'poly', {});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).orth = 0;
 
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).name = 'OUTCOME_RATING';
