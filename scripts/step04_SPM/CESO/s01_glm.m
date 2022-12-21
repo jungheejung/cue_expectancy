@@ -1,4 +1,4 @@
-function s01_glm(sub, input_dir, main_dir)
+function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
     %-----------------------------------------------------------------------
     % spm SPM - SPM12 (7771)
     % cfg_basicio BasicIO - Unknown
@@ -29,7 +29,6 @@ function s01_glm(sub, input_dir, main_dir)
     m3 = containers.Map(keySet, con3);
     m4 = containers.Map(keySet, con4);
     % 1-1. directories _______________________________________________________
-    % input_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'; % sub / ses
     motion_dir = fullfile(main_dir, 'data', 'fmri', 'fmri02_motion');
     onset_dir = fullfile(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset02_SPM');
     disp(strcat('input_dir: ', input_dir));
@@ -75,8 +74,8 @@ function s01_glm(sub, input_dir, main_dir)
     end
 
     if isfile(fullfile(output_dir, 'SPM.mat'))
-        delete * .nii
-        delete SPM.mat
+        delete(fullfile(output_dir,'*.nii'));
+        delete(fullfile(output_dir,'SPM.mat'));
     end
 
     % contrasts (initialize per run)
@@ -95,12 +94,14 @@ function s01_glm(sub, input_dir, main_dir)
         run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
 
         disp(strcat('[ STEP 03 ] gunzip and saving nifti...'));
-        smooth_fname = fullfile(input_dir, sub, ses, 'func', ...
-            strcat('smooth-6mm_', sub, '_', ses, '_task-cue_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
+        %smooth_fname = fullfile(input_dir, sub, ses,  ...
+        %    strcat('smooth-6mm_', sub, '_', ses, '_task-cue_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
         smooth_nii = fullfile(input_dir, sub, ses, 'func', ...
             strcat('smooth-6mm_', sub, '_', ses, '_task-cue_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
 
-        if ~exist(smooth_nii, 'file'), gunzip(smooth_fname)
+        if ~exist(smooth_nii, 'file')
+            disp('ABORT [!] ', smooth_nii, 'does not exist')
+            break 
         end
 
         disp(strcat('[ STEP 04 ]constructing contrasts...'));
