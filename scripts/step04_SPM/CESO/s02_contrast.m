@@ -7,7 +7,6 @@ rootgroup = settings; rootgroup.matlab.general.matfile.SaveFormat.PersonalValue 
 
 numscans = 56;
 disacqs = 0;
-disp(input);
 disp(strcat('[ STEP 01 ] setting parameters...'));
 
 % contrast mapper _______________________________________________________
@@ -23,19 +22,10 @@ m6 = containers.Map(keySet,con6);
 m7 = containers.Map(keySet,con7);
 
 % NOTE 02 define directories _______________________________________________________
-% fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'; % sub / ses
-% main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
-% motion_dir = fullfile(main_dir, 'data', 'dartmouth', 'd05_motion');
-% onset_dir = fullfile(main_dir, 'data', 'dartmouth', 'd04_EV_SPM');
-
-% input_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'; % sub / ses
 motion_dir = fullfile(main_dir, 'data', 'fmri', 'fmri02_motion');
 onset_dir = fullfile(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset02_SPM');
 
-% sub_num = sscanf(char(input),'%d');
-% sub = strcat('sub-', sprintf('%04d', sub_num));
 disp( sub );
-% /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/analysis/fmri/spm/model-01_CcEScaA/1stLevel/sub-0005
 output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_CESO', ...
 '1stLevel', sub);
 spm_fname = fullfile(output_dir, 'SPM.mat');
@@ -96,8 +86,10 @@ for run_ind = 1: size(A,1)
     disp(strcat('onset folder: ', onset_glob.folder));
     disp(strcat('onset file:   ', onset_glob.name));
     social        = struct2table(tdfread(onset_fname));
-    keyword       = extractBetween(onset_glob.name, 'runtype-', '_events.tsv');
-    task          = char(extractAfter(keyword, '-'));
+    keyword       = extractBetween(onset_glob.name, 'runtype-', '_events');
+    %task          = char(extractAfter(keyword, '-'));
+    task          = char(keyword)
+    disp(task);
 
     cue_P         = [ m1(task),0,0,0 ];
     cue_V         = [ m2(task),0,0,0 ];
