@@ -2,7 +2,7 @@
 firstlevel_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/spm/univariate/model01_CESO/1stLevel';
 list = dir(firstlevel_dir);
 sub_dir = regexp({list.name}, 'sub-\d{4}', 'match');
-sub_list = x(~cellfun(@isempty, x));
+sub_list = sub_dir(~cellfun(@isempty, sub_dir));
 
 flag = []
 
