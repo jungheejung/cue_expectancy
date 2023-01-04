@@ -29,7 +29,7 @@ disp( sub );
 output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_CESO', ...
 '1stLevel', sub);
 spm_fname = fullfile(output_dir, 'SPM.mat');
-
+load(spm_fname);
 % NOTE 03 find intersection of nifti and onset files
 % find nifti files
 niilist = dir(fullfile(input_dir, sub, '*/smooth-6mm_*task-cue*_bold.nii'));
@@ -76,6 +76,8 @@ for run_ind = 1: size(A,1)
     sub = strcat('sub-', sprintf('%04d', A.sub_num(run_ind)));
     ses = strcat('ses-', sprintf('%02d', A.ses_num(run_ind)));
     run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
+    disp('identify covariates');
+    covariate = zeros(1, size(SPM.Sess(run_ind).C.name,2));
     disp(strcat('[ STEP 04 ]constructing contrasts...'));
     onset_glob    = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-cue_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '*_events.tsv')));
     onset_fname   = fullfile(char(onset_glob.folder), char(onset_glob.name));
@@ -91,25 +93,25 @@ for run_ind = 1: size(A,1)
     task          = char(keyword)
     disp(task);
 
-    cue_P         = [ m1(task),0,0,0 ];
-    cue_V         = [ m2(task),0,0,0 ];
-    cue_C         = [ m3(task),0,0,0 ];
-    cue_G         = [ m4(task),0,0,0 ];
+    cue_P         = [ m1(task),0,0,0,covariate ];
+    cue_V         = [ m2(task),0,0,0,covariate ];
+    cue_C         = [ m3(task),0,0,0,covariate ];
+    cue_G         = [ m4(task),0,0,0,covariate ];
 
-    stim_P        = [ 0,0,m1(task),0 ];
-    stim_V        = [ 0,0,m2(task),0 ];
-    stim_C        = [ 0,0,m3(task),0 ];
-    stim_G        = [ 0,0,m4(task),0 ];
+    stim_P        = [ 0,0,m1(task),0,covariate ];
+    stim_V        = [ 0,0,m2(task),0,covariate ];
+    stim_C        = [ 0,0,m3(task),0,covariate ];
+    stim_G        = [ 0,0,m4(task),0,covariate ];
 
-    motor         = [ 0,1,0,1 ];
+    motor         = [ 0,1,0,1,covariate ];
 
-    simple_cue_P         = [ m5(task),0,0,0 ];
-    simple_cue_V         = [ m6(task),0,0,0 ];
-    simple_cue_C         = [ m7(task),0,0,0 ];
+    simple_cue_P         = [ m5(task),0,0,0,covariate ];
+    simple_cue_V         = [ m6(task),0,0,0,covariate ];
+    simple_cue_C         = [ m7(task),0,0,0,covariate ];
 
-    simple_stim_P        = [ 0,0,m5(task),0 ];
-    simple_stim_V        = [ 0,0,m6(task),0 ];
-    simple_stim_C        = [ 0,0,m7(task),0 ];
+    simple_stim_P        = [ 0,0,m5(task),0,covariate ];
+    simple_stim_V        = [ 0,0,m6(task),0,covariate ];
+    simple_stim_C        = [ 0,0,m7(task),0,covariate ];
 
     c01 = [ c01  cue_P];          c02 = [ c02  cue_V];          c03 = [ c03  cue_C];          c04 = [ c04  cue_G];
     c05 = [ c05  stim_P];         c06 = [ c06  stim_V];         c07 = [ c07  stim_C];         c08 = [ c08  stim_G];
