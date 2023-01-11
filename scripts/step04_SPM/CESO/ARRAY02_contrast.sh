@@ -9,7 +9,7 @@
 #SBATCH -e ./log_con/contrast_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1-2
+#SBATCH --array=3-135%10
 
 CANLABCORE_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore"
 SPM_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/spm12"
