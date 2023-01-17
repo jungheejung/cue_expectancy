@@ -123,7 +123,6 @@ function s01_glm_6cond(sub, input_dir, main_dir, fmriprep_dir)
         highstim = cue.pmod_stimtype == 'high_stim';
         medstim = cue.pmod_stimtype == 'med_stim ';
         lowstim = cue.pmod_stimtype == 'low_stim ';
-        highcue(:,1) & lowstim(:,1);
 
         keyword = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
         task = char(extractAfter(keyword, '-'));
@@ -170,7 +169,7 @@ function s01_glm_6cond(sub, input_dir, main_dir, fmriprep_dir)
             if any(hasMatch)
                 motion_outlier = m(:, m.Properties.VariableNames(hasMatch));
                 spike = sum(motion_outlier{:, :}, 2);
-                if length(spike) < 20
+                if length(spike) <= 20
                     m_cov = [m_subset, dummy, array2table(motion_outlier)];
                     m_clean = standardizeMissing(m_cov, 'n/a');
 
