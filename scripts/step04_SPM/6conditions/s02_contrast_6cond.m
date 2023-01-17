@@ -1,5 +1,17 @@
 function s02_contrast_6cond(sub, input_dir, main_dir)
 
+    % PARAMETERS
+    %     - STIM: CUE h x STIM h (onset03_stim)
+    %     - STIM: CUE h x STIM m
+    %     - STIM: CUE h x STIM l
+    %     - STIM: CUE l x STIM h
+    %     - STIM: CUE l x STIM m
+    %     - STIM: CUE l x STIM l
+    %     - CUE: onset01_cue
+    %     - EXPECT RATING: onset02_ratingexpect, pmod_expectRT
+    %     - OUTCOME RATING: onset04_ratingoutcome, pmod_outcomeRT
+
+
 % NOTE 01 start jobs
 disp('...STARTING JOBS');
 
@@ -11,6 +23,12 @@ disp(strcat('[ STEP 01 ] setting parameters...'));
 
 % contrast mapper _______________________________________________________
 keySet = {'pain','vicarious','cognitive'};
+cue_high_gt_low = [1,1,1,-1,-1,-1];
+stimlin_high_gt_low = [1,0,-1,1,0,-1];
+stimquad_med_gt_other = [-1,2,-1,-1,2,-1];
+cue_int_stimlin = [1,0,-1,-1,0,1];
+cue_int_stimquad = [-1,2,-1,1,-2,1];
+
 con1 = [2 -1 -1];   con2 = [-1 2 -1];  con3 = [-1 -1 2];  con4 = [1 1 1];
 con5 = [1 0 0]; con6 = [0 1 0]; con7 = [0 0 1];
 m1 = containers.Map(keySet,con1);
@@ -60,14 +78,27 @@ A = intersect(sortedT(:, nii_num_colomn), sortedonsetT(:, onset_num_colomn));
 
 % NOTE 04 define contrast
 
-contrast_name = {'cue_P', 'cue_V', 'cue_C', 'cue_G',...
-    'stim_P', 'stim_V', 'stim_C', 'stim_G',...
-    'motor', ...
-    'simple_cue_P', 'simple_cue_V', 'simple_cue_C', ...
-    'simple_stim_P', 'simple_stim_V', 'simple_stim_C'};
+% contrast_name = {'cue_P', 'cue_V', 'cue_C', 'cue_G',...
+%     'stim_P', 'stim_V', 'stim_C', 'stim_G',...
+%     'motor', ...
+%     'simple_cue_P', 'simple_cue_V', 'simple_cue_C', ...
+%     'simple_stim_P', 'simple_stim_V', 'simple_stim_C'};
+
+contrast_name = {'P_VC_cue_high_gt_low', 'V_PC_cue_high_gt_low', 'C_PV_cue_high_gt_low', ...
+'P_VC_stimlin_high_gt_low', 'V_PC_stimlin_high_gt_low', 'C_PV_stimlin_high_gt_low',...
+'P_VC_stimquad_med_gt_other', 'V_PC_stimquad_med_gt_other', 'C_PV_stimquad_med_gt_other',...
+'P_VC_cue_int_stimlin','V_PC_cue_int_stimlin', 'C_PV_cue_int_stimlin',...
+'P_VC_cue_int_stimquad','V_PC_cue_int_stimquad','C_PV_cue_int_stimquad',...
+'motor',...
+'P_simple_cue_high_gt_low', 'V_simple_cue_high_gt_low', 'C_simple_cue_high_gt_low', ...
+'P_simple_stimlin_high_gt_low', 'V_simple_stimlin_high_gt_low', 'C_simple_stimlin_high_gt_low',...
+'P_simple_stimquad_med_gt_other', 'V_simple_stimquad_med_gt_other', 'C_simple_stimquad_med_gt_other',...
+'P_simple_cue_int_stimlin', 'V_simple_cue_int_stimlin', 'C_simple_cue_int_stimlin',...
+'P_simple_cue_int_stimquad','V_simple_cue_int_stimquad','C_simple_cue_int_stimquad'
+};
 
 c01 = []; c02 = []; c03 = []; c04 = []; c05 = []; c06 = []; c07 = []; c08 = []; c09 = []; c10 = [];
-c11 = []; c12 = []; c13 = []; c14 = []; c15 = []; 
+c11 = []; c12 = []; c13 = []; c14 = []; c15 = []; c16 = []; c17 = []; c18 = []; c19 = [];
 
 matlabbatch = cell(1,1);
 
@@ -93,45 +124,93 @@ for run_ind = 1: size(A,1)
     task          = char(keyword)
     disp(task);
 
-    cue_P         = [ m1(task),0,0,0,covariate ];
-    cue_V         = [ m2(task),0,0,0,covariate ];
-    cue_C         = [ m3(task),0,0,0,covariate ];
-    cue_G         = [ m4(task),0,0,0,covariate ];
 
-    stim_P        = [ 0,0,m1(task),0,covariate ];
-    stim_V        = [ 0,0,m2(task),0,covariate ];
-    stim_C        = [ 0,0,m3(task),0,covariate ];
-    stim_G        = [ 0,0,m4(task),0,covariate ];
+    P_VC_cue_high_gt_low         = [ m1(task)*cue_high_gt_low,0,0,0,covariate ];
+    V_PC_cue_high_gt_low         = [ m2(task)*cue_high_gt_low,0,0,0,covariate ];
+    C_PV_cue_high_gt_low         = [ m3(task)*cue_high_gt_low,0,0,0,covariate ];
 
-    motor         = [ 0,1,0,1,covariate ];
+    P_VC_stimlin_high_gt_low     = [ m1(task)*stimlin_high_gt_low,0,0,0,covariate ];
+    V_PC_stimlin_high_gt_low     = [ m2(task)*stimlin_high_gt_low,0,0,0,covariate ];
+    C_PV_stimlin_high_gt_low     = [ m3(task)*stimlin_high_gt_low,0,0,0,covariate ];
 
-    simple_cue_P         = [ m5(task),0,0,0,covariate ];
-    simple_cue_V         = [ m6(task),0,0,0,covariate ];
-    simple_cue_C         = [ m7(task),0,0,0,covariate ];
+    P_VC_stimquad_med_gt_other   = [ m1(task)*stimquad_med_gt_other,0,0,0,covariate ];
+    V_PC_stimquad_med_gt_other   = [ m2(task)*stimquad_med_gt_other,0,0,0,covariate ];
+    C_PV_stimquad_med_gt_other   = [ m3(task)*stimquad_med_gt_other,0,0,0,covariate ];
 
-    simple_stim_P        = [ 0,0,m5(task),0,covariate ];
-    simple_stim_V        = [ 0,0,m6(task),0,covariate ];
-    simple_stim_C        = [ 0,0,m7(task),0,covariate ];
+    P_VC_cue_int_stimlin         = [ m1(task)*cue_int_stimlin,0,0,0,covariate ];
+    V_PC_cue_int_stimlin         = [ m2(task)*cue_int_stimlin,0,0,0,covariate ];
+    C_PV_cue_int_stimlin         = [ m3(task)*cue_int_stimlin,0,0,0,covariate ];
 
-    c01 = [ c01  cue_P];          c02 = [ c02  cue_V];          c03 = [ c03  cue_C];          c04 = [ c04  cue_G];
-    c05 = [ c05  stim_P];         c06 = [ c06  stim_V];         c07 = [ c07  stim_C];         c08 = [ c08  stim_G];
-    c09 = [ c09  motor];
-    c10 = [ c10  simple_cue_P];          c11 = [ c11  simple_cue_V];         c12 = [ c12  simple_cue_C];
-    c13 = [ c13  simple_stim_P];         c14 = [ c14  simple_stim_V];        c15 = [ c15  simple_stim_C];
+    P_VC_cue_int_stimquad        = [ m1(task)*cue_int_stimquad,0,0,0,covariate ];
+    V_PC_cue_int_stimquad        = [ m2(task)*cue_int_stimquad,0,0,0,covariate ];
+    C_PV_cue_int_stimquad        = [ m3(task)*cue_int_stimquad,0,0,0,covariate ];
+
+    motor                        = [ 0,0,0,0,0,0,0,1,1,covariate ];
+
+    P_simple_cue_high_gt_low         = [ m5(task)*cue_high_gt_low,0,0,0,covariate ];
+    V_simple_cue_high_gt_low         = [ m6(task)*cue_high_gt_low,0,0,0,covariate ];
+    C_simple_cue_high_gt_low         = [ m7(task)*cue_high_gt_low,0,0,0,covariate ];
+
+    P_simple_stimlin_high_gt_low     = [ m5(task)*stimlin_high_gt_low,0,0,0,covariate ];
+    V_simple_stimlin_high_gt_low     = [ m6(task)*stimlin_high_gt_low,0,0,0,covariate ];
+    C_simple_stimlin_high_gt_low     = [ m7(task)*stimlin_high_gt_low,0,0,0,covariate ];
+
+    P_simple_stimquad_med_gt_other   = [ m5(task)*stimquad_med_gt_other,0,0,0,covariate ];
+    V_simple_stimquad_med_gt_other   = [ m6(task)*stimquad_med_gt_other,0,0,0,covariate ];
+    C_simple_stimquad_med_gt_other   = [ m7(task)*stimquad_med_gt_other,0,0,0,covariate ];
+
+    P_simple_cue_int_stimlin         = [ m5(task)*cue_int_stimlin,0,0,0,covariate ];
+    V_simple_cue_int_stimlin         = [ m6(task)*cue_int_stimlin,0,0,0,covariate ];
+    C_simple_cue_int_stimlin         = [ m7(task)*cue_int_stimlin,0,0,0,covariate ];
+
+    P_simple_cue_int_stimquad        = [ m5(task)*cue_int_stimquad,0,0,0,covariate ];
+    V_simple_cue_int_stimquad        = [ m6(task)*cue_int_stimquad,0,0,0,covariate ];
+    C_simple_cue_int_stimquad        = [ m7(task)*cue_int_stimquad,0,0,0,covariate ];
+
+    contrast_name = {'P_VC_cue_high_gt_low', 'V_PC_cue_high_gt_low', 'C_PV_cue_high_gt_low', ...
+                    'P_VC_stimlin_high_gt_low', 'V_PC_stimlin_high_gt_low', 'C_PV_stimlin_high_gt_low',...
+                    'P_VC_stimquad_med_gt_other', 'V_PC_stimquad_med_gt_other', 'C_PV_stimquad_med_gt_other',...
+                    'P_VC_cue_int_stimlin', 'V_PC_cue_int_stimlin', 'C_PV_cue_int_stimlin',...
+                    'P_VC_cue_int_stimquad','V_PC_cue_int_stimquad','C_PV_cue_int_stimquad',...
+                    'motor',...
+                    'P_simple_cue_high_gt_low', 'V_simple_cue_high_gt_low', 'C_simple_cue_high_gt_low', ...
+                    'P_simple_stimlin_high_gt_low', 'V_simple_stimlin_high_gt_low', 'C_simple_stimlin_high_gt_low',...
+                    'P_simple_stimquad_med_gt_other', 'V_simple_stimquad_med_gt_other', 'C_simple_stimquad_med_gt_other',...
+                    'P_simple_cue_int_stimlin', 'V_simple_cue_int_stimlin', 'C_simple_cue_int_stimlin',...
+                    'P_simple_cue_int_stimquad', 'V_simple_cue_int_stimquad', 'C_simple_cue_int_stimquad'
+};
+
+    c01 = [ c01  P_VC_cue_high_gt_low];         c02 = [ c02  V_PC_cue_high_gt_low];         c03 = [ c03  C_PV_cue_high_gt_low];
+    c04 = [ c04  P_VC_stimlin_high_gt_low];     c05 = [ c05  V_PC_stimlin_high_gt_low];     c06 = [ c06  C_PV_stimlin_high_gt_low];   
+    c07 = [ c07  P_VC_stimquad_med_gt_other];   c08 = [ c08  V_PC_stimquad_med_gt_other];   c09 = [ c09  C_PV_stimquad_med_gt_other]; 
+    c10 = [ c10  P_VC_cue_int_stimlin];         c11 = [ c11  V_PC_cue_int_stimlin];         c12 = [ c12  C_PV_cue_int_stimlin];   
+    c13 = [ c13  P_VC_cue_int_stimquad];        c14 = [ c14  V_PC_cue_int_stimquad];        c15 = [ c15  C_PV_cue_int_stimquad];    
+    c16 = [ c16  motor];
+    c17 = [ c17  P_simple_cue_high_gt_low];         c18 = [ c18  V_simple_cue_high_gt_low];         c19 = [ c03  C_simple_cue_high_gt_low];
+    c20 = [ c20  P_simple_stimlin_high_gt_low];     c21 = [ c05  V_simple_stimlin_high_gt_low];     c22 = [ c06  C_simple_stimlin_high_gt_low];   
+    c23 = [ c23  P_simple_stimquad_med_gt_other];   c24 = [ c08  V_simple_stimquad_med_gt_other];   c25 = [ c09  C_simple_stimquad_med_gt_other]; 
+    c26 = [ c26  P_simple_cue_int_stimlin];         c27 = [ c11  V_simple_cue_int_stimlin];         c28 = [ c12  C_simple_cue_int_stimlin];   
+    c29 = [ c29  P_simple_cue_int_stimquad];        c30 = [ c14  V_simple_cue_int_stimquad];        c31 = [ c15  C_simple_cue_int_stimquad];    
     disp(strcat('task: ', task));
 
  end
 
-contrast_vector{1} = c01; contrast_vector{2} = c02;
-contrast_vector{3} = c03; contrast_vector{4} = c04;
-contrast_vector{5} = c05; contrast_vector{6} = c06;
-contrast_vector{7} = c07; contrast_vector{8} = c08;
-contrast_vector{9} = c09; contrast_vector{10} = c10;
+contrast_vector{1} = c01;  contrast_vector{2} = c02;
+contrast_vector{3} = c03;  contrast_vector{4} = c04;
+contrast_vector{5} = c05;  contrast_vector{6} = c06;
+contrast_vector{7} = c07;  contrast_vector{8} = c08;
+contrast_vector{9} = c09;  contrast_vector{10} = c10;
 contrast_vector{11} = c11; contrast_vector{12} = c12;
 contrast_vector{13} = c13; contrast_vector{14} = c14;
-contrast_vector{15} = c15; 
-
-
+contrast_vector{15} = c15; contrast_vector{16} = c16;
+contrast_vector{17} = c07; contrast_vector{18} = c18;
+contrast_vector{19} = c09; contrast_vector{20} = c20;
+contrast_vector{21} = c21; contrast_vector{22} = c22;
+contrast_vector{23} = c23; contrast_vector{24} = c24;
+contrast_vector{25} = c25; contrast_vector{26} = c26;
+contrast_vector{27} = c27; contrast_vector{28} = c28;
+contrast_vector{29} = c29; contrast_vector{30} = c30;
+contrast_vector{31} = c31;
 %% 1. contrast batch _______________________________________________________
 for con_num = 1: length(contrast_name)
 
