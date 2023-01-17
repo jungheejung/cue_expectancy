@@ -11,9 +11,14 @@ function s01_glm_6cond(sub, input_dir, main_dir, fmriprep_dir)
     rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = 'v7.3';
     %-----------------------------------------------------------------------
     % PARAMETERS
+    %     - STIM: CUE h x STIM h (onset03_stim)
+    %     - STIM: CUE h x STIM m
+    %     - STIM: CUE h x STIM l
+    %     - STIM: CUE l x STIM h
+    %     - STIM: CUE l x STIM m
+    %     - STIM: CUE l x STIM l
     %     - CUE: onset01_cue
     %     - EXPECT RATING: onset02_ratingexpect, pmod_expectRT
-    %     - STIM: onset03_stim
     %     - OUTCOME RATING: onset04_ratingoutcome, pmod_outcomeRT
 
     %% 1. load parameters _______________________________________________________
@@ -221,6 +226,7 @@ function s01_glm_6cond(sub, input_dir, main_dir, fmriprep_dir)
         % RUN 01 _________________________________________________________________________
         scans = spm_select('Expand', smooth_nii);
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).scans = cellstr(scans);
+
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).name = 'cue-high_stim-high';
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).onset = double(cue.onset03_stim(highcue(:,1) & highstim(:,1)));
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).duration = double(repelem(1, 12)'); ;
@@ -262,6 +268,27 @@ function s01_glm_6cond(sub, input_dir, main_dir, fmriprep_dir)
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(6).tmod = 0;
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(6).pmod = struct('name', {}, 'param', {}, 'poly', {});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(6).orth = 0;
+
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(7).name = 'CUE';
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(7).onset = double(cue.onset01_cue);
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(7).duration = double(repelem(1, 12)'); ;
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(7).tmod = 0;
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(7).pmod = struct('name', {}, 'param', {}, 'poly', {});
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(7).orth = 0;
+
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(8).name = 'EXPECT_RATING';
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(8).onset = double(cue.onset02_ratingexpect);
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(8).duration = double(cue.pmod_expectRT);
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(8).tmod = 0;
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(8).pmod = struct('name', {}, 'param', {}, 'poly', {});
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(8).orth = 0;
+
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(9).name = 'OUTCOME_RATING';
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(9).onset = double(cue.onset04_ratingoutcome);
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(9).duration = double(cue.pmod_outcomeRT);
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(9).tmod = 0;
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(9).pmod = struct('name', {}, 'param', {}, 'poly', {});
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(9).orth = 0;
 
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).multi = {''};
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).regress = struct('name', {}, 'val', {});
