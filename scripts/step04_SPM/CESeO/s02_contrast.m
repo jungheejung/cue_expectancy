@@ -165,4 +165,5 @@ save( con_batch  ,'matlabbatch');
 spm_jobman('run',matlabbatch);
 clearvars matlabbatch
 
+disp(strcat('FINISH - subject ', sub, ' complete'))
 end
