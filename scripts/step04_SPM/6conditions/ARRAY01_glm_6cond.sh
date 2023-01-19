@@ -1,14 +1,14 @@
 #!/bin/bash -l
 #SBATCH --job-name=glm
 #SBATCH --nodes=1
-#SBATCH --ntasks=16
-#SBATCH --mem-per-cpu=8gb
-#SBATCH --time=06:00:00
+#SBATCH --ntasks=4
+#SBATCH --mem-per-cpu=16gb
+#SBATCH --time=10:00:00
 #SBATCH -o ./log_glm/GLM_%A_%a.o
 #SBATCH -e ./log_glm/GLM_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1-133%10
+#SBATCH --array=4-133
 
 CANLABCORE_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore"
 SPM_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/spm12"
