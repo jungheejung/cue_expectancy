@@ -23,14 +23,14 @@ disp(strcat('[ STEP 01 ] setting parameters...'));
 
 % contrast mapper _______________________________________________________
 keySet = {'pain','vicarious','cognitive'};
-cue_high_gt_low = [1,1,1,-1,-1,-1];
-stimlin_high_gt_low = [1,0,-1,1,0,-1];
-stimquad_med_gt_other = [-1,2,-1,-1,2,-1];
-cue_int_stimlin = [1,0,-1,-1,0,1];
-cue_int_stimquad = [-1,2,-1,1,-2,1];
+cue_high_gt_low         = [1,1,1,-1,-1,-1];
+stimlin_high_gt_low     = [1,0,-1,1,0,-1];
+stimquad_med_gt_other   = [-1,2,-1,-1,2,-1];
+cue_int_stimlin         = [1,0,-1,-1,0,1];
+cue_int_stimquad        = [-1,2,-1,1,-2,1];
 
-con1 = [2 -1 -1];   con2 = [-1 2 -1];  con3 = [-1 -1 2];  con4 = [1 1 1];
-con5 = [1 0 0]; con6 = [0 1 0]; con7 = [0 0 1];
+con1 = [2 -1 -1];   con2 = [-1 2 -1];   con3 = [-1 -1 2];   con4 = [1 1 1];
+con5 = [1 0 0];     con6 = [0 1 0];     con7 = [0 0 1];
 m1 = containers.Map(keySet,con1);
 m2 = containers.Map(keySet,con2);
 m3 = containers.Map(keySet,con3);
