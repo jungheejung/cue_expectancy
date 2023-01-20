@@ -148,6 +148,7 @@ for sub = 1:length(sub_list)
         
     else
         disp(strcat('participant ', sub_list(sub), ' does not have ', 'con', ' nifti file'));
+        continue
     end
     if ~exist(char(fullfile(nps_dir )), 'dir')
         mkdir(char(fullfile(nps_dir)))
