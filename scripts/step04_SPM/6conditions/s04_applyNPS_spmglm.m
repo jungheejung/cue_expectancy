@@ -44,9 +44,7 @@ contrast_name = {'P_VC_cue_high_gt_low', 'V_PC_cue_high_gt_low', 'C_PV_cue_high_
 current_dir = pwd;
 con = strcat('con_', sprintf('%04d', input));
 main_dir = fileparts(fileparts(current_dir));
-%main_dir = '/Volumes/spacetop_projects_social';
-glm_dir - fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_6cond','1stLevel', )
-% glm_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model-03_CEScsA_24dofcsd', '1stLevel');
+glm_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_6cond','1stLevel');
 nps_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_6cond', 'extract_nps');
 d = dir(glm_dir);
 dfolders = d([d(:).isdir]);
@@ -156,6 +154,7 @@ for sub = 1:length(sub_list)
     end
     disp(strcat("complete job", sub_list(sub)));
 end
+    print(group);
     table_fname = fullfile(nps_dir,  strcat('model01_6cond', con, '.csv'));
     writetable(group, table_fname);
     % clear dat meta_nifti test_file
