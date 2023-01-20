@@ -184,7 +184,7 @@ function s01_glm_6cond(sub, input_dir, main_dir, fmriprep_dir)
                     end
                 elseif size(motion_outlier,2) > 20
                     disp(strcat('-- ABORT [!] too many spikes: ', size(motion_outlier,2)));
-                    % break 
+                    continue 
                 end
             else
                 disp("-- there are no motion outliers")
