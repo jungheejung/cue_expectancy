@@ -42,8 +42,10 @@ contrast_name = {'P_VC_cue_high_gt_low', 'V_PC_cue_high_gt_low', 'C_PV_cue_high_
 };
 %% 2. test run
 current_dir = pwd;
+disp(strcat('contrasts num: ', input));
 con = strcat('con_', sprintf('%04d', input));
 %main_dir = fileparts(fileparts(current_dir));
+disp(main_dir);
 glm_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_6cond','1stLevel');
 nps_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_6cond', 'extract_nps');
 d = dir(glm_dir);
@@ -67,8 +69,9 @@ for sub = 1:length(sub_list)
         %
         %% Xiaochun code
         dat = fmri_data(test_file);
-        
-        refmask = fmri_data(which('brainmask.nii'));  % shell image
+        disp(which('brainmask.nii'));        
+        refmask = fmri_data('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask.nii');  % shell image
+
 % glm_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model-03_CEScsA_24dofcsd', '1stLevel');
         nps = which('weights_NSF_grouppred_cvpcr.img');
         npspos = which('weights_NSF_positive_smoothed_larger_than_10vox.img');
@@ -157,7 +160,7 @@ for sub = 1:length(sub_list)
     disp(strcat("complete job", sub_list(sub)));
 end
     disp(group);
-    table_fname = fullfile(nps_dir,  strcat('model01_6cond', con, '.csv'));
+    table_fname = fullfile(nps_dir,  strcat('extract-nps_model01-6cond_',con,'-',contrast_name{input},'.csv'));
     writetable(group, table_fname);
     % clear dat meta_nifti test_file
     
