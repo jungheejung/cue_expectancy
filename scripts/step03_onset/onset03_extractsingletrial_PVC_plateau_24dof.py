@@ -57,13 +57,18 @@ def _extract_bids(fname):
     return sub_num, ses_num, run_num, run_type
 # %% parameters ________________________________________________________________________
 current_dir = os.getcwd()
-main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
-beh_dir = join(main_dir, 'data', 'd02_preproc-beh')
-fsl_dir = join(main_dir, 'data', 'd03_onset', 'onset01_FSL')
-spm_dir = join(main_dir, 'data', 'd03_onset', 'onset02_SPM')
-single_dir = join(main_dir, 'data','d03_onset','onset03_SPMsingletrial_24dof')
-main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social'
-fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/fmriprep'
+main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue
+# beh_dir = join(main_dir, 'data', 'd02_preproc-beh')
+# fsl_dir = join(main_dir, 'data', 'd03_onset', 'onset01_FSL')
+# spm_dir = join(main_dir, 'data', 'd03_onset', 'onset02_SPM')
+# single_dir = join(main_dir, 'data','d03_onset','onset03_SPMsingletrial_24dof')
+beh_dir = join(main_dir, 'data', 'beh', 'beh02_preproc')
+fsl_dir = join(main_dir, 'data', 'fmri01_onset', 'onset01_FSL')
+spm_dir = join(main_dir, 'data', 'fmri01_onset', 'onset02_SPM')
+single_dir = join(main_dir, 'data','fmri01_onset','onset03_SPMsingletrial_24dof')
+
+main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue'
+fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop_data/derivatives/fmriprep/results/fmriprep'
 dict_cue = {'low_cue':-1, 'high_cue':1}
 dict_stim = {'low_stim':-1, 'med_stim':0, 'high_stim':1}
 dict_stim_q = {'low_stim':1, 'med_stim':-2, 'high_stim':1}
