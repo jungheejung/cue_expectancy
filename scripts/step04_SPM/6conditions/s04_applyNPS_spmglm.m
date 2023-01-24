@@ -45,8 +45,7 @@ current_dir = pwd;
 con = strcat('con_', sprintf('%04d', input));
 main_dir = fileparts(fileparts(current_dir));
 %main_dir = '/Volumes/spacetop_projects_social';
-glm_dir - fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_6cond','1stLevel', )
-% glm_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model-03_CEScsA_24dofcsd', '1stLevel');
+glm_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_6cond','1stLevel' );
 nps_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_6cond', 'extract_nps');
 d = dir(glm_dir);
 dfolders = d([d(:).isdir]);
@@ -150,6 +149,7 @@ for sub = 1:length(sub_list)
         
     else
         disp(strcat('participant ', sub_list(sub), ' does not have ', 'con', ' nifti file'));
+        continue
     end
     if ~exist(char(fullfile(nps_dir )), 'dir')
         mkdir(char(fullfile(nps_dir)))
