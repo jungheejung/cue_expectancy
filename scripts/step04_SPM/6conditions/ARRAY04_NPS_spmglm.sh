@@ -8,7 +8,7 @@
 #SBATCH -e ./log_nps/nps_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=4-15,16-34
+#SBATCH --array=4-15,16-50%10
 ## #SBATCH --array=4,5,6,20,21,22
 # SLURM_ARRAY_TASK_ID is the contrast number
 # contrast_name = {'P_VC_cue_high_gt_low', 'V_PC_cue_high_gt_low', 'C_PV_cue_high_gt_low', ...
