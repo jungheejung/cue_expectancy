@@ -24,11 +24,11 @@ lmer_two_factor_cooksd <- function(data, taskname,
       #         full path of filename to save
 
       #   """
-      eval(substitute(iv), data)
-      eval(substitute(dv), data)
-      eval(substitute(subject), data)
-      eval(substitute(model_savefname))
-      model_full <- lmer(as.formula(paste0(dv, "~ ", iv,"*",stim_con1, "+", iv,"*",stim_con2, "+","(1|", subject, ")")), data = data)
+      # eval(substitute(iv), data)
+      # eval(substitute(dv), data)
+      # eval(substitute(subject), data)
+      # eval(substitute(model_savefname))
+      model_full <- lmer(as.formula(reformulate(c(sprintf("%s*%s",iv,stim_con1),sprintf("%s*%s",iv,stim_con2), sprintf("(1|%s)",subject_keyword)),response=dv)), data = data)
       sink(model_savefname)
       print(paste("model: ", str_to_title(dv_keyword), " ratings - ", taskname))
       print(summary(model_full))

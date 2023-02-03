@@ -1,5 +1,5 @@
-lmer_onefactor_cooksd <- function(data, taskname, iv, dv, subject,
-                                  dv_keyword, model_savefname) {
+lmer_onefactor_cooksd <- function(df, taskname, iv, dv, subject_keyword,
+                                  dv_keyword, model_savefname, print_lmer_output) {
 
       #   """
       #   Parameters
@@ -19,12 +19,16 @@ lmer_onefactor_cooksd <- function(data, taskname, iv, dv, subject,
       #   model_savefname:
       #         model save filename
       #   """
-      model_onefactor <- lmer(data[, dv] ~ data[, iv] + (data[, iv] | data[, subject]))
+      library(lme4)
+      model_onefactor <- lmer(as.formula(reformulate(c(iv,sprintf("(%s|%s)",iv,subject_keyword)),response=dv)), data = df)
+      sink(file = model_savefname)
       print(paste("model: ", stringr::str_to_title(dv_keyword), " ratings - ", taskname))
-      print(summary(model_onefactor))
-      sink(model_savefname)
+      print(reformulate(c(iv,sprintf("(%s|%s)",iv,subject_keyword)),response=dv))
       print(summary(model_onefactor))
       sink()
+      if(print_lmer_output == TRUE) {
+      print(summary(model_onefactor))
+      }
       fixEffect <<- as.data.frame(fixef(model_onefactor))
       randEffect <<- as.data.frame(ranef(model_onefactor))
       cooksd <- cooks.distance(model_onefactor)

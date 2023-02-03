@@ -19,7 +19,7 @@ lmer_onefactor_cooksd_fix <- function(dataframe, taskname, iv, dv, subject,
       #   model_savefname:
       #         model save filename
       #   """
-      
+      library(lme4)
       eval(substitute(iv), dataframe)
       eval(substitute(dv), dataframe)
       eval(substitute(subject), dataframe)
