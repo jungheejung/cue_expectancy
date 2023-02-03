@@ -20,10 +20,10 @@ lmer_onefactor_cooksd <- function(df, taskname, iv, dv, subject_keyword,
       #         model save filename
       #   """
       library(lme4)
-      model_onefactor <- lmer(as.formula(reformulate(c(iv,sprintf("(%s|%s)",iv,subject_keyword)),response=dv)), data = df)
+      model_onefactor <- lmer(as.formula(reformulate(c(iv,sprintf("(%s|%s)",iv,subject_keyword)),response=dv)), data = df) #nolint
       sink(file = model_savefname)
-      print(paste("model: ", stringr::str_to_title(dv_keyword), " ratings - ", taskname))
-      print(reformulate(c(iv,sprintf("(%s|%s)",iv,subject_keyword)),response=dv))
+      print(paste("model: ", stringr::str_to_title(dv_keyword), " ratings - ", taskname)) #nolint
+      print(reformulate(c(iv,sprintf("(%s|%s)",iv,subject_keyword)),response=dv)) #nolint
       print(summary(model_onefactor))
       sink()
       if(print_lmer_output == TRUE) {
