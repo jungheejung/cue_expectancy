@@ -6,7 +6,7 @@ function s01_glm_6cond(sub, input_dir, main_dir, fmriprep_dir)
     % cfg_basicio BasicIO - Unknown
     %-----------------------------------------------------------------------
     disp('...STARTING JOBS');
-
+    % TRY
     rootgroup = settings; rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = 'v7.3'
     rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = 'v7.3';
     %-----------------------------------------------------------------------
