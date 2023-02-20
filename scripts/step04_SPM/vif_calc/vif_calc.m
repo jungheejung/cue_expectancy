@@ -5,14 +5,16 @@ function vif_calc(input)
 % 2. plot SCN spm check for event only regressors
 % 3. plot VIF per run
 
-main_dir = cue_input.main_dir;
-glm_dir = cue_input.glm_dir;
-cue_input.glm_modelname = glm_modelname;
-cue_input.fmriprep_dir = fmriprep_dir;
-cue_input.output_dir = fullfile(output_dir, sub_id);
-if not(exist(cue_input.output_dir, 'dir'))
-    mkdir(cue_input.output_dir)
-sub = cue_input.sub_id;
+main_dir = input.main_dir;
+glm_dir = input.glm_dir;
+glm_modelname = input.glm_modelname;
+fmriprep_dir = input.fmriprep_dir;
+smooth_dir = input.smooth_dir;
+output_dir = fullfile(input.output_dir, input.sub_id);
+if not(exist(input.output_dir, 'dir'))
+    mkdir(input.output_dir)
+sub = input.sub_id;
+disp(strcat("vif_calc:", sub));
 %% 1. Check VIF for entire design matrix
 out_all = scn_spm_design_check(fullfile(glm_dir, sub)); %'/Volumes/spacetop_projects_cue/analysis/fmri/spm/univariate/model01_6cond/1stLevel/sub-0078')
 
@@ -25,7 +27,7 @@ out_eventonly = scn_spm_design_check(fullfile(glm_dir, sub), 'events_only' )%'/V
 %% 3. VIF per run _______________________________________________________
 % identify how many runs in SPM
     % find nifti files
-    niilist = dir(fullfile(input_dir, sub, '*/smooth-6mm_*task-cue*_bold.nii'));
+    niilist = dir(fullfile(smooth_dir, sub, '*/smooth-6mm_*task-cue*_bold.nii'));
     nT = struct2table(niilist); % convert the struct array to a table
     sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
 

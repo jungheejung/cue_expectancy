@@ -29,4 +29,4 @@ SUB=(0 13 14 18 19 24 26 28 32 33 35 36 37 38 39 41 47 52 56 57 60 61 62 64 66 6
 PARTICIPANT_LABEL=$(printf "sub-%04d" ${SUB[$((SLURM_ARRAY_TASK_ID - 1 ))]})
 echo ${PARTICIPANT_LABEL}
 module load matlab/r2020a
-matlab -nodisplay -nosplash -batch "addpath('${SPM_DIR}'); addpath(genpath('${CANLABCORE_DIR}')); addpath(genpath('${MAIN_DIR}')); s02_contrast_6cond('${PARTICIPANT_LABEL}', '${INPUT_DIR}', '${MAIN_DIR}');"
+matlab -nodisplay -nosplash -batch "addpath('${SPM_DIR}'); addpath(genpath('${CANLABCORE_DIR}')); addpath(genpath('${MAIN_DIR}')); s02_contrast_6cond_scale('${PARTICIPANT_LABEL}', '${INPUT_DIR}', '${MAIN_DIR}');"
