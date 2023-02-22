@@ -48,7 +48,7 @@ main_dir = Path(current_dir).parents[
     1
 ]  # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
 biopac_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/biopac/'
-beh_dir = os.path.join(main_dir, 'data', 'd02_preproc-beh')
+beh_dir = os.path.join(main_dir, 'data', 'beh02_preproc')
 fsl_dir = os.path.join(main_dir, 'data', 'd03_onset', 'onset01_FSL')
 spm_dir = os.path.join(main_dir, 'data', 'd03_onset', 'onset02_SPM')
 single_dir = os.path.join(main_dir, 'data','d03_onset','onset03_SPMsingletrial')

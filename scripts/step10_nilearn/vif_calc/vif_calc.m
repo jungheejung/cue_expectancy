@@ -13,6 +13,7 @@ smooth_dir = input.smooth_dir;
 output_dir = fullfile(input.output_dir, input.sub_id);
 if not(exist(input.output_dir, 'dir'))
     mkdir(input.output_dir)
+end
 sub = input.sub_id;
 disp(strcat("vif_calc:", sub));
 %% 1. Check VIF for entire design matrix
