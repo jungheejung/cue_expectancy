@@ -37,7 +37,7 @@ def _event_sort(df, new_df, ind_first, ev, ev_name, dur, mod, regressor, cue_typ
 current_dir = os.getcwd()
 main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
 #main_dir = '/Volumes/spacetop_projects_social'
-beh_dir = join(main_dir, 'data', 'beh02_preproc')
+beh_dir = join(main_dir, 'data','beh', 'beh02_preproc')
 fsl_dir = join(main_dir, 'data', 'd03_onset', 'onset01_FSL')
 spm_dir = join(main_dir, 'data', 'd03_onset', 'onset02_SPM')
 single_dir = join(main_dir, 'data','d03_onset','onset03_SPMsingletrial')

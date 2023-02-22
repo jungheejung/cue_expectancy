@@ -132,7 +132,7 @@ current_dir = os.getcwd()
 main_dir = Path(current_dir).parents[1]
 print(main_dir)
 # main_dir = '/Volumes/spacetop_projects_social'
-# beh_dir = os.path.join(main_dir, 'data', 'beh02_preproc')
+# beh_dir = os.path.join(main_dir, 'data','beh', 'beh02_preproc')
 # fsl_dir = os.path.join(main_dir, 'data', 'd03_onset', 'onset01_FSL')
 # spm_dir = os.path.join(main_dir, 'data', 'd03_onset', 'onset02_SPM')
 beh_dir = join(main_dir, 'data', 'beh', 'beh02_preproc')

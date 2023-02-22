@@ -31,15 +31,16 @@ __status__ = "Development"
 # %% directories _____________________________________________________________
 current_dir = os.getcwd()
 main_dir = Path(current_dir).parents[2]
+print(main_dir)
 # data_dir = os.path.join(main_dir, 'data', 'dartmouth', 'd02_preprocessed' )
-data_dir = os.path.join(main_dir, 'data', 'beh02_preproc'  )
+data_dir = os.path.join(main_dir, 'data','beh', 'beh02_preproc')
 child_data = next(os.walk(data_dir))[1]
 remove_int = [1,2,3,4,5]
 remove_list = [f"sub-{x:04d}" for x in remove_int]
 sub_list = [x for x in child_data if x != remove_list]
 
 # %%
-task = 'task-social'
+task = 'task-cue'
 column_list = ['sub','total_run_freq','pain_run_freq','vicarious_run_freq','cognitive_run_freq']
 total_df = pd.DataFrame(columns = column_list)
 flag = []
@@ -48,7 +49,7 @@ flag = []
 for i, sub in enumerate(sorted(sub_list)):
     run_list = []
     try:
-        run_list = glob.glob(os.path.join(data_dir, sub, "**", f"{sub}_*_task-social_*_beh.csv"))
+        run_list = glob.glob(os.path.join(data_dir, sub, "**", f"{sub}_*_beh.csv"))
         total_run_freq = len(run_list)
         p_flist = [p for p in run_list if 'pain' in os.path.basename(p) ]
         v_flist = [v for v in run_list if 'vicarious' in os.path.basename(v) ]
