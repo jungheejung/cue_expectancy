@@ -1,0 +1,381 @@
+# biomarker NPS ~ cue * stim (2022) {#nps_22}
+```
+author: "Heejung Jung"
+date: "6/12/2022"
+output: html_document
+```
+
+## load libraries
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+library(psych)
+library(car)
+library(lme4)
+library(lmerTest)
+library(plyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+library(png)
+library(knitr)
+library(TMB)
+library(sjPlot)
+library(ggpubr)
+library(gridExtra)
+library(merTools)
+library(sjstats) #to get ICC
+library(broom)
+library(tidyverse)
+library(GGally)
+library(RCurl)
+library(rstanarm)
+library(reshape)
+library(boot)
+library(afex)
+library(cowplot)
+library(readr)
+library(rmarkdown)
+library(stringr)
+library(ICC)
+## library(extraoperators)
+##library(JWileymisc)
+##library(multilevelTools)
+library(ggpubr)
+library(PupillometryR) # geom_flat_violin
+source('http://psych.colorado.edu/~jclab/R/mcSummaryLm.R')
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
+source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+                          pattern="*.R", 
+                          full.names=TRUE, 
+                          ignore.case=TRUE)
+sapply(file.sources,source,.GlobalEnv)
+```
+
+### NPS load csv file {.unlisted .unnumbered}
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+c = read.csv("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-NPS_task-cognitive_metadata.csv")
+v = read.csv("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-NPS_task-vicarious_metadata.csv")
+p = read.csv("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-NPS_task-pain_metadata.csv")
+```
+
+### NPS run 2 factor model (task x cue) {.unlisted .unnumbered}
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+pvc <- merge_recurse(list(p,v,c))
+```
+
+### NPS cue effect
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+pvc$task[pvc$run_type == "pain-ptb"] <- "pain"
+pvc$task[pvc$run_type == "pain-plateau"] <- "pain"
+pvc$task[pvc$run_type == "vicarious"] <- "vicarious"
+pvc$task[pvc$run_type == "cognitive"] <- "cognitive"
+#pvc
+subject_varkey <- "subject.1"
+iv1 <- "task"
+iv2 <- "cue_type"
+dv <- "nps"
+dv_keyword <- "NPS"
+subject <- "subject"
+xlab <- ""
+ylab <- "NPS (dot product)"
+ylim <- c(-20,20)
+title <- "cue"
+taskname <- "all tasks"
+exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
+w <- 10
+h <- 6
+main_dir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis'
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "extract_biomarker", "glm_single_cue-effect", as.character(Sys.Date()))
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+
+# [ CONTRASTS ]  ----------------------------------------------------------------------------
+# DATA = cue_stim_contrast(DATA)
+# STIMC1 = "stim_con_linear"
+# STIMC2 = "stim_con_quad"
+
+
+    # [ MODEL ] ----------------------------------------------------------------------------
+
+    
+
+    # summary stats
+    subjectwise <- meanSummary(pvc, c(subject, iv1, iv2), dv)
+    #subjectwise$subject= subjectwise$subject.1
+    groupwise <- summarySEwithin(
+        data = subjectwise,
+        measurevar = "mean_per_sub", # variable created from above
+        withinvars = c(iv1, iv2), # iv
+        idvar = "subject"
+    )
+    if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color <- c("#1B9E77", "#D95F02")
+    } else {
+        color <- c("#4575B4", "#D73027")
+    }
+    subject_mean <- "mean_per_sub"
+    group_mean <- "mean_per_sub_norm_mean"
+    se <- "se"
+    ylim <- c(-20,20)
+    subject <- "subject"
+    ggtitle <- paste(taskname, " (3 tasks x 2 cue) - NPS dot product")
+    title <- paste(taskname, " (3 tasks x 2 cue) - NPS dot product")
+    xlab <- ""
+    ylab <- "NPS (dot product)"
+    plot2_savefname <- file.path(
+        analysis_dir,
+        paste("raincloudplots_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), ".png",
+            sep = ""
+        )
+    )
+    plot_rainclouds_twofactor(
+      subjectwise, groupwise, iv1, iv2, 
+      subject_mean, group_mean, se, subject, 
+      ggtitle, title, xlab, ylab, taskname, ylim,
+      w, h, dv_keyword, color, plot2_savefname)
+
+```
+
+## NPS stim effect
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+pvc$task[pvc$run_type == "pain-ptb"] <- "pain"
+pvc$task[pvc$run_type == "pain-plateau"] <- "pain"
+pvc$task[pvc$run_type == "vicarious"] <- "vicarious"
+pvc$task[pvc$run_type == "cognitive"] <- "cognitive"
+#pvc
+pvc$stim_type <- factor(pvc$stim_type, levels = c("low_stim", "med_stim", "high_stim"))
+subject_varkey <- "subject.1"
+iv1 <- "task"
+iv2 <- "stim_type"
+dv <- "nps"
+dv_keyword <- "NPS"
+subject <- "subject"
+xlab <- ""
+ylab <- "NPS (dot product)"
+ylim <- c(-20,20)
+title <- "stimulus intensity effect"
+taskname <- "all tasks"
+exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
+w <- 10
+h <- 6
+main_dir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect'
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "extract_biomarker", "glm_single_stim-effect", as.character(Sys.Date()))
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+
+# [ CONTRASTS ]  ----------------------------------------------------------------------------
+# DATA = cue_stim_contrast(DATA)
+# STIMC1 = "stim_con_linear"
+# STIMC2 = "stim_con_quad"
+
+
+    # [ MODEL ] ----------------------------------------------------------------------------
+
+    
+
+    # summary stats
+    subjectwise <- meanSummary(pvc, c(subject, iv1, iv2), dv)
+    #subjectwise$subject= subjectwise$subject.1
+    groupwise <- summarySEwithin(
+        data = subjectwise,
+        measurevar = "mean_per_sub", # variable created from above
+        withinvars = c(iv1, iv2), # iv
+        idvar = "subject"
+    )
+    if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color <- c("#1B9E77", "#D95F02", "#D95F02")
+    } else {
+        color <- c("#4575B4", "#FFA500", "#D73027")
+    }
+    subject_mean <- "mean_per_sub"
+    group_mean <- "mean_per_sub_norm_mean"
+    se <- "se"
+    ylim <- c(-20,20)
+    subject <- "subject"
+    ggtitle <- paste(taskname, " (3 tasks x 3 stimulus intensity) - NPS dot product")
+    title <- paste(taskname, " (3 tasks x 3 stimulus intensity) - NPS dot product")
+    xlab <- ""
+    ylab <- "NPS (dot product)"
+    plot2_savefname <- file.path(
+        analysis_dir,
+        paste("raincloudplots_task-", taskname,"_event-",iv2,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), ".png",
+            sep = ""
+        )
+    )
+    plot_rainclouds_twofactor(
+      subjectwise, groupwise, iv1, iv2, 
+      subject_mean, group_mean, se, subject, 
+      ggtitle, title, xlab, ylab, taskname, ylim,
+      w, h, dv_keyword, color, plot2_savefname)
+
+```
+
+
+## VPS
+### VPS load csv file {.unlisted .unnumbered}
+```{r include=FALSE}
+c = read.csv("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-VPS_task-cognitive_metadata.csv")
+v = read.csv("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-VPS_task-vicarious_metadata.csv")
+p = read.csv("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-VPS_task-pain_metadata.csv")
+```
+
+### VPS run 2 factor model (task x cue) {.unlisted .unnumbered}
+```{r include=FALSE}
+vps_pvc <- merge_recurse(list(p,v,c))
+```
+
+## VPS cue effect
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+vps_pvc$task[vps_pvc$run_type == "pain-ptb"] <- "pain"
+vps_pvc$task[vps_pvc$run_type == "pain-plateau"] <- "pain"
+vps_pvc$task[vps_pvc$run_type == "vicarious"] <- "vicarious"
+vps_pvc$task[vps_pvc$run_type == "cognitive"] <- "cognitive"
+#vps_pvc
+subject_varkey <- "subject.1"
+iv1 <- "task"
+iv2 <- "cue_type"
+dv <- "vps"
+dv_keyword <- "VPS"
+subject <- "subject"
+xlab <- ""
+ylab <- "VPS (dot product)"
+ylim <- c(-20,20)
+title <- "cue"
+taskname <- "all tasks"
+exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
+w <- 10
+h <- 6
+main_dir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis'
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "extract_biomarker", "glm_single_cue-effect", as.character(Sys.Date()))
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+
+# [ CONTRASTS ]  ----------------------------------------------------------------------------
+# DATA = cue_stim_contrast(DATA)
+# STIMC1 = "stim_con_linear"
+# STIMC2 = "stim_con_quad"
+
+
+    # [ MODEL ] ----------------------------------------------------------------------------
+
+    
+
+    # summary stats
+    subjectwise <- meanSummary(vps_pvc, c(subject, iv1, iv2), dv)
+    #subjectwise$subject= subjectwise$subject.1
+    groupwise <- summarySEwithin(
+        data = subjectwise,
+        measurevar = "mean_per_sub", # variable created from above
+        withinvars = c(iv1, iv2), # iv
+        idvar = "subject"
+    )
+    if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color <- c("#1B9E77", "#D95F02")
+    } else {
+        color <- c("#4575B4", "#D73027")
+    }
+    subject_mean <- "mean_per_sub"
+    group_mean <- "mean_per_sub_norm_mean"
+    se <- "se"
+    ylim <- c(-20,20)
+    subject <- "subject"
+    ggtitle <- paste(taskname, " (3 tasks x 2 cue) - VPS dot product")
+    title <- paste(taskname, " (3 tasks x 2 cue) - VPS dot product")
+    xlab <- ""
+    ylab <- "VPS (dot product)"
+    plot2_savefname <- file.path(
+        analysis_dir,
+        paste("raincloudplots_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), ".png",
+            sep = ""
+        )
+    )
+    plot_rainclouds_twofactor(
+      subjectwise, groupwise, iv1, iv2, 
+      subject_mean, group_mean, se, subject, 
+      ggtitle, title, xlab, ylab, taskname, ylim,
+      w, h, dv_keyword, color, plot2_savefname)
+
+```
+
+## VPS stim effect
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+
+vps_pvc$task[vps_pvc$run_type == "pain-ptb"] <- "pain"
+vps_pvc$task[vps_pvc$run_type == "pain-plateau"] <- "pain"
+vps_pvc$task[vps_pvc$run_type == "vicarious"] <- "vicarious"
+vps_pvc$task[vps_pvc$run_type == "cognitive"] <- "cognitive"
+#vps_pvc
+vps_pvc$stim_type <- factor(vps_pvc$stim_type, levels = c("low_stim", "med_stim", "high_stim"))
+subject_varkey <- "subject.1"
+iv1 <- "task"
+iv2 <- "stim_type"
+dv <- "vps"
+dv_keyword <- "VPS"
+subject <- "subject"
+xlab <- ""
+ylab <- "NPS (dot product)"
+ylim <- c(-20,20)
+title <- "stimulus intensity effect"
+taskname <- "all tasks"
+exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
+w <- 10
+h <- 6
+main_dir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect'
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "extract_biomarker", "glm_single_stim-effect", as.character(Sys.Date()))
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+
+# [ CONTRASTS ]  ----------------------------------------------------------------------------
+# DATA = cue_stim_contrast(DATA)
+# STIMC1 = "stim_con_linear"
+# STIMC2 = "stim_con_quad"
+
+
+    # [ MODEL ] ----------------------------------------------------------------------------
+
+    
+
+    # summary stats
+    subjectwise <- meanSummary(vps_pvc, c(subject, iv1, iv2), dv)
+    #subjectwise$subject= subjectwise$subject.1
+    groupwise <- summarySEwithin(
+        data = subjectwise,
+        measurevar = "mean_per_sub", # variable created from above
+        withinvars = c(iv1, iv2), # iv
+        idvar = "subject"
+    )
+    if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color <- c("#1B9E77", "#D95F02", "#D95F02")
+    } else {
+        color <- c("#4575B4", "#FFA500", "#D73027")
+    }
+    subject_mean <- "mean_per_sub"
+    group_mean <- "mean_per_sub_norm_mean"
+    se <- "se"
+    ylim <- c(-20,20)
+    subject <- "subject"
+    ggtitle <- paste(taskname, " (3 tasks x 3 stimulus intensity) - VPS dot product")
+    title <- paste(taskname, " (3 tasks x 3 stimulus intensity) - VPS dot product")
+    xlab <- ""
+    ylab <- "VPS (dot product)"
+    plot2_savefname <- file.path(
+        analysis_dir,
+        paste("raincloudplots_task-", taskname,"_event-",iv2,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), ".png",
+            sep = ""
+        )
+    )
+    plot_rainclouds_twofactor(
+      subjectwise, groupwise, iv1, iv2, 
+      subject_mean, group_mean, se, subject, 
+      ggtitle, title, xlab, ylab, taskname, ylim,
+      w, h, dv_keyword, color, plot2_savefname)
+
+```
+

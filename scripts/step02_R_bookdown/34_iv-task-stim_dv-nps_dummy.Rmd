@@ -1,0 +1,261 @@
+# NPSdummy ~ stim * task (contrast-scaled) {#nps_stim_task}
+
+```
+author: "Heejung Jung"
+date: "2023-02-03"
+```
+```{r libraries_nps_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+library(car)
+library(psych)
+library(reshape)
+library(PupillometryR)
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
+source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+                          pattern="*.R", 
+                          full.names=TRUE, 
+                          ignore.case=TRUE)
+sapply(file.sources,source,.GlobalEnv)
+```
+
+## Function {.unlisted .unnumbered}
+```{r function::summary_for_plots_pvc, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+summary_for_plots_PVC <- function(df, groupwise_measurevar, subject_keyword, model_iv1, model_iv2) {
+    df$cue_name[df$cue == "highcue"] <- "high cue"
+    df$cue_name[df$cue == "lowcue"] <- "low cue"
+
+    df$stim_name[df$stim == "highstim"] <- "high"
+    df$stim_name[df$stim == "medstim"] <- "med"
+    df$stim_name[df$stim == "lowstim"] <- "low"
+
+    df$stim_ordered <- factor(
+        df$stim_name,
+        levels = c("low", "med", "high")
+    )
+    df$cue_ordered <- factor(
+        df$cue_name,
+        levels = c("low cue", "high cue")
+    )
+    #  [ PLOT ] calculate mean and se  _________________________
+    subjectwise <- meanSummary(
+        df,
+        c(subject_keyword, model_iv1, model_iv2), dv
+    )
+    groupwise <- summarySEwithin(
+        data = subjectwise,
+        measurevar = groupwise_measurevar,
+        withinvars = c(model_iv1, model_iv2), idvar = subject_keyword
+    )
+
+    #groupwise$task <- taskname
+    return(list(subjectwise,groupwise))
+}
+```
+
+```{r function::simple_contrasts, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+simple_contrasts <- function(df) {
+# [ CONTRASTS ]  ________________________________________________________________________________ # nolint
+# contrast code ________________________________________
+df$stim_factor <- factor(df$stim)
+
+# contrast code 1 linear
+df$stim_con_linear[df$stim == "lowstim"] <-  -0.5
+df$stim_con_linear[df$stim == "medstim"] <-  0
+df$stim_con_linear[df$stim == "highstim"] <-  0.5
+
+# contrast code 2 quadratic
+df$stim_con_quad[df$stim == "lowstim"] <-  -0.33
+df$stim_con_quad[df$stim == "medstim"] <-  0.66
+df$stim_con_quad[df$stim == "highstim"] <-  -0.33
+
+# cue contrast
+df$cue_con[df$cue == "lowcue"] <-  -0.5 # social influence task
+df$cue_con[df$cue == "highcue"] <-  0.5 # no influence task
+return(df)
+}
+```
+
+```{r function::NPS_lineplot_34, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+two_factor_lineplot <-
+  function(df, iv1, iv2, mean, error, xlab, ylab) {
+    g <- ggplot(
+      data = df,
+      aes(
+        x = .data[[iv1]],
+        y = .data[[mean]],
+        group = factor(.data[[iv2]]),
+        color = factor(.data[[iv2]])
+      ),
+      cex.lab = 1.5,
+      cex.axis = 2,
+      cex.main = 1.5,
+      cex.sub = 1.5
+    ) +
+      geom_errorbar(aes(
+        ymin = (.data[[mean]] - .data[[error]]),
+        ymax = (.data[[mean]] + .data[[error]])
+      ), width = .1) +
+      geom_line() +
+      geom_point() +
+      ggtitle(ggtitle) +
+      xlab(xlab) +
+      ylab(ylab) +
+      #scale_color_manual(values = color) +
+      theme_classic() +
+      
+      theme(aspect.ratio = .6) +
+      expand_limits(x = 3.25) +
+      #guides(fill = "none") +
+      #guides(color = TRUE) +
+      #guides(fill = guide_legend(title = "title")) +
+      #scale_fill_manual(values = color) +
+      scale_color_manual("",
+                         values =  c(
+                           "pain" = "#941100",
+                           "vicarious" = "#008F51",
+                           "cognitive" = "#011891"
+                         )) +
+      theme(
+        legend.position = c(.99, .99),
+        legend.justification = c("right", "top"),
+        legend.box.just = "right",
+        legend.margin = margin(6, 6, 6, 6)
+      ) +
+      theme(legend.key = element_rect(fill = "white", colour = "white"))
+    
+    return(g)
+  }
+```
+
+
+## Common parameters {.unlisted .unnumbered}
+```{r common_parameters_34, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+main_dir = dirname(dirname(getwd()))
+datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
+analysis_dir = file.path(main_dir,'analysis','mixedeffect','model34_iv-stim_dv-nps-dummy',as.character(Sys.Date())  )
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+savedir <- analysis_dir
+
+npsdir = file.path(main_dir,'analysis','fmri','spm','univariate','model01_6cond','extract_nps')
+```
+
+
+```{r load_df_stack_34, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+pain_keys <- list(contrast_name = "P_simple", taskname = "pain",con_list = c(32,33,34,35,36,37), npsdir = npsdir)
+vicarious_keys <- list(contrast_name = "V_simple", taskname = "vicarious",con_list = c(38,39,40,41,42,43), npsdir = npsdir)
+cog_keys <- list(contrast_name = "C_simple", taskname = "cognitive", con_list = c(44,45,46,47,48,49), npsdir = npsdir)
+
+p = NPS_load_df(pain_keys)
+v = NPS_load_df(vicarious_keys)
+c = NPS_load_df(cog_keys)
+pvc <- reshape::merge_recurse(list(p,v,c))
+```
+
+```{r include=FALSE}
+pvc <- simple_contrasts(pvc)
+```
+
+```{r pvc_summary, include=FALSE}
+subject_varkey <- "subject"
+iv1 <- "task"
+iv2 <- "stim_ordered"
+dv <- "nps"
+taskname = "all"
+dv_keyword <- "NPS"
+subject <- "subject"
+xlab <- ""
+ylab <- "NPS (dot product)"
+ylim <- c(-20,20)
+title <- "stim"
+#taskname <- "all tasks"
+exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
+```
+
+```{r plotting_parameters_34, include=FALSE}
+
+plot_keys <- list(sub_mean = "mean_per_sub",group_mean = "mean_per_sub_norm_mean", se = "se",
+    subject = "subject", taskname = taskname,
+    ggtitle = paste(taskname, " - NPS (dot prodcut) Cooksd removed"),
+    title = paste(taskname, " - Actual"),
+    xlab = "",
+    ylab = "ratings (degree)",
+    ylim = c(-250,500),
+    dv_keyword = "NPS",
+    w = 10,
+    h = 6,
+    plot_savefname = file.path(
+        analysis_dir,
+        paste("raincloud_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), "_cooksd.png",
+            sep = ""
+        )
+    ),
+    model_iv1 ="stim_ordered",
+    model_iv2 = "cue_ordered")
+```
+
+
+```{r summary_pvc, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+
+groupwise = data.frame()
+subjectwise = data.frame()
+summary <- summary_for_plots_PVC(df = pvc, 
+                             #taskname = taskname, 
+                             groupwise_measurevar = "mean_per_sub",
+                             subject_keyword = "subject",
+                             model_iv1 = "task",
+                             model_iv2 = "stim_ordered")
+subjectwise <- as.data.frame(summary[[1]])
+groupwise <-as.data.frame(summary[[2]])
+    if (any(startsWith(plot_keys$dv_keyword, c("expect", "Expect")))) {
+        color <- c("#1B9E77", "#D95F02")
+    } else {
+        color <- c("#4575B4", "#D73027")
+    } 
+```
+
+## Raincloud plots
+```{r plot_PVC, echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+    if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color <- c("#1B9E77", "#D95F02", "#D95F02")
+    } else {
+        color <- c("#4575B4", "#FFA500", "#D73027")
+    }
+    subject_mean <- "mean_per_sub"
+    group_mean <- "mean_per_sub_norm_mean"
+    se <- "se"
+    ylim <- c(-50,50)
+    subject <- "subject"
+    ggtitle <- paste(taskname, " (3 tasks x 3 stimulus intensity) - NPS dot product")
+    title <- paste(taskname, " (3 tasks x 3 stimulus intensity) - NPS dot product")
+    xlab <- ""
+    ylab <- "NPS (dot product)"
+    plot2_savefname <- file.path(
+        analysis_dir,
+        paste("raincloudplots_task-", taskname,"_event-",iv2,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), ".png",
+            sep = ""
+        )
+    )
+    plot_rainclouds_twofactor(
+      subjectwise, groupwise, iv1, iv2, 
+      subject_mean, group_mean, se, subject, 
+      ggtitle, title, xlab, ylab, taskname, ylim,
+      w = plot_keys$w, h = plot_keys$h, dv_keyword, color, plot2_savefname)
+```
+
+## Line plots
+```{r lineplot_PVC, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+g<-two_factor_lineplot(df = groupwise,  iv1 = "stim_ordered",iv2 = "task", mean = "mean_per_sub_norm_mean", error = "se",
+                       xlab = "stimulus intensity",
+                       ylab = dv)
+g
+```
+
+
+

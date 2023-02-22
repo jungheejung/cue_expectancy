@@ -1,0 +1,533 @@
+# nps_dummy ~ stim {#nps_stim}
+
+
+<!-- --- -->
+<!-- title: "nps_dummy ~ stim" -->
+<!-- author: "Heejung Jung" -->
+<!-- date: "2023-01-26" -->
+<!-- output: html_document -->
+<!-- --- -->
+
+## TODO
+* stack all stimulus dummy files
+* treat it like a within subjct analysis
+
+## regressors and contrasts
+### What regressors were used in the neural model and how did you create contrasts? {.unlisted .unnumbered}
+This Rmd is based on the univariate analysis mainly using 2 factors (cue x stimulus intensity). 
+
+* The 6 regressors of interest are 
+  1. high-cue_high-stim 
+  1. high-cue_med-stim 
+  1. high-cue_low-stim
+  1. low-cue_high-stim 
+  1. low-cue_med-stim
+  1. low-cue_low-stim. 
+  If interested, the variable of interest is coded "`onset03_stim`" in the behavioral data. 
+
+* Additional regressors include 7) cue_onset "`onset01_cue`", 8) onset of the expectation rating phase "`onset02_ratingexpect`" convolved with the reaction time of the expectation rating "`pmod_expectRT`", and 9) onset of the outcome rating phase "`onset04_ratingoutcome`", convolved with the reaction time of the outcome rating "`pmod_outcomeRT`". 
+* Motion covariates include a) csf, b) 24 DOF head motion variables, and c) spikes derived using a FD-spike-threshold of 0.9mm. Participants with a motion spike of more than 20 per run is excluded from the analysis. 
+For the 6 regressors of interest, I build 5 contrasts that capture the cue effect, the stimulus intensity effect, and the interaction of these two factors.
+
+```{r load_libraries_33_nonscaled, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+library(psych)
+library(car)
+library(stringr)
+library(ggplot2)
+library(lme4)
+library(lmerTest)
+library(dplyr)
+library(equatiomatic)
+library(plyr)
+library(gghalves)
+library(PupillometryR)
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
+file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+                          pattern="*.R", 
+                          full.names=TRUE, 
+                          ignore.case=TRUE)
+source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+sapply(file.sources,source,.GlobalEnv)
+```
+
+
+
+## Functions
+
+```{r function::load_and_vstack_nonscaled, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+load_and_vstack <- function(keys) {
+df = data.frame()
+contrast_df = data.frame()
+groupwise = data.frame()
+subjectwise = data.frame()
+print(keys$contrast_name)
+for (conname in keys$con_list) {
+  contrast_df = data.frame()
+  fpath = Sys.glob(file.path(
+    keys$npsdir,paste0('extract-nps_model01-6cond_',sprintf("con_%04d", conname),'*',keys$contrast_name,'*.csv'
+    )
+  ))
+  fname = basename(fpath)
+  contrast_df = read.csv(fpath)
+  pattern <- paste0(keys$contrast_name, "_\\s*(.*?)\\s*", ".csv")
+  conname <- regmatches(fname, regexec(pattern, fname))[[1]][2]
+  cuelevel <- strsplit(conname, "_")[[1]][1]
+  stimlevel <- strsplit(conname, "_")[[1]][2]
+  contrast_df$conname = conname
+  contrast_df$cue = cuelevel
+  contrast_df$stim = stimlevel
+  contrast_df$task = keys$taskname
+  df = rbind(df, contrast_df)
+  
+}
+return(df)
+}
+```
+
+```{r function::simple_contrasts_nonscaled, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+simple_contrasts <- function(df) {
+# [ CONTRASTS ]  ________________________________________________________________________________ # nolint
+# contrast code ________________________________________
+df$stim_factor <- factor(df$stim)
+
+# contrast code 1 linear
+df$stim_con_linear[df$stim == "lowstim"] <-  -0.5
+df$stim_con_linear[df$stim == "medstim"] <-  0
+df$stim_con_linear[df$stim == "highstim"] <-  0.5
+
+# contrast code 2 quadratic
+df$stim_con_quad[df$stim == "lowstim"] <-  -0.33
+df$stim_con_quad[df$stim == "medstim"] <-  0.66
+df$stim_con_quad[df$stim == "highstim"] <-  -0.33
+
+# cue contrast
+df$cue_con[df$cue == "lowcue"] <-  -0.5 # social influence task
+df$cue_con[df$cue == "highcue"] <-  0.5 # no influence task
+return(df)
+}
+```
+
+```{r function::summary_for_plots_nonscaled, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+summary_for_plots <- function(df, taskname, groupwise_measurevar, subject_keyword, model_iv1, model_iv2) {
+    df$cue_name[df$cue == "highcue"] <- "high cue"
+    df$cue_name[df$cue == "lowcue"] <- "low cue"
+
+    df$stim_name[df$stim == "highstim"] <- "high"
+    df$stim_name[df$stim == "medstim"] <- "med"
+    df$stim_name[df$stim == "lowstim"] <- "low"
+
+    df$stim_ordered <- factor(
+        df$stim_name,
+        levels = c("low", "med", "high")
+    )
+    df$cue_ordered <- factor(
+        df$cue_name,
+        levels = c("low cue", "high cue")
+    )
+    #model_iv1 <- "stim_ordered"
+    #model_iv2 <- "cue_ordered"
+
+    #  [ PLOT ] calculate mean and se  _________________________
+    subjectwise <- meanSummary(
+        df,
+        c(subject_keyword, model_iv1, model_iv2), dv
+    )
+    groupwise <- summarySEwithin(
+        data = subjectwise,
+        measurevar = groupwise_measurevar,
+        withinvars = c(model_iv1, model_iv2), idvar = subject_keyword
+    )
+
+    groupwise$task <- taskname
+    return(list(subjectwise,groupwise))
+}
+```
+
+```{r nps_dummy_common parameters_nonscaled}
+main_dir = dirname(dirname(getwd()))
+datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
+analysis_dir = file.path(main_dir,'analysis','mixedeffect','model13_iv-stim_dv-nps-dummy',as.character(Sys.Date())  )
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+savedir <- analysis_dir
+
+npsdir = file.path(main_dir,'analysis','fmri','spm','univariate','model01_6cond_nonscaled','extract_nps')
+model = 'nps'; model_keyword = "nps"
+subjectwise_mean = "mean_per_sub"; group_mean = "mean_per_sub_norm_mean"; se = "se"
+# iv = "contrast"; subject = "subject"
+# dv = "nps"; dv_keyword = "nps_dot_product"
+ylim = c(-800, 800)
+xlab = "contrasts "; ylab = "NPS dotproduct"
+ggtitle = paste0(model_keyword,
+                   " :: extracted NPS value for stimulus intensity wise contrast")
+legend_title = "Contrasts"
+color_scheme <- c("Pain > VC" = "#941100",
+         "Vicarious > PC" = "#008F51",
+         "Cog > PV" = "#011891")
+
+```
+
+```{r}
+pain_nps <- list(model = 'nps', model_keyword = "nps",
+                 subjectwise_mean = "mean_per_sub", group_mean = "mean_per_sub_norm_mean", se = "se",
+                 ylim = c(-800, 800),xlab = "contrasts", ylab = "NPS dotproduct")
+#class(studentBio) <- "StudentInfo"
+pain_nps
+```
+
+## Pain
+* from con_0032 ~ con_0037
+```{r pain_vstak_33_nonscaled, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+df = data.frame()
+contrast_df = data.frame()
+groupwise = data.frame()
+subjectwise = data.frame()
+contrast_name = 'P_simple'
+taskname = 'pain'
+for (conname in c(32, 33, 34, 35, 36, 37)) {
+  contrast_df = data.frame()
+  fpath = Sys.glob(file.path(
+    npsdir,paste0('extract-nps_model01-6cond_',sprintf("con_%04d", conname),'*',contrast_name,'*.csv'
+    )
+  ))
+  fname = basename(fpath)
+  contrast_df = read.csv(fpath)
+  pattern <- paste0(contrast_name, "_\\s*(.*?)\\s*", ".csv")
+  conname <- regmatches(fname, regexec(pattern, fname))[[1]][2]
+  cuelevel <- strsplit(conname, "_")[[1]][1]
+  stimlevel <- strsplit(conname, "_")[[1]][2]
+  contrast_df$conname = conname
+  contrast_df$cue = cuelevel
+  contrast_df$stim = stimlevel
+  df = rbind(df, contrast_df)
+}
+```
+
+```{r P_simple_contrasts_nonscaled, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+# [ CONTRASTS ]  ________________________________________________________________________________ # nolint
+# contrast code ________________________________________
+df$stim_factor <- factor(df$stim)
+
+# contrast code 1 linear
+df$stim_con_linear[df$stim == "lowstim"] <-  -0.5
+df$stim_con_linear[df$stim == "medstim"] <-  0
+df$stim_con_linear[df$stim == "highstim"] <-  0.5
+
+# contrast code 2 quadratic
+df$stim_con_quad[df$stim == "lowstim"] <-  -0.33
+df$stim_con_quad[df$stim == "medstim"] <-  0.66
+df$stim_con_quad[df$stim == "highstim"] <-  -0.33
+
+# social cude contrast
+df$cue_con[df$cue == "lowcue"] <-  -0.5 # social influence task
+df$cue_con[df$cue == "highcue"] <-  0.5 # no influence task
+
+
+stim_con1 <- "stim_con_linear"
+stim_con2 <- "stim_con_quad"
+iv1 <- "cue_con"
+dv <- "nps"
+dv_keyword = "nps-dotproduct"
+subject_keyword = "subject"
+```
+
+```{r P_simple_run_model_nonscaled, echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+model_savefname <- file.path(
+  analysis_dir,
+  paste0("lmer_task-",taskname,"_rating-",dv_keyword,"_",as.character(Sys.Date()),"_cooksd.txt"
+  )
+)
+
+cooksd <- lmer_two_factor_cooksd_fix(
+  df,  taskname,  iv1,  stim_con1,  stim_con2,  dv,  subject_keyword = "subject",  dv_keyword,  model_savefname,
+  effects = 'random_intercept', print_lmer_output = "TRUE")
+influential <- as.numeric(names(cooksd)[(cooksd > (4 / as.numeric(length(
+  unique(df$subject)
+))))])
+data_screen <- df[-influential,]
+```
+
+```{r rendering for plots_nonscaled }
+    data_screen$cue_name[data_screen$cue == "highcue"] <- "high cue"
+    data_screen$cue_name[data_screen$cue == "lowcue"] <- "low cue"
+
+    data_screen$stim_name[data_screen$stim == "highstim"] <- "high"
+    data_screen$stim_name[data_screen$stim == "medstim"] <- "med"
+    data_screen$stim_name[data_screen$stim == "lowstim"] <- "low"
+
+    data_screen$stim_ordered <- factor(
+        data_screen$stim_name,
+        levels = c("low", "med", "high")
+    )
+    data_screen$cue_ordered <- factor(
+        data_screen$cue_name,
+        levels = c("low cue", "high cue")
+    )
+    model_iv1 <- "stim_ordered"
+    model_iv2 <- "cue_ordered"
+
+    #  [ PLOT ] calculate mean and se  _________________________
+    actual_subjectwise <- meanSummary(
+        data_screen,
+        c(subject_keyword, model_iv1, model_iv2), dv
+    )
+    actual_groupwise <- summarySEwithin(
+        data = actual_subjectwise,
+        measurevar = "mean_per_sub",
+        withinvars = c(model_iv1, model_iv2), idvar = subject_keyword
+    )
+    nps_groupwise <- summarySEwithin(
+        data = data_screen,
+        measurevar = "nps",
+        withinvars = c(model_iv1, model_iv2), idvar = subject_keyword
+    )
+    actual_groupwise$task <- taskname
+```
+
+```{r ggplot_pain_33_nonscaled, echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+    sub_mean <- "mean_per_sub"
+    group_mean <- "mean_per_sub_norm_mean"
+    se <- "se"
+    subject <- "subject"
+    ggtitle <- paste(taskname, " - NPS (dot prodcut) Cooksd removed")
+    title <- paste(taskname, " - Actual")
+    xlab <- ""
+    ylab <- "ratings (degree)"
+    ylim <- c(-250,500) #NULL
+    dv_keyword <- "actual"
+    if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color <- c("#1B9E77", "#D95F02")
+    } else {
+        color <- c("#4575B4", "#D73027")
+    } # if keyword starts with
+        w <- 10
+    h <- 6
+    plot_savefname <- file.path(
+        analysis_dir,
+        paste("raincloud_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), "_cooksd.png",
+            sep = ""
+        )
+    )
+    g <- plot_halfrainclouds_twofactor(
+        actual_subjectwise, actual_groupwise, model_iv1, model_iv2,
+        sub_mean, group_mean, se, subject = subject_keyword,
+        ggtitle, title, xlab, ylab, taskname,ylim,
+        w, h, dv_keyword, color, plot_savefname
+    )
+
+g
+```
+
+
+```{r}
+# classwise <- meanSummary(merge_df,
+#                          c(subject_keyword, iv), dv)
+# groupwise <- summarySEwithin(data = classwise,
+#                              measurevar = subjectwise_mean,
+#                              withinvars = c(iv))
+# 
+# subjectwise = subset(classwise, select = -c(sd))
+```
+
+
+## Vicarious
+* from con_0038 ~ con_0043
+
+```{r vicarious_keys_33_nonscaled, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+vic_keys <- list(contrast_name = "V_simple", taskname = "vicarious",con_list = c(38,39,40,41,42,43),
+stim_con1 = "stim_con_linear",stim_con2 = "stim_con_quad",iv1 = "cue_con",dv = "npspos",dv_keyword = "npspos",subject_keyword = "subject", npsdir = npsdir)
+
+
+con_list = c(44,45,46,47,48,49)
+stim_con1 <- "stim_con_linear"
+stim_con2 <- "stim_con_quad"
+iv1 <- "cue_con"
+dv <- "npspos"
+dv_keyword = "npspos"
+subject_keyword = "subject"
+model_savefname <- file.path(
+  analysis_dir,
+  paste0("lmer_task-",vic_keys$taskname,"_rating-",vic_keys$dv_keyword,"_",as.character(Sys.Date()),"_cooksd.txt"
+  )
+)
+
+
+```
+
+```{r vicarious_cooksd_33_nonscaled, echo=FALSE, message=FALSE, paged.print=FALSE}
+
+df <- load_and_vstack(vic_keys)
+df <- simple_contrasts(df)
+cooksd <- lmer_two_factor_cooksd_fix(
+  df,  taskname,  iv1,  stim_con1,  stim_con2,  dv,  subject_keyword = "subject",  dv_keyword,  model_savefname,
+  effects = 'random_intercept', print_lmer_output = "TRUE")
+influential <- as.numeric(names(cooksd)[(cooksd > (4 / as.numeric(length(
+  unique(df$subject)
+))))])
+data_screen <- df[-influential,]
+```
+```{r vicarious_plotkeys, include=FALSE}
+
+plot_keys <- list(sub_mean = "mean_per_sub",group_mean = "mean_per_sub_norm_mean",    se = "se",
+    subject = "subject", taskname = "vicarious",
+    ggtitle = paste(vic_keys$taskname, " - NPS (dot prodcut) Cooksd removed"),
+    title = paste(vic_keys$taskname, " - Actual"),
+    xlab = "",
+    ylab = "ratings (degree)",
+    ylim = c(-250,500),
+    dv_keyword = "actual",
+    w = 10,
+    h = 6,
+    plot_savefname = file.path(
+        analysis_dir,
+        paste("raincloud_task-", vic_keys$taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), "_cooksd.png",
+            sep = ""
+        )
+    ),
+    model_iv1 ="stim_ordered",
+    model_iv2 = "cue_ordered")
+```
+
+```{r vicarious_plot_33_nonscaled, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+summary <- summary_for_plots(df = data_screen, 
+                             taskname = taskname, 
+                             groupwise_measurevar = "mean_per_sub",
+                             subject_keyword = "subject",
+                             model_iv1 = "stim_ordered",
+                             model_iv2 = "cue_ordered")
+subjectwise <- as.data.frame(summary[[1]])
+groupwise <-as.data.frame(summary[[2]])
+    if (any(startsWith(plot_keys$dv_keyword, c("expect", "Expect")))) {
+        color <- c("#1B9E77", "#D95F02")
+    } else {
+        color <- c("#4575B4", "#D73027")
+    } 
+g <- plot_halfrainclouds_twofactor(
+        subjectwise, groupwise, plot_keys$model_iv1, plot_keys$model_iv2,
+        plot_keys$sub_mean, plot_keys$group_mean, plot_keys$se, subject = plot_keys$subject,
+        plot_keys$ggtitle, plot_keys$title, plot_keys$xlab, plot_keys$ylab, plot_keys$taskname,plot_keys$ylim,
+        plot_keys$w, plot_keys$h, plot_keys$dv_keyword, color, plot_keys$plot_savefname
+    )
+
+g
+```
+
+## Cognitive
+* from con_0044 ~ con_0049
+```{r cognitive_keys_33_nonscaled, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+cog_keys <- list(contrast_name = "C_simple", taskname = "cognitive",con_list = c(44,45,46,47,48,49),
+stim_con1 = "stim_con_linear",stim_con2 = "stim_con_quad",iv1 = "cue_con",dv = "npspos",dv_keyword = "npspos",subject_keyword = "subject"
+, npsdir = npsdir)
+contrast_name = 'C_simple'
+taskname = 'cognitive'
+con_list = c(44,45,46,47,48,49)
+stim_con1 <- "stim_con_linear"
+stim_con2 <- "stim_con_quad"
+iv1 <- "cue_con"
+dv <- "npspos"
+dv_keyword = "npspos"
+subject_keyword = "subject"
+model_savefname <- file.path(
+  analysis_dir,
+  paste0("lmer_task-",cog_keys$taskname,"_rating-",cog_keys$dv_keyword,"_",as.character(Sys.Date()),"_cooksd.txt"
+  )
+)
+
+
+```
+
+```{r cognitive_cooksd_33_nonscaled, echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+
+df <- load_and_vstack(cog_keys)
+df <- simple_contrasts(df)
+cooksd <- lmer_two_factor_cooksd_fix(
+  df,  taskname,  iv1,  stim_con1,  stim_con2,  dv,  subject_keyword = "subject",  dv_keyword,  model_savefname,
+  effects = 'random_intercept', print_lmer_output = "TRUE")
+influential <- as.numeric(names(cooksd)[(cooksd > (4 / as.numeric(length(
+  unique(df$subject)
+))))])
+data_screen <- df[-influential,]
+```
+```{r cognitive_plotkeys_33, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+
+plot_keys <- list(sub_mean = "mean_per_sub",group_mean = "mean_per_sub_norm_mean",    se = "se",
+    subject = "subject",
+    ggtitle = paste(taskname, " - NPS (dot prodcut) Cooksd removed"),
+    title = paste(taskname, " - Actual"),
+    xlab = "",
+    ylab = "ratings (degree)",
+    ylim = c(-250,500),
+    dv_keyword = "actual",
+    w = 10,
+    h = 6,
+    plot_savefname = file.path(
+        analysis_dir,
+        paste("raincloud_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), "_cooksd.png",
+            sep = ""
+        )
+    ),
+    model_iv1 ="stim_ordered",
+    model_iv2 = "cue_ordered")
+
+
+    if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color <- c("#1B9E77", "#D95F02")
+    } else {
+        color <- c("#4575B4", "#D73027")
+    }
+    sub_mean <- "mean_per_sub"
+    group_mean <- "mean_per_sub_norm_mean"
+    se <- "se"
+    subject <- "subject"
+    ggtitle <- paste(taskname, " - NPS (dot prodcut) Cooksd removed")
+    title <- paste(taskname, " - Actual")
+    xlab <- ""
+    ylab <- "ratings (degree)"
+    ylim <- c(-250,500) #NULL
+    dv_keyword <- "actual"
+    if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color <- c("#1B9E77", "#D95F02")
+    } else {
+        color <- c("#4575B4", "#D73027")
+    } # if keyword starts with
+        w <- 10
+    h <- 6
+    plot_savefname <- file.path(
+        analysis_dir,
+        paste("raincloud_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), "_cooksd.png",
+            sep = ""
+        )
+    )
+    model_iv1 <-"stim_ordered"
+    model_iv2 <- "cue_ordered"
+```
+
+```{r cognitive_plot_33_nonscaled, echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+summary <- summary_for_plots(df = data_screen, 
+                             taskname = taskname, 
+                             groupwise_measurevar = "mean_per_sub",
+                             subject_keyword = "subject",
+                             model_iv1 = "stim_ordered",
+                             model_iv2 = "cue_ordered")
+subjectwise <- as.data.frame(summary[[1]])
+groupwise <-as.data.frame(summary[[2]])
+
+g <- plot_halfrainclouds_twofactor(
+        subjectwise, groupwise, model_iv1, model_iv2,
+        sub_mean, group_mean, se, subject = subject_keyword,
+        ggtitle, title, xlab, ylab, taskname,ylim,
+        w, h, dv_keyword, color, plot_savefname
+    )
+
+g
+```
+

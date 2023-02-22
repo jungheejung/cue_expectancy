@@ -1,0 +1,292 @@
+# outcome_rating ~ cue {#ch03_cue}
+
+## What is the purpose of this notebook? 
+Here, I plot the outcome ratings as a function of cue. 
+* Main model: `lmer(outcome_rating ~ cue)` 
+* Main question: do outcome ratings differ as a function of cue type? 
+* If there is a main effect of cue on outcome ratings, does this cue effect differ depending on task type?
+* IV: cue (high / low)
+* DV: outcome rating
+
+FIX: plot statistics in random effect plot - what is broken?
+
+```{r load_libraries_2, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+library(psych)
+library(car)
+library(lme4)
+library(lmerTest)
+library(plyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+library(png)
+library(knitr)
+library(TMB)
+library(sjPlot)
+library(ggpubr)
+library(gridExtra)
+library(merTools)
+library(sjstats) #to get ICC
+library(broom)
+library(tidyverse)
+library(GGally)
+library(RCurl)
+library(rstanarm)
+library(reshape)
+library(boot)
+library(afex)
+library(cowplot)
+library(readr)
+library(rmarkdown)
+library(stringr)
+library(ICC)
+library(gghalves)
+## library(extraoperators)
+##library(JWileymisc)
+##library(multilevelTools)
+library(ggpubr)
+library(PupillometryR) # geom_flat_violin
+#source('http://psych.colorado.edu/~jclab/R/mcSummaryLm.R')
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
+source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+                          pattern="*.R", 
+                          full.names=TRUE, 
+                          ignore.case=TRUE)
+sapply(file.sources,source,.GlobalEnv)
+```
+
+```{r parameters_2, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+main_dir = dirname(dirname(getwd()))
+print(main_dir)
+datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
+```
+
+```{r common_parameters_2, message=FALSE, warning=FALSE, paged.print=FALSE}
+# parameters _____________________________________ # nolint
+subject_varkey <- "src_subject_id"
+iv <- "param_cue_type"; iv_keyword <- "cue"; dv <- "event04_actual_angle"; dv_keyword <- "outcome"
+xlab <- ""; ylim = c(0,180); ylab <- "ratings (degree)"
+subject <- "subject"
+exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
+subjectwise_mean <- "mean_per_sub"; group_mean <- "mean_per_sub_norm_mean"; se <- "se"
+color_scheme <-     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color_scheme <- c("#1B9E77", "#D95F02")
+    } else {
+        color_scheme <- c("#4575B4", "#D73027")
+    }
+print_lmer_output <- FALSE
+ggtitle_phrase <- " - Outcome Rating (degree)"
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model02_iv-cue_dv-outcome", as.character(Sys.Date()))
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+```
+
+```{r ggplotfunction_2, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+ggplot_onefactor_pertask <- function(taskname, subject_varkey, subject, exclude,
+                                     analysis_dir, iv, iv_keyword, dv, dv_keyword, 
+                                     subjectwise_mean, group_mean, se,
+                                     xlab, ylim, ylab, ggtitle_phrase, print_lmer_output) {
+    ## designate where the lmer output lives
+    model_savefname <- file.path(
+        analysis_dir,paste("lmer_task-", taskname,"_iv-", iv_keyword, "_dv-rating-", dv_keyword,"_", as.character(Sys.Date()), ".txt",
+            sep = ""))
+      
+    ## load data, run model, and exclude outliers
+    data <- load_task_social_df(datadir, taskname, subject_varkey, iv, dv, exclude)
+    data$subject = factor(data$src_subject_id)
+    data = data[!is.na(data[, dv] ),] # removing NA values
+    #print(length(unique(data$subject)))
+
+    cooksd <- lmer_onefactor_cooksd(data, taskname, iv, dv, subject, dv_keyword, model_savefname, print_lmer_output) # run lmer
+    influential <- as.numeric(names(cooksd)[
+    (cooksd > (4 / as.numeric(length(unique(data$subject)))))])
+    data_screen <- data[-influential, ]
+    
+    ## summary statistics
+    subjectwise <- meanSummary(data_screen, c(subject, iv), dv)
+    groupwise <- summarySEwithin(
+        data = subjectwise,
+        measurevar = subjectwise_mean, # variable created from above
+        withinvars = c(iv), # iv
+        idvar = "subject"
+    )
+    
+    ## designate plot save location
+    ggtitle <- paste0(str_to_title(taskname), ggtitle_phrase, " N = (", length(unique(data$subject)), ")");  
+    title <- paste0(str_to_title(taskname), " - ", str_to_title(dv_keyword))
+    w = 5; h = 3; 
+    plot_savefname <- file.path(analysis_dir,
+                                paste0("raincloud_task", taskname,"iv-", iv_keyword, "_dv-rating-", dv_keyword,"_", as.character(Sys.Date()), ".png")
+                                )
+    
+    # plot_rainclouds_onefactor
+    p1 <- plot_halfrainclouds_onefactor(
+        subjectwise, groupwise,
+        iv, subjectwise_mean, group_mean, se, subject,
+        ggtitle, title, xlab, ylab, task_name,ylim,
+        w, h, dv_keyword, color_scheme, plot_savefname
+    )
+randEffect$newcoef <- mapvalues(randEffect$term,
+    from = c(as.character(unique(randEffect$term)[1]),
+             as.character(unique(randEffect$term)[2])
+             ),
+    to = c("rand_intercept", "rand_cue")
+)
+
+rand_subset <- subset(randEffect, select = -c(grpvar, term, condsd))
+wide_rand <- spread(rand_subset, key = newcoef, value = condval)
+
+wide_fix <- do.call(
+    "rbind",
+    replicate(nrow(wide_rand),
+        as.data.frame(t(as.matrix(fixEffect))),
+        simplify = FALSE
+    )
+)
+rownames(wide_fix) <- NULL
+new_wide_fix <- dplyr::rename(wide_fix,
+    fix_intercept = colnames(wide_fix)[1],
+    fix_cue = colnames(wide_fix)[2],
+)
+
+total <- cbind(wide_rand, new_wide_fix)
+total$task <- taskname
+new_total <- total %>% dplyr::select(task, everything())
+new_total <- dplyr::rename(total, subj = grp)
+
+rand_savefname <- file.path(
+    analysis_dir,
+    paste("randeffect_task-", taskname, "_",
+        as.character(Sys.Date()), "_outlier-cooksd.csv",
+        sep = ""
+    )
+)
+write.csv(new_total, rand_savefname, row.names = FALSE)
+return(p1)
+}
+```
+
+## Pain
+### For the vicarious task, what is the effect of cue on outcome ratings? {.unlisted .unnumbered}
+[ INSERT DESCRIPTION ]
+```{r pain_iv-cue_dv-outcome, echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+taskname = 'pain'
+ggplot_onefactor_pertask(taskname, subject_varkey, subject, exclude,
+                                     analysis_dir, iv, iv_keyword, dv, dv_keyword, 
+                                     subjectwise_mean, group_mean, se,
+                                     xlab, ylim, ylab, ggtitle_phrase, print_lmer_output)
+```
+
+## Vicarious
+### For the vicarious task, what is the effect of cue on outcome ratings? {.unlisted .unnumbered}
+[ INSERT DESCRIPTION ]
+```{r vicarious_iv-cue_dv-outcome, echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+taskname = 'vicarious'
+ggplot_onefactor_pertask(taskname, subject_varkey, subject, exclude,
+                                     analysis_dir, iv, iv_keyword, dv, dv_keyword, 
+                                     subjectwise_mean, group_mean, se,
+                                     xlab, ylim, ylab, ggtitle_phrase, print_lmer_output)
+```
+
+## Cognitive
+### For the cognitive task, what is the effect of cue on outcome ratings? {.unlisted .unnumbered}
+[ INSERT DESCRIPTION ]
+```{r cognitive_iv-cue_dv-outcome, echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+taskname = 'cognitive'
+ggplot_onefactor_pertask(taskname, subject_varkey, subject, exclude,
+                                     analysis_dir, iv, iv_keyword, dv, dv_keyword, 
+                                     subjectwise_mean, group_mean, se,
+                                     xlab, ylim, ylab, ggtitle_phrase, print_lmer_output)
+```
+
+```{r random_effects_2, message=FALSE, warning=TRUE, include=FALSE, paged.print=FALSE}
+# test function
+rand_dir <- analysis_dir
+dir.create(rand_dir, showWarnings = FALSE, recursive = TRUE)
+dfP <- read.csv(file.path(
+    rand_dir,
+    paste("randeffect_task-pain", "_", as.character(Sys.Date()), "_outlier-cooksd.csv", sep = "")
+))
+dfV <- read.csv(file.path(
+    rand_dir,
+    paste("randeffect_task-vicarious", "_", as.character(Sys.Date()), "_outlier-cooksd.csv", sep = "")
+))
+dfC <- read.csv(file.path(
+    rand_dir,
+    paste("randeffect_task-cognitive", "_", as.character(Sys.Date()), "_outlier-cooksd.csv", sep = "")
+))
+
+pvc <- merge_recurse(list(dfP, dfV, dfC))
+
+save_fname <- file.path(
+    analysis_dir,
+    paste("randeffect_task-all_",
+        as.character(Sys.Date()), ".csv",
+        sep = ""
+    )
+)
+write.csv(pvc, save_fname, row.names = FALSE)
+```
+
+
+## individual differences analysis
+Using the random effects from the mixed effects model, I'm plotting the random effect of cue types per task. 
+
+
+
+[ INSERT DESCRIPTION ]
+```{r random_cue_scatter_plot_2, echo=FALSE, message=FALSE, warning=TRUE}
+pvc_rand_cue_subset <- subset(pvc, select = c(task, subj, rand_cue))
+pvc_rand_cue <- spread(pvc_rand_cue_subset, key = task, value = rand_cue)
+# plot individually
+# limit_min = -40, limit_max = 40,
+pv <- plot_ggplot_correlation(data = pvc_rand_cue, x = 'vicarious', y = 'pain', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 20, label_position = 38)
+vc <- plot_ggplot_correlation(data = pvc_rand_cue, x = 'cognitive', y = 'vicarious', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 20,  label_position = 38)
+cp <- plot_ggplot_correlation(data = pvc_rand_cue, x = 'pain', y = 'cognitive', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 20, label_position = 38)
+# combine plots and add title
+plots <- ggpubr::ggarrange(pv, vc, cp, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
+
+save_plotname <- file.path(
+    analysis_dir,
+    paste("randcueonly_scatterplot_task-all_", 
+        as.character(Sys.Date()), ".png",
+        sep = ""
+    )
+)
+ggsave(save_plotname, width = 10, height = 3)
+plots
+
+```
+
+
+
+## individual differences analysis
+based on Tor's suggestion, plotting the random efects with the random intercepts as well. not just the cue effects
+```{r random_effects_scatter_plot_2, echo=FALSE, message=FALSE, warning=TRUE}
+pvc$rand = pvc$rand_intercept + pvc$rand_cue
+pvc_rand_cue_subset <- subset(pvc, select = c(task, subj, rand))
+pvc_rand_cue <- spread(pvc_rand_cue_subset, key = task, value = rand)
+# plot individually
+# limit_min = -40, limit_max = 40,
+pv <- plot_ggplot_correlation(data = pvc_rand_cue, x = 'vicarious', y = 'pain', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 20, label_position = 38)
+vc <- plot_ggplot_correlation(data = pvc_rand_cue, x = 'cognitive', y = 'vicarious', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 20,  label_position = 38)
+cp <- plot_ggplot_correlation(data = pvc_rand_cue, x = 'pain', y = 'cognitive', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 20, label_position = 38)
+# combine plots and add title
+plots <- ggpubr::ggarrange(pv, vc, cp, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
+
+save_plotname <- file.path(
+    analysis_dir,
+    paste("randeffect_scatterplot_task-all_", 
+        as.character(Sys.Date()), ".png",
+        sep = ""
+    )
+)
+ggsave(save_plotname, width = 10, height = 3)
+plots
+
+```
+
