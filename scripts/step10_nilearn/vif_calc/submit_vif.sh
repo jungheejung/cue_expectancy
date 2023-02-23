@@ -30,7 +30,11 @@ echo "* total of ${#mylist[@]} participants in ${INPUT_DIR}"
 echo "* array id: " ${SLURM_ARRAY_TASK_ID}, "subject id: " ${PARTICIPANT_LABEL}
 
 module load matlab/r2020a
+<<<<<<< HEAD:scripts/step04_SPM/vif_calc/submit_vif.sh
 matlab -nodesktop -nosplash -batch 'opengl("save","hardware"); rootgroup = settings;rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = "v7.3"; rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = "v7.3";addpath(genpath('"'${CANLABCORE_DIR}'"'));addpath(genpath('"'${GLM_DIR}'"'));addpath('"'${MAIN_DIR}'"');addpath('"'${FMRIPREP_DIR}'"');addpath(genpath('"'${PWD}'"'));plot_vif('"'${MAIN_DIR}'"','"'${GLM_DIR}'"','"'${GLM_MODELNAME}'"', '"'${FMRIPREP_DIR}'"', '"'${OUTPUT_DIR}'"','"'${PARTICIPANT_LABEL}'"');'
+=======
+matlab -nodesktop -nosplash -batch 'opengl("save","hardware"); rootgroup = settings;rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = "v7.3"; rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = "v7.3";addpath(genpath('"'${CANLABCORE_DIR}'"'));addpath(genpath('"'${GLM_DIR}'"'));addpath(genpath('"'${MAIN_DIR}'"'));addpath('"'${FMRIPREP_DIR}'"');addpath(genpath('"'${PWD}'"'));plot_vif('"'${MAIN_DIR}'"','"'${GLM_DIR}'"','"'${GLM_MODELNAME}'"', '"'${FMRIPREP_DIR}'"', '"'${OUTPUT_DIR}'"','"'${PARTICIPANT_LABEL}'"');'
+>>>>>>> 2ae17e4406d8174dcc7d90a7833e8610bc5ffb56:scripts/step10_nilearn/vif_calc/submit_vif.sh
 
 echo "matlab -nodesktop -nosplash -batch 'opengl("save","hardware"); 
 rootgroup = settings;rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = "v7.3"; 

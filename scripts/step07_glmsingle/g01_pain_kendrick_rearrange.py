@@ -87,7 +87,7 @@ ses_ind = []
 sub_ses = list(itertools.product(sub, ses_list))
 for i, (sub, ses_ind) in enumerate(sub_ses):
     ses = 'ses-{:02d}'.format(ses_ind)
-    beh_list = glob.glob(join(main_dir, 'data', 'd02_preproc-beh', sub, ses,  f"{sub}_{ses}_task-social_run-*-pain_beh.csv"))
+    beh_list = glob.glob(join(main_dir, 'data','beh', 'beh02_preproc', sub, ses,  f"{sub}_{ses}_task-social_run-*-pain_beh.csv"))
     Path(join(datadir, sub)).mkdir(parents=True, exist_ok=True)
     Path(join(outputdir, sub)).mkdir(parents=True, exist_ok=True)
 

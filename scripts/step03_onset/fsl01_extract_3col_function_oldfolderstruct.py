@@ -9,7 +9,7 @@ import itertools
 
 """
 onset01_extract_three_column.py
-# get behavioral files from "d02_preproc-beh"
+# get behavioral files from "beh02_preproc"
 # subtract from trigger onset
 # extract regressors:
 # extract task name:

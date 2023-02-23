@@ -31,7 +31,7 @@ for ind, src_fname in enumerate(src):
     num = re.findall('\d+', src[ind])
     print("sub: {0}, session: {1}".format(num[0], num[1]))
     dst_fname = os.path.join( analysis_repo_dir, 'data', 'beh01_raw', 'sub-'+num[0], 'ses-'+num[1])
-    dst_fname2 = os.path.join( analysis_repo_dir, 'data', 'beh02_preproc', 'sub-'+num[0], 'ses-'+num[1])
+    dst_fname2 = os.path.join( analysis_repo_dir, 'data','beh', 'beh02_preproc', 'sub-'+num[0], 'ses-'+num[1])
     behavioral_fname = glob.glob(os.path.join(dst_fname, '*_beh.csv'))
     # if os.path.exists(dst_fname):
     # if behavioral_fname:
