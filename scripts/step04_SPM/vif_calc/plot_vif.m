@@ -20,6 +20,8 @@ options.codeToEvaluate = sprintf('vif_calc(%s)', 'input');
 options.format = 'html';
 options.outputDir = input.output_dir;
 options.imageFormat = 'jpg';
+disp('made it through options');
+disp(options);
 vif_output = publish('vif_calc.m',options);
 
 [folder, name] = fileparts(vif_output);
