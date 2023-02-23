@@ -93,7 +93,7 @@ out_eventonly = scn_spm_design_check(fullfile(glm_dir, sub), 'events_only' )%'/V
         imagesc(corr(plotdesignout));
         pbaspect([1 1 1])
         ax2= gca;
-        set(figure, 'visible', 'off')
+        set(figure); %, 'visible', 'off')
         ax2.FontSize = 16; 
         % subplot(1,3,2)
         figure('visible','off')
