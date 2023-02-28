@@ -225,7 +225,7 @@ for i_trial in singletrial_list:
     save_designmatrix_dir = os.path.join(save_singletrial_dir, sub)
     save_figname = description + '.png'
     Path(save_designmatrix_dir).mkdir(parents = True, exist_ok = True)
-    fig.savefig(save_figname, save_designmatrix_dir)
+    fig.savefig(os.path.join(save_designmatrix_dir, save_figname) )
 
     # step 4) save beta map as isolated nifti
     # Drop the trial number from the condition name to get the original name
