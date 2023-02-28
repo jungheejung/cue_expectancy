@@ -144,7 +144,7 @@ save_designmatrix_dir = os.path.join(save_singletrial_dir, sub)
 
 # 1. load behavioral data and restructure for BIDS  ________________________________________________________________________________
 # 1-1) load tsv file. If _ttl.tsv exists, then load that one
-beh_list = glob.glob('{sub}_{ses}_task-cue_{run}_runtype-*.tsv')
+beh_list = glob.glob(os.path.join(onset_dir, sub, ses, f'{sub}_{ses}_task-cue_{run}_runtype-*.tsv'))
 if len(beh_list) > 1:
     beh_fname = [x for x in beh_list if "ttl" in x][0]
 print(f"beh fname: {beh_fname}")
