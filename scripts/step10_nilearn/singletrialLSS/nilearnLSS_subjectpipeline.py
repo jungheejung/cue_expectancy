@@ -188,8 +188,8 @@ glm_parameters = {'drift_model':None,
  'verbose': 0}
 lss_beta_maps = {cond: [] for cond in events_df['trial_type'].unique()}
 lss_design_matrices = []
-fmri_file = os.path.join(fmriprep_dir, f'{sub}_{ses}_task-social_acq-mb8_run-{run_num}_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz')
-confounds_file = os.path.join(fmriprep_dir, f'{sub}_{ses}_task-social_acq-mb8_run-{run_num}_desc-confounds_timeseries.tsv')
+fmri_file = os.path.join(fmriprep_dir, sub, ses, 'func', f'{sub}_{ses}_task-social_acq-mb8_run-{run_num}_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz')
+confounds_file = os.path.join(fmriprep_dir, sub, ses, 'func', f'{sub}_{ses}_task-social_acq-mb8_run-{run_num}_desc-confounds_timeseries.tsv')
 confounds = pd.read_csv(confounds_file, sep = '\t')
 subset_confounds = confounds[['csf', 'trans_x', 'trans_x_derivative1', 'trans_x_power2', 'trans_x_derivative1_power2',
                                  'trans_y', 'trans_y_derivative1', 'trans_y_derivative1_power2', 'trans_y_power2',
