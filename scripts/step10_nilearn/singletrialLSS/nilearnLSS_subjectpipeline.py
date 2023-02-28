@@ -156,7 +156,7 @@ events_df = restructure_task_cue_beh(beh_fname)
 save_events_fname = '{sub}_{ses}_task-cue_acq-mb8_{run}_events.tsv'
 save_events_sub_dir = os.path.join(save_events_dir, sub, ses)
 Path(save_events_sub_dir).mkdir(parents = True, exist_ok = True)
-events_df.to_csv(save_events_sub_dir, save_events_fname)
+events_df.to_csv(os.path.join(save_events_sub_dir, save_events_fname))
 print(events_df.head())
 # NOTE: FUTURE REFERENCE. IF YOU NEED TO FIND THE EVENTS BASED ON THE KEYWRODS
 # regex = re.compile(r'event-(.+?)_')
