@@ -132,9 +132,12 @@ save_singletrial_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_pr
 
 sub_folders = next(os.walk(onset_dir))[1]
 sub_list = [i for i in sub_folders if i.startswith('sub-')]
-sub = sub_list[slurm_id]
+# TODO; TEST for now, feed in subject id directly
+# sub = sub_list[slurm_id]
+sub = f'sub-{sub_num:04d}'
 ses = 'ses-{:02d}'.format(ses_num)
 run = 'run-{:02d}'.format(run_num)
+print(f" ________ {sub} {ses} {run} ________")
 
 subject_beh_dir = os.path.join(onset_dir, sub, ses)
 save_designmatrix_dir = os.path.join(save_singletrial_dir, sub)
@@ -144,7 +147,7 @@ save_designmatrix_dir = os.path.join(save_singletrial_dir, sub)
 beh_list = glob.glob('{sub}_{ses}_task-cue_{run}_runtype-*.tsv')
 if len(beh_list) > 1:
     beh_fname = [x for x in beh_list if "ttl" in x][0]
-
+print(f"beh fname: {beh_fname}")
 run_type = [match for match in os.path.basename(beh_fname).split('_') if "runtype" in match][0].split('-')[1]
 
 # 1-2) restructure for BIDS format. Columns have onset/duration/trial_type
@@ -154,7 +157,7 @@ save_events_fname = '{sub}_{ses}_task-cue_acq-mb8_{run}_events.tsv'
 save_events_sub_dir = os.path.join(save_events_dir, sub, ses)
 Path(save_events_sub_dir).mkdir(parents = True, exist_ok = True)
 events_df.to_csv(save_events_sub_dir, save_events_fname)
-
+print(events_df.head())
 # NOTE: FUTURE REFERENCE. IF YOU NEED TO FIND THE EVENTS BASED ON THE KEYWRODS
 # regex = re.compile(r'event-(.+?)_')
 # events_df.trial_type.str.extract(regex)
@@ -194,17 +197,18 @@ subset_confounds = confounds[['csf', 'trans_x', 'trans_x_derivative1', 'trans_x_
                                  'rot_x', 'rot_x_derivative1', 'rot_x_derivative1_power2', 'rot_x_power2', 
                                  'rot_y', 'rot_y_derivative1', 'rot_y_derivative1_power2', 'rot_y_power2', 
                                  'rot_z', 'rot_z_derivative1', 'rot_z_derivative1_power2', 'rot_z_power2']]
-
+print("grabbed all the confounds and fmri data")
 # %% 3. Fit glm model per trial ________________________________________________________________________________
 # TODO: identify the index where trial type is stimulus and cue
 singletrial_list = events_df.loc[(events_df['trial_type'] == 'cue') | (events_df['trial_type'] == 'stimulus')].index.tolist()
 for i_trial in singletrial_list:
+    print(f"trial number: {i_trial}")
     # step 1) isolate each event
     lss_events_df, trial_condition = lss_transformer(events_df, i_trial)
     condition_name = trial_condition.split('__')[0]
     trial_num =  trial_condition.split('__')[1]
     description = f"{sub}_{ses}_{run}_runtype-{run_type}_event-{condition_name}_trial-{trial_num}"
-    
+    print(description)
     # step 2) compute and collect beta maps
     lss_glm = FirstLevelModel(**glm_parameters)
     lss_glm.fit(fmri_file, events = lss_events_df, confounds = subset_confounds.fillna(0))
