@@ -186,8 +186,8 @@ sub_list = [i for i in sub_folders if i.startswith('sub-')]
 # sub = sub_list[slurm_id]
 sub = sub_list[slurm_id]#f'sub-{sub_list[slurm_id]:04d}'
 ses = 'ses-{:02d}'.format(ses_num)
-run = 'run-{:02d}'.format(run_num)
-print(f" ________ {sub} {ses} {run} ________")
+#run = 'run-{:02d}'.format(run_num)
+print(f" ________ {sub} {ses} ________")
 
 subject_beh_dir = os.path.join(onset_dir, sub, ses)
 save_designmatrix_dir = os.path.join(save_singletrial_dir, sub)
