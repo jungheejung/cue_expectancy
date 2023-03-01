@@ -211,9 +211,11 @@ beh_list = glob.glob(os.path.join(onset_dir, sub, ses, f'{sub}_{ses}_task-cue_*r
 beh_clean_list = utils_globrunlist(beh_list, key = 'run', stringlist_to_keep=['ttl'])
 
 for beh_fname in beh_clean_list:
-
+    run_info = [match for match in os.path.basename(beh_fname).split('_') if "run" in match][0]
+    run_num = int(re.findall(r'\d+', run_info )[0].lstrip('0'))
     run_type = [match for match in os.path.basename(beh_fname).split('_') if "runtype" in match][0].split('-')[1]
-
+    run = f"run-{run_num:02d}"
+    print(f"{run_num} {run_type}")
     # 1-2) restructure for BIDS format. Columns have onset/duration/trial_type
     events_df = restructure_task_cue_beh(beh_fname)
     # TODO: later save it to source BIDS dir
