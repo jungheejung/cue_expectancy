@@ -113,8 +113,8 @@ parser.add_argument("--session-num", type=int,
                     help="specify slurm array id")
 parser.add_argument("--run-num", type=int,
                     help="specify slurm array id")
-parser.add_argument("-r", "--runtype",
-                    choices=['pain','vicarious','cognitive','all'], help="specify runtype name (e.g. pain, cognitive, variance)")
+# parser.add_argument("-r", "--runtype",
+#                     choices=['pain','vicarious','cognitive','all'], help="specify runtype name (e.g. pain, cognitive, variance)")
 args = parser.parse_args()
 
 # 0. parameters
@@ -123,7 +123,7 @@ slurm_id = [args.slurm_id] # e.g. 1, 2
 sub_num = args.subject_num # e.g. 'task-social' 'task-fractional' 'task-alignvideos'
 ses_num = args.session_num # e.g. 'task-social' 'task-fractional' 'task-alignvideos'
 run_num = args.run_num # e.g. 'task-social' 'task-fractional' 'task-alignvideos'
-run_type = args.runtype
+# run_type = args.runtype
 
 onset_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/fmri/fmri01_onset/onset02_SPM'
 save_events_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/beh'
