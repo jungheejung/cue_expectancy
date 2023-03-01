@@ -157,12 +157,12 @@ def utils_globrunlist(beh_list, key = 'run',stringlist_to_keep = ['ttl'] ):
 parser = argparse.ArgumentParser()
 parser.add_argument("--slurm_id", type=int,
                     help="specify slurm array id")
-parser.add_argument("--subject-num", type=int,
-                    help="subject num")
+# parser.add_argument("--subject-num", type=int,
+#                     help="subject num")
 parser.add_argument("--session-num", type=int,
                     help="specify slurm array id")
-parser.add_argument("--run-num", type=int,
-                    help="specify slurm array id")
+# parser.add_argument("--run-num", type=int,
+#                     help="specify slurm array id")
 # parser.add_argument("-r", "--runtype",
 #                     choices=['pain','vicarious','cognitive','all'], help="specify runtype name (e.g. pain, cognitive, variance)")
 args = parser.parse_args()
@@ -170,7 +170,7 @@ args = parser.parse_args()
 # 0. parameters
 print(args.slurm_id)
 slurm_id = [args.slurm_id] # e.g. 1, 2
-sub_num = args.subject_num # e.g. 'task-social' 'task-fractional' 'task-alignvideos'
+# sub_num = args.subject_num # e.g. 'task-social' 'task-fractional' 'task-alignvideos'
 ses_num = args.session_num # e.g. 'task-social' 'task-fractional' 'task-alignvideos'
 run_num = args.run_num # e.g. 'task-social' 'task-fractional' 'task-alignvideos'
 # run_type = args.runtype
@@ -184,7 +184,7 @@ sub_folders = next(os.walk(onset_dir))[1]
 sub_list = [i for i in sub_folders if i.startswith('sub-')]
 # TODO; TEST for now, feed in subject id directly
 # sub = sub_list[slurm_id]
-sub = f'sub-{sub_num:04d}'
+sub = f'sub-{sub_list[slurm_id]:04d}'
 ses = 'ses-{:02d}'.format(ses_num)
 run = 'run-{:02d}'.format(run_num)
 print(f" ________ {sub} {ses} {run} ________")
