@@ -103,6 +103,56 @@ def restructure_task_cue_beh(beh_fname):
     events_df = events_df.reset_index(drop=True)
     return events_df
 
+def utils_globrunlist(beh_list, key = 'run',stringlist_to_keep = ['ttl'] ):
+    """
+    parameters
+    ==========
+    beh_list: list of fullpath globs from a given directory
+
+    key: str 
+        a keyword. Based on this keyword, we'll identify whether there are duplicates. default "run"
+    string_to_keep: 
+        a keyword. If we find a matching run, we need a criterion string to identify which filepaths to remove 
+        and which filespaths to keep
+        
+        e.g. 
+        ['/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/fmri/fmri01_onset/onset02_SPM/sub-0061/ses-01/sub-0061_ses-01_task-cue_run-01_runtype-pain_events.tsv',
+            '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/fmri/fmri01_onset/onset02_SPM/sub-0061/ses-01/sub-0061_ses-01_task-cue_run-01_runtype-pain_events_ttl.tsv',
+            '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/fmri/fmri01_onset/onset02_SPM/sub-0061/ses-01/sub-0061_ses-01_task-cue_run-04_runtype-cognitive_events.tsv',
+            '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/fmri/fmri01_onset/onset02_SPM/sub-0061/ses-01/sub-0061_ses-01_task-cue_run-02_runtype-vicarious_events.tsv',
+            '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/fmri/fmri01_onset/onset02_SPM/sub-0061/ses-01/sub-0061_ses-01_task-cue_run-06_runtype-pain_events_ttl.tsv',
+            '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/fmri/fmri01_onset/onset02_SPM/sub-0061/ses-01/sub-0061_ses-01_task-cue_run-06_runtype-pain_events.tsv',
+            '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/fmri/fmri01_onset/onset02_SPM/sub-0061/ses-01/sub-0061_ses-01_task-cue_run-03_runtype-cognitive_events.tsv',
+            '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/fmri/fmri01_onset/onset02_SPM/sub-0061/ses-01/sub-0061_ses-01_task-cue_run-05_runtype-vicarious_events.tsv']
+    return
+    ======
+    ['/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/fmri/fmri01_onset/onset02_SPM/sub-0061/ses-01/sub-0061_ses-01_task-cue_run-01_runtype-pain_events_ttl.tsv',
+            '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/fmri/fmri01_onset/onset02_SPM/sub-0061/ses-01/sub-0061_ses-01_task-cue_run-04_runtype-cognitive_events.tsv',
+            '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/fmri/fmri01_onset/onset02_SPM/sub-0061/ses-01/sub-0061_ses-01_task-cue_run-02_runtype-vicarious_events.tsv',
+            '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/fmri/fmri01_onset/onset02_SPM/sub-0061/ses-01/sub-0061_ses-01_task-cue_run-06_runtype-pain_events_ttl.tsv',
+            '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/fmri/fmri01_onset/onset02_SPM/sub-0061/ses-01/sub-0061_ses-01_task-cue_run-03_runtype-cognitive_events.tsv',
+            '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/fmri/fmri01_onset/onset02_SPM/sub-0061/ses-01/sub-0061_ses-01_task-cue_run-05_runtype-vicarious_events.tsv']
+
+
+
+    """
+    import os, glob
+    import pandas as pd
+    import numpy as np
+    
+    bids_info = [[match for match in os.path.basename(beh_fname).split('_') if key in match][0] for beh_fname in beh_list]
+    duprun_list = np.where(pd.DataFrame(bids_info).duplicated(keep=False))
+    duprun_idx = list(duprun_list[0])
+    matched_list = [l for l in beh_list if any(k in l for k in stringlist_to_keep)]
+    st = set(matched_list)   
+    ttl_idx = [i for i, e in enumerate(beh_list) if e in st]
+    remove_idx = list(set(duprun_idx) ^ set(ttl_idx))
+    beh_list_copy = beh_list
+    for index in sorted(remove_idx, reverse=True):
+        del beh_list_copy[index]
+
+    return beh_list_copy
+
 # 0. argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--slurm_id", type=int,
@@ -144,100 +194,114 @@ save_designmatrix_dir = os.path.join(save_singletrial_dir, sub)
 
 # 1. load behavioral data and restructure for BIDS  ________________________________________________________________________________
 # 1-1) load tsv file. If _ttl.tsv exists, then load that one
-beh_list = glob.glob(os.path.join(onset_dir, sub, ses, f'{sub}_{ses}_task-cue_{run}_runtype-*.tsv'))
-if len(beh_list) > 1:
-    beh_fname = [x for x in beh_list if "ttl" in x][0]
-print(f"beh fname: {beh_fname}")
-run_type = [match for match in os.path.basename(beh_fname).split('_') if "runtype" in match][0].split('-')[1]
 
-# 1-2) restructure for BIDS format. Columns have onset/duration/trial_type
-events_df = restructure_task_cue_beh(beh_fname)
-# TODO: later save it to source BIDS dir
-save_events_fname = '{sub}_{ses}_task-cue_acq-mb8_{run}_events.tsv'
-save_events_sub_dir = os.path.join(save_events_dir, sub, ses)
-Path(save_events_sub_dir).mkdir(parents = True, exist_ok = True)
-events_df.to_csv(os.path.join(save_events_sub_dir, save_events_fname))
-print(events_df.head())
-# NOTE: FUTURE REFERENCE. IF YOU NEED TO FIND THE EVENTS BASED ON THE KEYWRODS
-# regex = re.compile(r'event-(.+?)_')
-# events_df.trial_type.str.extract(regex)
+beh_list = glob.glob(os.path.join(onset_dir, sub, ses, f'{sub}_{ses}_task-cue_*runtype-*.tsv'))
+
+# key = 'run'
+# bids_info = [[match for match in os.path.basename(beh_fname).split('_') if key in match][0] for beh_fname in beh_list]
+# duprun_list = np.where(pd.DataFrame(bids_info).duplicated(keep=False))
+# duprun_idx = list(duprun_list[0])
+# matched_list = [l for l in beh_list if any(k in l for k in ['ttl'])]
+# st = set(matched_list)   
+# ttl_idx = [i for i, e in enumerate(beh_list) if e in st]
+# remove_idx = list(set(duprun_idx) ^ set(ttl_idx))
+# beh_list_copy = beh_list
+# for index in sorted(remove_idx, reverse=True):
+#     del beh_list_copy[index]
+beh_clean_list = utils_globrunlist(beh_list, key = 'run', stringlist_to_keep=['ttl'])
+
+for beh_fname in beh_clean_list:
+
+    run_type = [match for match in os.path.basename(beh_fname).split('_') if "runtype" in match][0].split('-')[1]
+
+    # 1-2) restructure for BIDS format. Columns have onset/duration/trial_type
+    events_df = restructure_task_cue_beh(beh_fname)
+    # TODO: later save it to source BIDS dir
+    save_events_fname = '{sub}_{ses}_task-cue_acq-mb8_{run}_events.tsv'
+    save_events_sub_dir = os.path.join(save_events_dir, sub, ses)
+    Path(save_events_sub_dir).mkdir(parents = True, exist_ok = True)
+    events_df.to_csv(os.path.join(save_events_sub_dir, save_events_fname))
+    print(events_df.head())
+    # NOTE: FUTURE REFERENCE. IF YOU NEED TO FIND THE EVENTS BASED ON THE KEYWRODS
+    # regex = re.compile(r'event-(.+?)_')
+    # events_df.trial_type.str.extract(regex)
 
 
-# %% 2. Setup glm paramters and extract confounds from fmriprep confounds.tsv ___________________________________________________________
-glm_parameters = {'drift_model':None,
- 'drift_order': 1,
- 'fir_delays': [0],
- 'high_pass': 0.01,
- 'hrf_model': 'spm', #
- 'mask_img': None,
-#  'memory': Memory(location=None),
-#  'memory_level': 1,
- 'min_onset': -24,
- 'minimize_memory': True,
- 'n_jobs': 1,
- 'noise_model': 'ols', #'ar1',
- 'random_state': None,
- 'signal_scaling': 0,
- 'slice_time_ref': 0.0,
- 'smoothing_fwhm': None,
- 'standardize': False, #
- 'subject_label': '01', # 
- 't_r': 0.46, #
- 'target_affine': None, #
- 'target_shape': None, #
- 'verbose': 0}
-lss_beta_maps = {cond: [] for cond in events_df['trial_type'].unique()}
-lss_design_matrices = []
-fmri_file = os.path.join(fmriprep_dir, sub, ses, 'func', f'{sub}_{ses}_task-social_acq-mb8_run-{run_num}_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz')
-confounds_file = os.path.join(fmriprep_dir, sub, ses, 'func', f'{sub}_{ses}_task-social_acq-mb8_run-{run_num}_desc-confounds_timeseries.tsv')
-confounds = pd.read_csv(confounds_file, sep = '\t')
-subset_confounds = confounds[['csf', 'trans_x', 'trans_x_derivative1', 'trans_x_power2', 'trans_x_derivative1_power2',
-                                 'trans_y', 'trans_y_derivative1', 'trans_y_derivative1_power2', 'trans_y_power2',
-                                 'trans_z', 'trans_z_derivative1', 'trans_z_derivative1_power2', 'trans_z_power2', 
-                                 'rot_x', 'rot_x_derivative1', 'rot_x_derivative1_power2', 'rot_x_power2', 
-                                 'rot_y', 'rot_y_derivative1', 'rot_y_derivative1_power2', 'rot_y_power2', 
-                                 'rot_z', 'rot_z_derivative1', 'rot_z_derivative1_power2', 'rot_z_power2']]
-print("grabbed all the confounds and fmri data")
-# %% 3. Fit glm model per trial ________________________________________________________________________________
-# TODO: identify the index where trial type is stimulus and cue
-singletrial_list = events_df.loc[(events_df['trial_type'] == 'cue') | (events_df['trial_type'] == 'stimulus')].index.tolist()
-for i_trial in singletrial_list:
-    print(f"trial number: {i_trial}")
-    # step 1) isolate each event
-    lss_events_df, trial_condition = lss_transformer(events_df, i_trial)
-    condition_name = trial_condition.split('__')[0]
-    trial_num =  trial_condition.split('__')[1]
-    description = f"{sub}_{ses}_{run}_runtype-{run_type}_event-{condition_name}_trial-{trial_num}"
-    print(description)
-    # step 2) compute and collect beta maps
-    lss_glm = FirstLevelModel(**glm_parameters)
-    lss_glm.fit(fmri_file, events = lss_events_df, confounds = subset_confounds.fillna(0))
+    # %% 2. Setup glm paramters and extract confounds from fmriprep confounds.tsv ___________________________________________________________
+    glm_parameters = {'drift_model':None,
+    'drift_order': 1,
+    'fir_delays': [0],
+    'high_pass': 0.01,
+    'hrf_model': 'spm', #
+    'mask_img': None,
+    #  'memory': Memory(location=None),
+    #  'memory_level': 1,
+    'min_onset': -24,
+    'minimize_memory': True,
+    'n_jobs': 1,
+    'noise_model': 'ols', #'ar1',
+    'random_state': None,
+    'signal_scaling': 0,
+    'slice_time_ref': 0.0,
+    'smoothing_fwhm': None,
+    'standardize': False, #
+    'subject_label': '01', # 
+    't_r': 0.46, #
+    'target_affine': None, #
+    'target_shape': None, #
+    'verbose': 0}
+    lss_beta_maps = {cond: [] for cond in events_df['trial_type'].unique()}
+    lss_design_matrices = []
+    fmri_file = os.path.join(fmriprep_dir, sub, ses, 'func', f'{sub}_{ses}_task-social_acq-mb8_run-{run_num}_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz')
+    confounds_file = os.path.join(fmriprep_dir, sub, ses, 'func', f'{sub}_{ses}_task-social_acq-mb8_run-{run_num}_desc-confounds_timeseries.tsv')
+    confounds = pd.read_csv(confounds_file, sep = '\t')
+    subset_confounds = confounds[['csf', 'trans_x', 'trans_x_derivative1', 'trans_x_power2', 'trans_x_derivative1_power2',
+                                    'trans_y', 'trans_y_derivative1', 'trans_y_derivative1_power2', 'trans_y_power2',
+                                    'trans_z', 'trans_z_derivative1', 'trans_z_derivative1_power2', 'trans_z_power2', 
+                                    'rot_x', 'rot_x_derivative1', 'rot_x_derivative1_power2', 'rot_x_power2', 
+                                    'rot_y', 'rot_y_derivative1', 'rot_y_derivative1_power2', 'rot_y_power2', 
+                                    'rot_z', 'rot_z_derivative1', 'rot_z_derivative1_power2', 'rot_z_power2']]
+    print("grabbed all the confounds and fmri data")
+    # %% 3. Fit glm model per trial ________________________________________________________________________________
+    # TODO: identify the index where trial type is stimulus and cue
+    singletrial_list = events_df.loc[(events_df['trial_type'] == 'cue') | (events_df['trial_type'] == 'stimulus')].index.tolist()
+    for i_trial in singletrial_list:
+        print(f"trial number: {i_trial}")
+        # step 1) isolate each event
+        lss_events_df, trial_condition = lss_transformer(events_df, i_trial)
+        condition_name = trial_condition.split('__')[0]
+        trial_num =  trial_condition.split('__')[1]
+        description = f"{sub}_{ses}_{run}_runtype-{run_type}_event-{condition_name}_trial-{trial_num}"
+        print(description)
+        # step 2) compute and collect beta maps
+        lss_glm = FirstLevelModel(**glm_parameters)
+        lss_glm.fit(fmri_file, events = lss_events_df, confounds = subset_confounds.fillna(0))
 
-    beta_map = lss_glm.compute_contrast(
-        trial_condition,
-        output_type='effect_size',
-    )
-    # step 3) save the design matrices and plot this for reference
-    fig, axes = plt.subplots(ncols=1, figsize=(20, 10))
-    plotting.plot_design_matrix(
-        lss_glm.design_matrices_[0]
+        beta_map = lss_glm.compute_contrast(
+            trial_condition,
+            output_type='effect_size',
         )
-    save_designmatrix_dir = os.path.join(save_singletrial_dir, sub)
-    save_figname = description + '.png'
-    Path(save_designmatrix_dir).mkdir(parents = True, exist_ok = True)
-    fig.savefig(os.path.join(save_designmatrix_dir, save_figname) )
+        # step 3) save the design matrices and plot this for reference
+        fig, axes = plt.subplots(ncols=1, figsize=(20, 10))
+        plotting.plot_design_matrix(
+            lss_glm.design_matrices_[0]
+            )
+        save_designmatrix_dir = os.path.join(save_singletrial_dir, sub)
+        save_figname = description + '.png'
+        Path(save_designmatrix_dir).mkdir(parents = True, exist_ok = True)
+        fig.savefig(os.path.join(save_designmatrix_dir, save_figname) )
 
-    # step 4) save beta map as isolated nifti
-    # Drop the trial number from the condition name to get the original name
-    beta_map.header['descrip'] = description
-    lss_beta_maps[condition_name].append(beta_map)
-    nib.save(beta_map, os.path.join(save_singletrial_dir, sub, description + '.nii.gz'))
+        # step 4) save beta map as isolated nifti
+        # Drop the trial number from the condition name to get the original name
+        beta_map.header['descrip'] = description
+        lss_beta_maps[condition_name].append(beta_map)
+        nib.save(beta_map, os.path.join(save_singletrial_dir, sub, description + '.nii.gz'))
 
-# step 5) concatenate the lists of 3D maps into a single 4D beta series for each condition, if we want
-# for name, maps in lss_beta_maps.items():
-#     if len(maps) !=0:
-#         print(name)
-#         concat_map = image.concat_imgs(maps)
-#         description = f"{sub}_{ses}_{run}_runtype-{run_type}_event-{name}_concat"
-#         concat_map.header['descrip'] = description
-#         nib.save(concat_map, os.path.join(save_singletrial_dir, description + '.nii.gz'))
+    # step 5) concatenate the lists of 3D maps into a single 4D beta series for each condition, if we want
+    # for name, maps in lss_beta_maps.items():
+    #     if len(maps) !=0:
+    #         print(name)
+    #         concat_map = image.concat_imgs(maps)
+    #         description = f"{sub}_{ses}_{run}_runtype-{run_type}_event-{name}_concat"
+    #         concat_map.header['descrip'] = description
+    #         nib.save(concat_map, os.path.join(save_singletrial_dir, description + '.nii.gz'))
