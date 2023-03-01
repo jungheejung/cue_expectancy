@@ -181,7 +181,7 @@ fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop_data/derivativ
 save_singletrial_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial'
 
 sub_folders = next(os.walk(onset_dir))[1]
-sub_list = [i for i in sub_folders if i.startswith('sub-')]
+sub_list = [i for i in sorted(sub_folders) if i.startswith('sub-')]
 # TODO; TEST for now, feed in subject id directly
 # sub = sub_list[slurm_id]
 sub = f'sub-{sub_list[slurm_id]:04d}'
@@ -217,7 +217,7 @@ for beh_fname in beh_clean_list:
     # 1-2) restructure for BIDS format. Columns have onset/duration/trial_type
     events_df = restructure_task_cue_beh(beh_fname)
     # TODO: later save it to source BIDS dir
-    save_events_fname = '{sub}_{ses}_task-cue_acq-mb8_{run}_events.tsv'
+    save_events_fname = f'{sub}_{ses}_task-cue_acq-mb8_{run}_events.tsv'
     save_events_sub_dir = os.path.join(save_events_dir, sub, ses)
     Path(save_events_sub_dir).mkdir(parents = True, exist_ok = True)
     events_df.to_csv(os.path.join(save_events_sub_dir, save_events_fname))
