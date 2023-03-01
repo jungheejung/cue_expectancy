@@ -169,7 +169,7 @@ args = parser.parse_args()
 
 # 0. parameters
 print(args.slurm_id)
-slurm_id = [args.slurm_id] # e.g. 1, 2
+slurm_id = args.slurm_id # e.g. 1, 2
 # sub_num = args.subject_num # e.g. 'task-social' 'task-fractional' 'task-alignvideos'
 ses_num = args.session_num # e.g. 'task-social' 'task-fractional' 'task-alignvideos'
 #run_num = args.run_num # e.g. 'task-social' 'task-fractional' 'task-alignvideos'
@@ -184,7 +184,7 @@ sub_folders = next(os.walk(onset_dir))[1]
 sub_list = [i for i in sub_folders if i.startswith('sub-')]
 # TODO; TEST for now, feed in subject id directly
 # sub = sub_list[slurm_id]
-sub = f'sub-{sub_list[slurm_id]:04d}'
+sub = sub_list[slurm_id]#f'sub-{sub_list[slurm_id]:04d}'
 ses = 'ses-{:02d}'.format(ses_num)
 run = 'run-{:02d}'.format(run_num)
 print(f" ________ {sub} {ses} {run} ________")
