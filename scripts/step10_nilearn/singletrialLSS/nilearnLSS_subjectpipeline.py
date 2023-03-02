@@ -210,7 +210,7 @@ def utils_globrunlist(beh_list, key = 'run',stringlist_to_keep = ['ttl'] ):
 
     return beh_list_copy
 
-# 0. argparse
+# 0. argparse ________________________________________________________________________________
 parser = argparse.ArgumentParser()
 parser.add_argument("--slurm_id", type=int,
                     help="specify slurm array id")
@@ -222,7 +222,7 @@ parser.add_argument("--session-num", type=int,
 #                     choices=['pain','vicarious','cognitive','all'], help="specify runtype name (e.g. pain, cognitive, variance)")
 args = parser.parse_args()
 
-# 0. parameters
+# 0. parameters ________________________________________________________________________________
 print(args.slurm_id)
 slurm_id = args.slurm_id # e.g. 1, 2
 # sub_num = args.subject_num # e.g. 'task-social' 'task-fractional' 'task-alignvideos'
@@ -333,7 +333,9 @@ for beh_fname in beh_clean_list:
         print(description)
         # step 2) compute and collect beta maps
         lss_glm = FirstLevelModel(**glm_parameters)
-        lss_glm.fit(fmri_file, events = lss_events_df, confounds = subset_confounds.fillna(0))
+        lss_glm.fit(fmri_file, 
+                    events = lss_events_df[['onset', 'duration', 'trial_type']], 
+                    confounds = subset_confounds.fillna(0))
 
         beta_map = lss_glm.compute_contrast(
             trial_condition,
@@ -341,13 +343,13 @@ for beh_fname in beh_clean_list:
         )
         # step 3) save the design matrices and plot this for reference
         fig, axes = plt.subplots(ncols=1, figsize=(20, 10))
-        plotting.plot_design_matrix(
-            lss_glm.design_matrices_[0]
-            )
         save_designmatrix_dir = os.path.join(save_singletrial_dir, sub)
         save_figname = description + '.png'
         Path(save_designmatrix_dir).mkdir(parents = True, exist_ok = True)
-        fig.savefig(os.path.join(save_designmatrix_dir, save_figname) )
+        designmtx = plotting.plot_design_matrix(
+            lss_glm.design_matrices_[0],
+            output_file = os.path.join(save_designmatrix_dir, save_figname)
+            )
 
         # step 4) save beta map as isolated nifti
         # Drop the trial number from the condition name to get the original name
