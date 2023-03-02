@@ -364,7 +364,9 @@ for beh_fname in beh_clean_list:
         # Drop the trial number from the condition name to get the original name
         beta_map.header['descrip'] = description
         lss_beta_maps[condition_name].append(beta_map)
-        nib.save(beta_map, os.path.join(save_singletrial_dir, sub, events_df.singletrial_fname[i_trial]))
+        save_singletrial_subdir = os.path.join(save_singletrial_dir, sub)
+        Path(save_singletrial_subdir).mkdir(parents = True, exist_ok = True)
+        nib.save(beta_map, os.path.join(save_singletrial_subdir, events_df.singletrial_fname[i_trial]))
 
     # step 5) concatenate the lists of 3D maps into a single 4D beta series for each condition, if we want
     # for name, maps in lss_beta_maps.items():
