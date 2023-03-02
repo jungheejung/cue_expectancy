@@ -101,7 +101,7 @@ def restructure_task_cue_beh(beh_fname):
         'stimtype':beh.pmod_stimtype,
         'expectrating':beh.pmod_expectangle,
         'outcomerating':list(np.repeat(np.nan,len(beh['onset01_cue']))),
-        'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-cue_cue-{cuetype_list[i]}_trial-{i:03d}.nii.gz" for i in range(len(beh['onset01_cue']))]#for trial_num in range(len(beh['onset01_cue']))]
+        'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-cue_trial-{i:03d}_cuetype-{cuetype_list[i]}.nii.gz" for i in range(len(beh['onset01_cue']))]#for trial_num in range(len(beh['onset01_cue']))]
     })
     onset02_expectrating = pd.DataFrame({
         'onset' : list(beh['onset02_ratingexpect']),
@@ -117,7 +117,7 @@ def restructure_task_cue_beh(beh_fname):
         'stimtype':beh.pmod_stimtype,
         'expectrating':beh.pmod_expectangle,
         'outcomerating':list(np.repeat(np.nan,len(beh['onset02_ratingexpect']))),
-        'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-cue_cue-{cuetype_list[i]}_trial-{i:03d}.nii.gz" for i in range(len(beh['onset02_ratingexpect']))]
+        'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-expectrating_trial-{i:03d}_cuetype-{cuetype_list[i]}.nii.gz" for i in range(len(beh['onset02_ratingexpect']))]
     })
 
     onset03_stim = pd.DataFrame({
@@ -135,14 +135,14 @@ def restructure_task_cue_beh(beh_fname):
         'stimtype':beh.pmod_stimtype,
         'expectrating':beh.pmod_expectangle,
         'outcomerating':beh.pmod_outcomeangle,
-        'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-stimulus_cue-{cuetype_list[i]}_stim-{stimtype_list[i]}_trial-{i:03d}.nii.gz" for i in range(len(beh['onset03_stim']))]
+        'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-stimulus_trial-{i:03d}_cuetype-{cuetype_list[i]}_stimintensity-{stimtype_list[i]}.nii.gz" for i in range(len(beh['onset03_stim']))]
     })
 
     onset04_outcomerating = pd.DataFrame({
         'onset' : list(beh['onset04_ratingoutcome']),
         'duration' : list(beh['pmod_outcomeRT']),
         'trial_type' : list(np.repeat('outcomerating',len(beh['onset04_ratingoutcome']))),
-        'full_trial_type' : list('event-outcomerating_cue-' + beh.pmod_cuetype.str.split('_').str.get(0) + '_stim-' + beh.pmod_stimtype.str.split('_').str.get(0)),
+        # 'full_trial_type' : list('event-outcomerating_cue-' + beh.pmod_cuetype.str.split('_').str.get(0) + '_stim-' + beh.pmod_stimtype.str.split('_').str.get(0)),
         # TODO: pick up here. you want to construct a nifti filename that includes all of the major parameters: eventtype, cue, stimintensity
         'sub': list(np.repeat(sub,len(beh['onset04_ratingoutcome']))),
         'ses': list(np.repeat(ses,len(beh['onset04_ratingoutcome']))),
@@ -154,7 +154,7 @@ def restructure_task_cue_beh(beh_fname):
         'stimtype':beh.pmod_stimtype,
         'expectrating':beh.pmod_expectangle,
         'outcomerating':beh.pmod_outcomeangle,
-        'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-outcomerating_cue-{cuetype_list[i]}_stim-{stimtype_list[i]}_trial-{i:03d}.nii.gz" for i in range(len(beh['onset04_ratingoutcome']))]
+        'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-outcomerating_trial-{i:03d}_cuetype-{cuetype_list[i]}_stimintensity-{stimtype_list[i]}.nii.gz" for i in range(len(beh['onset04_ratingoutcome']))]
     })
     events_df = pd.concat([onset01_cue, onset02_expectrating, onset03_stim, onset04_outcomerating])
     events_df = events_df.reset_index(drop=True)
@@ -236,6 +236,7 @@ fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop_data/derivativ
 save_singletrial_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial'
 
 sub_folders = next(os.walk(onset_dir))[1]
+print(sub_folders)
 sub_list = [i for i in sorted(sub_folders) if i.startswith('sub-')]
 # TODO; TEST for now, feed in subject id directly
 # sub = sub_list[slurm_id]
@@ -312,13 +313,21 @@ for beh_fname in beh_clean_list:
     fmri_file = os.path.join(fmriprep_dir, sub, ses, 'func', f'{sub}_{ses}_task-social_acq-mb8_run-{run_num}_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz')
     confounds_file = os.path.join(fmriprep_dir, sub, ses, 'func', f'{sub}_{ses}_task-social_acq-mb8_run-{run_num}_desc-confounds_timeseries.tsv')
     confounds = pd.read_csv(confounds_file, sep = '\t')
-    subset_confounds = confounds[['csf', 'trans_x', 'trans_x_derivative1', 'trans_x_power2', 'trans_x_derivative1_power2',
-                                    'trans_y', 'trans_y_derivative1', 'trans_y_derivative1_power2', 'trans_y_power2',
-                                    'trans_z', 'trans_z_derivative1', 'trans_z_derivative1_power2', 'trans_z_power2', 
-                                    'rot_x', 'rot_x_derivative1', 'rot_x_derivative1_power2', 'rot_x_power2', 
-                                    'rot_y', 'rot_y_derivative1', 'rot_y_derivative1_power2', 'rot_y_power2', 
-                                    'rot_z', 'rot_z_derivative1', 'rot_z_derivative1_power2', 'rot_z_power2']]
+    filter_col = [col for col in confounds if col.startswith('motion')]
+    default_csf_24dof = ['csf', 'trans_x', 'trans_x_derivative1', 'trans_x_power2', 'trans_x_derivative1_power2',
+                                'trans_y', 'trans_y_derivative1', 'trans_y_derivative1_power2', 'trans_y_power2',
+                                'trans_z', 'trans_z_derivative1', 'trans_z_derivative1_power2', 'trans_z_power2', 
+                                'rot_x', 'rot_x_derivative1', 'rot_x_derivative1_power2', 'rot_x_power2', 
+                                'rot_y', 'rot_y_derivative1', 'rot_y_derivative1_power2', 'rot_y_power2', 
+                                'rot_z', 'rot_z_derivative1', 'rot_z_derivative1_power2', 'rot_z_power2']
+    filter_col.extend(default_csf_24dof)
+    dummy = pd.DataFrame(np.eye(len(confounds))).loc[:,0:5]
+    dummy.rename(columns = {0:'dummy_00',
+                        1:'dummy_01',
+                        2:'dummy_02',3:'dummy_03',4:'dummy_04',5:'dummy_05'}, inplace=True)
+    subset_confounds = pd.concat([confounds[filter_col], dummy], axis = 1)
     print("grabbed all the confounds and fmri data")
+    subset_confounds.head()
     # %% 3. Fit glm model per trial ________________________________________________________________________________
     # TODO: identify the index where trial type is stimulus and cue
     singletrial_list = events_df.loc[(events_df['trial_type'] == 'cue') | (events_df['trial_type'] == 'stimulus')].index.tolist()
