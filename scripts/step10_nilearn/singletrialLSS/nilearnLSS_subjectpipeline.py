@@ -7,6 +7,7 @@
 # 2. Setup glm paramters and extract confounds from fmriprep confounds.tsv
 # 3. Fit glm model per trial
 """
+# %%
 import os, re, glob
 import argparse
 import matplotlib.pyplot as plt
@@ -82,28 +83,59 @@ def restructure_task_cue_beh(beh_fname):
     run = f"run-{run_num:02d}"
     # sub-0133_ses-01_run-06_runtype-pain_event-stimulus_trial-011.nii.gz
     # f"{sub}_{ses}_{run}_runtype-{runtype}_event-cue_trial-{trial_num:03d}.nii.gz"
+    cuetype_list = beh.pmod_cuetype.str.split('_').str.get(0)
+    stimtype_list = beh.pmod_stimtype.str.split('_').str.get(0)
+    trial_list = pd.DataFrame(beh.index.tolist())
+    
     onset01_cue = pd.DataFrame({
         'onset' : list(beh['onset01_cue']),
         'duration' : list(np.repeat(1,len(beh['onset01_cue']))),
         'trial_type' : list(np.repeat('cue',len(beh['onset01_cue']))),
-        'full_trial_type' : list('event-cue_cue-' + beh.pmod_cuetype.str.split('_').str.get(0)), 
-        'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-cue_trial-{trial_num:03d}.nii.gz" for trial_num in range(len(beh['onset01_cue']))]
+        'sub': list(np.repeat(sub,len(beh['onset01_cue']))),
+        'ses': list(np.repeat(ses,len(beh['onset01_cue']))),
+        'run': list(np.repeat(run,len(beh['onset01_cue']))),
+        'runtype': list(np.repeat(runtype,len(beh['onset01_cue']))),
+        'eventtype': list(np.repeat('cue',len(beh['onset01_cue']))),
+        'trialnum': list(range(len(beh['onset01_cue']))),
+        'cuetype':beh.pmod_cuetype,
+        'stimtype':beh.pmod_stimtype,
+        'expectrating':beh.pmod_expectangle,
+        'outcomerating':list(np.repeat(np.nan,len(beh['onset01_cue']))),
+        'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-cue_cue-{cuetype_list[i]}_trial-{i:03d}.nii.gz" for i in range(len(beh['onset01_cue']))]#for trial_num in range(len(beh['onset01_cue']))]
     })
-
     onset02_expectrating = pd.DataFrame({
         'onset' : list(beh['onset02_ratingexpect']),
         'duration' : list(beh['pmod_expectRT']),
         'trial_type' : list(np.repeat('expectrating',len(beh['onset02_ratingexpect']))),
-        'full_trial_type' : list('event-expectrating_cue-' + beh.pmod_cuetype.str.split('_').str.get(0)),
-        'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-cue_trial-{trial_num:03d}.nii.gz" for trial_num in range(len(beh['onset02_ratingexpect']))]
+        'sub': list(np.repeat(sub,len(beh['onset02_ratingexpect']))),
+        'ses': list(np.repeat(ses,len(beh['onset02_ratingexpect']))),
+        'run': list(np.repeat(run,len(beh['onset02_ratingexpect']))),
+        'runtype': list(np.repeat(runtype,len(beh['onset02_ratingexpect']))),
+        'eventtype': list(np.repeat('expectrating',len(beh['onset02_ratingexpect']))),
+        'trialnum': list(range(len(beh['onset02_ratingexpect']))),
+        'cuetype':beh.pmod_cuetype,
+        'stimtype':beh.pmod_stimtype,
+        'expectrating':beh.pmod_expectangle,
+        'outcomerating':list(np.repeat(np.nan,len(beh['onset02_ratingexpect']))),
+        'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-cue_cue-{cuetype_list[i]}_trial-{i:03d}.nii.gz" for i in range(len(beh['onset02_ratingexpect']))]
     })
 
     onset03_stim = pd.DataFrame({
         'onset' : list(beh['onset03_stim']),
         'duration' : list(np.repeat(5,len(beh['onset03_stim']))),
         'trial_type' : list(np.repeat('stimulus',len(beh['onset03_stim']))),
-        'full_trial_type' : list('event-stimulus_cue-' + beh.pmod_cuetype.str.split('_').str.get(0) + '_stim-' + beh.pmod_stimtype.str.split('_').str.get(0)),
-        'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-cue_trial-{trial_num:03d}.nii.gz" for trial_num in range(len(beh['onset03_stim']))]
+        # 'full_trial_type' : list('event-stimulus_cue-' + beh.pmod_cuetype.str.split('_').str.get(0) + '_stim-' + beh.pmod_stimtype.str.split('_').str.get(0)),
+        'sub': list(np.repeat(sub,len(beh['onset03_stim']))),
+        'ses': list(np.repeat(ses,len(beh['onset03_stim']))),
+        'run': list(np.repeat(run,len(beh['onset03_stim']))),
+        'runtype': list(np.repeat(runtype,len(beh['onset03_stim']))),
+        'eventtype': list(np.repeat('stimulus',len(beh['onset03_stim']))),
+        'trialnum': list(range(len(beh['onset03_stim']))),
+        'cuetype':beh.pmod_cuetype,
+        'stimtype':beh.pmod_stimtype,
+        'expectrating':beh.pmod_expectangle,
+        'outcomerating':beh.pmod_outcomeangle,
+        'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-stimulus_cue-{cuetype_list[i]}_stim-{stimtype_list[i]}_trial-{i:03d}.nii.gz" for i in range(len(beh['onset03_stim']))]
     })
 
     onset04_outcomerating = pd.DataFrame({
@@ -111,7 +143,18 @@ def restructure_task_cue_beh(beh_fname):
         'duration' : list(beh['pmod_outcomeRT']),
         'trial_type' : list(np.repeat('outcomerating',len(beh['onset04_ratingoutcome']))),
         'full_trial_type' : list('event-outcomerating_cue-' + beh.pmod_cuetype.str.split('_').str.get(0) + '_stim-' + beh.pmod_stimtype.str.split('_').str.get(0)),
-        'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-cue_trial-{trial_num:03d}.nii.gz" for trial_num in range(len(beh['onset04_ratingoutcome']))]
+        # TODO: pick up here. you want to construct a nifti filename that includes all of the major parameters: eventtype, cue, stimintensity
+        'sub': list(np.repeat(sub,len(beh['onset04_ratingoutcome']))),
+        'ses': list(np.repeat(ses,len(beh['onset04_ratingoutcome']))),
+        'run': list(np.repeat(run,len(beh['onset04_ratingoutcome']))),
+        'runtype': list(np.repeat(runtype,len(beh['onset04_ratingoutcome']))),
+        'eventtype': list(np.repeat('outcomerating',len(beh['onset04_ratingoutcome']))),
+        'trialnum': list(range(len(beh['onset04_ratingoutcome']))),
+        'cuetype':beh.pmod_cuetype,
+        'stimtype':beh.pmod_stimtype,
+        'expectrating':beh.pmod_expectangle,
+        'outcomerating':beh.pmod_outcomeangle,
+        'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-outcomerating_cue-{cuetype_list[i]}_stim-{stimtype_list[i]}_trial-{i:03d}.nii.gz" for i in range(len(beh['onset04_ratingoutcome']))]
     })
     events_df = pd.concat([onset01_cue, onset02_expectrating, onset03_stim, onset04_outcomerating])
     events_df = events_df.reset_index(drop=True)
@@ -283,7 +326,8 @@ for beh_fname in beh_clean_list:
         lss_events_df, trial_condition = lss_transformer(events_df, i_trial)
         condition_name = trial_condition.split('__')[0]
         trial_num =  trial_condition.split('__')[1]
-        description = f"{sub}_{ses}_{run}_runtype-{run_type}_event-{condition_name}_trial-{trial_num}"
+        fullfname = events_df.singletrial_fname[i_trial]
+        description = fullfname.replace(".nii.gz", "")
         print(description)
         # step 2) compute and collect beta maps
         lss_glm = FirstLevelModel(**glm_parameters)
@@ -307,7 +351,7 @@ for beh_fname in beh_clean_list:
         # Drop the trial number from the condition name to get the original name
         beta_map.header['descrip'] = description
         lss_beta_maps[condition_name].append(beta_map)
-        nib.save(beta_map, os.path.join(save_singletrial_dir, sub, description + '.nii.gz'))
+        nib.save(beta_map, os.path.join(save_singletrial_dir, sub, events_df.singletrial_fname[i_trial]))
 
     # step 5) concatenate the lists of 3D maps into a single 4D beta series for each condition, if we want
     # for name, maps in lss_beta_maps.items():
