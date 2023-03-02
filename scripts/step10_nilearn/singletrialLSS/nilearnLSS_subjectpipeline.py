@@ -224,10 +224,10 @@ args = parser.parse_args()
 
 # 0. parameters
 print(args.slurm_id)
-slurm_id = [args.slurm_id] # e.g. 1, 2
+slurm_id = args.slurm_id # e.g. 1, 2
 # sub_num = args.subject_num # e.g. 'task-social' 'task-fractional' 'task-alignvideos'
 ses_num = args.session_num # e.g. 'task-social' 'task-fractional' 'task-alignvideos'
-run_num = args.run_num # e.g. 'task-social' 'task-fractional' 'task-alignvideos'
+#run_num = args.run_num # e.g. 'task-social' 'task-fractional' 'task-alignvideos'
 # run_type = args.runtype
 
 onset_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/fmri/fmri01_onset/onset02_SPM'
@@ -239,10 +239,10 @@ sub_folders = next(os.walk(onset_dir))[1]
 sub_list = [i for i in sorted(sub_folders) if i.startswith('sub-')]
 # TODO; TEST for now, feed in subject id directly
 # sub = sub_list[slurm_id]
-sub = f'sub-{sub_list[slurm_id]:04d}'
+sub = sub_list[slurm_id]#f'sub-{sub_list[slurm_id]:04d}'
 ses = 'ses-{:02d}'.format(ses_num)
-run = 'run-{:02d}'.format(run_num)
-print(f" ________ {sub} {ses} {run} ________")
+#run = 'run-{:02d}'.format(run_num)
+print(f" ________ {sub} {ses} ________")
 
 subject_beh_dir = os.path.join(onset_dir, sub, ses)
 save_designmatrix_dir = os.path.join(save_singletrial_dir, sub)
@@ -266,9 +266,11 @@ beh_list = glob.glob(os.path.join(onset_dir, sub, ses, f'{sub}_{ses}_task-cue_*r
 beh_clean_list = utils_globrunlist(beh_list, key = 'run', stringlist_to_keep=['ttl'])
 
 for beh_fname in beh_clean_list:
-
+    run_info = [match for match in os.path.basename(beh_fname).split('_') if "run" in match][0]
+    run_num = int(re.findall(r'\d+', run_info )[0].lstrip('0'))
     run_type = [match for match in os.path.basename(beh_fname).split('_') if "runtype" in match][0].split('-')[1]
-
+    run = f"run-{run_num:02d}"
+    print(f"{run_num} {run_type}")
     # 1-2) restructure for BIDS format. Columns have onset/duration/trial_type
     events_df = restructure_task_cue_beh(beh_fname)
     # TODO: later save it to source BIDS dir
