@@ -319,3 +319,4 @@ for beh_fname in beh_clean_list:
     #         description = f"{sub}_{ses}_{run}_runtype-{run_type}_event-{name}_concat"
     #         concat_map.header['descrip'] = description
     #         nib.save(concat_map, os.path.join(save_singletrial_dir, description + '.nii.gz'))
+print(f"{sub} {ses} {run} COMPLETE")
