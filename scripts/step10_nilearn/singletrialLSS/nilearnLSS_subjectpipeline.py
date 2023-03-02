@@ -234,7 +234,7 @@ onset_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/
 save_events_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/beh/beh03_bids'
 fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop_data/derivatives/fmriprep/results/fmriprep'
 save_singletrial_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial'
-
+save_fig_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/figure/fmri/nilearn/singletrial'
 sub_folders = next(os.walk(onset_dir))[1]
 print(sub_folders)
 sub_list = [i for i in sorted(sub_folders) if i.startswith('sub-')]
@@ -246,7 +246,7 @@ ses = 'ses-{:02d}'.format(ses_num)
 print(f" ________ {sub} {ses} ________")
 
 subject_beh_dir = os.path.join(onset_dir, sub, ses)
-save_designmatrix_dir = os.path.join(save_singletrial_dir, sub)
+save_designmatrix_dir = os.path.join(save_fig_dir, sub)
 
 # 1. load behavioral data and restructure for BIDS  ________________________________________________________________________________
 # 1-1) load tsv file. If _ttl.tsv exists, then load that one
@@ -352,7 +352,7 @@ for beh_fname in beh_clean_list:
         )
         # step 3) save the design matrices and plot this for reference
         fig, axes = plt.subplots(ncols=1, figsize=(20, 10))
-        save_designmatrix_dir = os.path.join(save_singletrial_dir, sub)
+        # save_designmatrix_dir = os.path.join(save_singletrial_dir, sub)
         save_figname = description + '.png'
         Path(save_designmatrix_dir).mkdir(parents = True, exist_ok = True)
         designmtx = plotting.plot_design_matrix(
