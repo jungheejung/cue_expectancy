@@ -71,33 +71,47 @@ def restructure_task_cue_beh(beh_fname):
     import pandas as pd
     import numpy as np
     beh = pd.read_csv(beh_fname, sep = '\t')
+    beh_tsv = os.path.basename(beh_fname)
 
+    sub_num = int([match for match in beh_tsv.split('_') if "sub" in match][0].split('-')[1])
+    ses_num = int([match for match in beh_tsv.split('_') if "ses" in match][0].split('-')[1])
+    run_num = int([match for match in beh_tsv.split('_') if "run" in match][0].split('-')[1])
+    runtype = [match for match in beh_tsv.split('_') if "runtype" in match][0].split('-')[1]
+    sub = f"sub-{sub_num:04d}"
+    ses = f"ses-{ses_num:02d}"
+    run = f"run-{run_num:02d}"
+    # sub-0133_ses-01_run-06_runtype-pain_event-stimulus_trial-011.nii.gz
+    # f"{sub}_{ses}_{run}_runtype-{runtype}_event-cue_trial-{trial_num:03d}.nii.gz"
     onset01_cue = pd.DataFrame({
         'onset' : list(beh['onset01_cue']),
         'duration' : list(np.repeat(1,len(beh['onset01_cue']))),
         'trial_type' : list(np.repeat('cue',len(beh['onset01_cue']))),
-        'full_trial_type' : list('event-cue_cue-' + beh.pmod_cuetype.str.split('_').str.get(0))
+        'full_trial_type' : list('event-cue_cue-' + beh.pmod_cuetype.str.split('_').str.get(0)), 
+        'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-cue_trial-{trial_num:03d}.nii.gz" for trial_num in range(len(beh['onset01_cue']))]
     })
 
     onset02_expectrating = pd.DataFrame({
         'onset' : list(beh['onset02_ratingexpect']),
         'duration' : list(beh['pmod_expectRT']),
         'trial_type' : list(np.repeat('expectrating',len(beh['onset02_ratingexpect']))),
-        'full_trial_type' : list('event-expectrating_cue-' + beh.pmod_cuetype.str.split('_').str.get(0))
+        'full_trial_type' : list('event-expectrating_cue-' + beh.pmod_cuetype.str.split('_').str.get(0)),
+        'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-cue_trial-{trial_num:03d}.nii.gz" for trial_num in range(len(beh['onset02_ratingexpect']))]
     })
 
     onset03_stim = pd.DataFrame({
         'onset' : list(beh['onset03_stim']),
         'duration' : list(np.repeat(5,len(beh['onset03_stim']))),
         'trial_type' : list(np.repeat('stimulus',len(beh['onset03_stim']))),
-        'full_trial_type' : list('event-stim_cue-' + beh.pmod_cuetype.str.split('_').str.get(0) + '_stim-' + beh.pmod_stimtype.str.split('_').str.get(0))
+        'full_trial_type' : list('event-stimulus_cue-' + beh.pmod_cuetype.str.split('_').str.get(0) + '_stim-' + beh.pmod_stimtype.str.split('_').str.get(0)),
+        'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-cue_trial-{trial_num:03d}.nii.gz" for trial_num in range(len(beh['onset03_stim']))]
     })
 
     onset04_outcomerating = pd.DataFrame({
         'onset' : list(beh['onset04_ratingoutcome']),
         'duration' : list(beh['pmod_outcomeRT']),
         'trial_type' : list(np.repeat('outcomerating',len(beh['onset04_ratingoutcome']))),
-        'full_trial_type' : list('event-outcomerating_cue-' + beh.pmod_cuetype.str.split('_').str.get(0) + '_stim-' + beh.pmod_stimtype.str.split('_').str.get(0))
+        'full_trial_type' : list('event-outcomerating_cue-' + beh.pmod_cuetype.str.split('_').str.get(0) + '_stim-' + beh.pmod_stimtype.str.split('_').str.get(0)),
+        'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-cue_trial-{trial_num:03d}.nii.gz" for trial_num in range(len(beh['onset04_ratingoutcome']))]
     })
     events_df = pd.concat([onset01_cue, onset02_expectrating, onset03_stim, onset04_outcomerating])
     events_df = events_df.reset_index(drop=True)
@@ -157,8 +171,6 @@ def utils_globrunlist(beh_list, key = 'run',stringlist_to_keep = ['ttl'] ):
 parser = argparse.ArgumentParser()
 parser.add_argument("--slurm_id", type=int,
                     help="specify slurm array id")
-# parser.add_argument("--subject-num", type=int,
-#                     help="subject num")
 parser.add_argument("--session-num", type=int,
                     help="specify slurm array id")
 # parser.add_argument("--run-num", type=int,
