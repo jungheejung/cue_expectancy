@@ -267,6 +267,7 @@ beh_list = glob.glob(os.path.join(onset_dir, sub, ses, f'{sub}_{ses}_task-cue_*r
 beh_clean_list = utils_globrunlist(beh_list, key = 'run', stringlist_to_keep=['ttl'])
 
 for beh_fname in beh_clean_list:
+    print(beh_fname)
     run_info = [match for match in os.path.basename(beh_fname).split('_') if "run" in match][0]
     run_num = int(re.findall(r'\d+', run_info )[0].lstrip('0'))
     run_type = [match for match in os.path.basename(beh_fname).split('_') if "runtype" in match][0].split('-')[1]
