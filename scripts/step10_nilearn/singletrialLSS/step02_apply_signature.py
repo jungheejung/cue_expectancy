@@ -123,9 +123,9 @@ save_signaturedir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_proje
 key = 'NPS'
 
 # TODO: load in the signatures:
-signature_dict = {'NPS': 'weights_NSF_grouppred_cvpcr.img',  # Wager et al. 2013 NPS   - somatic pain
-           'NPSpos': 'NPSp_Lopez-Sola_2017_PAIN.img',# 2017 Lopez-Sola positive NPS regions only
-           'NPSneg': 'NPSn_Lopez-Sola_2017_PAIN.img',# 2017 Lopez-Sola negative NPS regions only, excluding visual
+signature_dict = {'NPS': 'weights_NSF_grouppred_cvpcr.img.gz',  # Wager et al. 2013 NPS   - somatic pain
+           'NPSpos': 'NPSp_Lopez-Sola_2017_PAIN.img.gz',# 2017 Lopez-Sola positive NPS regions only
+           'NPSneg': 'NPSn_Lopez-Sola_2017_PAIN.img.gz',# 2017 Lopez-Sola negative NPS regions only, excluding visual
            'SIIPS': 'nonnoc_v11_4_137subjmap_weighted_mean.nii',# Woo 2017 SIIPS - stim-indep pain,
            'PINES': 'Rating_Weights_LOSO_2.nii', # Chang 2015 PINES - neg emo
            'Rejection': 'dpsp_rejection_vs_others_weights_final.nii', # Woo 2014 romantic rejection
