@@ -251,4 +251,4 @@ for signature_key in signature_dict.keys():
     df = utils_extractsignature(img_flist, signature_dict, signature_key)
     sig_df.merge(df, on='singletrial_fname', how='left') 
 
-df.to_csv(os.path.join(save_signaturedir, f"signature-{signature_key}_sub-{save_sub}_runtype-{runtype}_event-{event}.tsv"))
+sig_df.to_csv(os.path.join(save_signaturedir, f"signature-{signature_key}_sub-{save_sub}_runtype-{runtype}_event-{event}.tsv"))
