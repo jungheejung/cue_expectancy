@@ -138,13 +138,13 @@ def utils_extractsignature(img_flist, signature_dict, signature_key):
     mul_sig_fname = glob.glob(os.path.join(mul_sig_dir, '**', signature_dict[signature_key]), recursive = True)
     mask_priv_fname.extend(mul_sig_fname)
     # print(mask_priv_fname)
-    if len(mul_sig_fname):
-        print(mul_sig_fname[0])
+    if len(mask_priv_fname):
+        print(mask_priv_fname[0])
     else: 
-        print(f"check whats going on: {mul_sig_fname}")
+        print(f"check whats going on: {mask_priv_fname}")
 
-    signature_fname = mul_sig_fname[0]
-    print(f"key: {signature_key}, signature filename: {mul_sig_fname}")
+    signature_fname = mask_priv_fname[0]
+    print(f"key: {signature_key}, signature filename: {mask_priv_fname}")
 
     if '.nii' not in os.path.splitext(signature_fname)[-1]:
         print(signature_fname)
