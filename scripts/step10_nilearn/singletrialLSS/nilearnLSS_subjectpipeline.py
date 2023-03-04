@@ -267,6 +267,7 @@ beh_list = glob.glob(os.path.join(onset_dir, sub, ses, f'{sub}_{ses}_task-cue_*r
 beh_clean_list = utils_globrunlist(beh_list, key = 'run', stringlist_to_keep=['ttl'])
 
 for beh_fname in beh_clean_list:
+    print(beh_fname)
     run_info = [match for match in os.path.basename(beh_fname).split('_') if "run" in match][0]
     run_num = int(re.findall(r'\d+', run_info )[0].lstrip('0'))
     run_type = [match for match in os.path.basename(beh_fname).split('_') if "runtype" in match][0].split('-')[1]
@@ -376,3 +377,4 @@ for beh_fname in beh_clean_list:
     #         description = f"{sub}_{ses}_{run}_runtype-{run_type}_event-{name}_concat"
     #         concat_map.header['descrip'] = description
     #         nib.save(concat_map, os.path.join(save_singletrial_dir, description + '.nii.gz'))
+print(f"{sub} {ses} {run} COMPLETE")
