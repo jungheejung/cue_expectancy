@@ -7,6 +7,7 @@ from nilearn import plotting
 import numpy as np
 import pandas as pd
 
+#TODO: FM-Multisens
 # %%
 def utils_extract_schaefer2018(nifti_fname_dict):
     # parameters
@@ -111,7 +112,7 @@ def convert_imggz_to_niigz_nib(img_fname):
         # output, error = process.communicate()
         new_fname = os.path.join(img_dir, img_fnamestem + '.nii.gz')
     else:
-        img = nb.load(img_fpath)
+        img = nb.load(img_fname)
         nb.save(img, new_fname)
         
     return new_fname
