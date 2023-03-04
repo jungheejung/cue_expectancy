@@ -171,12 +171,12 @@ mask_priv_fname = glob.glob(os.path.join(mask_priv_dir, '**', signature_dict[key
 mul_sig_fname = glob.glob(os.path.join(mul_sig_dir, '**', signature_dict[key]), recursive = True)
 mask_priv_fname.extend(mul_sig_fname)
 print(mask_priv_fname)
-if len(mul_sig_fname):
-    print(mul_sig_fname[0])
+if len(mask_priv_fname) == 1:
+    print(mask_priv_fname[0])
 else: 
     print(f"check whats going on: {mul_sig_fname}")
 
-signature_fname = mul_sig_fname[0]
+signature_fname = mask_priv_fname[0]
 print(f"key: {key}, signature filename: {mul_sig_fname}")
 # signature_fname = '/Users/h/Documents/MATLAB/MasksPrivate/Masks_private/2017_Lopez_Sola_Fibromyalgia/rNPS_fdr_pospeaks_smoothed.img.gz'
 if '.nii' not in os.path.splitext(signature_fname)[-1]:
@@ -209,8 +209,9 @@ print(img_flist)
 img_flist = sorted(img_flist)
 stacked_singletrial = image.concat_imgs(sorted(img_flist))
 # %% extract atlas if needed
-schaefer2018 = utils_extract_schaefer2018(nifti_fname_dict)
-schaefer2018
+# TODO: updatecode
+#schaefer2018 = utils_extract_schaefer2018(nifti_fname_dict)
+#schaefer2018
 # 2. concatenate
 
 # 3. resample space
