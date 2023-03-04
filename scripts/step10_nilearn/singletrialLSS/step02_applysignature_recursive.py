@@ -135,8 +135,8 @@ def utils_extractsignature(img_flist, signature_dict, signature_key):
     # 2. concatenate
     mask_priv_dir = '/dartfs-hpc/rc/lab/C/CANlab/modules/MasksPrivate'
     mul_sig_dir = '/dartfs-hpc/rc/lab/C/CANlab/modules/Neuroimaging_Pattern_Masks/Multivariate_signature_patterns'
-    mask_priv_fname = glob.glob(os.path.join(mask_priv_dir, '**', signature_dict[signature_key]), recursive = True)
-    mul_sig_fname = glob.glob(os.path.join(mul_sig_dir, '**', signature_dict[signature_key]), recursive = True)
+    mask_priv_fname = glob.glob(os.path.join(mask_priv_dir, '**', signature_dict[signature_key] + '*'), recursive = True)
+    mul_sig_fname = glob.glob(os.path.join(mul_sig_dir, '**', signature_dict[signature_key] + '*'), recursive = True)
     mask_priv_fname.extend(mul_sig_fname)
     # print(mask_priv_fname)
     if len(mask_priv_fname):
