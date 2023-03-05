@@ -6,6 +6,7 @@ from nilearn import image
 from nilearn import plotting
 import numpy as np
 import pandas as pd
+import argparse
 
 #TODO: FM-Multisens
 # %%
@@ -170,6 +171,17 @@ def utils_extractsignature(img_flist, signature_dict, signature_key):
     return nps_df
 
 
+
+# 0. argparse ________________________________________________________________________________
+parser = argparse.ArgumentParser()
+parser.add_argument("--slurm_id", type=int,
+                    help="specify slurm array id")
+args = parser.parse_args()
+print(args.slurm_id)
+slurm_id = args.slurm_id # e.g. 1, 2
+
+
+
 # %%
 # 1. load nifti image
 singletrial_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial'
@@ -220,35 +232,36 @@ signature_dict = {'NPS': 'weights_NSF_grouppred_cvpcr.img.gz',  # Wager et al. 2
            'PlaceboPvsC_Pain': 'PlaceboPredict_PainPeriod.img',
            'stroop': 'stroop_pattern_wani_121416.nii'}
 sig_df = pd.DataFrame(columns=['singletrial_fname']) 
-for signature_key in signature_dict.keys():
-    print(signature_key)
-    # signature_key = 'NPS'
-    nifti_fname_dict = {'singletrial_dir': singletrial_dir,
-                        'sub': '*',
-                        'ses': '*',
-                        'run': '*',
-                        'runtype': 'pain',
-                        'event': 'stimulus'}
-    if nifti_fname_dict['sub'] == '*':
-        save_sub = 'sub-all'
-    else: 
-        save_sub = nifti_fname_dict['sub']
+# for signature_key in signature_dict.keys():
+signature_key = signature_dict.keys()[slurm_id]
+print(signature_key)
+# signature_key = 'NPS'
+nifti_fname_dict = {'singletrial_dir': singletrial_dir,
+                    'sub': '*',
+                    'ses': '*',
+                    'run': '*',
+                    'runtype': 'pain',
+                    'event': 'stimulus'}
+if nifti_fname_dict['sub'] == '*':
+    save_sub = 'sub-all'
+else: 
+    save_sub = nifti_fname_dict['sub']
 
-    # singletrial_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/singletrial/'
-    sub = '*'
-    ses = '*'
-    run = '*'
-    runtype = '*'
-    event = 'stimulus'
+# singletrial_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/singletrial/'
+sub = '*'
+ses = '*'
+run = '*'
+runtype = '*'
+event = 'stimulus'
 
-    img_flist = glob.glob(os.path.join(singletrial_dir, sub,
-                        f'{sub}_{ses}_{run}_runtype-{runtype}_event-{event}*.nii.gz'))
-    print(sorted(img_flist)[0:10])
-    img_flist = sorted(img_flist)
+img_flist = glob.glob(os.path.join(singletrial_dir, sub,
+                    f'{sub}_{ses}_{run}_runtype-{runtype}_event-{event}*.nii.gz'))
+print(sorted(img_flist)[0:10])
+img_flist = sorted(img_flist)
 
-    stacked_singletrial = image.concat_imgs(sorted(img_flist))
-    # %% extract atlas if needed
-    df = utils_extractsignature(img_flist, signature_dict, signature_key)
-    sig_df.merge(df, on='singletrial_fname', how='left') 
+stacked_singletrial = image.concat_imgs(sorted(img_flist))
+# %% extract atlas if needed
+df = utils_extractsignature(img_flist, signature_dict, signature_key)
+# sig_df.merge(df, on='singletrial_fname', how='left') 
 
-sig_df.to_csv(os.path.join(save_signaturedir, f"signature-{signature_key}_sub-{save_sub}_runtype-{runtype}_event-{event}.tsv"))
+df.to_csv(os.path.join(save_signaturedir, f"signature-{signature_key}_sub-{save_sub}_runtype-{runtype}_event-{event}.tsv"))
