@@ -239,7 +239,7 @@ for signature_key in signature_dict.keys():
     sub = '*'
     ses = '*'
     run = '*'
-    runtype = 'pain'
+    runtype = '*'
     event = 'stimulus'
 
     img_flist = glob.glob(os.path.join(singletrial_dir, sub,
