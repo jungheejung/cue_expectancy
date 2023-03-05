@@ -231,6 +231,7 @@ signature_dict = {'NPS': 'weights_NSF_grouppred_cvpcr.img.gz',  # Wager et al. 2
            # During pain [P - C]->behav [P - C],
            'PlaceboPvsC_Pain': 'PlaceboPredict_PainPeriod.img',
            'stroop': 'stroop_pattern_wani_121416.nii'}
+
 sig_df = pd.DataFrame(columns=['singletrial_fname']) 
 # for signature_key in signature_dict.keys():
 signature_key = signature_dict.keys()[slurm_id]
@@ -259,9 +260,13 @@ img_flist = glob.glob(os.path.join(singletrial_dir, sub,
 print(sorted(img_flist)[0:10])
 img_flist = sorted(img_flist)
 
-stacked_singletrial = image.concat_imgs(sorted(img_flist))
-# %% extract atlas if needed
-df = utils_extractsignature(img_flist, signature_dict, signature_key)
-# sig_df.merge(df, on='singletrial_fname', how='left') 
 
+stacked_singletrial = image.concat_imgs(sorted(img_flist))
+df = utils_extractsignature(img_flist, signature_dict, signature_key)
 df.to_csv(os.path.join(save_signaturedir, f"signature-{signature_key}_sub-{save_sub}_runtype-{runtype}_event-{event}.tsv"))
+
+#     stacked_singletrial = image.concat_imgs(sorted(img_flist))
+#     # %% extract atlas if needed
+#     df = utils_extractsignature(img_flist, signature_dict, signature_key)
+#      sig_df = pd.merge(sig_df, df, on = 'singletrial_fname', how = 'outer')
+# sig_df.to_csv(os.path.join(save_signaturedir, f"signature-all_sub-{save_sub}_runtype-{runtype}_event-{event}.tsv"))
