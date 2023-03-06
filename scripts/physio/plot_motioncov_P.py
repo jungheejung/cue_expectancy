@@ -9,6 +9,8 @@ import os, glob
 import argparse
 from pathlib import Path
 
+# TODO: why is the plot showing us a v shaped line, instead of a vertical line? How do I fix this?
+# TODO: make the line color the same
 # 0. parameters
 main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue'
 physio_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop_data/physio/physio03_bids/task-cue/'
@@ -94,7 +96,7 @@ for physio_fname in physio_flist:
     filter_col.append('trigger_heat')
     fig, axes = plt.subplots(ncols=1, figsize=(30, 10))
     plt.ylim([min(confounds['physio'])-0.1, max(confounds['physio'])+0.1 ])
-
+    plt.axvline(x = 7, color = 'b', label = 'axvline - full height')
 
     plt.plot(confounds[filter_col], alpha=1, linewidth=2 )
     plt.plot(confounds['physio'], alpha=1, linewidth=10, )
@@ -104,6 +106,7 @@ for physio_fname in physio_flist:
         plt.text(x, y + .15, x,
                 color = 'gray', rotation = 60,
                 rotation_mode = 'anchor', fontsize = 10)
+    
     plt.xlabel('time (872 TRs)',fontsize = 20)
     plt.ylabel('EDA amplitude (downsample + filter + detrend)', fontsize = 20)
     plt.title(f"{sub}_{ses}_{run}_{runtype}", fontsize= 40)

@@ -8,10 +8,10 @@
 #SBATCH -e ./log_phys/GLM_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=13-23%10
+#SBATCH --array=1-133%10
 
-conda activate biopac
+conda activate spacetop_env
 echo "SLURMSARRAY: " ${SLURM_ARRAY_TASK_ID}
 ID=$((SLURM_ARRAY_TASK_ID-1))
-MAINDIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue"
-${MAINDIR}/scripts/physio/plot_motioncov_rawdata.py --slurm_id ${ID} --session-num 1
+MAINDIR='/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue'
+${MAINDIR}/scripts/physio/plot_motioncov_VC.py --slurm_id ${ID} --session-num 1 --runtype 'vicarious'
