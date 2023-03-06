@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# %%
 import os
 import glob
 from nilearn import image
@@ -9,7 +8,6 @@ import pandas as pd
 import argparse
 
 #TODO: FM-Multisens
-# %%
 def utils_extract_schaefer2018(nifti_fname_dict):
     # parameters
     # ==========
@@ -234,20 +232,23 @@ signature_dict = {'NPS': 'weights_NSF_grouppred_cvpcr.img.gz',  # Wager et al. 2
 
 sig_df = pd.DataFrame(columns=['singletrial_fname']) 
 # for signature_key in signature_dict.keys():
-signature_key = signature_dict.keys()[slurm_id]
+signature_key = list(signature_dict.keys())[slurm_id] #signature_dict.keys()[slurm_id]
 print(signature_key)
 # signature_key = 'NPS'
 nifti_fname_dict = {'singletrial_dir': singletrial_dir,
                     'sub': '*',
                     'ses': '*',
                     'run': '*',
-                    'runtype': 'pain',
+                    'runtype': '*',
                     'event': 'stimulus'}
 if nifti_fname_dict['sub'] == '*':
     save_sub = 'sub-all'
 else: 
     save_sub = nifti_fname_dict['sub']
-
+if nifti_fname_dict['runtype'] == '*':
+    save_runtype = 'runtype-pvc'
+else:
+    save_runtype = nifti_fname_dict['runtype']
 # singletrial_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/singletrial/'
 sub = '*'
 ses = '*'
@@ -263,7 +264,7 @@ img_flist = sorted(img_flist)
 
 stacked_singletrial = image.concat_imgs(sorted(img_flist))
 df = utils_extractsignature(img_flist, signature_dict, signature_key)
-df.to_csv(os.path.join(save_signaturedir, f"signature-{signature_key}_sub-{save_sub}_runtype-{runtype}_event-{event}.tsv"))
+df.to_csv(os.path.join(save_signaturedir, f"signature-{signature_key}_sub-{save_sub}_runtype-{save_runtype}_event-{event}.tsv"))
 
 #     stacked_singletrial = image.concat_imgs(sorted(img_flist))
 #     # %% extract atlas if needed
