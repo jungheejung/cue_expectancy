@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import pandas as pd
 from scipy import signal
 import matplotlib.pyplot as plt
@@ -5,6 +7,7 @@ import numpy as np
 import neurokit2 as nk
 import os, glob
 import argparse
+from pathlib import Path
 
 # 0. parameters
 main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue'
@@ -18,21 +21,22 @@ parser.add_argument("--session-num", type=int,
                     help="specify session number")
 args = parser.parse_args()
 print(args.slurm_id)
-slurm_id = [args.slurm_id] 
+slurm_id = args.slurm_id
 ses_num = args.session_num
 sub_folders = next(os.walk(physio_dir))[1]
 sub_list = [i for i in sorted(sub_folders) if i.startswith('sub-')]
 # TODO; TEST for now, feed in subject id directly
 # sub = sub_list[slurm_id]
-sub = f'sub-{sub_list[slurm_id]:04d}'
+sub = sub_list[slurm_id]
 ses = 'ses-{:02d}'.format(ses_num)
 print(f" ________ {sub} {ses} ________")
 
 # physio: load physio tsv ___________
 
-physio_flist = glob.glob(os.path.join(physio_dir, sub, ses, f"{sub}_{ses}_task-cue_*_recording-ppg-eda-trigger_physio.tsv"))
+physio_flist = glob.glob(os.path.join(physio_dir, sub, ses, f"{sub}_{ses}_task-cue*recording-ppg-eda-trigger_physio.tsv"))
+print(physio_flist)
 for physio_fname in physio_flist:
-    
+    print(physio_fname)    
     physio = pd.read_csv(physio_fname, sep = '\t')
     samplingrate = 2000
     physio.plot(y = "physio_eda")
@@ -104,4 +108,6 @@ for physio_fname in physio_flist:
     plt.ylabel('EDA amplitude (downsample + filter + detrend)', fontsize = 20)
     plt.title(f"{sub}_{ses}_{run}_{runtype}", fontsize= 40)
     plt.show()
-    fig.savefig(os.path.join(save_figdir, f'qc-eda_{sub}_{ses}_{run}_runtype-{runtype}_desc-motioncovariate.png'),dpi = 300)
+    save_figsubdir = os.path.join(save_figdir, sub)
+    Path(save_figsubdir).mkdir(parents = True, exist_ok = True)
+    fig.savefig(os.path.join(save_figsubdir, f'qc-eda_{sub}_{ses}_{run}_runtype-{runtype}_desc-motioncovariate.png'),dpi = 300)
