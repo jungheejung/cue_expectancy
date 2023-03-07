@@ -2,6 +2,7 @@ plot_halfrainclouds_twofactor <- function(subjectwise, groupwise,
                                       iv1, iv2, sub_mean, group_mean, se, subject,
                                       ggtitle, title, xlab, ylab, task_name, ylim,
                                       w, h, dv_keyword, color, save_fname) {
+    library(ggplot2)
     g <- ggplot(
         data = subjectwise,
         aes(
@@ -17,7 +18,8 @@ plot_halfrainclouds_twofactor <- function(subjectwise, groupwise,
         # ) +
 
         geom_half_violin(
-        aes(fill = factor(.data[[iv2]])),
+            data = subjectwise,
+        aes(color = .data[[iv2]]), #factor(.data[[iv2]])),
         side = 'r',
         position = position_nudge(x = .1, y = 0),
         # position = 'dodge',
@@ -33,7 +35,7 @@ plot_halfrainclouds_twofactor <- function(subjectwise, groupwise,
                 group = .data[[subject]],
                 y = .data[[sub_mean]],
                 x = as.numeric(.data[[iv1]]) - .15,
-                fill = .data[[iv2]]
+                color = .data[[iv2]]
             ),
             linetype = 3, color = "grey", alpha = .3
         ) +
@@ -48,12 +50,27 @@ plot_halfrainclouds_twofactor <- function(subjectwise, groupwise,
             size = 1, alpha = 0.8, shape = 20
         ) +
 
-        geom_half_boxplot(
+        # geom_half_boxplot(
+        # data = subjectwise,
+        # aes(x = .data[[iv1]],
+        #     y = .data[[sub_mean]],
+        #     fill = .data[[iv2]]),
+        # side = "r",
+        # outlier.shape = NA,
+        # alpha = 0.8,
+        # width = .1,
+        # notch = FALSE,
+        # notchwidth = 0,
+        # varwidth = FALSE,
+        # colour = "black",
+        # errorbar.draw = FALSE
+        # ) +
+
+        geom_boxplot(
         data = subjectwise,
         aes(x = .data[[iv1]],
             y = .data[[sub_mean]],
             fill = .data[[iv2]]),
-        side = "r",
         outlier.shape = NA,
         alpha = 0.8,
         width = .1,
@@ -61,9 +78,7 @@ plot_halfrainclouds_twofactor <- function(subjectwise, groupwise,
         notchwidth = 0,
         varwidth = FALSE,
         colour = "black",
-        errorbar.draw = FALSE
         ) +
-
 
         # use summary stats __________________________________________________________________________________ # nolint
 
@@ -84,7 +99,7 @@ plot_halfrainclouds_twofactor <- function(subjectwise, groupwise,
         expand_limits(x = 3.25) +
         guides(fill = "none") +
         guides(color = "none") +
-        guides(fill = guide_legend(title = "title")) +
+        guides(fill = guide_legend(title = title)) +
         # geom_text()
 
 
@@ -94,7 +109,7 @@ plot_halfrainclouds_twofactor <- function(subjectwise, groupwise,
         # coord_flip() + #vertical vs horizontal
         xlab(xlab) +
         ylab(ylab) +
-        theme_bw()
+        theme_classic()
 
     if (!is.null(ylim)) {
         g + ylim(ylim)

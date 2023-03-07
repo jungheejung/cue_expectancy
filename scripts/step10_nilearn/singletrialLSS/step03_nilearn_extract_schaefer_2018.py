@@ -22,7 +22,6 @@ parser.add_argument("--session-num", type=int,
                     help="specify session number")
 parser.add_argument("--run-num", type=int,
                     help="specify run number")
-
 parser.add_argument("--event-type", choices=['cue', 'expectrating', 'stimulus', 'outcomerating'],
                     help="specify hemisphere")
 args = parser.parse_args()
@@ -55,6 +54,7 @@ print(f" ________ {sub} {ses} {run} ________")
 
 img_flist = glob.glob(os.path.join(singletrial_dir, sub, f'{sub}_{ses}_{run}_{runtype}_event-{event}_trial-*.nii.gz'))
 img_flist = sorted(img_flist)
+key = 'run'
 bids_info = [[match for match in os.path.basename(beh_fname).split('_') if key in match][0] for beh_fname in img_flist]
 # %%
 stacked_singletrial = image.concat_imgs(sorted(img_flist))
@@ -76,3 +76,4 @@ singletrial_vstack_beta.insert(0, 'singletrial_fname', flist_basename)
 
 save_fname = os.path.join(save_extract_dir, sub, f'{sub}_{sub}_{run}_{runtype}_event-{event}_metadata.tsv')
 singletrial_vstack_beta.to_csv(save_fname)
+
