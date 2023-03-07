@@ -8,7 +8,7 @@
 #SBATCH -e ./log_glm/GLM_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1-50%10
+#SBATCH --array=7-15,27-35
 
 conda activate spacetop_env
 echo "SLURMSARRAY: " ${SLURM_ARRAY_TASK_ID}

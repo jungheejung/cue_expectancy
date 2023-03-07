@@ -194,41 +194,41 @@ signature_dict = {'NPS': 'weights_NSF_grouppred_cvpcr.img.gz',  # Wager et al. 2
            'PINES': 'Rating_Weights_LOSO_2.nii', # Chang 2015 PINES - neg emo
            'Rejection': 'dpsp_rejection_vs_others_weights_final.nii', # Woo 2014 romantic rejection
            'VPS': 'bmrk4_VPS_unthresholded.nii',  # Krishnan 2016 Vicarious pain VPS
-           'VPS_nooccip': 'Krishnan_2016_VPS_bmrk4_Without_Occipital_Lobe.nii',# Krishnan 2016 no occipital
+           'VPSnooccip': 'Krishnan_2016_VPS_bmrk4_Without_Occipital_Lobe.nii',# Krishnan 2016 no occipital
            'GSR': 'ANS_Eisenbarth_JN_2016_GSR_pattern.img',# Eisenbarth 2016 autonomic - GSR,
            'Heart': 'ANS_Eisenbarth_JN_2016_HR_pattern.img',# Eisenbarth 2016 autonomic - heart rate (HR)
-           'FM-Multisens': 'FM_Multisensory_wholebrain.nii',# 2017 Lopez-Sola fibromyalgia,
-           'FM-pain': 'FM_pain_wholebrain.nii',# 2017 Lopez-Sola fibromyalgia
-           'Empathic_Care':  'Ashar_2017_empathic_care_marker.nii',# 2017 Ashar et al. Empathic care and distress
-           'Empathic_Dist': 'Ashar_2017_empathic_distress_marker.nii',
+           'FMMultisens': 'FM_Multisensory_wholebrain.nii',# 2017 Lopez-Sola fibromyalgia,
+           'FMpain': 'FM_pain_wholebrain.nii',# 2017 Lopez-Sola fibromyalgia
+           'EmpathicCare':  'Ashar_2017_empathic_care_marker.nii',# 2017 Ashar et al. Empathic care and distress
+           'EmpathicDist': 'Ashar_2017_empathic_distress_marker.nii',
            'Guilt_behavior': 'Yu_guilt_SVM_sxpo_sxpx_EmotionForwardmask.nii',# Yu 2019 Cer Ctx Guilt behavior
            # Kragel 2015 emotion PLS maps
-           'Amused': 'mean_3comp_amused_group_emotion_PLS_beta_BSz_10000it.img',
-           'Angry':  'mean_3comp_angry_group_emotion_PLS_beta_BSz_10000it.img',
-           'Content':  'mean_3comp_neutral_group_emotion_PLS_beta_BSz_10000it.img',
-           'Fearful': 'mean_3comp_fearful_group_emotion_PLS_beta_BSz_10000it.img',
-           'Neutral': 'mean_3comp_neutral_group_emotion_PLS_beta_BSz_10000it.img',
-           'Sad': 'mean_3comp_sad_group_emotion_PLS_beta_BSz_10000it.img',
-           'Surprised': 'mean_3comp_surprised_group_emotion_PLS_beta_BSz_10000it.img',
+           'Amused': 'mean_3comp_amused_group_emotion_PLS_beta_BSz_10000it.nii.gz ',
+           'Angry':  'mean_3comp_angry_group_emotion_PLS_beta_BSz_10000it.nii.gz',
+           'Content':  'mean_3comp_neutral_group_emotion_PLS_beta_BSz_10000it.nii.gz',
+           'Fearful': 'mean_3comp_fearful_group_emotion_PLS_beta_BSz_10000it.nii.gz',
+           'Neutral': 'mean_3comp_neutral_group_emotion_PLS_beta_BSz_10000it.nii.gz',
+           'Sad': 'mean_3comp_sad_group_emotion_PLS_beta_BSz_10000it.nii.gz',
+           'Surprised': 'mean_3comp_surprised_group_emotion_PLS_beta_BSz_10000it.nii.gz',
            # Kragel 2018 whole-brain pain cog control neg emotion
            'Kragel18Pain': 'bPLS_Wholebrain_Pain.nii',
            'Kragel18CogControl': 'bPLS_Wholebrain_Cognitive_Control.nii',
            'Kragel18NegEmotion': 'bPLS_Wholebrain_Negative_Emotion.nii',
-           'Reddan18CSplus_vs_CSminus': 'IE_ImEx_Acq_Threat_SVM_nothresh.nii',
+           'Reddan18CSplusvsCSminus': 'IE_ImEx_Acq_Threat_SVM_nothresh.nii',
            'GeuterPaincPDM': 'Geuter_2020_cPDM_combined_pain_map.nii',
            # Zhou 2020 eLife vicarious pain
            'ZhouVPS': 'General_vicarious_pain_pattern_unthresholded.nii',
            # MPA2 general vs. specific aversiveness',
-           'General aversive': 'General_bplsF_unthr.nii',
-           'Mech pain': 'Mechanical_bplsF_unthr.nii',
-           'Thermal pain': 'Thermal_bplsF_unthr.nii',
-           'Aversive Sound': 'Sound_bplsF_unthr.nii',
-           'Aversive Visual': 'Visual_bplsF_unthr.nii',
+           'GeneralAversive': 'General_bplsF_unthr.nii',
+           'Mechpain': 'Mechanical_bplsF_unthr.nii',
+           'ThermalPain': 'Thermal_bplsF_unthr.nii',
+           'AversiveSound': 'Sound_bplsF_unthr.nii',
+           'AversiveVisual': 'Visual_bplsF_unthr.nii',
            # Wager 2011 prediction of placebo brain [P - C]->behav [P - C],
            'PlaceboPvsC_Antic': 'PlaceboPredict_Anticipation.img',
            # During pain [P - C]->behav [P - C],
            'PlaceboPvsC_Pain': 'PlaceboPredict_PainPeriod.img',
-           'stroop': 'stroop_pattern_wani_121416.nii'}
+           'Stroop': 'stroop_pattern_wani_121416.nii'}
 
 sig_df = pd.DataFrame(columns=['singletrial_fname']) 
 # for signature_key in signature_dict.keys():
@@ -242,11 +242,11 @@ nifti_fname_dict = {'singletrial_dir': singletrial_dir,
                     'runtype': '*',
                     'event': 'stimulus'}
 if nifti_fname_dict['sub'] == '*':
-    save_sub = 'sub-all'
+    save_sub = 'all'
 else: 
     save_sub = nifti_fname_dict['sub']
 if nifti_fname_dict['runtype'] == '*':
-    save_runtype = 'runtype-pvc'
+    save_runtype = 'pvc'
 else:
     save_runtype = nifti_fname_dict['runtype']
 # singletrial_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/singletrial/'
