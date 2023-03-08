@@ -1,29 +1,39 @@
 # summarize dataframe __________________________________________________________
-iv1 <- "event02_expect_angle"
-iv2 <- "event04_actual_angle"
+plot_twovariable <- function(df, iv1, iv2, group, subject, min, max, xlab, ylab, ggtitle) {
+    # x: iv1 e.g. expect rating
+    # y: iv2 e.g. outcome rating
+    # group: param_cue_type
+    # subject: src_subject_id
+    # xlab("expect rating") +
+    # ylab("outcome rating") +
+    library(ggplot2)
 
-plot_twovariable <- function(df, iv1, iv2) {
     df_dropna <- df[!is.na(df[, iv1]) & !is.na(df[, iv2]), ]
     subjectwise_2dv <- meanSummary_2dv(
         df_dropna,
-        c("src_subject_id", "param_cue_type"),
+        c(subject, group),
         iv1, iv2
     )
     subjectwise_naomit_2dv <- na.omit(subjectwise_2dv)
-    subjectwise_naomit_2dv$param_cue_type <- as.factor(subjectwise_naomit_2dv$param_cue_type)
+    subjectwise_naomit_2dv[, group] <- as.factor(subjectwise_naomit_2dv[, group])
     # plot _________________________________________________________________________ #nolint
+
     g <- ggplot(
         data = subjectwise_naomit_2dv,
         aes(
-            x = DV1_mean_per_sub,
-            y = DV2_mean_per_sub,
-            color = param_cue_type
+            x = .data[["DV1_mean_per_sub"]],
+            y = .data[["DV2_mean_per_sub"]],
+            color = .data[[group]]
         )
     ) +
-        geom_point(aes(shape = param_cue_type, color = param_cue_type), size = 2, alpha = .8) +
+        geom_point(
+            aes(shape = .data[[group]],
+            color = .data[[group]]),
+            size = 2,
+            alpha = .8) +
         geom_abline(
             intercept = 0, slope = 1, color = "green",
-            linetype = "dashed", size = 0.5
+            linetype = "dashed", linewidth = 0.5
         ) +
         theme(aspect.ratio = 1) +
         scale_color_manual(values = c(
@@ -31,15 +41,20 @@ plot_twovariable <- function(df, iv1, iv2) {
             "low_cue" = "#BBBBBB"
         )) +
         scale_shape_manual(values = c(16, 17)) +
-        xlab("expect rating") +
-        ylab("outcome rating") +
-        ylim(0, 180) +
-        xlim(0, 180) +
+        xlab(xlab) +
+        ylab(ylab) +
+        ylim(min,max) +
+        xlim(min,max) +
+        ggtitle(ggtitle) +
         theme(
             axis.line = element_line(colour = "grey50"),
             panel.background = element_blank(),
             plot.subtitle = ggtext::element_textbox_simple(size = 11)
         )
-
+    # if ((!is.null(ylim)) && (!is.null(xlim))) {
+    #     g + ylim(-50,50) + xlim(-50,50)
+    # } else {
+    #     g
+    # }
     return(g)
 }
