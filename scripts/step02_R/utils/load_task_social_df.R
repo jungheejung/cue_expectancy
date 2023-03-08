@@ -9,8 +9,7 @@ load_task_social_df <- function(datadir, taskname, subject_varkey, iv, dv, exclu
   filter_path <- common_path[!str_detect(common_path, pattern = exclude)]
 
   df <- do.call("rbind", lapply(filter_path, FUN = function(files) {
-    read.csv(files)
-    
+    as.data.frame(read.csv(files))
   }))
 
   is.nan.data.frame <- function(x) {
