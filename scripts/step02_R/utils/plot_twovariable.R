@@ -1,11 +1,12 @@
 # summarize dataframe __________________________________________________________
-plot_twovariable <- function(df, iv1, iv2, group, subject, min, max, xlab, ylab, ggtitle) {
+plot_twovariable <- function(df, iv1, iv2, group, subject, min, max, xlab, ylab, ggtitle, color_scheme, alpha, fit_lm) {
     # x: iv1 e.g. expect rating
     # y: iv2 e.g. outcome rating
     # group: param_cue_type
     # subject: src_subject_id
     # xlab("expect rating") +
     # ylab("outcome rating") +
+    # color_scheme = c("high_cue" = "#000000",low_cue" = "#BBBBBB"        )
     library(ggplot2)
 
     df_dropna <- df[!is.na(df[, iv1]) & !is.na(df[, iv2]), ]
@@ -15,7 +16,7 @@ plot_twovariable <- function(df, iv1, iv2, group, subject, min, max, xlab, ylab,
         iv1, iv2
     )
     subjectwise_naomit_2dv <- na.omit(subjectwise_2dv)
-    subjectwise_naomit_2dv[, group] <- as.factor(subjectwise_naomit_2dv[, group])
+    subjectwise_naomit_2dv[ , group] <- as.factor(subjectwise_naomit_2dv[, group])
     # plot _________________________________________________________________________ #nolint
 
     g <- ggplot(
@@ -30,16 +31,13 @@ plot_twovariable <- function(df, iv1, iv2, group, subject, min, max, xlab, ylab,
             aes(shape = .data[[group]],
             color = .data[[group]]),
             size = 2,
-            alpha = .8) +
+            alpha = alpha) +
         geom_abline(
             intercept = 0, slope = 1, color = "green",
             linetype = "dashed", linewidth = 0.5
         ) +
         theme(aspect.ratio = 1) +
-        scale_color_manual(values = c(
-            "high_cue" = "#000000",
-            "low_cue" = "#BBBBBB"
-        )) +
+        scale_color_manual(values = color_scheme) +
         scale_shape_manual(values = c(16, 17)) +
         xlab(xlab) +
         ylab(ylab) +
@@ -51,10 +49,15 @@ plot_twovariable <- function(df, iv1, iv2, group, subject, min, max, xlab, ylab,
             panel.background = element_blank(),
             plot.subtitle = ggtext::element_textbox_simple(size = 11)
         )
-    # if ((!is.null(ylim)) && (!is.null(xlim))) {
-    #     g + ylim(-50,50) + xlim(-50,50)
-    # } else {
-    #     g
-    # }
+
+
+    if (isTRUE(fit_lm)) {
+        g <- g +
+        geom_ribbon(stat = "smooth", method = "lm", se = TRUE, alpha = 0.1,
+              aes(color = NULL, group = factor(group))) +
+        geom_line(stat = "smooth", method = "lm", alpha = 0.8, size = 1.5)
+    } else {
+        g
+    }
     return(g)
 }
