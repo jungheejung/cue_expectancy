@@ -80,6 +80,7 @@ singletrial_dir = os.path.join(nilearn_dir, 'singletrial')
 sub_folders = next(os.walk(singletrial_dir))[1]
 sub_list = [i for i in sorted(sub_folders) if i.startswith('sub-')]
 sub = sub_list[slurm_id]
+print(sub)
 
 # %% # for sub in sorted(sub_list):
 output = pd.DataFrame()
