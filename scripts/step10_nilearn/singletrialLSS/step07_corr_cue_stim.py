@@ -96,6 +96,8 @@ for runtype in ['pain', 'vicarious', 'cognitive']:
         ses_num = extract_bids_num(stim_fname, 'ses')
         run_num = extract_bids_num(stim_fname, 'run')
         trial_num = extract_bids_num(stim_fname, 'trial')
+        cuetype = extract_bids(stim_fname, 'cuetype')
+        stimintensity = extract_bids(stim_fname, 'stimintensity')
         print(sub_num, ses_num, run_num, trial_num)
         cue = glob.glob(os.path.join(singletrial_dir, sub,
                         f'sub-{sub_num:04d}_ses-{ses_num:02d}_run-{run_num:02d}_runtype-{runtype}_event-cue_trial-{trial_num:03d}*.nii.gz'))[0]
@@ -115,6 +117,8 @@ for runtype in ['pain', 'vicarious', 'cognitive']:
                     'runtype': runtype,
                     #'event': event,
                     'trial':trial_num,
+                    'cuetype': cuetype,
+                    'stimintensity':stimintensity,
                     'dotprod': dotprod,
                     'corr': corr
                     }
