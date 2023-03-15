@@ -82,8 +82,9 @@ sub_list = [i for i in sorted(sub_folders) if i.startswith('sub-')]
 sub = sub_list[slurm_id]
 
 # %% # for sub in sorted(sub_list):
-output = pd.DataFrame()
+
 for runtype in ['pain', 'vicarious', 'cognitive']:
+    output = pd.DataFrame()
     stim_flist = glob.glob(os.path.join(singletrial_dir, sub,
                     f'{sub}_*runtype-{runtype}_event-stimulus_trial-*.nii.gz'))
     for stim_fpath in sorted(stim_flist):
