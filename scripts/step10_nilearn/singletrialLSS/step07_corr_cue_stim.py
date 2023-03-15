@@ -38,7 +38,7 @@ def extract_bids_num(filename: str, key: str) -> int:
     bids_info = [match for match in filename.split('_') if key in match][0]
     # bids_info_rmext = os.path.splitext(bids_info)[0]
     bids_info_rmext = bids_info.split(os.extsep, 1)
-    bids_num =  int(re.findall(r'\d+', bids_info_rmext[0] )[0].lstrip('0'))
+    bids_num =  int(re.findall(r'\d+', bids_info_rmext[0])[0])
     return bids_num
 
 def extract_bids(filename: str, key: str) -> str:
@@ -71,22 +71,25 @@ runtype = args.runtype
 output = pd.DataFrame()
 current_dir = os.getcwd()
 main_dir = Path(current_dir).parents[2]
+print(main_dir)
 nilearn_dir = os.path.join(main_dir, 'analysis', 'fmri', 'nilearn')
 singletrial_dir = os.path.join(nilearn_dir, 'singletrial')
 sub_list = next(os.walk(singletrial_dir))[1]
-
+print(sub_list)
 # %%
 for sub in sorted(sub_list):
+    output = pd.DataFrame()
     stim_flist = glob.glob(os.path.join(singletrial_dir, sub,
                     f'{sub}_*runtype-{runtype}_event-stimulus_trial-*.nii.gz'))
     for stim_fpath in sorted(stim_flist):
         #stim_fpath = stim_flist[0]
+        print(stim_fpath)
         stim_fname = os.path.basename(stim_fpath)
         sub_num = extract_bids_num(stim_fname, 'sub')
         ses_num = extract_bids_num(stim_fname, 'ses')
         run_num = extract_bids_num(stim_fname, 'run')
         trial_num = extract_bids_num(stim_fname, 'trial')
-
+        print(sub_num, ses_num, run_num, trial_num)
         cue = glob.glob(os.path.join(singletrial_dir, sub,
                         f'sub-{sub_num:04d}_ses-{ses_num:02d}_run-{run_num:02d}_runtype-{runtype}_event-cue_trial-{trial_num:03d}*.nii.gz'))[0]
                     
@@ -109,8 +112,9 @@ for sub in sorted(sub_list):
                     'corr': corr
                     }
         output = output.append(dictionary, ignore_index=True)
-    save_fname = os.path.join(nilearn_dir, 'deriv04_corrcuestim', f"sub-{sub_num:04d}_runtype-{runtype}_desc-singletrialcorrelation_x-cue_y-stim.csv")
-    output.to_csv(save_fname, sep = '/t')
+    print(f"sub-{sub_num:04d} complete")
+    save_fname = os.path.join(nilearn_dir, 'deriv04_corrcuestim', f"sub-{sub_num:04d}_runtype-{runtype}_desc-singletrialcorrelation_x-cue_y-stim.tsv")
+    output.to_csv(save_fname, sep = '\t')
 # %%
 # sub-0061_ses-01_run-06_runtype-pain_event-stimulus_trial-000_cuetype-high_stimintensity-low.nii.gz
 # print(sorted(img_flist)[0:10])
