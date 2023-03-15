@@ -11,8 +11,9 @@
 #SBATCH --array=1
 
 conda activate spacetop_env
-RUNTYPELIST=("pain" "vicarious" "cognitive")
-RUNTYPE=${RUNTYPELIST[${SLURM_ARRAY_TASK_ID}]}
-echo ${RUNTYPE}
+# RUNTYPELIST=("pain" "vicarious" "cognitive")
+# RUNTYPE=${RUNTYPELIST[${SLURM_ARRAY_TASK_ID}]}
+# echo ${RUNTYPE}
+ID=$((SLURM_ARRAY_TASK_ID-1))
 MAINDIR='/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue'
-python ${MAINDIR}/scripts/step10_nilearn/singletrialLSS/step07_corr_cue_stim.py --runtype "pain"
+python ${MAINDIR}/scripts/step10_nilearn/singletrialLSS/step07_corr_cue_stim.py --sub ${ID} --runtype "pain"

@@ -62,11 +62,14 @@ def extract_bids(filename: str, key: str) -> str:
 # %% load same trial, cuee and stimulus
 # calculate dot product
 # glob stimulus niftis, from that, extract inforrmation and grab corresponding cue nifti
+
+# 0. parameters ________________________________________________________________________________
 parser = argparse.ArgumentParser()
-parser.add_argument("--runtype", type=str,
-                    help="type of task: pain, cognitive, vicarious")
+parser.add_argument("--slurm_id", type=int,
+                    help="specify slurm array id")
 args = parser.parse_args()
-runtype = args.runtype
+print(args.slurm_id)
+slurm_id = args.slurm_id # e.g. 1, 2
 
 output = pd.DataFrame()
 current_dir = os.getcwd()
@@ -74,11 +77,13 @@ main_dir = Path(current_dir).parents[2]
 print(main_dir)
 nilearn_dir = os.path.join(main_dir, 'analysis', 'fmri', 'nilearn')
 singletrial_dir = os.path.join(nilearn_dir, 'singletrial')
-sub_list = next(os.walk(singletrial_dir))[1]
-print(sub_list)
-# %%
-for sub in sorted(sub_list):
-    output = pd.DataFrame()
+sub_folders = next(os.walk(singletrial_dir))[1]
+sub_list = [i for i in sorted(sub_folders) if i.startswith('sub-')]
+sub = sub_list[slurm_id]
+
+# %% # for sub in sorted(sub_list):
+output = pd.DataFrame()
+for runtype in ['pain', 'vicarious', 'cognitive']:
     stim_flist = glob.glob(os.path.join(singletrial_dir, sub,
                     f'{sub}_*runtype-{runtype}_event-stimulus_trial-*.nii.gz'))
     for stim_fpath in sorted(stim_flist):
@@ -115,24 +120,3 @@ for sub in sorted(sub_list):
     print(f"sub-{sub_num:04d} complete")
     save_fname = os.path.join(nilearn_dir, 'deriv04_corrcuestim', f"sub-{sub_num:04d}_runtype-{runtype}_desc-singletrialcorrelation_x-cue_y-stim.tsv")
     output.to_csv(save_fname, sep = '\t')
-# %%
-# sub-0061_ses-01_run-06_runtype-pain_event-stimulus_trial-000_cuetype-high_stimintensity-low.nii.gz
-# print(sorted(img_flist)[0:10])
-# img_flist = sorted(img_flist)
-
-# # 3. resample space
-# signature_img = image.load_img(signature_fname)
-# resampled_nps = image.resample_img(signature_img,
-#                                 target_affine=stacked_singletrial.affine,
-#                                 target_shape=stacked_singletrial.shape[0:3],
-#                                 interpolation='nearest')
-
-# #  4. apply signature
-# nps_array = image.get_data(resampled_nps)
-# singletrial_array = image.get_data(stacked_singletrial)
-# len_singletrialstack = singletrial_array.shape[-1]
-# vectorize_singletrial = singletrial_array.reshape(
-#     np.prod(list(singletrial_array.shape[0:3])), len_singletrialstack)
-# nps_extract = np.dot(nps_array.reshape(-1), vectorize_singletrial)
-# nps_df = pd.DataFrame({'singletrial_fname': [os.path.basename(
-#     basename) for basename in img_flist], signature_key: nps_extract})
