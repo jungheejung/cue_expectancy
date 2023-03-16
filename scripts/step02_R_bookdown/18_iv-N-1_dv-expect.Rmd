@@ -1,25 +1,205 @@
-# N-1 outcome rating ~ N expectation rating {#ch11_n-1outcome}
+#  (N-1) shifted outcome ratings ~ (N) expectation ratings; {#ch18_linear_vs_sigmoidal}
 
 ```
-date: '2022-09-13'
-updated: '2023-01-18'
+title: "model12_jayazeri_N-2"
+date: '2023-01-31'
+updated: '2023-01-31'
 ```
 
 
-### DONE
-* plot individual ratings (check distribution)
-* afterwards, normalize the ratings and bin them
 
 ## Overview 
-My hypothesis is that the cue-expectancy follows a Bayesian mechanism, akin to what's listed in Jayazeri (2019)
-Here, I plot the expectation ratings (N) and outcome ratings (N-1) and see if the pattern is akin to a sigmoidal curve. 
-If so, I plan to dive deeper and potentially take a Bayesian approach. Jayazeri (2018)
+
+Here, we want to test whether the relationship between N-1 and expectation is sigmoidal or not. 
+1) fit a cubic: sigmoidal
+2) fit a quadratic and see if there's an interaction
+
+
+https://www.statology.org/curve-fitting-in-r/
+
+```{r}
+psych::mediate(event04_actual_angle ~ cue_con*stim_con_linear+ event02_expect_angle + lag.04outcomeangle, data = pvc, n.iter = 1000) %>% print(short = FALSE) 
+```
+
+### need to calculate participant level average score for 
+```{r}
+iv1 = "lag.04outcomeangle"
+iv2 = "event02_expect_angle"
+group = "param_cue_type"
+df_dropna <- pvc[!is.na(pvc[, iv1]) & !is.na(df[, iv2]), ]
+    subjectwise_2dv <- meanSummary_2dv(
+        pvc,
+        c("src_subject_id", "param_cue_type"),
+        iv1, iv2
+    )
+subjectwise_naomit_2dv <- na.omit(subjectwise_2dv)
+subjectwise_naomit_2dv[ , group] <- as.factor(subjectwise_naomit_2dv[, group])
+```
+
+# WORK ON THIS PART. FITTING POLYNOMIALS
+```{r}
+fit1 <- lm(DV2_mean_per_sub ~ DV1_mean_per_sub*param_cue_type, data=subjectwise_naomit_2dv)
+fit2 <- lm(DV2_mean_per_sub ~ poly(param_cue_type+DV1_mean_per_sub,degree = 2,raw=TRUE), data=subjectwise_naomit_2dv)
+# fit3 <- lm(DV2_mean_per_sub~poly(param_cue_type*DV1_mean_per_sub,3,raw=TRUE), data=subjectwise_naomit_2dv)
+# fit4 <- lm(DV2_mean_per_sub~poly(param_cue_type*DV1_mean_per_sub,4,raw=TRUE), data=subjectwise_naomit_2dv)
+# fit5 <- lm(DV2_mean_per_sub~poly(param_cue_type*DV1_mean_per_sub,5,raw=TRUE), data=subjectwise_naomit_2dv)
+
+summary(fit1)$adj.r.squared
+summary(fit2)$adj.r.squared
+# summary(fit3)$adj.r.squared
+# summary(fit4)$adj.r.squared
+# summary(fit5)$adj.r.squared
+
+plot(subjectwise_naomit_2dv$DV1_mean_per_sub, subjectwise_naomit_2dv$DV2_mean_per_sub,pch=19, xlab='x', ylab='y', asp=1)
+x_axis <- seq(0,180, length=15)
+
+
+lines(x_axis, predict(fit3, data.frame( cue_con = 0.5, DV1_mean_per_sub = x_axis)), col='purple')
+lines(x_axis, predict(fit3, data.frame( cue_con = -0.5, DV1_mean_per_sub = x_axis)), col='pink')
+```
+
+# WORK ON THIS PART. FITTING POLYNOMIALS
+```{r}
+fit1 <- lm(event02_expect_angle ~ lag.04outcomeangle*cue_con, data=pvc)
+fit2 <- lm(event02_expect_angle~poly(cue_con*lag.04outcomeangle,2,raw=TRUE), data=pvc)
+fit3 <- lm(event02_expect_angle~poly(cue_con*lag.04outcomeangle,3,raw=TRUE), data=pvc)
+fit4 <- lm(event02_expect_angle~poly(cue_con*lag.04outcomeangle,4,raw=TRUE), data=pvc)
+fit5 <- lm(event02_expect_angle~poly(cue_con*lag.04outcomeangle,5,raw=TRUE), data=pvc)
+
+summary(fit1)$adj.r.squared
+summary(fit2)$adj.r.squared
+summary(fit3)$adj.r.squared
+summary(fit4)$adj.r.squared
+summary(fit5)$adj.r.squared
+
+plot(pvc$lag.04outcomeangle, pvc$event02_expect_angle,pch=19, xlab='x', ylab='y', asp=1)
+x_axis <- seq(0,180, length=15)
+
+
+lines(x_axis, predict(fit3, data.frame( cue_con = 0.5, lag.04outcomeangle = x_axis)), col='purple')
+lines(x_axis, predict(fit3, data.frame( cue_con = -0.5, lag.04outcomeangle = x_axis)), col='pink')
+```
+
+```{r}
+model.sig <- glm(event04_actual_angle ~ event02_expect_angle*cue_con+lag.04outcomeangle, family=binomial, data=pvc)
+```
+
+
+# WORK ON THIS PART. FITTING POLYNOMIALS
+```{r}
+fit1 <- lm(event04_actual_angle ~ event02_expect_angle*cue_con, data=pvc)
+fit2 <- lm(event04_actual_angle~poly(cue_con*event02_expect_angle ,2,raw=TRUE), data=pvc)
+fit3 <- lm(event04_actual_angle~poly(cue_con*event02_expect_angle,3,raw=TRUE), data=pvc)
+fit4 <- lm(event04_actual_angle~poly(cue_con*event02_expect_angle,4,raw=TRUE), data=pvc)
+fit5 <- lm(event04_actual_angle~poly(cue_con*event02_expect_angle,5,raw=TRUE), data=pvc)
+# fit <- nls(grad ~ theta1/(1 + exp(-(theta2 + theta3*event02_expect_angle))), 
+#            start=list(theta1 = 4, theta2 = 0.09, theta3 = 0.31), trace=TRUE)
+summary(fit1)$adj.r.squared
+summary(fit2)$adj.r.squared
+summary(fit3)$adj.r.squared
+summary(fit4)$adj.r.squared
+summary(fit5)$adj.r.squared
+
+plot(pvc$event02_expect_angle, pvc$event04_actual_angle,pch=19, xlab='x', ylab='y', asp=1)
+x_axis <- seq(0,180, length=180)
+
+
+lines(x_axis, predict(fit2, data.frame( cue_con = 0.5, event02_expect_angle = x_axis )), col='purple')
+lines(x_axis, predict(fit2, data.frame( cue_con = -0.5,  event02_expect_angle = x_axis )), col='blue')
+```
+
+```{r}
+# summarize dataframe __________________________________________________________
+plot_twovariable <- function(df, iv1, iv2, group, subject, min, max, xlab, ylab, ggtitle, color_scheme, alpha, fit_lm) {
+    # x: iv1 e.g. expect rating
+    # y: iv2 e.g. outcome rating
+    # group: param_cue_type
+    # subject: src_subject_id
+    # xlab("expect rating") +
+    # ylab("outcome rating") +
+    # color_scheme = c("high_cue" = "#000000",low_cue" = "#BBBBBB"        )
+    library(ggplot2)
+
+    df_dropna <- df[!is.na(df[, iv1]) & !is.na(df[, iv2]), ]
+    subjectwise_2dv <- meanSummary_2dv(
+        df_dropna,
+        c(subject, group),
+        iv1, iv2
+    )
+    subjectwise_naomit_2dv <- na.omit(subjectwise_2dv)
+    subjectwise_naomit_2dv[ , group] <- as.factor(subjectwise_naomit_2dv[, group])
+    # plot _________________________________________________________________________ #nolint
+
+    g <- ggplot(
+        data = subjectwise_naomit_2dv,
+        aes(
+            x = .data[["DV1_mean_per_sub"]],
+            y = .data[["DV2_mean_per_sub"]],
+            color = .data[[group]]
+        )
+    ) +
+        geom_point(
+            aes(shape = .data[[group]],
+            color = .data[[group]]),
+            size = 2,
+            alpha = alpha) +
+        geom_abline(
+            intercept = 0, slope = 1, color = "green",
+            linetype = "dashed", linewidth = 0.5
+        ) +
+        theme(aspect.ratio = 1) +
+        scale_color_manual(values = color_scheme) +
+        scale_shape_manual(values = c(16, 17)) +
+        xlab(xlab) +
+        ylab(ylab) +
+        ylim(min,max) +
+        xlim(min,max) +
+        ggtitle(ggtitle) +
+        theme(
+            axis.line = element_line(colour = "grey50"),
+            panel.background = element_blank(),
+            plot.subtitle = ggtext::element_textbox_simple(size = 11)
+        )
+
+
+    if (isTRUE(fit_lm)) {
+        g <- g +
+        geom_ribbon(stat = "smooth", method = "gam", se = TRUE, alpha = 0.1,
+              aes(color = NULL, group = factor(group))) +
+        geom_line(stat = "smooth", method = "gam", alpha = 0.8, size = 1.5)
+    } else {
+        g
+    }
+    return(g)
+}
+
+```
+
+```{r}
+plot(pvc$event02_expect_angle, pvc$event04_actual_angle,pch=19, xlab='x', ylab='y', asp=1)
+x_axis <- seq(0,180, length=180)
+
+
+plot_twovariable(pvc, iv1 = "event02_expect_angle", 
+                 iv2 = "event04_actual_angle", 
+                 group = "cue_name", 
+                 subject = "src_subject_id", min = 0, max =180, xlab = "expect", ylab = "outcome",
+                 ggtitle = "loess", color_scheme =  c("high" ="#009411","low" =  "#5D5C5C"), alpha = 0.5, fit_lm = TRUE)
+```
+
+
+```{r}
+fit1 <- lm(y~x, data=df)
+fit2 <- lm(y~poly(x,2,raw=TRUE), data=df)
+fit3 <- lm(y~poly(x,3,raw=TRUE), data=df)
+fit4 <- lm(y~poly(x,4,raw=TRUE), data=df)
+
+```
 
 library
-```{r load_libraries_11, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
+```{r load libraries, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
 library(psych)
 library(car)
-# library(lmSupport)
 library(lme4)
 library(lmerTest)
 library(dplyr)
@@ -65,7 +245,7 @@ library(gghalves)
 library(visibly) # 
 library(plotly) #plot
 library(scico) # plot
-source('http://psych.colorado.edu/~jclab/R/mcSummaryLm.R')
+#source('http://psych.colorado.edu/~jclab/R/mcSummaryLm.R')
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
@@ -81,7 +261,7 @@ sapply(file.sources,source,.GlobalEnv)
 
 load data and combine participant data
 
-```{r load_data_and_exclude_11}
+```{r load data and exclude}
 main_dir = dirname(dirname(getwd()))
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
 # parameters _____________________________________ # nolint
@@ -100,15 +280,14 @@ exclude <- "sub-0999|sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0
 data <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
 # data['event03_RT'], data.event03_RT - pandas
-analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model08_iv-cue-trial_dv-expect-actual", as.character(Sys.Date()))
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model12_iv-cue-trial_dv-expectjayazer_N-2", as.character(Sys.Date()))
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 ```
 
 
 ## Do previous outcome ratings predict current expectation ratings?
 ### Additional analyse 01/18/2023 {.unlisted .unnumbered}
-* see if current expectation ratings predict outcome ratings
-* see if prior stimulus experience (N-1) predicts current expectation ratings
+* examine if prior stimulus experience (N-2) predicts current expectation ratings
 * see if current expectation ratings are explained as a function of prior outcome rating and current expectation rating
 
 when loading the dataset, I need to add in trial index per dataframe.
@@ -125,7 +304,7 @@ data_a3 <- data_p2 %>%
 data_a3lag <- 
     data_a3 %>%
     group_by(src_subject_id, session_id, param_run_num) %>%
-    mutate(lag.04outcomeangle = dplyr::lag(event04_actual_angle, n = 1, default = NA))
+    mutate(lag.04outcomeangle = dplyr::lag(event04_actual_angle, n = 2, default = NA))
 data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.04outcomeangle),]
 ```
 
@@ -138,48 +317,11 @@ data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.04outcomeangle),]
         data_a3lag_omit,
         c("src_subject_id", "session_id", "param_run_num"), "lag.04outcomeangle" )
 
-    # subjectwise_naomit <- na.omit(trialorder_subjectwise)
-    # trialorder_groupwise <- summarySEwithin(
-    #     data = subjectwise_naomit,
-    #     measurevar = "mean_per_sub",
-    #     withinvars = c("cue_ordered", "rating_type",  "trial_index"), idvar = subject
-    # )
 ```
 ```{r}
-model.lagoutcome = lmer(event02_expect_angle ~ lag.04outcomeangle + (1 | src_subject_id) + (1|session_id) , data = data_a3lag_omit,REML = FALSE)
+model.lagoutcome = lmer(event02_expect_angle ~ lag.04outcomeangle + (1 | src_subject_id) + (1|session_id) , data = data_a3lag_omit)
 summary(model.lagoutcome)
-anova(model.lagoutcome)
 ```
-```{r}
-# startvec <- c(Asym = 200, xmid = 725, scal = 350)
-# (nm1 <- nlmer(circumference ~ SSlogis(age, Asym, xmid, scal) ~ Asym|Tree,
-#              Orange, start = startvec))
-# 
-# (nm1a <- update(nm1, nAGQ = 0L))
-
-startvec <- c(Asym =10, xmid = 0, scal = 350)
-nm1 <- nlmer(event02_expect_angle ~ SSlogis(lag.04outcomeangle,Asym, xmid, scal) ~ Asym|src_subject_id, 
-             data_a3lag_omit, start = startvec)
-#nm1a <- update(nm1, nAGQ = 0L)
-```
-```{r}
-nform <- ~Asym/(1+exp((xmid-input)/scal))
-## b. Use deriv() to construct function:
-nfun <- deriv(nform,namevec=c("Asym","xmid","scal"),
-              function.arg=c("input","Asym","xmid","scal"))
-nm1b <- update(nm1,event02_expect_angle ~ nfun(lag.04outcomeangle, Asym, xmid, scal)  ~ Asym | src_subject_id)
-
-```
-```{r}
-summary(nm1b)
-```
-
-```{r}
-library(bbmle)
-bbmle::AICtab(model.lagoutcome, nm1b)
-```
-
-
 
 ```{r}
 meanSummary_2dv <- function(DATA, GROUP, DV1, DV2) {
@@ -212,10 +354,9 @@ sp <- ggplot(data=subjectwise_naomit_2dv,
   geom_abline(intercept = 0, slope = 1, color="green", 
                  linetype="dashed", size=0.5) +
   theme(aspect.ratio=1) +
-  xlab("n-1 outcome rating") +
+  xlab("n-2 outcome rating") +
   ylab("n expectation rating")
 sp
-# plot(subjectwise_naomit_2dv$DV1_mean_per_sub, subjectwise_naomit_2dv$DV2_mean_per_sub) + lines(x = c(0,200), y = c(0,200))
 ```
 
 
@@ -250,7 +391,7 @@ lag.raw <- ggplot(aes(x=lag.04outcomeangle, y=event02_expect_angle), data=data_a
   facet_wrap(~src_subject_id) + 
   theme(legend.position='none') + 
   xlim(0,180) + ylim(0,180) +
-  xlab("raw data from each participant: n-1 lagged outcome angle") + 
+  xlab("raw data from each participant: n-2 lagged outcome angle") + 
   ylab("n current expectation rating")
 lag.raw +
   labs(title = paste(taskname, "- Is there a linear relationship between current expectation ratings and the previous outcome ratings?"),
@@ -270,7 +411,7 @@ lag.avg <- ggplot(aes(x=DV1_mean_per_sub, y=DV2_mean_per_sub), data=subjectwise_
   facet_wrap(~src_subject_id) + 
   theme(legend.position='none') + 
   xlim(0,180) + ylim(0,180) +
-  xlab("raw data from each participant: n-1 lagged outcome angle") + 
+  xlab("raw data from each participant: n-2 lagged outcome angle") + 
   ylab("n current expectation rating") 
 
 lag.avg +
@@ -293,9 +434,9 @@ ggplot(data_a3lag_omit, aes(y = event02_expect_angle,
   theme_bw()
 ```
 
-## Additional analysis
-01/23/2023
-### Do these models differ as a function of cue?
+
+## Do these models differ as a function of cue?
+### Additional analysis 01/23/2023 {.unlisted .unnumbered}
 ```{r}
 model.lag_cue = lmer(event02_expect_angle ~ lag.04outcomeangle*param_cue_type + (1 | src_subject_id) + (1|session_id) , data = data_a3lag_omit)
 summary(model.lag_cue)
@@ -334,7 +475,7 @@ sp <- ggplot(data=subjectwise_cuetype,
                  linetype="dashed", size=0.5) +
   geom_smooth(method = 'lm') +
   theme(aspect.ratio=1) +
-  xlab("n-1 outcome rating") +
+  xlab("n-2 outcome rating") +
   ylab("n expectation rating")
 sp +
     labs(title = paste(taskname, "- Does the linear relationship between current expectation ratings and the previous outcome ratings differ as a function of cue?"),
@@ -349,7 +490,7 @@ Do the bins do their jobs?
 plot one run
 then check the min, max and see if the quantization is done properly.
 YES, it is
-```{r }
+```{r test_bin_12}
 # per subject, session, run
 #das$wt_2 <- as.numeric(cut_number(das$wt,3))
 df_subset = subset(data_a3lag_omit, src_subject_id == 18 )
@@ -374,7 +515,7 @@ df_subset$bin_num = as.numeric(cut_interval(df_subset$lag.04outcomeangle, n = 5)
 df_discrete = data_a3lag_omit %>%
   group_by(src_subject_id) %>%
   mutate(bin = cut_interval(lag.04outcomeangle, n = 5),
-         n_1outcomelevels = as.numeric(cut_interval(lag.04outcomeangle, n = 5)))
+         n_2outcomelevels = as.numeric(cut_interval(lag.04outcomeangle, n = 5)))
 
 #, "session_id", "param_run_num"
 # df_subset$bin = cut_interval(df_subset$lag.04outcomeangle, n = 5)
@@ -385,7 +526,7 @@ confirm that df discrete has 5 levels per participant
 the number of counts per frequency can differ 
 ```{r}
 res <- df_discrete %>% 
-  group_by(src_subject_id,n_1outcomelevels) %>% 
+  group_by(src_subject_id,n_2outcomelevels) %>% 
   tally()
 ```
 
@@ -397,7 +538,7 @@ res
 ```{r}
 pain_df  = df_discrete[df_discrete$param_task_name == "pain",]
 ggplot(pain_df, aes(y = event02_expect_angle, 
-                       x = n_1outcomelevels, 
+                       x = n_2outcomelevels, 
                        colour = subject), size = .3, color = 'gray') + 
   geom_point(size = .1) + 
   # geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .1) +
@@ -416,7 +557,7 @@ df_discrete = data_a3lag_omit %>%
   mutate(lag.04outcomeangle_demean = lag.04outcomeangle-mean(lag.04outcomeangle),
          event02_expect_angle_demean = event02_expect_angle-mean(event02_expect_angle)) %>%
   mutate(bin = cut_interval(lag.04outcomeangle_demean, n = 5),
-         n_1outcomelevels = as.numeric(cut_interval(lag.04outcomeangle_demean, n = 5)))
+         n_2outcomelevels = as.numeric(cut_interval(lag.04outcomeangle_demean, n = 5)))
 
 #, "session_id", "param_run_num"
 # df_subset$bin = cut_interval(df_subset$lag.04outcomeangle, n = 5)
@@ -425,7 +566,7 @@ df_discrete = data_a3lag_omit %>%
 
 ```{r}
 res <- df_discrete %>% 
-  group_by(src_subject_id,n_1outcomelevels) %>% 
+  group_by(src_subject_id,n_2outcomelevels) %>% 
   tally()
 res
 ```
@@ -433,7 +574,7 @@ res
 ```{r}
 pain_df  = df_discrete[df_discrete$param_task_name == "pain",]
 ggplot(pain_df, aes(y = event02_expect_angle_demean, 
-                       x = n_1outcomelevels, 
+                       x = n_2outcomelevels, 
                        colour = subject), size = .3, color = 'gray') + 
   geom_point(size = .1) + 
   # geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .1) +
@@ -441,19 +582,19 @@ ggplot(pain_df, aes(y = event02_expect_angle_demean,
   theme_bw()
 ```
 ```{r}
-df_discrete$n_1outcomelevels_newlev = df_discrete$n_1outcomelevels -3
+df_discrete$n_2outcomelevels_newlev = df_discrete$n_2outcomelevels -3
     subjectwise_bin_demean <- meanSummary(df_discrete, c(
-        "subject","param_task_name","n_1outcomelevels" 
+        "subject","param_task_name","n_2outcomelevels" 
     ), "event02_expect_angle_demean")
 subjectwise_bin_demean_naomit <- na.omit(subjectwise_bin_demean)
     groupwise_bin_demean <- summarySEwithin(
         data = subjectwise_bin_demean_naomit,
         measurevar = "mean_per_sub", # variable created from above
-        withinvars = c("n_1outcomelevels"), # iv
+        withinvars = c("n_2outcomelevels"), # iv
        idvar = "subject"
     )
-subjectwise_bin_demean_naomit$n_1outcomelevels_newlev = as.numeric(subjectwise_bin_demean_naomit$n_1outcomelevels) -3
-groupwise_bin_demean$n_1outcomelevels_newlev = as.numeric(groupwise_bin_demean$n_1outcomelevels) -3
+subjectwise_bin_demean_naomit$n_2outcomelevels_newlev = as.numeric(subjectwise_bin_demean_naomit$n_2outcomelevels) -3
+groupwise_bin_demean$n_2outcomelevels_newlev = as.numeric(groupwise_bin_demean$n_2outcomelevels) -3
 ```
 
 
@@ -582,20 +723,20 @@ geom_line(
 ```
 
 ```{r}
-df_discrete$n_1outcomelevels_newlev = as.factor(df_discrete$n_1outcomelevels_newlev)
+df_discrete$n_2outcomelevels_newlev = as.factor(df_discrete$n_2outcomelevels_newlev)
 g <-
   plot_halfrainclouds_sig(
     subjectwise_bin_demean_naomit,
     groupwise_bin_demean,
-    iv = "n_1outcomelevels_newlev",
-    sub_iv = "n_1outcomelevels",
+    iv = "n_2outcomelevels_newlev",
+    sub_iv = "n_2outcomelevels",
     subjectwise_mean = "mean_per_sub",
     group_mean = "mean_per_sub_norm_mean",
     se = "se",
     subject = "subject",
     ggtitle = "Do we see a sigmoidal pattern in the pain task?\nPrevious outcome ratings predict expectation ratings",
-    title = "levels of (N-1) outcome ratings",
-    xlab = "outcome ratings (N-1)",
+    title = "levels of (N-2) outcome ratings",
+    xlab = "outcome ratings (N-2)",
     ylab = "expectation ratings (N)",
     taskname = "pain",
     ylim = c(-40, 40),
@@ -610,7 +751,7 @@ g <-
       "#250902",
       "#250902"
     ),
-    save_fname = "~/Download/TEST.png"
+    save_fname = "~/Download/TEST_n-2.png"
   )
 g
 ```
@@ -620,9 +761,9 @@ https://groups.google.com/g/ggplot2/c/csPNfSLKkco
 g +    geom_errorbar(
       data = groupwise_bin_demean,
       aes(
-        x = as.numeric("n_1outcomelevels_newlev")  ,
+        x = as.numeric("n_2outcomelevels_newlev")  ,
         y = as.numeric("mean_per_sub_norm_mean"),
-        #colour = as.numeric("n_1outcomelevels_newlev"),
+        #colour = as.numeric("n_2outcomelevels_newlev"),
         ymin = mean_per_sub_norm_mean - se,
         ymax = mean_per_sub_norm_mean + se
       ), width = .1    ) 

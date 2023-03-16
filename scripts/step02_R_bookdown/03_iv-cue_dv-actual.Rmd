@@ -1,6 +1,6 @@
-# outcome_rating ~ cue {#ch03_cue}
+# [ beh ] outcome ~ cue {#ch03_cue}
 
-## What is the purpose of this notebook? 
+## What is the purpose of this notebook? {.unlisted .unnumbered}
 Here, I plot the outcome ratings as a function of cue. 
 * Main model: `lmer(outcome_rating ~ cue)` 
 * Main question: do outcome ratings differ as a function of cue type? 
@@ -171,7 +171,7 @@ return(p1)
 ## Pain
 ### For the vicarious task, what is the effect of cue on outcome ratings? {.unlisted .unnumbered}
 [ INSERT DESCRIPTION ]
-```{r pain_iv-cue_dv-outcome, echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+```{r pain_iv-cue_dv-outcome, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 taskname = 'pain'
 ggplot_onefactor_pertask(taskname, subject_varkey, subject, exclude,
                                      analysis_dir, iv, iv_keyword, dv, dv_keyword, 
@@ -182,7 +182,7 @@ ggplot_onefactor_pertask(taskname, subject_varkey, subject, exclude,
 ## Vicarious
 ### For the vicarious task, what is the effect of cue on outcome ratings? {.unlisted .unnumbered}
 [ INSERT DESCRIPTION ]
-```{r vicarious_iv-cue_dv-outcome, echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+```{r vicarious_iv-cue_dv-outcome, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 taskname = 'vicarious'
 ggplot_onefactor_pertask(taskname, subject_varkey, subject, exclude,
                                      analysis_dir, iv, iv_keyword, dv, dv_keyword, 
@@ -193,7 +193,7 @@ ggplot_onefactor_pertask(taskname, subject_varkey, subject, exclude,
 ## Cognitive
 ### For the cognitive task, what is the effect of cue on outcome ratings? {.unlisted .unnumbered}
 [ INSERT DESCRIPTION ]
-```{r cognitive_iv-cue_dv-outcome, echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+```{r cognitive_iv-cue_dv-outcome, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 taskname = 'cognitive'
 ggplot_onefactor_pertask(taskname, subject_varkey, subject, exclude,
                                      analysis_dir, iv, iv_keyword, dv, dv_keyword, 
@@ -201,7 +201,7 @@ ggplot_onefactor_pertask(taskname, subject_varkey, subject, exclude,
                                      xlab, ylim, ylab, ggtitle_phrase, print_lmer_output)
 ```
 
-```{r random_effects_2, message=FALSE, warning=TRUE, include=FALSE, paged.print=FALSE}
+```{r random_effects_2, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 # test function
 rand_dir <- analysis_dir
 dir.create(rand_dir, showWarnings = FALSE, recursive = TRUE)
@@ -231,13 +231,13 @@ write.csv(pvc, save_fname, row.names = FALSE)
 ```
 
 
-## individual differences analysis
+## Individual differences analysis: random cue effects
 Using the random effects from the mixed effects model, I'm plotting the random effect of cue types per task. 
 
 
 
 [ INSERT DESCRIPTION ]
-```{r random_cue_scatter_plot_2, echo=FALSE, message=FALSE, warning=TRUE}
+```{r random_cue_scatter_plot_2, echo=FALSE, message=FALSE, warning=FALSE}
 pvc_rand_cue_subset <- subset(pvc, select = c(task, subj, rand_cue))
 pvc_rand_cue <- spread(pvc_rand_cue_subset, key = task, value = rand_cue)
 # plot individually
@@ -261,11 +261,15 @@ plots
 
 ```
 
+Note:
+* Pain: Warning: Removed 2 rows containing non-finite values (`stat_cor()`).
+* Vicarious: Warning: Removed 1 rows containing non-finite values (`stat_cor()`).
+* Cognitive: Warning: Removed 2 rows containing non-finite values (`stat_cor()`).
 
 
-## individual differences analysis
+## Individual differences analysis 2: random intercept + random slopes of cue effect
 based on Tor's suggestion, plotting the random efects with the random intercepts as well. not just the cue effects
-```{r random_effects_scatter_plot_2, echo=FALSE, message=FALSE, warning=TRUE}
+```{r random_effects_scatter_plot_2, echo=FALSE, message=FALSE, warning=FALSE}
 pvc$rand = pvc$rand_intercept + pvc$rand_cue
 pvc_rand_cue_subset <- subset(pvc, select = c(task, subj, rand))
 pvc_rand_cue <- spread(pvc_rand_cue_subset, key = task, value = rand)
@@ -290,3 +294,7 @@ plots
 
 ```
 
+Note:
+* Pain: Warning: Removed 49 rows containing non-finite values (`stat_cor()`).
+* Vicarious: Removed 8 rows containing non-finite values (`stat_cor()`).
+* Cognitive: Removed 52 rows containing non-finite values (`stat_cor()`).

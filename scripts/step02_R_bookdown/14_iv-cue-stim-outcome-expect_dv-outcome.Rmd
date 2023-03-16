@@ -1,0 +1,741 @@
+# [ beh ] outcome ~ cue * stim * expectrating * n-1outcomerating  {#ch14_factorize}
+
+
+## What is the purpose of this notebook? {.unlisted .unnumbered}
+
+1. Linear relationship between expectation and outcome ratings, as a function of stimulus intensity and cues
+* Here, I model the outcome ratings as a function of cue, stimulus intensity, expectation ratings, N-1 outcome rating. 
+* From this, I see that the linear relationship of expectation ratings and outcome ratings are split across a 1:1 slope, depending on high or low cues. In other words, when exposed to a high cue, participants tend to rate higher on expectations but report lower outcome ratings, and viceversa for low cues. 
+Based on these results, I ask the following:
+
+2.Are participants who are overestimating for high cues also underestimators for low cues?
+* Here, I calculate Orthogonal distance from the 1:1 slope. 
+* Based on that, I test whether the absolute ODR distance is equivalent across cues. If a participant equally overestimates for a high cue and underestimates a stimuli for a low cue, their ODR distance should be the same. This is reflected in the subject-level slopes, which are parallel.
+
+### Some thoughts, TODOs {.unlisted .unnumbered}
+
+* Standardized coefficients
+* Slope difference? Intercept difference? ( cue and expectantion rating)
+* Correct for the range (within participant)
+hypothesis:
+1. Larger expectation leads to prediction error
+2. Individual differences in ratings
+3. Outcome experience, based on behavioral experience
+What are the brain maps associated with each component.  
+
+
+```{r load_libraries_5, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
+library(psych)
+library(car)
+# library(lmSupport)
+library(lme4)
+library(lmerTest)
+library(dplyr)
+library(plyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+library(png)
+library(knitr)
+library(TMB)
+library(sjPlot)
+library(ggpubr)
+library(gridExtra)
+library(merTools)
+library(sjstats) #to get ICC
+library(broom)
+library(tidyverse)
+library(GGally)
+library(RCurl)
+library(rstanarm)
+library(reshape)
+library(boot)
+library(afex)
+library(cowplot)
+library(readr)
+library(lavaan)
+library(rmarkdown)
+library(readr)
+library(caTools)
+library(bitops)
+library(stringr)
+library(stats)
+library(ggpubr)
+library(equatiomatic)
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
+library(lme4)
+library(effectsize)
+library(brms)
+library(devtools)
+library(gghalves)
+library(visibly) # 
+library(plotly) #plot
+library(scico) # plot
+source('http://psych.colorado.edu/~jclab/R/mcSummaryLm.R')
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
+# source("https://gist.github.com/benmarwick/2a1bb0133ff568cbe28d/geom_flat_violin.R")
+
+library(r2mlm)
+file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+                          pattern="*.R", 
+                          full.names=TRUE, 
+                          ignore.case=TRUE)
+sapply(file.sources,source,.GlobalEnv)
+```
+
+### load data and combine participant data {.unlisted .unnumbered}
+
+```{r load_data_and_exclude_m1}
+main_dir = dirname(dirname(getwd()))
+datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
+# parameters _____________________________________ # nolint
+subject_varkey <- "src_subject_id"
+iv <- "param_cue_type"
+dv <- "event03_RT"
+dv_keyword <- "RT"
+xlab <- ""
+taskname <- "pain"
+
+ylab <- "ratings (degree)"
+subject <- "subject"
+exclude <- "sub-0999|sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0007|sub-0008|sub-0009|sub-0010|sub-0011"
+
+# load data _____________________________________
+data <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
+# data['event03_RT'], data.event03_RT - pandas
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model14_iv-cue-stim-N1outcome-expect_dv-outcome", as.character(Sys.Date()))
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+```
+
+### summarize data {.unlisted .unnumbered}
+```{r echo=FALSE}
+summary(data[, c("event02_expect_RT", "event04_actual_RT", "event02_expect_angle", "event04_actual_angle")])
+```
+
+### Covariance matrix: ratings and RT {.unlisted .unnumbered}
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# data(data, package = 'visibly')
+
+myvars <- names(data) %in% 
+  c( "event02_expect_angle", "event02_expect_RT", "event04_actual_angle", "event04_actual_RT", "event01_cue_onset")
+newdata <- data[myvars]
+# numdata  <- unlist(lapply(data, is.numeric), use.names = FALSE) 
+data_naomit <- na.omit(newdata)
+cor_matrix = cor(data_naomit)
+corr_heat(cor_matrix)
+```
+
+### Covariance matrix: fixation durations (e.g. ISIs) {.unlisted .unnumbered}
+```{r}
+ISIvars <- names(data) %in% 
+  c( "ISI01_duration", "ISI02_duration", "ISI03_duration")
+ISIdata <- data[ISIvars]
+# numdata  <- unlist(lapply(data, is.numeric), use.names = FALSE) 
+ISIdata_naomit <- na.omit(ISIdata)
+ISIcor_matrix = cor(ISIdata_naomit)
+corr_heat(ISIcor_matrix)
+```
+
+```{r function::simple_contrasts_beh, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+simple_contrasts_beh <- function(df) {
+# [ CONTRASTS ]  ________________________________________________________________________________ # nolint
+# contrast code ________________________________________
+df$stim_factor <- factor(df$param_stimulus_type)
+
+# contrast code 1 linear
+df$stim_con_linear[df$param_stimulus_type == "low_stim"] <-  -0.5
+df$stim_con_linear[df$param_stimulus_type == "med_stim"] <-  0
+df$stim_con_linear[df$param_stimulus_type == "high_stim"] <-  0.5
+
+# contrast code 2 quadratic
+df$stim_con_quad[df$param_stimulus_type == "low_stim"] <-  -0.33
+df$stim_con_quad[df$param_stimulus_type == "med_stim"] <-  0.66
+df$stim_con_quad[df$param_stimulus_type == "high_stim"] <-  -0.33
+
+# cue contrast
+df$cue_con[df$param_cue_type == "low_cue"] <-  -0.5 # social influence task
+df$cue_con[df$param_cue_type == "high_cue"] <-  0.5 # no influence task
+
+df$stim_ordered <- factor(
+        df$param_stimulus_type,
+        levels = c("low_stim", "med_stim", "high_stim")
+    )
+
+df$cue_name[df$param_cue_type == "low_cue"] <- "low"
+df$cue_name[df$param_cue_type == "high_cue"] <- "high"
+
+df$cue_ordered <- factor(
+        df$cue_name,
+        levels = c("low", "high")
+    )
+return(df)
+}
+```
+
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+maindata <- data %>%
+group_by(src_subject_id) %>%
+mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
+mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
+mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
+mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
+mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
+mutate(demean_expect = event02_expect_angle - avg_expect)
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+data_p2= data %>%
+  arrange(src_subject_id ) %>%
+  group_by(src_subject_id) %>%
+  mutate(trial_index = row_number())
+data_a3 <- data_p2 %>% 
+  group_by(src_subject_id, session_id, param_run_num) %>% 
+  mutate(trial_index = row_number(param_run_num))
+
+data_a3lag <- 
+    data_a3 %>%
+    group_by(src_subject_id, session_id, param_run_num) %>%
+    mutate(lag.04outcomeangle = dplyr::lag(event04_actual_angle, n = 1, default = NA))
+data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.04outcomeangle),]
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+df <- data_a3lag_omit
+pvc <- simple_contrasts_beh(df)
+```
+
+## Original motivation: 
+Plot pain outcome rating as a function of expectation rating and cue {.unlisted .unnumbered}
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# summarize dataframe __________________________________________________________
+iv1 = "event02_expect_angle"; iv2 = "event04_actual_angle"
+df_dropna <- pvc[!is.na(pvc[, iv1]) & !is.na(pvc[, iv2]), ]
+subjectwise_2dv = meanSummary_2dv(df_dropna,
+        c("src_subject_id", "param_cue_type"), 
+          "event02_expect_angle", "event04_actual_angle")
+subjectwise_naomit_2dv <- na.omit(subjectwise_2dv)
+subjectwise_naomit_2dv$param_cue_type <- as.factor(subjectwise_naomit_2dv$param_cue_type)
+# plot _________________________________________________________________________
+sp <- ggplot(data=subjectwise_naomit_2dv, 
+             aes(x=DV1_mean_per_sub, y=DV2_mean_per_sub,
+             color = param_cue_type)) + 
+  geom_point(aes(shape = param_cue_type, color = param_cue_type), size = 2, alpha = .8) + 
+  geom_abline(intercept = 0, slope = 1, color="green", 
+                 linetype="dashed", linewidth=0.5) +
+  theme(aspect.ratio=1) +
+  scale_color_manual(values = c("high_cue" = "#000000", 
+                                "low_cue" = "#BBBBBB")) +
+  scale_shape_manual(values = c(16, 17)) +
+  xlab("expect rating") +
+  ylab("outcome rating") + ylim(0,180) + xlim(0,180) +
+  theme(axis.line = element_line(colour = "grey50"), 
+      panel.background = element_blank(),
+      plot.subtitle = ggtext::element_textbox_simple(size= 11))
+
+# Add description ______________________________________________________________
+sp +  labs(title =paste0("task-",taskname, "- What is the pattern for outcome and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
+          )
+
+```
+
+## Pain
+
+### linear model {.unlisted .unnumbered}
+* **cue_con** : high cue: 0.5, low cue: -0.5
+* **stim_con_linear** : high intensity: 0.5, med intensity: 0, low intensity: -0.5
+* **stim_con_quad** : high intensity: -0.33, med intensity: 0.66, low intensity: -0.33
+
+```{r echo=FALSE, message=TRUE, warning=TRUE}
+model.factorize = lmer(event04_actual_angle ~ cue_con*stim_con_linear*event02_expect_angle + cue_con*stim_con_quad*event02_expect_angle + lag.04outcomeangle + (cue_con|src_subject_id), data = pvc)
+summary(model.factorize)
+#tab_model(model.factorize, p.val = "kr", show.df = TRUE)
+```
+
+
+### pain plot parameters
+```{r}
+iv1 = "event02_expect_angle"; iv2 = "event04_actual_angle";
+group = "param_cue_type"; subject = "src_subject_id"; 
+xlab = "expectation rating"; ylab = "outcome rating"
+min = 0; max = 180
+```
+
+### Pain run, collapsed across stimulus intensity {.unlisted .unnumbered}
+```{r rawoutcome_pain, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+iv1 = "event02_expect_angle"; iv2 = "event04_actual_angle"
+df_dropna <-
+  pvc[!is.na(pvc$event02_expect_angle) & !is.na(pvc$event04_actual_angle),]
+total <-
+  plot_twovariable(
+    df_dropna, iv1, iv2, group, subject, min, max, xlab, ylab,
+    ggtitle = "all stimulus intensity", 
+    color_scheme = c("high_cue" ="#941100","low_cue" =  "#BBBBBB"), 
+    alpha = .8, fit_lm = TRUE, lm_method = "lm"
+  )
+total + labs(title =paste0("task-",taskname, "- What is the pattern for outcome and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
+          )
+  # geom_line(method="lm", alpha=0.3, size=1, span=0.5) # geom_smooth(method=lm, se = TRUE) 
+# +geom_smooth(method = "lm", alpha=0.1, size=0, span=0.5)
+```
+```{r rawoutcome_pain_stimuluswise, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+iv1 = "event02_expect_angle"; iv2 = "event04_actual_angle"
+# low stimulus intensity
+df_low = df_dropna[df_dropna$param_stimulus_type == "low_stim", ]
+low <-
+  plot_twovariable(
+    df_low, iv1, iv2, group, subject, min, max, xlab, ylab,
+    ggtitle = "Low intensity",
+    color_scheme = c("high_cue" ="#FF8800","low_cue" =  "#5D5C5C"),
+    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+  )
+
+# med stimulus intensity
+df_med = df_dropna[df_dropna$param_stimulus_type == "med_stim", ]
+med <-
+  plot_twovariable(
+    df_med, iv1, iv2, group, subject, min, max, xlab, ylab,
+    ggtitle = "Medium intensity",
+    color_scheme = c("high_cue" ="#DB6000","low_cue" =  "#5D5C5C"),
+    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+  )
+
+# high stimulus intensity
+df_high = df_dropna[df_dropna$param_stimulus_type == "high_stim", ]
+high <-
+  plot_twovariable(
+    df_high, iv1, iv2, group, subject, min, max, xlab, ylab,
+    ggtitle = "High intensity",
+    color_scheme = c("high_cue" ="#941100","low_cue" =  "#5D5C5C"),
+    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+  )
+plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots, top = text_grob(paste(str_to_title(taskname), "\n Expect/Outcome linear relationship differs as a function of stimulus intensity and cue"), color = "black", face = "bold", size = 12))
+plots_title
+```
+
+### loess
+```{r rawoutcome_pain_stimuluswise_loess, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+iv1 = "event02_expect_angle"; iv2 = "event04_actual_angle"
+# low stimulus intensity
+df_low = df_dropna[df_dropna$param_stimulus_type == "low_stim", ]
+low <-
+  plot_twovariable(
+    df_low, iv1, iv2, group, subject, min, max, xlab, ylab,
+    ggtitle = "Low intensity",
+    color_scheme = c("high_cue" ="#FF8800","low_cue" =  "#5D5C5C"),
+    alpha = .5, fit_lm = TRUE, lm_method = "loess"
+  )
+
+# med stimulus intensity
+df_med = df_dropna[df_dropna$param_stimulus_type == "med_stim", ]
+med <-
+  plot_twovariable(
+    df_med, iv1, iv2, group, subject, min, max, xlab, ylab,
+    ggtitle = "Medium intensity",
+    color_scheme = c("high_cue" ="#DB6000","low_cue" =  "#5D5C5C"),
+    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+  )
+
+# high stimulus intensity
+df_high = df_dropna[df_dropna$param_stimulus_type == "high_stim", ]
+high <-
+  plot_twovariable(
+    df_high, iv1, iv2, group, subject, min, max, xlab, ylab,
+    ggtitle = "High intensity",
+    color_scheme = c("high_cue" ="#941100","low_cue" =  "#5D5C5C"),
+    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+  )
+plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots, top = text_grob(paste(str_to_title(taskname), "\n Expect/Outcome linear relationship differs as a function of stimulus intensity and cue"), color = "black", face = "bold", size = 12))
+plots_title
+```
+
+### ODR distance: Q. Are those overestimating for high cues also underestimators for low cues?  {.unlisted .unnumbered}
+Note: Warning: Removed 1 rows containing non-finite values (`stat_half_ydensity()`).
+
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+iv1 = "event02_expect_angle"; iv2 = "event04_actual_angle"
+pvc$odr_expectoutcome = abs(pvc$event02_expect_angle + pvc$event04_actual_angle) / sqrt(2)
+
+cooksd <- lmer_onefactor_cooksd(pvc, "pain", iv = "cue_name", dv= "odr_expectoutcome", subject_keyword = "src_subject_id",
+                                  dv_keyword = "distance from 1:1", model_savefname = "/Users/h/Desktop/TEST.txt", print_lmer_output = TRUE) 
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+subject_keyword = "src_subject_id"
+model_iv1 = "cue_name"
+dv = "odr_expectoutcome"
+groupwise_measurevar = "mean_per_sub"
+
+iv <- "cue_name"; iv_keyword <- "cue"; dv <- "odr_expectoutcome"; dv_keyword <- "odr_expectoutcome"
+xlab <- ""; ylim = c(-10,180); ylab <- "Distance from 1:1 baseline"
+subject <- "src_subject_id"
+exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
+subjectwise_mean <- "mean_per_sub"; group_mean <- "mean_per_sub_norm_mean"; se <- "se"
+subjectwise <- meanSummary(
+        pvc,
+        c(subject_keyword, model_iv1), dv 
+    )
+groupwise <- summarySEwithin(
+        data = subjectwise,
+        measurevar = groupwise_measurevar,
+        withinvars = c(model_iv1), idvar = subject_keyword
+    )
+ggtitle = paste(taskname, "ODR distance of expect-outcome rating from 1:1")
+title = "cue"
+
+  color_scheme <-     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color_scheme <- c("#1B9E77", "#D95F02")
+    } else {
+        # color_scheme <- c("#4575B4", "#D73027")
+        color_scheme <- c("#941100","#5D5C5C")
+    }
+
+save_fname = "/Users/h/Desktop/TEST.png"
+p <- plot_halfrainclouds_onefactor(subjectwise, groupwise, iv,
+                                      subjectwise_mean, group_mean, se, subject,
+                                      ggtitle, title, xlab, ylab, taskname, ylim,
+                                      w = 10, h = 10, dv_keyword, color =color_scheme, save_fname)
+p
+```
+
+
+## Vicarious
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+main_dir = dirname(dirname(getwd()))
+datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
+subject_varkey <- "src_subject_id"
+iv <- "param_cue_type"
+xlab <- ""
+taskname <- "vicarious"
+ylab <- "ratings (degree)"
+subject <- "subject"
+exclude <- "sub-0999|sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0007|sub-0008|sub-0009|sub-0010|sub-0011"
+data <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model15_iv-cue-stim-N1outcome-expect_dv-outcome-demean", as.character(Sys.Date()))
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+
+maindata <- data %>%
+group_by(src_subject_id) %>%
+mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
+mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
+mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
+mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
+mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
+mutate(demean_expect = event02_expect_angle - avg_expect)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+data_p2= maindata %>%
+  arrange(src_subject_id ) %>%
+  group_by(src_subject_id) %>%
+  mutate(trial_index = row_number())
+data_a3 <- data_p2 %>% 
+  group_by(src_subject_id, session_id, param_run_num) %>% 
+  mutate(trial_index = row_number(param_run_num))
+
+data_a3lag <- 
+    data_a3 %>%
+    group_by(src_subject_id, session_id, param_run_num) %>%
+    mutate(lag.04outcomeangle = dplyr::lag(event04_actual_angle, n = 1, default = NA))
+data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.04outcomeangle),]
+
+df <- data_a3lag_omit
+pvc <- simple_contrasts_beh(df)
+
+
+```
+
+### Vicarious linear model {.unlisted .unnumbered}
+```{r echo=FALSE, message=TRUE, warning=TRUE}
+model.factorize = lmer(event04_actual_angle~ cue_con*stim_con_linear*event02_expect_angle + cue_con*stim_con_quad*event02_expect_angle +lag.04outcomeangle+ (1|src_subject_id), data = pvc)
+# summary(model.factorize)
+tab_model(model.factorize, p.val = "kr", show.df = TRUE)
+```
+
+### Vicarious run, collapsed across stimulus intensity {.unlisted .unnumbered}
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+df_dropna <-
+  pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
+total <-
+  plot_twovariable(
+    df_dropna,
+    iv1 = "event02_expect_angle", iv2 = "event04_actual_angle",
+    group = "param_cue_type",
+    subject = "src_subject_id",
+    min =0, max = 180,
+    xlab = "expectation rating",
+    ylab = "outcome rating", 
+    ggtitle = paste(taskname, "all stimulus intensity"),
+    color_scheme = c("high_cue" ="#009411","low_cue" =  "#5D5C5C"),
+    alpha = .8, fit_lm = TRUE, lm_method = "lm"
+  )
+total + labs(title =paste0("task-",taskname, "- What is the pattern for outcome and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n"))
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+df_dropna <- pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
+iv1 = "event02_expect_angle"; iv2 = "event04_actual_angle"
+# low stimulus intensity
+df_low = df_dropna[df_dropna$param_stimulus_type == "low_stim", ]
+low <-
+  plot_twovariable(
+    df_low, iv1, iv2,
+    group = "param_cue_type", subject = "src_subject_id",
+    min =0, max = 180,
+    xlab = "expectation rating", ylab = "outcome rating",
+    ggtitle = "Low stimulus",
+    color_scheme = c("high_cue" ="#9CDB06","low_cue" =  "#5D5C5C"),
+    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+  )
+
+# med stimulus intensity
+df_med = df_dropna[df_dropna$param_stimulus_type == "med_stim", ]
+med <-
+  plot_twovariable(
+    df_med, iv1, iv2,
+    group = "param_cue_type", subject = "src_subject_id",
+    min =0, max = 180,
+    xlab = "expectation rating", ylab = "outcome rating",
+    ggtitle = "Medium stimulus",
+    color_scheme = c("high_cue" ="#4EB80B","low_cue" =  "#5D5C5C"),
+    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+  )
+
+# high stimulus intensity
+df_high = df_dropna[df_dropna$param_stimulus_type == "high_stim", ]
+high <-
+  plot_twovariable(
+    df_high, iv1, iv2,
+    group = "param_cue_type", subject = "src_subject_id",
+    min =0, max = 180,
+    xlab = "expectation rating", ylab = "outcome rating",
+    ggtitle = "High stimulus",
+    color_scheme = c("high_cue" ="#009411","low_cue" =  "#5D5C5C"),
+    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+  )
+vic_plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(vic_plots, top = text_grob(paste(str_to_title(taskname), "\n Expect/Outcome linear relationship differs as a function of stimulus intensity and cue"), color = "black", face = "bold", size = 12))
+plots_title
+```
+
+
+### ODR distance: Q. Are those overestimating for high cues also underestimators for low cues?  {.unlisted .unnumbered}
+Note: Warning: Removed 1 rows containing non-finite values (`stat_half_ydensity()`).
+
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+pvc$odr_expectoutcome = abs(pvc$event02_expect_angle + pvc$event04_actual_angle) / sqrt(2)
+
+cooksd <- lmer_onefactor_cooksd(pvc, "pain", iv = "cue_name", dv= "odr_expectoutcome", subject_keyword = "src_subject_id",
+                                  dv_keyword = "distance from 1:1", model_savefname = "/Users/h/Desktop/TEST.txt", print_lmer_output = TRUE) 
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+subject_keyword = "src_subject_id"
+model_iv1 = "cue_name"
+dv = "odr_expectoutcome"
+groupwise_measurevar = "mean_per_sub"
+
+iv <- "cue_name"; iv_keyword <- "cue"; dv <- "odr_expectoutcome"; dv_keyword <- "odr_expectoutcome"
+xlab <- ""; ylim = c(-10,180); ylab <- "Distance from 1:1 baseline"
+subject <- "src_subject_id"
+exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
+subjectwise_mean <- "mean_per_sub"; group_mean <- "mean_per_sub_norm_mean"; se <- "se"
+subjectwise <- meanSummary(
+        pvc,
+        c(subject_keyword, model_iv1), dv 
+    )
+groupwise <- summarySEwithin(
+        data = subjectwise,
+        measurevar = groupwise_measurevar,
+        withinvars = c(model_iv1), idvar = subject_keyword
+    )
+ggtitle = "ODR distance of expect-outcome rating from 1:1"
+title = "cue"
+
+  color_scheme <-     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color_scheme <- c("#1B9E77", "#D95F02")
+    } else {
+        # color_scheme <- c("#4575B4", "#D73027")
+        color_scheme <- c("#009411","#5D5C5C")
+    }
+
+save_fname = "/Users/h/Desktop/TEST.png"
+p <- plot_halfrainclouds_onefactor(subjectwise, groupwise, iv,
+                                      subjectwise_mean, group_mean, se, subject,
+                                      ggtitle, title, xlab, ylab, taskname, ylim,
+                                      w = 10, h = 10, dv_keyword, color =color_scheme, save_fname)
+p
+```
+
+## Cognitive
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+main_dir = dirname(dirname(getwd()))
+datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
+subject_varkey <- "src_subject_id"
+iv <- "param_cue_type"
+xlab <- ""
+taskname <- "cognitive"
+ylab <- "ratings (degree)"
+subject <- "subject"
+exclude <- "sub-0999|sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0007|sub-0008|sub-0009|sub-0010|sub-0011"
+data <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model15_iv-cue-stim-N1outcome-expect_dv-outcome-demean", as.character(Sys.Date()))
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+
+maindata <- data %>%
+group_by(src_subject_id) %>%
+mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
+mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
+mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
+mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
+mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
+mutate(demean_expect = event02_expect_angle - avg_expect)
+
+data_p2= maindata %>%
+  arrange(src_subject_id ) %>%
+  group_by(src_subject_id) %>%
+  mutate(trial_index = row_number())
+data_a3 <- data_p2 %>% 
+  group_by(src_subject_id, session_id, param_run_num) %>% 
+  mutate(trial_index = row_number(param_run_num))
+
+data_a3lag <- 
+    data_a3 %>%
+    group_by(src_subject_id, session_id, param_run_num) %>%
+    mutate(lag.04outcomeangle = dplyr::lag(event04_actual_angle, n = 1, default = NA))
+data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.04outcomeangle),]
+
+df <- data_a3lag_omit
+pvc <- simple_contrasts_beh(df)
+
+```
+
+### Cognitive linear model {.unlisted .unnumbered}
+```{r echo=FALSE, message=TRUE, warning=TRUE}
+model.factorize = lmer(event04_actual_angle~ cue_con*stim_con_linear*event02_expect_angle + cue_con*stim_con_quad*event02_expect_angle +lag.04outcomeangle+ (1|src_subject_id), data = pvc)
+# summary(model.factorize)
+tab_model(model.factorize, p.val = "kr", show.df = TRUE)
+```
+
+### cognitive parameters
+```{r}
+iv1 = "event02_expect_angle"; iv2 = "event04_actual_angle";
+group = "param_cue_type"; subject = "src_subject_id"; 
+xlab = "expectation rating"; ylab = "outcome rating"
+min = 0; max = 180
+```
+
+### Cognitive run, collapsed across stimulus intensity {.unlisted .unnumbered}
+Warning: Warning: Removed 2 rows containing missing values (`geom_line()`).
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+df_dropna <-
+  pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
+total <-
+  plot_twovariable(
+    df_dropna, iv1, iv2, group, subject,
+    min, max, xlab, ylab, 
+    ggtitle = "all stimulus intensity",
+    color_scheme = c("high_cue" ="#110094","low_cue" =  "#5D5C5C"),
+    alpha = .8, fit_lm = TRUE, lm_method = "lm"
+  )
+title =paste0("task-",taskname, "- What is the pattern for outcome and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
+plots_title <- annotate_figure(total, top = text_grob(title, color = "black", face = "bold", size = 12))
+plots_title
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+iv1 = "event02_expect_angle"; iv2 = "event04_actual_angle"
+df_dropna <- pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
+df_low = df_dropna[df_dropna$param_stimulus_type == "low_stim", ]
+low <-
+  plot_twovariable(
+    df_low, iv1, iv2, group, subject,
+    min, max, xlab, ylab, 
+    ggtitle = "Low intensity",
+    color_scheme = c("high_cue" ="#9400DB","low_cue" =  "#5D5C5C"),
+    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+  )
+df_dropna <- pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
+df_med = df_dropna[df_dropna$param_stimulus_type == "med_stim", ]
+med <-
+  plot_twovariable(
+    df_med, iv1, iv2, group, subject,
+    min, max, xlab, ylab, 
+    ggtitle = "Medium intensity",
+    color_scheme = c("high_cue" ="#5200B8","low_cue" =  "#5D5C5C"),
+    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+  )
+df_dropna <- pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
+df_high = df_dropna[df_dropna$param_stimulus_type == "high_stim", ]
+high <-
+  plot_twovariable(
+    df_high, iv1, iv2, group, subject,
+    min, max, xlab, ylab, 
+    ggtitle = "High intensity",
+    color_scheme = c("high_cue" ="#110094","low_cue" =  "#5D5C5C"),
+    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+  )
+cog_plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(cog_plots, top = text_grob(paste(str_to_title(taskname), "\n Expect/Outcome linear relationship differs as a function of stimulus intensity and cue"), color = "black", face = "bold", size = 12))
+plots_title
+```
+
+
+### ODR distance: Q. Are those overestimating for high cues also underestimators for low cues?  {.unlisted .unnumbered}
+Note: Warning: Removed 1 rows containing non-finite values (`stat_half_ydensity()`).
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+pvc$odr_expectoutcome = abs(pvc$event02_expect_angle + pvc$event04_actual_angle) / sqrt(2)
+
+cooksd = lmer_onefactor_cooksd(pvc, "pain", iv = "cue_name", dv= "odr_expectoutcome", subject_keyword = "src_subject_id",
+                                  dv_keyword = "distance from 1:1", model_savefname = "/Users/h/Desktop/TEST.txt", print_lmer_output = TRUE) 
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+subject_keyword = "src_subject_id"
+model_iv1 = "cue_name"
+dv = "odr_expectoutcome"
+groupwise_measurevar = "mean_per_sub"
+
+iv <- "cue_name"; iv_keyword <- "cue"; dv <- "odr_expectoutcome"; dv_keyword <- "odr_expectoutcome"
+xlab <- ""; ylim = c(-10,180); ylab <- "Distance from 1:1 baseline"
+subject <- "src_subject_id"
+exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
+subjectwise_mean <- "mean_per_sub"; group_mean <- "mean_per_sub_norm_mean"; se <- "se"
+subjectwise <- meanSummary(
+        pvc,
+        c(subject_keyword, model_iv1), dv 
+    )
+groupwise <- summarySEwithin(
+        data = subjectwise,
+        measurevar = groupwise_measurevar,
+        withinvars = c(model_iv1), idvar = subject_keyword
+    )
+ggtitle = "ODR distance of expect-outcome rating from 1:1"
+title = "cue"
+
+  color_scheme <-     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color_scheme <- c("#1B9E77", "#D95F02")
+    } else {
+        # color_scheme <- c("#4575B4", "#D73027")
+        color_scheme <- c("#110094","#5D5C5C")
+    }
+
+save_fname = "/Users/h/Desktop/TEST.png"
+p <- plot_halfrainclouds_onefactor(subjectwise, groupwise, iv,
+                                      subjectwise_mean, group_mean, se, subject,
+                                      ggtitle, title, xlab, ylab, taskname, ylim,
+                                      w = 10, h = 10, dv_keyword, color =color_scheme, save_fname)
+p
+```
+```{r}
+library(plotly)
+plot_ly(x=subjectwise_naomit_2dv$param_cue_type, y=subjectwise_naomit_2dv$DV1_mean_per_sub, z=subjectwise_naomit_2dv$DV2_mean_per_sub, type="scatter3d", mode="markers", color=subjectwise_naomit_2dv$param_cue_type)
+```
+
