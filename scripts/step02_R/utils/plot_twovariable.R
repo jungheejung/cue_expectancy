@@ -1,5 +1,5 @@
 # summarize dataframe __________________________________________________________
-plot_twovariable <- function(df, iv1, iv2, group, subject, min, max, xlab, ylab, ggtitle, color_scheme, alpha, fit_lm) {
+plot_twovariable <- function(df, iv1, iv2, group, subject, min, max, xlab, ylab, ggtitle, color_scheme, alpha, fit_lm, lm_method = NULL) {
     # x: iv1 e.g. expect rating
     # y: iv2 e.g. outcome rating
     # group: param_cue_type
@@ -53,9 +53,9 @@ plot_twovariable <- function(df, iv1, iv2, group, subject, min, max, xlab, ylab,
 
     if (isTRUE(fit_lm)) {
         g <- g +
-        geom_ribbon(stat = "smooth", method = "lm", se = TRUE, alpha = 0.1,
+        geom_ribbon(stat = "smooth", method = lm_method, se = TRUE, alpha = 0.1,
               aes(color = NULL, group = factor(group))) +
-        geom_line(stat = "smooth", method = "lm", alpha = 0.8, size = 1.5)
+        geom_line(stat = "smooth", method = lm_method, alpha = 0.8, size = 1.5)
     } else {
         g
     }
