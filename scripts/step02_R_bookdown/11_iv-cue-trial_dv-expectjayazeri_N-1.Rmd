@@ -146,9 +146,40 @@ data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.04outcomeangle),]
     # )
 ```
 ```{r}
-model.lagoutcome = lmer(event02_expect_angle ~ lag.04outcomeangle + (1 | src_subject_id) + (1|session_id) , data = data_a3lag_omit)
+model.lagoutcome = lmer(event02_expect_angle ~ lag.04outcomeangle + (1 | src_subject_id) + (1|session_id) , data = data_a3lag_omit,REML = FALSE)
 summary(model.lagoutcome)
+anova(model.lagoutcome)
 ```
+```{r}
+# startvec <- c(Asym = 200, xmid = 725, scal = 350)
+# (nm1 <- nlmer(circumference ~ SSlogis(age, Asym, xmid, scal) ~ Asym|Tree,
+#              Orange, start = startvec))
+# 
+# (nm1a <- update(nm1, nAGQ = 0L))
+
+startvec <- c(Asym =10, xmid = 0, scal = 350)
+nm1 <- nlmer(event02_expect_angle ~ SSlogis(lag.04outcomeangle,Asym, xmid, scal) ~ Asym|src_subject_id, 
+             data_a3lag_omit, start = startvec)
+#nm1a <- update(nm1, nAGQ = 0L)
+```
+```{r}
+nform <- ~Asym/(1+exp((xmid-input)/scal))
+## b. Use deriv() to construct function:
+nfun <- deriv(nform,namevec=c("Asym","xmid","scal"),
+              function.arg=c("input","Asym","xmid","scal"))
+nm1b <- update(nm1,event02_expect_angle ~ nfun(lag.04outcomeangle, Asym, xmid, scal)  ~ Asym | src_subject_id)
+
+```
+```{r}
+summary(nm1b)
+```
+
+```{r}
+library(bbmle)
+bbmle::AICtab(model.lagoutcome, nm1b)
+```
+
+
 
 ```{r}
 meanSummary_2dv <- function(DATA, GROUP, DV1, DV2) {

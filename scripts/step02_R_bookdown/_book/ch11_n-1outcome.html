@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Chapter 11 N-1 outcome rating ~ N expectation rating | behavioral_ICC</title>
+  <meta name="description" content="<p>This is a logbook of all the mixed model analyses in one setting.
+set in the _output.yml file.
+The HTML output format for this example is bookdown::gitbook,</p>" />
+  <meta name="generator" content="bookdown 0.32 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Chapter 11 N-1 outcome rating ~ N expectation rating | behavioral_ICC" />
+  <meta property="og:type" content="book" />
+  
+  <meta property="og:description" content="<p>This is a logbook of all the mixed model analyses in one setting.
+set in the _output.yml file.
+The HTML output format for this example is bookdown::gitbook,</p>" />
+  <meta name="github-repo" content="rstudio/bookdown-demo" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 11 N-1 outcome rating ~ N expectation rating | behavioral_ICC" />
+  
+  <meta name="twitter:description" content="<p>This is a logbook of all the mixed model analyses in one setting.
+set in the _output.yml file.
+The HTML output format for this example is bookdown::gitbook,</p>" />
+  
+
+<meta name="author" content="Heejung Jung" />
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="ch10_icc.html"/>
+<link rel="next" href="ch12_n-1outcome.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+<script src="libs/htmlwidgets-1.5.4/htmlwidgets.js"></script>
+<script src="libs/plotly-binding-4.10.1/plotly.js"></script>
+<script src="libs/typedarray-0.1/typedarray.min.js"></script>
+<link href="libs/crosstalk-1.2.0/css/crosstalk.min.css" rel="stylesheet" />
+<script src="libs/crosstalk-1.2.0/js/crosstalk.min.js"></script>
+<link href="libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet" />
+<script src="libs/plotly-main-2.11.1/plotly-latest.min.js"></script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">Analysis logbook: cue-expectancy</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> About</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#usage"><i class="fa fa-check"></i><b>1.1</b> Usage</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="ch2_expect.html"><a href="ch2_expect.html"><i class="fa fa-check"></i><b>2</b> expectation_rating ~ cue</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="ch2_expect.html"><a href="ch2_expect.html#what-is-the-purpose-of-this-notebook"><i class="fa fa-check"></i><b>2.1</b> What is the purpose of this notebook?</a></li>
+<li class="chapter" data-level="2.2" data-path="ch2_expect.html"><a href="ch2_expect.html#pain"><i class="fa fa-check"></i><b>2.2</b> Pain</a></li>
+<li class="chapter" data-level="2.3" data-path="ch2_expect.html"><a href="ch2_expect.html#vicarious"><i class="fa fa-check"></i><b>2.3</b> Vicarious</a></li>
+<li class="chapter" data-level="2.4" data-path="ch2_expect.html"><a href="ch2_expect.html#cognitive"><i class="fa fa-check"></i><b>2.4</b> Cognitive</a></li>
+<li class="chapter" data-level="2.5" data-path="ch2_expect.html"><a href="ch2_expect.html#individual-difference-analysis"><i class="fa fa-check"></i><b>2.5</b> Individual difference analysis</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="ch03_cue.html"><a href="ch03_cue.html"><i class="fa fa-check"></i><b>3</b> outcome_rating ~ cue</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="ch03_cue.html"><a href="ch03_cue.html#what-is-the-purpose-of-this-notebook-1"><i class="fa fa-check"></i><b>3.1</b> What is the purpose of this notebook?</a></li>
+<li class="chapter" data-level="3.2" data-path="ch03_cue.html"><a href="ch03_cue.html#pain-1"><i class="fa fa-check"></i><b>3.2</b> Pain</a></li>
+<li class="chapter" data-level="3.3" data-path="ch03_cue.html"><a href="ch03_cue.html#vicarious-1"><i class="fa fa-check"></i><b>3.3</b> Vicarious</a></li>
+<li class="chapter" data-level="3.4" data-path="ch03_cue.html"><a href="ch03_cue.html#cognitive-1"><i class="fa fa-check"></i><b>3.4</b> Cognitive</a></li>
+<li class="chapter" data-level="3.5" data-path="ch03_cue.html"><a href="ch03_cue.html#individual-differences-analysis"><i class="fa fa-check"></i><b>3.5</b> individual differences analysis</a></li>
+<li class="chapter" data-level="3.6" data-path="ch03_cue.html"><a href="ch03_cue.html#individual-differences-analysis-1"><i class="fa fa-check"></i><b>3.6</b> individual differences analysis</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html"><i class="fa fa-check"></i><b>4</b> outcome_rating ~ stimulus_intensity</a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#what-is-the-purpose-of-this-notebook-2"><i class="fa fa-check"></i><b>4.1</b> What is the purpose of this notebook?</a></li>
+<li class="chapter" data-level="4.2" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#pain-2"><i class="fa fa-check"></i><b>4.2</b> Pain</a></li>
+<li class="chapter" data-level="4.3" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#vicarious-2"><i class="fa fa-check"></i><b>4.3</b> Vicarious</a></li>
+<li class="chapter" data-level="4.4" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#cognitive-2"><i class="fa fa-check"></i><b>4.4</b> Cognitive</a></li>
+<li class="chapter" data-level="4.5" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#individual-differences-in-outcome-rating-cue-effect"><i class="fa fa-check"></i><b>4.5</b> individual differences in outcome rating cue effect</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html"><i class="fa fa-check"></i><b>5</b> outcome_rating ~ cue * stim</a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#what-is-the-purpose-of-this-notebook-3"><i class="fa fa-check"></i><b>5.1</b> What is the purpose of this notebook?</a></li>
+<li class="chapter" data-level="5.2" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-03-iv-cuecontrast-dv-actual"><i class="fa fa-check"></i><b>5.2</b> model 03 iv-cuecontrast dv-actual</a>
+<ul>
+<li class="chapter" data-level="5.2.1" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-03-3-2.-individual-difference"><i class="fa fa-check"></i><b>5.2.1</b> model 03 3-2. individual difference</a></li>
+<li class="chapter" data-level="5.2.2" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-iv-cue-stim-dv-actual"><i class="fa fa-check"></i><b>5.2.2</b> model 04 iv-cue-stim dv-actual</a></li>
+<li class="chapter" data-level="5.2.3" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-2-individual-differences-in-cue-effects"><i class="fa fa-check"></i><b>5.2.3</b> model 04 4-2 individual differences in cue effects</a></li>
+<li class="chapter" data-level="5.2.4" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-3-scatter-plot"><i class="fa fa-check"></i><b>5.2.4</b> model 04 4-3 scatter plot</a></li>
+<li class="chapter" data-level="5.2.5" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-4-lineplot"><i class="fa fa-check"></i><b>5.2.5</b> model 04 4-4 lineplot</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html"><i class="fa fa-check"></i><b>6</b> expect-actual ~ cue * trial</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#overview"><i class="fa fa-check"></i><b>6.1</b> Overview</a></li>
+<li class="chapter" data-level="6.2" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#plot-1---one-run-average-across-participants"><i class="fa fa-check"></i><b>6.2</b> plot 1 - one run, average across participants</a></li>
+<li class="chapter" data-level="6.3" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#plot-2---average-across-participant-but-spread-all-6-runs-in-one-x-axis"><i class="fa fa-check"></i><b>6.3</b> plot 2 - average across participant, but spread all 6 runs in one x axis</a></li>
+<li class="chapter" data-level="6.4" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#do-current-expectation-ratings-predict-outcome-ratings"><i class="fa fa-check"></i><b>6.4</b> Do current expectation ratings predict outcome ratings?</a></li>
+<li class="chapter" data-level="6.5" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#additional-analysis"><i class="fa fa-check"></i><b>6.5</b> Additional analysis</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="ch07_RT-cue.html"><a href="ch07_RT-cue.html"><i class="fa fa-check"></i><b>7</b> RT ~ cue</a>
+<ul>
+<li class="chapter" data-level="7.0.1" data-path="ch07_RT-cue.html"><a href="ch07_RT-cue.html#parameters"><i class="fa fa-check"></i><b>7.0.1</b> parameters</a></li>
+<li class="chapter" data-level="7.0.2" data-path="ch07_RT-cue.html"><a href="ch07_RT-cue.html#plot-rt-data"><i class="fa fa-check"></i><b>7.0.2</b> 1) plot RT data</a></li>
+<li class="chapter" data-level="7.0.3" data-path="ch07_RT-cue.html"><a href="ch07_RT-cue.html#plot-rt-distribution-per-participant"><i class="fa fa-check"></i><b>7.0.3</b> plot RT distribution per participant</a></li>
+<li class="chapter" data-level="7.0.4" data-path="ch07_RT-cue.html"><a href="ch07_RT-cue.html#exclude-participants-with-rt-of-5-seconds"><i class="fa fa-check"></i><b>7.0.4</b> exclude participants with RT of 5 seconds</a></li>
+<li class="chapter" data-level="7.1" data-path="ch07_RT-cue.html"><a href="ch07_RT-cue.html#model-1"><i class="fa fa-check"></i><b>7.1</b> model 1:</a></li>
+<li class="chapter" data-level="7.2" data-path="ch07_RT-cue.html"><a href="ch07_RT-cue.html#model-1-1"><i class="fa fa-check"></i><b>7.2</b> model 1-1</a></li>
+<li class="chapter" data-level="7.3" data-path="ch07_RT-cue.html"><a href="ch07_RT-cue.html#model-1-2"><i class="fa fa-check"></i><b>7.3</b> model 1-2:</a></li>
+<li class="chapter" data-level="7.4" data-path="ch07_RT-cue.html"><a href="ch07_RT-cue.html#model-2"><i class="fa fa-check"></i><b>7.4</b> model 2:</a></li>
+</ul></li>
+<li class="chapter" data-level="8" data-path="ch08_RT-cueXstim.html"><a href="ch08_RT-cueXstim.html"><i class="fa fa-check"></i><b>8</b> RT ~ cue * stim</a>
+<ul>
+<li class="chapter" data-level="8.1" data-path="ch08_RT-cueXstim.html"><a href="ch08_RT-cueXstim.html#overview-model-05-iv-cue-dv-rt-summary"><i class="fa fa-check"></i><b>8.1</b> Overview model 05 iv-cue dv-RT summary</a></li>
+<li class="chapter" data-level="8.2" data-path="ch08_RT-cueXstim.html"><a href="ch08_RT-cueXstim.html#prepare-data-and-preprocess"><i class="fa fa-check"></i><b>8.2</b> Prepare data and preprocess</a></li>
+<li class="chapter" data-level="8.3" data-path="ch08_RT-cueXstim.html"><a href="ch08_RT-cueXstim.html#model-1-3"><i class="fa fa-check"></i><b>8.3</b> model 1:</a></li>
+<li class="chapter" data-level="8.4" data-path="ch08_RT-cueXstim.html"><a href="ch08_RT-cueXstim.html#model-1-1-1"><i class="fa fa-check"></i><b>8.4</b> model 1-1</a></li>
+<li class="chapter" data-level="8.5" data-path="ch08_RT-cueXstim.html"><a href="ch08_RT-cueXstim.html#model-1-2-1"><i class="fa fa-check"></i><b>8.5</b> model 1-2:</a></li>
+<li class="chapter" data-level="8.6" data-path="ch08_RT-cueXstim.html"><a href="ch08_RT-cueXstim.html#model-2-log-transformation"><i class="fa fa-check"></i><b>8.6</b> model 2: Log transformation</a></li>
+<li class="chapter" data-level="8.7" data-path="ch08_RT-cueXstim.html"><a href="ch08_RT-cueXstim.html#conclusion-across-model-1-and-2"><i class="fa fa-check"></i><b>8.7</b> Conclusion across model 1 and 2</a></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html"><i class="fa fa-check"></i><b>9</b> cognitive RT tradeoff ~ cue * stim (withinsubject)</a>
+<ul>
+<li class="chapter" data-level="9.1" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#overview-1"><i class="fa fa-check"></i><b>9.1</b> Overview</a></li>
+<li class="chapter" data-level="9.2" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#why-use-multilevel-models"><i class="fa fa-check"></i><b>9.2</b> Why use multilevel models?</a></li>
+<li class="chapter" data-level="9.3" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#terminology"><i class="fa fa-check"></i><b>9.3</b> Terminology</a></li>
+<li class="chapter" data-level="9.4" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#model-versions"><i class="fa fa-check"></i><b>9.4</b> Model versions</a></li>
+<li class="chapter" data-level="9.5" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#method-1-one-sample-t"><i class="fa fa-check"></i><b>9.5</b> Method 1 one-sample t</a></li>
+<li class="chapter" data-level="9.6" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#method-1-1-aov"><i class="fa fa-check"></i><b>9.6</b> Method 1-1 aov</a></li>
+<li class="chapter" data-level="9.7" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#method-1-2-aov-contrast-coding"><i class="fa fa-check"></i><b>9.7</b> Method 1-2 aov contrast-coding</a></li>
+<li class="chapter" data-level="9.8" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#method-1-effectsize-1"><i class="fa fa-check"></i><b>9.8</b> Method 1 effectsize</a></li>
+<li class="chapter" data-level="9.9" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#method-2-matlab"><i class="fa fa-check"></i><b>9.9</b> Method 2 matlab</a></li>
+<li class="chapter" data-level="9.10" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#method-3-multilevel-modeling"><i class="fa fa-check"></i><b>9.10</b> Method 3 multilevel modeling</a></li>
+<li class="chapter" data-level="" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#conclusion-method-1-vs-method-3"><i class="fa fa-check"></i>Conclusion: Method 1 vs Method 3</a></li>
+<li class="chapter" data-level="9.11" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#references"><i class="fa fa-check"></i><b>9.11</b> References</a></li>
+<li class="chapter" data-level="9.12" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#other-links"><i class="fa fa-check"></i><b>9.12</b> Other links</a></li>
+</ul></li>
+<li class="chapter" data-level="10" data-path="ch10_icc.html"><a href="ch10_icc.html"><i class="fa fa-check"></i><b>10</b> outcome_rating ~ session (“behavioral ICC”)</a>
+<ul>
+<li class="chapter" data-level="10.1" data-path="ch10_icc.html"><a href="ch10_icc.html#functions"><i class="fa fa-check"></i><b>10.1</b> Functions</a></li>
+<li class="chapter" data-level="10.2" data-path="ch10_icc.html"><a href="ch10_icc.html#todo"><i class="fa fa-check"></i><b>10.2</b> TODO:</a></li>
+</ul></li>
+<li class="chapter" data-level="11" data-path="ch11_n-1outcome.html"><a href="ch11_n-1outcome.html"><i class="fa fa-check"></i><b>11</b> N-1 outcome rating ~ N expectation rating</a>
+<ul>
+<li class="chapter" data-level="11.0.1" data-path="ch11_n-1outcome.html"><a href="ch11_n-1outcome.html#done"><i class="fa fa-check"></i><b>11.0.1</b> DONE</a></li>
+<li class="chapter" data-level="11.1" data-path="ch11_n-1outcome.html"><a href="ch11_n-1outcome.html#overview-2"><i class="fa fa-check"></i><b>11.1</b> Overview</a></li>
+<li class="chapter" data-level="11.2" data-path="ch11_n-1outcome.html"><a href="ch11_n-1outcome.html#do-previous-outcome-ratings-predict-current-expectation-ratings"><i class="fa fa-check"></i><b>11.2</b> Do previous outcome ratings predict current expectation ratings?</a></li>
+<li class="chapter" data-level="11.3" data-path="ch11_n-1outcome.html"><a href="ch11_n-1outcome.html#additional-analysis-1"><i class="fa fa-check"></i><b>11.3</b> Additional analysis</a></li>
+<li class="chapter" data-level="11.4" data-path="ch11_n-1outcome.html"><a href="ch11_n-1outcome.html#lets-demean-the-ratings."><i class="fa fa-check"></i><b>11.4</b> Let’s demean the ratings.</a></li>
+<li class="chapter" data-level="11.5" data-path="ch11_n-1outcome.html"><a href="ch11_n-1outcome.html#demean-and-then-discretize"><i class="fa fa-check"></i><b>11.5</b> DEMEAN AND THEN DISCRETIZE</a></li>
+</ul></li>
+<li class="chapter" data-level="12" data-path="ch12_n-1outcome.html"><a href="ch12_n-1outcome.html"><i class="fa fa-check"></i><b>12</b> (N-2) shifted outcome ratings ~ (N) expectation ratings; Jayazeri (2018)</a>
+<ul>
+<li class="chapter" data-level="12.1" data-path="ch12_n-1outcome.html"><a href="ch12_n-1outcome.html#overview-3"><i class="fa fa-check"></i><b>12.1</b> Overview</a></li>
+<li class="chapter" data-level="12.2" data-path="ch12_n-1outcome.html"><a href="ch12_n-1outcome.html#do-previous-outcome-ratings-predict-current-expectation-ratings-1"><i class="fa fa-check"></i><b>12.2</b> Do previous outcome ratings predict current expectation ratings?</a></li>
+<li class="chapter" data-level="12.3" data-path="ch12_n-1outcome.html"><a href="ch12_n-1outcome.html#do-these-models-differ-as-a-function-of-cue"><i class="fa fa-check"></i><b>12.3</b> Do these models differ as a function of cue?</a></li>
+<li class="chapter" data-level="12.4" data-path="ch12_n-1outcome.html"><a href="ch12_n-1outcome.html#lets-demean-the-ratings.-1"><i class="fa fa-check"></i><b>12.4</b> Let’s demean the ratings.</a></li>
+<li class="chapter" data-level="12.5" data-path="ch12_n-1outcome.html"><a href="ch12_n-1outcome.html#demean-and-then-discretize-1"><i class="fa fa-check"></i><b>12.5</b> DEMEAN AND THEN DISCRETIZE</a></li>
+</ul></li>
+<li class="chapter" data-level="13" data-path="ch13_outcome-expect.html"><a href="ch13_outcome-expect.html"><i class="fa fa-check"></i><b>13</b> outcome ~ expect Jayazeri (2018)</a>
+<ul>
+<li class="chapter" data-level="13.1" data-path="ch13_outcome-expect.html"><a href="ch13_outcome-expect.html#overview-4"><i class="fa fa-check"></i><b>13.1</b> Overview</a></li>
+<li class="chapter" data-level="13.2" data-path="ch13_outcome-expect.html"><a href="ch13_outcome-expect.html#do-expectation-ratings-predict-current-outcome-ratings-does-this-differ-as-a-function-of-cue"><i class="fa fa-check"></i><b>13.2</b> Do expectation ratings predict current outcome ratings? Does this differ as a function of cue?</a></li>
+<li class="chapter" data-level="13.3" data-path="ch13_outcome-expect.html"><a href="ch13_outcome-expect.html#task-pain-hlm-modeling"><i class="fa fa-check"></i><b>13.3</b> task-pain, HLM modeling</a></li>
+<li class="chapter" data-level="13.4" data-path="ch13_outcome-expect.html"><a href="ch13_outcome-expect.html#fig.-expectation-ratings-predict-outcome-ratings"><i class="fa fa-check"></i><b>13.4</b> Fig. Expectation ratings predict outcome ratings</a></li>
+<li class="chapter" data-level="13.5" data-path="ch13_outcome-expect.html"><a href="ch13_outcome-expect.html#binned-expectation-ratings-per-task"><i class="fa fa-check"></i><b>13.5</b> binned expectation ratings per task</a>
+<ul>
+<li class="chapter" data-level="13.5.1" data-path="ch13_outcome-expect.html"><a href="ch13_outcome-expect.html#pain-binned-expectation-ratings"><i class="fa fa-check"></i><b>13.5.1</b> Pain: binned expectation ratings</a></li>
+<li class="chapter" data-level="13.5.2" data-path="ch13_outcome-expect.html"><a href="ch13_outcome-expect.html#vicarious-binned-expectation-ratings"><i class="fa fa-check"></i><b>13.5.2</b> Vicarious: binned expectation ratings</a></li>
+<li class="chapter" data-level="13.5.3" data-path="ch13_outcome-expect.html"><a href="ch13_outcome-expect.html#cognitive-binned-expectation-ratings"><i class="fa fa-check"></i><b>13.5.3</b> Cognitive: binned expectation ratings</a></li>
+</ul></li>
+<li class="chapter" data-level="13.6" data-path="ch13_outcome-expect.html"><a href="ch13_outcome-expect.html#not-splitting-into-cue-groups"><i class="fa fa-check"></i><b>13.6</b> not splitting into cue groups</a></li>
+</ul></li>
+<li class="chapter" data-level="14" data-path="ch14_factorize.html"><a href="ch14_factorize.html"><i class="fa fa-check"></i><b>14</b> outcome ~ cue * stim * expectrating * n-1outcomerating</a>
+<ul>
+<li class="chapter" data-level="14.1" data-path="ch14_factorize.html"><a href="ch14_factorize.html#overview-5"><i class="fa fa-check"></i><b>14.1</b> Overview</a></li>
+<li class="chapter" data-level="14.2" data-path="ch14_factorize.html"><a href="ch14_factorize.html#linear-model"><i class="fa fa-check"></i><b>14.2</b> linear model</a></li>
+</ul></li>
+<li class="chapter" data-level="15" data-path="ch15_factorize.html"><a href="ch15_factorize.html"><i class="fa fa-check"></i><b>15</b> outcome_demean ~ cue * stim * expectrating * n-1outcomerating</a>
+<ul>
+<li class="chapter" data-level="15.1" data-path="ch15_factorize.html"><a href="ch15_factorize.html#overview-6"><i class="fa fa-check"></i><b>15.1</b> Overview</a></li>
+<li class="chapter" data-level="15.2" data-path="ch15_factorize.html"><a href="ch15_factorize.html#linear-model-1"><i class="fa fa-check"></i><b>15.2</b> linear model</a></li>
+<li class="chapter" data-level="15.3" data-path="ch15_factorize.html"><a href="ch15_factorize.html#q.-are-those-overestimating-for-high-cues-also-underestimators-for-low-cues"><i class="fa fa-check"></i><b>15.3</b> Q. Are those overestimating for high cues also underestimators for low cues?</a></li>
+<li class="chapter" data-level="15.4" data-path="ch15_factorize.html"><a href="ch15_factorize.html#pain-run-collapsed-across-stimulus-intensity"><i class="fa fa-check"></i><b>15.4</b> pain run, collapsed across stimulus intensity</a></li>
+<li class="chapter" data-level="15.5" data-path="ch15_factorize.html"><a href="ch15_factorize.html#vicarious-3"><i class="fa fa-check"></i><b>15.5</b> vicarious</a></li>
+<li class="chapter" data-level="15.6" data-path="ch15_factorize.html"><a href="ch15_factorize.html#cognitive-3"><i class="fa fa-check"></i><b>15.6</b> cognitive</a></li>
+<li class="chapter" data-level="15.7" data-path="ch15_factorize.html"><a href="ch15_factorize.html#across-tasks-pvc-is-the-slope-for-highvslow-cue-the-sametor-question"><i class="fa fa-check"></i><b>15.7</b> across tasks (PVC), is the slope for (highvslow cue) the same?Tor question</a></li>
+</ul></li>
+<li class="chapter" data-level="16" data-path="nps_contrast_notscaled.html"><a href="nps_contrast_notscaled.html"><i class="fa fa-check"></i><b>16</b> NPS_contrast_notscaled ~ cue * stim</a>
+<ul>
+<li class="chapter" data-level="16.1" data-path="nps_contrast_notscaled.html"><a href="nps_contrast_notscaled.html#overview-7"><i class="fa fa-check"></i><b>16.1</b> Overview</a></li>
+<li class="chapter" data-level="16.2" data-path="nps_contrast_notscaled.html"><a href="nps_contrast_notscaled.html#regressors-and-contrasts"><i class="fa fa-check"></i><b>16.2</b> regressors and contrasts</a></li>
+<li class="chapter" data-level="16.3" data-path="nps_contrast_notscaled.html"><a href="nps_contrast_notscaled.html#main-effect-stim-linear-high-low"><i class="fa fa-check"></i><b>16.3</b> main effect: stim-linear high &gt; low</a></li>
+<li class="chapter" data-level="16.4" data-path="nps_contrast_notscaled.html"><a href="nps_contrast_notscaled.html#main_effect-stim-quadratic-med-highlow"><i class="fa fa-check"></i><b>16.4</b> main_effect: stim-quadratic med &gt; high&amp;low</a></li>
+<li class="chapter" data-level="16.5" data-path="nps_contrast_notscaled.html"><a href="nps_contrast_notscaled.html#interaction-cue-x-stim-linear"><i class="fa fa-check"></i><b>16.5</b> interaction: cue X stim-linear</a></li>
+<li class="chapter" data-level="16.6" data-path="nps_contrast_notscaled.html"><a href="nps_contrast_notscaled.html#interaction-cue-x-stim-quadratic"><i class="fa fa-check"></i><b>16.6</b> interaction: cue X stim-quadratic</a></li>
+</ul></li>
+<li class="chapter" data-level="17" data-path="nps_contrast.html"><a href="nps_contrast.html"><i class="fa fa-check"></i><b>17</b> NPS_contrast ~ cue * stim</a>
+<ul>
+<li class="chapter" data-level="17.1" data-path="nps_contrast.html"><a href="nps_contrast.html#overview-8"><i class="fa fa-check"></i><b>17.1</b> Overview</a></li>
+<li class="chapter" data-level="17.2" data-path="nps_contrast.html"><a href="nps_contrast.html#regressors-and-contrasts-1"><i class="fa fa-check"></i><b>17.2</b> regressors and contrasts</a></li>
+<li class="chapter" data-level="17.3" data-path="nps_contrast.html"><a href="nps_contrast.html#main-effect-stim-linear-high-low-1"><i class="fa fa-check"></i><b>17.3</b> main effect: stim-linear high &gt; low</a></li>
+<li class="chapter" data-level="17.4" data-path="nps_contrast.html"><a href="nps_contrast.html#main_effect-stim-quadratic-med-highlow-1"><i class="fa fa-check"></i><b>17.4</b> main_effect: stim-quadratic med &gt; high&amp;low</a></li>
+<li class="chapter" data-level="17.5" data-path="nps_contrast.html"><a href="nps_contrast.html#interaction-cue-x-stim-linear-1"><i class="fa fa-check"></i><b>17.5</b> interaction: cue X stim-linear</a></li>
+<li class="chapter" data-level="17.6" data-path="nps_contrast.html"><a href="nps_contrast.html#interaction-cue-x-stim-quadratic-1"><i class="fa fa-check"></i><b>17.6</b> interaction: cue X stim-quadratic</a></li>
+</ul></li>
+<li class="chapter" data-level="18" data-path="nps_dummy_notscaled.html"><a href="nps_dummy_notscaled.html"><i class="fa fa-check"></i><b>18</b> nps_contrast ~ cue * stim (“error, contrast not scaled”)</a>
+<ul>
+<li class="chapter" data-level="18.1" data-path="nps_dummy_notscaled.html"><a href="nps_dummy_notscaled.html#overview-9"><i class="fa fa-check"></i><b>18.1</b> Overview</a></li>
+<li class="chapter" data-level="18.2" data-path="nps_dummy_notscaled.html"><a href="nps_dummy_notscaled.html#contrast-plot"><i class="fa fa-check"></i><b>18.2</b> contrast plot</a></li>
+</ul></li>
+<li class="chapter" data-level="19" data-path="nps_dummy.html"><a href="nps_dummy.html"><i class="fa fa-check"></i><b>19</b> nps_contrast ~ cue * stim</a>
+<ul>
+<li class="chapter" data-level="19.1" data-path="nps_dummy.html"><a href="nps_dummy.html#overview-10"><i class="fa fa-check"></i><b>19.1</b> Overview</a></li>
+<li class="chapter" data-level="19.2" data-path="nps_dummy.html"><a href="nps_dummy.html#for-loop-for-all-the-pvc-dummy-codes-1"><i class="fa fa-check"></i><b>19.2</b> For loop for all the pvc dummy codes</a></li>
+</ul></li>
+<li class="chapter" data-level="20" data-path="nps_stim.html"><a href="nps_stim.html"><i class="fa fa-check"></i><b>20</b> nps_dummy ~ stim</a>
+<ul>
+<li class="chapter" data-level="20.1" data-path="nps_stim.html"><a href="nps_stim.html#todo-2"><i class="fa fa-check"></i><b>20.1</b> TODO</a></li>
+<li class="chapter" data-level="20.2" data-path="nps_stim.html"><a href="nps_stim.html#regressors-and-contrasts-2"><i class="fa fa-check"></i><b>20.2</b> regressors and contrasts</a></li>
+<li class="chapter" data-level="20.3" data-path="nps_stim.html"><a href="nps_stim.html#functions-1"><i class="fa fa-check"></i><b>20.3</b> Functions</a></li>
+<li class="chapter" data-level="20.4" data-path="nps_stim.html"><a href="nps_stim.html#pain-3"><i class="fa fa-check"></i><b>20.4</b> Pain</a></li>
+<li class="chapter" data-level="20.5" data-path="nps_stim.html"><a href="nps_stim.html#vicarious-4"><i class="fa fa-check"></i><b>20.5</b> Vicarious</a></li>
+<li class="chapter" data-level="20.6" data-path="nps_stim.html"><a href="nps_stim.html#cognitive-4"><i class="fa fa-check"></i><b>20.6</b> Cognitive</a></li>
+</ul></li>
+<li class="chapter" data-level="21" data-path="nps_22.html"><a href="nps_22.html"><i class="fa fa-check"></i><b>21</b> biomarker NPS ~ cue * stim (2022)</a>
+<ul>
+<li class="chapter" data-level="21.1" data-path="nps_22.html"><a href="nps_22.html#load-libraries"><i class="fa fa-check"></i><b>21.1</b> load libraries</a>
+<ul>
+<li class="chapter" data-level="21.1.1" data-path="nps_22.html"><a href="nps_22.html#nps-cue-effect"><i class="fa fa-check"></i><b>21.1.1</b> NPS cue effect</a></li>
+</ul></li>
+<li class="chapter" data-level="21.2" data-path="nps_22.html"><a href="nps_22.html#nps-stim-effect"><i class="fa fa-check"></i><b>21.2</b> NPS stim effect</a></li>
+<li class="chapter" data-level="21.3" data-path="nps_22.html"><a href="nps_22.html#vps"><i class="fa fa-check"></i><b>21.3</b> VPS</a></li>
+<li class="chapter" data-level="21.4" data-path="nps_22.html"><a href="nps_22.html#vps-cue-effect"><i class="fa fa-check"></i><b>21.4</b> VPS cue effect</a></li>
+<li class="chapter" data-level="21.5" data-path="nps_22.html"><a href="nps_22.html#vps-stim-effect"><i class="fa fa-check"></i><b>21.5</b> VPS stim effect</a></li>
+</ul></li>
+<li class="chapter" data-level="22" data-path="nps_stim_error.html"><a href="nps_stim_error.html"><i class="fa fa-check"></i><b>22</b> NPSdummy ~ stim * task (contrast-notscaled-error)</a></li>
+<li class="chapter" data-level="23" data-path="nps_stim_task.html"><a href="nps_stim_task.html"><i class="fa fa-check"></i><b>23</b> NPSdummy ~ stim * task (contrast-scaled)</a>
+<ul>
+<li class="chapter" data-level="23.1" data-path="nps_stim_task.html"><a href="nps_stim_task.html#raincloud-plots-1"><i class="fa fa-check"></i><b>23.1</b> Raincloud plots</a></li>
+<li class="chapter" data-level="23.2" data-path="nps_stim_task.html"><a href="nps_stim_task.html#line-plots-1"><i class="fa fa-check"></i><b>23.2</b> Line plots</a></li>
+</ul></li>
+<li class="chapter" data-level="24" data-path="singletrial_signature.html"><a href="singletrial_signature.html"><i class="fa fa-check"></i><b>24</b> signature extraction ~ single trial</a></li>
+<li class="chapter" data-level="25" data-path="singletrial_signature_effectsize.html"><a href="singletrial_signature_effectsize.html"><i class="fa fa-check"></i><b>25</b> signature effect size ~ single trial</a>
+<ul>
+<li class="chapter" data-level="25.1" data-path="singletrial_signature_effectsize.html"><a href="singletrial_signature_effectsize.html#effeect-size"><i class="fa fa-check"></i><b>25.1</b> effeect size</a></li>
+<li class="chapter" data-level="25.2" data-path="singletrial_signature_effectsize.html"><a href="singletrial_signature_effectsize.html#contrastt-stim-intensity"><i class="fa fa-check"></i><b>25.2</b> contrastt (stim intensity)</a></li>
+</ul></li>
+<li class="chapter" data-level="26" data-path="ch40_vif.html"><a href="ch40_vif.html"><i class="fa fa-check"></i><b>26</b> VIF</a></li>
+<li class="chapter" data-level="27" data-path="load-in-the-datamatrix-and-calculate-the-vif.html"><a href="load-in-the-datamatrix-and-calculate-the-vif.html"><i class="fa fa-check"></i><b>27</b> load in the datamatrix and calculate the vif</a></li>
+<li class="chapter" data-level="28" data-path="vif.html"><a href="vif.html"><i class="fa fa-check"></i><b>28</b> vif</a></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">behavioral_ICC</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="ch11_n-1outcome" class="section level1 hasAnchor" number="11">
+<h1><span class="header-section-number">Chapter 11</span> N-1 outcome rating ~ N expectation rating<a href="ch11_n-1outcome.html#ch11_n-1outcome" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<pre><code>date: &#39;2022-09-13&#39;
+updated: &#39;2023-01-18&#39;</code></pre>
+<div id="done" class="section level3 hasAnchor" number="11.0.1">
+<h3><span class="header-section-number">11.0.1</span> DONE<a href="ch11_n-1outcome.html#done" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<ul>
+<li>plot individual ratings (check distribution)</li>
+<li>afterwards, normalize the ratings and bin them</li>
+</ul>
+</div>
+<div id="overview-2" class="section level2 hasAnchor" number="11.1">
+<h2><span class="header-section-number">11.1</span> Overview<a href="ch11_n-1outcome.html#overview-2" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>My hypothesis is that the cue-expectancy follows a Bayesian mechanism, akin to what’s listed in Jayazeri (2019)
+Here, I plot the expectation ratings (N) and outcome ratings (N-1) and see if the pattern is akin to a sigmoidal curve.
+If so, I plan to dive deeper and potentially take a Bayesian approach. Jayazeri (2018)</p>
+<p>library</p>
+<p>load data and combine participant data</p>
+<div class="sourceCode" id="cb499"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb499-1"><a href="ch11_n-1outcome.html#cb499-1" aria-hidden="true" tabindex="-1"></a>main_dir <span class="ot">=</span> <span class="fu">dirname</span>(<span class="fu">dirname</span>(<span class="fu">getwd</span>()))</span>
+<span id="cb499-2"><a href="ch11_n-1outcome.html#cb499-2" aria-hidden="true" tabindex="-1"></a>datadir <span class="ot">=</span> <span class="fu">file.path</span>(main_dir, <span class="st">&#39;data&#39;</span>, <span class="st">&#39;beh&#39;</span>, <span class="st">&#39;beh02_preproc&#39;</span>)</span>
+<span id="cb499-3"><a href="ch11_n-1outcome.html#cb499-3" aria-hidden="true" tabindex="-1"></a><span class="co"># parameters _____________________________________ # nolint</span></span>
+<span id="cb499-4"><a href="ch11_n-1outcome.html#cb499-4" aria-hidden="true" tabindex="-1"></a>subject_varkey <span class="ot">&lt;-</span> <span class="st">&quot;src_subject_id&quot;</span></span>
+<span id="cb499-5"><a href="ch11_n-1outcome.html#cb499-5" aria-hidden="true" tabindex="-1"></a>iv <span class="ot">&lt;-</span> <span class="st">&quot;param_cue_type&quot;</span></span>
+<span id="cb499-6"><a href="ch11_n-1outcome.html#cb499-6" aria-hidden="true" tabindex="-1"></a>dv <span class="ot">&lt;-</span> <span class="st">&quot;event03_RT&quot;</span></span>
+<span id="cb499-7"><a href="ch11_n-1outcome.html#cb499-7" aria-hidden="true" tabindex="-1"></a>dv_keyword <span class="ot">&lt;-</span> <span class="st">&quot;RT&quot;</span></span>
+<span id="cb499-8"><a href="ch11_n-1outcome.html#cb499-8" aria-hidden="true" tabindex="-1"></a>xlab <span class="ot">&lt;-</span> <span class="st">&quot;&quot;</span></span>
+<span id="cb499-9"><a href="ch11_n-1outcome.html#cb499-9" aria-hidden="true" tabindex="-1"></a>taskname <span class="ot">&lt;-</span> <span class="st">&quot;pain&quot;</span></span>
+<span id="cb499-10"><a href="ch11_n-1outcome.html#cb499-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb499-11"><a href="ch11_n-1outcome.html#cb499-11" aria-hidden="true" tabindex="-1"></a>ylab <span class="ot">&lt;-</span> <span class="st">&quot;ratings (degree)&quot;</span></span>
+<span id="cb499-12"><a href="ch11_n-1outcome.html#cb499-12" aria-hidden="true" tabindex="-1"></a>subject <span class="ot">&lt;-</span> <span class="st">&quot;subject&quot;</span></span>
+<span id="cb499-13"><a href="ch11_n-1outcome.html#cb499-13" aria-hidden="true" tabindex="-1"></a>exclude <span class="ot">&lt;-</span> <span class="st">&quot;sub-0999|sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0007|sub-0008|sub-0009|sub-0010|sub-0011&quot;</span></span>
+<span id="cb499-14"><a href="ch11_n-1outcome.html#cb499-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb499-15"><a href="ch11_n-1outcome.html#cb499-15" aria-hidden="true" tabindex="-1"></a><span class="co"># load data _____________________________________</span></span>
+<span id="cb499-16"><a href="ch11_n-1outcome.html#cb499-16" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">load_task_social_df</span>(datadir, <span class="at">taskname =</span> taskname, <span class="at">subject_varkey =</span> subject_varkey, <span class="at">iv =</span> iv, <span class="at">exclude =</span> exclude)</span>
+<span id="cb499-17"><a href="ch11_n-1outcome.html#cb499-17" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>event03_RT <span class="ot">&lt;-</span> data<span class="sc">$</span>event03_stimulusC_reseponseonset <span class="sc">-</span> data<span class="sc">$</span>event03_stimulus_displayonset</span>
+<span id="cb499-18"><a href="ch11_n-1outcome.html#cb499-18" aria-hidden="true" tabindex="-1"></a><span class="co"># data[&#39;event03_RT&#39;], data.event03_RT - pandas</span></span>
+<span id="cb499-19"><a href="ch11_n-1outcome.html#cb499-19" aria-hidden="true" tabindex="-1"></a>analysis_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(main_dir, <span class="st">&quot;analysis&quot;</span>, <span class="st">&quot;mixedeffect&quot;</span>, <span class="st">&quot;model08_iv-cue-trial_dv-expect-actual&quot;</span>, <span class="fu">as.character</span>(<span class="fu">Sys.Date</span>()))</span>
+<span id="cb499-20"><a href="ch11_n-1outcome.html#cb499-20" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(analysis_dir, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>, <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+</div>
+<div id="do-previous-outcome-ratings-predict-current-expectation-ratings" class="section level2 hasAnchor" number="11.2">
+<h2><span class="header-section-number">11.2</span> Do previous outcome ratings predict current expectation ratings?<a href="ch11_n-1outcome.html#do-previous-outcome-ratings-predict-current-expectation-ratings" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="additional-analyse-01182023-1" class="section level3 unlisted unnumbered hasAnchor">
+<h3>Additional analyse 01/18/2023<a href="ch11_n-1outcome.html#additional-analyse-01182023-1" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<ul>
+<li>see if current expectation ratings predict outcome ratings</li>
+<li>see if prior stimulus experience (N-1) predicts current expectation ratings</li>
+<li>see if current expectation ratings are explained as a function of prior outcome rating and current expectation rating</li>
+</ul>
+<p>when loading the dataset, I need to add in trial index per dataframe.
+Then, for the shift the rating?</p>
+<div class="sourceCode" id="cb500"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb500-1"><a href="ch11_n-1outcome.html#cb500-1" aria-hidden="true" tabindex="-1"></a>data_p2<span class="ot">=</span> data <span class="sc">%&gt;%</span></span>
+<span id="cb500-2"><a href="ch11_n-1outcome.html#cb500-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(src_subject_id ) <span class="sc">%&gt;%</span></span>
+<span id="cb500-3"><a href="ch11_n-1outcome.html#cb500-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(src_subject_id) <span class="sc">%&gt;%</span></span>
+<span id="cb500-4"><a href="ch11_n-1outcome.html#cb500-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">trial_index =</span> <span class="fu">row_number</span>())</span>
+<span id="cb500-5"><a href="ch11_n-1outcome.html#cb500-5" aria-hidden="true" tabindex="-1"></a>data_a3 <span class="ot">&lt;-</span> data_p2 <span class="sc">%&gt;%</span> </span>
+<span id="cb500-6"><a href="ch11_n-1outcome.html#cb500-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(src_subject_id, session_id, param_run_num) <span class="sc">%&gt;%</span> </span>
+<span id="cb500-7"><a href="ch11_n-1outcome.html#cb500-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">trial_index =</span> <span class="fu">row_number</span>(param_run_num))</span>
+<span id="cb500-8"><a href="ch11_n-1outcome.html#cb500-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb500-9"><a href="ch11_n-1outcome.html#cb500-9" aria-hidden="true" tabindex="-1"></a>data_a3lag <span class="ot">&lt;-</span> </span>
+<span id="cb500-10"><a href="ch11_n-1outcome.html#cb500-10" aria-hidden="true" tabindex="-1"></a>    data_a3 <span class="sc">%&gt;%</span></span>
+<span id="cb500-11"><a href="ch11_n-1outcome.html#cb500-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(src_subject_id, session_id, param_run_num) <span class="sc">%&gt;%</span></span>
+<span id="cb500-12"><a href="ch11_n-1outcome.html#cb500-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">lag.04outcomeangle =</span> dplyr<span class="sc">::</span><span class="fu">lag</span>(event04_actual_angle, <span class="at">n =</span> <span class="dv">1</span>, <span class="at">default =</span> <span class="cn">NA</span>))</span>
+<span id="cb500-13"><a href="ch11_n-1outcome.html#cb500-13" aria-hidden="true" tabindex="-1"></a>data_a3lag_omit <span class="ot">&lt;-</span> data_a3lag[<span class="fu">complete.cases</span>(data_a3lag<span class="sc">$</span>lag<span class="fl">.04</span>outcomeangle),]</span></code></pre></div>
+<div class="sourceCode" id="cb501"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb501-1"><a href="ch11_n-1outcome.html#cb501-1" aria-hidden="true" tabindex="-1"></a>    trialorder_subjectwise_lagoutcome <span class="ot">&lt;-</span> <span class="fu">meanSummary</span>(</span>
+<span id="cb501-2"><a href="ch11_n-1outcome.html#cb501-2" aria-hidden="true" tabindex="-1"></a>        data_a3lag_omit,</span>
+<span id="cb501-3"><a href="ch11_n-1outcome.html#cb501-3" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(<span class="st">&quot;src_subject_id&quot;</span>, <span class="st">&quot;session_id&quot;</span>, <span class="st">&quot;param_run_num&quot;</span>), <span class="st">&quot;lag.04outcomeangle&quot;</span> )</span>
+<span id="cb501-4"><a href="ch11_n-1outcome.html#cb501-4" aria-hidden="true" tabindex="-1"></a>    trialorder_subjectwise_lagoutcome <span class="ot">&lt;-</span> <span class="fu">meanSummary</span>(</span>
+<span id="cb501-5"><a href="ch11_n-1outcome.html#cb501-5" aria-hidden="true" tabindex="-1"></a>        data_a3lag_omit,</span>
+<span id="cb501-6"><a href="ch11_n-1outcome.html#cb501-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(<span class="st">&quot;src_subject_id&quot;</span>, <span class="st">&quot;session_id&quot;</span>, <span class="st">&quot;param_run_num&quot;</span>), <span class="st">&quot;lag.04outcomeangle&quot;</span> )</span>
+<span id="cb501-7"><a href="ch11_n-1outcome.html#cb501-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb501-8"><a href="ch11_n-1outcome.html#cb501-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># subjectwise_naomit &lt;- na.omit(trialorder_subjectwise)</span></span>
+<span id="cb501-9"><a href="ch11_n-1outcome.html#cb501-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># trialorder_groupwise &lt;- summarySEwithin(</span></span>
+<span id="cb501-10"><a href="ch11_n-1outcome.html#cb501-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">#     data = subjectwise_naomit,</span></span>
+<span id="cb501-11"><a href="ch11_n-1outcome.html#cb501-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">#     measurevar = &quot;mean_per_sub&quot;,</span></span>
+<span id="cb501-12"><a href="ch11_n-1outcome.html#cb501-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">#     withinvars = c(&quot;cue_ordered&quot;, &quot;rating_type&quot;,  &quot;trial_index&quot;), idvar = subject</span></span>
+<span id="cb501-13"><a href="ch11_n-1outcome.html#cb501-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># )</span></span></code></pre></div>
+<div class="sourceCode" id="cb502"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb502-1"><a href="ch11_n-1outcome.html#cb502-1" aria-hidden="true" tabindex="-1"></a>model.lagoutcome <span class="ot">=</span> <span class="fu">lmer</span>(event02_expect_angle <span class="sc">~</span> lag<span class="fl">.04</span>outcomeangle <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> src_subject_id) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>session_id) , <span class="at">data =</span> data_a3lag_omit,<span class="at">REML =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb502-2"><a href="ch11_n-1outcome.html#cb502-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model.lagoutcome)</span></code></pre></div>
+<pre><code>## Linear mixed model fit by maximum likelihood . t-tests use Satterthwaite&#39;s
+##   method [lmerModLmerTest]
+## Formula: event02_expect_angle ~ lag.04outcomeangle + (1 | src_subject_id) +  
+##     (1 | session_id)
+##    Data: data_a3lag_omit
+## 
+##      AIC      BIC   logLik deviance df.resid 
+##  45963.1  45995.5 -22976.5  45953.1     4802 
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -3.8951 -0.6900  0.0076  0.6633  3.3486 
+## 
+## Random effects:
+##  Groups         Name        Variance  Std.Dev.
+##  src_subject_id (Intercept) 472.64749 21.7405 
+##  session_id     (Intercept)   0.01642  0.1281 
+##  Residual                   773.58775 27.8134 
+## Number of obs: 4807, groups:  src_subject_id, 104; session_id, 3
+## 
+## Fixed effects:
+##                     Estimate Std. Error        df t value Pr(&gt;|t|)    
+## (Intercept)        4.360e+01  2.419e+00 1.356e+02   18.02   &lt;2e-16 ***
+## lag.04outcomeangle 2.778e-01  1.588e-02 3.381e+03   17.49   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Correlation of Fixed Effects:
+##             (Intr)
+## lg.04tcmngl -0.430</code></pre>
+<div class="sourceCode" id="cb504"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb504-1"><a href="ch11_n-1outcome.html#cb504-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(model.lagoutcome)</span></code></pre></div>
+<pre><code>## Type III Analysis of Variance Table with Satterthwaite&#39;s method
+##                    Sum Sq Mean Sq NumDF  DenDF F value    Pr(&gt;F)    
+## lag.04outcomeangle 236683  236683     1 3380.8  305.95 &lt; 2.2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<div class="sourceCode" id="cb506"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb506-1"><a href="ch11_n-1outcome.html#cb506-1" aria-hidden="true" tabindex="-1"></a><span class="co"># startvec &lt;- c(Asym = 200, xmid = 725, scal = 350)</span></span>
+<span id="cb506-2"><a href="ch11_n-1outcome.html#cb506-2" aria-hidden="true" tabindex="-1"></a><span class="co"># (nm1 &lt;- nlmer(circumference ~ SSlogis(age, Asym, xmid, scal) ~ Asym|Tree,</span></span>
+<span id="cb506-3"><a href="ch11_n-1outcome.html#cb506-3" aria-hidden="true" tabindex="-1"></a><span class="co">#              Orange, start = startvec))</span></span>
+<span id="cb506-4"><a href="ch11_n-1outcome.html#cb506-4" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb506-5"><a href="ch11_n-1outcome.html#cb506-5" aria-hidden="true" tabindex="-1"></a><span class="co"># (nm1a &lt;- update(nm1, nAGQ = 0L))</span></span>
+<span id="cb506-6"><a href="ch11_n-1outcome.html#cb506-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb506-7"><a href="ch11_n-1outcome.html#cb506-7" aria-hidden="true" tabindex="-1"></a>startvec <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">Asym =</span><span class="dv">10</span>, <span class="at">xmid =</span> <span class="dv">0</span>, <span class="at">scal =</span> <span class="dv">350</span>)</span>
+<span id="cb506-8"><a href="ch11_n-1outcome.html#cb506-8" aria-hidden="true" tabindex="-1"></a>nm1 <span class="ot">&lt;-</span> <span class="fu">nlmer</span>(event02_expect_angle <span class="sc">~</span> <span class="fu">SSlogis</span>(lag<span class="fl">.04</span>outcomeangle,Asym, xmid, scal) <span class="sc">~</span> Asym<span class="sc">|</span>src_subject_id, </span>
+<span id="cb506-9"><a href="ch11_n-1outcome.html#cb506-9" aria-hidden="true" tabindex="-1"></a>             data_a3lag_omit, <span class="at">start =</span> startvec)</span>
+<span id="cb506-10"><a href="ch11_n-1outcome.html#cb506-10" aria-hidden="true" tabindex="-1"></a><span class="co">#nm1a &lt;- update(nm1, nAGQ = 0L)</span></span></code></pre></div>
+<div class="sourceCode" id="cb507"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb507-1"><a href="ch11_n-1outcome.html#cb507-1" aria-hidden="true" tabindex="-1"></a>nform <span class="ot">&lt;-</span> <span class="er">~</span>Asym<span class="sc">/</span>(<span class="dv">1</span><span class="sc">+</span><span class="fu">exp</span>((xmid<span class="sc">-</span>input)<span class="sc">/</span>scal))</span>
+<span id="cb507-2"><a href="ch11_n-1outcome.html#cb507-2" aria-hidden="true" tabindex="-1"></a><span class="do">## b. Use deriv() to construct function:</span></span>
+<span id="cb507-3"><a href="ch11_n-1outcome.html#cb507-3" aria-hidden="true" tabindex="-1"></a>nfun <span class="ot">&lt;-</span> <span class="fu">deriv</span>(nform,<span class="at">namevec=</span><span class="fu">c</span>(<span class="st">&quot;Asym&quot;</span>,<span class="st">&quot;xmid&quot;</span>,<span class="st">&quot;scal&quot;</span>),</span>
+<span id="cb507-4"><a href="ch11_n-1outcome.html#cb507-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">function.arg=</span><span class="fu">c</span>(<span class="st">&quot;input&quot;</span>,<span class="st">&quot;Asym&quot;</span>,<span class="st">&quot;xmid&quot;</span>,<span class="st">&quot;scal&quot;</span>))</span>
+<span id="cb507-5"><a href="ch11_n-1outcome.html#cb507-5" aria-hidden="true" tabindex="-1"></a>nm1b <span class="ot">&lt;-</span> <span class="fu">update</span>(nm1,event02_expect_angle <span class="sc">~</span> <span class="fu">nfun</span>(lag<span class="fl">.04</span>outcomeangle, Asym, xmid, scal)  <span class="sc">~</span> Asym <span class="sc">|</span> src_subject_id)</span></code></pre></div>
+<div class="sourceCode" id="cb508"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb508-1"><a href="ch11_n-1outcome.html#cb508-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(nm1b)</span></code></pre></div>
+<pre><code>## Nonlinear mixed model fit by maximum likelihood  [&#39;nlmerMod&#39;]
+## Formula: event02_expect_angle ~ nfun(lag.04outcomeangle, Asym, xmid, scal) ~  
+##     (Asym | src_subject_id)
+##    Data: data_a3lag_omit
+## 
+##      AIC      BIC   logLik deviance df.resid 
+##  45971.4  46003.8 -22980.7  45961.4     4802 
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -3.6743 -0.7086  0.0007  0.6523  3.3206 
+## 
+## Random effects:
+##  Groups         Name Variance  Std.Dev.
+##  src_subject_id Asym 1.268e+07 3561.03 
+##  Residual            7.761e+02   27.86 
+## Number of obs: 4807, groups:  src_subject_id, 104
+## 
+## Fixed effects:
+##      Estimate Std. Error t value
+## Asym 10173.50      72.69  139.96
+## xmid  1437.76      56.89   25.27
+## scal   267.15      11.38   23.47
+## 
+## Correlation of Fixed Effects:
+##      Asym   xmid  
+## xmid -0.524       
+## scal -0.547  0.999</code></pre>
+<div class="sourceCode" id="cb510"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb510-1"><a href="ch11_n-1outcome.html#cb510-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bbmle)</span></code></pre></div>
+<pre><code>## Loading required package: stats4</code></pre>
+<pre><code>## 
+## Attaching package: &#39;bbmle&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:plotly&#39;:
+## 
+##     slice</code></pre>
+<pre><code>## The following object is masked from &#39;package:brms&#39;:
+## 
+##     parnames</code></pre>
+<pre><code>## The following object is masked from &#39;package:dplyr&#39;:
+## 
+##     slice</code></pre>
+<div class="sourceCode" id="cb516"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb516-1"><a href="ch11_n-1outcome.html#cb516-1" aria-hidden="true" tabindex="-1"></a>bbmle<span class="sc">::</span><span class="fu">AICtab</span>(model.lagoutcome, nm1b)</span></code></pre></div>
+<pre><code>##                  dAIC df
+## model.lagoutcome 0.0  5 
+## nm1b             8.3  5</code></pre>
+<div class="sourceCode" id="cb518"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb518-1"><a href="ch11_n-1outcome.html#cb518-1" aria-hidden="true" tabindex="-1"></a>meanSummary_2dv <span class="ot">&lt;-</span> <span class="cf">function</span>(DATA, GROUP, DV1, DV2) {</span>
+<span id="cb518-2"><a href="ch11_n-1outcome.html#cb518-2" aria-hidden="true" tabindex="-1"></a>    z <span class="ot">&lt;-</span> <span class="fu">ddply</span>(DATA, GROUP, <span class="at">.fun =</span> <span class="cf">function</span>(xx) {</span>
+<span id="cb518-3"><a href="ch11_n-1outcome.html#cb518-3" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(</span>
+<span id="cb518-4"><a href="ch11_n-1outcome.html#cb518-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">DV1_mean_per_sub =</span> <span class="fu">mean</span>(xx[, DV1], <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb518-5"><a href="ch11_n-1outcome.html#cb518-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">DV1_sd =</span> <span class="fu">sd</span>(xx[, DV1], <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb518-6"><a href="ch11_n-1outcome.html#cb518-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">DV2_mean_per_sub =</span> <span class="fu">mean</span>(xx[, DV2], <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb518-7"><a href="ch11_n-1outcome.html#cb518-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">DV2_sd =</span> <span class="fu">sd</span>(xx[, DV1], <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb518-8"><a href="ch11_n-1outcome.html#cb518-8" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb518-9"><a href="ch11_n-1outcome.html#cb518-9" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb518-10"><a href="ch11_n-1outcome.html#cb518-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(z)</span>
+<span id="cb518-11"><a href="ch11_n-1outcome.html#cb518-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb519"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb519-1"><a href="ch11_n-1outcome.html#cb519-1" aria-hidden="true" tabindex="-1"></a>subjectwise_2dv <span class="ot">=</span> <span class="fu">meanSummary_2dv</span>(data_a3lag_omit,</span>
+<span id="cb519-2"><a href="ch11_n-1outcome.html#cb519-2" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(<span class="st">&quot;src_subject_id&quot;</span>, <span class="st">&quot;trial_index&quot;</span>), </span>
+<span id="cb519-3"><a href="ch11_n-1outcome.html#cb519-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;lag.04outcomeangle&quot;</span>, <span class="st">&quot;event02_expect_angle&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb520"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb520-1"><a href="ch11_n-1outcome.html#cb520-1" aria-hidden="true" tabindex="-1"></a>subjectwise_naomit_2dv <span class="ot">&lt;-</span> <span class="fu">na.omit</span>(subjectwise_2dv)</span></code></pre></div>
+<div class="sourceCode" id="cb521"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb521-1"><a href="ch11_n-1outcome.html#cb521-1" aria-hidden="true" tabindex="-1"></a>sp <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="at">data=</span>subjectwise_naomit_2dv, </span>
+<span id="cb521-2"><a href="ch11_n-1outcome.html#cb521-2" aria-hidden="true" tabindex="-1"></a>             <span class="fu">aes</span>(<span class="at">x=</span>DV1_mean_per_sub, <span class="at">y=</span>DV2_mean_per_sub)) <span class="sc">+</span> </span>
+<span id="cb521-3"><a href="ch11_n-1outcome.html#cb521-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb521-4"><a href="ch11_n-1outcome.html#cb521-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">slope =</span> <span class="dv">1</span>, <span class="at">color=</span><span class="st">&quot;green&quot;</span>, </span>
+<span id="cb521-5"><a href="ch11_n-1outcome.html#cb521-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">linetype=</span><span class="st">&quot;dashed&quot;</span>, <span class="at">size=</span><span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb521-6"><a href="ch11_n-1outcome.html#cb521-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">aspect.ratio=</span><span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb521-7"><a href="ch11_n-1outcome.html#cb521-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">&quot;n-1 outcome rating&quot;</span>) <span class="sc">+</span></span>
+<span id="cb521-8"><a href="ch11_n-1outcome.html#cb521-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">&quot;n expectation rating&quot;</span>)</span></code></pre></div>
+<pre><code>## Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+## ℹ Please use `linewidth` instead.</code></pre>
+<div class="sourceCode" id="cb523"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb523-1"><a href="ch11_n-1outcome.html#cb523-1" aria-hidden="true" tabindex="-1"></a>sp</span></code></pre></div>
+<p><img src="11_iv-cue-trial_dv-expectjayazeri_N-1_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<div class="sourceCode" id="cb524"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb524-1"><a href="ch11_n-1outcome.html#cb524-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot(subjectwise_naomit_2dv$DV1_mean_per_sub, subjectwise_naomit_2dv$DV2_mean_per_sub) + lines(x = c(0,200), y = c(0,200))</span></span></code></pre></div>
+<div class="sourceCode" id="cb525"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb525-1"><a href="ch11_n-1outcome.html#cb525-1" aria-hidden="true" tabindex="-1"></a>    trialorder_groupwise <span class="ot">&lt;-</span> <span class="fu">summarySEwithin</span>(</span>
+<span id="cb525-2"><a href="ch11_n-1outcome.html#cb525-2" aria-hidden="true" tabindex="-1"></a>        <span class="at">data =</span> subjectwise_naomit_2dv,</span>
+<span id="cb525-3"><a href="ch11_n-1outcome.html#cb525-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">measurevar =</span> <span class="st">&quot;DV1_mean_per_sub&quot;</span>,</span>
+<span id="cb525-4"><a href="ch11_n-1outcome.html#cb525-4" aria-hidden="true" tabindex="-1"></a>        <span class="co"># betweenvars = &quot;src_subject_id&quot;,</span></span>
+<span id="cb525-5"><a href="ch11_n-1outcome.html#cb525-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">withinvars =</span> <span class="fu">factor</span>( <span class="st">&quot;trial_index&quot;</span>),</span>
+<span id="cb525-6"><a href="ch11_n-1outcome.html#cb525-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">idvar =</span> <span class="st">&quot;src_subject_id&quot;</span></span>
+<span id="cb525-7"><a href="ch11_n-1outcome.html#cb525-7" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div>
+<pre><code>## Automatically converting the following non-factors to factors: src_subject_id</code></pre>
+<div class="sourceCode" id="cb527"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb527-1"><a href="ch11_n-1outcome.html#cb527-1" aria-hidden="true" tabindex="-1"></a>    trialorder_groupwise <span class="ot">&lt;-</span> <span class="fu">summarySEwithin</span>(</span>
+<span id="cb527-2"><a href="ch11_n-1outcome.html#cb527-2" aria-hidden="true" tabindex="-1"></a>        <span class="at">data =</span> <span class="fu">subset</span>(subjectwise_naomit_2dv, <span class="at">select =</span> <span class="sc">-</span><span class="fu">c</span>(src_subject_id)),</span>
+<span id="cb527-3"><a href="ch11_n-1outcome.html#cb527-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">measurevar =</span> <span class="st">&quot;DV1_mean_per_sub&quot;</span>,</span>
+<span id="cb527-4"><a href="ch11_n-1outcome.html#cb527-4" aria-hidden="true" tabindex="-1"></a>        <span class="co"># betweenvars = &quot;src_subject_id&quot;,</span></span>
+<span id="cb527-5"><a href="ch11_n-1outcome.html#cb527-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">withinvars =</span> <span class="fu">as.factor</span>( <span class="st">&quot;trial_index&quot;</span>)</span>
+<span id="cb527-6"><a href="ch11_n-1outcome.html#cb527-6" aria-hidden="true" tabindex="-1"></a>         <span class="co">#idvar = &quot;trial_index&quot;</span></span>
+<span id="cb527-7"><a href="ch11_n-1outcome.html#cb527-7" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div>
+<pre><code>## Automatically converting the following non-factors to factors: trial_index</code></pre>
+<pre><code>## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced
+
+## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced</code></pre>
+<div class="sourceCode" id="cb530"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb530-1"><a href="ch11_n-1outcome.html#cb530-1" aria-hidden="true" tabindex="-1"></a>data_a3lag_omit<span class="sc">$</span>src_subject_id <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(data_a3lag_omit<span class="sc">$</span>src_subject_id)</span>
+<span id="cb530-2"><a href="ch11_n-1outcome.html#cb530-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb530-3"><a href="ch11_n-1outcome.html#cb530-3" aria-hidden="true" tabindex="-1"></a>lag.raw <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>lag<span class="fl">.04</span>outcomeangle, <span class="at">y=</span>event02_expect_angle), <span class="at">data=</span>data_a3lag_omit) <span class="sc">+</span></span>
+<span id="cb530-4"><a href="ch11_n-1outcome.html#cb530-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method=</span><span class="st">&#39;lm&#39;</span>, <span class="at">se=</span>F, <span class="at">size=</span><span class="fl">0.75</span>) <span class="sc">+</span></span>
+<span id="cb530-5"><a href="ch11_n-1outcome.html#cb530-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size=</span><span class="fl">0.1</span>) <span class="sc">+</span> </span>
+<span id="cb530-6"><a href="ch11_n-1outcome.html#cb530-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_abline</span>(<span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">slope =</span> <span class="dv">1</span>, <span class="at">color=</span><span class="st">&quot;green&quot;</span>, </span>
+<span id="cb530-7"><a href="ch11_n-1outcome.html#cb530-7" aria-hidden="true" tabindex="-1"></a>                 <span class="at">linetype=</span><span class="st">&quot;dashed&quot;</span>, <span class="at">size=</span><span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb530-8"><a href="ch11_n-1outcome.html#cb530-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>src_subject_id) <span class="sc">+</span> </span>
+<span id="cb530-9"><a href="ch11_n-1outcome.html#cb530-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position=</span><span class="st">&#39;none&#39;</span>) <span class="sc">+</span> </span>
+<span id="cb530-10"><a href="ch11_n-1outcome.html#cb530-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="dv">0</span>,<span class="dv">180</span>) <span class="sc">+</span> <span class="fu">ylim</span>(<span class="dv">0</span>,<span class="dv">180</span>) <span class="sc">+</span></span>
+<span id="cb530-11"><a href="ch11_n-1outcome.html#cb530-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">&quot;raw data from each participant: n-1 lagged outcome angle&quot;</span>) <span class="sc">+</span> </span>
+<span id="cb530-12"><a href="ch11_n-1outcome.html#cb530-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">&quot;n current expectation rating&quot;</span>)</span>
+<span id="cb530-13"><a href="ch11_n-1outcome.html#cb530-13" aria-hidden="true" tabindex="-1"></a>lag.raw <span class="sc">+</span></span>
+<span id="cb530-14"><a href="ch11_n-1outcome.html#cb530-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste</span>(taskname, <span class="st">&quot;- Is there a linear relationship between current expectation ratings and the previous outcome ratings?&quot;</span>),</span>
+<span id="cb530-15"><a href="ch11_n-1outcome.html#cb530-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">&quot;Plotting the raw data - with all of the datapoints ignoring run differences&quot;</span>, </span>
+<span id="cb530-16"><a href="ch11_n-1outcome.html#cb530-16" aria-hidden="true" tabindex="-1"></a>       <span class="at">caption =</span> <span class="st">&quot;Blue = fitted linear slope per participant; Green: 1:1 slope&quot;</span>)</span></code></pre></div>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<pre><code>## Warning: Removed 222 rows containing non-finite values (`stat_smooth()`).</code></pre>
+<pre><code>## Warning: Removed 222 rows containing missing values (`geom_point()`).</code></pre>
+<p><img src="11_iv-cue-trial_dv-expectjayazeri_N-1_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<div class="sourceCode" id="cb534"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb534-1"><a href="ch11_n-1outcome.html#cb534-1" aria-hidden="true" tabindex="-1"></a>lag.raw</span></code></pre></div>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<pre><code>## Warning: Removed 222 rows containing non-finite values (`stat_smooth()`).
+## Removed 222 rows containing missing values (`geom_point()`).</code></pre>
+<p><img src="11_iv-cue-trial_dv-expectjayazeri_N-1_files/figure-html/unnamed-chunk-14-2.png" width="672" /></p>
+<div class="sourceCode" id="cb537"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb537-1"><a href="ch11_n-1outcome.html#cb537-1" aria-hidden="true" tabindex="-1"></a>subjectwise_naomit_2dv<span class="sc">$</span>src_subject_id <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(subjectwise_naomit_2dv<span class="sc">$</span>src_subject_id)</span>
+<span id="cb537-2"><a href="ch11_n-1outcome.html#cb537-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb537-3"><a href="ch11_n-1outcome.html#cb537-3" aria-hidden="true" tabindex="-1"></a>lag.avg <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>DV1_mean_per_sub, <span class="at">y=</span>DV2_mean_per_sub), <span class="at">data=</span>subjectwise_naomit_2dv) <span class="sc">+</span></span>
+<span id="cb537-4"><a href="ch11_n-1outcome.html#cb537-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method=</span><span class="st">&#39;lm&#39;</span>, <span class="at">se=</span>F, <span class="at">size=</span><span class="fl">0.75</span>) <span class="sc">+</span></span>
+<span id="cb537-5"><a href="ch11_n-1outcome.html#cb537-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size=</span><span class="fl">0.1</span>) <span class="sc">+</span> </span>
+<span id="cb537-6"><a href="ch11_n-1outcome.html#cb537-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_abline</span>(<span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">slope =</span> <span class="dv">1</span>, <span class="at">color=</span><span class="st">&quot;green&quot;</span>, </span>
+<span id="cb537-7"><a href="ch11_n-1outcome.html#cb537-7" aria-hidden="true" tabindex="-1"></a>                 <span class="at">linetype=</span><span class="st">&quot;dashed&quot;</span>, <span class="at">size=</span><span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb537-8"><a href="ch11_n-1outcome.html#cb537-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>src_subject_id) <span class="sc">+</span> </span>
+<span id="cb537-9"><a href="ch11_n-1outcome.html#cb537-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position=</span><span class="st">&#39;none&#39;</span>) <span class="sc">+</span> </span>
+<span id="cb537-10"><a href="ch11_n-1outcome.html#cb537-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="dv">0</span>,<span class="dv">180</span>) <span class="sc">+</span> <span class="fu">ylim</span>(<span class="dv">0</span>,<span class="dv">180</span>) <span class="sc">+</span></span>
+<span id="cb537-11"><a href="ch11_n-1outcome.html#cb537-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">&quot;raw data from each participant: n-1 lagged outcome angle&quot;</span>) <span class="sc">+</span> </span>
+<span id="cb537-12"><a href="ch11_n-1outcome.html#cb537-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">&quot;n current expectation rating&quot;</span>) </span>
+<span id="cb537-13"><a href="ch11_n-1outcome.html#cb537-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb537-14"><a href="ch11_n-1outcome.html#cb537-14" aria-hidden="true" tabindex="-1"></a>lag.avg <span class="sc">+</span></span>
+<span id="cb537-15"><a href="ch11_n-1outcome.html#cb537-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste</span>(taskname, <span class="st">&quot;- Is there a linear relationship between current expectation ratings and the previous outcome ratings?&quot;</span>),</span>
+<span id="cb537-16"><a href="ch11_n-1outcome.html#cb537-16" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">&quot;Observation notes: 1) The relationship is more of an attenuated one, where the higher outcome ratings lead to a slightly lower expectation rating, and a low outcome leads to a higher expectation rating, when considering a 1:1 relationship. This pattern could be explained by regression to the mean type mechanism, where participants are accounting for the fact that their previous experience was extreme on either ends and that this current trial will be under/over estimated. It probably will make sense to also see the relationship between current expectation ratings influencing current outcome ratings. &quot;</span>, </span>
+<span id="cb537-17"><a href="ch11_n-1outcome.html#cb537-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">caption =</span> <span class="st">&quot;Blue = fitted linear slope per participant; Green: 1:1 slope&quot;</span>)</span></code></pre></div>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="11_iv-cue-trial_dv-expectjayazeri_N-1_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<div class="sourceCode" id="cb539"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb539-1"><a href="ch11_n-1outcome.html#cb539-1" aria-hidden="true" tabindex="-1"></a><span class="co"># https://gist.github.com/even4void/5074855</span></span></code></pre></div>
+<div class="sourceCode" id="cb540"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb540-1"><a href="ch11_n-1outcome.html#cb540-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(data_a3lag_omit, <span class="fu">aes</span>(<span class="at">y =</span> event02_expect_angle, </span>
+<span id="cb540-2"><a href="ch11_n-1outcome.html#cb540-2" aria-hidden="true" tabindex="-1"></a>                       <span class="at">x =</span> lag<span class="fl">.04</span>outcomeangle, </span>
+<span id="cb540-3"><a href="ch11_n-1outcome.html#cb540-3" aria-hidden="true" tabindex="-1"></a>                       <span class="at">colour =</span> subject), <span class="at">size =</span> .<span class="dv">3</span>, <span class="at">color =</span> <span class="st">&#39;gray&#39;</span>) <span class="sc">+</span> </span>
+<span id="cb540-4"><a href="ch11_n-1outcome.html#cb540-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> .<span class="dv">1</span>) <span class="sc">+</span> </span>
+<span id="cb540-5"><a href="ch11_n-1outcome.html#cb540-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">&#39;lm&#39;</span>, <span class="at">formula=</span> y <span class="sc">~</span> x, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">size =</span> .<span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb540-6"><a href="ch11_n-1outcome.html#cb540-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span></code></pre></div>
+<pre><code>## Warning: Removed 222 rows containing non-finite values (`stat_smooth()`).</code></pre>
+<pre><code>## Warning: Removed 222 rows containing missing values (`geom_point()`).</code></pre>
+<p><img src="11_iv-cue-trial_dv-expectjayazeri_N-1_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+</div>
+</div>
+<div id="additional-analysis-1" class="section level2 hasAnchor" number="11.3">
+<h2><span class="header-section-number">11.3</span> Additional analysis<a href="ch11_n-1outcome.html#additional-analysis-1" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>01/23/2023
+### Do these models differ as a function of cue?</p>
+<div class="sourceCode" id="cb543"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb543-1"><a href="ch11_n-1outcome.html#cb543-1" aria-hidden="true" tabindex="-1"></a>model.lag_cue <span class="ot">=</span> <span class="fu">lmer</span>(event02_expect_angle <span class="sc">~</span> lag<span class="fl">.04</span>outcomeangle<span class="sc">*</span>param_cue_type <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> src_subject_id) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>session_id) , <span class="at">data =</span> data_a3lag_omit)</span></code></pre></div>
+<pre><code>## boundary (singular) fit: see help(&#39;isSingular&#39;)</code></pre>
+<div class="sourceCode" id="cb545"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb545-1"><a href="ch11_n-1outcome.html#cb545-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model.lag_cue)</span></code></pre></div>
+<pre><code>## Linear mixed model fit by REML. t-tests use Satterthwaite&#39;s method [
+## lmerModLmerTest]
+## Formula: event02_expect_angle ~ lag.04outcomeangle * param_cue_type +  
+##     (1 | src_subject_id) + (1 | session_id)
+##    Data: data_a3lag_omit
+## 
+## REML criterion at convergence: 43641
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -4.5100 -0.6437 -0.0396  0.6280  4.0220 
+## 
+## Random effects:
+##  Groups         Name        Variance Std.Dev.
+##  src_subject_id (Intercept) 496.1    22.27   
+##  session_id     (Intercept)   0.0     0.00   
+##  Residual                   472.4    21.73   
+## Number of obs: 4807, groups:  src_subject_id, 104; session_id, 3
+## 
+## Fixed effects:
+##                                            Estimate Std. Error         df
+## (Intercept)                               6.240e+01  2.450e+00  1.472e+02
+## lag.04outcomeangle                        2.594e-01  1.512e-02  4.801e+03
+## param_cue_typelow_cue                    -3.476e+01  1.268e+00  4.699e+03
+## lag.04outcomeangle:param_cue_typelow_cue  5.462e-03  1.676e-02  4.699e+03
+##                                          t value Pr(&gt;|t|)    
+## (Intercept)                               25.473   &lt;2e-16 ***
+## lag.04outcomeangle                        17.157   &lt;2e-16 ***
+## param_cue_typelow_cue                    -27.421   &lt;2e-16 ***
+## lag.04outcomeangle:param_cue_typelow_cue   0.326    0.745    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Correlation of Fixed Effects:
+##             (Intr) lg.04t prm___
+## lg.04tcmngl -0.406              
+## prm_c_typl_ -0.265  0.489       
+## lg.04tc:___  0.229 -0.560 -0.869
+## optimizer (nloptwrap) convergence code: 0 (OK)
+## boundary (singular) fit: see help(&#39;isSingular&#39;)</code></pre>
+<div class="sourceCode" id="cb547"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb547-1"><a href="ch11_n-1outcome.html#cb547-1" aria-hidden="true" tabindex="-1"></a>meanSummary_2dv <span class="ot">&lt;-</span> <span class="cf">function</span>(DATA, GROUP, DV1, DV2) {</span>
+<span id="cb547-2"><a href="ch11_n-1outcome.html#cb547-2" aria-hidden="true" tabindex="-1"></a>    z <span class="ot">&lt;-</span> <span class="fu">ddply</span>(DATA, GROUP, <span class="at">.fun =</span> <span class="cf">function</span>(xx) {</span>
+<span id="cb547-3"><a href="ch11_n-1outcome.html#cb547-3" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(</span>
+<span id="cb547-4"><a href="ch11_n-1outcome.html#cb547-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">DV1_mean_per_sub =</span> <span class="fu">mean</span>(xx[, DV1], <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb547-5"><a href="ch11_n-1outcome.html#cb547-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">DV1_sd =</span> <span class="fu">sd</span>(xx[, DV1], <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb547-6"><a href="ch11_n-1outcome.html#cb547-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">DV2_mean_per_sub =</span> <span class="fu">mean</span>(xx[, DV2], <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb547-7"><a href="ch11_n-1outcome.html#cb547-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">DV2_sd =</span> <span class="fu">sd</span>(xx[, DV1], <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb547-8"><a href="ch11_n-1outcome.html#cb547-8" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb547-9"><a href="ch11_n-1outcome.html#cb547-9" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb547-10"><a href="ch11_n-1outcome.html#cb547-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(z)</span>
+<span id="cb547-11"><a href="ch11_n-1outcome.html#cb547-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb548"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb548-1"><a href="ch11_n-1outcome.html#cb548-1" aria-hidden="true" tabindex="-1"></a>subjectwise_cuetype <span class="ot">=</span> <span class="fu">meanSummary_2dv</span>(data_a3lag_omit,</span>
+<span id="cb548-2"><a href="ch11_n-1outcome.html#cb548-2" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(<span class="st">&quot;src_subject_id&quot;</span>, <span class="st">&quot;trial_index&quot;</span>, <span class="st">&quot;param_cue_type&quot;</span>), </span>
+<span id="cb548-3"><a href="ch11_n-1outcome.html#cb548-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;lag.04outcomeangle&quot;</span>, <span class="st">&quot;event02_expect_angle&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb549"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb549-1"><a href="ch11_n-1outcome.html#cb549-1" aria-hidden="true" tabindex="-1"></a>subjectwise_cuetype_2dv <span class="ot">&lt;-</span> <span class="fu">na.omit</span>(subjectwise_cuetype)</span></code></pre></div>
+<div class="sourceCode" id="cb550"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb550-1"><a href="ch11_n-1outcome.html#cb550-1" aria-hidden="true" tabindex="-1"></a>subjectwise_cuetype<span class="sc">$</span>param_cue_type <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(subjectwise_cuetype<span class="sc">$</span>param_cue_type)</span>
+<span id="cb550-2"><a href="ch11_n-1outcome.html#cb550-2" aria-hidden="true" tabindex="-1"></a>sp <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="at">data=</span>subjectwise_cuetype, </span>
+<span id="cb550-3"><a href="ch11_n-1outcome.html#cb550-3" aria-hidden="true" tabindex="-1"></a>             <span class="fu">aes</span>(<span class="at">x=</span>DV1_mean_per_sub, <span class="at">y=</span>DV2_mean_per_sub,</span>
+<span id="cb550-4"><a href="ch11_n-1outcome.html#cb550-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">color =</span> param_cue_type)) <span class="sc">+</span> </span>
+<span id="cb550-5"><a href="ch11_n-1outcome.html#cb550-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb550-6"><a href="ch11_n-1outcome.html#cb550-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">slope =</span> <span class="dv">1</span>, <span class="at">color=</span><span class="st">&quot;green&quot;</span>, </span>
+<span id="cb550-7"><a href="ch11_n-1outcome.html#cb550-7" aria-hidden="true" tabindex="-1"></a>                 <span class="at">linetype=</span><span class="st">&quot;dashed&quot;</span>, <span class="at">size=</span><span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb550-8"><a href="ch11_n-1outcome.html#cb550-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">&#39;lm&#39;</span>) <span class="sc">+</span></span>
+<span id="cb550-9"><a href="ch11_n-1outcome.html#cb550-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">aspect.ratio=</span><span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb550-10"><a href="ch11_n-1outcome.html#cb550-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">&quot;n-1 outcome rating&quot;</span>) <span class="sc">+</span></span>
+<span id="cb550-11"><a href="ch11_n-1outcome.html#cb550-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">&quot;n expectation rating&quot;</span>)</span>
+<span id="cb550-12"><a href="ch11_n-1outcome.html#cb550-12" aria-hidden="true" tabindex="-1"></a>sp <span class="sc">+</span></span>
+<span id="cb550-13"><a href="ch11_n-1outcome.html#cb550-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste</span>(taskname, <span class="st">&quot;- Does the linear relationship between current expectation ratings and the previous outcome ratings differ as a function of cue?&quot;</span>),</span>
+<span id="cb550-14"><a href="ch11_n-1outcome.html#cb550-14" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">&quot;Plotting the raw data - with all of the datapoints averaged across runs per 12 trials&quot;</span>, </span>
+<span id="cb550-15"><a href="ch11_n-1outcome.html#cb550-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">caption =</span> <span class="st">&quot;high cue vs low cue. The slope is significant, theree is not interaction; Green: 1:1 slope&quot;</span>)</span></code></pre></div>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<pre><code>## Warning: Removed 35 rows containing non-finite values (`stat_smooth()`).</code></pre>
+<pre><code>## Warning: Removed 35 rows containing missing values (`geom_point()`).</code></pre>
+<p><img src="11_iv-cue-trial_dv-expectjayazeri_N-1_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+<div class="sourceCode" id="cb554"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb554-1"><a href="ch11_n-1outcome.html#cb554-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot(subjectwise_naomit_2dv$DV1_mean_per_sub, subjectwise_naomit_2dv$DV2_mean_per_sub) + lines(x = c(0,200), y = c(0,200))</span></span></code></pre></div>
+</div>
+<div id="lets-demean-the-ratings." class="section level2 hasAnchor" number="11.4">
+<h2><span class="header-section-number">11.4</span> Let’s demean the ratings.<a href="ch11_n-1outcome.html#lets-demean-the-ratings." class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>bin ratings
+Do the bins do their jobs?
+plot one run
+then check the min, max and see if the quantization is done properly.
+YES, it is</p>
+<div class="sourceCode" id="cb555"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb555-1"><a href="ch11_n-1outcome.html#cb555-1" aria-hidden="true" tabindex="-1"></a><span class="co"># per subject, session, run</span></span>
+<span id="cb555-2"><a href="ch11_n-1outcome.html#cb555-2" aria-hidden="true" tabindex="-1"></a><span class="co">#das$wt_2 &lt;- as.numeric(cut_number(das$wt,3))</span></span>
+<span id="cb555-3"><a href="ch11_n-1outcome.html#cb555-3" aria-hidden="true" tabindex="-1"></a>df_subset <span class="ot">=</span> <span class="fu">subset</span>(data_a3lag_omit, src_subject_id <span class="sc">==</span> <span class="dv">18</span> )</span>
+<span id="cb555-4"><a href="ch11_n-1outcome.html#cb555-4" aria-hidden="true" tabindex="-1"></a><span class="co">#df_subset$lag.04outcomeangle</span></span>
+<span id="cb555-5"><a href="ch11_n-1outcome.html#cb555-5" aria-hidden="true" tabindex="-1"></a><span class="fu">min</span>(df_subset<span class="sc">$</span>lag<span class="fl">.04</span>outcomeangle)</span></code></pre></div>
+<pre><code>## [1] 0</code></pre>
+<div class="sourceCode" id="cb557"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb557-1"><a href="ch11_n-1outcome.html#cb557-1" aria-hidden="true" tabindex="-1"></a><span class="fu">max</span>(df_subset<span class="sc">$</span>lag<span class="fl">.04</span>outcomeangle)</span></code></pre></div>
+<pre><code>## [1] 88.7054</code></pre>
+<div class="sourceCode" id="cb559"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb559-1"><a href="ch11_n-1outcome.html#cb559-1" aria-hidden="true" tabindex="-1"></a><span class="fu">range</span>(df_subset<span class="sc">$</span>lag<span class="fl">.04</span>outcomeangle)</span></code></pre></div>
+<pre><code>## [1]  0.0000 88.7054</code></pre>
+<div class="sourceCode" id="cb561"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb561-1"><a href="ch11_n-1outcome.html#cb561-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cut_interval</span>(<span class="fu">range</span>(df_subset<span class="sc">$</span>lag<span class="fl">.04</span>outcomeangle), <span class="at">n =</span> <span class="dv">5</span>)</span></code></pre></div>
+<pre><code>## [1] [0,17.7]  (71,88.7]
+## Levels: [0,17.7] (17.7,35.5] (35.5,53.2] (53.2,71] (71,88.7]</code></pre>
+<div class="sourceCode" id="cb563"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb563-1"><a href="ch11_n-1outcome.html#cb563-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(df_subset<span class="sc">$</span>lag<span class="fl">.04</span>outcomeangle)</span></code></pre></div>
+<p><img src="11_iv-cue-trial_dv-expectjayazeri_N-1_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
+<div class="sourceCode" id="cb564"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb564-1"><a href="ch11_n-1outcome.html#cb564-1" aria-hidden="true" tabindex="-1"></a><span class="co"># hist(c(121.39691, 102.30392,  89.30972,  92.07837, 121.51694, 148.16579, 122.95297 ,126.36490 ,123.69007 , 51.34019,  36.86990))</span></span>
+<span id="cb564-2"><a href="ch11_n-1outcome.html#cb564-2" aria-hidden="true" tabindex="-1"></a>df_subset<span class="sc">$</span>bin <span class="ot">=</span> <span class="fu">cut_interval</span>(df_subset<span class="sc">$</span>lag<span class="fl">.04</span>outcomeangle, <span class="at">n =</span> <span class="dv">5</span>)</span>
+<span id="cb564-3"><a href="ch11_n-1outcome.html#cb564-3" aria-hidden="true" tabindex="-1"></a>df_subset<span class="sc">$</span>bin_num <span class="ot">=</span> <span class="fu">as.numeric</span>(<span class="fu">cut_interval</span>(df_subset<span class="sc">$</span>lag<span class="fl">.04</span>outcomeangle, <span class="at">n =</span> <span class="dv">5</span>))</span>
+<span id="cb564-4"><a href="ch11_n-1outcome.html#cb564-4" aria-hidden="true" tabindex="-1"></a><span class="co"># cut_interval(df_subset$lag.04outcomeangle, n = 6)</span></span>
+<span id="cb564-5"><a href="ch11_n-1outcome.html#cb564-5" aria-hidden="true" tabindex="-1"></a><span class="co"># as.numeric(cut_interval(df_subset$lag.04outcomeangle, n = 6))</span></span>
+<span id="cb564-6"><a href="ch11_n-1outcome.html#cb564-6" aria-hidden="true" tabindex="-1"></a><span class="co"># https://stackoverflow.com/questions/21714457/is-cut-style-binning-available-in-dplyr</span></span>
+<span id="cb564-7"><a href="ch11_n-1outcome.html#cb564-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb564-8"><a href="ch11_n-1outcome.html#cb564-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># mutate(lagoutcomebin = as.numeric(ggplot2::cut_interval(data_a3lag_omit$lag.04outcomeangle,5)))</span></span>
+<span id="cb564-9"><a href="ch11_n-1outcome.html#cb564-9" aria-hidden="true" tabindex="-1"></a>  <span class="co">#group_by(src_subject_id, session_id, ) %&gt;%</span></span></code></pre></div>
+<div class="sourceCode" id="cb565"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb565-1"><a href="ch11_n-1outcome.html#cb565-1" aria-hidden="true" tabindex="-1"></a>df_discrete <span class="ot">=</span> data_a3lag_omit <span class="sc">%&gt;%</span></span>
+<span id="cb565-2"><a href="ch11_n-1outcome.html#cb565-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(src_subject_id) <span class="sc">%&gt;%</span></span>
+<span id="cb565-3"><a href="ch11_n-1outcome.html#cb565-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">bin =</span> <span class="fu">cut_interval</span>(lag<span class="fl">.04</span>outcomeangle, <span class="at">n =</span> <span class="dv">5</span>),</span>
+<span id="cb565-4"><a href="ch11_n-1outcome.html#cb565-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">n_1outcomelevels =</span> <span class="fu">as.numeric</span>(<span class="fu">cut_interval</span>(lag<span class="fl">.04</span>outcomeangle, <span class="at">n =</span> <span class="dv">5</span>)))</span>
+<span id="cb565-5"><a href="ch11_n-1outcome.html#cb565-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb565-6"><a href="ch11_n-1outcome.html#cb565-6" aria-hidden="true" tabindex="-1"></a><span class="co">#, &quot;session_id&quot;, &quot;param_run_num&quot;</span></span>
+<span id="cb565-7"><a href="ch11_n-1outcome.html#cb565-7" aria-hidden="true" tabindex="-1"></a><span class="co"># df_subset$bin = cut_interval(df_subset$lag.04outcomeangle, n = 5)</span></span>
+<span id="cb565-8"><a href="ch11_n-1outcome.html#cb565-8" aria-hidden="true" tabindex="-1"></a><span class="co"># df_subset$bin_num = as.numeric(cut_interval(df_subset$lag.04outcomeangle, n = 5))</span></span></code></pre></div>
+<p>confirm that df discrete has 5 levels per participant
+the number of counts per frequency can differ</p>
+<div class="sourceCode" id="cb566"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb566-1"><a href="ch11_n-1outcome.html#cb566-1" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> df_discrete <span class="sc">%&gt;%</span> </span>
+<span id="cb566-2"><a href="ch11_n-1outcome.html#cb566-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(src_subject_id,n_1outcomelevels) <span class="sc">%&gt;%</span> </span>
+<span id="cb566-3"><a href="ch11_n-1outcome.html#cb566-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tally</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb567"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb567-1"><a href="ch11_n-1outcome.html#cb567-1" aria-hidden="true" tabindex="-1"></a>res</span></code></pre></div>
+<pre><code>## # A tibble: 516 × 3
+## # Groups:   src_subject_id [104]
+##    src_subject_id n_1outcomelevels     n
+##    &lt;fct&gt;                     &lt;dbl&gt; &lt;int&gt;
+##  1 13                            1     2
+##  2 13                            2     7
+##  3 13                            3     4
+##  4 13                            4    12
+##  5 13                            5    19
+##  6 14                            1    11
+##  7 14                            2    17
+##  8 14                            3     7
+##  9 14                            4     8
+## 10 14                            5     1
+## # … with 506 more rows</code></pre>
+<div class="sourceCode" id="cb569"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb569-1"><a href="ch11_n-1outcome.html#cb569-1" aria-hidden="true" tabindex="-1"></a>pain_df  <span class="ot">=</span> df_discrete[df_discrete<span class="sc">$</span>param_task_name <span class="sc">==</span> <span class="st">&quot;pain&quot;</span>,]</span>
+<span id="cb569-2"><a href="ch11_n-1outcome.html#cb569-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(pain_df, <span class="fu">aes</span>(<span class="at">y =</span> event02_expect_angle, </span>
+<span id="cb569-3"><a href="ch11_n-1outcome.html#cb569-3" aria-hidden="true" tabindex="-1"></a>                       <span class="at">x =</span> n_1outcomelevels, </span>
+<span id="cb569-4"><a href="ch11_n-1outcome.html#cb569-4" aria-hidden="true" tabindex="-1"></a>                       <span class="at">colour =</span> subject), <span class="at">size =</span> .<span class="dv">3</span>, <span class="at">color =</span> <span class="st">&#39;gray&#39;</span>) <span class="sc">+</span> </span>
+<span id="cb569-5"><a href="ch11_n-1outcome.html#cb569-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> .<span class="dv">1</span>) <span class="sc">+</span> </span>
+<span id="cb569-6"><a href="ch11_n-1outcome.html#cb569-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># geom_smooth(method = &#39;lm&#39;, formula= y ~ x, se = FALSE, size = .1) +</span></span>
+<span id="cb569-7"><a href="ch11_n-1outcome.html#cb569-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">&quot;gam&quot;</span>) <span class="sc">+</span></span>
+<span id="cb569-8"><a href="ch11_n-1outcome.html#cb569-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span></code></pre></div>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ s(x, bs = &quot;cs&quot;)&#39;</code></pre>
+<pre><code>## Warning: Removed 222 rows containing non-finite values (`stat_smooth()`).</code></pre>
+<pre><code>## Warning: Computation failed in `stat_smooth()`
+## Caused by error in `smooth.construct.cr.smooth.spec()`:
+## ! x has insufficient unique values to support 10 knots: reduce k.</code></pre>
+<pre><code>## Warning: Removed 222 rows containing missing values (`geom_point()`).</code></pre>
+<p><img src="11_iv-cue-trial_dv-expectjayazeri_N-1_files/figure-html/unnamed-chunk-27-1.png" width="672" /></p>
+</div>
+<div id="demean-and-then-discretize" class="section level2 hasAnchor" number="11.5">
+<h2><span class="header-section-number">11.5</span> DEMEAN AND THEN DISCRETIZE<a href="ch11_n-1outcome.html#demean-and-then-discretize" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div class="sourceCode" id="cb574"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb574-1"><a href="ch11_n-1outcome.html#cb574-1" aria-hidden="true" tabindex="-1"></a>df_discrete <span class="ot">=</span> data_a3lag_omit <span class="sc">%&gt;%</span></span>
+<span id="cb574-2"><a href="ch11_n-1outcome.html#cb574-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(src_subject_id) <span class="sc">%&gt;%</span></span>
+<span id="cb574-3"><a href="ch11_n-1outcome.html#cb574-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">lag.04outcomeangle_demean =</span> lag<span class="fl">.04</span>outcomeangle<span class="sc">-</span><span class="fu">mean</span>(lag<span class="fl">.04</span>outcomeangle),</span>
+<span id="cb574-4"><a href="ch11_n-1outcome.html#cb574-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">event02_expect_angle_demean =</span> event02_expect_angle<span class="sc">-</span><span class="fu">mean</span>(event02_expect_angle)) <span class="sc">%&gt;%</span></span>
+<span id="cb574-5"><a href="ch11_n-1outcome.html#cb574-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">bin =</span> <span class="fu">cut_interval</span>(lag<span class="fl">.04</span>outcomeangle_demean, <span class="at">n =</span> <span class="dv">5</span>),</span>
+<span id="cb574-6"><a href="ch11_n-1outcome.html#cb574-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">n_1outcomelevels =</span> <span class="fu">as.numeric</span>(<span class="fu">cut_interval</span>(lag<span class="fl">.04</span>outcomeangle_demean, <span class="at">n =</span> <span class="dv">5</span>)))</span>
+<span id="cb574-7"><a href="ch11_n-1outcome.html#cb574-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb574-8"><a href="ch11_n-1outcome.html#cb574-8" aria-hidden="true" tabindex="-1"></a><span class="co">#, &quot;session_id&quot;, &quot;param_run_num&quot;</span></span>
+<span id="cb574-9"><a href="ch11_n-1outcome.html#cb574-9" aria-hidden="true" tabindex="-1"></a><span class="co"># df_subset$bin = cut_interval(df_subset$lag.04outcomeangle, n = 5)</span></span>
+<span id="cb574-10"><a href="ch11_n-1outcome.html#cb574-10" aria-hidden="true" tabindex="-1"></a><span class="co"># df_subset$bin_num = as.numeric(cut_interval(df_subset$lag.04outcomeangle, n = 5))</span></span></code></pre></div>
+<div class="sourceCode" id="cb575"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb575-1"><a href="ch11_n-1outcome.html#cb575-1" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> df_discrete <span class="sc">%&gt;%</span> </span>
+<span id="cb575-2"><a href="ch11_n-1outcome.html#cb575-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(src_subject_id,n_1outcomelevels) <span class="sc">%&gt;%</span> </span>
+<span id="cb575-3"><a href="ch11_n-1outcome.html#cb575-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tally</span>()</span>
+<span id="cb575-4"><a href="ch11_n-1outcome.html#cb575-4" aria-hidden="true" tabindex="-1"></a>res</span></code></pre></div>
+<pre><code>## # A tibble: 516 × 3
+## # Groups:   src_subject_id [104]
+##    src_subject_id n_1outcomelevels     n
+##    &lt;fct&gt;                     &lt;dbl&gt; &lt;int&gt;
+##  1 13                            1     2
+##  2 13                            2     7
+##  3 13                            3     4
+##  4 13                            4    12
+##  5 13                            5    19
+##  6 14                            1    11
+##  7 14                            2    17
+##  8 14                            3     7
+##  9 14                            4     8
+## 10 14                            5     1
+## # … with 506 more rows</code></pre>
+<div class="sourceCode" id="cb577"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb577-1"><a href="ch11_n-1outcome.html#cb577-1" aria-hidden="true" tabindex="-1"></a>pain_df  <span class="ot">=</span> df_discrete[df_discrete<span class="sc">$</span>param_task_name <span class="sc">==</span> <span class="st">&quot;pain&quot;</span>,]</span>
+<span id="cb577-2"><a href="ch11_n-1outcome.html#cb577-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(pain_df, <span class="fu">aes</span>(<span class="at">y =</span> event02_expect_angle_demean, </span>
+<span id="cb577-3"><a href="ch11_n-1outcome.html#cb577-3" aria-hidden="true" tabindex="-1"></a>                       <span class="at">x =</span> n_1outcomelevels, </span>
+<span id="cb577-4"><a href="ch11_n-1outcome.html#cb577-4" aria-hidden="true" tabindex="-1"></a>                       <span class="at">colour =</span> subject), <span class="at">size =</span> .<span class="dv">3</span>, <span class="at">color =</span> <span class="st">&#39;gray&#39;</span>) <span class="sc">+</span> </span>
+<span id="cb577-5"><a href="ch11_n-1outcome.html#cb577-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> .<span class="dv">1</span>) <span class="sc">+</span> </span>
+<span id="cb577-6"><a href="ch11_n-1outcome.html#cb577-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># geom_smooth(method = &#39;lm&#39;, formula= y ~ x, se = FALSE, size = .1) +</span></span>
+<span id="cb577-7"><a href="ch11_n-1outcome.html#cb577-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">&quot;gam&quot;</span>) <span class="sc">+</span></span>
+<span id="cb577-8"><a href="ch11_n-1outcome.html#cb577-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span></code></pre></div>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ s(x, bs = &quot;cs&quot;)&#39;</code></pre>
+<pre><code>## Warning: Removed 2917 rows containing non-finite values (`stat_smooth()`).</code></pre>
+<pre><code>## Warning: Computation failed in `stat_smooth()`
+## Caused by error in `smooth.construct.cr.smooth.spec()`:
+## ! x has insufficient unique values to support 10 knots: reduce k.</code></pre>
+<pre><code>## Warning: Removed 2917 rows containing missing values (`geom_point()`).</code></pre>
+<p><img src="11_iv-cue-trial_dv-expectjayazeri_N-1_files/figure-html/unnamed-chunk-30-1.png" width="672" /></p>
+<div class="sourceCode" id="cb582"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb582-1"><a href="ch11_n-1outcome.html#cb582-1" aria-hidden="true" tabindex="-1"></a>df_discrete<span class="sc">$</span>n_1outcomelevels_newlev <span class="ot">=</span> df_discrete<span class="sc">$</span>n_1outcomelevels <span class="sc">-</span><span class="dv">3</span></span>
+<span id="cb582-2"><a href="ch11_n-1outcome.html#cb582-2" aria-hidden="true" tabindex="-1"></a>    subjectwise_bin_demean <span class="ot">&lt;-</span> <span class="fu">meanSummary</span>(df_discrete, <span class="fu">c</span>(</span>
+<span id="cb582-3"><a href="ch11_n-1outcome.html#cb582-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;subject&quot;</span>,<span class="st">&quot;param_task_name&quot;</span>,<span class="st">&quot;n_1outcomelevels&quot;</span> </span>
+<span id="cb582-4"><a href="ch11_n-1outcome.html#cb582-4" aria-hidden="true" tabindex="-1"></a>    ), <span class="st">&quot;event02_expect_angle_demean&quot;</span>)</span>
+<span id="cb582-5"><a href="ch11_n-1outcome.html#cb582-5" aria-hidden="true" tabindex="-1"></a>subjectwise_bin_demean_naomit <span class="ot">&lt;-</span> <span class="fu">na.omit</span>(subjectwise_bin_demean)</span>
+<span id="cb582-6"><a href="ch11_n-1outcome.html#cb582-6" aria-hidden="true" tabindex="-1"></a>    groupwise_bin_demean <span class="ot">&lt;-</span> <span class="fu">summarySEwithin</span>(</span>
+<span id="cb582-7"><a href="ch11_n-1outcome.html#cb582-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">data =</span> subjectwise_bin_demean_naomit,</span>
+<span id="cb582-8"><a href="ch11_n-1outcome.html#cb582-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">measurevar =</span> <span class="st">&quot;mean_per_sub&quot;</span>, <span class="co"># variable created from above</span></span>
+<span id="cb582-9"><a href="ch11_n-1outcome.html#cb582-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">withinvars =</span> <span class="fu">c</span>(<span class="st">&quot;n_1outcomelevels&quot;</span>), <span class="co"># iv</span></span>
+<span id="cb582-10"><a href="ch11_n-1outcome.html#cb582-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">idvar =</span> <span class="st">&quot;subject&quot;</span></span>
+<span id="cb582-11"><a href="ch11_n-1outcome.html#cb582-11" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div>
+<pre><code>## Automatically converting the following non-factors to factors: n_1outcomelevels</code></pre>
+<div class="sourceCode" id="cb584"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb584-1"><a href="ch11_n-1outcome.html#cb584-1" aria-hidden="true" tabindex="-1"></a>subjectwise_bin_demean_naomit<span class="sc">$</span>n_1outcomelevels_newlev <span class="ot">=</span> <span class="fu">as.numeric</span>(subjectwise_bin_demean_naomit<span class="sc">$</span>n_1outcomelevels) <span class="sc">-</span><span class="dv">3</span></span>
+<span id="cb584-2"><a href="ch11_n-1outcome.html#cb584-2" aria-hidden="true" tabindex="-1"></a>groupwise_bin_demean<span class="sc">$</span>n_1outcomelevels_newlev <span class="ot">=</span> <span class="fu">as.numeric</span>(groupwise_bin_demean<span class="sc">$</span>n_1outcomelevels) <span class="sc">-</span><span class="dv">3</span></span></code></pre></div>
+<div class="sourceCode" id="cb585"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb585-1"><a href="ch11_n-1outcome.html#cb585-1" aria-hidden="true" tabindex="-1"></a>plot_halfrainclouds_sig <span class="ot">&lt;-</span> <span class="cf">function</span>(subjectwise, groupwise, iv,sub_iv,</span>
+<span id="cb585-2"><a href="ch11_n-1outcome.html#cb585-2" aria-hidden="true" tabindex="-1"></a>                                      subjectwise_mean, group_mean, se, subject,</span>
+<span id="cb585-3"><a href="ch11_n-1outcome.html#cb585-3" aria-hidden="true" tabindex="-1"></a>                                      ggtitle, title, xlab, ylab, taskname, ylim,</span>
+<span id="cb585-4"><a href="ch11_n-1outcome.html#cb585-4" aria-hidden="true" tabindex="-1"></a>                                      w, h, dv_keyword, color, save_fname) {</span>
+<span id="cb585-5"><a href="ch11_n-1outcome.html#cb585-5" aria-hidden="true" tabindex="-1"></a>  g <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(</span>
+<span id="cb585-6"><a href="ch11_n-1outcome.html#cb585-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> subjectwise,</span>
+<span id="cb585-7"><a href="ch11_n-1outcome.html#cb585-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(</span>
+<span id="cb585-8"><a href="ch11_n-1outcome.html#cb585-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> .data[[subjectwise_mean]],</span>
+<span id="cb585-9"><a href="ch11_n-1outcome.html#cb585-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> <span class="fu">factor</span>(.data[[iv]]),</span>
+<span id="cb585-10"><a href="ch11_n-1outcome.html#cb585-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">fill =</span> <span class="fu">factor</span>(.data[[iv]])</span>
+<span id="cb585-11"><a href="ch11_n-1outcome.html#cb585-11" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb585-12"><a href="ch11_n-1outcome.html#cb585-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb585-13"><a href="ch11_n-1outcome.html#cb585-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> ylim, <span class="at">expand =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
+<span id="cb585-14"><a href="ch11_n-1outcome.html#cb585-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb585-15"><a href="ch11_n-1outcome.html#cb585-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_half_violin</span>(</span>
+<span id="cb585-16"><a href="ch11_n-1outcome.html#cb585-16" aria-hidden="true" tabindex="-1"></a>      <span class="fu">aes</span>(<span class="at">fill =</span> <span class="fu">factor</span>(.data[[iv]])),</span>
+<span id="cb585-17"><a href="ch11_n-1outcome.html#cb585-17" aria-hidden="true" tabindex="-1"></a>      <span class="at">side =</span> <span class="st">&#39;r&#39;</span>,</span>
+<span id="cb585-18"><a href="ch11_n-1outcome.html#cb585-18" aria-hidden="true" tabindex="-1"></a>      <span class="co">#position = &#39;dodge&#39;,</span></span>
+<span id="cb585-19"><a href="ch11_n-1outcome.html#cb585-19" aria-hidden="true" tabindex="-1"></a>      <span class="at">adjust =</span> <span class="fl">0.5</span>,</span>
+<span id="cb585-20"><a href="ch11_n-1outcome.html#cb585-20" aria-hidden="true" tabindex="-1"></a>      <span class="at">trim =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb585-21"><a href="ch11_n-1outcome.html#cb585-21" aria-hidden="true" tabindex="-1"></a>      <span class="at">alpha =</span> .<span class="dv">5</span>,</span>
+<span id="cb585-22"><a href="ch11_n-1outcome.html#cb585-22" aria-hidden="true" tabindex="-1"></a>      <span class="at">colour =</span> <span class="cn">NA</span></span>
+<span id="cb585-23"><a href="ch11_n-1outcome.html#cb585-23" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb585-24"><a href="ch11_n-1outcome.html#cb585-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb585-25"><a href="ch11_n-1outcome.html#cb585-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># geom_point(</span></span>
+<span id="cb585-26"><a href="ch11_n-1outcome.html#cb585-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   aes(</span></span>
+<span id="cb585-27"><a href="ch11_n-1outcome.html#cb585-27" aria-hidden="true" tabindex="-1"></a>    <span class="co">#     x = as.numeric(.data[[iv]]) - .15,</span></span>
+<span id="cb585-28"><a href="ch11_n-1outcome.html#cb585-28" aria-hidden="true" tabindex="-1"></a>    <span class="co">#     y = .data[[subjectwise_mean]],</span></span>
+<span id="cb585-29"><a href="ch11_n-1outcome.html#cb585-29" aria-hidden="true" tabindex="-1"></a>    <span class="co">#     color = factor(.data[[iv]])</span></span>
+<span id="cb585-30"><a href="ch11_n-1outcome.html#cb585-30" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   ),</span></span>
+<span id="cb585-31"><a href="ch11_n-1outcome.html#cb585-31" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   position = position_jitter(width = .05),</span></span>
+<span id="cb585-32"><a href="ch11_n-1outcome.html#cb585-32" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   size = 1, alpha = 0.8, shape = 20</span></span>
+<span id="cb585-33"><a href="ch11_n-1outcome.html#cb585-33" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ) +</span></span>
+<span id="cb585-34"><a href="ch11_n-1outcome.html#cb585-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb585-35"><a href="ch11_n-1outcome.html#cb585-35" aria-hidden="true" tabindex="-1"></a>  <span class="co"># geom_line(data = subjectwise,</span></span>
+<span id="cb585-36"><a href="ch11_n-1outcome.html#cb585-36" aria-hidden="true" tabindex="-1"></a>  <span class="co">#   aes(</span></span>
+<span id="cb585-37"><a href="ch11_n-1outcome.html#cb585-37" aria-hidden="true" tabindex="-1"></a>  <span class="co">#     group = .data[[subject]],</span></span>
+<span id="cb585-38"><a href="ch11_n-1outcome.html#cb585-38" aria-hidden="true" tabindex="-1"></a>  <span class="co">#     x = as.numeric(factor(.data[[iv]])) - .1 ,</span></span>
+<span id="cb585-39"><a href="ch11_n-1outcome.html#cb585-39" aria-hidden="true" tabindex="-1"></a>  <span class="co">#     y = .data[[subjectwise_mean]],</span></span>
+<span id="cb585-40"><a href="ch11_n-1outcome.html#cb585-40" aria-hidden="true" tabindex="-1"></a>  <span class="co">#     fill = factor(.data[[iv]])</span></span>
+<span id="cb585-41"><a href="ch11_n-1outcome.html#cb585-41" aria-hidden="true" tabindex="-1"></a>  <span class="co">#     ),</span></span>
+<span id="cb585-42"><a href="ch11_n-1outcome.html#cb585-42" aria-hidden="true" tabindex="-1"></a>  <span class="co">#   linetype = &quot;solid&quot;,</span></span>
+<span id="cb585-43"><a href="ch11_n-1outcome.html#cb585-43" aria-hidden="true" tabindex="-1"></a>  <span class="co">#   color = &quot;grey&quot;,</span></span>
+<span id="cb585-44"><a href="ch11_n-1outcome.html#cb585-44" aria-hidden="true" tabindex="-1"></a>  <span class="co">#   alpha = .3) +</span></span>
+<span id="cb585-45"><a href="ch11_n-1outcome.html#cb585-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb585-46"><a href="ch11_n-1outcome.html#cb585-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(</span>
+<span id="cb585-47"><a href="ch11_n-1outcome.html#cb585-47" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(</span>
+<span id="cb585-48"><a href="ch11_n-1outcome.html#cb585-48" aria-hidden="true" tabindex="-1"></a>      <span class="co"># group = .data[[subject]],</span></span>
+<span id="cb585-49"><a href="ch11_n-1outcome.html#cb585-49" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> <span class="fu">as.numeric</span>(<span class="fu">factor</span>(.data[[iv]])) <span class="sc">-</span> .<span class="dv">1</span> ,</span>
+<span id="cb585-50"><a href="ch11_n-1outcome.html#cb585-50" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> .data[[subjectwise_mean]],</span>
+<span id="cb585-51"><a href="ch11_n-1outcome.html#cb585-51" aria-hidden="true" tabindex="-1"></a>      <span class="at">color =</span> <span class="fu">factor</span>(.data[[iv]])</span>
+<span id="cb585-52"><a href="ch11_n-1outcome.html#cb585-52" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb585-53"><a href="ch11_n-1outcome.html#cb585-53" aria-hidden="true" tabindex="-1"></a>    <span class="at">position =</span> <span class="fu">position_jitter</span>(<span class="at">width =</span> .<span class="dv">05</span>),</span>
+<span id="cb585-54"><a href="ch11_n-1outcome.html#cb585-54" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="dv">2</span>,</span>
+<span id="cb585-55"><a href="ch11_n-1outcome.html#cb585-55" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.7</span>,</span>
+<span id="cb585-56"><a href="ch11_n-1outcome.html#cb585-56" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb585-57"><a href="ch11_n-1outcome.html#cb585-57" aria-hidden="true" tabindex="-1"></a>    <span class="co"># geom_boxplot(</span></span>
+<span id="cb585-58"><a href="ch11_n-1outcome.html#cb585-58" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   aes(</span></span>
+<span id="cb585-59"><a href="ch11_n-1outcome.html#cb585-59" aria-hidden="true" tabindex="-1"></a>    <span class="co">#     x = .data[[iv]],</span></span>
+<span id="cb585-60"><a href="ch11_n-1outcome.html#cb585-60" aria-hidden="true" tabindex="-1"></a>    <span class="co">#     y = .data[[subjectwise_mean]],</span></span>
+<span id="cb585-61"><a href="ch11_n-1outcome.html#cb585-61" aria-hidden="true" tabindex="-1"></a>    <span class="co">#     fill = .data[[iv]]</span></span>
+<span id="cb585-62"><a href="ch11_n-1outcome.html#cb585-62" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   ),</span></span>
+<span id="cb585-63"><a href="ch11_n-1outcome.html#cb585-63" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   outlier.shape = NA, alpha = 0.8, width = .1, colour = &quot;black&quot;</span></span>
+<span id="cb585-64"><a href="ch11_n-1outcome.html#cb585-64" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ) +</span></span>
+<span id="cb585-65"><a href="ch11_n-1outcome.html#cb585-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb585-66"><a href="ch11_n-1outcome.html#cb585-66" aria-hidden="true" tabindex="-1"></a>    <span class="co"># geom_half_boxplot(</span></span>
+<span id="cb585-67"><a href="ch11_n-1outcome.html#cb585-67" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   data = subjectwise,</span></span>
+<span id="cb585-68"><a href="ch11_n-1outcome.html#cb585-68" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   aes(x = .data[[iv]],</span></span>
+<span id="cb585-69"><a href="ch11_n-1outcome.html#cb585-69" aria-hidden="true" tabindex="-1"></a>    <span class="co">#       y = .data[[subjectwise_mean]],</span></span>
+<span id="cb585-70"><a href="ch11_n-1outcome.html#cb585-70" aria-hidden="true" tabindex="-1"></a>    <span class="co">#       fill = .data[[iv]]),</span></span>
+<span id="cb585-71"><a href="ch11_n-1outcome.html#cb585-71" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   side = &quot;r&quot;,</span></span>
+<span id="cb585-72"><a href="ch11_n-1outcome.html#cb585-72" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   outlier.shape = NA,</span></span>
+<span id="cb585-73"><a href="ch11_n-1outcome.html#cb585-73" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   alpha = 0.8,</span></span>
+<span id="cb585-74"><a href="ch11_n-1outcome.html#cb585-74" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   width = .05,</span></span>
+<span id="cb585-75"><a href="ch11_n-1outcome.html#cb585-75" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   notch = FALSE,</span></span>
+<span id="cb585-76"><a href="ch11_n-1outcome.html#cb585-76" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   notchwidth = 0,</span></span>
+<span id="cb585-77"><a href="ch11_n-1outcome.html#cb585-77" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   varwidth = FALSE,</span></span>
+<span id="cb585-78"><a href="ch11_n-1outcome.html#cb585-78" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   colour = &quot;black&quot;,</span></span>
+<span id="cb585-79"><a href="ch11_n-1outcome.html#cb585-79" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   errorbar.draw = FALSE</span></span>
+<span id="cb585-80"><a href="ch11_n-1outcome.html#cb585-80" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ) +</span></span>
+<span id="cb585-81"><a href="ch11_n-1outcome.html#cb585-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb585-82"><a href="ch11_n-1outcome.html#cb585-82" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_errorbar</span>(</span>
+<span id="cb585-83"><a href="ch11_n-1outcome.html#cb585-83" aria-hidden="true" tabindex="-1"></a>      <span class="at">data =</span> groupwise,</span>
+<span id="cb585-84"><a href="ch11_n-1outcome.html#cb585-84" aria-hidden="true" tabindex="-1"></a>      <span class="fu">aes</span>(</span>
+<span id="cb585-85"><a href="ch11_n-1outcome.html#cb585-85" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="fu">as.numeric</span>(.data[[sub_iv]]) <span class="sc">+</span> .<span class="dv">1</span> ,</span>
+<span id="cb585-86"><a href="ch11_n-1outcome.html#cb585-86" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="fu">as.numeric</span>(.data[[group_mean]]),</span>
+<span id="cb585-87"><a href="ch11_n-1outcome.html#cb585-87" aria-hidden="true" tabindex="-1"></a>        <span class="at">color =</span> <span class="fu">factor</span>(.data[[iv]]),</span>
+<span id="cb585-88"><a href="ch11_n-1outcome.html#cb585-88" aria-hidden="true" tabindex="-1"></a>        <span class="at">ymin =</span> .data[[group_mean]] <span class="sc">-</span> .data[[se]],</span>
+<span id="cb585-89"><a href="ch11_n-1outcome.html#cb585-89" aria-hidden="true" tabindex="-1"></a>        <span class="at">ymax =</span> .data[[group_mean]] <span class="sc">+</span> .data[[se]]</span>
+<span id="cb585-90"><a href="ch11_n-1outcome.html#cb585-90" aria-hidden="true" tabindex="-1"></a>      ),</span>
+<span id="cb585-91"><a href="ch11_n-1outcome.html#cb585-91" aria-hidden="true" tabindex="-1"></a>      <span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="at">width=</span><span class="fl">0.1</span>), <span class="at">width=</span><span class="fl">0.1</span> ,   <span class="co"># position = &#39;dodge&#39;,</span></span>
+<span id="cb585-92"><a href="ch11_n-1outcome.html#cb585-92" aria-hidden="true" tabindex="-1"></a>      <span class="at">alpha =</span> <span class="dv">1</span></span>
+<span id="cb585-93"><a href="ch11_n-1outcome.html#cb585-93" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb585-94"><a href="ch11_n-1outcome.html#cb585-94" aria-hidden="true" tabindex="-1"></a><span class="fu">geom_line</span>(</span>
+<span id="cb585-95"><a href="ch11_n-1outcome.html#cb585-95" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> groupwise,</span>
+<span id="cb585-96"><a href="ch11_n-1outcome.html#cb585-96" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(</span>
+<span id="cb585-97"><a href="ch11_n-1outcome.html#cb585-97" aria-hidden="true" tabindex="-1"></a>    <span class="co">#group = .data[[subject]],</span></span>
+<span id="cb585-98"><a href="ch11_n-1outcome.html#cb585-98" aria-hidden="true" tabindex="-1"></a>    <span class="at">group =</span> <span class="dv">1</span>,</span>
+<span id="cb585-99"><a href="ch11_n-1outcome.html#cb585-99" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="fu">as.numeric</span>(.data[[group_mean]]),</span>
+<span id="cb585-100"><a href="ch11_n-1outcome.html#cb585-100" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="fu">as.numeric</span>(.data[[sub_iv]]) <span class="sc">+</span> .<span class="dv">1</span> ,</span>
+<span id="cb585-101"><a href="ch11_n-1outcome.html#cb585-101" aria-hidden="true" tabindex="-1"></a>    <span class="co"># fill = factor(.data[[iv]])</span></span>
+<span id="cb585-102"><a href="ch11_n-1outcome.html#cb585-102" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb585-103"><a href="ch11_n-1outcome.html#cb585-103" aria-hidden="true" tabindex="-1"></a>  <span class="at">linetype =</span> <span class="st">&quot;solid&quot;</span>, <span class="at">color =</span> <span class="st">&quot;#C97482&quot;</span>, <span class="at">alpha =</span> <span class="dv">1</span></span>
+<span id="cb585-104"><a href="ch11_n-1outcome.html#cb585-104" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb585-105"><a href="ch11_n-1outcome.html#cb585-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb585-106"><a href="ch11_n-1outcome.html#cb585-106" aria-hidden="true" tabindex="-1"></a>    <span class="co"># legend stuff ________________________________________________________ # nolint</span></span>
+<span id="cb585-107"><a href="ch11_n-1outcome.html#cb585-107" aria-hidden="true" tabindex="-1"></a>    <span class="co">#expand_limits(x = 2.8) +</span></span>
+<span id="cb585-108"><a href="ch11_n-1outcome.html#cb585-108" aria-hidden="true" tabindex="-1"></a>    <span class="co">#guides(fill = &quot;none&quot;) +</span></span>
+<span id="cb585-109"><a href="ch11_n-1outcome.html#cb585-109" aria-hidden="true" tabindex="-1"></a>    <span class="fu">guides</span>(<span class="at">color =</span> <span class="st">&quot;none&quot;</span>) <span class="sc">+</span></span>
+<span id="cb585-110"><a href="ch11_n-1outcome.html#cb585-110" aria-hidden="true" tabindex="-1"></a>    <span class="fu">guides</span>(<span class="at">fill =</span> <span class="fu">guide_legend</span>(<span class="at">title =</span> title)) <span class="sc">+</span></span>
+<span id="cb585-111"><a href="ch11_n-1outcome.html#cb585-111" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> color) <span class="sc">+</span></span>
+<span id="cb585-112"><a href="ch11_n-1outcome.html#cb585-112" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_manual</span>(<span class="at">values =</span> color) <span class="sc">+</span></span>
+<span id="cb585-113"><a href="ch11_n-1outcome.html#cb585-113" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggtitle</span>(ggtitle) <span class="sc">+</span></span>
+<span id="cb585-114"><a href="ch11_n-1outcome.html#cb585-114" aria-hidden="true" tabindex="-1"></a>    <span class="fu">xlab</span>(xlab) <span class="sc">+</span></span>
+<span id="cb585-115"><a href="ch11_n-1outcome.html#cb585-115" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ylab</span>(ylab) <span class="sc">+</span></span>
+<span id="cb585-116"><a href="ch11_n-1outcome.html#cb585-116" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_bw</span>()</span>
+<span id="cb585-117"><a href="ch11_n-1outcome.html#cb585-117" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggsave</span>(save_fname, <span class="at">width =</span> w, <span class="at">height =</span> h)</span>
+<span id="cb585-118"><a href="ch11_n-1outcome.html#cb585-118" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(g)</span>
+<span id="cb585-119"><a href="ch11_n-1outcome.html#cb585-119" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb586"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb586-1"><a href="ch11_n-1outcome.html#cb586-1" aria-hidden="true" tabindex="-1"></a>df_discrete<span class="sc">$</span>n_1outcomelevels_newlev <span class="ot">=</span> <span class="fu">as.factor</span>(df_discrete<span class="sc">$</span>n_1outcomelevels_newlev)</span>
+<span id="cb586-2"><a href="ch11_n-1outcome.html#cb586-2" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span></span>
+<span id="cb586-3"><a href="ch11_n-1outcome.html#cb586-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_halfrainclouds_sig</span>(</span>
+<span id="cb586-4"><a href="ch11_n-1outcome.html#cb586-4" aria-hidden="true" tabindex="-1"></a>    subjectwise_bin_demean_naomit,</span>
+<span id="cb586-5"><a href="ch11_n-1outcome.html#cb586-5" aria-hidden="true" tabindex="-1"></a>    groupwise_bin_demean,</span>
+<span id="cb586-6"><a href="ch11_n-1outcome.html#cb586-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">iv =</span> <span class="st">&quot;n_1outcomelevels_newlev&quot;</span>,</span>
+<span id="cb586-7"><a href="ch11_n-1outcome.html#cb586-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">sub_iv =</span> <span class="st">&quot;n_1outcomelevels&quot;</span>,</span>
+<span id="cb586-8"><a href="ch11_n-1outcome.html#cb586-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">subjectwise_mean =</span> <span class="st">&quot;mean_per_sub&quot;</span>,</span>
+<span id="cb586-9"><a href="ch11_n-1outcome.html#cb586-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">group_mean =</span> <span class="st">&quot;mean_per_sub_norm_mean&quot;</span>,</span>
+<span id="cb586-10"><a href="ch11_n-1outcome.html#cb586-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">se =</span> <span class="st">&quot;se&quot;</span>,</span>
+<span id="cb586-11"><a href="ch11_n-1outcome.html#cb586-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">subject =</span> <span class="st">&quot;subject&quot;</span>,</span>
+<span id="cb586-12"><a href="ch11_n-1outcome.html#cb586-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">ggtitle =</span> <span class="st">&quot;Do we see a sigmoidal pattern in the pain task?</span><span class="sc">\n</span><span class="st">Previous outcome ratings predict expectation ratings&quot;</span>,</span>
+<span id="cb586-13"><a href="ch11_n-1outcome.html#cb586-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">&quot;levels of (N-1) outcome ratings&quot;</span>,</span>
+<span id="cb586-14"><a href="ch11_n-1outcome.html#cb586-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlab =</span> <span class="st">&quot;outcome ratings (N-1)&quot;</span>,</span>
+<span id="cb586-15"><a href="ch11_n-1outcome.html#cb586-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylab =</span> <span class="st">&quot;expectation ratings (N)&quot;</span>,</span>
+<span id="cb586-16"><a href="ch11_n-1outcome.html#cb586-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">taskname =</span> <span class="st">&quot;pain&quot;</span>,</span>
+<span id="cb586-17"><a href="ch11_n-1outcome.html#cb586-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">40</span>, <span class="dv">40</span>),</span>
+<span id="cb586-18"><a href="ch11_n-1outcome.html#cb586-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">w =</span> <span class="dv">3</span>,</span>
+<span id="cb586-19"><a href="ch11_n-1outcome.html#cb586-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">h =</span> <span class="dv">5</span>,</span>
+<span id="cb586-20"><a href="ch11_n-1outcome.html#cb586-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">dv_keyword =</span> <span class="st">&quot;sigmoidal&quot;</span>,</span>
+<span id="cb586-21"><a href="ch11_n-1outcome.html#cb586-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="fu">c</span>(</span>
+<span id="cb586-22"><a href="ch11_n-1outcome.html#cb586-22" aria-hidden="true" tabindex="-1"></a>      <span class="st">&#39;#ad2831&#39;</span>,</span>
+<span id="cb586-23"><a href="ch11_n-1outcome.html#cb586-23" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;#800e13&quot;</span>,</span>
+<span id="cb586-24"><a href="ch11_n-1outcome.html#cb586-24" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;#640d14&quot;</span>,</span>
+<span id="cb586-25"><a href="ch11_n-1outcome.html#cb586-25" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;#38040e&quot;</span>,</span>
+<span id="cb586-26"><a href="ch11_n-1outcome.html#cb586-26" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;#250902&quot;</span>,</span>
+<span id="cb586-27"><a href="ch11_n-1outcome.html#cb586-27" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;#250902&quot;</span></span>
+<span id="cb586-28"><a href="ch11_n-1outcome.html#cb586-28" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb586-29"><a href="ch11_n-1outcome.html#cb586-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">save_fname =</span> <span class="st">&quot;~/Download/TEST.png&quot;</span></span>
+<span id="cb586-30"><a href="ch11_n-1outcome.html#cb586-30" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb586-31"><a href="ch11_n-1outcome.html#cb586-31" aria-hidden="true" tabindex="-1"></a>g</span></code></pre></div>
+<p><img src="11_iv-cue-trial_dv-expectjayazeri_N-1_files/figure-html/unnamed-chunk-33-1.png" width="672" />
+<a href="https://groups.google.com/g/ggplot2/c/csPNfSLKkco" class="uri">https://groups.google.com/g/ggplot2/c/csPNfSLKkco</a></p>
+<div class="sourceCode" id="cb587"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb587-1"><a href="ch11_n-1outcome.html#cb587-1" aria-hidden="true" tabindex="-1"></a>g <span class="sc">+</span>    <span class="fu">geom_errorbar</span>(</span>
+<span id="cb587-2"><a href="ch11_n-1outcome.html#cb587-2" aria-hidden="true" tabindex="-1"></a>      <span class="at">data =</span> groupwise_bin_demean,</span>
+<span id="cb587-3"><a href="ch11_n-1outcome.html#cb587-3" aria-hidden="true" tabindex="-1"></a>      <span class="fu">aes</span>(</span>
+<span id="cb587-4"><a href="ch11_n-1outcome.html#cb587-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="fu">as.numeric</span>(<span class="st">&quot;n_1outcomelevels_newlev&quot;</span>)  ,</span>
+<span id="cb587-5"><a href="ch11_n-1outcome.html#cb587-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="fu">as.numeric</span>(<span class="st">&quot;mean_per_sub_norm_mean&quot;</span>),</span>
+<span id="cb587-6"><a href="ch11_n-1outcome.html#cb587-6" aria-hidden="true" tabindex="-1"></a>        <span class="co">#colour = as.numeric(&quot;n_1outcomelevels_newlev&quot;),</span></span>
+<span id="cb587-7"><a href="ch11_n-1outcome.html#cb587-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">ymin =</span> mean_per_sub_norm_mean <span class="sc">-</span> se,</span>
+<span id="cb587-8"><a href="ch11_n-1outcome.html#cb587-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">ymax =</span> mean_per_sub_norm_mean <span class="sc">+</span> se</span>
+<span id="cb587-9"><a href="ch11_n-1outcome.html#cb587-9" aria-hidden="true" tabindex="-1"></a>      ), <span class="at">width =</span> .<span class="dv">1</span>    ) </span></code></pre></div>
+<pre><code>## Warning in FUN(X[[i]], ...): NAs introduced by coercion
+
+## Warning in FUN(X[[i]], ...): NAs introduced by coercion</code></pre>
+<p><img src="11_iv-cue-trial_dv-expectjayazeri_N-1_files/figure-html/unnamed-chunk-34-1.png" width="672" /></p>
+<div class="sourceCode" id="cb589"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb589-1"><a href="ch11_n-1outcome.html#cb589-1" aria-hidden="true" tabindex="-1"></a>g</span></code></pre></div>
+<p><img src="11_iv-cue-trial_dv-expectjayazeri_N-1_files/figure-html/unnamed-chunk-34-2.png" width="672" /></p>
+
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="ch10_icc.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="ch12_n-1outcome.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": "https://github.com/USERNAME/REPO/edit/BRANCH/11_iv-cue-trial_dv-expectjayazeri_N-1.Rmd",
+"text": "Edit"
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": ["_main.pdf", "_main.epub"],
+"search": {
+"engine": "fuse",
+"options": null
+},
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>
