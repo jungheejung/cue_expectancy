@@ -205,6 +205,10 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     ggsave(p2.save_fname, plot = r)
 }
 ```
+```{r}
+r
+```
+
 
 ### model 03 3-2. individual difference
 
@@ -215,7 +219,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
 combined_se_calc_cooksd <- data.frame()
 analysis_dir <- file.path(
         main_dir,
-        "analysis", "mixedeffect", "model04_iv-cue-stim_dv-actual",as.character(Sys.Date())
+        "analysis", "mixedeffect", "model05_iv-cue-stim_dv-actual",as.character(Sys.Date())
     )
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
@@ -277,7 +281,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
             sep = ""
         )
     )
-    cooksd <- lmer_two_factor_cooksd_fix(
+    cooksd <- lmer_twofactor_cooksd_fix(
         data, taskname, iv1, stim_con1, stim_con2, dv,
         subject, dv_keyword, model_savefname, 'random_slopes', print_lmer_output = FALSE
     )
@@ -374,7 +378,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     ggsave(plot_savefname, width = w, height = h)
 
     
-    
+  g  
 
     # save fixed random effects _______________________________
     randEffect$newcoef <- mapvalues(randEffect$term,
