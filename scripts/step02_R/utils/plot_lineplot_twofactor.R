@@ -1,5 +1,5 @@
 plot_lineplot_twofactor <- function(data, taskname, iv1, iv2, mean, error,
-                      color, ggtitle) {
+                      color, ggtitle, xlab= "Stimulus intensity", ylab = "Rating (degrees)") {
     # iv1 = "levels_ordered"
     # iv2 = "social_ordered"
     # mean = mean_per_sub_norm_mean
@@ -21,8 +21,8 @@ plot_lineplot_twofactor <- function(data, taskname, iv1, iv2, mean, error,
         # scale_x_continuous(breaks = seq(-3, +3, by = 1)) +
         # scale_y_continuous(breaks = seq(0, 90, by=30), limits=c(0,90)) +
         ggtitle(ggtitle) +
-        xlab("Stimulus intensity") +
-        ylab("Rating (degrees)") +
+        xlab(xlab) +
+        ylab(ylab) +
         # guides(fill=guide_legend(title="Social Endorsement Position")) +
         scale_color_manual(values = color) +
         theme_classic() +
