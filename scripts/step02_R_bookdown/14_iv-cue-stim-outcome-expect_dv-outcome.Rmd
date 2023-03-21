@@ -255,7 +255,7 @@ sp +  labs(title =paste0("task-",taskname, "- What is the pattern for outcome an
 ```{r echo=FALSE, message=TRUE, warning=TRUE}
 model.factorize = lmer(event04_actual_angle ~ cue_con*stim_con_linear*event02_expect_angle + cue_con*stim_con_quad*event02_expect_angle + lag.04outcomeangle + (cue_con|src_subject_id), data = pvc)
 summary(model.factorize)
-#tab_model(model.factorize, p.val = "kr", show.df = TRUE)
+tab_model(model.factorize, p.val = "kr", show.df = TRUE)
 ```
 
 
@@ -277,7 +277,7 @@ total <-
     df_dropna, iv1, iv2, group, subject, min, max, xlab, ylab,
     ggtitle = "all stimulus intensity", 
     color_scheme = c("high_cue" ="#941100","low_cue" =  "#BBBBBB"), 
-    alpha = .8, fit_lm = TRUE, lm_method = "lm"
+    alpha = .8, fit_lm = FALSE, lm_method = "lm"
   )
 total + labs(title =paste0("task-",taskname, "- What is the pattern for outcome and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
           )
@@ -475,7 +475,7 @@ total <-
     ylab = "outcome rating", 
     ggtitle = paste(taskname, "all stimulus intensity"),
     color_scheme = c("high_cue" ="#009411","low_cue" =  "#5D5C5C"),
-    alpha = .8, fit_lm = TRUE, lm_method = "lm"
+    alpha = .8, fit_lm = FALSE, lm_method = "lm"
   )
 total + labs(title =paste0("task-",taskname, "- What is the pattern for outcome and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n"))
 ```
@@ -644,7 +644,7 @@ total <-
     min, max, xlab, ylab, 
     ggtitle = "all stimulus intensity",
     color_scheme = c("high_cue" ="#110094","low_cue" =  "#5D5C5C"),
-    alpha = .8, fit_lm = TRUE, lm_method = "lm"
+    alpha = .8, fit_lm = FALSE, lm_method = "lm"
   )
 title =paste0("task-",taskname, "- What is the pattern for outcome and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
 plots_title <- annotate_figure(total, top = text_grob(title, color = "black", face = "bold", size = 12))
