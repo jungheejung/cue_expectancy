@@ -1,0 +1,31 @@
+plot_keys <- list(
+    iv1 = "task",
+    iv2 = "stim_ordered",
+    plot_keyword = "stimulusintensity",
+    dv = "NPSpos",
+    dv_keyword = dv,
+    taskname = "all",
+    sub_mean = "mean_per_sub",
+    group_mean = "mean_per_sub_norm_mean",
+    legend_keyword = "stimulus intensity",
+    se = "se",
+    subject = "sub",
+    ggtitle_phrase =  "(3 tasks x 3 stimulus intensity)",
+    ggtitle = paste0(str_to_title(signature_key), " dot product: ", str_to_title(taskname),' ', ggtitle_phrase,  " (N = ", length(unique(pvc$sub)), ")"),
+    title <- paste0(str_to_title(dv_keyword), " - ", str_to_title(plot_keys$legend_keyword)),
+    xlab = "",
+    ylab = paste(signature_name," (dot product)"),
+    ylim = c(-250, 500),
+    w = 10,
+    h = 6,
+    plot_savefname <- file.path(
+        analysis_dir,
+        paste("signature_task-", taskname, "_event-", plot_keyword,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), ".png",
+            sep = ""
+        )
+    ),
+    model_iv1 = "stim_ordered",
+    model_iv2 = "cue_ordered",
+)
