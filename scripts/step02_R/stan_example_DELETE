@@ -1,0 +1,43 @@
+“”"stan
+data {
+int<lower=0> N;
+vector[N] y;
+int<lower=1> n_pred;
+}
+parameters {
+real beta0;
+real beta1;
+real<lower=0> sigma;
+}
+transformed parameters {
+real m;
+real b0;
+real b1;
+b0 = exp(beta0);
+b1 = exp(beta1);
+
+}
+model {
+// priors
+beta0 ~ normal(0,10);
+beta1 ~ normal(0, 10);
+sigma ~ cauchy(0,5);
+// likelihood
+for (n in 2:N)
+y[n] ~ normal(beta0 + beta1 * y[n-1], sigma);
+}
+generated quantities {
+vector[n_pred] pred;
+for (k in 2:n_pred)
+pred[k] = normal_rng(b0 + b1 * pred[k-1], sigma);
+}
+
+“”"
+And my data is:
+data2 = {‘N’:df.shape[0] ,
+‘y’: y,
+‘n_pred’:df.shape[0]
+}
+
+sm1 = pystan.StanModel(model_code=model)
+fit = sm1.sampling(data=data2, iter=5000, chains=1).
