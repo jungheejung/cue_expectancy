@@ -1,5 +1,6 @@
 # summarize dataframe __________________________________________________________
-plot_twovariable <- function(df, iv1, iv2, group, subject, min, max, xlab, ylab, ggtitle, color_scheme, alpha, fit_lm, lm_method = NULL) {
+plot_twovariable <- function(df, iv1, iv2, group, subject, xmin, xmax, ymin,ymax,
+xlab, ylab, ggtitle, color_scheme, alpha, fit_lm, lm_method = NULL) {
     # x: iv1 e.g. expect rating
     # y: iv2 e.g. outcome rating
     # group: param_cue_type

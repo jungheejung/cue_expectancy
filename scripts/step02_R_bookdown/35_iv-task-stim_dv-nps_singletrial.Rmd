@@ -17,6 +17,13 @@ library(tidyr)
 library(stringr)
 library(lmerTest)
 library(gghalves)
+library(plyr)
+library(ggpubr)
+library(r2mlm)
+library(effectsize)
+options(es.use_symbols = TRUE) # get nice symbols when printing! (On Windows, requires R >= 4.2.0)
+library(EMAtools)
+library(emmeans)
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
@@ -147,8 +154,8 @@ for (signature_key in c("NPSpos")) {
   signature_name = signature_key
   # step 1: common parameters _______
   main_dir <- dirname(dirname(getwd()))
-  #signature_key = "NPSpos"
-  analysis_folder  = paste0("model35_iv-task-stim_dv-signature")
+
+  analysis_folder  = paste0("model35_iv-task-stim_dv-", signature_key)
 
   sig_name <-
     Sys.glob(file.path(
@@ -478,7 +485,7 @@ total <-
   plot_twovariable(
     df_dropna, iv1, iv2,
     group = "cuetype", subject = "sub",
-    min =0, max = 200,
+    xmin=0, xmax=200, ymin=-50, ymax=50,
     xlab = "expectation rating",
     ylab = signature_key, 
     ggtitle = "all stimulus intensity", 
@@ -501,7 +508,7 @@ low <-
   plot_twovariable(
     df_low, iv1 , iv2,
     group = group, subject = subject,
-    min = 0, max = 200,
+    xmin=0, xmax=200, ymin=-50, ymax=50,
     xlab = "expectation rating", ylab = "NPSpos",
     ggtitle = "Low intensity",
     color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
@@ -514,7 +521,7 @@ med <-
   plot_twovariable(
     df_med, iv1, iv2,
      group = group, subject = subject,
-    min = 0, max = 200,
+    xmin=0, xmax=200, ymin=-50, ymax=50,
     xlab = "expectation rating", ylab = "NPSpos",
     ggtitle = "Medium intensity",
     color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
@@ -527,7 +534,7 @@ high <-
   plot_twovariable(
     df_high, iv1, iv2,
      group = group, subject = subject,
-    min = 0, max = 200,
+    xmin=0, xmax=200, ymin=-50, ymax=50,
     xlab = "expectation rating", ylab = "NPSpos",
     ggtitle = "High intensity",
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
@@ -670,9 +677,34 @@ g
 g
 ```
 
+## lmer
+```{r}
+cooksd <- lmer_twofactor_cooksd_fix(
+        data, taskname, iv1, stim_con1, stim_con2, dv,
+        subject, dv_keyword, model_savefname, 'random_slopes', print_lmer_output = TRUE
+    )
+```
+```{r}
+model.nps <- lmer(NPSpos ~ cue_con*stim_con_linear + cue_con*stim_con_quad + factor(ses) +  (cue_con|sub), data = data_screen)
+
+summary(model.nps)
+
+
+```
+
+```{r}
+print("eta squared")
+eta_squared(model.nps, partial = TRUE)
+parameters::model_parameters(model.nps)
+lme.dscore(model.nps, data_screen, type = "lme4")
+#r2mlm(model.nps)
+emm1 = emmeans(model.nps, specs = pairwise ~ cue_con|stim_con_linear)
+```
+
+
 ## lineplots
 ```{r}
-plot_lineplot_twofactor(actual_groupwise, taskname = "vicarious", 
+plot_lineplot_twofactor(actual_groupwise, taskname = "pain", 
                         iv1 = "stim_ordered", iv2 = "cue_ordered", 
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("#4575B4", "#D73027"), ggtitle = "placeholder")

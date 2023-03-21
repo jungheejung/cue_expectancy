@@ -17,6 +17,8 @@ library(tidyr)
 library(stringr)
 library(lmerTest)
 library(gghalves)
+library(plyr)
+library(ggpubr)
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
@@ -497,7 +499,7 @@ total <-
   plot_twovariable(
     df_dropna, iv1, iv2,
     group = "cuetype", subject = "sub",
-    min =0, max = 200,
+    xmin=0, xmax=200, ymin=-50, ymax=50,
     xlab = "expectation rating",
     ylab = signature_key, 
     ggtitle = "all stimulus intensity", 
@@ -520,7 +522,7 @@ low <-
   plot_twovariable(
     df_low, iv1 , iv2,
     group = group, subject = subject,
-    min = 0, max = 200,
+    xmin=0, xmax=200, ymin=-50, ymax=50,
     xlab = "expectation rating", ylab = signature_key,
     ggtitle = "Low intensity",
     color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
@@ -533,7 +535,7 @@ med <-
   plot_twovariable(
     df_med, iv1, iv2,
      group = group, subject = subject,
-    min = 0, max = 200,
+    xmin=0, xmax=200, ymin=-50, ymax=50,
     xlab = "expectation rating", ylab = signature_key,
     ggtitle = "Medium intensity",
     color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
@@ -545,8 +547,8 @@ df_high = df_dropna[df_dropna$stimintensity == "high", ]
 high <-
   plot_twovariable(
     df_high, iv1, iv2,
-     group = group, subject = subject,
-    min = 0, max = 200,
+    group = group, subject = subject,
+    xmin=0, xmax=200, ymin=-50, ymax=50,
     xlab = "expectation rating", ylab = signature_key,
     ggtitle = "High intensity",
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
