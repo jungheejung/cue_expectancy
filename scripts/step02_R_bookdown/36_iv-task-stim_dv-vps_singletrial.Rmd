@@ -1,12 +1,12 @@
-# [fMRI] Vicarious signature ~ single trial {#ch36_singletrial_V}
+# fMRI Pain signature ~ single trial {#ch36_singletrial_V}
 
 ```
-author: "Heejung Jung"
+author: "Heejung Jung
 date: "2023-03-04"
 ```
+color_scheme = c("#C6FF8A", "#63C76E", "#008F51")
 
-
-```{r libraries_nps_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+```{r libraries_vps_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(car)
 library(psych)
 library(reshape)
@@ -19,6 +19,11 @@ library(lmerTest)
 library(gghalves)
 library(plyr)
 library(ggpubr)
+library(r2mlm)
+library(effectsize)
+options(es.use_symbols = TRUE) # get nice symbols when printing! (On Windows, requires R >= 4.2.0)
+library(EMAtools)
+library(emmeans)
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
@@ -84,7 +89,7 @@ return(df)
 }
 ```
 
-```{r function::NPS_lineplot_34, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+```{r function::VPS_lineplot_36, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 two_factor_lineplot <-
   function(df, iv1, iv2, mean, error, xlab, ylab) {
     g <- ggplot(
@@ -149,8 +154,8 @@ for (signature_key in c("VPS")) {
   signature_name = signature_key
   # step 1: common parameters _______
   main_dir <- dirname(dirname(getwd()))
-  #signature_key = "NPSpos"
-  analysis_folder  = paste0("model36_iv-task-stim_dv-VPS")
+
+  analysis_folder  = paste0("model36_iv-task-stim_dv-", signature_key)
 
   sig_name <-
     Sys.glob(file.path(
@@ -248,7 +253,7 @@ for (signature_key in c("VPS")) {
     # "sub",
     model_iv1 =  "task",
     model_iv2 =  "stim_ordered",
-    dv = signature_key #"NPSpos"
+    dv = signature_key #"VPS"
   )
   subjectwise <<- as.data.frame(summary[[1]])
   groupwise <<- as.data.frame(summary[[2]])
@@ -334,7 +339,7 @@ for (signature_key in c("VPS")) {
 }
 ```
 
-## load behavioral data
+### Load behavioral data {.unlisted .unnumbered}
 ```{r}
 main_dir = dirname(dirname(getwd()))
 print(main_dir)
@@ -353,28 +358,26 @@ c.df <- load_task_social_df(datadir, taskname = "cognitive", subject_varkey, iv,
 p.df2= p.df %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
-  dplyr::mutate(trial_index = row_number())
-  # dplyr::mutate(trial_index = dplyr::row_number())
-  # mutate(trial_index = row_number())
+  mutate(trial_index = row_number())
 data_p <- p.df2 %>% 
   group_by(src_subject_id, session_id, param_run_num) %>% 
-  dplyr::mutate(trial_index = row_number(param_run_num))
+  mutate(trial_index = row_number(param_run_num))
 
 v.df2= v.df %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
-  dplyr::mutate(trial_index = row_number())
+  mutate(trial_index = row_number())
 data_v <- v.df2 %>% 
   group_by(src_subject_id, session_id, param_run_num) %>% 
-  dplyr::mutate(trial_index = row_number(param_run_num))
+  mutate(trial_index = row_number(param_run_num))
 
 c.df2= c.df %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
-  dplyr::mutate(trial_index = row_number()-1)
+  mutate(trial_index = row_number()-1)
 data_c <- c.df2 %>% 
   group_by(src_subject_id, session_id, param_run_num) %>% 
-  dplyr::mutate(trial_index = row_number(param_run_num) )
+  mutate(trial_index = row_number(param_run_num) )
 p.sub <- data_p[,c("src_subject_id", "session_id", "param_run_num", "param_task_name", "event02_expect_angle", "param_cue_type", "param_stimulus_type", "event04_actual_angle", "trial_index")]
 v.sub <- data_v[,c("src_subject_id", "session_id", "param_run_num", "param_task_name", "event02_expect_angle", "param_cue_type", "param_stimulus_type", "event04_actual_angle", "trial_index")]
 c.sub <- data_c[,c("src_subject_id", "session_id", "param_run_num", "param_task_name", "event02_expect_angle", "param_cue_type", "param_stimulus_type", "event04_actual_angle", "trial_index")]
@@ -405,83 +408,56 @@ df_merge <- merge(pvc, pvc.beh,
   
 ```
 
-## expect & NPS as a function of cue
 
 
+
+## PVC all task comparison
 ```{r}
-v.sig <- df_merge[df_merge$runtype == "runtype-vicarious",]
-iv1 = "event02_expect_angle"; iv2 = "VPS"
-df_dropna <-
-  v.sig[!is.na(v.sig$event02_expect_angle) & !is.na(v.sig$VPS),]
-total <-
-  plot_twovariable(
-    df_dropna, iv1, iv2,
-    group = "cuetype", subject = "sub",
-    xmin=0, xmax=200, ymin=-50, ymax=50,
-    xlab = "expectation rating",
-    ylab = signature_key, 
-    ggtitle = "all stimulus intensity", 
-    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"), 
-    alpha = .8, fit_lm = TRUE
-  )
-total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
-          )
-  # geom_line(method="lm", alpha=0.3, size=1, span=0.5) # geom_smooth(method=lm, se = TRUE) 
-# +geom_smooth(method = "lm", alpha=0.1, size=0, span=0.5)
-```
+# contrast code 1 linear
+pvc$task_con_linear[pvc$task == "pain"] <- 0.5
+pvc$task_con_linear[pvc$task == "vicarious"] <- 0
+pvc$task_con_linear[pvc$task == "cognitive"] <- -0.5
 
+# contrast code 2 quadratic
+pvc$task_con_quad[pvc$task == "pain"] <- 0.66
+pvc$task_con_quad[pvc$task == "vicarious"] <- -.34
+pvc$task_con_quad[pvc$task == "cognitive"] <- -.34
 
-```{r rawoutcome_pain_stimuluswise, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-iv1 = "event02_expect_angle"; iv2 = "event04_actual_angle"
-group = "cuetype"; subject = "sub"
-ylab = "VPS"
-# low stimulus intensity
-df_low = df_dropna[df_dropna$stimintensity == "low", ]
-low <-
-  plot_twovariable(
-    df_low, iv1 , iv2,
-    group = group, subject = subject,
-    xmin=0, xmax=200, ymin=-50, ymax=50,
-    xlab = "expectation rating", ylab = ylab,
-    ggtitle = "Low intensity",
-    color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE, lm_method = "lm"
-  )
+model.alltask <-
+  lmer(VPS ~ task_con_linear*stim_factor + 
+         task_con_quad*stim_factor + (task|sub), data = pvc)
+summary(model.alltask)
+print("eta squared")
+eta_squared(model.alltask, partial = TRUE)
+parameters::model_parameters(model.alltask)
+lme.dscore(model.alltask, pvc, type = "lme4")
 
-# med stimulus intensity
-df_med = df_dropna[df_dropna$stimintensity == "med", ]
-med <-
-  plot_twovariable(
-    df_med, iv1, iv2,
-     group = group, subject = subject,
-    xmin=0, xmax=200, ymin=-50, ymax=50,
-    xlab = "expectation rating", ylab = ylab,
-    ggtitle = "Medium intensity",
-    color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE, lm_method = "lm"
-  )
-
-# high stimulus intensity
-df_high = df_dropna[df_dropna$stimintensity == "high", ]
-high <-
-  plot_twovariable(
-    df_high, iv1, iv2,
-    group = group, subject = subject,
-    xmin=0, xmax=200, ymin=-50, ymax=50,
-    xlab = "expectation rating", ylab = ylab,
-    ggtitle = "High intensity",
-    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE, lm_method = "lm"
-  )
-plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
-plots_title <- ggpubr::annotate_figure(plots, top = ggpubr::text_grob(paste(str_to_title(taskname), "\n Expect/Outcome linear relationship differs as a function of stimulus intensity and cue"), color = "black", face = "bold", size = 12))
-plots_title
+plot_halfrainclouds_twofactor(
+  subjectwise,  groupwise,
+  iv1 = "task",  iv2 = "stim_ordered",
+  sub_mean = "mean_per_sub",  group_mean = "mean_per_sub_norm_mean",
+  se = "se",  subject = "sub",
+  ggtitle = "All tasks",
+  title = "task Stim intensity",
+  xlab = "Task",  ylab = paste(signature_key, ' (dot product)'),
+  task_name = "all",
+  ylim = c(-50, 50),
+  w = 10,
+  h = 6,
+  dv_keyword = "stimulusintensity",
+  color = c("red", "yellow", "blue"),
+  save_fname = "/Users/h/Desktop/plot_35.png"
+) 
 ```
 
 
 
-## 2x3 stim*cue 
-```{r}
+## Vicarious only Stim x cue interaction
+
+
+
+### 2x3 stimulus intensity * cue 
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 taskname = "vicarious"
     ggtitle <- paste(taskname, " - actual judgment (degree)")
@@ -489,7 +465,8 @@ taskname = "vicarious"
     subject <- "sub"
     w <- 10
     h <- 6
-data <- v.sig
+p.sig <- df_merge[df_merge$runtype == "runtype-vicarious",]
+data <- p.sig
     # [ CONTRASTS ]  ________________________________________________________________________________ # nolint
     # contrast code ________________________________________
     data$stim[data$stimintensity == "low"] <- -0.5 # social influence task
@@ -578,12 +555,12 @@ data <- v.sig
     group_mean <- "mean_per_sub_norm_mean"
     se <- "se"
     subject <- "sub"
-    ggtitle <- paste(taskname, " - VPS Cooksd removed")
-    title <- paste(taskname, " - VPS")
+    ggtitle <- paste(taskname, " - ", signature_key, " Cooksd removed")
+    title <- paste(taskname, " - ", signature_key)
     xlab <- ""
-    ylab <- "VPS (degree)"
-    ylim <- c(-30,40)
-    dv_keyword <- "VPS"
+    ylab <- paste(signature_key, " (degree)")
+    ylim <- c(-10,60)
+    dv_keyword <- signature_key
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
@@ -605,227 +582,629 @@ data <- v.sig
     )
 g
 ```
-## lineplot
+
+
+### Linear model
+```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+cooksd <- lmer_twofactor_cooksd_fix(
+        data, taskname, iv1, stim_con1, stim_con2, dv,
+        subject, dv_keyword, model_savefname, 'random_slopes', print_lmer_output = TRUE
+    )
+```
+
+### VPS stimulus intensity Cohen's d = 0.2131521
+```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+model.vpsstim <- lmer(VPS ~ stim_con_linear + stim_con_quad +(stim_con_linear + stim_con_quad |sub), data = data_screen)
+summary(model.vpsstim)
+print("eta squared")
+eta_squared(model.vpsstim, partial = TRUE)
+parameters::model_parameters(model.vpsstim)
+lme.dscore(model.vpsstim, data_screen, type = "lme4")
+#r2mlm(model.nps)
+emm1 = emmeans(model.vpsstim, specs = pairwise ~ stim_con_linear+ stim_con_quad )
+```
+
+### VPS stimulus & cue effect size: stim_d = 0.217, cue_d = 0.013
+```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+model.vpscuestim <- lmer(VPS ~ cue_con*stim_con_linear + cue_con*stim_con_quad + (cue_con+stim_factor|sub), data = data_screen)
+summary(model.vpscuestim)
+print("eta squared")
+eta_squared(model.vpscuestim, partial = TRUE)
+#parameters::model_parameters(model.vpscuestim)
+lme.dscore(model.vpscuestim, data_screen, type = "lme4")
+#r2mlm(model.vpscuestim)
+#emm1 = emmeans(model.vpscuestim, specs = pairwise ~ cue_con|stim_con_linear)
+```
+
+
+### Lineplots
 ```{r}
 plot_lineplot_twofactor(actual_groupwise, taskname = "vicarious", 
                         iv1 = "stim_ordered", iv2 = "cue_ordered", 
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("#4575B4", "#D73027"), ggtitle = "placeholder")
+                        color = c("#4575B4", "#D73027"), ggtitle = "placeholder", 
+                        xlab = "Stimulus intensity", ylab = paste(signature_key, " (dot product)"))
+```
+
+### Linear model with Stim x Cue x Expectation rating
+```{r}
+model.vps3factor <- lmer(VPS ~ cue_con*stim_con_linear*event02_expect_angle + cue_con*stim_con_quad*event02_expect_angle + (cue_con|sub), data = data_screen)
+summary(model.vps3factor)
+print("eta squared")
+eta_squared(model.vps3factor, partial = TRUE)
+#parameters::model_parameters(model.vps3factor)
+lme.dscore(model.vps3factor, data_screen, type = "lme4")
+```
+
+
+### Session 1: 2x3 stimulus intensity * cue 
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+combined_se_calc_cooksd <- data.frame()
+taskname = "vicarious"
+    ggtitle <- paste(taskname, " - actual judgment (degree)")
+    title <- paste(taskname, " - actual")
+    subject <- "sub"
+    w <- 10
+    h <- 6
+s1.sig <- df_merge[df_merge$runtype == "runtype-vicarious" & df_merge$ses == "ses-01",]
+data <- s1.sig
+    # [ CONTRASTS ]  ________________________________________________________________________________ # nolint
+# contrast code ________________________________________
+data$stim[data$stimintensity == "low"] <- -0.5 # social influence task
+data$stim[data$stimintensity == "med"] <- 0 # no influence task
+data$stim[data$stimintensity == "high"] <- 0.5 # no influence task
+
+data$stim_factor <- factor(data$stimintensity)
+
+# contrast code 1 linear
+data$stim_con_linear[data$stimintensity == "low"] <- -0.5
+data$stim_con_linear[data$stimintensity == "med"] <- 0
+data$stim_con_linear[data$stimintensity == "high"] <- 0.5
+
+# contrast code 2 quadratic
+data$stim_con_quad[data$stimintensity == "low"] <- -0.33
+data$stim_con_quad[data$stimintensity == "med"] <- 0.66
+data$stim_con_quad[data$stimintensity == "high"] <- -0.33
+
+    # social cude contrast
+    data$social_cue[data$cuetype == "cuetype-low"] <- -0.5 # social influence task
+    data$social_cue[data$cuetype == "cuetype-high"] <- 0.5 # no influence task
+
+
+    stim_con1 <- "stim_con_linear"
+    stim_con2 <- "stim_con_quad"
+    iv1 <- "social_cue"
+    dv <- signature_key
+
+    # [ MODEL ] _________________________________________________ # nolint
+    model_savefname <- file.path(
+        analysis_dir,
+        paste("lmer_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), "_cooksd.txt",
+            sep = ""
+        )
+    )
+    
+    cooksd <- lmer_twofactor_cooksd_fix(
+        data, taskname, iv1, stim_con1, stim_con2, dv,
+        subject, dv_keyword, model_savefname, 'random_intercept', print_lmer_output = FALSE
+    )
+    influential <- as.numeric(names(cooksd)[
+        (cooksd > (4 / as.numeric(length(unique(data$sub)))))
+    ])
+    data_screen <- data[-influential, ]
+    # [ PLOT ] reordering for plots _________________________ # nolint
+    data_screen$cue_name[data_screen$cuetype == "cuetype-high"] <- "high cue"
+    data_screen$cue_name[data_screen$cuetype == "cuetype-low"] <- "low cue"
+
+    data_screen$stim_name[data_screen$stimintensity == "high"] <- "high"
+    data_screen$stim_name[data_screen$stimintensity == "med"] <- "med"
+    data_screen$stim_name[data_screen$stimintensity == "low"] <- "low"
+
+    # DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
+
+    data_screen$stim_ordered <- factor(
+        data_screen$stim_name,
+        levels = c("low", "med", "high")
+    )
+    data_screen$cue_ordered <- factor(
+        data_screen$cue_name,
+        levels = c("low cue", "high cue")
+    )
+    model_iv1 <- "stim_ordered"
+    model_iv2 <- "cue_ordered"
+
+    #  [ PLOT ] calculate mean and se  _________________________
+    actual_subjectwise <- meanSummary(
+        data_screen,
+        c(subject, model_iv1, model_iv2), dv
+    )
+    actual_groupwise <- summarySEwithin(
+        data = actual_subjectwise,
+        measurevar = "mean_per_sub",
+        withinvars = c(model_iv1, model_iv2), idvar = subject
+    )
+    actual_groupwise$task <- taskname
+    # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+    
+    combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, actual_groupwise)
+   # calculate mean and se  
+    sub_mean <- "mean_per_sub"
+    group_mean <- "mean_per_sub_norm_mean"
+    se <- "se"
+    subject <- "sub"
+    ggtitle <- paste(taskname, " - ",signature_key," Cooksd removed")
+    title <- paste(taskname, " - ",signature_key)
+    xlab <- ""
+    ylab <- paste(signature_key," (degree)")
+    ylim <- c(-10,60)
+    dv_keyword <- signature_key
+    if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color <- c("#1B9E77", "#D95F02")
+    } else {
+        color <- c("#4575B4", "#D73027")
+    } # if keyword starts with
+    plot_savefname <- file.path(
+        analysis_dir,
+        paste("raincloud_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), "_cooksd.png",
+            sep = ""
+        )
+    )
+    g <- plot_halfrainclouds_twofactor(
+        actual_subjectwise, actual_groupwise, model_iv1, model_iv2,
+        sub_mean, group_mean, se, subject,
+        ggtitle, title, xlab, ylab, taskname,ylim,
+        w, h, dv_keyword, color, plot_savefname
+    )
+g
+```
+
+
+
+### Session 3: 2x3 stimulus intensity * cue 
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+combined_se_calc_cooksd <- data.frame()
+taskname = "vicarious"
+    ggtitle <- paste(taskname, " - actual judgment (degree)")
+    title <- paste(taskname, " - actual")
+    subject <- "sub"
+    w <- 10
+    h <- 6
+s1.sig <- df_merge[df_merge$runtype == "runtype-vicarious" & df_merge$ses == "ses-03",]
+data <- s1.sig
+    # [ CONTRASTS ]  ________________________________________________________________________________ # nolint
+# contrast code ________________________________________
+data$stim[data$stimintensity == "low"] <- -0.5 # social influence task
+data$stim[data$stimintensity == "med"] <- 0 # no influence task
+data$stim[data$stimintensity == "high"] <- 0.5 # no influence task
+
+data$stim_factor <- factor(data$stimintensity)
+
+# contrast code 1 linear
+data$stim_con_linear[data$stimintensity == "low"] <- -0.5
+data$stim_con_linear[data$stimintensity == "med"] <- 0
+data$stim_con_linear[data$stimintensity == "high"] <- 0.5
+
+# contrast code 2 quadratic
+data$stim_con_quad[data$stimintensity == "low"] <- -0.33
+data$stim_con_quad[data$stimintensity == "med"] <- 0.66
+data$stim_con_quad[data$stimintensity == "high"] <- -0.33
+
+    # social cude contrast
+    data$social_cue[data$cuetype == "cuetype-low"] <- -0.5 # social influence task
+    data$social_cue[data$cuetype == "cuetype-high"] <- 0.5 # no influence task
+
+
+    stim_con1 <- "stim_con_linear"
+    stim_con2 <- "stim_con_quad"
+    iv1 <- "social_cue"
+    dv <- signature_key
+
+    # [ MODEL ] _________________________________________________ # nolint
+    model_savefname <- file.path(
+        analysis_dir,
+        paste("lmer_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), "_cooksd.txt",
+            sep = ""
+        )
+    )
+    
+    cooksd <- lmer_twofactor_cooksd_fix(
+        data, taskname, iv1, stim_con1, stim_con2, dv,
+        subject, dv_keyword, model_savefname, 'random_intercept', print_lmer_output = FALSE
+    )
+    influential <- as.numeric(names(cooksd)[
+        (cooksd > (4 / as.numeric(length(unique(data$sub)))))
+    ])
+    data_screen <- data[-influential, ]
+    # [ PLOT ] reordering for plots _________________________ # nolint
+    data_screen$cue_name[data_screen$cuetype == "cuetype-high"] <- "high cue"
+    data_screen$cue_name[data_screen$cuetype == "cuetype-low"] <- "low cue"
+
+    data_screen$stim_name[data_screen$stimintensity == "high"] <- "high"
+    data_screen$stim_name[data_screen$stimintensity == "med"] <- "med"
+    data_screen$stim_name[data_screen$stimintensity == "low"] <- "low"
+
+    # DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
+
+    data_screen$stim_ordered <- factor(
+        data_screen$stim_name,
+        levels = c("low", "med", "high")
+    )
+    data_screen$cue_ordered <- factor(
+        data_screen$cue_name,
+        levels = c("low cue", "high cue")
+    )
+    model_iv1 <- "stim_ordered"
+    model_iv2 <- "cue_ordered"
+
+    #  [ PLOT ] calculate mean and se  _________________________
+    actual_subjectwise <- meanSummary(
+        data_screen,
+        c(subject, model_iv1, model_iv2), dv
+    )
+    actual_groupwise <- summarySEwithin(
+        data = actual_subjectwise,
+        measurevar = "mean_per_sub",
+        withinvars = c(model_iv1, model_iv2), idvar = subject
+    )
+    actual_groupwise$task <- taskname
+    # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+    
+    combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, actual_groupwise)
+   # calculate mean and se  
+    sub_mean <- "mean_per_sub"
+    group_mean <- "mean_per_sub_norm_mean"
+    se <- "se"
+    subject <- "sub"
+    ggtitle <- paste(taskname, " - ", signature_key, " Cooksd removed")
+    title <- paste(taskname, " - ", signature_key)
+    xlab <- ""
+    ylab <- paste(signature_key, " (degree)")
+    ylim <- c(-10,60)
+    dv_keyword <- signature_key
+    if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color <- c("#1B9E77", "#D95F02")
+    } else {
+        color <- c("#4575B4", "#D73027")
+    } # if keyword starts with
+    plot_savefname <- file.path(
+        analysis_dir,
+        paste("raincloud_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), "_cooksd.png",
+            sep = ""
+        )
+    )
+    g <- plot_halfrainclouds_twofactor(
+        actual_subjectwise, actual_groupwise, model_iv1, model_iv2,
+        sub_mean, group_mean, se, subject,
+        ggtitle, title, xlab, ylab, taskname,ylim,
+        w, h, dv_keyword, color, plot_savefname
+    )
+g
+```
+
+
+### Session 4: 2x3 stimulus intensity * cue 
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+combined_se_calc_cooksd <- data.frame()
+taskname = "vicarious"
+    ggtitle <- paste(taskname, " - actual judgment (degree)")
+    title <- paste(taskname, " - actual")
+    subject <- "sub"
+    w <- 10
+    h <- 6
+s1.sig <- df_merge[df_merge$runtype == "runtype-vicarious" & df_merge$ses == "ses-04",]
+data <- s1.sig
+    # [ CONTRASTS ]  ________________________________________________________________________________ # nolint
+# contrast code ________________________________________
+data$stim[data$stimintensity == "low"] <- -0.5 # social influence task
+data$stim[data$stimintensity == "med"] <- 0 # no influence task
+data$stim[data$stimintensity == "high"] <- 0.5 # no influence task
+
+data$stim_factor <- factor(data$stimintensity)
+
+# contrast code 1 linear
+data$stim_con_linear[data$stimintensity == "low"] <- -0.5
+data$stim_con_linear[data$stimintensity == "med"] <- 0
+data$stim_con_linear[data$stimintensity == "high"] <- 0.5
+
+# contrast code 2 quadratic
+data$stim_con_quad[data$stimintensity == "low"] <- -0.33
+data$stim_con_quad[data$stimintensity == "med"] <- 0.66
+data$stim_con_quad[data$stimintensity == "high"] <- -0.33
+
+    # social cude contrast
+    data$social_cue[data$cuetype == "cuetype-low"] <- -0.5 # social influence task
+    data$social_cue[data$cuetype == "cuetype-high"] <- 0.5 # no influence task
+
+
+    stim_con1 <- "stim_con_linear"
+    stim_con2 <- "stim_con_quad"
+    iv1 <- "social_cue"
+    dv <- "NPSpos"
+
+    # [ MODEL ] _________________________________________________ # nolint
+    model_savefname <- file.path(
+        analysis_dir,
+        paste("lmer_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), "_cooksd.txt",
+            sep = ""
+        )
+    )
+    
+    cooksd <- lmer_twofactor_cooksd_fix(
+        data, taskname, iv1, stim_con1, stim_con2, dv,
+        subject, dv_keyword, model_savefname, 'random_intercept', print_lmer_output = FALSE
+    )
+    influential <- as.numeric(names(cooksd)[
+        (cooksd > (4 / as.numeric(length(unique(data$sub)))))
+    ])
+    data_screen <- data[-influential, ]
+    # [ PLOT ] reordering for plots _________________________ # nolint
+    data_screen$cue_name[data_screen$cuetype == "cuetype-high"] <- "high cue"
+    data_screen$cue_name[data_screen$cuetype == "cuetype-low"] <- "low cue"
+
+    data_screen$stim_name[data_screen$stimintensity == "high"] <- "high"
+    data_screen$stim_name[data_screen$stimintensity == "med"] <- "med"
+    data_screen$stim_name[data_screen$stimintensity == "low"] <- "low"
+
+    # DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
+
+    data_screen$stim_ordered <- factor(
+        data_screen$stim_name,
+        levels = c("low", "med", "high")
+    )
+    data_screen$cue_ordered <- factor(
+        data_screen$cue_name,
+        levels = c("low cue", "high cue")
+    )
+    model_iv1 <- "stim_ordered"
+    model_iv2 <- "cue_ordered"
+
+    #  [ PLOT ] calculate mean and se  _________________________
+    actual_subjectwise <- meanSummary(
+        data_screen,
+        c(subject, model_iv1, model_iv2), dv
+    )
+    actual_groupwise <- summarySEwithin(
+        data = actual_subjectwise,
+        measurevar = "mean_per_sub",
+        withinvars = c(model_iv1, model_iv2), idvar = subject
+    )
+    actual_groupwise$task <- taskname
+    # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+    
+    combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, actual_groupwise)
+   # calculate mean and se  
+    sub_mean <- "mean_per_sub"
+    group_mean <- "mean_per_sub_norm_mean"
+    se <- "se"
+    subject <- "sub"
+    ggtitle <- paste(taskname, " - ", signature_key, " Cooksd removed")
+    title <- paste(taskname, " - ", signature_key)
+    xlab <- ""
+    ylab <- paste(signature_key, " (degree)")
+    ylim <- c(-10,60)
+    dv_keyword <- signature_key
+    if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color <- c("#1B9E77", "#D95F02")
+    } else {
+        color <- c("#4575B4", "#D73027")
+    } # if keyword starts with
+    plot_savefname <- file.path(
+        analysis_dir,
+        paste("raincloud_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), "_cooksd.png",
+            sep = ""
+        )
+    )
+    g <- plot_halfrainclouds_twofactor(
+        actual_subjectwise, actual_groupwise, model_iv1, model_iv2,
+        sub_mean, group_mean, se, subject,
+        ggtitle, title, xlab, ylab, taskname,ylim,
+        w, h, dv_keyword, color, plot_savefname
+    )
+g
 ```
 
 
 
 
-<!-- ## Step 2: load data {.unlisted .unnumbered} -->
-<!-- ```{r} -->
-<!-- df = read.csv(sig_name) -->
-<!-- sig_df = df %>%separate(singletrial_fname,sep = "_", c("sub", "ses", "run", "runtype", "event", "trial", "cuetype", "stimintensity")) -->
-<!-- sig_df = sig_df %>% separate(stimintensity, into = c(NA, "stimintensity"), extra = "drop", fill = "left") -->
-<!-- pvc <- simple_contrasts_singletrial(sig_df) -->
-<!-- pvc$task[pvc$runtype == "runtype-pain"] <- "pain" -->
-<!-- pvc$task[pvc$runtype == "runtype-vicarious"] <- "vicarious" -->
-<!-- pvc$task[pvc$runtype == "runtype-cognitive"] <- "cognitive" -->
-<!-- pvc$task <- factor(pvc$task) -->
-<!-- ``` -->
+## Vicarious only: Outcome ratings & VPS
+```{r}
+# plot parameters
+iv1 = "event04_actual_angle"; iv2 = signature_key
+subject = "sub"
+xlab = "Outcome rating"; ylab = signature_key
+ggtitle = "All stimulus intensity"
+alpha = 0.8; lm_method = "lm"
+p.sig <- df_merge[df_merge$runtype == "runtype-vicarious",]
+df_dropna <- p.sig[!is.na(p.sig[, iv1]) & !is.na(p.sig[, iv2]), ]
+subjectwise_2dv <- meanSummary_2dv(
+        df_dropna,
+        c(subject),
+        iv1, iv2
+    )
+    subjectwise_naomit_2dv <- na.omit(subjectwise_2dv)
+    g <- ggplot(
+        data = subjectwise_naomit_2dv,
+        aes(
+            x = .data[["DV1_mean_per_sub"]],
+            y = .data[["DV2_mean_per_sub"]],
+        )
+    ) +
+        geom_point(
+          size = 2,
+            alpha = alpha) +
+        # geom_abline(
+        #     intercept = 0, slope = 1, color = "green",
+        #     linetype = "dashed", linewidth = 0.5
+        # ) +
+        theme(aspect.ratio = 1) +
+        #scale_color_manual(values = color_scheme) +
+        scale_shape_manual(values = c(16, 17)) +
+        xlab(xlab) +
+        ylab(ylab) +
+        ylim(-10, 30) +
+        xlim(0,180) +
+        ggtitle(ggtitle) +
+        theme(
+            axis.line = element_line(colour = "grey50"),
+            panel.background = element_blank(),
+            plot.subtitle = ggtext::element_textbox_simple(size = 11)
+        ) +
+              geom_ribbon(stat = "smooth", method = lm_method, se = TRUE, alpha = 0.1,
+              aes(color = NULL)) +
+        geom_line(stat = "smooth", method = lm_method, alpha = 0.8, size = 1.5)
+    g
+```
 
-<!-- ## Step 3: plot key paramters {.unlisted .unnumbered} -->
-<!-- ```{r} -->
-<!-- signature_key = "NPSpos" -->
-<!-- taskname = "all"; plot_keyword = "stimulusintensity"; ggtitle_phrase =  "(3 tasks x 3 stimulus intensity)"; -->
-<!-- pvc$task = factor(pvc$task) -->
-<!-- plot_keys <- list( -->
-<!--     iv1 = "task", -->
-<!--     iv2 = "stim_ordered", -->
-<!--     plot_keyword = "stimulusintensity", -->
-<!--     dv = signature_key, -->
-<!--     dv_keyword = signature_key, -->
-<!--     taskname = taskname, -->
-<!--     sub_mean = "mean_per_sub", -->
-<!--     group_mean = "mean_per_sub_norm_mean", -->
-<!--     legend_keyword = "stimulus intensity", -->
-<!--     se = "se", -->
-<!--     subject = "sub", -->
-<!--     ggtitle = paste0( -->
-<!--       str_to_title(signature_key),  -->
-<!--       " dot product: ", str_to_title(taskname),' ', ggtitle_phrase," (N = ", length(unique(pvc$sub)), ")"), -->
-<!--     title = paste0(str_to_title(signature_key), " - ", str_to_title(plot_keyword)), -->
-<!--     xlab = "", -->
-<!--     ylab = paste(signature_key," (dot product)"), -->
-<!--     ylim = c(-250, 500), -->
-<!--     w = 10, -->
-<!--     h = 6, -->
-<!--     plot_savefname = file.path( -->
-<!--         analysis_dir, -->
-<!--         paste("signature_task-", taskname, "_event-", plot_keyword, -->
-<!--             "_dv-", signature_key, -->
-<!--             "_", as.character(Sys.Date()), ".png", -->
-<!--             sep = "" -->
-<!--         ) -->
-<!--     ) -->
-<!--     #model_iv1 = "stim_ordered", -->
-<!--     #model_iv2 = "cue_ordered" -->
-<!-- ) -->
-<!-- ``` -->
+### outcome ratings * cue
+```{r}
+p.sig <- df_merge[df_merge$runtype == "runtype-vicarious",]
+iv2 = "event04_actual_angle"; iv1 = signature_key
+df_dropna <-
+  p.sig[!is.na(p.sig$event04_actual_angle) & !is.na(p.sig$VPS),]
+total <-
+  plot_twovariable(
+    df_dropna, iv1, iv2,
+    group = "cuetype", subject = "sub",
+    ymin =0, ymax = 100, xmin = -10, xmax = 20,
+    ylab = "outcome rating",
+    xlab = signature_key, 
+    ggtitle = "all stimulus intensity", 
+    color_scheme = c("cuetype-high" ="#008F51","cuetype-low" =  "#BBBBBB"), 
+    alpha = .8, fit_lm = TRUE, lm_method ="lm"
+  )
+total + labs(title =paste0("task-",taskname, "- What is the pattern for VPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
+          )
+```
+### outcome ratings * stim * cue
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+iv2 = "event04_actual_angle"; iv1 = signature_key
+group = "cuetype"; subject = "sub"
+# low stimulus intensity
+df_low = df_dropna[df_dropna$stimintensity == "low", ]
+low <-
+  plot_twovariable(
+    df_low, iv1 , iv2,
+    group = group, subject = subject,
+    ymin=0, ymax=180, xmin=-10,xmax=30,
+    ylab = "Outcome rating", xlab = signature_key,
+    ggtitle = "Low intensity",
+    color_scheme = c("cuetype-high" ="#C6FF8A","cuetype-low" =  "#5D5C5C"),
+    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+  )
 
-<!-- ```{r eval=FALSE, include=FALSE} -->
-<!-- groupwise <- data.frame() -->
-<!-- subjectwise <- data.frame() -->
-<!-- summary <- summary_for_plots_PVC( -->
-<!--         df = pvc, -->
-<!--         # taskname = taskname, -->
-<!--         groupwise_measurevar = "mean_per_sub", -->
-<!--         subject_keyword =  "sub", -->
-<!--         model_iv1 =  "task", -->
-<!--         model_iv2 =  "stim_ordered", -->
-<!--         dv = "NPSpos" -->
-<!--     ) -->
-<!-- subjectwise <<- as.data.frame(summary[[1]]) -->
-<!-- groupwise <<- as.data.frame(summary[[2]]) -->
-<!--     if (any(startsWith("NPSpos", c("expect", "Expect")))) { -->
-<!--         plot_keys$color <- c("#1B9E77", "#D95F02", "#D95F02") -->
-<!--     } else { -->
-<!--         plot_keys$color <- c("#4575B4", "#FFA500", "#D73027") -->
-<!--     } -->
-<!-- ``` -->
+# med stimulus intensity
+df_med = df_dropna[df_dropna$stimintensity == "med", ]
+med <-
+  plot_twovariable(
+    df_med, iv1, iv2,
+    group = group, subject = subject,
+    ymin=0, ymax=180, xmin=-10,xmax=30,
+    ylab = "Outcome rating", xlab = signature_key,
+    ggtitle = "Medium intensity",
+    color_scheme = c("cuetype-high" ="#63C76E","cuetype-low" =  "#5D5C5C"),
+    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+  )
 
-<!-- ```{r} -->
-<!-- p <- plot_halfrainclouds_twofactor_35( -->
-<!--         subjectwise, groupwise, iv1 = "task", iv2 = "stim_ordered", -->
-<!--         sub_mean = "mean_per_sub", group_mean = plot_keys$group_mean, se = plot_keys$se, subject = plot_keys$sub, -->
-<!--         ggtitle = plot_keys$ggtitle, title = plot_keys$title, xlab = plot_keys$xlab, ylab = plot_keys$ylab, task_name = plot_keys$taskname, ylim = plot_keys$ylim, -->
-<!--         w = plot_keys$w, h = plot_keys$h, dv_keyword = plot_keys$dv_keyword, color = plot_keys$color, save_fname = plot_keys$plot_savefname -->
-<!--     ) -->
-<!-- p -->
-<!-- ``` -->
-
-<!-- ## Plot test function -->
-<!-- plot_signature_twofactor <- function(signature_key, analysis_dir, plot_keys, df)  -->
-<!-- ```{r} -->
-<!-- p <- plot_signature_twofactor(signature_key = "NPSpos",  -->
-<!--                               plot_keys, df = data.frame(pvc)) -->
-<!-- p -->
-<!-- ``` -->
-
-
-
-
-
-<!-- ```{r} -->
-<!-- hist(pvc$NPS) -->
-<!-- ``` -->
-<!-- ```{r} -->
-<!-- model.nps = lmer(NPSpos ~ task + stimintensity + (1 | sub) , data = pvc) -->
-<!-- summary(model.nps) -->
-<!-- ``` -->
-
-<!-- ```{r pvc_summary, include=FALSE} -->
-<!-- subject_varkey <- "sub" -->
-<!-- iv1 <- "task" -->
-<!-- iv2 <-  "stim_ordered" -->
-<!-- dv <- "NPSpos" -->
-<!-- taskname = "all" -->
-<!-- dv_keyword <- "NPSpos" -->
-<!-- subject <- "subject" -->
-<!-- xlab <- "" -->
-<!-- ylab <- "NPS positive (dot product)" -->
-<!-- ylim <- c(-20,20) -->
-<!-- title <- "stim" -->
-<!-- #taskname <- "all tasks" -->
-<!-- exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999" -->
-<!-- ``` -->
-
-<!-- ```{r plotting_parameters_34, include=FALSE} -->
-
-<!-- plot_keys <- list(sub_mean = "mean_per_sub",group_mean = "mean_per_sub_norm_mean", se = "se", -->
-<!--     subject = "sub", taskname = taskname, -->
-<!--     ggtitle = paste(taskname, " - NPS (dot prodcut) Cooksd removed"), -->
-<!--     title = paste(taskname, " - Actual"), -->
-<!--     xlab = "", -->
-<!--     ylab = "ratings (degree)", -->
-<!--     ylim = c(-250,500), -->
-<!--     dv_keyword = "NPS", -->
-<!--     w = 10, -->
-<!--     h = 6, -->
-<!--     plot_savefname = file.path( -->
-<!--         analysis_dir, -->
-<!--         paste("raincloud_task-", taskname, -->
-<!--             "_rating-", dv_keyword, -->
-<!--             "_", as.character(Sys.Date()), "_cooksd.png", -->
-<!--             sep = "" -->
-<!--         ) -->
-<!--     ), -->
-<!--     model_iv1 ="stim_ordered", -->
-<!--     model_iv2 = "cue_ordered",  -->
-<!--     legend_keyword = "stimulus intensity") -->
-<!-- ``` -->
+# high stimulus intensity
+df_high = df_dropna[df_dropna$stimintensity == "high", ]
+high <-
+  plot_twovariable(
+    df_high, iv1, iv2,
+    group = group, subject = subject,
+    ymin=0, ymax=180, xmin=-10,xmax=30,
+    ylab = "Outcome rating", xlab = signature_key,
+    ggtitle = "High intensity",
+    color_scheme = c("cuetype-high" ="#008F51","cuetype-low" =  "#5D5C5C"),
+    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+  )
+plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots, top = text_grob(paste(str_to_title(taskname), "\n VPS/Outcome linear relationship differs as a function of stimulus intensity and cue"), color = "black", face = "bold", size = 12))
+plots_title
+```
 
 
-<!-- ```{r summary_pvc, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE} -->
-<!-- groupwise = data.frame() -->
-<!-- subjectwise = data.frame() -->
-<!-- summary <- summary_for_plots_PVC(df = pvc,  -->
-<!--                              # taskname = taskname,  -->
-<!--                              groupwise_measurevar = "mean_per_sub", -->
-<!--                              subject_keyword = "sub", -->
-<!--                              model_iv1 = "task", -->
-<!--                              model_iv2 = "stim_ordered", -->
-<!--                              dv = "NPSpos") -->
-<!-- subjectwise <- as.data.frame(summary[[1]]) -->
-<!-- groupwise <-as.data.frame(summary[[2]]) -->
-<!--     if (any(startsWith(plot_keys$dv_keyword, c("expect", "Expect")))) { -->
-<!--         color <- c("#1B9E77", "#D95F02") -->
-<!--     } else { -->
-<!--         color <- c("#4575B4", "#D73027") -->
-<!--     }  -->
-<!-- ``` -->
+## Vicarious only: Expectation ratings & VPS
+```{r}
+p.sig <- df_merge[df_merge$runtype == "runtype-vicarious",]
+iv1 = "event02_expect_angle"; iv2 = signature_key
+df_dropna <-
+  p.sig[!is.na(p.sig$event02_expect_angle) & !is.na(p.sig$VPS),]
+total <-
+  plot_twovariable(
+    df_dropna, iv1, iv2,
+    group = "cuetype", subject = "sub",
+    xmin =0, xmax = 100, ymin = -10, ymax = 20,
+    xlab = "expectation rating",
+    ylab = signature_key, 
+    ggtitle = "all stimulus intensity", 
+    color_scheme = c("cuetype-high" ="#008F51","cuetype-low" =  "#BBBBBB"), 
+    alpha = .8, fit_lm = TRUE, lm_method = "lm"
+  )
 
-<!-- ## Raincloud plots -->
-<!-- ```{r plot_PVC, echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE} -->
-<!-- dv_keyword = "NPSpos" -->
-<!-- signature_name = "NPSpos" -->
-<!-- iv2 = "stim_ordered" -->
-<!-- iv1 = "task" -->
-<!--     if (any(startsWith(dv_keyword, c("expect", "Expect")))) { -->
-<!--         color <- c("#1B9E77", "#D95F02", "#D95F02") -->
-<!--     } else { -->
-<!--         color <- c("#4575B4", "#FFA500", "#D73027") -->
-<!--     } -->
-<!--     subject_mean <- "mean_per_sub" -->
-<!--     group_mean <- "mean_per_sub_norm_mean" -->
-<!--     se <- "se" -->
-<!--     ylim <- c(-25,26) -->
-<!--     subject <- "sub" -->
-<!--     ggtitle_phrase <-  "(3 tasks x 3 stimulus intensity)" -->
-<!--     # ggtitle <- paste(taskname, " (3 tasks x 3 stimulus intensity) - ", signature_name, "dot product") -->
-<!--     ggtitle <- paste0(str_to_title(signature_name), " dot product: ", str_to_title(taskname),' ', ggtitle_phrase,  " (N = ", length(unique(pvc$sub)), ")");  -->
-<!--     # title <- paste(taskname, " (3 tasks x 3 stimulus intensity) - ", signature_name, "dot product") -->
-<!--     title <- paste0(str_to_title(dv_keyword), " - ", str_to_title(plot_keys$legend_keyword)) -->
-<!--     xlab <- "" -->
-<!--     ylab <- paste(signature_name," (dot product)") -->
-<!--     plot2_savefname <- file.path( -->
-<!--         analysis_dir, -->
-<!--         paste("raincloudplots_task-", taskname,"_event-",iv2, -->
-<!--             "_rating-", dv_keyword, -->
-<!--             "_", as.character(Sys.Date()), ".png", -->
-<!--             sep = "" -->
-<!--         ) -->
-<!--     ) -->
-<!-- p <- plot_halfrainclouds_twofactor( -->
-<!--       subjectwise, groupwise, iv1, iv2,  -->
-<!--       subject_mean, group_mean, se, subject,  -->
-<!--       ggtitle, title, xlab, ylab, taskname, ylim, -->
-<!--       w = plot_keys$w, h = plot_keys$h, dv_keyword, color, plot2_savefname) -->
-<!-- p -->
-<!-- ``` -->
 
-<!-- ## Line plots -->
-<!-- ```{r lineplot_PVC, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE} -->
-<!-- ggtitle <- paste(str_to_title(signature_name), "dot product:", str_to_title(taskname), ggtitle_phrase,  " (N = ", length(unique(pvc$sub)), ")");  -->
-<!-- g<-two_factor_lineplot(df = groupwise,  iv1 = "stim_ordered",iv2 = "task", mean = "mean_per_sub_norm_mean", error = "se", -->
-<!--                        xlab = "stimulus intensity", -->
-<!--                        ylab = dv) -->
-<!-- g -->
-<!-- ``` -->
+total + labs(title =paste0("task-",taskname, "- What is the pattern for VPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
+          )
+  # geom_line(method="lm", alpha=0.3, size=1, span=0.5) # geom_smooth(method=lm, se = TRUE) 
+# +geom_smooth(method = "lm", alpha=0.1, size=0, span=0.5)
+```
 
+
+```{r rawoutcome_pain_stimuluswise, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+iv1 = "event02_expect_angle"; iv2 = signature_key
+group = "cuetype"; subject = "sub"
+# low stimulus intensity
+df_low = df_dropna[df_dropna$stimintensity == "low", ]
+low <-
+  plot_twovariable(
+    df_low, iv1 , iv2,
+    group = group, subject = subject,
+    xmin =0, xmax = 100, ymin = -10, ymax = 20,
+    xlab = "expectation rating", ylab = signature_key,
+    ggtitle = "Low intensity",
+    color_scheme = c("cuetype-high" ="#C6FF8A","cuetype-low" =  "#5D5C5C"),
+    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+  )
+
+# med stimulus intensity
+df_med = df_dropna[df_dropna$stimintensity == "med", ]
+med <-
+  plot_twovariable(
+    df_med, iv1, iv2,
+    group = group, subject = subject,
+    xmin =0, xmax = 100, ymin = -10, ymax = 20,
+    xlab = "expectation rating", ylab = signature_key,
+    ggtitle = "Medium intensity",
+    color_scheme = c("cuetype-high" ="#63C76E","cuetype-low" =  "#5D5C5C"),
+    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+  )
+
+# high stimulus intensity
+df_high = df_dropna[df_dropna$stimintensity == "high", ]
+high <-
+  plot_twovariable(
+    df_high, iv1, iv2,
+    group = group, subject = subject,
+    xmin =0, xmax = 100, ymin = -10, ymax = 20,
+    xlab = "expectation rating", ylab = signature_key,
+    ggtitle = "High intensity",
+    color_scheme = c("cuetype-high" ="#008F51","cuetype-low" =  "#5D5C5C"),
+    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+  )
+plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots, top = text_grob(paste(str_to_title(taskname), "\n Expect/Outcome linear relationship differs as a function of stimulus intensity and cue"), color = "black", face = "bold", size = 12))
+plots_title
+```
 
 

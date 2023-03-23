@@ -1,4 +1,4 @@
-# single trial correlation between cue and stim ~ cue*stim {#singletrial_corr}
+# single trial correlation between cue and stim ~ cue x stim {#ch38_singletrial_corr}
 
 ```
 author: "Heejung Jung"
@@ -143,6 +143,7 @@ two_factor_lineplot <-
 ```{r}
 main_dir = dirname(dirname(getwd()))
 main_dir = "/Users/h/Dropbox/projects_dropbox/social_influence_analysis"
+analysis_dir = 
 single_trial_dir = file.path(main_dir, 'analysis/fmri/nilearn/deriv04_corrcuestim')
 ```
 
@@ -155,6 +156,9 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
 filename <- paste("*_runtype-", taskname, "_desc-singletrialcorrelation_x-cue_y-stim.tsv", sep = "")
 common_path <- Sys.glob(file.path(single_trial_dir, filename
   ))
+
+exclude <- "sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0007|sub-0008|sub-0011|sub-0013|sub-0014|sub-0016|sub-0017|sub-0019|sub-0020|sub-0021|sub-0023|sub-0024|sub-0025|sub-0026|sub-0035|sub-0040|sub-0041|sub-0059|sub-0064|sub-0066|sub-0069|sub-0070|sub-0074|sub-0075|sub-0076|sub-0077|sub-0079|sub-0083|sub-0084|sub-0088|sub-0089|sub-0103|sub-0111|sub-0112|sub-0131"
+
 filter_path <- common_path[!str_detect(common_path, pattern = exclude)]
 
 df <- do.call("rbind", lapply(filter_path, FUN = function(files) {
@@ -212,11 +216,10 @@ p2 = plot_lineplot_onefactor(DATA,'vicarious',
                LINEIV1, MEAN, ERROR, color,xlab = "Runs" , ylab= "Correlation between \ncue and stimulus",ggtitle = 'vicarious')
 p3 = plot_lineplot_onefactor(DATA, 'cognitive', 
                LINEIV1, MEAN, ERROR, color,xlab = "Runs" , ylab= "Correlation between \ncue and stimulus",ggtitle = 'cognitive')
-#grid.arrange(p1, p2, p3, ncol=3 , common.legend = TRUE)
 ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
-plot_filename = file.path(analysis_dir,
-                          paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
-ggsave(plot_filename, width = 15, height = 6)
+#plot_filename = file.path(analysis_dir,
+       #                   paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
+#ggsave(plot_filename, width = 15, height = 6)
 ```
 
 

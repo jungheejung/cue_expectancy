@@ -59,6 +59,7 @@ library(plotly) #plot
 library(scico) # plot
 library(emmeans) # v. 1.7.0
 library(magrittr) # v. 2.0.1
+library(sjPlot)
 source('http://psych.colorado.edu/~jclab/R/mcSummaryLm.R')
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
@@ -191,18 +192,16 @@ df <- data_a3lag_omit
 pvc <- simple_contrasts_beh(df)
 ```
 
-## linear model
+## Linear model with three factors: cue X stim X expectation rating
 ```{r echo=FALSE, message=TRUE, warning=TRUE, paged.print=FALSE}
 model.factorize_demean = lmer(demean_outcome~ cue_con*stim_con_linear*demean_expect+cue_con*stim_con_quad*demean_expect+lag.demean_outcome+ (cue_con*demean_expect|src_subject_id), data = pvc)
-#summary(model.factorize_demean)
-tab_model(model.factorize_demean, p.val = "kr", show.df = TRUE)
 
-
+summary(model.factorize_demean)
+# sjPlot::tab_model(model.factorize_demean, p.val = "kr", show.df = TRUE)
 ```
 
 
-
-## pain run, collapsed across stimulus intensity
+## Pain run, collapsed across stimulus intensity
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 df_dropna <-
   pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
@@ -274,7 +273,6 @@ Here, I calculate Orthogonal distance from the 1:1 slope. Based on that, we test
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 
 pvc$odr_expectoutcome = abs(pvc$demean_expect + pvc$demean_outcome) / sqrt(2)
-
 cooksd = lmer_onefactor_cooksd(pvc, "pain", iv = "cue_name", dv= "odr_expectoutcome", subject_keyword = "src_subject_id",
                                   dv_keyword = "distance from 1:1", model_savefname = "/Users/h/Desktop/TEST.txt", print_lmer_output = TRUE) 
 ```
@@ -283,7 +281,6 @@ Can you test if the slopes are the same? That might tell us something about whet
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 pvc$odr_expectoutcome = abs(pvc$demean_expect + pvc$demean_outcome) / sqrt(2)
-
 cooksd = lmer_onefactor_cooksd(pvc, "pain", iv = "cue_name", dv= "odr_expectoutcome", subject_keyword = "src_subject_id",
                                   dv_keyword = "distance from 1:1", model_savefname = "/Users/h/Desktop/TEST.txt", print_lmer_output = TRUE) 
 
@@ -630,7 +627,8 @@ p <- plot_halfrainclouds_onefactor(subjectwise, groupwise, iv,
                                       w = 10, h = 10, dv_keyword, color =color_scheme, save_fname)
 p
 ```
-```{r}
+
+```
 # library(plotly)
 # plot_ly(x=subjectwise_naomit_2dv$param_cue_type, y=subjectwise_naomit_2dv$DV1_mean_per_sub, z=subjectwise_naomit_2dv$DV2_mean_per_sub, type="scatter3d", mode="markers", color=subjectwise_naomit_2dv$param_cue_type)
 ```
@@ -660,6 +658,7 @@ v_sub <- v[, c("param_task_name", "param_cue_type", "src_subject_id","session_id
 c_sub <- c[, c("param_task_name", "param_cue_type", "src_subject_id", "session_id", "param_run_num","param_stimulus_type", "event04_actual_angle", "event02_expect_angle")]
 pvc_sub <- do.call("rbind", list(p_sub, v_sub, c_sub))
 ```
+
 ```{r}
 maindata <- pvc_sub %>%
 group_by(src_subject_id) %>%
@@ -704,10 +703,9 @@ pvc_sub$sub = factor(pvc_sub$src_subject_id)
 model_task = lmer(demean_outcome~ taskname_lin*cue_con*demean_expect + taskname_quad*cue_con*demean_expect +  (1 | sub), data = pvc_sub)
 model_wotask = lmer(demean_outcome~ cue_con*demean_expect +(1 | sub), data = pvc_sub)
 summary(model_task)
-anova(model_task)
-anova(model_wotask, model_task)
-# summary(model_test)
-tab_model(model.factorize, p.val = "kr", show.df = TRUE)
+# anova(model_task)
+# anova(model_wotask, model_task)
+# sjPlot::tab_model(model_task, p.val = "kr", show.df = TRUE)
 ```
 
 ```{r}
