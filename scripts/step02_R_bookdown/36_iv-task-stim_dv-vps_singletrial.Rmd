@@ -412,7 +412,7 @@ df_merge <- merge(pvc, pvc.beh,
 
 
 ## PVC all task comparison
-```{r}
+```{r message=FALSE, warning=FALSE, include=FALSE}
 # contrast code 1 linear
 pvc$task_con_linear[pvc$task == "pain"] <- 0.5
 pvc$task_con_linear[pvc$task == "vicarious"] <- 0
@@ -422,7 +422,9 @@ pvc$task_con_linear[pvc$task == "cognitive"] <- -0.5
 pvc$task_con_quad[pvc$task == "pain"] <- 0.66
 pvc$task_con_quad[pvc$task == "vicarious"] <- -.34
 pvc$task_con_quad[pvc$task == "cognitive"] <- -.34
+```
 
+```{r echo=TRUE, warning=TRUE, class.output="bg-warning"}
 model.alltask <-
   lmer(VPS ~ task_con_linear*stim_factor + 
          task_con_quad*stim_factor + (task|sub), data = pvc)
@@ -431,7 +433,10 @@ print("eta squared")
 eta_squared(model.alltask, partial = TRUE)
 parameters::model_parameters(model.alltask)
 lme.dscore(model.alltask, pvc, type = "lme4")
+```
 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 plot_halfrainclouds_twofactor(
   subjectwise,  groupwise,
   iv1 = "task",  iv2 = "stim_ordered",
@@ -927,7 +932,7 @@ data$stim_con_quad[data$stimintensity == "high"] <- -0.33
     stim_con1 <- "stim_con_linear"
     stim_con2 <- "stim_con_quad"
     iv1 <- "social_cue"
-    dv <- "NPSpos"
+    dv <- signature_key
 
     # [ MODEL ] _________________________________________________ # nolint
     model_savefname <- file.path(

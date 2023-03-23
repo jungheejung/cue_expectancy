@@ -1,4 +1,4 @@
-# Cognitive signature ~ single trial {#ch37_singletrial_C}
+# [fMRI] Cognitive signature ~ single trial {#ch37_singletrial_C}
 
 ```
 author: "Heejung Jung"
@@ -20,6 +20,7 @@ library(gghalves)
 library(plyr)
 library(ggpubr)
 library(r2mlm)
+library(plotly)
 library(effectsize)
 options(es.use_symbols = TRUE) # get nice symbols when printing! (On Windows, requires R >= 4.2.0)
 library(EMAtools)
@@ -137,7 +138,7 @@ two_factor_lineplot <-
 ```
 
 ## Step 1: Common parameters {.unlisted .unnumbered}
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
 # step 1: load data
 for (signature_key in c("Kragel18CogControl")) {
@@ -275,7 +276,7 @@ for (signature_key in c("Kragel18CogControl")) {
 ```
 
 ### Load behavioral data {.unlisted .unnumbered}
-```{r}
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 main_dir = dirname(dirname(getwd()))
 print(main_dir)
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
@@ -347,7 +348,7 @@ df_merge <- merge(pvc, pvc.beh,
 
 
 ## PVC all task comparison
-```{r}
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # contrast code 1 linear
 pvc$task_con_linear[pvc$task == "pain"] <- 0.5
 pvc$task_con_linear[pvc$task == "vicarious"] <- 0
@@ -357,14 +358,24 @@ pvc$task_con_linear[pvc$task == "cognitive"] <- -0.5
 pvc$task_con_quad[pvc$task == "pain"] <- 0.66
 pvc$task_con_quad[pvc$task == "vicarious"] <- -.34
 pvc$task_con_quad[pvc$task == "cognitive"] <- -.34
+```
 
+```{r class.output="bg-warning"}
 model.alltask <- lmer(Kragel18CogControl ~ task_con_linear*stim_factor + task_con_quad*stim_factor + (task|sub), data = pvc)
 summary(model.alltask)
+```
+
+```{r class.output="bg-warning"}
 print("eta squared")
 eta_squared(model.alltask, partial = TRUE)
-parameters::model_parameters(model.alltask)
-lme.dscore(model.alltask, pvc, type = "lme4")
+```
+<!-- parameters::model_parameters(model.alltask) -->
 
+```{r class.output="bg-warning"}
+lme.dscore(model.alltask, pvc, type = "lme4")
+```
+
+```{r}
 plot_halfrainclouds_twofactor(subjectwise, groupwise,
                                       iv1 = "task", iv2 = "stim_ordered", sub_mean = "mean_per_sub", group_mean = "mean_per_sub_norm_mean", se = "se", subject = "sub",
                                       ggtitle = "All tasks", title = "task Stim intensity", xlab = "Task", ylab = paste(signature_key, ' (dot product)'), task_name = "all", 
@@ -490,7 +501,7 @@ model_savefname <- file.path(
             sep = ""
         )
     )
-    g <- plot_rainclouds_twofactor(
+    g <- plot_halfrainclouds_twofactor(
         actual_subjectwise, actual_groupwise, model_iv1, model_iv2,
         sub_mean, group_mean, se, subject,
         ggtitle, title, xlab, ylab, taskname,ylim,
@@ -512,16 +523,20 @@ cooksd <- lmer_twofactor_cooksd_fix(
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 model.cogstim <- lmer(Kragel18CogControl ~ stim_con_linear + stim_con_quad +(stim_con_linear + stim_con_quad |sub), data = data_screen)
 summary(model.cogstim)
-print("eta squared")
+```
+
+```{r class.output="bg-warning"}
 eta_squared(model.cogstim, partial = TRUE)
-parameters::model_parameters(model.cogstim)
+
+```
+
+```{r class.output="bg-warning"}
 lme.dscore(model.cogstim, data_screen, type = "lme4")
-#r2mlm(model.nps)
 emm1 = emmeans(model.cogstim, specs = pairwise ~ stim_con_linear+ stim_con_quad )
 ```
 
 ### Cognitive stimulus & cue effect size: stim_d = 0.73, cue_d = 0.069
-```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE, class.output="bg-warning"}
 model.cogcuestim <- lmer(Kragel18CogControl ~ cue_con*stim_con_linear + cue_con*stim_con_quad + (cue_con|sub), data = data_screen)
 summary(model.cogcuestim)
 print("eta squared")
@@ -532,16 +547,16 @@ lme.dscore(model.cogcuestim, data_screen, type = "lme4")
 
 
 ### Lineplots
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 plot_lineplot_twofactor(actual_groupwise, taskname = "cognitive", 
                         iv1 = "stim_ordered", iv2 = "cue_ordered", 
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("#4575B4", "#D73027"), ggtitle = "placeholder", 
+                        color = c("#4575B4", "#D73027"), ggtitle = "Cognitive Signature as a function of cue and stimulus intensity", 
                         xlab = "Stimulus intensity", ylab = paste(signature_key, " (dot product)"))
 ```
 
 ### Linear model with Stim x Cue x Expectation rating
-```{r}
+```{r class.output="bg-warning"}
 model.cog3factor <- lmer(Kragel18CogControl ~ cue_con*stim_con_linear*event02_expect_angle + cue_con*stim_con_quad*event02_expect_angle + (cue_con|sub), data = data_screen)
 summary(model.cog3factor)
 print("eta squared")
@@ -550,13 +565,7 @@ eta_squared(model.cog3factor, partial = TRUE)
 lme.dscore(model.cog3factor, data_screen, type = "lme4")
 ```
 
-```{r}
-library(plotly)
-# lmer(Kragel18CogControl ~ cue_con*stim_con_linear*event02_expect_angle + cue_con*stim_con_quad*event02_expect_angle + (cue_con|sub), data = data_screen)
-# mtcars$am[which(mtcars$am == 0)] <- 'Automatic'
-# mtcars$am[which(mtcars$am == 1)] <- 'Manual'
-# mtcars$am <- as.factor(mtcars$am)
-
+```{r echo=FALSE}
 fig <- plot_ly(data_screen, x = ~event02_expect_angle, y = ~Kragel18CogControl, z = ~event04_actual_angle, color = ~cue_con, colors = c('#BF382A', '#0C4B8E'))
 fig <- fig %>% add_markers()
 fig <- fig %>% layout(scene = list(xaxis = list(title = 'Expectation'),
@@ -950,7 +959,7 @@ g
 
 
 ## Cognitive only: Outcome ratings & Kragel 2018
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 # plot parameters
 iv2 = "event04_actual_angle"; iv1 = signature_key
 subject = "sub"
@@ -992,12 +1001,12 @@ subjectwise_2dv <- meanSummary_2dv(
         ) +
               geom_ribbon(stat = "smooth", method = lm_method, se = TRUE, alpha = 0.1,
               aes(color = NULL)) +
-        geom_line(stat = "smooth", method = lm_method, alpha = 0.8, size = 1.5)
+        geom_line(stat = "smooth", method = lm_method, alpha = 0.8, linewidth = 1.5)
     g
 ```
 
 ### outcome ratings * cue
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 c.sig <- df_merge[df_merge$runtype == "runtype-cognitive",]
 iv2 = "event04_actual_angle"; iv1 = signature_key
 df_dropna <- c.sig[!is.na(c.sig[, iv1]) & !is.na(c.sig[, iv2]), ]
@@ -1063,7 +1072,7 @@ plots_title
 
 
 ## Cognitive only: Expectation ratings & NPS
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 c.sig <- df_merge[df_merge$runtype == "runtype-cognitive",]
 iv1 = "event02_expect_angle"; iv2 = signature_key
 df_dropna <- c.sig[!is.na(c.sig[, iv1]) & !is.na(c.sig[, iv2]), ]
