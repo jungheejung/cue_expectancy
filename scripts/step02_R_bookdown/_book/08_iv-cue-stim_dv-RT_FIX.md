@@ -178,7 +178,7 @@ data_clean = data[!is.na(data$event03_RT),]
 data_clean$subject = factor(data_clean$src_subject_id)
 
 # lmer model ___________________________________________________________________
-cooksd <- lmer_two_factor_cooksd_fix(data = data_clean,
+cooksd <- lmer_twofactor_cooksd_fix(data = data_clean,
                                      taskname = "cognitive",
                                      iv = "cue_factor",
                                      stim_con1 = "stim_con_linear",
@@ -358,7 +358,7 @@ data_c = data[data_clean$event03_correct == 1,]
 data_c$subject = factor(data_c$src_subject_id)
 
 # lmer model ___________________________________________________________________
-# cooksd <- lmer_two_factor_cooksd_fix(data = data_clean,
+# cooksd <- lmer_twofactor_cooksd_fix(data = data_clean,
 #                                      taskname = "cognitive",
 #                                      iv = "cue",
 #                                      stim_con1 = "stim_con_linear",
