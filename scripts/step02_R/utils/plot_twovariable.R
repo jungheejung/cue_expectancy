@@ -42,8 +42,8 @@ xlab, ylab, ggtitle, color_scheme, alpha, fit_lm, lm_method = NULL) {
         scale_shape_manual(values = c(16, 17)) +
         xlab(xlab) +
         ylab(ylab) +
-        ylim(min,max) +
-        xlim(min,max) +
+        ylim(ymin,ymax) +
+        xlim(xmin,xmax) +
         ggtitle(ggtitle) +
         theme(
             axis.line = element_line(colour = "grey50"),
@@ -56,7 +56,7 @@ xlab, ylab, ggtitle, color_scheme, alpha, fit_lm, lm_method = NULL) {
         g <- g +
         geom_ribbon(stat = "smooth", method = lm_method, se = TRUE, alpha = 0.1,
               aes(color = NULL, group = factor(group))) +
-        geom_line(stat = "smooth", method = lm_method, alpha = 0.8, size = 1.5)
+        geom_line(stat = "smooth", method = lm_method, alpha = 0.8, linewidth = 1.5)
     } else {
         g
     }
