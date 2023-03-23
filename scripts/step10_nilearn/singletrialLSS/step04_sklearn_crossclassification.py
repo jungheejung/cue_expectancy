@@ -69,12 +69,6 @@ N = len(sub_list)
 y = np.tile(np.repeat(['high', 'low'], ntrials), N) # high cue, low cue
 X_pain = get_Xdata(singletrial_dir, sub_list, runtype = 'pain', event='stimulus', ntrials=36)
 X_cognitive = get_Xdata(singletrial_dir, sub_list, runtype = 'cognitive', event='stimulus', ntrials=36)
-### Test plotting
-# from nilearn import plotting
-# plotting.plot_stat_map(image.index_img(stacked_highcue, 0))
-# %%
-# np.ravel()
-# NOTE: 
 
 # X, y should be identical for both pain and cognitive
 # X = brain_maps # (conditions x subjects) x voxels . 2d (72 x subject) x voxel # NOTE: I could also average within conditions
@@ -90,38 +84,11 @@ for train_index, test_index in cv.split(X, y):
     acc = accuracy_score(y[test_index], y_pred)
     accuracy_total.append(acc)
 print(accuracy_total)
+
     # print(f"Fold {i}:")
     # print(f"  Train: index={train_index}")
     # print(f"  Test:  index={test_index}")
 # TODO:
 # permutation labels
 # boot strap accuracy
-# %% Sandbox
 
-
-# %%
-X = brain_maps # (conditions x subjects) x voxels . 2d (72 x subject) x voxel # NOTE: I could also average within conditions
-y = cue # must be same lengths (conditions x subjects)
-
-outer_cv = KFold(n_splits=10)
-#outer_cv = KFold(n_splits=n_subjects)
-#StratifiedKFold, PredefinedSplit
-# GroupKFold
-inner_cv = KFold(n_splits=10)
-
-alphas = [1e-3, 1e-2, 1e-1, 1, 1e2]
-lasso = LassoCV(cv=inner_cv)
-lasso = LassoCV(alphas=alphas, cv=inner_cv)
-
-y_preds = []
-for train, test in outer_cv.split(X):
-    lasso.fit(X[train], y[train])
-    y_pred = lasso.predict(X[test])
-    # evaluate here?
-
-    # or
-    y_preds.append(y_pred)
-
-y_preds = np.vstack(y_preds)
-
-r2_score(y, y_pred)
