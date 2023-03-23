@@ -43,7 +43,7 @@ dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
 ```
 ## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
-## as.numeric(factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
+## as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
 ```
 
 ```
@@ -63,7 +63,7 @@ dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
 ```
 ## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
-## as.numeric(factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
+## as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
 ```
 
 <img src="04_iv-stim_dv-actual_files/figure-html/vicarious_iv-stim_dv-outcome-1.png" width="672" />
@@ -78,7 +78,7 @@ dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
 ```
 ## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
-## as.numeric(factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
+## as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
 ```
 
 <img src="04_iv-stim_dv-actual_files/figure-html/cognitive_iv-stim_dv-outcome-1.png" width="672" />
@@ -336,7 +336,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
 
 ```
 ## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
-## as.numeric(factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
+## as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
 ```
 
 ```
@@ -385,7 +385,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
 
 ```
 ## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
-## as.numeric(factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
+## as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
 ```
 
 ```
@@ -434,7 +434,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
 
 ```
 ## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
-## as.numeric(factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
+## as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
 ```
 
 ```

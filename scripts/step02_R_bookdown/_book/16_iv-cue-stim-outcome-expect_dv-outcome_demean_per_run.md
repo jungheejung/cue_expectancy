@@ -241,7 +241,7 @@ Can you test if the slopes are the same? That might tell us something about whet
 
 ```
 ## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
-## as.numeric(factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
+## as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
 ```
 
 ```
@@ -322,7 +322,7 @@ Can you test if the slopes are the same? That might tell us something about whet
 
 ```
 ## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
-## as.numeric(factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
+## as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
 ```
 
 <img src="16_iv-cue-stim-outcome-expect_dv-outcome_demean_per_run_files/figure-html/unnamed-chunk-17-1.png" width="672" />

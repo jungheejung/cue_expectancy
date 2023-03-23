@@ -120,7 +120,7 @@ Steps
 <!--   geom_line(data = subjectwise, -->
 <!--     aes( -->
 <!--       group = .data[[subject]], -->
-<!--       x = as.numeric(factor(.data[[iv]])) - .15 , -->
+<!--       x = as.numeric(as.factor(.data[[iv]])) - .15 , -->
 <!--       y = .data[[subjectwise_mean]], -->
 <!--       fill = factor(.data[[iv]]) -->
 <!--       ), -->
@@ -131,7 +131,7 @@ Steps
 <!--   geom_point( -->
 <!--     aes( -->
 <!--       # group = .data[[subject]], -->
-<!--       x = as.numeric(factor(.data[[iv]])) - .15 , -->
+<!--       x = as.numeric(as.factor(.data[[iv]])) - .15 , -->
 <!--       y = .data[[subjectwise_mean]], -->
 <!--       color = factor(.data[[iv]]) -->
 <!--     ), -->
@@ -301,7 +301,7 @@ for (contrast_name in c(  "stimlin_high_gt_low",  "stimquad_med_gt_other",  "cue
       data = subjectwise,
       aes(
         group = .data[[subject]],
-        x = as.numeric(factor(.data[[iv]])) - .15 ,
+        x = as.numeric(as.factor(.data[[iv]])) - .15 ,
         y = .data[[subjectwise_mean]],
         fill = factor(.data[[iv]])
       ),
@@ -313,7 +313,7 @@ for (contrast_name in c(  "stimlin_high_gt_low",  "stimquad_med_gt_other",  "cue
     geom_point(
       aes(
         # group = .data[[subject]],
-        x = as.numeric(factor(.data[[iv]])) - .15 ,
+        x = as.numeric(as.factor(.data[[iv]])) - .15 ,
         y = .data[[subjectwise_mean]],
         color = factor(.data[[iv]])
       ),
@@ -410,7 +410,7 @@ for (contrast_name in c(  "stimlin_high_gt_low",  "stimquad_med_gt_other",  "cue
 
 ```
 ## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
-## as.numeric(factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
+## as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
 ```
 
 ```
@@ -429,7 +429,7 @@ for (contrast_name in c(  "stimlin_high_gt_low",  "stimquad_med_gt_other",  "cue
 ```
 
 ```
-## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x = as.numeric(factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
+## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x = as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
 ## Ignoring unknown aesthetics: fill
 ```
 
@@ -446,7 +446,7 @@ for (contrast_name in c(  "stimlin_high_gt_low",  "stimquad_med_gt_other",  "cue
 ```
 
 ```
-## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x = as.numeric(factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
+## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x = as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
 ## Ignoring unknown aesthetics: fill
 ```
 
@@ -463,7 +463,7 @@ for (contrast_name in c(  "stimlin_high_gt_low",  "stimquad_med_gt_other",  "cue
 ```
 
 ```
-## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x = as.numeric(factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
+## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x = as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
 ## Ignoring unknown aesthetics: fill
 ```
 
