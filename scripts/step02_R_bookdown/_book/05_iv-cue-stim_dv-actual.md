@@ -279,6 +279,13 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
 ## Saving 7 x 5 in image
 ```
 
+```r
+r
+```
+
+<img src="05_iv-cue-stim_dv-actual_files/figure-html/unnamed-chunk-1-1.png" width="672" />
+
+
 ### model 03 3-2. individual difference
 
 
@@ -289,7 +296,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
 combined_se_calc_cooksd <- data.frame()
 analysis_dir <- file.path(
         main_dir,
-        "analysis", "mixedeffect", "model04_iv-cue-stim_dv-actual",as.character(Sys.Date())
+        "analysis", "mixedeffect", "model05_iv-cue-stim_dv-actual",as.character(Sys.Date())
     )
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
@@ -349,7 +356,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
             sep = ""
         )
     )
-    cooksd <- lmer_two_factor_cooksd_fix(
+    cooksd <- lmer_twofactor_cooksd_fix(
         data, taskname, iv1, stim_con1, stim_con2, dv,
         subject, dv_keyword, model_savefname, 'random_slopes', print_lmer_output = FALSE
     )
@@ -446,7 +453,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     ggsave(plot_savefname, width = w, height = h)
 
     
-    
+  g  
 
     # save fixed random effects _______________________________
     randEffect$newcoef <- mapvalues(randEffect$term,
@@ -776,7 +783,7 @@ save_plotname <- file.path(
 plots
 ```
 
-<img src="05_iv-cue-stim_dv-actual_files/figure-html/unnamed-chunk-2-1.png" width="672" />
+<img src="05_iv-cue-stim_dv-actual_files/figure-html/unnamed-chunk-3-1.png" width="672" />
 
 ```r
 ggsave(save_plotname, width = 10, height = 3)
@@ -802,7 +809,7 @@ p3 = plot_lineplot_twofactor(DATA, 'cognitive',
 ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
 ```
 
-<img src="05_iv-cue-stim_dv-actual_files/figure-html/unnamed-chunk-3-1.png" width="672" />
+<img src="05_iv-cue-stim_dv-actual_files/figure-html/unnamed-chunk-4-1.png" width="672" />
 
 ```r
 plot_filename = file.path(analysis_dir,

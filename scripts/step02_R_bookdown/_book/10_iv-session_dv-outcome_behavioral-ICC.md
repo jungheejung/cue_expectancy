@@ -105,6 +105,13 @@ library(TMB)
 
 ```r
 library(sjPlot)
+```
+
+```
+## Learn more about sjPlot with 'browseVignettes("sjPlot")'.
+```
+
+```r
 library(ggpubr)
 ```
 
@@ -516,6 +523,9 @@ sapply(file.sources,source,.GlobalEnv)
 ##         /Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils/plot_halfrainclouds_twofactor.R
 ## value   ?                                                                                                                 
 ## visible FALSE                                                                                                             
+##         /Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils/plot_lineplot_onefactor.R
+## value   ?                                                                                                           
+## visible FALSE                                                                                                       
 ##         /Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils/plot_lineplot_twofactor.R
 ## value   ?                                                                                                           
 ## visible FALSE                                                                                                       

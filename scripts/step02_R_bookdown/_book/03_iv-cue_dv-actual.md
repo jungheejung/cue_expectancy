@@ -1,6 +1,6 @@
-# outcome_rating ~ cue {#ch03_cue}
+# [ beh ] outcome ~ cue {#ch03_cue}
 
-## What is the purpose of this notebook? 
+## What is the purpose of this notebook? {.unlisted .unnumbered}
 Here, I plot the outcome ratings as a function of cue. 
 * Main model: `lmer(outcome_rating ~ cue)` 
 * Main question: do outcome ratings differ as a function of cue type? 
@@ -39,124 +39,40 @@ dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 ## Pain
 ### For the vicarious task, what is the effect of cue on outcome ratings? {.unlisted .unnumbered}
 [ INSERT DESCRIPTION ]
-
-```
-## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
-## as.numeric(factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
-```
-
 <img src="03_iv-cue_dv-actual_files/figure-html/pain_iv-cue_dv-outcome-1.png" width="672" />
 
 ## Vicarious
 ### For the vicarious task, what is the effect of cue on outcome ratings? {.unlisted .unnumbered}
 [ INSERT DESCRIPTION ]
-
-```
-## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
-## as.numeric(factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
-```
-
 <img src="03_iv-cue_dv-actual_files/figure-html/vicarious_iv-cue_dv-outcome-1.png" width="672" />
 
 ## Cognitive
 ### For the cognitive task, what is the effect of cue on outcome ratings? {.unlisted .unnumbered}
 [ INSERT DESCRIPTION ]
-
-```
-## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
-## as.numeric(factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
-```
-
 <img src="03_iv-cue_dv-actual_files/figure-html/cognitive_iv-cue_dv-outcome-1.png" width="672" />
 
 
 
 
-## individual differences analysis
+## Individual differences analysis: random cue effects
 Using the random effects from the mixed effects model, I'm plotting the random effect of cue types per task. 
 
 
 
 [ INSERT DESCRIPTION ]
-
-```
-## Warning: Removed 2 rows containing non-finite values (`stat_cor()`).
-```
-
-```
-## Warning: Removed 2 rows containing missing values (`geom_point()`).
-```
-
-```
-## Warning: Removed 1 rows containing missing values (`geom_text()`).
-```
-
-```
-## Warning: Removed 1 rows containing non-finite values (`stat_cor()`).
-```
-
-```
-## Warning: Removed 1 rows containing missing values (`geom_point()`).
-```
-
-```
-## Warning: Removed 1 rows containing missing values (`geom_text()`).
-```
-
-```
-## Warning: Removed 2 rows containing non-finite values (`stat_cor()`).
-```
-
-```
-## Warning: Removed 2 rows containing missing values (`geom_point()`).
-```
-
-```
-## Warning: Removed 1 rows containing missing values (`geom_text()`).
-```
-
 <img src="03_iv-cue_dv-actual_files/figure-html/random_cue_scatter_plot_2-1.png" width="672" />
 
+Note:
+* Pain: Warning: Removed 2 rows containing non-finite values (`stat_cor()`).
+* Vicarious: Warning: Removed 1 rows containing non-finite values (`stat_cor()`).
+* Cognitive: Warning: Removed 2 rows containing non-finite values (`stat_cor()`).
 
 
-## individual differences analysis
+## Individual differences analysis 2: random intercept + random slopes of cue effect
 based on Tor's suggestion, plotting the random efects with the random intercepts as well. not just the cue effects
-
-```
-## Warning: Removed 49 rows containing non-finite values (`stat_cor()`).
-```
-
-```
-## Warning: Removed 49 rows containing missing values (`geom_point()`).
-```
-
-```
-## Warning: Removed 1 rows containing missing values (`geom_text()`).
-```
-
-```
-## Warning: Removed 8 rows containing non-finite values (`stat_cor()`).
-```
-
-```
-## Warning: Removed 8 rows containing missing values (`geom_point()`).
-```
-
-```
-## Warning: Removed 1 rows containing missing values (`geom_text()`).
-```
-
-```
-## Warning: Removed 52 rows containing non-finite values (`stat_cor()`).
-```
-
-```
-## Warning: Removed 52 rows containing missing values (`geom_point()`).
-```
-
-```
-## Warning: Removed 1 rows containing missing values (`geom_text()`).
-```
-
 <img src="03_iv-cue_dv-actual_files/figure-html/random_effects_scatter_plot_2-1.png" width="672" />
 
+Note:
+* Pain: Warning: Removed 49 rows containing non-finite values (`stat_cor()`).
+* Vicarious: Removed 8 rows containing non-finite values (`stat_cor()`).
+* Cognitive: Removed 52 rows containing non-finite values (`stat_cor()`).
