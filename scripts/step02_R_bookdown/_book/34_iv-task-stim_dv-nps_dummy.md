@@ -42,65 +42,6 @@ t = pvc[pvc$subject %in% c("sub-0032", "sub-0033", "sub-0036", "sub-0037", "sub-
 
 
 ## Raincloud plots
-
-```
-## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], y
-## = .data[[sub_mean]], : Ignoring unknown aesthetics: fill
-```
-
-```
-## Warning: Duplicated aesthetics after name standardisation: width
-```
-
-```
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-```
-
-```
-## Warning in min(x): no non-missing arguments to min; returning Inf
-```
-
-```
-## Warning in max(x): no non-missing arguments to max; returning -Inf
-```
-
-```
-## Warning: Using the `size` aesthietic with geom_polygon was deprecated in ggplot2 3.4.0.
-## ℹ Please use the `linewidth` aesthetic instead.
-```
-
-```
-## Warning: Removed 279 rows containing missing values (`geom_line()`).
-```
-
-```
-## Warning: Removed 279 rows containing missing values (`geom_point()`).
-```
-
-```
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-```
-
-```
-## Warning in min(x): no non-missing arguments to min; returning Inf
-```
-
-```
-## Warning in max(x): no non-missing arguments to max; returning -Inf
-```
-
-```
-## Warning: Removed 279 rows containing missing values (`geom_line()`).
-```
-
-```
-## Warning: Removed 279 rows containing missing values (`geom_point()`).
-```
-
 <img src="34_iv-task-stim_dv-nps_dummy_files/figure-html/plot_PVC-1.png" width="672" />
 
 ## Line plots

@@ -1,6 +1,6 @@
-# expectation_rating ~ cue {#ch2_expect}
+# [ beh] expectation ~ cue {#ch2_expect}
 
-## What is the purpose of this notebook?
+## What is the purpose of this notebook? {.unlisted .unnumbered}
 
 Here, I plot the expectation ratings as a function of cue. 
 
@@ -43,24 +43,12 @@ dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
 [ INSERT DESCRIPTION ]
 
-
-```
-## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
-## as.numeric(factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
-```
-
 <img src="02_iv-cue_dv-expect_files/figure-html/pain_iv-cue_dv-expect-1.png" width="672" />
 
 ## Vicarious
 ### For the vicarious task, what is the effect of cue on expectation ratings? {.unlisted .unnumbered}
 
 [ INSERT DESCRIPTION ]
-
-
-```
-## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
-## as.numeric(factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
-```
 
 <img src="02_iv-cue_dv-expect_files/figure-html/vicarious_iv-cue_dv-expect-1.png" width="672" />
 
@@ -69,18 +57,12 @@ dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
 [ INSERT DESCRIPTION ]
 
-
-```
-## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
-## as.numeric(factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
-```
-
 <img src="02_iv-cue_dv-expect_files/figure-html/cognitive_iv-cue_dv-expect-1.png" width="672" />
 
 
 
 ## Individual difference analysis
-### are cue effects (on expectation ratings) similar across tasks? {.unlisted .unnumbered}
+### Are cue effects (on expectation ratings) similar across tasks? {.unlisted .unnumbered}
 
 Using the random slopes of cue effects, here we plot them side by side
 with all three tasks of pain, cognitive, vicarious. As we can see, there
@@ -91,29 +73,9 @@ some may critic that the cues were identical across tasks, thereby the
 cue effects are identical due to the stimuli itself, not necessarily a
 domain-general expectation process.
 
-
-```
-## Warning: Removed 3 rows containing non-finite values (`stat_cor()`).
-```
-
-```
-## Warning: Removed 3 rows containing missing values (`geom_point()`).
-```
-
-```
-## Warning: Removed 1 rows containing non-finite values (`stat_cor()`).
-```
-
-```
-## Warning: Removed 1 rows containing missing values (`geom_point()`).
-```
-
-```
-## Warning: Removed 3 rows containing non-finite values (`stat_cor()`).
-```
-
-```
-## Warning: Removed 3 rows containing missing values (`geom_point()`).
-```
-
 <img src="02_iv-cue_dv-expect_files/figure-html/random effects scatter plot-1.png" width="672" />
+
+Note: 
+pain Warning: Removed 3 rows containing missing values (`geom_point()`).
+vicarious Warning: Removed 1 rows containing missing values (`geom_point()`).
+cognitive: Removed 3 rows containing missing values (`geom_point()`).
