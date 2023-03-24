@@ -1,10 +1,18 @@
-# [fMRI] Vicarious signature ~ single trial {#ch36_singletrial_V}
+# [fMRI] VPS ~ singletrial {#ch36_singletrial_V}
 
 ```
 author: "Heejung Jung
 date: "2023-03-04"
 ```
-color_scheme = c("#C6FF8A", "#63C76E", "#008F51")
+
+## What is the purpose of this notebook? {.unlisted .unnumbered}
+
+* Here, I model vPS dot products as a function of cue, stimulus intensity and expectation ratings. 
+
+* One of the findings is that low cues lead to higher VPS dotproducts in the high intensity group, and that this effect becomes non-significant across sessions. 
+
+* 03/23/2023: For now, I'm grabbing participants that have complete data, i.e. 18 runs, all three sessions. N = 65
+
 
 ```{r libraries_vps_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(car)
@@ -24,6 +32,9 @@ library(effectsize)
 options(es.use_symbols = TRUE) # get nice symbols when printing! (On Windows, requires R >= 4.2.0)
 library(EMAtools)
 library(emmeans)
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
@@ -35,7 +46,7 @@ file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_
 sapply(file.sources,source,.GlobalEnv)
 ```
 
-## Function {.unlisted .unnumbered}
+
 ```{r function::summary_for_plots_pvc, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 summary_for_plots_PVC <- function(df, groupwise_measurevar, subject_keyword, model_iv1, model_iv2, dv) {
     #  [ PLOT ] calculate mean and se  _________________________
@@ -142,10 +153,8 @@ two_factor_lineplot <-
   }
 ```
 
-## Step 1: Common parameters {.unlisted .unnumbered}
-```{r}
 
-
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 # step 1: load data
 for (signature_key in c("VPS")) {
      #c("NPS", "NPSpos", "NPSneg", "VPS", #"VPSnooccip", "ThermalPain", "MechPain", "GeneralAversive", "AversiveVisual"
@@ -339,8 +348,8 @@ for (signature_key in c("VPS")) {
 }
 ```
 
-### Load behavioral data {.unlisted .unnumbered}
-```{r}
+
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 main_dir = dirname(dirname(getwd()))
 print(main_dir)
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
@@ -384,11 +393,9 @@ c.sub <- data_c[,c("src_subject_id", "session_id", "param_run_num", "param_task_
 # sub, ses, run, runtype, event, trial, cuetype, stimintensity
 # src_subject_id, session_id, param_run_num, param_task_name, event02_expect_angle, param_cue_type, param_stimulus_type, event04_actual_angle
 pvc.sub = rbind(p.sub, v.sub, c.sub)
-
-
 ```
 
-```{r}
+```{r echo=FALSE, warning=FALSE}
 pvc.sub$trial_ind <- pvc.sub$trial_index -1 
 pvc.sub$sub <- sprintf("sub-%04d", pvc.sub$src_subject_id)
 pvc.sub$ses <- sprintf("ses-%02d", pvc.sub$session_id)
@@ -410,8 +417,7 @@ df_merge <- merge(pvc, pvc.beh,
 
 
 
-
-## PVC all task comparison
+## Q. What does the VPS pattern look like for the three tasks?
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 # contrast code 1 linear
 pvc$task_con_linear[pvc$task == "pain"] <- 0.5
@@ -428,11 +434,20 @@ pvc$task_con_quad[pvc$task == "cognitive"] <- -.34
 model.alltask <-
   lmer(VPS ~ task_con_linear*stim_factor + 
          task_con_quad*stim_factor + (task|sub), data = pvc)
-summary(model.alltask)
-print("eta squared")
-eta_squared(model.alltask, partial = TRUE)
-parameters::model_parameters(model.alltask)
-lme.dscore(model.alltask, pvc, type = "lme4")
+sjPlot::tab_model(model.alltask)
+```
+
+```{r echo=FALSE, warning=TRUE, class.output="bg-warning"}
+kableExtra::kable_styling(
+  knitr::kable(
+    eta_squared(model.alltask, partial = TRUE), # MODIFY
+    "html"), "striped", position = "left", font_size = 15)
+```
+```{r echo=FALSE, warning=TRUE, class.output="bg-warning"}
+kableExtra::kable_styling(
+  knitr::kable(
+    lme.dscore(model.alltask, pvc, type = "lme4"), # MODIFY
+    "html"), "striped", position = "left", font_size = 15)
 ```
 
 
@@ -450,18 +465,16 @@ plot_halfrainclouds_twofactor(
   w = 10,
   h = 6,
   dv_keyword = "stimulusintensity",
-  color = c("red", "yellow", "blue"),
+  color = c( "#1982c4","#ffca3a", "#9a031e"),
   save_fname = "/Users/h/Desktop/plot_35.png"
 ) 
 ```
 
 
 
-## Vicarious only Stim x cue interaction
+## Q. Within vicarious task, Does stimulus intenisty level and cue level significantly predict VPS dotproducts?
 
-
-
-### 2x3 stimulus intensity * cue 
+### 2 Cue x 3 Stimulus intensity {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 taskname = "vicarious"
@@ -589,7 +602,7 @@ g
 ```
 
 
-### Linear model
+### Linear model {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 cooksd <- lmer_twofactor_cooksd_fix(
         data, taskname, iv1, stim_con1, stim_con2, dv,
@@ -597,33 +610,49 @@ cooksd <- lmer_twofactor_cooksd_fix(
     )
 ```
 
-### VPS stimulus intensity Cohen's d = 0.2131521
+### Cohen's d: VPS stimulus intensity = 0.213 {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 model.vpsstim <- lmer(VPS ~ stim_con_linear + stim_con_quad +(stim_con_linear + stim_con_quad |sub), data = data_screen)
-summary(model.vpsstim)
-print("eta squared")
-eta_squared(model.vpsstim, partial = TRUE)
-parameters::model_parameters(model.vpsstim)
-lme.dscore(model.vpsstim, data_screen, type = "lme4")
-#r2mlm(model.nps)
-emm1 = emmeans(model.vpsstim, specs = pairwise ~ stim_con_linear+ stim_con_quad )
+sjPlot::tab_model(model.vpsstim)
 ```
 
-### VPS stimulus & cue effect size: stim_d = 0.217, cue_d = 0.013
+```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+kableExtra::kable_styling(
+  knitr::kable(
+    eta_squared(model.vpsstim, partial = TRUE), # MODIFY
+    "html"), "striped", position = "left", font_size = 15)
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+kableExtra::kable_styling(
+  knitr::kable(
+    lme.dscore(model.vpsstim, data_screen, type = "lme4"), # MODIFY
+    "html"), "striped", position = "left", font_size = 15)
+```
+
+
+### Cohen's d: VPS stimulus intensity d = 0.217, cue level d = 0.013 {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 model.vpscuestim <- lmer(VPS ~ cue_con*stim_con_linear + cue_con*stim_con_quad + (cue_con+stim_factor|sub), data = data_screen)
 summary(model.vpscuestim)
-print("eta squared")
-eta_squared(model.vpscuestim, partial = TRUE)
-#parameters::model_parameters(model.vpscuestim)
-lme.dscore(model.vpscuestim, data_screen, type = "lme4")
-#r2mlm(model.vpscuestim)
-#emm1 = emmeans(model.vpscuestim, specs = pairwise ~ cue_con|stim_con_linear)
+```
+
+```{r}
+kableExtra::kable_styling(
+  knitr::kable(
+    eta_squared(model.vpscuestim, partial = TRUE), # MODIFY
+    "html"), "striped", position = "left", font_size = 15)
+
+kableExtra::kable_styling(
+  knitr::kable(
+    lme.dscore(model.vpscuestim, data_screen, type = "lme4"), # MODIFY
+    "html"), "striped", position = "left", font_size = 15)
 ```
 
 
-### Lineplots
-```{r}
+### Lineplots  {.unlisted .unnumbered}
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 plot_lineplot_twofactor(actual_groupwise, taskname = "vicarious", 
                         iv1 = "stim_ordered", iv2 = "cue_ordered", 
                         mean = "mean_per_sub_norm_mean", error = "se",
@@ -631,18 +660,32 @@ plot_lineplot_twofactor(actual_groupwise, taskname = "vicarious",
                         xlab = "Stimulus intensity", ylab = paste(signature_key, " (dot product)"))
 ```
 
-### Linear model with Stim x Cue x Expectation rating
-```{r}
+### 2 Cue x 3 Stimulus intensity x Expectation rating 
+```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
 model.vps3factor <- lmer(VPS ~ cue_con*stim_con_linear*event02_expect_angle + cue_con*stim_con_quad*event02_expect_angle + (cue_con|sub), data = data_screen)
-summary(model.vps3factor)
-print("eta squared")
-eta_squared(model.vps3factor, partial = TRUE)
-#parameters::model_parameters(model.vps3factor)
-lme.dscore(model.vps3factor, data_screen, type = "lme4")
+sjPlot::tab_model(model.vps3factor)
 ```
 
 
-### Session 1: 2x3 stimulus intensity * cue 
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+kableExtra::kable_styling(
+  knitr::kable(
+    eta_squared(model.vps3factor, partial = TRUE), # MODIFY
+    "html"), "striped", position = "left", font_size = 15)
+
+kableExtra::kable_styling(
+  knitr::kable(
+    lme.dscore(model.vps3factor, data_screen, type = "lme4"), # MODIFY
+    "html"), "striped", position = "left", font_size = 15)
+```
+
+
+## Q. Is the cue effect on VPS different across sessions?
+
+> Quick answer: Yes, the cue effect in session 1 (for high intensity group) is significantly different; the dirrection flips in session 3; whereas this different becomes non significant in session 4.
+
+
+### Session 1: 2 Cue x 3 Stimulus intensity {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 taskname = "vicarious"
@@ -769,7 +812,7 @@ g
 
 
 
-### Session 3: 2x3 stimulus intensity * cue 
+### Session 3: 2 Cue x 3 Stimulus intensity {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 taskname = "vicarious"
@@ -895,7 +938,7 @@ g
 ```
 
 
-### Session 4: 2x3 stimulus intensity * cue 
+### Session 4: 2 Cue x 3 Stimulus intensity {.unlisted .unnumbered} 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 taskname = "vicarious"
@@ -1023,12 +1066,18 @@ g
 
 
 
-## Vicarious only: Outcome ratings & VPS
-```{r}
+
+
+## Q. Do higher VPS values indicate higher outcome ratings? (Vicarious task only) 
+
+> Yes, Higher VPS values are associated with higher outcome ratings. The pattern is slightly different from the NPS plots, when separated out into three panels of stimulus intensity levels. Neeed to ponder on these results
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 # plot parameters
-iv1 = "event04_actual_angle"; iv2 = signature_key
+iv2 = "event04_actual_angle"; iv1 = signature_key
 subject = "sub"
-xlab = "Outcome rating"; ylab = signature_key
+ylab = "Outcome rating"; xlab = signature_key
 ggtitle = "All stimulus intensity"
 alpha = 0.8; lm_method = "lm"
 p.sig <- df_merge[df_merge$runtype == "runtype-vicarious",]
@@ -1068,12 +1117,12 @@ subjectwise_2dv <- meanSummary_2dv(
         ) +
               geom_ribbon(stat = "smooth", method = lm_method, se = TRUE, alpha = 0.1,
               aes(color = NULL)) +
-        geom_line(stat = "smooth", method = lm_method, alpha = 0.8, size = 1.5)
+        geom_line(stat = "smooth", method = lm_method, alpha = 0.8, linewidth = 1.5)
     g
 ```
 
-### outcome ratings * cue
-```{r}
+### Outcome ratings x Cue
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 p.sig <- df_merge[df_merge$runtype == "runtype-vicarious",]
 iv2 = "event04_actual_angle"; iv1 = signature_key
 df_dropna <-
@@ -1092,7 +1141,10 @@ total <-
 total + labs(title =paste0("task-",taskname, "- What is the pattern for VPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
           )
 ```
-### outcome ratings * stim * cue
+
+
+### Outcome ratings * Stimulus intensity * Cue
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 iv2 = "event04_actual_angle"; iv1 = signature_key
 group = "cuetype"; subject = "sub"
@@ -1141,7 +1193,14 @@ plots_title
 
 
 ## Vicarious only: Expectation ratings & VPS
-```{r}
+
+## Q. What is the relationship betweeen expectation ratings & VPS? (Vicarious task only)
+Do we see a linear effect between expectation rating and VPS dot products? Also, does this effect differ as a function of cue and stimulus intensity ratings, as is the case for behavioral ratings?
+
+> Quick answer: Kind of, expectation ratings predict VPS dotproducts; almost only in the low cue conditions across all stimulus intensity levels. 
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 p.sig <- df_merge[df_merge$runtype == "runtype-vicarious",]
 iv1 = "event02_expect_angle"; iv2 = signature_key
 df_dropna <-
@@ -1159,10 +1218,7 @@ total <-
   )
 
 
-total + labs(title =paste0("task-",taskname, "- What is the pattern for VPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
-          )
-  # geom_line(method="lm", alpha=0.3, size=1, span=0.5) # geom_smooth(method=lm, se = TRUE) 
-# +geom_smooth(method = "lm", alpha=0.1, size=0, span=0.5)
+total + labs(title =paste0("task-",taskname, "- What is the pattern for VPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n"))
 ```
 
 

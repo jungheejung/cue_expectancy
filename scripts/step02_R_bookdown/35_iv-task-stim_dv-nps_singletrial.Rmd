@@ -1,5 +1,11 @@
-# [ fMRI ] Pain signature ~ single trial {#ch35_singletrial_P}
+# [fMRI] NPS ~ singletrial {#ch35_singletrial_P}
 
+
+## What is the purpose of this notebook? {.unlisted .unnumbered}
+
+* Here, I model NPS dot products as a function of cue, stimulus intensity and expectation ratings. 
+* One of the findings is that low cues lead to higher NPS dotproducts in the high intensity group, and that this effect becomes non-significant across sessions. 
+* 03/23/2023: For now, I'm grabbing participants that have complete data, i.e. 18 runs, all three sessions. 
 
 
 ```{r libraries_nps_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
@@ -21,6 +27,10 @@ options(es.use_symbols = TRUE) # get nice symbols when printing! (On Windows, re
 library(EMAtools)
 library(emmeans)
 library(equatiomatic)
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
+library(DT)
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
@@ -32,7 +42,7 @@ file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_
 sapply(file.sources,source,.GlobalEnv)
 ```
 
-Function
+
 ```{r function::summary_for_plots_pvc, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 summary_for_plots_PVC <- function(df, groupwise_measurevar, subject_keyword, model_iv1, model_iv2, dv) {
     #  [ PLOT ] calculate mean and se  _________________________
@@ -139,10 +149,10 @@ two_factor_lineplot <-
   }
 ```
 
-Step 1: Common parameters
+
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 
-
+# Step 1: Common parameters
 # step 1: load data
 for (signature_key in c("NPSpos")) {
      #c("NPS", "NPSpos", "NPSneg", "VPS", #"VPSnooccip", "ThermalPain", "MechPain", "GeneralAversive", "AversiveVisual"
@@ -336,8 +346,11 @@ for (signature_key in c("NPSpos")) {
 }
 ```
 
-Load behavioral data
+
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+
+# Load behavioral data
+
 main_dir = dirname(dirname(getwd()))
 print(main_dir)
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
@@ -408,8 +421,8 @@ df_merge <- merge(pvc, pvc.beh,
 
 
 
-## PVC all task comparison
-```{r echo=FALSE, message=FALSE}
+## Q. What does the NPS pattern look like for the three tasks?
+```{r echo=FALSE, message=FALSE, paged.print=TRUE}
     # contrast code 1 linear
     pvc$task_con_linear[pvc$task == "pain"] <- 0.5
     pvc$task_con_linear[pvc$task == "vicarious"] <- 0
@@ -421,12 +434,30 @@ df_merge <- merge(pvc, pvc.beh,
     pvc$task_con_quad[pvc$task == "cognitive"] <- -.34
 
 model.alltask <- lmer(NPSpos ~ task_con_linear*stim_factor + task_con_quad*stim_factor + (task|sub), data = pvc)
-summary(model.alltask)
-print("eta squared")
-eta_squared(model.alltask, partial = TRUE)
-parameters::model_parameters(model.alltask)
-lme.dscore(model.alltask, pvc, type = "lme4")
 
+sjPlot::tab_model(model.alltask)
+```
+
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+kableExtra::kable_styling(
+  knitr::kable(
+    eta_squared(model.alltask, partial = TRUE), # MODIFY
+    "html"), "striped", position = "left", font_size = 15)
+```
+
+
+```{r}
+# kableExtra::kable_styling(tibble::as_tibble(lme.dscore(model.alltask, pvc, type = "lme4")))
+kableExtra::kable_styling(
+  knitr::kable(lme.dscore(model.alltask, pvc, type = "lme4"), "html"), 
+  "striped", position = "left", font_size = 15)
+# x_html <- knitr::kable(head(mtcars), "html")
+# kable_styling(x_html, "striped", position = "left", font_size = 7)
+```
+
+
+```{r echo=FALSE}
 plot_halfrainclouds_twofactor(subjectwise, groupwise,
                                       iv1 = "task", iv2 = "stim_ordered", sub_mean = "mean_per_sub", group_mean = "mean_per_sub_norm_mean", se = "se", subject = "sub",
                                       ggtitle = "All tasks", title = "task Stim intensity", xlab = "Task", ylab = paste(signature_key, ' (dot product)'), task_name = "all", 
@@ -435,9 +466,9 @@ plot_halfrainclouds_twofactor(subjectwise, groupwise,
 ```
 
 
-## Pain only Stim x cue interaction
+## Q. Within pain task, Does stimulus intenisty level and cue level significantly predict NPS dotproducts?
 
-### 2x3 stimulus intensity * cue 
+### 2 Cue x 3 Stimulus intensity {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 taskname = "pain"
@@ -563,7 +594,7 @@ g
 ```
 
 
-### Linear model
+### Linear model {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 cooksd <- lmer_twofactor_cooksd_fix(
         data, taskname, iv1, stim_con1, stim_con2, dv,
@@ -571,47 +602,84 @@ cooksd <- lmer_twofactor_cooksd_fix(
     )
 ```
 
-### NPS stimulus intensity Cohen's d = 1.287
+### Cohen's d: NPS stimulus intensity = 1.287 {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 model.npsstim <- lmer(NPSpos ~ stim_con_linear + stim_con_quad +(stim_con_linear + stim_con_quad |sub), data = data_screen)
 summary(model.npsstim)
-print("eta squared")
-eta_squared(model.npsstim, partial = TRUE)
-parameters::model_parameters(model.npsstim)
-lme.dscore(model.npsstim, data_screen, type = "lme4")
-#r2mlm(model.nps)
-emm1 = emmeans(model.npsstim, specs = pairwise ~ stim_con_linear+ stim_con_quad )
 ```
 
-### NPS stimulus & cue effect size: stim_d = 1.16, cue_d = 0.45
+#### eta squared {.unlisted .unnumbered}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+kableExtra::kable_styling(
+  knitr::kable(
+    eta_squared(model.npsstim, partial = TRUE), # MODIFY
+    "html"), "striped", position = "left", font_size = 15)
+```
+
+#### Cohens'd {.unlisted .unnumbered}
+```{r}
+kableExtra::kable_styling(
+  knitr::kable(
+    lme.dscore(model.npsstim, data_screen, type = "lme4"), # MODIFY
+    "html"), "striped", position = "left", font_size = 15)
+```
+
+
+
+### Cohen's d: NPS stimulus intensity d = 1.16, cue level d = 0.45 {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 model.npscuestim <- lmer(NPSpos ~ cue_con*stim_con_linear + cue_con*stim_con_quad + (cue_con+stim_factor|sub), data = data_screen)
 summary(model.npscuestim)
 print("eta squared")
-eta_squared(model.npscuestim, partial = TRUE)
+```
+
+#### eta squared {.unlisted .unnumbered}
+```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+kableExtra::kable_styling(
+  knitr::kable(
+    eta_squared(model.npscuestim, partial = TRUE), # MODIFY
+    "html"), "striped", position = "left", font_size = 15)
 #parameters::model_parameters(model.npscuestim)
+```
+
+#### Cohen's d {.unlisted .unnumbered}
+```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 lme.dscore(model.npscuestim, data_screen, type = "lme4")
 #r2mlm(model.npscuestim)
 #emm1 = emmeans(model.npscuestim, specs = pairwise ~ cue_con|stim_con_linear)
 ```
 
 
-### Lineplots
+### Lineplots {.unlisted .unnumbered}
 ```{r echo=FALSE, warning=FALSE}
 plot_lineplot_twofactor(actual_groupwise, taskname = "pain", 
                         iv1 = "stim_ordered", iv2 = "cue_ordered", 
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("#4575B4", "#D73027"), ggtitle = "placeholder", 
+                        color = c("#4575B4", "#D73027"), ggtitle = "Within pain task: NPS dotproducts as a function of stimulus intensity level and cue", 
                         xlab = "Stimulus intensity", ylab = "NPSpos (dot product)")
 ```
-### Linear model with Stim x Cue x Expectation rating
+
+
+### 2 Cue x 3 Stimulus intensity x Expectation rating 
 ```{r echo=FALSE, warning=TRUE}
 model.nps3factor <- lmer(NPSpos ~ cue_con*stim_con_linear*event02_expect_angle + cue_con*stim_con_quad*event02_expect_angle + (cue_con|sub), data = data_screen)
 summary(model.nps3factor)
-print("eta squared")
-eta_squared(model.nps3factor, partial = TRUE)
-#parameters::model_parameters(model.nps3factor)
-lme.dscore(model.nps3factor, data_screen, type = "lme4")
+```
+
+#### eta squared {.unlisted .unnumbered}
+```{r echo=FALSE, warning=TRUE}
+kableExtra::kable_styling(
+  knitr::kable(
+    eta_squared(model.nps3factor, partial = TRUE), # MODIFY
+    "html"), "striped", position = "left", font_size = 15)
+```
+
+#### Cohen's d {.unlisted .unnumbered}
+```{r echo=FALSE, warning=TRUE}
+kableExtra::kable_styling(
+  knitr::kable(
+    lme.dscore(model.nps3factor, data_screen, type = "lme4"), # MODIFY
+    "html"), "striped", position = "left", font_size = 15)
 ```
 
 ```{r echo=FALSE, message=FALSE}
@@ -628,8 +696,13 @@ fig
 ```
 
 
+## Q. Is the cue effect on NPS different across sessions?
 
-### Session 1: 2x3 stimulus intensity * cue 
+> Quick answer: Yes, the cue effect in session 1 (for high intensity group) is significantly different; whereas this different becomes non significant in session 4. 
+> To unpack, a participant was informed to experience a low  stimulus intensity, when in fact they were delivered a high intensity stimulus. This violation presumably leads to a higher NPS response, given that they were delivered a much painful stimulus than expected. The fact that the cue effect is almost non significant during the last session indicates that the cue effects are not just an anchoring effect. 
+
+
+### Session 1: 2x3 stimulus intensity * cue {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 taskname = "pain"
@@ -756,7 +829,7 @@ g
 
 
 
-### Session 3: 2x3 stimulus intensity * cue 
+### Session 3: 2x3 stimulus intensity * cue {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 taskname = "pain"
@@ -882,7 +955,7 @@ g
 ```
 
 
-### Session 4: 2x3 stimulus intensity * cue 
+### Session 4: 2x3 stimulus intensity * cue {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 taskname = "pain"
@@ -1008,7 +1081,10 @@ g
 ```
 
 
-## Pain only: Outcome ratings & NPS
+## Q. Do higher NPS values indicate higher outcome ratings? (Pain task only) 
+
+> Yes, Higher NPS values are associated with higher outcome ratings. The linear relationship between NPS value and outcome ratings are stronger for conditions where cue level is congruent with stimulus intensity levels. In other words, NPS-outcome rating relationship is stringent in the low cue-low intensity group, as is the case for high cue-ghigh intensity group. 
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # plot parameters
 iv2 = "event04_actual_angle"; iv1 = "NPSpos"
@@ -1057,8 +1133,8 @@ subjectwise_2dv <- meanSummary_2dv(
     g
 ```
 
-### outcome ratings * cue
-```{r echo=FALSE, warning=TRUE}
+### Outcome ratings x Cue
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 p.sig <- df_merge[df_merge$runtype == "runtype-pain",]
 iv2 = "event04_actual_angle"; iv1 = "NPSpos"
 df_dropna <-
@@ -1077,7 +1153,7 @@ total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos 
           )
 ```
 
-### outcome ratings * stim * cue
+### Outcome ratings * Stimulus intensity * Cue
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 iv2 = "event04_actual_angle"; iv1 = "NPSpos"
 group = "cuetype"; subject = "sub"
@@ -1125,7 +1201,11 @@ plots_title
 ```
 
 
-## Pain only: Expectation ratings & NPS
+## Q. What is the relationship betweeen expectation ratings & NPS? (Pain task only)
+Do we see a linear effect between expectation rating and NPS dot products? Also, does this effect differ as a function of cue and stimulus intensity ratings, as is the case for behavioral ratings?
+
+> Quick answer: Yes, expectation ratings predict NPS dotproducts; Also, there tends to be a different relationship depending on cues, just by looking at the figures, although this needs to be tested statistically. 
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 p.sig <- df_merge[df_merge$runtype == "runtype-pain",]
 iv1 = "event02_expect_angle"; iv2 = "NPSpos"
