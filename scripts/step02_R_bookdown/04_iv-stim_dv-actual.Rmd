@@ -1,7 +1,9 @@
-# [ beh ] outcome ~ stimulus_intensity {#ch04_outcome-stim}
+# [beh] outcome ~ stimulus_intensity {#ch04_outcome-stim}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
+
 Here, I plot the outcome ratings as a function of stimulus intensity 
+
 * Main model: `lmer(outcome_rating ~ stim)` 
 * Main question: do outcome ratings differ as a function of stimulus intensity? We should expect to see a linear effect of stimulus intensity.
 * If there is a main effect of cue on expectation ratings, does this cue effect differ depending on task type?
@@ -413,7 +415,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     
     ggsave(plot_savefname, width = w, height = h)
     
-  g  
+  print(g)  
 
     # save fixed random effects _______________________________
 #     randEffect$newcoef <- mapvalues(randEffect$term,
@@ -488,7 +490,9 @@ plot_filename = file.path(analysis_dir,
 ggsave(plot_filename, width = 15, height = 6)
 ```
 
+
 ## individual differences in outcome rating cue effect 
+
 [ INSERT DESCRIPTION ]
 ```{r random_effects_scatter_plot_3, eval=FALSE, message=FALSE, warning=TRUE, include=FALSE}
 pvc_rand_subset <- subset(pvc, select = c(task, subj, rand_stim))
@@ -500,7 +504,7 @@ vc <- plot_ggplot_correlation(data = pvc_rand, x = 'cognitive', y = 'vicarious',
 cp <- plot_ggplot_correlation(data = pvc_rand, x = 'pain', y = 'cognitive', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 20, label_position = 38)
 # combine plots and add title
 plots <- ggpubr::ggarrange(pv, vc, cp, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
-plots_title <- annotate_figure(plots, top = text_grob(paste0("individual differences\n - ", iv_keyword, " effects from ",dv_keyword" ratings"), color = "black", face = "bold", size = 15))
+plots_title <- annotate_figure(plots, top = text_grob(paste0("individual differences\n - ", iv_keyword, " effects from ",dv_keyword," ratings"), color = "black", face = "bold", size = 15))
 print(plots)
 save_plotname <- file.path(
     analysis_dir,

@@ -420,12 +420,12 @@ df_merge <- merge(pvc, pvc.beh,
 
 
 
-
-## Q. What does the NPS pattern look like for the three tasks?
+## NPS ~ 3 task * 3 stimulus_intensity
+### Q. What does the NPS pattern look like for the three tasks? {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, paged.print=TRUE}
     # contrast code 1 linear
-    pvc$task_con_linear[pvc$task == "pain"] <- 0.5
-    pvc$task_con_linear[pvc$task == "vicarious"] <- 0
+    pvc$task_con_linear[pvc$task == "pain"] <- 0
+    pvc$task_con_linear[pvc$task == "vicarious"] <- 0.5
     pvc$task_con_linear[pvc$task == "cognitive"] <- -0.5
 
     # contrast code 2 quadratic
@@ -438,22 +438,20 @@ model.alltask <- lmer(NPSpos ~ task_con_linear*stim_factor + task_con_quad*stim_
 sjPlot::tab_model(model.alltask)
 ```
 
-
-```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+#### Eta squared  {.unlisted .unnumbered}
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 kableExtra::kable_styling(
   knitr::kable(
     eta_squared(model.alltask, partial = TRUE), # MODIFY
-    "html"), "striped", position = "left", font_size = 15)
+    "html"), "striped", position = "left", font_size = 12)
 ```
 
 
-```{r}
-# kableExtra::kable_styling(tibble::as_tibble(lme.dscore(model.alltask, pvc, type = "lme4")))
+#### Cohen's d   {.unlisted .unnumbered}
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 kableExtra::kable_styling(
   knitr::kable(lme.dscore(model.alltask, pvc, type = "lme4"), "html"), 
-  "striped", position = "left", font_size = 15)
-# x_html <- knitr::kable(head(mtcars), "html")
-# kable_styling(x_html, "striped", position = "left", font_size = 7)
+  "striped", position = "left", font_size = 12)
 ```
 
 
@@ -466,9 +464,9 @@ plot_halfrainclouds_twofactor(subjectwise, groupwise,
 ```
 
 
-## Q. Within pain task, Does stimulus intenisty level and cue level significantly predict NPS dotproducts?
+## NPS ~ paintask: 2 cue x 3 stimulus_intensity
 
-### 2 Cue x 3 Stimulus intensity {.unlisted .unnumbered}
+### Q. Within pain task, Does stimulus intenisty level and cue level significantly predict NPS dotproducts? {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 taskname = "pain"
@@ -594,18 +592,11 @@ g
 ```
 
 
-### Linear model {.unlisted .unnumbered}
-```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
-cooksd <- lmer_twofactor_cooksd_fix(
-        data, taskname, iv1, stim_con1, stim_con2, dv,
-        subject, dv_keyword, model_savefname, 'random_slopes', print_lmer_output = TRUE
-    )
-```
 
-### Cohen's d: NPS stimulus intensity = 1.287 {.unlisted .unnumbered}
-```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+### Linear model ver 1: NPS ~ stimulus_intensity
+```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
 model.npsstim <- lmer(NPSpos ~ stim_con_linear + stim_con_quad +(stim_con_linear + stim_con_quad |sub), data = data_screen)
-summary(model.npsstim)
+sjPlot::tab_model(model.npsstim)
 ```
 
 #### eta squared {.unlisted .unnumbered}
@@ -613,40 +604,41 @@ summary(model.npsstim)
 kableExtra::kable_styling(
   knitr::kable(
     eta_squared(model.npsstim, partial = TRUE), # MODIFY
-    "html"), "striped", position = "left", font_size = 15)
+    "html"), "striped", position = "left", font_size = 12)
 ```
 
-#### Cohens'd {.unlisted .unnumbered}
-```{r}
+#### Cohen's d: NPS stimulus_intensity = 1.287 {.unlisted .unnumbered}
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 kableExtra::kable_styling(
   knitr::kable(
     lme.dscore(model.npsstim, data_screen, type = "lme4"), # MODIFY
-    "html"), "striped", position = "left", font_size = 15)
+    "html"), "striped", position = "left", font_size = 12)
 ```
 
 
+### Linear model ver 2: NPS ~ stimulus_intenisy * cue 
 
-### Cohen's d: NPS stimulus intensity d = 1.16, cue level d = 0.45 {.unlisted .unnumbered}
-```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
 model.npscuestim <- lmer(NPSpos ~ cue_con*stim_con_linear + cue_con*stim_con_quad + (cue_con+stim_factor|sub), data = data_screen)
-summary(model.npscuestim)
-print("eta squared")
+sjPlot::tab_model(model.npscuestim)
 ```
 
-#### eta squared {.unlisted .unnumbered}
+#### Linear model ver 2: eta-squared {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 kableExtra::kable_styling(
   knitr::kable(
     eta_squared(model.npscuestim, partial = TRUE), # MODIFY
-    "html"), "striped", position = "left", font_size = 15)
+    "html"), "striped", position = "left", font_size = 12)
 #parameters::model_parameters(model.npscuestim)
 ```
 
-#### Cohen's d {.unlisted .unnumbered}
+#### Linear model ver 2: Cohen's d: NPS stimulus_intensity d = 1.16, cue d = 0.45 {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
-lme.dscore(model.npscuestim, data_screen, type = "lme4")
-#r2mlm(model.npscuestim)
-#emm1 = emmeans(model.npscuestim, specs = pairwise ~ cue_con|stim_con_linear)
+
+kableExtra::kable_styling(
+  knitr::kable(
+    lme.dscore(model.npscuestim, data_screen, type = "lme4"),
+    "html"), "striped", position = "left", font_size = 12)
 ```
 
 
@@ -660,10 +652,10 @@ plot_lineplot_twofactor(actual_groupwise, taskname = "pain",
 ```
 
 
-### 2 Cue x 3 Stimulus intensity x Expectation rating 
-```{r echo=FALSE, warning=TRUE}
+### 2 cue * 3 stimulus_intensity * expectation_rating 
+```{r echo=TRUE, warning=TRUE}
 model.nps3factor <- lmer(NPSpos ~ cue_con*stim_con_linear*event02_expect_angle + cue_con*stim_con_quad*event02_expect_angle + (cue_con|sub), data = data_screen)
-summary(model.nps3factor)
+sjPlot::tab_model(model.nps3factor)
 ```
 
 #### eta squared {.unlisted .unnumbered}
@@ -671,7 +663,7 @@ summary(model.nps3factor)
 kableExtra::kable_styling(
   knitr::kable(
     eta_squared(model.nps3factor, partial = TRUE), # MODIFY
-    "html"), "striped", position = "left", font_size = 15)
+    "html"), "striped", position = "left", font_size = 12)
 ```
 
 #### Cohen's d {.unlisted .unnumbered}
@@ -679,7 +671,7 @@ kableExtra::kable_styling(
 kableExtra::kable_styling(
   knitr::kable(
     lme.dscore(model.nps3factor, data_screen, type = "lme4"), # MODIFY
-    "html"), "striped", position = "left", font_size = 15)
+    "html"), "striped", position = "left", font_size = 12)
 ```
 
 ```{r echo=FALSE, message=FALSE}
@@ -696,13 +688,16 @@ fig
 ```
 
 
-## Q. Is the cue effect on NPS different across sessions?
+---
+
+## NPS ~ session * cue * stimulus_intensity
+### Q. Is the cue effect on NPS different across sessions? {.unlisted .unnumbered}
 
 > Quick answer: Yes, the cue effect in session 1 (for high intensity group) is significantly different; whereas this different becomes non significant in session 4. 
 > To unpack, a participant was informed to experience a low  stimulus intensity, when in fact they were delivered a high intensity stimulus. This violation presumably leads to a higher NPS response, given that they were delivered a much painful stimulus than expected. The fact that the cue effect is almost non significant during the last session indicates that the cue effects are not just an anchoring effect. 
 
 
-### Session 1: 2x3 stimulus intensity * cue {.unlisted .unnumbered}
+### Session 1: 2 cue * 3 stimulus_intensity  {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 taskname = "pain"
@@ -829,7 +824,7 @@ g
 
 
 
-### Session 3: 2x3 stimulus intensity * cue {.unlisted .unnumbered}
+### Session 3: 2 cue * 3 stimulus_intensity  {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 taskname = "pain"
@@ -955,7 +950,7 @@ g
 ```
 
 
-### Session 4: 2x3 stimulus intensity * cue {.unlisted .unnumbered}
+### Session 4: 2 cue * 3 stimulus_intensity  {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 taskname = "pain"
@@ -1080,8 +1075,10 @@ data$stim_con_quad[data$stimintensity == "high"] <- -0.33
 g
 ```
 
+---
 
-## Q. Do higher NPS values indicate higher outcome ratings? (Pain task only) 
+## NPS ~ outcome_rating
+### Q. Do higher NPS values indicate higher outcome ratings? (Pain task only) {.unlisted .unnumbered}
 
 > Yes, Higher NPS values are associated with higher outcome ratings. The linear relationship between NPS value and outcome ratings are stronger for conditions where cue level is congruent with stimulus intensity levels. In other words, NPS-outcome rating relationship is stringent in the low cue-low intensity group, as is the case for high cue-ghigh intensity group. 
 
@@ -1133,7 +1130,7 @@ subjectwise_2dv <- meanSummary_2dv(
     g
 ```
 
-### Outcome ratings x Cue
+### outcome_rating * cue
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 p.sig <- df_merge[df_merge$runtype == "runtype-pain",]
 iv2 = "event04_actual_angle"; iv1 = "NPSpos"
@@ -1153,7 +1150,7 @@ total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos 
           )
 ```
 
-### Outcome ratings * Stimulus intensity * Cue
+### outcome_ratings * stimulus_intensity * cue
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 iv2 = "event04_actual_angle"; iv1 = "NPSpos"
 group = "cuetype"; subject = "sub"
@@ -1200,8 +1197,10 @@ plots_title <- annotate_figure(plots, top = text_grob(paste(str_to_title(tasknam
 plots_title
 ```
 
+---
 
-## Q. What is the relationship betweeen expectation ratings & NPS? (Pain task only)
+## NPS ~ expectation_rating
+### Q. What is the relationship betweeen expectation ratings & NPS? (Pain task only) {.unlisted .unnumbered}
 Do we see a linear effect between expectation rating and NPS dot products? Also, does this effect differ as a function of cue and stimulus intensity ratings, as is the case for behavioral ratings?
 
 > Quick answer: Yes, expectation ratings predict NPS dotproducts; Also, there tends to be a different relationship depending on cues, just by looking at the figures, although this needs to be tested statistically. 

@@ -1,9 +1,8 @@
-# RT ~ cue {#ch07_RT-cue}
+# [beh] RT ~ cue {#ch07_RT-cue}
 
-""" 
-This Rmarkdown tests the cue effect (high vs. low) on Reaction time and performance in the cogntive, mental-rotation tasks
-"""
+## What is the purpose of this notebook? {.unlisted .unnumbered}
 
+Here, I test the cue effect (high vs. low) on Reaction time and performance in the cogntive, mental-rotation tasks
 
 * left = diff, right = same
 * model 1: Does RT differ as a function of cue type?

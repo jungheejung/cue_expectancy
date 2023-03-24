@@ -1,4 +1,4 @@
-# [fMRI] RT ~ cue * stim {#ch08_RT-cueXstim}
+# [beh] RT ~ cue * stim {#ch08_RT-cueXstim}
 
 ```
 author: "Heejung Jung"

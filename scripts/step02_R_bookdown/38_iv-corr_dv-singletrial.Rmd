@@ -8,7 +8,7 @@ date: "2023-03-04"
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
 * Identify the correlation between cue and stimulus phase single trial nifti files
-* On discovery, I've calculated the correlated via script: `scripts/step10_nilearn/singletrialLSS/step07_corr_cue_stim.py`
+* On discovery, I've calculated the correlation via script: `scripts/step10_nilearn/singletrialLSS/step07_corr_cue_stim.py`
 
 
 ```{r libraries_nps_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
@@ -33,7 +33,7 @@ file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_
 sapply(file.sources,source,.GlobalEnv)
 ```
 
-## Function {.unlisted .unnumbered}
+
 ```{r function::summary_for_plots_pvc, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 summary_for_plots_PVC <- function(df, groupwise_measurevar, subject_keyword, model_iv1, model_iv2, dv) {
     #  [ PLOT ] calculate mean and se  _________________________
@@ -147,8 +147,8 @@ analysis_dir =
 single_trial_dir = file.path(main_dir, 'analysis/fmri/nilearn/deriv04_corrcuestim')
 ```
 
-## Stack data
-```{r}
+
+```{r include=FALSE}
 combined_se_calc_cooksd <- data.frame()
 subject_varkey = 'sub'; dv = 'dotprod'
 taskname = "vicarious"
@@ -201,7 +201,7 @@ combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, groupwise)
 
 
 ## Lineplot
-```{r}
+```{r echo=FALSE}
 library(ggpubr)
 DATA = as.data.frame(combined_se_calc_cooksd)
 color = c( "#4575B4", "#D73027")
@@ -217,9 +217,7 @@ p2 = plot_lineplot_onefactor(DATA,'vicarious',
 p3 = plot_lineplot_onefactor(DATA, 'cognitive', 
                LINEIV1, MEAN, ERROR, color,xlab = "Runs" , ylab= "Correlation between \ncue and stimulus",ggtitle = 'cognitive')
 ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
-#plot_filename = file.path(analysis_dir,
-       #                   paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
-#ggsave(plot_filename, width = 15, height = 6)
+
 ```
 
 
