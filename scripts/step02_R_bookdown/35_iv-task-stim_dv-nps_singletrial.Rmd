@@ -77,8 +77,8 @@ df$stim_con_quad[df$stimintensity == "med"] <-  0.66
 df$stim_con_quad[df$stimintensity == "high"] <-  -0.33
 
 # cue contrast
-df$cue_con[df$cuetype == "cuetype-low"] <-  -0.5 # social influence task
-df$cue_con[df$cuetype == "cuetype-high"] <-  0.5 # no influence task
+df$CUE_high_gt_low[df$cuetype == "cuetype-low"] <-  -0.5 # social influence task
+df$CUE_high_gt_low[df$cuetype == "cuetype-high"] <-  0.5 # no influence task
 
 df$stim_ordered <- factor(
         df$stimintensity,
@@ -449,7 +449,7 @@ pvc$task_P_gt_VC[pvc$task == "cognitive"] <- -.34
 
 model.alltask <- lmer(NPSpos ~ task_V_gt_C*stim_factor + task_P_gt_VC*stim_factor + (task|sub), data = pvc)
 
-sjPlot::tab_model(model.alltask)
+sjPlot::tab_model(model.alltask, title = "Multilevel-modeling: \nlmer(NPSpos ~ task_V_gt_C*stim_factor + task_P_gt_VC*stim_factor + (task|sub), data = pvc)")
 ```
 
 #### Eta squared  {.unlisted .unnumbered}
@@ -633,7 +633,7 @@ kableExtra::kable_styling(
 ### Linear model ver 2: NPS ~ stimulus_intenisy * cue 
 
 ```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
-model.npscuestim <- lmer(NPSpos ~ cue_con*stim_con_linear + cue_con*stim_con_quad + (cue_con+stim_factor|sub), data = data_screen)
+model.npscuestim <- lmer(NPSpos ~ CUE_high_gt_low*stim_con_linear + CUE_high_gt_low*stim_con_quad + (CUE_high_gt_low+stim_factor|sub), data = data_screen)
 sjPlot::tab_model(model.npscuestim)
 ```
 
@@ -668,7 +668,7 @@ plot_lineplot_twofactor(actual_groupwise, taskname = "pain",
 
 ### 2 cue * 3 stimulus_intensity * expectation_rating 
 ```{r echo=TRUE, warning=TRUE}
-model.nps3factor <- lmer(NPSpos ~ cue_con*stim_con_linear*event02_expect_angle + cue_con*stim_con_quad*event02_expect_angle + (cue_con|sub), data = data_screen)
+model.nps3factor <- lmer(NPSpos ~ CUE_high_gt_low*stim_con_linear*event02_expect_angle + CUE_high_gt_low*stim_con_quad*event02_expect_angle + (CUE_high_gt_low|sub), data = data_screen)
 sjPlot::tab_model(model.nps3factor)
 ```
 
@@ -690,9 +690,9 @@ kableExtra::kable_styling(
 
 ```{r echo=FALSE, message=FALSE}
 library(plotly)
-# lmer(NPSpos ~ cue_con*stim_con_linear*event02_expect_angle + cue_con*stim_con_quad*event02_expect_angle + (cue_con|sub), data = data_screen)
+# lmer(NPSpos ~ CUE_high_gt_low*stim_con_linear*event02_expect_angle + CUE_high_gt_low*stim_con_quad*event02_expect_angle + (CUE_high_gt_low|sub), data = data_screen)
 
-fig <- plot_ly(data_screen, x = ~event02_expect_angle, y = ~NPSpos, z = ~event04_actual_angle, color = ~cue_con, colors = c('#BF382A', '#0C4B8E'))
+fig <- plot_ly(data_screen, x = ~event02_expect_angle, y = ~NPSpos, z = ~event04_actual_angle, color = ~CUE_high_gt_low, colors = c('#BF382A', '#0C4B8E'))
 fig <- fig %>% add_markers()
 fig <- fig %>% layout(scene = list(xaxis = list(title = 'expectation'),
                      yaxis = list(title = 'NPS'),

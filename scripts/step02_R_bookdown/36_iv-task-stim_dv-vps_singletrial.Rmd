@@ -79,8 +79,8 @@ df$stim_con_quad[df$stimintensity == "med"] <-  0.66
 df$stim_con_quad[df$stimintensity == "high"] <-  -0.33
 
 # cue contrast
-df$cue_con[df$cuetype == "cuetype-low"] <-  -0.5 # social influence task
-df$cue_con[df$cuetype == "cuetype-high"] <-  0.5 # no influence task
+df$CUE_high_gt_low[df$cuetype == "cuetype-low"] <-  -0.5 # social influence task
+df$CUE_high_gt_low[df$cuetype == "cuetype-high"] <-  0.5 # no influence task
 
 df$stim_ordered <- factor(
         df$stimintensity,
@@ -641,7 +641,7 @@ kableExtra::kable_styling(
 
 ### Linear model ver 2: VPS ~ stimulus_intenisy * cue 
 ```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
-model.vpscuestim <- lmer(VPS ~ cue_con*stim_con_linear + cue_con*stim_con_quad + (cue_con+stim_factor|sub), data = data_screen)
+model.vpscuestim <- lmer(VPS ~ CUE_high_gt_low*stim_con_linear + CUE_high_gt_low*stim_con_quad + (CUE_high_gt_low+stim_factor|sub), data = data_screen)
 sjPlot::tab_model(model.vpscuestim)
 ```
 
@@ -673,7 +673,7 @@ plot_lineplot_twofactor(actual_groupwise, taskname = "vicarious",
 
 ### 2 Cue x 3 Stimulus intensity x Expectation rating 
 ```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
-model.vps3factor <- lmer(VPS ~ cue_con*stim_con_linear*event02_expect_angle + cue_con*stim_con_quad*event02_expect_angle + (cue_con|sub), data = data_screen)
+model.vps3factor <- lmer(VPS ~ CUE_high_gt_low*stim_con_linear*event02_expect_angle + CUE_high_gt_low*stim_con_quad*event02_expect_angle + (CUE_high_gt_low|sub), data = data_screen)
 sjPlot::tab_model(model.vps3factor)
 ```
 

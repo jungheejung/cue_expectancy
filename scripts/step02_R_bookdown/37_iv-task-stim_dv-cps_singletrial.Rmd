@@ -79,8 +79,8 @@ df$stim_con_quad[df$stimintensity == "med"] <-  0.66
 df$stim_con_quad[df$stimintensity == "high"] <-  -0.33
 
 # cue contrast
-df$cue_con[df$cuetype == "cuetype-low"] <-  -0.5 # social influence task
-df$cue_con[df$cuetype == "cuetype-high"] <-  0.5 # no influence task
+df$CUE_high_gt_low[df$cuetype == "cuetype-low"] <-  -0.5 # social influence task
+df$CUE_high_gt_low[df$cuetype == "cuetype-high"] <-  0.5 # no influence task
 
 df$stim_ordered <- factor(
         df$stimintensity,
@@ -586,7 +586,7 @@ kableExtra::kable_styling(
 ### Linear model ver 2: Kragel2018 ~ stimulus_intenisy * cue 
 
 ```{r echo=FALSE, message=TRUE, warning=TRUE, class.output="bg-warning", paged.print=FALSE}
-model.cogcuestim <- lmer(Kragel18CogControl ~ cue_con*stim_con_linear + cue_con*stim_con_quad + (cue_con|sub), data = data_screen)
+model.cogcuestim <- lmer(Kragel18CogControl ~ CUE_high_gt_low*stim_con_linear + CUE_high_gt_low*stim_con_quad + (CUE_high_gt_low|sub), data = data_screen)
 sjPlot::tab_model(model.cogcuestim)
 ```
 
@@ -618,7 +618,7 @@ plot_lineplot_twofactor(actual_groupwise, taskname = "cognitive",
 
 ### 2 Cue x 3 Stimulus intensity x Expectation rating 
 ```{r class.output="bg-warning"}
-model.cog3factor <- lmer(Kragel18CogControl ~ cue_con*stim_con_linear*event02_expect_angle + cue_con*stim_con_quad*event02_expect_angle + (cue_con|sub), data = data_screen)
+model.cog3factor <- lmer(Kragel18CogControl ~ CUE_high_gt_low*stim_con_linear*event02_expect_angle + CUE_high_gt_low*stim_con_quad*event02_expect_angle + (CUE_high_gt_low|sub), data = data_screen)
 sjPlot::tab_model(model.cog3factor)
 
 kableExtra::kable_styling(
@@ -633,7 +633,7 @@ kableExtra::kable_styling(
 ```
 
 ```{r echo=FALSE}
-fig <- plot_ly(data_screen, x = ~event02_expect_angle, y = ~Kragel18CogControl, z = ~event04_actual_angle, color = ~cue_con, colors = c('#BF382A', '#0C4B8E'))
+fig <- plot_ly(data_screen, x = ~event02_expect_angle, y = ~Kragel18CogControl, z = ~event04_actual_angle, color = ~CUE_high_gt_low, colors = c('#BF382A', '#0C4B8E'))
 fig <- fig %>% add_markers()
 fig <- fig %>% layout(scene = list(xaxis = list(title = 'Expectation'),
                      yaxis = list(title = 'Kragel Cognitive'),
