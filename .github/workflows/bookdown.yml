@@ -9,11 +9,22 @@ jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v2
 
-    - name: Set up R
+    steps:
+    - name: Use Node.js 16
+      uses: actions/setup-node@v2.4.0
+      with:
+        node-version: '16.x'
+        
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        ref: ${{ github.ref }}
+
+    - name: Setup R
       uses: r-lib/actions/setup-r@v1
+      with:
+        r-version: '4.2.2'
 
     - name: Install dependencies
       run: |
