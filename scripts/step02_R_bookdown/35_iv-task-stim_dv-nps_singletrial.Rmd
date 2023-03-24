@@ -420,20 +420,34 @@ df_merge <- merge(pvc, pvc.beh,
 
 
 
+
 ## NPS ~ 3 task * 3 stimulus_intensity
 ### Q. What does the NPS pattern look like for the three tasks? {.unlisted .unnumbered}
+
+```{r echo=FALSE}
+tab <- matrix(c(0, .5, -.5, 
+                .66, -.34, -.34), ncol=3, byrow=TRUE)
+colnames(tab) <- c('pain','vicarious','cognitive')
+rownames(tab) <- c('task_V_gt_C','task_P_gt_VC')
+kableExtra::kable_styling(
+  knitr::kable(
+    tab, caption = "Contrast weights", "html"), 
+  "striped", position = "left", font_size = 15)
+```
+
+
 ```{r echo=FALSE, message=FALSE, paged.print=TRUE}
-    # contrast code 1 linear
-    pvc$task_con_linear[pvc$task == "pain"] <- 0
-    pvc$task_con_linear[pvc$task == "vicarious"] <- 0.5
-    pvc$task_con_linear[pvc$task == "cognitive"] <- -0.5
+# contrast code 1 linear
+pvc$task_V_gt_C[pvc$task == "pain"] <- 0
+pvc$task_V_gt_C[pvc$task == "vicarious"] <- 0.5
+pvc$task_V_gt_C[pvc$task == "cognitive"] <- -0.5
 
-    # contrast code 2 quadratic
-    pvc$task_con_quad[pvc$task == "pain"] <- 0.66
-    pvc$task_con_quad[pvc$task == "vicarious"] <- -.34
-    pvc$task_con_quad[pvc$task == "cognitive"] <- -.34
+# contrast code 2 quadratic
+pvc$task_P_gt_VC[pvc$task == "pain"] <- 0.66
+pvc$task_P_gt_VC[pvc$task == "vicarious"] <- -.34
+pvc$task_P_gt_VC[pvc$task == "cognitive"] <- -.34
 
-model.alltask <- lmer(NPSpos ~ task_con_linear*stim_factor + task_con_quad*stim_factor + (task|sub), data = pvc)
+model.alltask <- lmer(NPSpos ~ task_V_gt_C*stim_factor + task_P_gt_VC*stim_factor + (task|sub), data = pvc)
 
 sjPlot::tab_model(model.alltask)
 ```
