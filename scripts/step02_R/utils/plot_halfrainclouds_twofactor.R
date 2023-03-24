@@ -34,7 +34,7 @@ plot_halfrainclouds_twofactor <- function(subjectwise, groupwise,
             aes(
                 group = .data[[subject]],
                 y = .data[[sub_mean]],
-                x = as.numeric(.data[[iv1]]) - .15,
+                x = as.numeric(as.factor(.data[[iv1]])) - .15,
                 color = .data[[iv2]]
             ),
             linetype = 3, color = "grey", alpha = .3
@@ -42,7 +42,7 @@ plot_halfrainclouds_twofactor <- function(subjectwise, groupwise,
         geom_point(
             data = subjectwise,
             aes(
-                x = as.numeric(.data[[iv1]]) - .15,
+                x = as.numeric(as.factor(.data[[iv1]])) - .15,
                 y = .data[[sub_mean]],
                 color = .data[[iv2]]
             ),
@@ -85,7 +85,7 @@ plot_halfrainclouds_twofactor <- function(subjectwise, groupwise,
         geom_errorbar(
             data = groupwise,
             aes(
-                x = as.numeric(.data[[iv1]]) + .1,
+                x = as.numeric(as.factor(.data[[iv1]])) + .1,
                 y = .data[[group_mean]],
                 group = .data[[iv2]],
                 colour = .data[[iv2]],
