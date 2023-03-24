@@ -147,8 +147,8 @@ df$stim_con_quad[df$param_stimulus_type == "med_stim"] <-  0.66
 df$stim_con_quad[df$param_stimulus_type == "high_stim"] <-  -0.33
 
 # cue contrast
-df$cue_con[df$param_cue_type == "low_cue"] <-  -0.5 # social influence task
-df$cue_con[df$param_cue_type == "high_cue"] <-  0.5 # no influence task
+df$CUE_high_gt_low[df$param_cue_type == "low_cue"] <-  -0.5 # social influence task
+df$CUE_high_gt_low[df$param_cue_type == "high_cue"] <-  0.5 # no influence task
 
 df$stim_ordered <- factor(
         df$param_stimulus_type,
@@ -188,13 +188,13 @@ pvc <- simple_contrasts_beh(df)
 ## mediation
 
 ```{r}
-psych::mediate(event04_actual_angle ~ cue_con*stim_con_linear+ event02_expect_angle + lag.04outcomeangle, data = pvc, n.iter = 1000) %>% print(short = FALSE) 
+psych::mediate(event04_actual_angle ~ CUE_high_gt_low*stim_con_linear+ event02_expect_angle + lag.04outcomeangle, data = pvc, n.iter = 1000) %>% print(short = FALSE) 
 ```
 ## mediation 2
 ```{r}
 mod1 <- "# a path
          #thirst ~ a * room_temp
-         event02_expect_angle ~ a * cue_con
+         event02_expect_angle ~ a * CUE_high_gt_low
 
          # b path
          #consume ~ b * thirst
@@ -202,7 +202,7 @@ mod1 <- "# a path
          
          # c prime path 
          #consume ~ cp * room_temp
-         event04_actual_angle ~ cp * cue_con
+         event04_actual_angle ~ cp * CUE_high_gt_low
          
          # indirect and total effects
          ab := a * b
@@ -218,7 +218,7 @@ parameterestimates(fsem1, boot.ci.type = "bca.simple", standardized = TRUE) %>%
 
 ```
 ```{r eval=FALSE, warning=TRUE, include=FALSE}
-with(pvc, MBESS::mediation.effect.plot(x = cue_con, 
+with(pvc, MBESS::mediation.effect.plot(x = CUE_high_gt_low, 
                                 mediator = event02_expect_angle, 
                                 dv = event04_actual_angle, 
                                 ylab = "outcome rating", xlab = "expectation rating"))
@@ -231,7 +231,7 @@ library(mediation)
 library(brms)
 library(MBESS)
 library(bayestestR)
-with(pvc, MBESS::mediation(x = cue_con, 
+with(pvc, MBESS::mediation(x = CUE_high_gt_low, 
                     mediator = event02_expect_angle, 
                     dv = event04_actual_angle, bootstrap = TRUE, which.boot = "BCa", B = 100))
 ```
@@ -242,13 +242,13 @@ library(mediation)
 library(brms)
 library(MBESS)
 library(bayestestR)
-model.0 <- lm(event04_actual_angle ~ cue_con, pvc)
-model.M <- lm(event02_expect_angle ~ cue_con, pvc)
-model.Y <- lm(event04_actual_angle ~ cue_con + event02_expect_angle, pvc)
+model.0 <- lm(event04_actual_angle ~ CUE_high_gt_low, pvc)
+model.M <- lm(event02_expect_angle ~ CUE_high_gt_low, pvc)
+model.Y <- lm(event04_actual_angle ~ CUE_high_gt_low + event02_expect_angle, pvc)
 results <- mediation::mediate(
     model.M,
     model.Y,
-    treat = 'cue_con',
+    treat = 'CUE_high_gt_low',
     mediator = 'event02_expect_angle',
     boot = TRUE,
     sims = 500
