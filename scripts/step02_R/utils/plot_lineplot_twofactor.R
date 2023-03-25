@@ -9,8 +9,8 @@ plot_lineplot_twofactor <- function(data, iv1, iv2, mean, error,
     g <- ggplot(data = data, aes(
         x = .data[[iv1]],
         y = .data[[mean]],
-        group = as.numeric(as.factor(.data[[iv2]])),
-        color = as.numeric(as.factor(.data[[iv2]]))
+        group = as.factor(.data[[iv2]]),
+        color = as.factor(.data[[iv2]])
     ), cex.lab = 1.5, cex.axis = 2, cex.main = 1.5, cex.sub = 1.5) +
         geom_errorbar(aes(
             ymin = (.data[[mean]] - .data[[error]]),
