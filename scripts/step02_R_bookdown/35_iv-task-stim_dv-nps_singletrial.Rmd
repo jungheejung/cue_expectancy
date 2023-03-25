@@ -35,10 +35,8 @@ source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
-file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
-                          ignore.case=TRUE)
+file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"), pattern="*.R", full.names=TRUE, ignore.case=TRUE)
+
 sapply(file.sources,source,.GlobalEnv)
 ```
 
@@ -424,6 +422,15 @@ df_merge <- merge(pvc, pvc.beh,
 ## NPS ~ 3 task * 3 stimulus_intensity
 ### Q. What does the NPS pattern look like for the three tasks? {.unlisted .unnumbered}
 
+```{r echo=FALSE}
+plot_halfrainclouds_twofactor(subjectwise, groupwise,
+                                      iv1 = "task", iv2 = "stim_ordered", sub_mean = "mean_per_sub", group_mean = "mean_per_sub_norm_mean", se = "se", subject = "sub",
+                                      ggtitle = "All tasks", title = "task Stim intensity", xlab = "Task", ylab = paste(signature_key, ' (dot product)'), task_name = "all", 
+                              ylim = c(-50, 50),
+                                      w=10, h=6, dv_keyword = "stimulusintensity", color = c( "#4C77ED","#FEAE00", "#ED220D"), save_fname = "/Users/h/Desktop/plot_35.png") 
+```
+
+
 #### Contrast weight table {.unlisted .unnumbered}
 ```{r echo=FALSE}
 tab <- matrix(c(0, .5, -.5, 
@@ -470,14 +477,7 @@ kableExtra::kable_styling(
 ```
 
 
-```{r echo=FALSE}
-plot_halfrainclouds_twofactor(subjectwise, groupwise,
-                                      iv1 = "task", iv2 = "stim_ordered", sub_mean = "mean_per_sub", group_mean = "mean_per_sub_norm_mean", se = "se", subject = "sub",
-                                      ggtitle = "All tasks", title = "task Stim intensity", xlab = "Task", ylab = paste(signature_key, ' (dot product)'), task_name = "all", 
-                              ylim = c(-50, 50),
-                                      w=10, h=6, dv_keyword = "stimulusintensity", color = c( "#1982c4","#ffca3a", "#9a031e"), save_fname = "/Users/h/Desktop/plot_35.png") 
-```
-
+---
 
 ## NPS ~ paintask: 2 cue x 3 stimulus_intensity
 
@@ -607,38 +607,24 @@ g
 ```
 
 
-
-### Linear model ver 1: NPS ~ stimulus_intensity
-```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
-model.npsstim <- lmer(NPSpos ~ stim_con_linear + stim_con_quad +(stim_con_linear + stim_con_quad |sub), data = data_screen)
-sjPlot::tab_model(model.npsstim)
-```
-
-#### eta squared {.unlisted .unnumbered}
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-kableExtra::kable_styling(
-  knitr::kable(
-    eta_squared(model.npsstim, partial = TRUE), # MODIFY
-    "html"), "striped", position = "left", font_size = 12)
-```
-
-#### Cohen's d: NPS stimulus_intensity = 1.287 {.unlisted .unnumbered}
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-kableExtra::kable_styling(
-  knitr::kable(
-    lme.dscore(model.npsstim, data_screen, type = "lme4"), # MODIFY
-    "html"), "striped", position = "left", font_size = 12)
+### Lineplots {.unlisted .unnumbered}
+```{r echo=FALSE, warning=FALSE}
+plot_lineplot_twofactor_subset(actual_groupwise, taskname = "pain", 
+                        iv1 = "stim_ordered", iv2 = "cue_ordered", 
+                        mean = "mean_per_sub_norm_mean", error = "se",
+                        color = c("#4575B4", "#D73027"), ggtitle = "Within pain task: NPS dotproducts as a function of stimulus intensity level and cue", 
+                        xlab = "Stimulus intensity", ylab = "NPSpos (dot product)")
 ```
 
 
-### Linear model ver 2: NPS ~ stimulus_intenisy * cue 
+### Linear model results (NPS ~ paintask: 2 cue x 3 stimulus_intensity)
 
 ```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
 model.npscuestim <- lmer(NPSpos ~ CUE_high_gt_low*stim_con_linear + CUE_high_gt_low*stim_con_quad + (CUE_high_gt_low+stim_factor|sub), data = data_screen)
 sjPlot::tab_model(model.npscuestim)
 ```
 
-#### Linear model ver 2: eta-squared {.unlisted .unnumbered}
+#### Linear model eta-squared {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 kableExtra::kable_styling(
   knitr::kable(
@@ -647,7 +633,7 @@ kableExtra::kable_styling(
 #parameters::model_parameters(model.npscuestim)
 ```
 
-#### Linear model ver 2: Cohen's d: NPS stimulus_intensity d = 1.16, cue d = 0.45 {.unlisted .unnumbered}
+#### Linear model Cohen's d: NPS stimulus_intensity d = 1.16, cue d = 0.45 {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 
 kableExtra::kable_styling(
@@ -657,14 +643,7 @@ kableExtra::kable_styling(
 ```
 
 
-### Lineplots {.unlisted .unnumbered}
-```{r echo=FALSE, warning=FALSE}
-plot_lineplot_twofactor(actual_groupwise, taskname = "pain", 
-                        iv1 = "stim_ordered", iv2 = "cue_ordered", 
-                        mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("#4575B4", "#D73027"), ggtitle = "Within pain task: NPS dotproducts as a function of stimulus intensity level and cue", 
-                        xlab = "Stimulus intensity", ylab = "NPSpos (dot product)")
-```
+
 
 
 ### 2 cue * 3 stimulus_intensity * expectation_rating 
@@ -1089,6 +1068,62 @@ data$stim_con_quad[data$stimintensity == "high"] <- -0.33
     )
 g
 ```
+
+
+### Here are the stats models: NPS~session * cue * stimulus_intensity
+1. Calculate difference score
+* average high and low cue within run. 
+* calculate difference between high and low cue per run
+* each participant has 6 contrast scores
+* run this as a function of stimulus intensity and sessions
+
+```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
+combined_se_calc_cooksd <- data.frame()
+taskname = "pain"
+ggtitle <- paste(taskname, " - NPS")
+title <- paste(taskname, " - NPS")
+subject <- "sub"
+w <- 10
+h <- 6
+p.sig <- df_merge[df_merge$runtype == "runtype-pain",]
+data <- p.sig
+    # [ CONTRASTS ]  ________________________________________________________________________________ # nolint
+    # contrast code ________________________________________
+
+# contrast code 1 linear
+data$STIM_linear[data$stimintensity == "low"] <- -0.5
+data$STIM_linear[data$stimintensity == "med"] <- 0
+data$STIM_linear[data$stimintensity == "high"] <- 0.5
+
+# contrast code 2 quadratic
+data$STIM_quadratic[data$stimintensity == "low"] <- -0.33
+data$STIM_quadratic[data$stimintensity == "med"] <- 0.66
+data$STIM_quadratic[data$stimintensity == "high"] <- -0.33
+    
+    # session contrast code 1 linear
+    data$SES_1_gt_34[data$ses == "ses-01"] <- .66
+    data$SES_1_gt_34[data$ses == "ses-03"] <- -.34
+    data$SES_1_gt_34[data$ses == "ses-04"] <- -.34
+
+    # contrast code 2 quadratic
+    data$SES_3_gt_4[data$ses == "ses-01"] <- 0
+    data$SES_3_gt_4[data$ses == "ses-03"] <- .5
+    data$SES_3_gt_4[data$ses == "ses-04"] <- -.5
+
+    # social cude contrast
+    data$CUE_high_gt_low[data$cuetype == "cuetype-low"] <- -0.5 # social influence task
+    data$CUE_high_gt_low[data$cuetype == "cuetype-high"] <- 0.5 # no influence task
+
+    # stim_con1 <- "STIM_linear"
+    # stim_con2 <- "STIM_quadratic"
+    # iv1 <- "CUE_high_gt_low"
+    # dv <- "NPSpos"
+
+model.npssescuestim <- lmer(NPSpos ~ CUE_high_gt_low*STIM_linear*SES_3_gt_4 + CUE_high_gt_low*STIM_quadratic*SES_3_gt_4 + CUE_high_gt_low*STIM_linear*SES_1_gt_34 + CUE_high_gt_low*STIM_quadratic*SES_1_gt_34 + (CUE_high_gt_low|sub), data = data)
+sjPlot::tab_model(model.npssescuestim)
+```
+
+
 
 ---
 
