@@ -17,7 +17,7 @@ jobs:
         node-version: '16.x'
         
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         ref: ${{ github.ref }}
 
@@ -33,9 +33,10 @@ jobs:
     - name: Install devtools resolve pandoc
       run: |
         Rscript -e "install.packages('devtools')"
+        
     - name: Install rmarkdown
       run: |
-        Rscript -e "devtools::install_github('rstudio/rmarkdown#1168')"
+        Rscript -e "install.packages('rmarkdown')"
       
     - name: Build bookdown
       run: |
