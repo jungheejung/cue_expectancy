@@ -1,12 +1,12 @@
-plot_lineplot_twofactor <- function(data, iv1, iv2, mean, error,
+plot_lineplot_twofactor_subset <- function(data, taskname, iv1, iv2, mean, error,
                       color, ggtitle, xlab= "Stimulus intensity", ylab = "Rating (degrees)") {
     # iv1 = "levels_ordered"
     # iv2 = "social_ordered"
     # mean = mean_per_sub_norm_mean
     # error = ci
-    #subset <- data[which(data$task == taskname), ]
+    subset <- data[which(data$task == taskname), ]
 
-    g <- ggplot(data = data, aes(
+    g <- ggplot(data = subset, aes(
         x = .data[[iv1]],
         y = .data[[mean]],
         group = as.numeric(as.factor(.data[[iv2]])),
