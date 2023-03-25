@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
 
+
     steps:
     - name: Use Node.js 16
       uses: actions/setup-node@v2.4.0
@@ -26,10 +27,8 @@ jobs:
       with:
         r-version: '4.2.2'
         
-    - name: Install Pandoc 2.0
-      run: |
-        wget https://github.com/jgm/pandoc/releases/download/2.0/pandoc-2.0-1-amd64.deb
-        sudo dpkg -i pandoc-2.0-1-amd64.deb
+    - name: Install pandoc
+      uses: r-lib/actions/setup-pandoc@v1
 
     - name: Install dependencies
       run: |
