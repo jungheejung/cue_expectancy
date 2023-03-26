@@ -23,6 +23,7 @@ library(plyr)
 library(ggpubr)
 library(r2mlm)
 library(effectsize)
+library(devtools)
 options(es.use_symbols = TRUE) # get nice symbols when printing! (On Windows, requires R >= 4.2.0)
 library(EMAtools)
 library(emmeans)
@@ -31,13 +32,18 @@ library(sjPlot)
 library(sjmisc)
 library(sjlabelled)
 library(DT)
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
-source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
-file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"), pattern="*.R", full.names=TRUE, ignore.case=TRUE)
+library(raincloudplots)
+# devtools::source_url("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/tutorial_R/R_rainclouds.R")
+# devtools::source_url("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/tutorial_R/summarySE.R")
 
+devtools::source_url("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+                          pattern="*.R", 
+                          full.names=TRUE, 
+                          ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
+# file.sources = list.files(c("https://raw.githubusercontent.com/jungheejung/cue_expectancy/main/scripts/step02_R/utils"), pattern="*.R", full.names=TRUE, ignore.case=TRUE)
+# sapply(file.sources,source,.GlobalEnv)
 ```
 
 
@@ -516,7 +522,7 @@ data <- p.sig
     data$CUE_high_gt_low[data$cuetype == "cuetype-low"] <- -0.5 # social influence task
     data$CUE_high_gt_low[data$cuetype == "cuetype-high"] <- 0.5 # no influence task
 
-
+    data$EXPECT <- data$event02_expect_angle
     stim_con1 <- "STIM_linear"
     stim_con2 <- "STIM_quadratic"
     iv1 <- "CUE_high_gt_low"
@@ -699,7 +705,7 @@ fig
 
 ---
 
-## NPS ~ session * cue * stimulus_intensity
+## NPS ~ SES * CUE * STIM
 ### Q. Is the cue effect on NPS different across sessions? {.unlisted .unnumbered}
 
 > Quick answer: Yes, the cue effect in session 1 (for high intensity group) is significantly different; whereas this different becomes non significant in session 4. 
@@ -960,7 +966,7 @@ ggsave(plot_filename, width = 8, height = 4)
 
 ---
 
-## NPS ~ outcome_rating
+## OUTCOME ~ NPS
 ### Q. Do higher NPS values indicate higher outcome ratings? (Pain task only) {.unlisted .unnumbered}
 
 > Yes, Higher NPS values are associated with higher outcome ratings. The linear relationship between NPS value and outcome ratings are stronger for conditions where cue level is congruent with stimulus intensity levels. In other words, NPS-outcome rating relationship is stringent in the low cue-low intensity group, as is the case for high cue-ghigh intensity group. 
@@ -1030,7 +1036,7 @@ total <-
     ylab = "Outcome rating", xlab = signature_key,
     ggtitle = "all stimulus intensity", 
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"), 
-    alpha = .8, fit_lm = TRUE, lm_method ="lm"
+    alpha = .8, fit_lm = TRUE, lm_method ="lm", identity_line = FALSE
   )
 total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
           )
@@ -1053,7 +1059,7 @@ low <-
     ylab = "Outcome rating", xlab = signature_key,
     ggtitle = "Low intensity",
     color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
   )
 
 # med stimulus intensity
@@ -1066,7 +1072,7 @@ med <-
     ylab = "Outcome rating", xlab = signature_key,
     ggtitle = "Medium intensity",
     color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
   )
 
 # high stimulus intensity
@@ -1079,7 +1085,7 @@ high <-
     ylab = "Outcome rating", xlab = signature_key,
     ggtitle = "High intensity",
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
   )
 plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
 plots_title <- annotate_figure(plots, top = text_grob(paste(str_to_title(taskname), "\n NPS/Outcome linear relationship does not differ as a function of stimulus intensity and cue"), color = "black", face = "bold", size = 12))
@@ -1098,13 +1104,12 @@ mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
 mutate(EXPECT_demean = event02_expect_angle - avg_expect)
 
 p.demean <- p.demean %>%
-  group_by(sub) $>%
-# group_by(sub, ses, run) %>%
+group_by(sub, ses, run) %>%
 mutate(NPSpos = as.numeric(NPSpos)) %>%
 mutate(avg_NPS = mean(NPSpos, na.rm = TRUE)) %>%
 mutate(NPS_demean = NPSpos - avg_NPS)
 # plot parameters
-iv1 = "NPS_demean"
+iv1 = "NPSpos"
 iv2 = "OUTCOME_demean"
 
 subject = "sub"
@@ -1115,16 +1120,16 @@ alpha = 0.8
 lm_method = "lm"
 # p.sig <- df_merge[df_merge$runtype == "runtype-pain", ]
 demean_dropna <- p.demean[!is.na(p.demean[, iv1]) & !is.na(p.demean[, iv2]),]
-
+demean_dropna$EXPECT <- demean_dropna$event02_expect_angle
 total <-
   plot_twovariable(
     demean_dropna, iv1, iv2,
     group = "cuetype", subject = "sub",
     ymin=-25, ymax=25, xmin=-5, xmax=5,
-    ylab,  xlab = paste(signature_key, "\n(subjectwise mean-centered)"),
+    ylab,  xlab = paste(signature_key), #, "\n(subjectwise mean-centered)"),
     ggtitle = "all stimulus intensity", 
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"), 
-    alpha = .8, fit_lm = TRUE, lm_method ="lm"
+    alpha = .8, fit_lm = TRUE, lm_method ="lm", identity_line = FALSE
   )
 total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
           )
@@ -1133,7 +1138,9 @@ total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos 
 
 ### demeaned_outcome_ratings * stimulus_intensity * cue
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-iv2 = "OUTCOME_demean"; iv1 = "NPS_demean" # "NPSpos"
+iv2 = "OUTCOME_demean"; iv1 = "NPSpos" # "NPSpos"
+ylab = "Outcome rating \n(subjectwise mean-centered)"
+xlab =  paste(signature_key)
 group = "cuetype"; subject = "sub"
 # low stimulus intensity
 demean_low = demean_dropna[demean_dropna$stimintensity == "low", ]
@@ -1141,11 +1148,11 @@ low <-
   plot_twovariable(
     demean_low, iv1 , iv2,
     group = group, subject = subject,
-     ymin=-50, ymax=50, xmin=-50, xmax=50,
-    ylab = "Outcome rating \n(subjectwise mean-centered)", xlab =  paste(signature_key, "\n(subjectwise mean-centered)"),
+    ymin=-50, ymax=50, xmin=-25, xmax=25,
+    ylab = ylab, xlab =  xlab,
     ggtitle = "Low intensity",
     color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
   )
 
 # med stimulus intensity
@@ -1154,11 +1161,11 @@ med <-
   plot_twovariable(
     demean_med, iv1, iv2,
     group = group, subject = subject,
-     ymin=-50, ymax=50, xmin=-50, xmax=50,
-    ylab = "Outcome rating\n(subjectwise mean-centered)", xlab =  paste(signature_key, "\n(subjectwise mean-centered)"),
+    ymin=-50, ymax=50, xmin=-25, xmax=25,
+    ylab = ylab, xlab =  xlab,
     ggtitle = "Medium intensity",
     color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
   )
 
 # high stimulus intensity
@@ -1167,11 +1174,11 @@ high <-
   plot_twovariable(
     demean_high, iv1, iv2,
     group = group, subject = subject,
-    ymin=-50, ymax=50, xmin=-50, xmax=50,
-    ylab = "Outcome rating\n(subjectwise mean-centered)", xlab =  paste(signature_key, "\n(subjectwise mean-centered)"),
+    ymin=-50, ymax=50, xmin=-25, xmax=25,
+    ylab = ylab, xlab =  xlab,
     ggtitle = "High intensity",
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
   )
 plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
 plots_title <- annotate_figure(plots, top = text_grob(paste(str_to_title(taskname), "\n NPS/Outcome linear relationship does not differ as a function of stimulus intensity and cue"), color = "black", face = "bold", size = 12))
@@ -1182,10 +1189,10 @@ plots_title
 
 ```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
 # organize variable names
-
-model.npsoutcome <- lmer(OUTCOME_demean ~ CUE_high_gt_low*STIM_linear*NPS_demean + CUE_high_gt_low*STIM_quadratic*NPS_demean + (CUE_high_gt_low*STIM*NPS_demean|sub), data = demean_dropna)
+# NPS_demean vs. NPSpos
+model.npsoutcome <- lmer(OUTCOME_demean ~ CUE_high_gt_low*STIM_linear*NPSpos + CUE_high_gt_low*STIM_quadratic*NPSpos + (CUE_high_gt_low*STIM*NPSpos|sub), data = demean_dropna)
 sjPlot::tab_model(model.npsoutcome,
-                  title = "Multilevel-modeling: \nlmer(OUTCOME_demean ~ CUE * STIM * NPS_demean + (CUE * STIM *NPS_demean | sub), data = pvc)",
+                  title = "Multilevel-modeling: \nlmer(OUTCOME_demean ~ CUE * STIM * NPSpos + (CUE * STIM *NPSpos | sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
 ```
 
@@ -1212,7 +1219,7 @@ total <-
     ylab = signature_key, 
     ggtitle = "all stimulus intensity", 
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"), 
-    alpha = .8, fit_lm = TRUE, lm_method = "lm"
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
   )
 total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
           )
@@ -1234,7 +1241,7 @@ low <-
     xlab = "expectation rating", ylab = "NPSpos",
     ggtitle = "Low intensity",
     color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
   )
 
 # med stimulus intensity
@@ -1247,7 +1254,7 @@ med <-
     xlab = "expectation rating", ylab = "NPSpos",
     ggtitle = "Medium intensity",
     color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
   )
 
 # high stimulus intensity
@@ -1260,7 +1267,7 @@ high <-
     xlab = "expectation rating", ylab = "NPSpos",
     ggtitle = "High intensity",
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
   )
 plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
 plots_title <- annotate_figure(plots, top = text_grob(paste(str_to_title(taskname), "\n Expect/Outcome linear relationship differs as a function of stimulus intensity and cue"), color = "black", face = "bold", size = 12))
@@ -1285,10 +1292,10 @@ mutate(NPS_demean = NPSpos - avg_NPS)
 # plot parameters
 
 iv1 = "EXPECT_demean"
-iv2 = "NPS_demean"
+iv2 = "NPSpos" # NPS_demean
 subject = "sub"
 xlab = "Expectation rating \n(subjectwise mean-centered)"
-ylab = paste(signature_key, " \n(mean-centered)")
+ylab = paste(signature_key) #, " \n(mean-centered)")
 ggtitle = "All stimulus intensity"
 alpha = 0.8
 lm_method = "lm"
@@ -1302,7 +1309,7 @@ total <-
     xlab ,ylab,
     ggtitle = "all stimulus intensity", 
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"), 
-    alpha = .8, fit_lm = TRUE, lm_method ="lm"
+    alpha = .8, fit_lm = TRUE, lm_method ="lm", identity_line = FALSE
   )
 total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
           )
@@ -1311,8 +1318,10 @@ total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos 
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-iv1 = "EXPECT_demean"; iv2 = "NPS_demean" # "NPSpos"
+iv1 = "EXPECT_demean"; iv2 = "NPSpos" # "NPS_demean"
 group = "cuetype"; subject = "sub"
+xlab = "Expectation rating \n(subjectwise mean-centered)"
+ylab = paste(signature_key)
 # low stimulus intensity
 demean_low = demean_dropna[demean_dropna$stimintensity == "low", ]
 low <-
@@ -1320,10 +1329,11 @@ low <-
     demean_low, iv1 , iv2,
     group = group, subject = subject,
     ymin=-10, ymax=10, xmin=-40, xmax=40,
-    xlab = "Expectation rating", ylab = paste(signature_key, " \n(mean-centered)"),
+    xlab = xlab, ylab = ylab, 
+    #, " \n(mean-centered)"),
     ggtitle = "Low intensity",
     color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
   )
 
 # med stimulus intensity
@@ -1333,10 +1343,10 @@ med <-
     demean_med, iv1, iv2,
     group = group, subject = subject,
     ymin=-10, ymax=10, xmin=-40, xmax=40,
-    xlab = "Expectation rating", ylab = paste(signature_key, " \n(mean-centered)"),
+    xlab = xlab, ylab = ylab, 
     ggtitle = "Medium intensity",
     color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
   )
 
 # high stimulus intensity
@@ -1346,10 +1356,10 @@ high <-
     demean_high, iv1, iv2,
     group = group, subject = subject,
     ymin=-10, ymax=10, xmin=-40, xmax=40,
-    xlab = "Expectation rating", ylab = paste(signature_key, " \n(mean-centered)"),
+    xlab = xlab, ylab = ylab, 
     ggtitle = "High intensity",
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
   )
 plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
 plots_title <- annotate_figure(plots, top = text_grob(paste(str_to_title(taskname), "\n NPS/Outcome linear relationship does not differ as a function of stimulus intensity and cue"), color = "black", face = "bold", size = 12))
@@ -1362,13 +1372,37 @@ plots_title
 
 
 ```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
-model.npsexpect <- lmer(NPS_demean ~ 
+model.npsexpectdemean <- lmer(NPSpos ~ 
                           CUE_high_gt_low*STIM_linear*EXPECT_demean + 
                           CUE_high_gt_low*STIM_quadratic*EXPECT_demean + 
                           (CUE_high_gt_low+STIM+EXPECT_demean|sub), data = demean_dropna
                     )
-sjPlot::tab_model(model.npsexpect,
-                  title = "Multilevel-modeling: \nlmer(NPS_demean ~ CUE * STIM * EXPECT + (CUE + STIM + EXPECT| sub), data = pvc)",
+sjPlot::tab_model(model.npsexpectdemean,
+                  title = "Multilevel-modeling: \nlmer(NPSpos ~ CUE * STIM * EXPECT_demean + (CUE + STIM + EXPECT_demean| sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
 ```
 
+
+```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
+demean_dropna$EXPECT <- demean_dropna$event02_expect_angle
+model.npsexpect <- lmer(NPSpos ~ 
+                          CUE_high_gt_low*STIM_linear*EXPECT + 
+                          CUE_high_gt_low*STIM_quadratic*EXPECT + 
+                          (CUE_high_gt_low+STIM+EXPECT|sub), data = demean_dropna
+                    )
+sjPlot::tab_model(model.npsexpect,
+                  title = "Multilevel-modeling: \nlmer(NPSpos ~ CUE * STIM * EXPECT + (CUE + STIM + EXPECT| sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+```
+
+```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
+demean_dropna$EXPECT <- demean_dropna$event02_expect_angle
+model.npsd_expectd <- lmer(NPS_demean ~ 
+                          CUE_high_gt_low*STIM_linear*EXPECT_demean + 
+                          CUE_high_gt_low*STIM_quadratic*EXPECT_demean + 
+                          (CUE_high_gt_low+STIM+EXPECT_demean|sub), data = demean_dropna
+                    )
+sjPlot::tab_model(model.npsd_expectd,
+                  title = "Multilevel-modeling: \nlmer(NPS_demean ~ CUE * STIM * EXPECT_demean + (CUE + STIM + EXPECT_demean| sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+```
