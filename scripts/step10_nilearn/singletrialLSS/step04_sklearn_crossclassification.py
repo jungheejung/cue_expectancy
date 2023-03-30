@@ -1,4 +1,3 @@
-# %%
 from sklearn.linear_model import LassoCV
 from sklearn.metrics import r2_score, accuracy_score
 import numpy as np
@@ -92,3 +91,7 @@ print(accuracy_total)
 # permutation labels
 # boot strap accuracy
 
+<<<<<<< HEAD
+r2_score(y, y_pred)
+=======
+>>>>>>> 8601f627b3fe4fc8073bc8b9f6e7444a768824b4
