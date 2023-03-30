@@ -25,7 +25,7 @@ plot_halfrainclouds_sigmoid <- function(subjectwise, groupwise, iv,sub_iv,
   geom_point(
     aes(
       # group = .data[[subject]],
-      x = as.numeric(factor(.data[[iv]])) - .1 ,
+      x = as.numeric(as.factor(.data[[iv]])) - .1 ,
       y = .data[[subjectwise_mean]],
       color = factor(.data[[iv]])
     ),

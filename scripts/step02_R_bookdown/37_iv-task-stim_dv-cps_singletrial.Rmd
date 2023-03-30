@@ -1,9 +1,15 @@
-# Cognitive signature ~ single trial {#ch37_singletrial_C}
+# [fMRI] Kragel2018 ~ singletrial {#ch37_singletrial_C}
 
 ```
 author: "Heejung Jung"
-date: "2023-03-04"
+date: "2023-03-23"
 ```
+
+## What is the purpose of this notebook? {.unlisted .unnumbered}
+
+* Here, I model NPS dot products as a function of cue, stimulus intensity and expectation ratings. 
+* One of the findings is that low cues lead to higher Cognitive Control dotproducts in the medium intensity group, and that this effect becomes non-significant across sessions. 
+* 03/23/2023: For now, I'm grabbing participants that have complete data, i.e. 18 runs, all three sessions. N = 65
 
 
 ```{r libraries_nps_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
@@ -20,10 +26,14 @@ library(gghalves)
 library(plyr)
 library(ggpubr)
 library(r2mlm)
+library(plotly)
 library(effectsize)
 options(es.use_symbols = TRUE) # get nice symbols when printing! (On Windows, requires R >= 4.2.0)
 library(EMAtools)
 library(emmeans)
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
@@ -35,7 +45,6 @@ file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_
 sapply(file.sources,source,.GlobalEnv)
 ```
 
-## Function {.unlisted .unnumbered}
 ```{r function::summary_for_plots_pvc, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 summary_for_plots_PVC <- function(df, groupwise_measurevar, subject_keyword, model_iv1, model_iv2, dv) {
     #  [ PLOT ] calculate mean and se  _________________________
@@ -70,8 +79,8 @@ df$stim_con_quad[df$stimintensity == "med"] <-  0.66
 df$stim_con_quad[df$stimintensity == "high"] <-  -0.33
 
 # cue contrast
-df$cue_con[df$cuetype == "cuetype-low"] <-  -0.5 # social influence task
-df$cue_con[df$cuetype == "cuetype-high"] <-  0.5 # no influence task
+df$CUE_high_gt_low[df$cuetype == "cuetype-low"] <-  -0.5 # social influence task
+df$CUE_high_gt_low[df$cuetype == "cuetype-high"] <-  0.5 # no influence task
 
 df$stim_ordered <- factor(
         df$stimintensity,
@@ -136,9 +145,9 @@ two_factor_lineplot <-
   }
 ```
 
-## Step 1: Common parameters {.unlisted .unnumbered}
-```{r}
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+## Step 1: Common parameters
 # step 1: load data
 for (signature_key in c("Kragel18CogControl")) {
   dv_keyword = signature_key
@@ -274,8 +283,8 @@ for (signature_key in c("Kragel18CogControl")) {
 }
 ```
 
-### Load behavioral data {.unlisted .unnumbered}
-```{r}
+
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 main_dir = dirname(dirname(getwd()))
 print(main_dir)
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
@@ -344,39 +353,90 @@ df_merge <- merge(pvc, pvc.beh,
 ```
 
 
+## Kragel2018 ~ 3 task * 3 stimulus_intensity
+### Q. What does the Cognitive control pattern look like for the three tasks? {.unlisted .unnumbered}
 
-
-## PVC all task comparison
-```{r}
-# contrast code 1 linear
-pvc$task_con_linear[pvc$task == "pain"] <- 0.5
-pvc$task_con_linear[pvc$task == "vicarious"] <- 0
-pvc$task_con_linear[pvc$task == "cognitive"] <- -0.5
-
-# contrast code 2 quadratic
-pvc$task_con_quad[pvc$task == "pain"] <- 0.66
-pvc$task_con_quad[pvc$task == "vicarious"] <- -.34
-pvc$task_con_quad[pvc$task == "cognitive"] <- -.34
-
-model.alltask <- lmer(Kragel18CogControl ~ task_con_linear*stim_factor + task_con_quad*stim_factor + (task|sub), data = pvc)
-summary(model.alltask)
-print("eta squared")
-eta_squared(model.alltask, partial = TRUE)
-parameters::model_parameters(model.alltask)
-lme.dscore(model.alltask, pvc, type = "lme4")
-
-plot_halfrainclouds_twofactor(subjectwise, groupwise,
-                                      iv1 = "task", iv2 = "stim_ordered", sub_mean = "mean_per_sub", group_mean = "mean_per_sub_norm_mean", se = "se", subject = "sub",
-                                      ggtitle = "All tasks", title = "task Stim intensity", xlab = "Task", ylab = paste(signature_key, ' (dot product)'), task_name = "all", 
-                              ylim = c(-50, 50),
-                                      w=10, h=6, dv_keyword = "stimulusintensity", color = c("red", "yellow", "blue"), save_fname = "/Users/h/Desktop/plot_35.png") 
+#### Contrast weight table {.unlisted .unnumbered}
+```{r echo=FALSE}
+tab <- matrix(c(-.5, .5, 0, 
+                -.34, -.34, .66), ncol=3, byrow=TRUE)
+colnames(tab) <- c('pain','vicarious','cognitive')
+rownames(tab) <- c('task_V_gt_P','task_C_gt_PV')
+kableExtra::kable_styling(
+  knitr::kable(
+    tab, caption = "Contrast weights", "html"), 
+  "striped", position = "left", font_size = 15)
 ```
 
 
-## Cognitive only Stim x cue interaction
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+# contrast code 1 linear
+pvc$task_V_gt_P[pvc$task == "pain"] <- -0.5
+pvc$task_V_gt_P[pvc$task == "vicarious"] <- 0.5
+pvc$task_V_gt_P[pvc$task == "cognitive"] <- 0
 
-### 2x3 stimulus intensity * cue 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# contrast code 2 quadratic
+pvc$task_C_gt_PV[pvc$task == "pain"] <- -.34
+pvc$task_C_gt_PV[pvc$task == "vicarious"] <- -.34
+pvc$task_C_gt_PV[pvc$task == "cognitive"] <- .66
+```
+
+```{r echo=TRUE, class.output="bg-warning"}
+model.alltask <- lmer(Kragel18CogControl ~ task_V_gt_P*stim_factor + task_C_gt_PV*stim_factor + (task|sub), data = pvc)
+sjPlot::tab_model(model.alltask)
+```
+
+#### eta-squared {.unlisted .unnumbered}
+```{r echo=FALSE, class.output="bg-warning"}
+kableExtra::kable_styling(
+  knitr::kable(
+    eta_squared(model.alltask, partial = TRUE), # MODIFY
+    "html"), "striped", position = "left", font_size = 12)
+
+```
+<!-- parameters::model_parameters(model.alltask) -->
+
+#### Cohen's d {.unlisted .unnumbered}
+```{r echo=FALSE, class.output="bg-warning"}
+kableExtra::kable_styling(
+  knitr::kable(
+    lme.dscore(model.alltask, pvc, type = "lme4"), # MODIFY
+    "html"), "striped", position = "left", font_size = 12)
+
+```
+
+```{r echo=FALSE}
+plot_halfrainclouds_twofactor(
+  subjectwise,
+  groupwise,
+  iv1 = "task",
+  iv2 = "stim_ordered",
+  sub_mean = "mean_per_sub",
+  group_mean = "mean_per_sub_norm_mean",
+  se = "se",
+  subject = "sub",
+  ggtitle = "All tasks",
+  title = "task Stim intensity",
+  xlab = "Task",
+  ylab = paste(signature_key, ' (dot product)'),
+  task_name = "all",
+  ylim = c(-50, 50),
+  w = 10,
+  h = 6,
+  dv_keyword = "stimulusintensity",
+  color = c( "#1982c4","#ffca3a", "#9a031e"),
+  save_fname = "/Users/h/Desktop/plot_35.png"
+) 
+```
+
+
+---
+
+## Kragel2018 ~ 2 cue x 3 stimulus_intensity
+
+### Q. Within cognitive task, does stimulus intenisty level and cue level significantly predict Kragel2018 dotproducts? {.unlisted .unnumbered}
+
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 taskname = "cognitive"
 ggtitle <- paste(taskname, " - actual judgment (degree)")
@@ -472,7 +532,7 @@ model_savefname <- file.path(
     se <- "se"
     subject <- "sub"
     ggtitle <- paste(taskname, " - ", signature_key, " Cooksd removed")
-    title <- paste(taskname, " - ", signature_key)
+    title <- "Cue level"
     xlab <- ""
     ylab <- paste(signature_key, " (dot product)")
     ylim <- c(-.25,.25)
@@ -490,7 +550,7 @@ model_savefname <- file.path(
             sep = ""
         )
     )
-    g <- plot_rainclouds_twofactor(
+    g <- plot_halfrainclouds_twofactor(
         actual_subjectwise, actual_groupwise, model_iv1, model_iv2,
         sub_mean, group_mean, se, subject,
         ggtitle, title, xlab, ylab, taskname,ylim,
@@ -500,64 +560,81 @@ g
 ```
 
 
-### Linear model
-```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
-cooksd <- lmer_twofactor_cooksd_fix(
-        data, taskname, iv1, stim_con1, stim_con2, dv,
-        subject, dv_keyword, model_savefname, 'random_slopes', print_lmer_output = TRUE
-    )
-```
 
-### Cog stimulus intensity Cohen's d = 0.72
-```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+### Linear model ver 1: Kragel2018 ~ stimulus_intenisy * cue 
+```{r echo=TRUE, message=TRUE, warning=TRUE, paged.print=FALSE}
 model.cogstim <- lmer(Kragel18CogControl ~ stim_con_linear + stim_con_quad +(stim_con_linear + stim_con_quad |sub), data = data_screen)
-summary(model.cogstim)
-print("eta squared")
-eta_squared(model.cogstim, partial = TRUE)
-parameters::model_parameters(model.cogstim)
-lme.dscore(model.cogstim, data_screen, type = "lme4")
-#r2mlm(model.nps)
+sjPlot::tab_model(model.cogstim)
+```
+
+#### Linear model ver 1: eta-squared {.unlisted .unnumbered}
+```{r echo=FALSE, class.output="bg-warning"}
+kableExtra::kable_styling(
+  knitr::kable(
+    eta_squared(model.cogstim, partial = TRUE),
+    "html"), "striped", position = "left", font_size = 12)
+```
+
+#### Linear model ver 1: Cohen's d: Cognitive control stimulus intensity = 0.72 {.unlisted .unnumbered}
+```{r echo=FALSE, class.output="bg-warning"}
 emm1 = emmeans(model.cogstim, specs = pairwise ~ stim_con_linear+ stim_con_quad )
+kableExtra::kable_styling(
+  knitr::kable(
+    lme.dscore(model.cogstim, data_screen, type = "lme4"), # MODIFY
+    "html"), "striped", position = "left", font_size = 12)
 ```
 
-### Cognitive stimulus & cue effect size: stim_d = 0.73, cue_d = 0.069
-```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
-model.cogcuestim <- lmer(Kragel18CogControl ~ cue_con*stim_con_linear + cue_con*stim_con_quad + (cue_con|sub), data = data_screen)
-summary(model.cogcuestim)
-print("eta squared")
-eta_squared(model.cogcuestim, partial = TRUE)
-#parameters::model_parameters(model.cogcuestim)
-lme.dscore(model.cogcuestim, data_screen, type = "lme4")
+### Linear model ver 2: Kragel2018 ~ stimulus_intenisy * cue 
+
+```{r echo=FALSE, message=TRUE, warning=TRUE, class.output="bg-warning", paged.print=FALSE}
+model.cogcuestim <- lmer(Kragel18CogControl ~ CUE_high_gt_low*stim_con_linear + CUE_high_gt_low*stim_con_quad + (CUE_high_gt_low|sub), data = data_screen)
+sjPlot::tab_model(model.cogcuestim)
+```
+
+#### Linear model ver 2: eta-squared {.unlisted .unnumbered}
+```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE, class.output="bg-warning"}
+kableExtra::kable_styling(
+  knitr::kable(
+    eta_squared(model.cogcuestim, partial = TRUE),
+    "html"), "striped", position = "left", font_size = 12)
+```
+
+#### Linear model ver 2: Cohen's d: CognitiveControl stimulus_intensity d = 0.73, cue d = 0.069 {.unlisted .unnumbered}
+```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE, class.output="bg-warning"}
+kableExtra::kable_styling(
+  knitr::kable(
+    lme.dscore(model.cogcuestim, data_screen, type = "lme4"),
+    "html"), "striped", position = "left", font_size = 12)
 ```
 
 
-### Lineplots
-```{r}
-plot_lineplot_twofactor(actual_groupwise, taskname = "cognitive", 
+### Lineplots {.unlisted .unnumbered}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+plot_lineplot_twofactor_subset(actual_groupwise, taskname = "cognitive", 
                         iv1 = "stim_ordered", iv2 = "cue_ordered", 
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("#4575B4", "#D73027"), ggtitle = "placeholder", 
+                        color = c("#4575B4", "#D73027"), ggtitle = "Cognitive Signature as a function of cue and stimulus intensity", 
                         xlab = "Stimulus intensity", ylab = paste(signature_key, " (dot product)"))
 ```
 
-### Linear model with Stim x Cue x Expectation rating
-```{r}
-model.cog3factor <- lmer(Kragel18CogControl ~ cue_con*stim_con_linear*event02_expect_angle + cue_con*stim_con_quad*event02_expect_angle + (cue_con|sub), data = data_screen)
-summary(model.cog3factor)
-print("eta squared")
-eta_squared(model.cog3factor, partial = TRUE)
-#parameters::model_parameters(model.cog3factor)
-lme.dscore(model.cog3factor, data_screen, type = "lme4")
+### 2 Cue x 3 Stimulus intensity x Expectation rating 
+```{r class.output="bg-warning"}
+model.cog3factor <- lmer(Kragel18CogControl ~ CUE_high_gt_low*stim_con_linear*event02_expect_angle + CUE_high_gt_low*stim_con_quad*event02_expect_angle + (CUE_high_gt_low|sub), data = data_screen)
+sjPlot::tab_model(model.cog3factor)
+
+kableExtra::kable_styling(
+  knitr::kable(
+    eta_squared(model.cog3factor, partial = TRUE), # MODIFY
+    "html"), "striped", position = "left", font_size = 12)
+
+kableExtra::kable_styling(
+  knitr::kable(
+    lme.dscore(model.cog3factor, data_screen, type = "lme4"), # MODIFY
+    "html"), "striped", position = "left", font_size = 12)
 ```
 
-```{r}
-library(plotly)
-# lmer(Kragel18CogControl ~ cue_con*stim_con_linear*event02_expect_angle + cue_con*stim_con_quad*event02_expect_angle + (cue_con|sub), data = data_screen)
-# mtcars$am[which(mtcars$am == 0)] <- 'Automatic'
-# mtcars$am[which(mtcars$am == 1)] <- 'Manual'
-# mtcars$am <- as.factor(mtcars$am)
-
-fig <- plot_ly(data_screen, x = ~event02_expect_angle, y = ~Kragel18CogControl, z = ~event04_actual_angle, color = ~cue_con, colors = c('#BF382A', '#0C4B8E'))
+```{r echo=FALSE}
+fig <- plot_ly(data_screen, x = ~event02_expect_angle, y = ~Kragel18CogControl, z = ~event04_actual_angle, color = ~CUE_high_gt_low, colors = c('#BF382A', '#0C4B8E'))
 fig <- fig %>% add_markers()
 fig <- fig %>% layout(scene = list(xaxis = list(title = 'Expectation'),
                      yaxis = list(title = 'Kragel Cognitive'),
@@ -567,8 +644,16 @@ fig
 ```
 
 
+---
 
-### Session 1: 2x3 stimulus intensity * cue 
+## Kragel2018 ~ session * cue * stimulus_intensity
+### Q. Is the cue effect on Cognitive signature different across sessions? (Vicarious task only)  {.unlisted .unnumbered}
+
+
+> Quick answer: Yes, the cue effect in session 1 (for medium intensity group) is significantly different; low cues lead to higher similarity between the Cog-control brain maps. Howevere, this difference becomes non significant in session 4.
+
+
+### Session 1: 2 cue * 3 stimulus_intensity  {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 taskname = "cognitive"
@@ -695,7 +780,7 @@ g
 
 
 
-### Session 3: 2x3 stimulus intensity * cue 
+### Session 3: 2 cue * 3 stimulus_intensity  {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 taskname = "cognitive"
@@ -821,7 +906,7 @@ g
 ```
 
 
-### Session 4: 2x3 stimulus intensity * cue 
+### Session 4: 2 cue * 3 stimulus_intensity  {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 taskname = "cognitive"
@@ -947,14 +1032,19 @@ g
 ```
 
 
+---
+
+## Kragel2018 ~ outcome_rating
+### Q. Do higher Kragel 2018 map dotproducts values indicate higher outcome ratings? (Vicarious task only)  {.unlisted .unnumbered}
+
+> Yes, Higher Cog-control signature values are associated with higher outcome ratings. Interstingly, lower Cog-control signatures are associateed with lower outcome ratings
 
 
-## Cognitive only: Outcome ratings & Kragel 2018
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 # plot parameters
-iv2 = "event04_actual_angle"; iv1 = signature_key
+iv1 = signature_key; iv2 = "event04_actual_angle"
 subject = "sub"
-ylab = "Outcome rating"; xlab = signature_key
+xlab = signature_key; ylab = "Outcome rating" 
 ggtitle = "All stimulus intensity"
 alpha = 0.8; lm_method = "lm"
 c.sig <- df_merge[df_merge$runtype == "runtype-cognitive",]
@@ -992,12 +1082,12 @@ subjectwise_2dv <- meanSummary_2dv(
         ) +
               geom_ribbon(stat = "smooth", method = lm_method, se = TRUE, alpha = 0.1,
               aes(color = NULL)) +
-        geom_line(stat = "smooth", method = lm_method, alpha = 0.8, size = 1.5)
+        geom_line(stat = "smooth", method = lm_method, alpha = 0.8, linewidth = 1.5)
     g
 ```
 
-### outcome ratings * cue
-```{r}
+### outcome_ratings * cue
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 c.sig <- df_merge[df_merge$runtype == "runtype-cognitive",]
 iv2 = "event04_actual_angle"; iv1 = signature_key
 df_dropna <- c.sig[!is.na(c.sig[, iv1]) & !is.na(c.sig[, iv2]), ]
@@ -1014,7 +1104,10 @@ total <-
 total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
           )
 ```
-### outcome ratings * stim * cue
+
+
+### outcome_ratings * stimulus_intensity * cue
+
 ```{r message=FALSE, warning=FALSE, , echo=FALSE, paged.print=FALSE}
 iv2 = "event04_actual_angle"; iv1 = signature_key
 group = "cuetype"; subject = "sub"
@@ -1062,8 +1155,16 @@ plots_title
 ```
 
 
-## Cognitive only: Expectation ratings & NPS
-```{r}
+---
+
+## Kragel2018 ~ expectation_rating
+### Q. What is the relationship betweeen expectation ratings & Cog-control signature? (Cognitive task only) {.unlisted .unnumbered}
+
+
+> Quick answer: Kind of flat. 
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 c.sig <- df_merge[df_merge$runtype == "runtype-cognitive",]
 iv1 = "event02_expect_angle"; iv2 = signature_key
 df_dropna <- c.sig[!is.na(c.sig[, iv1]) & !is.na(c.sig[, iv2]), ]

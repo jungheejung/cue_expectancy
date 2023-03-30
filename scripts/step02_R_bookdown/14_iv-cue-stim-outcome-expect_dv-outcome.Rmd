@@ -1,4 +1,4 @@
-# [ beh ] outcome ~ cue * stim * expectrating * n-1outcomerating  {#ch14_factorize}
+# [beh] outcome ~ cue * stim * expectrating * n-1outcomerating  {#ch14_factorize}
 
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
@@ -158,8 +158,8 @@ df$stim_con_quad[df$param_stimulus_type == "med_stim"] <-  0.66
 df$stim_con_quad[df$param_stimulus_type == "high_stim"] <-  -0.33
 
 # cue contrast
-df$cue_con[df$param_cue_type == "low_cue"] <-  -0.5 # social influence task
-df$cue_con[df$param_cue_type == "high_cue"] <-  0.5 # no influence task
+df$CUE_high_gt_low[df$param_cue_type == "low_cue"] <-  -0.5 # social influence task
+df$CUE_high_gt_low[df$param_cue_type == "high_cue"] <-  0.5 # no influence task
 
 df$stim_ordered <- factor(
         df$param_stimulus_type,
@@ -248,14 +248,14 @@ sp +  labs(title =paste0("task-",taskname, "- What is the pattern for outcome an
 ## Pain
 
 ### linear model {.unlisted .unnumbered}
-* **cue_con** : high cue: 0.5, low cue: -0.5
+* **CUE_high_gt_low** : high cue: 0.5, low cue: -0.5
 * **stim_con_linear** : high intensity: 0.5, med intensity: 0, low intensity: -0.5
 * **stim_con_quad** : high intensity: -0.33, med intensity: 0.66, low intensity: -0.33
 
 ```{r echo=FALSE, message=TRUE, warning=TRUE}
-model.factorize = lmer(event04_actual_angle ~ cue_con*stim_con_linear*event02_expect_angle + cue_con*stim_con_quad*event02_expect_angle + lag.04outcomeangle + (cue_con|src_subject_id), data = pvc)
-summary(model.factorize)
-tab_model(model.factorize, p.val = "kr", show.df = TRUE)
+model.factorize = lmer(event04_actual_angle ~ CUE_high_gt_low*stim_con_linear*event02_expect_angle + CUE_high_gt_low*stim_con_quad*event02_expect_angle + lag.04outcomeangle + (CUE_high_gt_low|src_subject_id), data = pvc)
+#summary(model.factorize)
+sjPlot::tab_model(model.factorize, p.val = "kr", show.df = TRUE)
 ```
 
 
@@ -455,7 +455,7 @@ pvc <- simple_contrasts_beh(df)
 
 ### Vicarious linear model {.unlisted .unnumbered}
 ```{r echo=FALSE, message=TRUE, warning=TRUE}
-model.factorize = lmer(event04_actual_angle~ cue_con*stim_con_linear*event02_expect_angle + cue_con*stim_con_quad*event02_expect_angle +lag.04outcomeangle+ (1|src_subject_id), data = pvc)
+model.factorize = lmer(event04_actual_angle~ CUE_high_gt_low*stim_con_linear*event02_expect_angle + CUE_high_gt_low*stim_con_quad*event02_expect_angle +lag.04outcomeangle+ (1|src_subject_id), data = pvc)
 # summary(model.factorize)
 tab_model(model.factorize, p.val = "kr", show.df = TRUE)
 ```
@@ -620,7 +620,7 @@ pvc <- simple_contrasts_beh(df)
 
 ### Cognitive linear model {.unlisted .unnumbered}
 ```{r echo=FALSE, message=TRUE, warning=TRUE}
-model.factorize = lmer(event04_actual_angle~ cue_con*stim_con_linear*event02_expect_angle + cue_con*stim_con_quad*event02_expect_angle +lag.04outcomeangle+ (1|src_subject_id), data = pvc)
+model.factorize = lmer(event04_actual_angle~ CUE_high_gt_low*stim_con_linear*event02_expect_angle + CUE_high_gt_low*stim_con_quad*event02_expect_angle +lag.04outcomeangle+ (1|src_subject_id), data = pvc)
 # summary(model.factorize)
 tab_model(model.factorize, p.val = "kr", show.df = TRUE)
 ```

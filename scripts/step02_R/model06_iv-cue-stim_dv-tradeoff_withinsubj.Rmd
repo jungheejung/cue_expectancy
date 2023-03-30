@@ -111,6 +111,7 @@ library(sjlabelled)
 library(lme4)
 library(effectsize)
 library(brms)
+library(kableExtra)
 #library(Hmisc)
 #library(Rmisc)
 ## library(extraoperators)
@@ -508,7 +509,12 @@ next model
 
 ```{r}
 cohens_f(model_1_1)
-eta_squared(model_1_1, partial = FALSE)
+
+kableExtra::kable_styling(
+  knitr::kable(
+    eta_squared(model_1_1, partial = FALSE), # MODIFY
+    "html"), "striped", position = "left", font_size = 15)
+
 ```
 
 ## Method 1-2 aov contrast-coding
@@ -531,7 +537,11 @@ two contrasts.
 
 ```{r}
 cohens_f(model_1_2)
-eta_squared(model_1_2, partial = FALSE)
+
+kableExtra::kable_styling(
+  knitr::kable(
+    eta_squared(model_1_2, partial = FALSE),
+    "html"), "striped", position = "left", font_size = 15)
 ```
 
     UPDATE OR DELETE
@@ -571,14 +581,22 @@ cat(paste("\ncohen's d of the quadratic stimulus intensity effect: ",
 
 ```{r}
 cohens_f(model_1_1)
-eta_squared(model_1_1, partial = FALSE)
+
+kableExtra::kable_styling(
+  knitr::kable(
+    eta_squared(model_1_1, partial = FALSE),
+    "html"), "striped", position = "left", font_size = 15)
 ```
 
 ### Method 1-2 effectsize estimate (one-sample t-test)
 
 ```{r}
 cohens_f(model_1_2)
-eta_squared(model_1_2, partial = FALSE)
+
+kableExtra::kable_styling(
+  knitr::kable(
+    eta_squared(model_1_2, partial = FALSE),
+    "html"), "striped", position = "left", font_size = 15)
 ```
 
 Note that the effectsize of the cue effect ("cue_factor") is 5.64e-04.

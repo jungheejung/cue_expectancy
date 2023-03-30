@@ -1,4 +1,4 @@
-# [ beh] expectation ~ cue {#ch2_expect}
+# [beh] expectation ~ cue {#ch2_expect}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 

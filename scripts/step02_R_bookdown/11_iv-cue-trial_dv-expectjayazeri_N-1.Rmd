@@ -1,4 +1,4 @@
-# N-1 outcome rating ~ N expectation rating {#ch11_n-1outcome}
+# [beh] N-1 outcome rating ~ N expectation rating {#ch11_n-1outcome}
 
 ```
 date: '2022-09-13'
@@ -6,16 +6,16 @@ updated: '2023-01-18'
 ```
 
 
-### DONE
+### DONE {.unlisted .unnumbered}
 * plot individual ratings (check distribution)
 * afterwards, normalize the ratings and bin them
 
-## Overview 
-My hypothesis is that the cue-expectancy follows a Bayesian mechanism, akin to what's listed in Jayazeri (2019)
-Here, I plot the expectation ratings (N) and outcome ratings (N-1) and see if the pattern is akin to a sigmoidal curve. 
-If so, I plan to dive deeper and potentially take a Bayesian approach. Jayazeri (2018)
+### Overview  {.unlisted .unnumbered}
+* My hypothesis is that the cue-expectancy follows a Bayesian mechanism, akin to what's listed in Jayazeri (2019)
+* Here, I plot the expectation ratings (N) and outcome ratings (N-1) and see if the pattern is akin to a sigmoidal curve. 
+* If so, I plan to dive deeper and potentially take a Bayesian approach. Jayazeri (2018)
 
-library
+
 ```{r load_libraries_11, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
 library(psych)
 library(car)
@@ -42,6 +42,7 @@ library(RCurl)
 library(rstanarm)
 library(reshape)
 library(boot)
+library(bbmle)
 library(afex)
 library(cowplot)
 library(readr)
@@ -79,9 +80,10 @@ file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_
 sapply(file.sources,source,.GlobalEnv)
 ```
 
-load data and combine participant data
 
-```{r load_data_and_exclude_11}
+
+```{r load_data_and_exclude_11, include=FALSE}
+#load data and combine participant data
 main_dir = dirname(dirname(getwd()))
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
 # parameters _____________________________________ # nolint
@@ -105,15 +107,16 @@ dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 ```
 
 
-## Do previous outcome ratings predict current expectation ratings?
-### Additional analyse 01/18/2023 {.unlisted .unnumbered}
+## expectation_rating ~ N-1_outcome_rating 
+### Additional analyse 01/18/2023: Q. Do previous outcome ratings predict current expectation ratings? {.unlisted .unnumbered}
+
 * see if current expectation ratings predict outcome ratings
 * see if prior stimulus experience (N-1) predicts current expectation ratings
 * see if current expectation ratings are explained as a function of prior outcome rating and current expectation rating
 
 when loading the dataset, I need to add in trial index per dataframe.
 Then, for the shift the rating? 
-```{r}
+```{r include=FALSE}
 data_p2= data %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
@@ -130,37 +133,24 @@ data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.04outcomeangle),]
 ```
 
 
-```{r}
+```{r include=FALSE}
     trialorder_subjectwise_lagoutcome <- meanSummary(
         data_a3lag_omit,
         c("src_subject_id", "session_id", "param_run_num"), "lag.04outcomeangle" )
-    trialorder_subjectwise_lagoutcome <- meanSummary(
-        data_a3lag_omit,
-        c("src_subject_id", "session_id", "param_run_num"), "lag.04outcomeangle" )
-
-    # subjectwise_naomit <- na.omit(trialorder_subjectwise)
-    # trialorder_groupwise <- summarySEwithin(
-    #     data = subjectwise_naomit,
-    #     measurevar = "mean_per_sub",
-    #     withinvars = c("cue_ordered", "rating_type",  "trial_index"), idvar = subject
-    # )
 ```
-```{r}
+
+```{r echo=TRUE}
 model.lagoutcome = lmer(event02_expect_angle ~ lag.04outcomeangle + (1 | src_subject_id) + (1|session_id) , data = data_a3lag_omit,REML = FALSE)
-summary(model.lagoutcome)
-anova(model.lagoutcome)
+# summary(model.lagoutcome)
+sjPlot::tab_model(model.lagoutcome)
 ```
-```{r}
-# startvec <- c(Asym = 200, xmid = 725, scal = 350)
-# (nm1 <- nlmer(circumference ~ SSlogis(age, Asym, xmid, scal) ~ Asym|Tree,
-#              Orange, start = startvec))
-# 
-# (nm1a <- update(nm1, nAGQ = 0L))
 
+
+### Not sure whether this is accurate {.unlisted .unnumbered}
+```{r}
 startvec <- c(Asym =10, xmid = 0, scal = 350)
 nm1 <- nlmer(event02_expect_angle ~ SSlogis(lag.04outcomeangle,Asym, xmid, scal) ~ Asym|src_subject_id, 
              data_a3lag_omit, start = startvec)
-#nm1a <- update(nm1, nAGQ = 0L)
 ```
 ```{r}
 nform <- ~Asym/(1+exp((xmid-input)/scal))
@@ -168,20 +158,17 @@ nform <- ~Asym/(1+exp((xmid-input)/scal))
 nfun <- deriv(nform,namevec=c("Asym","xmid","scal"),
               function.arg=c("input","Asym","xmid","scal"))
 nm1b <- update(nm1,event02_expect_angle ~ nfun(lag.04outcomeangle, Asym, xmid, scal)  ~ Asym | src_subject_id)
-
-```
-```{r}
-summary(nm1b)
+sjPlot::tab_model(nm1b)
 ```
 
-```{r}
-library(bbmle)
+```{r echo=TRUE}
+
 bbmle::AICtab(model.lagoutcome, nm1b)
 ```
 
 
 
-```{r}
+```{r include=FALSE}
 meanSummary_2dv <- function(DATA, GROUP, DV1, DV2) {
     z <- ddply(DATA, GROUP, .fun = function(xx) {
         c(
@@ -195,23 +182,22 @@ meanSummary_2dv <- function(DATA, GROUP, DV1, DV2) {
 }
 ```
 
-```{r}
+```{r include=FALSE}
 subjectwise_2dv = meanSummary_2dv(data_a3lag_omit,
         c("src_subject_id", "trial_index"), 
         "lag.04outcomeangle", "event02_expect_angle")
-```
 
-```{r}
 subjectwise_naomit_2dv <- na.omit(subjectwise_2dv)
 ```
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 sp <- ggplot(data=subjectwise_naomit_2dv, 
              aes(x=DV1_mean_per_sub, y=DV2_mean_per_sub)) + 
   geom_point() +
   geom_abline(intercept = 0, slope = 1, color="green", 
-                 linetype="dashed", size=0.5) +
+                 linetype="dashed", linewidth=0.5) +
   theme(aspect.ratio=1) +
+  theme_classic() +
   xlab("n-1 outcome rating") +
   ylab("n expectation rating")
 sp
@@ -219,18 +205,18 @@ sp
 ```
 
 
-```{r}
-    trialorder_groupwise <- summarySEwithin(
-        data = subjectwise_naomit_2dv,
-        measurevar = "DV1_mean_per_sub",
-        # betweenvars = "src_subject_id",
-        withinvars = factor( "trial_index"),
-         idvar = "src_subject_id"
-    )
+```{r include=FALSE}
+    # trialorder_groupwise <- summarySEwithin(
+    #     data = subjectwise_naomit_2dv,
+    #     measurevar = "DV1_mean_per_sub",
+    #     # betweenvars = "src_subject_id",
+    #     withinvars = factor( "trial_index"),
+    #      idvar = "src_subject_id"
+    # )
 ```
 
 
-```{r}
+```{r include=FALSE}
     trialorder_groupwise <- summarySEwithin(
         data = subset(subjectwise_naomit_2dv, select = -c(src_subject_id)),
         measurevar = "DV1_mean_per_sub",
@@ -239,7 +225,8 @@ sp
          #idvar = "trial_index"
     )
 ```
-```{r}
+
+```{r echo=FALSE}
 data_a3lag_omit$src_subject_id <- as.factor(data_a3lag_omit$src_subject_id)
 
 lag.raw <- ggplot(aes(x=lag.04outcomeangle, y=event02_expect_angle), data=data_a3lag_omit) +
@@ -256,10 +243,9 @@ lag.raw +
   labs(title = paste(taskname, "- Is there a linear relationship between current expectation ratings and the previous outcome ratings?"),
        subtitle = "Plotting the raw data - with all of the datapoints ignoring run differences", 
        caption = "Blue = fitted linear slope per participant; Green: 1:1 slope")
-lag.raw
 ```
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 subjectwise_naomit_2dv$src_subject_id <- as.factor(subjectwise_naomit_2dv$src_subject_id)
 
 lag.avg <- ggplot(aes(x=DV1_mean_per_sub, y=DV2_mean_per_sub), data=subjectwise_naomit_2dv) +
@@ -284,23 +270,26 @@ lag.avg +
 # https://gist.github.com/even4void/5074855
 ```
 
-```{r}
+```{r echo=FALSE}
 ggplot(data_a3lag_omit, aes(y = event02_expect_angle, 
                        x = lag.04outcomeangle, 
-                       colour = subject), size = .3, color = 'gray') + 
+                       shape = subject), size = .3, color = 'gray') + 
   geom_point(size = .1) + 
   geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .3) +
-  theme_bw()
+  theme_classic()
 ```
 
-## Additional analysis
-01/23/2023
-### Do these models differ as a function of cue?
-```{r}
+
+## Current expectation_rating ~ N-1_outcomerating * cue
+
+### Additional analysis 01/23/2023 Q. Do these models differ as a function of cue? {.unlisted .unnumbered}
+
+```{r echo=TRUE}
 model.lag_cue = lmer(event02_expect_angle ~ lag.04outcomeangle*param_cue_type + (1 | src_subject_id) + (1|session_id) , data = data_a3lag_omit)
-summary(model.lag_cue)
+sjPlot::tab_model(model.lag_cue)
 ```
-```{r}
+
+```{r include=FALSE}
 meanSummary_2dv <- function(DATA, GROUP, DV1, DV2) {
     z <- ddply(DATA, GROUP, .fun = function(xx) {
         c(
@@ -314,42 +303,56 @@ meanSummary_2dv <- function(DATA, GROUP, DV1, DV2) {
 }
 ```
 
-```{r}
+```{r include=FALSE}
 subjectwise_cuetype = meanSummary_2dv(data_a3lag_omit,
         c("src_subject_id", "trial_index", "param_cue_type"), 
         "lag.04outcomeangle", "event02_expect_angle")
-```
 
-```{r}
 subjectwise_cuetype_2dv <- na.omit(subjectwise_cuetype)
 ```
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
 subjectwise_cuetype$param_cue_type <- as.factor(subjectwise_cuetype$param_cue_type)
 sp <- ggplot(data=subjectwise_cuetype, 
              aes(x=DV1_mean_per_sub, y=DV2_mean_per_sub,
              color = param_cue_type)) + 
-  geom_point() +
+  geom_point(alpha = .8) +
   geom_abline(intercept = 0, slope = 1, color="green", 
                  linetype="dashed", size=0.5) +
+  scale_color_manual(values = c("#941100", "#BBBBBB"), ) +
   geom_smooth(method = 'lm') +
   theme(aspect.ratio=1) +
   xlab("n-1 outcome rating") +
   ylab("n expectation rating")
-sp +
+sp + theme_classic() +
     labs(title = paste(taskname, "- Does the linear relationship between current expectation ratings and the previous outcome ratings differ as a function of cue?"),
        subtitle = "Plotting the raw data - with all of the datapoints averaged across runs per 12 trials", 
        caption = "high cue vs low cue. The slope is significant, theree is not interaction; Green: 1:1 slope")
 # plot(subjectwise_naomit_2dv$DV1_mean_per_sub, subjectwise_naomit_2dv$DV2_mean_per_sub) + lines(x = c(0,200), y = c(0,200))
 ```
 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+ggplot(data_a3lag_omit, aes(y = event02_expect_angle, 
+                       x = lag.04outcomeangle, 
+                       colour = param_cue_type, shape = subject), size = .3, color = 'gray') + 
+  geom_point(size = .1) + 
+  geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .3) +
+  scale_color_manual(values = c("#941100", "#BBBBBB"), ) +
+  theme_classic()
+```
+
+
 ## Let's demean the ratings.
-bin ratings
-Do the bins do their jobs?
-plot one run
-then check the min, max and see if the quantization is done properly.
-YES, it is
-```{r }
+
+* Bin ratings
+* Check if the bins do their jobs? by plotting one run
+* then check the min, max and see if the quantization is done properly.
+
+> YES, it is
+
+```{r include=FALSE}
 # per subject, session, run
 #das$wt_2 <- as.numeric(cut_number(das$wt,3))
 df_subset = subset(data_a3lag_omit, src_subject_id == 18 )
@@ -370,31 +373,28 @@ df_subset$bin_num = as.numeric(cut_interval(df_subset$lag.04outcomeangle, n = 5)
   #group_by(src_subject_id, session_id, ) %>%
 ```
 
-```{r}
+```{r include=FALSE}
 df_discrete = data_a3lag_omit %>%
   group_by(src_subject_id) %>%
   mutate(bin = cut_interval(lag.04outcomeangle, n = 5),
          n_1outcomelevels = as.numeric(cut_interval(lag.04outcomeangle, n = 5)))
 
-#, "session_id", "param_run_num"
-# df_subset$bin = cut_interval(df_subset$lag.04outcomeangle, n = 5)
-# df_subset$bin_num = as.numeric(cut_interval(df_subset$lag.04outcomeangle, n = 5))
 ```
 
 confirm that df discrete has 5 levels per participant
 the number of counts per frequency can differ 
-```{r}
+```{r include=FALSE}
 res <- df_discrete %>% 
   group_by(src_subject_id,n_1outcomelevels) %>% 
   tally()
 ```
 
-```{r}
-res
+```{r echo=FALSE}
+as_tibble(res)
 ```
 
 
-```{r}
+```{r echo=FALSE}
 pain_df  = df_discrete[df_discrete$param_task_name == "pain",]
 ggplot(pain_df, aes(y = event02_expect_angle, 
                        x = n_1outcomelevels, 
@@ -409,7 +409,7 @@ ggplot(pain_df, aes(y = event02_expect_angle,
 ## DEMEAN AND THEN DISCRETIZE
 
 
-```{r}
+```{r include=FALSE}
 
 df_discrete = data_a3lag_omit %>%
   group_by(src_subject_id) %>%
@@ -417,20 +417,16 @@ df_discrete = data_a3lag_omit %>%
          event02_expect_angle_demean = event02_expect_angle-mean(event02_expect_angle)) %>%
   mutate(bin = cut_interval(lag.04outcomeangle_demean, n = 5),
          n_1outcomelevels = as.numeric(cut_interval(lag.04outcomeangle_demean, n = 5)))
-
-#, "session_id", "param_run_num"
-# df_subset$bin = cut_interval(df_subset$lag.04outcomeangle, n = 5)
-# df_subset$bin_num = as.numeric(cut_interval(df_subset$lag.04outcomeangle, n = 5))
 ```
 
-```{r}
+```{r echo=TRUE}
 res <- df_discrete %>% 
   group_by(src_subject_id,n_1outcomelevels) %>% 
   tally()
 res
 ```
 
-```{r}
+```{r echo=FALSE}
 pain_df  = df_discrete[df_discrete$param_task_name == "pain",]
 ggplot(pain_df, aes(y = event02_expect_angle_demean, 
                        x = n_1outcomelevels, 
@@ -438,9 +434,10 @@ ggplot(pain_df, aes(y = event02_expect_angle_demean,
   geom_point(size = .1) + 
   # geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .1) +
   geom_smooth(method = "gam") +
-  theme_bw()
+  theme_classic()
 ```
-```{r}
+
+```{r include=FALSE}
 df_discrete$n_1outcomelevels_newlev = df_discrete$n_1outcomelevels -3
     subjectwise_bin_demean <- meanSummary(df_discrete, c(
         "subject","param_task_name","n_1outcomelevels" 
@@ -457,7 +454,7 @@ groupwise_bin_demean$n_1outcomelevels_newlev = as.numeric(groupwise_bin_demean$n
 ```
 
 
-```{r}
+```{r include=FALSE}
 plot_halfrainclouds_sig <- function(subjectwise, groupwise, iv,sub_iv,
                                       subjectwise_mean, group_mean, se, subject,
                                       ggtitle, title, xlab, ylab, taskname, ylim,
@@ -581,7 +578,7 @@ geom_line(
 
 ```
 
-```{r}
+```{r echo=FALSE}
 df_discrete$n_1outcomelevels_newlev = as.factor(df_discrete$n_1outcomelevels_newlev)
 g <-
   plot_halfrainclouds_sig(
@@ -616,16 +613,5 @@ g
 ```
 https://groups.google.com/g/ggplot2/c/csPNfSLKkco
 
-```{r}
-g +    geom_errorbar(
-      data = groupwise_bin_demean,
-      aes(
-        x = as.numeric("n_1outcomelevels_newlev")  ,
-        y = as.numeric("mean_per_sub_norm_mean"),
-        #colour = as.numeric("n_1outcomelevels_newlev"),
-        ymin = mean_per_sub_norm_mean - se,
-        ymax = mean_per_sub_norm_mean + se
-      ), width = .1    ) 
-g
-```
+
 

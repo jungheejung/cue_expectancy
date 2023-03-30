@@ -1,4 +1,4 @@
-# outcome_rating ~ session ("behavioral ICC") {#ch10_icc}
+# [beh] outcome_rating ~ session ("behavioral ICC") {#ch10_icc}
 
 ---
 title: "behavioral_ICC"
@@ -7,7 +7,7 @@ date: "2/22/2022"
 output: html_document
 ---
 
-```{r}
+```{r include=FALSE}
 library(psych)
 library(car)
 library(lme4)
@@ -246,7 +246,7 @@ h = 3
 ```
 
 
-```{r load_data_icc}
+```{r load_data_icc, include=FALSE}
 # parameters
 TASKNAME = 'cognitive'
 SUBJECT_VARKEY = "src_subject_id"
@@ -270,7 +270,7 @@ DATA = expect_df(TASKNAME, SUBJECT_VARKEY, IV, DV, EXCLUDE )
 }
 ```
 
-```{r}
+```{r include=FALSE}
 FILENAME = paste('*_task-social_*-' ,TASKNAME, '_beh.csv', sep = "")
 common_path = Sys.glob(file.path(main_dir,'data', 'beh', 'beh02_preproc', 'sub-*','ses-*',FILENAME))
 filter_path = common_path[!str_detect(common_path,pattern="sub-0001|sub-0003|sub-0004|sub-0005|sub-0025")]
@@ -372,7 +372,8 @@ beh41 = ggplot(data = sub_ses, aes(x = mean_per_sub.4, y = mean_per_sub.1)) +
            color = "black", size = 5)
 
 
-ggpubr::ggarrange(beh13,beh34,beh41,ncol = 3, nrow = 1, common.legend = FALSE,legend = "bottom")
+g<-ggpubr::ggarrange(beh13,beh34,beh41,ncol = 3, nrow = 1, common.legend = FALSE,legend = "bottom")
+print(g)
 plot_filename = file.path(main_dir, 'analysis','mixedeffect','model04_behavioral-ICC', paste('socialinfluence_task-',TASKNAME,'_',DV_KEYWORD,'_icc','_', as.character(Sys.Date()),'.png', sep = ""))
 ggsave(plot_filename, width = 10, height = 3)
 }

@@ -50,7 +50,7 @@ plot_halfrainclouds_onefactor <- function(subjectwise, groupwise, iv,
   geom_line(data = subjectwise,
     aes(
       group = .data[[subject]],
-      x = as.numeric(factor(.data[[iv]])) - .15 ,
+      x = as.numeric(as.factor(.data[[iv]])) - .15 ,
       y = .data[[subjectwise_mean]],
       fill = factor(.data[[iv]])
       ),
@@ -61,7 +61,7 @@ plot_halfrainclouds_onefactor <- function(subjectwise, groupwise, iv,
   geom_point(
     aes(
       # group = .data[[subject]],
-      x = as.numeric(factor(.data[[iv]])) - .15 ,
+      x = as.numeric(as.factor(.data[[iv]])) - .15 ,
       y = .data[[subjectwise_mean]],
       color = factor(.data[[iv]])
     ),

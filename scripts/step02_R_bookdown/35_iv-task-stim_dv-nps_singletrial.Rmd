@@ -1,5 +1,11 @@
-# [ fMRI ] Pain signature ~ single trial {#ch35_singletrial_P}
+# [fMRI] NPS ~ singletrial {#ch35_singletrial_P}
 
+
+## What is the purpose of this notebook? {.unlisted .unnumbered}
+
+* Here, I model NPS dot products as a function of cue, stimulus intensity and expectation ratings. 
+* One of the findings is that low cues lead to higher NPS dotproducts in the high intensity group, and that this effect becomes non-significant across sessions. 
+* 03/23/2023: For now, I'm grabbing participants that have complete data, i.e. 18 runs, all three sessions. 
 
 
 ```{r libraries_nps_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
@@ -17,22 +23,30 @@ library(plyr)
 library(ggpubr)
 library(r2mlm)
 library(effectsize)
+library(devtools)
 options(es.use_symbols = TRUE) # get nice symbols when printing! (On Windows, requires R >= 4.2.0)
 library(EMAtools)
 library(emmeans)
 library(equatiomatic)
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
-source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
+library(DT)
+library(raincloudplots)
+# devtools::source_url("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/tutorial_R/R_rainclouds.R")
+# devtools::source_url("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/tutorial_R/summarySE.R")
+
+devtools::source_url("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
                           pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
+# file.sources = list.files(c("https://raw.githubusercontent.com/jungheejung/cue_expectancy/main/scripts/step02_R/utils"), pattern="*.R", full.names=TRUE, ignore.case=TRUE)
+# sapply(file.sources,source,.GlobalEnv)
 ```
 
-Function
+
 ```{r function::summary_for_plots_pvc, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 summary_for_plots_PVC <- function(df, groupwise_measurevar, subject_keyword, model_iv1, model_iv2, dv) {
     #  [ PLOT ] calculate mean and se  _________________________
@@ -54,21 +68,21 @@ summary_for_plots_PVC <- function(df, groupwise_measurevar, subject_keyword, mod
 simple_contrasts_singletrial <- function(df) {
 # [ CONTRASTS ]  ________________________________________________________________________________ # nolint
 # contrast code ________________________________________
-df$stim_factor <- factor(df$stim)
+df$STIM <- factor(df$stim)
 
 # contrast code 1 linear
-df$stim_con_linear[df$stimintensity == "low"] <-  -0.5
-df$stim_con_linear[df$stimintensity == "med"] <-  0
-df$stim_con_linear[df$stimintensity == "high"] <-  0.5
+df$STIM_linear[df$stimintensity == "low"] <-  -0.5
+df$STIM_linear[df$stimintensity == "med"] <-  0
+df$STIM_linear[df$stimintensity == "high"] <-  0.5
 
 # contrast code 2 quadratic
-df$stim_con_quad[df$stimintensity == "low"] <-  -0.33
-df$stim_con_quad[df$stimintensity == "med"] <-  0.66
-df$stim_con_quad[df$stimintensity == "high"] <-  -0.33
+df$STIM_quadratic[df$stimintensity == "low"] <-  -0.33
+df$STIM_quadratic[df$stimintensity == "med"] <-  0.66
+df$STIM_quadratic[df$stimintensity == "high"] <-  -0.33
 
 # cue contrast
-df$cue_con[df$cuetype == "cuetype-low"] <-  -0.5 # social influence task
-df$cue_con[df$cuetype == "cuetype-high"] <-  0.5 # no influence task
+df$CUE_high_gt_low[df$cuetype == "cuetype-low"] <-  -0.5 # social influence task
+df$CUE_high_gt_low[df$cuetype == "cuetype-high"] <-  0.5 # no influence task
 
 df$stim_ordered <- factor(
         df$stimintensity,
@@ -139,10 +153,10 @@ two_factor_lineplot <-
   }
 ```
 
-Step 1: Common parameters
+
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 
-
+# Step 1: Common parameters
 # step 1: load data
 for (signature_key in c("NPSpos")) {
      #c("NPS", "NPSpos", "NPSneg", "VPS", #"VPSnooccip", "ThermalPain", "MechPain", "GeneralAversive", "AversiveVisual"
@@ -336,8 +350,11 @@ for (signature_key in c("NPSpos")) {
 }
 ```
 
-Load behavioral data
+
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+
+# Load behavioral data
+
 main_dir = dirname(dirname(getwd()))
 print(main_dir)
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
@@ -408,36 +425,71 @@ df_merge <- merge(pvc, pvc.beh,
 
 
 
-## PVC all task comparison
-```{r echo=FALSE, message=FALSE}
-    # contrast code 1 linear
-    pvc$task_con_linear[pvc$task == "pain"] <- 0.5
-    pvc$task_con_linear[pvc$task == "vicarious"] <- 0
-    pvc$task_con_linear[pvc$task == "cognitive"] <- -0.5
+## NPS ~ 3 task * 3 stimulus_intensity
+### Q. What does the NPS pattern look like for the three tasks? {.unlisted .unnumbered}
 
-    # contrast code 2 quadratic
-    pvc$task_con_quad[pvc$task == "pain"] <- 0.66
-    pvc$task_con_quad[pvc$task == "vicarious"] <- -.34
-    pvc$task_con_quad[pvc$task == "cognitive"] <- -.34
-
-model.alltask <- lmer(NPSpos ~ task_con_linear*stim_factor + task_con_quad*stim_factor + (task|sub), data = pvc)
-summary(model.alltask)
-print("eta squared")
-eta_squared(model.alltask, partial = TRUE)
-parameters::model_parameters(model.alltask)
-lme.dscore(model.alltask, pvc, type = "lme4")
-
+```{r echo=FALSE}
 plot_halfrainclouds_twofactor(subjectwise, groupwise,
                                       iv1 = "task", iv2 = "stim_ordered", sub_mean = "mean_per_sub", group_mean = "mean_per_sub_norm_mean", se = "se", subject = "sub",
                                       ggtitle = "All tasks", title = "task Stim intensity", xlab = "Task", ylab = paste(signature_key, ' (dot product)'), task_name = "all", 
                               ylim = c(-50, 50),
-                                      w=10, h=6, dv_keyword = "stimulusintensity", color = c( "#1982c4","#ffca3a", "#9a031e"), save_fname = "/Users/h/Desktop/plot_35.png") 
+                                      w=10, h=6, dv_keyword = "stimulusintensity", color = c( "#4C77ED","#FEAE00", "#ED220D"), save_fname = "/Users/h/Desktop/plot_35.png") 
 ```
 
 
-## Pain only Stim x cue interaction
+#### Contrast weight table {.unlisted .unnumbered}
+```{r echo=FALSE}
+tab <- matrix(c(0, .5, -.5, 
+                .66, -.34, -.34), ncol=3, byrow=TRUE)
+colnames(tab) <- c('pain','vicarious','cognitive')
+rownames(tab) <- c('task_V_gt_C','task_P_gt_VC')
+kableExtra::kable_styling(
+  knitr::kable(
+    tab, caption = "Contrast weights", "html"), 
+  "striped", position = "left", font_size = 15)
+```
 
-### 2x3 stimulus intensity * cue 
+
+```{r echo=FALSE, message=FALSE, paged.print=TRUE}
+# contrast code 1 linear
+pvc$task_V_gt_C[pvc$task == "pain"] <- 0
+pvc$task_V_gt_C[pvc$task == "vicarious"] <- 0.5
+pvc$task_V_gt_C[pvc$task == "cognitive"] <- -0.5
+
+# contrast code 2 quadratic
+pvc$task_P_gt_VC[pvc$task == "pain"] <- 0.66
+pvc$task_P_gt_VC[pvc$task == "vicarious"] <- -.34
+pvc$task_P_gt_VC[pvc$task == "cognitive"] <- -.34
+
+model.alltask <- lmer(NPSpos ~ task_V_gt_C*STIM + task_P_gt_VC*STIM + (task|sub), data = pvc)
+
+sjPlot::tab_model(model.alltask, 
+                  title = "Multilevel-modeling: \nlmer(NPSpos ~ task_V_gt_C*STIM + task_P_gt_VC*STIM + (task|sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+```
+
+#### Eta squared  {.unlisted .unnumbered}
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+kableExtra::kable_styling(
+  knitr::kable(
+    eta_squared(model.alltask, partial = TRUE), # MODIFY
+    "html"), "striped", position = "left", font_size = 12)
+```
+
+
+#### Cohen's d   {.unlisted .unnumbered}
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+kableExtra::kable_styling(
+  knitr::kable(lme.dscore(model.alltask, pvc, type = "lme4"), "html"), 
+  "striped", position = "left", font_size = 12)
+```
+
+
+---
+
+## NPS ~ paintask: 2 cue x 3 stimulus_intensity
+
+### Q. Within pain task, Does stimulus intenisty level and cue level significantly predict NPS dotproducts? {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 taskname = "pain"
@@ -454,26 +506,26 @@ data <- p.sig
     data$stim[data$stimintensity == "med"] <- 0 # no influence task
     data$stim[data$stimintensity == "high"] <- 0.5 # no influence task
 
-    data$stim_factor <- factor(data$stimintensity)
+    data$STIM <- factor(data$stimintensity)
 
     # contrast code 1 linear
-    data$stim_con_linear[data$stimintensity == "low"] <- -0.5
-    data$stim_con_linear[data$stimintensity == "med"] <- 0
-    data$stim_con_linear[data$stimintensity == "high"] <- 0.5
+    data$STIM_linear[data$stimintensity == "low"] <- -0.5
+    data$STIM_linear[data$stimintensity == "med"] <- 0
+    data$STIM_linear[data$stimintensity == "high"] <- 0.5
 
     # contrast code 2 quadratic
-    data$stim_con_quad[data$stimintensity == "low"] <- -0.33
-    data$stim_con_quad[data$stimintensity == "med"] <- 0.66
-    data$stim_con_quad[data$stimintensity == "high"] <- -0.33
+    data$STIM_quadratic[data$stimintensity == "low"] <- -0.33
+    data$STIM_quadratic[data$stimintensity == "med"] <- 0.66
+    data$STIM_quadratic[data$stimintensity == "high"] <- -0.33
 
     # social cude contrast
-    data$social_cue[data$cuetype == "cuetype-low"] <- -0.5 # social influence task
-    data$social_cue[data$cuetype == "cuetype-high"] <- 0.5 # no influence task
+    data$CUE_high_gt_low[data$cuetype == "cuetype-low"] <- -0.5 # social influence task
+    data$CUE_high_gt_low[data$cuetype == "cuetype-high"] <- 0.5 # no influence task
 
-
-    stim_con1 <- "stim_con_linear"
-    stim_con2 <- "stim_con_quad"
-    iv1 <- "social_cue"
+    data$EXPECT <- data$event02_expect_angle
+    stim_con1 <- "STIM_linear"
+    stim_con2 <- "STIM_quadratic"
+    iv1 <- "CUE_high_gt_low"
     dv <- "NPSpos"
 
     # [ MODEL ] _________________________________________________ # nolint
@@ -516,19 +568,19 @@ data <- p.sig
     model_iv2 <- "cue_ordered"
 
     #  [ PLOT ] calculate mean and se  _________________________
-    actual_subjectwise <- meanSummary(
+    NPSstimcue_subjectwise <- meanSummary(
         data_screen,
         c(subject, model_iv1, model_iv2), dv
     )
-    actual_groupwise <- summarySEwithin(
-        data = actual_subjectwise,
+    NPSstimcue_groupwise <- summarySEwithin(
+        data = NPSstimcue_subjectwise,
         measurevar = "mean_per_sub",
         withinvars = c(model_iv1, model_iv2), idvar = subject
     )
-    actual_groupwise$task <- taskname
+    NPSstimcue_groupwise$task <- taskname
     # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
     
-    combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, actual_groupwise)
+    combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, NPSstimcue_groupwise)
    # calculate mean and se  
     sub_mean <- "mean_per_sub"
     group_mean <- "mean_per_sub_norm_mean"
@@ -554,7 +606,7 @@ data <- p.sig
         )
     )
     g <- plot_halfrainclouds_twofactor(
-        actual_subjectwise, actual_groupwise, model_iv1, model_iv2,
+        NPSstimcue_subjectwise, NPSstimcue_groupwise, model_iv1, model_iv2,
         sub_mean, group_mean, se, subject,
         ggtitle, title, xlab, ylab, taskname,ylim,
         w, h, dv_keyword, color, plot_savefname
@@ -563,62 +615,85 @@ g
 ```
 
 
-### Linear model
-```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
-cooksd <- lmer_twofactor_cooksd_fix(
-        data, taskname, iv1, stim_con1, stim_con2, dv,
-        subject, dv_keyword, model_savefname, 'random_slopes', print_lmer_output = TRUE
-    )
-```
-
-### NPS stimulus intensity Cohen's d = 1.287
-```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
-model.npsstim <- lmer(NPSpos ~ stim_con_linear + stim_con_quad +(stim_con_linear + stim_con_quad |sub), data = data_screen)
-summary(model.npsstim)
-print("eta squared")
-eta_squared(model.npsstim, partial = TRUE)
-parameters::model_parameters(model.npsstim)
-lme.dscore(model.npsstim, data_screen, type = "lme4")
-#r2mlm(model.nps)
-emm1 = emmeans(model.npsstim, specs = pairwise ~ stim_con_linear+ stim_con_quad )
-```
-
-### NPS stimulus & cue effect size: stim_d = 1.16, cue_d = 0.45
-```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
-model.npscuestim <- lmer(NPSpos ~ cue_con*stim_con_linear + cue_con*stim_con_quad + (cue_con+stim_factor|sub), data = data_screen)
-summary(model.npscuestim)
-print("eta squared")
-eta_squared(model.npscuestim, partial = TRUE)
-#parameters::model_parameters(model.npscuestim)
-lme.dscore(model.npscuestim, data_screen, type = "lme4")
-#r2mlm(model.npscuestim)
-#emm1 = emmeans(model.npscuestim, specs = pairwise ~ cue_con|stim_con_linear)
-```
-
-
-### Lineplots
+### Lineplots {.unlisted .unnumbered}
 ```{r echo=FALSE, warning=FALSE}
-plot_lineplot_twofactor(actual_groupwise, taskname = "pain", 
+plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain", 
                         iv1 = "stim_ordered", iv2 = "cue_ordered", 
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("#4575B4", "#D73027"), ggtitle = "placeholder", 
+                        color = c("#4575B4", "#D73027"), ggtitle = "Within pain task: NPS dotproducts as a function of stimulus intensity level and cue", 
                         xlab = "Stimulus intensity", ylab = "NPSpos (dot product)")
 ```
-### Linear model with Stim x Cue x Expectation rating
+
+
+### Linear model results (NPS ~ paintask: 2 cue x 3 stimulus_intensity)
+```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
+
+model.npscuestim <- lmer(NPSpos ~ 
+                          CUE_high_gt_low*STIM_linear +CUE_high_gt_low * STIM_quadratic +
+                          (CUE_high_gt_low+STIM|sub), data = data_screen
+                    )
+sjPlot::tab_model(model.npscuestim,
+                  title = "Multilevel-modeling: \nlmer(NPSpos ~ CUE * STIM + (CUE + STIM | sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+```
+
+#### Linear model eta-squared {.unlisted .unnumbered}
+```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+kableExtra::kable_styling(
+  knitr::kable(
+    eta_squared(model.npscuestim, partial = TRUE), # MODIFY
+    "html"), "striped", position = "left", font_size = 12)
+#parameters::model_parameters(model.npscuestim)
+```
+
+#### Linear model Cohen's d: NPS stimulus_intensity d = 1.16, cue d = 0.45 {.unlisted .unnumbered}
+```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+
+kableExtra::kable_styling(
+  knitr::kable(
+    lme.dscore(model.npscuestim, data_screen, type = "lme4"),
+    "html"), "striped", position = "left", font_size = 12)
+```
+
+
+
+
+
+### 2 cue * 3 stimulus_intensity * expectation_rating 
+```{r echo=TRUE, warning=TRUE}
+
+data_screen$EXPECT <- data_screen$event02_expect_angle
+model.nps3factor <- lmer(NPSpos ~ 
+                          CUE_high_gt_low*STIM_linear*EXPECT +
+                           CUE_high_gt_low*STIM_quadratic*EXPECT +
+                          (CUE_high_gt_low+STIM + EXPECT|sub), data = data_screen
+                    )
+sjPlot::tab_model(model.nps3factor,
+                  title = "Multilevel-modeling: \nlmer(NPSpos ~ CUE * STIM * EXPECTATION + (CUE + STIM + EXPECT | sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+```
+
+#### eta squared {.unlisted .unnumbered}
 ```{r echo=FALSE, warning=TRUE}
-model.nps3factor <- lmer(NPSpos ~ cue_con*stim_con_linear*event02_expect_angle + cue_con*stim_con_quad*event02_expect_angle + (cue_con|sub), data = data_screen)
-summary(model.nps3factor)
-print("eta squared")
-eta_squared(model.nps3factor, partial = TRUE)
-#parameters::model_parameters(model.nps3factor)
-lme.dscore(model.nps3factor, data_screen, type = "lme4")
+kableExtra::kable_styling(
+  knitr::kable(
+    eta_squared(model.nps3factor, partial = TRUE), # MODIFY
+    "html"), "striped", position = "left", font_size = 12)
+```
+
+#### Cohen's d {.unlisted .unnumbered}
+```{r echo=FALSE, warning=TRUE}
+kableExtra::kable_styling(
+  knitr::kable(
+    lme.dscore(model.nps3factor, data_screen, type = "lme4"), # MODIFY
+    "html"), "striped", position = "left", font_size = 12)
 ```
 
 ```{r echo=FALSE, message=FALSE}
 library(plotly)
-# lmer(NPSpos ~ cue_con*stim_con_linear*event02_expect_angle + cue_con*stim_con_quad*event02_expect_angle + (cue_con|sub), data = data_screen)
+# lmer(NPSpos ~ CUE_high_gt_low*STIM_linear*event02_expect_angle + CUE_high_gt_low*STIM_quadratic*event02_expect_angle + (CUE_high_gt_low|sub), data = data_screen)
 
-fig <- plot_ly(data_screen, x = ~event02_expect_angle, y = ~NPSpos, z = ~event04_actual_angle, color = ~cue_con, colors = c('#BF382A', '#0C4B8E'))
+fig <- plot_ly(data_screen, x = ~event02_expect_angle, y = ~NPSpos, z = ~event04_actual_angle, color = ~CUE_high_gt_low, colors = c('#BF382A', '#0C4B8E'))
 fig <- fig %>% add_markers()
 fig <- fig %>% layout(scene = list(xaxis = list(title = 'expectation'),
                      yaxis = list(title = 'NPS'),
@@ -628,17 +703,26 @@ fig
 ```
 
 
+---
 
-### Session 1: 2x3 stimulus intensity * cue 
+## NPS ~ SES * CUE * STIM
+### Q. Is the cue effect on NPS different across sessions? {.unlisted .unnumbered}
+
+> Quick answer: Yes, the cue effect in session 1 (for high intensity group) is significantly different; whereas this different becomes non significant in session 4. 
+> To unpack, a participant was informed to experience a low  stimulus intensity, when in fact they were delivered a high intensity stimulus. This violation presumably leads to a higher NPS response, given that they were delivered a much painful stimulus than expected. The fact that the cue effect is almost non significant during the last session indicates that the cue effects are not just an anchoring effect. 
+
+#### Session wise plots
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
 combined_se_calc_cooksd <- data.frame()
+for (sesname in c("ses-01", "ses-03", "ses-04")) {
 taskname = "pain"
     ggtitle <- paste(taskname, " - actual judgment (degree)")
     title <- paste(taskname, " - actual")
     subject <- "sub"
     w <- 10
     h <- 6
-s1.sig <- df_merge[df_merge$runtype == "runtype-pain" & df_merge$ses == "ses-01",]
+s1.sig <- df_merge[df_merge$runtype == "runtype-pain" & df_merge$ses == sesname,]
 data <- s1.sig
     # [ CONTRASTS ]  ________________________________________________________________________________ # nolint
 # contrast code ________________________________________
@@ -646,26 +730,26 @@ data$stim[data$stimintensity == "low"] <- -0.5 # social influence task
 data$stim[data$stimintensity == "med"] <- 0 # no influence task
 data$stim[data$stimintensity == "high"] <- 0.5 # no influence task
 
-data$stim_factor <- factor(data$stimintensity)
+data$STIM <- factor(data$stimintensity)
 
 # contrast code 1 linear
-data$stim_con_linear[data$stimintensity == "low"] <- -0.5
-data$stim_con_linear[data$stimintensity == "med"] <- 0
-data$stim_con_linear[data$stimintensity == "high"] <- 0.5
+data$STIM_linear[data$stimintensity == "low"] <- -0.5
+data$STIM_linear[data$stimintensity == "med"] <- 0
+data$STIM_linear[data$stimintensity == "high"] <- 0.5
 
 # contrast code 2 quadratic
-data$stim_con_quad[data$stimintensity == "low"] <- -0.33
-data$stim_con_quad[data$stimintensity == "med"] <- 0.66
-data$stim_con_quad[data$stimintensity == "high"] <- -0.33
+data$STIM_quadratic[data$stimintensity == "low"] <- -0.33
+data$STIM_quadratic[data$stimintensity == "med"] <- 0.66
+data$STIM_quadratic[data$stimintensity == "high"] <- -0.33
 
     # social cude contrast
-    data$social_cue[data$cuetype == "cuetype-low"] <- -0.5 # social influence task
-    data$social_cue[data$cuetype == "cuetype-high"] <- 0.5 # no influence task
+    data$CUE_high_gt_low[data$cuetype == "cuetype-low"] <- -0.5 # social influence task
+    data$CUE_high_gt_low[data$cuetype == "cuetype-high"] <- 0.5 # no influence task
 
 
-    stim_con1 <- "stim_con_linear"
-    stim_con2 <- "stim_con_quad"
-    iv1 <- "social_cue"
+    stim_con1 <- "STIM_linear"
+    stim_con2 <- "STIM_quadratic"
+    iv1 <- "CUE_high_gt_low"
     dv <- "NPSpos"
 
     # [ MODEL ] _________________________________________________ # nolint
@@ -718,6 +802,7 @@ data$stim_con_quad[data$stimintensity == "high"] <- -0.33
         withinvars = c(model_iv1, model_iv2), idvar = subject
     )
     actual_groupwise$task <- taskname
+    actual_groupwise$ses <- sesname
     # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
     
     combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, actual_groupwise)
@@ -726,8 +811,8 @@ data$stim_con_quad[data$stimintensity == "high"] <- -0.33
     group_mean <- "mean_per_sub_norm_mean"
     se <- "se"
     subject <- "sub"
-    ggtitle <- paste(taskname, " - NPSpos Cooksd removed")
-    title <- paste(taskname, " - NPSpos")
+    ggtitle <- paste(str_to_title(taskname), " - NPSpos Cooksd removed ", sesname )
+    title <- paste(str_to_title(taskname), " - cue level")
     xlab <- ""
     ylab <- "NPSpos (degree)"
     ylim <- c(-10,60)
@@ -751,314 +836,194 @@ data$stim_con_quad[data$stimintensity == "high"] <- -0.33
         ggtitle, title, xlab, ylab, taskname,ylim,
         w, h, dv_keyword, color, plot_savefname
     )
-g
+print(g)
+}
 ```
 
 
+### Here are the stats models: NPS~session * cue * stimulus_intensity
+1. Calculate difference score
+* average high and low cue within run. 
+* calculate difference between high and low cue per run
+* each participant has 6 contrast scores
+* run this as a function of stimulus intensity and sessions
+```{r echo=FALSE}
+p.sig <- df_merge[df_merge$runtype == "runtype-pain",]
+data <- p.sig
+# rename values to a simpler one
+data$cue[data$cuetype == "cuetype-low"] <- "lowcue"
+data$cue[data$cuetype == "cuetype-high"] <- "highcue"
 
-### Session 3: 2x3 stimulus intensity * cue 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-combined_se_calc_cooksd <- data.frame()
-taskname = "pain"
-    ggtitle <- paste(taskname, " - actual judgment (degree)")
-    title <- paste(taskname, " - actual")
-    subject <- "sub"
-    w <- 10
-    h <- 6
-s1.sig <- df_merge[df_merge$runtype == "runtype-pain" & df_merge$ses == "ses-03",]
-data <- s1.sig
-    # [ CONTRASTS ]  ________________________________________________________________________________ # nolint
-# contrast code ________________________________________
-data$stim[data$stimintensity == "low"] <- -0.5 # social influence task
-data$stim[data$stimintensity == "med"] <- 0 # no influence task
-data$stim[data$stimintensity == "high"] <- 0.5 # no influence task
+# calculate average NPS score per cue/stim for sub, ses, run
 
-data$stim_factor <- factor(data$stimintensity)
+data_p2 <- data %>%
+  arrange(sub, ses, run, cue, stimintensity) %>%
+  group_by(sub, ses, run, cue, stimintensity) %>%
+  summarise_at(vars(NPSpos), list(NPS_mean = mean)) 
+  
+
+# calculate difference between high vs. low cue for each stimulus intensity level
+wide <- data_p2 %>%
+        spread(cue, NPS_mean)
+wide$NPS_cuecontrast <- wide$lowcue - wide$highcue
 
 # contrast code 1 linear
-data$stim_con_linear[data$stimintensity == "low"] <- -0.5
-data$stim_con_linear[data$stimintensity == "med"] <- 0
-data$stim_con_linear[data$stimintensity == "high"] <- 0.5
+wide$STIM_linear[wide$stimintensity == "low"] <- -0.5
+wide$STIM_linear[wide$stimintensity == "med"] <- 0
+wide$STIM_linear[wide$stimintensity == "high"] <- 0.5
 
 # contrast code 2 quadratic
-data$stim_con_quad[data$stimintensity == "low"] <- -0.33
-data$stim_con_quad[data$stimintensity == "med"] <- 0.66
-data$stim_con_quad[data$stimintensity == "high"] <- -0.33
+wide$STIM_quadratic[wide$stimintensity == "low"] <- -0.34
+wide$STIM_quadratic[wide$stimintensity == "med"] <- 0.66
+wide$STIM_quadratic[wide$stimintensity == "high"] <- -0.34
 
-    # social cude contrast
-    data$social_cue[data$cuetype == "cuetype-low"] <- -0.5 # social influence task
-    data$social_cue[data$cuetype == "cuetype-high"] <- 0.5 # no influence task
+# session contrast code 1 linear
+wide$SES_1_gt_34[wide$ses == "ses-01"] <- .66
+wide$SES_1_gt_34[wide$ses == "ses-03"] <- -.34
+wide$SES_1_gt_34[wide$ses == "ses-04"] <- -.34
+
+# contrast code 2 quadratic
+wide$SES_3_gt_4[wide$ses == "ses-01"] <- 0
+wide$SES_3_gt_4[wide$ses == "ses-03"] <- .5
+wide$SES_3_gt_4[wide$ses == "ses-04"] <- -.5
+
+# lmer session
+wide$SES = factor(wide$ses)
+wide$STIM = factor(wide$stimintensity)
+model.npssescuestim <- lmer(NPS_cuecontrast ~ 
+                              STIM_linear*SES_3_gt_4 + 
+                              STIM_quadratic*SES_3_gt_4 + 
+                              STIM_linear*SES_1_gt_34 + 
+                              STIM_quadratic*SES_1_gt_34 + (SES + STIM|sub), data = wide)
+sjPlot::tab_model(model.npssescuestim,
+                  title = "Multilevel-modeling: \nlmer(NPSpos ~ STIM * SESSION + (STIM + SESSION | sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
 
 
-    stim_con1 <- "stim_con_linear"
-    stim_con2 <- "stim_con_quad"
-    iv1 <- "social_cue"
-    dv <- "NPSpos"
-
-    # [ MODEL ] _________________________________________________ # nolint
-    model_savefname <- file.path(
-        analysis_dir,
-        paste("lmer_task-", taskname,
-            "_rating-", dv_keyword,
-            "_", as.character(Sys.Date()), "_cooksd.txt",
-            sep = ""
-        )
-    )
-    
-    cooksd <- lmer_twofactor_cooksd_fix(
-        data, taskname, iv1, stim_con1, stim_con2, dv,
-        subject, dv_keyword, model_savefname, 'random_intercept', print_lmer_output = FALSE
-    )
-    influential <- as.numeric(names(cooksd)[
-        (cooksd > (4 / as.numeric(length(unique(data$sub)))))
-    ])
-    data_screen <- data[-influential, ]
-    # [ PLOT ] reordering for plots _________________________ # nolint
-    data_screen$cue_name[data_screen$cuetype == "cuetype-high"] <- "high cue"
-    data_screen$cue_name[data_screen$cuetype == "cuetype-low"] <- "low cue"
-
-    data_screen$stim_name[data_screen$stimintensity == "high"] <- "high"
-    data_screen$stim_name[data_screen$stimintensity == "med"] <- "med"
-    data_screen$stim_name[data_screen$stimintensity == "low"] <- "low"
-
-    # DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
-
-    data_screen$stim_ordered <- factor(
-        data_screen$stim_name,
+# organize data for plotting
+wide$stim_ordered <- factor(
+        wide$stimintensity,
         levels = c("low", "med", "high")
     )
-    data_screen$cue_ordered <- factor(
-        data_screen$cue_name,
-        levels = c("low cue", "high cue")
+wide$ses_ordered <- factor(
+        wide$ses,
+        levels = c("ses-01", "ses-03", "ses-04")
     )
-    model_iv1 <- "stim_ordered"
-    model_iv2 <- "cue_ordered"
+model_iv1 <- "stim_ordered"
+model_iv2 <- "ses_ordered"
+dv <- "NPS_cuecontrast"
 
-    #  [ PLOT ] calculate mean and se  _________________________
-    actual_subjectwise <- meanSummary(
-        data_screen,
-        c(subject, model_iv1, model_iv2), dv
-    )
-    actual_groupwise <- summarySEwithin(
-        data = actual_subjectwise,
+actual_subjectwise <- meanSummary(
+  wide,
+  c("sub", model_iv1, model_iv2), dv
+  )
+clean_wide <- actual_subjectwise %>% drop_na(mean_per_sub)
+actual_groupwise <- summarySEwithin(
+        data = clean_wide,
         measurevar = "mean_per_sub",
-        withinvars = c(model_iv1, model_iv2), idvar = subject
+        withinvars = c(model_iv1, model_iv2), idvar = "sub"
     )
-    actual_groupwise$task <- taskname
-    # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
-    
-    combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, actual_groupwise)
-   # calculate mean and se  
-    sub_mean <- "mean_per_sub"
-    group_mean <- "mean_per_sub_norm_mean"
-    se <- "se"
-    subject <- "sub"
-    ggtitle <- paste(taskname, " - NPSpos Cooksd removed")
-    title <- paste(taskname, " - NPSpos")
-    xlab <- ""
-    ylab <- "NPSpos (degree)"
-    ylim <- c(-10,60)
-    dv_keyword <- "NPSpos"
-    if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
-        color <- c("#1B9E77", "#D95F02")
-    } else {
-        color <- c("#4575B4", "#D73027")
-    } # if keyword starts with
-    plot_savefname <- file.path(
-        analysis_dir,
-        paste("raincloud_task-", taskname,
-            "_rating-", dv_keyword,
-            "_", as.character(Sys.Date()), "_cooksd.png",
-            sep = ""
-        )
-    )
-    g <- plot_halfrainclouds_twofactor(
-        actual_subjectwise, actual_groupwise, model_iv1, model_iv2,
-        sub_mean, group_mean, se, subject,
-        ggtitle, title, xlab, ylab, taskname,ylim,
-        w, h, dv_keyword, color, plot_savefname
-    )
-g
+
+# line plots
+NPScontrast.ses <- plot_lineplot_twofactor(actual_groupwise, 
+                        model_iv1, model_iv2,
+                        mean = "mean_per_sub_norm_mean", error = "se",
+                        color = c("#4C77ED","#FEAE00", "#ED220D"), 
+                        ggtitle = "Within pain task: NPS cue contrast as a function of stimulus intensity level and session", 
+                        xlab = "Stimulus intensity", ylab = "NPSpos (dot product)")
+ggpubr::ggarrange(NPScontrast.ses,ncol = 1, nrow = 1, common.legend = TRUE,legend = "bottom")
+
 ```
 
 
-### Session 4: 2x3 stimulus intensity * cue 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-combined_se_calc_cooksd <- data.frame()
-taskname = "pain"
-    ggtitle <- paste(taskname, " - actual judgment (degree)")
-    title <- paste(taskname, " - actual")
-    subject <- "sub"
-    w <- 10
-    h <- 6
-s1.sig <- df_merge[df_merge$runtype == "runtype-pain" & df_merge$ses == "ses-04",]
-data <- s1.sig
-    # [ CONTRASTS ]  ________________________________________________________________________________ # nolint
-# contrast code ________________________________________
-data$stim[data$stimintensity == "low"] <- -0.5 # social influence task
-data$stim[data$stimintensity == "med"] <- 0 # no influence task
-data$stim[data$stimintensity == "high"] <- 0.5 # no influence task
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# lineplot per session
 
-data$stim_factor <- factor(data$stimintensity)
+DATA = as.data.frame(combined_se_calc_cooksd)
+color = c("#4C77ED", "#ED220D")
+model_iv1 <- "stim_ordered"
+model_iv2 <- "ses_ordered"
+LINEIV1 = "stim_ordered"
+LINEIV2 = "cue_ordered"
+MEAN = "mean_per_sub_norm_mean"
+ERROR = "se"
+dv_keyword = "actual"
+p1 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-01",],
+               LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'ses-01', 
+               ylab = "NPS (dot products)" )
+p2 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-03",],
+               LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'ses-03',
+               ylab = "NPS (dot products)")
+p3 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-04",],
+               LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = 'ses-04',
+               ylab = "NPS (dot products)")
 
-# contrast code 1 linear
-data$stim_con_linear[data$stimintensity == "low"] <- -0.5
-data$stim_con_linear[data$stimintensity == "med"] <- 0
-data$stim_con_linear[data$stimintensity == "high"] <- 0.5
-
-# contrast code 2 quadratic
-data$stim_con_quad[data$stimintensity == "low"] <- -0.33
-data$stim_con_quad[data$stimintensity == "med"] <- 0.66
-data$stim_con_quad[data$stimintensity == "high"] <- -0.33
-
-    # social cude contrast
-    data$social_cue[data$cuetype == "cuetype-low"] <- -0.5 # social influence task
-    data$social_cue[data$cuetype == "cuetype-high"] <- 0.5 # no influence task
-
-
-    stim_con1 <- "stim_con_linear"
-    stim_con2 <- "stim_con_quad"
-    iv1 <- "social_cue"
-    dv <- "NPSpos"
-
-    # [ MODEL ] _________________________________________________ # nolint
-    model_savefname <- file.path(
-        analysis_dir,
-        paste("lmer_task-", taskname,
-            "_rating-", dv_keyword,
-            "_", as.character(Sys.Date()), "_cooksd.txt",
-            sep = ""
-        )
-    )
-    
-    cooksd <- lmer_twofactor_cooksd_fix(
-        data, taskname, iv1, stim_con1, stim_con2, dv,
-        subject, dv_keyword, model_savefname, 'random_intercept', print_lmer_output = FALSE
-    )
-    influential <- as.numeric(names(cooksd)[
-        (cooksd > (4 / as.numeric(length(unique(data$sub)))))
-    ])
-    data_screen <- data[-influential, ]
-    # [ PLOT ] reordering for plots _________________________ # nolint
-    data_screen$cue_name[data_screen$cuetype == "cuetype-high"] <- "high cue"
-    data_screen$cue_name[data_screen$cuetype == "cuetype-low"] <- "low cue"
-
-    data_screen$stim_name[data_screen$stimintensity == "high"] <- "high"
-    data_screen$stim_name[data_screen$stimintensity == "med"] <- "med"
-    data_screen$stim_name[data_screen$stimintensity == "low"] <- "low"
-
-    # DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
-
-    data_screen$stim_ordered <- factor(
-        data_screen$stim_name,
-        levels = c("low", "med", "high")
-    )
-    data_screen$cue_ordered <- factor(
-        data_screen$cue_name,
-        levels = c("low cue", "high cue")
-    )
-    model_iv1 <- "stim_ordered"
-    model_iv2 <- "cue_ordered"
-
-    #  [ PLOT ] calculate mean and se  _________________________
-    actual_subjectwise <- meanSummary(
-        data_screen,
-        c(subject, model_iv1, model_iv2), dv
-    )
-    actual_groupwise <- summarySEwithin(
-        data = actual_subjectwise,
-        measurevar = "mean_per_sub",
-        withinvars = c(model_iv1, model_iv2), idvar = subject
-    )
-    actual_groupwise$task <- taskname
-    # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
-    
-    combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, actual_groupwise)
-   # calculate mean and se  
-    sub_mean <- "mean_per_sub"
-    group_mean <- "mean_per_sub_norm_mean"
-    se <- "se"
-    subject <- "sub"
-    ggtitle <- paste(taskname, " - NPSpos Cooksd removed")
-    title <- paste(taskname, " - NPSpos")
-    xlab <- ""
-    ylab <- "NPSpos (degree)"
-    ylim <- c(-10,60)
-    dv_keyword <- "NPSpos"
-    if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
-        color <- c("#1B9E77", "#D95F02")
-    } else {
-        color <- c("#4575B4", "#D73027")
-    } # if keyword starts with
-    plot_savefname <- file.path(
-        analysis_dir,
-        paste("raincloud_task-", taskname,
-            "_rating-", dv_keyword,
-            "_", as.character(Sys.Date()), "_cooksd.png",
-            sep = ""
-        )
-    )
-    g <- plot_halfrainclouds_twofactor(
-        actual_subjectwise, actual_groupwise, model_iv1, model_iv2,
-        sub_mean, group_mean, se, subject,
-        ggtitle, title, xlab, ylab, taskname,ylim,
-        w, h, dv_keyword, color, plot_savefname
-    )
-g
+ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
+plot_filename = file.path(analysis_dir,
+                          paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
+ggsave(plot_filename, width = 8, height = 4)
 ```
 
+---
 
-## Pain only: Outcome ratings & NPS
+## OUTCOME ~ NPS
+### Q. Do higher NPS values indicate higher outcome ratings? (Pain task only) {.unlisted .unnumbered}
+
+> Yes, Higher NPS values are associated with higher outcome ratings. The linear relationship between NPS value and outcome ratings are stronger for conditions where cue level is congruent with stimulus intensity levels. In other words, NPS-outcome rating relationship is stringent in the low cue-low intensity group, as is the case for high cue-ghigh intensity group. 
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # plot parameters
-iv2 = "event04_actual_angle"; iv1 = "NPSpos"
+iv2 = "event04_actual_angle"
+iv1 = "NPSpos"
 subject = "sub"
-ylab = "Outcome rating"; xlab = signature_key
+ylab = "Outcome rating"
+xlab = signature_key
 ggtitle = "All stimulus intensity"
-alpha = 0.8; lm_method = "lm"
-p.sig <- df_merge[df_merge$runtype == "runtype-pain",]
-df_dropna <- p.sig[!is.na(p.sig[, iv1]) & !is.na(p.sig[, iv2]), ]
-subjectwise_2dv <- meanSummary_2dv(
-        df_dropna,
-        c(subject),
-        iv1, iv2
-    )
-    subjectwise_naomit_2dv <- na.omit(subjectwise_2dv)
-    g <- ggplot(
-        data = subjectwise_naomit_2dv,
-        aes(
-            x = .data[["DV1_mean_per_sub"]],
-            y = .data[["DV2_mean_per_sub"]],
-        )
-    ) +
-        geom_point(
-          size = 2,
-            alpha = alpha) +
-        # geom_abline(
-        #     intercept = 0, slope = 1, color = "green",
-        #     linetype = "dashed", linewidth = 0.5
-        # ) +
-        theme(aspect.ratio = 1) +
-        #scale_color_manual(values = color_scheme) +
-        scale_shape_manual(values = c(16, 17)) +
-        xlab(xlab) +
-        ylab(ylab) +
-        xlim(-10, 30) +
-        ylim(0,180) +
-        ggtitle(ggtitle) +
-        theme(
-            axis.line = element_line(colour = "grey50"),
-            panel.background = element_blank(),
-            plot.subtitle = ggtext::element_textbox_simple(size = 11)
-        ) +
-              geom_ribbon(stat = "smooth", method = lm_method, se = TRUE, alpha = 0.1,
-              aes(color = NULL)) +
-        geom_line(stat = "smooth", method = lm_method, alpha = 0.8, linewidth = 1.5)
-    g
+alpha = 0.8
+lm_method = "lm"
+p.sig <- df_merge[df_merge$runtype == "runtype-pain", ]
+df_dropna <- p.sig[!is.na(p.sig[, iv1]) & !is.na(p.sig[, iv2]),]
+subjectwise_2dv <- meanSummary_2dv(df_dropna,
+                                   c(subject),
+                                   iv1, iv2)
+subjectwise_naomit_2dv <- na.omit(subjectwise_2dv)
+g <- ggplot(data = subjectwise_naomit_2dv,
+            aes(x = .data[["DV1_mean_per_sub"]],
+                y = .data[["DV2_mean_per_sub"]],)) +
+  geom_point(size = 2,
+             alpha = alpha) +
+
+  theme(aspect.ratio = 1) +
+  #scale_color_manual(values = color_scheme) +
+  scale_shape_manual(values = c(16, 17)) +
+  xlab(xlab) +
+  ylab(ylab) +
+  xlim(-10, 30) +
+  ylim(0, 180) +
+  ggtitle(ggtitle) +
+  theme(
+    axis.line = element_line(colour = "grey50"),
+    panel.background = element_blank(),
+    plot.subtitle = ggtext::element_textbox_simple(size = 11)
+  ) +
+  geom_ribbon(
+    stat = "smooth",
+    method = lm_method,
+    se = TRUE,
+    alpha = 0.1,
+    aes(color = NULL)
+  ) +
+  geom_line(
+    stat = "smooth",
+    method = lm_method,
+    alpha = 0.8,
+    linewidth = 1.5
+  )
+g
 ```
 
-### outcome ratings * cue
-```{r echo=FALSE, warning=TRUE}
+### outcome_rating * cue
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 p.sig <- df_merge[df_merge$runtype == "runtype-pain",]
 iv2 = "event04_actual_angle"; iv1 = "NPSpos"
 df_dropna <-
@@ -1071,13 +1036,16 @@ total <-
     ylab = "Outcome rating", xlab = signature_key,
     ggtitle = "all stimulus intensity", 
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"), 
-    alpha = .8, fit_lm = TRUE, lm_method ="lm"
+    alpha = .8, fit_lm = TRUE, lm_method ="lm", identity_line = FALSE
   )
 total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
           )
 ```
 
-### outcome ratings * stim * cue
+
+
+
+### outcome_ratings * stimulus_intensity * cue
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 iv2 = "event04_actual_angle"; iv1 = "NPSpos"
 group = "cuetype"; subject = "sub"
@@ -1091,7 +1059,7 @@ low <-
     ylab = "Outcome rating", xlab = signature_key,
     ggtitle = "Low intensity",
     color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
   )
 
 # med stimulus intensity
@@ -1104,7 +1072,7 @@ med <-
     ylab = "Outcome rating", xlab = signature_key,
     ggtitle = "Medium intensity",
     color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
   )
 
 # high stimulus intensity
@@ -1117,15 +1085,126 @@ high <-
     ylab = "Outcome rating", xlab = signature_key,
     ggtitle = "High intensity",
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
   )
 plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
 plots_title <- annotate_figure(plots, top = text_grob(paste(str_to_title(taskname), "\n NPS/Outcome linear relationship does not differ as a function of stimulus intensity and cue"), color = "black", face = "bold", size = 12))
 plots_title
 ```
 
+### demeaned outcome rating * cue
+```{r echo=FALSE}
+p.demean <- df_merge[df_merge$task == 'pain', ] %>%
+group_by(sub) %>%
+mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
+mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
+mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
+mutate(OUTCOME_demean = event04_actual_angle - avg_outcome) %>%
+mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
+mutate(EXPECT_demean = event02_expect_angle - avg_expect)
 
-## Pain only: Expectation ratings & NPS
+p.demean <- p.demean %>%
+group_by(sub, ses, run) %>%
+mutate(NPSpos = as.numeric(NPSpos)) %>%
+mutate(avg_NPS = mean(NPSpos, na.rm = TRUE)) %>%
+mutate(NPS_demean = NPSpos - avg_NPS)
+# plot parameters
+iv1 = "NPSpos"
+iv2 = "OUTCOME_demean"
+
+subject = "sub"
+ylab = "Outcome rating \n(subjectwise mean-centered)"
+xlab = signature_key
+ggtitle = "All stimulus intensity"
+alpha = 0.8
+lm_method = "lm"
+# p.sig <- df_merge[df_merge$runtype == "runtype-pain", ]
+demean_dropna <- p.demean[!is.na(p.demean[, iv1]) & !is.na(p.demean[, iv2]),]
+demean_dropna$EXPECT <- demean_dropna$event02_expect_angle
+total <-
+  plot_twovariable(
+    demean_dropna, iv1, iv2,
+    group = "cuetype", subject = "sub",
+    ymin=-25, ymax=25, xmin=-5, xmax=5,
+    ylab,  xlab = paste(signature_key), #, "\n(subjectwise mean-centered)"),
+    ggtitle = "all stimulus intensity", 
+    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"), 
+    alpha = .8, fit_lm = TRUE, lm_method ="lm", identity_line = FALSE
+  )
+total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
+          )
+
+```
+
+### demeaned_outcome_ratings * stimulus_intensity * cue
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+iv2 = "OUTCOME_demean"; iv1 = "NPSpos" # "NPSpos"
+ylab = "Outcome rating \n(subjectwise mean-centered)"
+xlab =  paste(signature_key)
+group = "cuetype"; subject = "sub"
+# low stimulus intensity
+demean_low = demean_dropna[demean_dropna$stimintensity == "low", ]
+low <-
+  plot_twovariable(
+    demean_low, iv1 , iv2,
+    group = group, subject = subject,
+    ymin=-50, ymax=50, xmin=-25, xmax=25,
+    ylab = ylab, xlab =  xlab,
+    ggtitle = "Low intensity",
+    color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
+  )
+
+# med stimulus intensity
+demean_med = demean_dropna[demean_dropna$stimintensity == "med", ]
+med <-
+  plot_twovariable(
+    demean_med, iv1, iv2,
+    group = group, subject = subject,
+    ymin=-50, ymax=50, xmin=-25, xmax=25,
+    ylab = ylab, xlab =  xlab,
+    ggtitle = "Medium intensity",
+    color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
+  )
+
+# high stimulus intensity
+demean_high = demean_dropna[demean_dropna$stimintensity == "high", ]
+high <-
+  plot_twovariable(
+    demean_high, iv1, iv2,
+    group = group, subject = subject,
+    ymin=-50, ymax=50, xmin=-25, xmax=25,
+    ylab = ylab, xlab =  xlab,
+    ggtitle = "High intensity",
+    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
+  )
+plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots, top = text_grob(paste(str_to_title(taskname), "\n NPS/Outcome linear relationship does not differ as a function of stimulus intensity and cue"), color = "black", face = "bold", size = 12))
+plots_title
+```
+
+### Is this statistically significant?
+
+```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
+# organize variable names
+# NPS_demean vs. NPSpos
+model.npsoutcome <- lmer(OUTCOME_demean ~ CUE_high_gt_low*STIM_linear*NPSpos + CUE_high_gt_low*STIM_quadratic*NPSpos + (CUE_high_gt_low*STIM*NPSpos|sub), data = demean_dropna)
+sjPlot::tab_model(model.npsoutcome,
+                  title = "Multilevel-modeling: \nlmer(OUTCOME_demean ~ CUE * STIM * NPSpos + (CUE * STIM *NPSpos | sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+```
+
+
+---
+
+## NPS ~ expectation_rating
+### Q. What is the relationship betweeen expectation ratings & NPS? (Pain task only) {.unlisted .unnumbered}
+Do we see a linear effect between expectation rating and NPS dot products? Also, does this effect differ as a function of cue and stimulus intensity ratings, as is the case for behavioral ratings?
+
+> Quick answer: Yes, expectation ratings predict NPS dotproducts; Also, there tends to be a different relationship depending on cues, just by looking at the figures, although this needs to be tested statistically. 
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 p.sig <- df_merge[df_merge$runtype == "runtype-pain",]
 iv1 = "event02_expect_angle"; iv2 = "NPSpos"
@@ -1140,7 +1219,7 @@ total <-
     ylab = signature_key, 
     ggtitle = "all stimulus intensity", 
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"), 
-    alpha = .8, fit_lm = TRUE, lm_method = "lm"
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
   )
 total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
           )
@@ -1162,7 +1241,7 @@ low <-
     xlab = "expectation rating", ylab = "NPSpos",
     ggtitle = "Low intensity",
     color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
   )
 
 # med stimulus intensity
@@ -1175,7 +1254,7 @@ med <-
     xlab = "expectation rating", ylab = "NPSpos",
     ggtitle = "Medium intensity",
     color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
   )
 
 # high stimulus intensity
@@ -1188,7 +1267,7 @@ high <-
     xlab = "expectation rating", ylab = "NPSpos",
     ggtitle = "High intensity",
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE, lm_method = "lm"
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
   )
 plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
 plots_title <- annotate_figure(plots, top = text_grob(paste(str_to_title(taskname), "\n Expect/Outcome linear relationship differs as a function of stimulus intensity and cue"), color = "black", face = "bold", size = 12))
@@ -1196,6 +1275,134 @@ plots_title
 ```
 
 
+### demeaned expect rating * cue
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+p.demean <- df_merge[df_merge$task == 'pain', ] %>%
+group_by(sub) %>%
+mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
+mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
+mutate(NPSpos = as.numeric(NPSpos)) %>%
+mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
+mutate(OUTCOME_demean = event04_actual_angle - avg_outcome) %>%
+mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
+mutate(EXPECT_demean = event02_expect_angle - avg_expect) %>%
+mutate(avg_NPS = mean(NPSpos, na.rm = TRUE)) %>%
+mutate(NPS_demean = NPSpos - avg_NPS)
+
+# plot parameters
+
+iv1 = "EXPECT_demean"
+iv2 = "NPSpos" # NPS_demean
+subject = "sub"
+xlab = "Expectation rating \n(subjectwise mean-centered)"
+ylab = paste(signature_key) #, " \n(mean-centered)")
+ggtitle = "All stimulus intensity"
+alpha = 0.8
+lm_method = "lm"
+demean_dropna <- p.demean[!is.na(p.demean[, iv1]) & !is.na(p.demean[, iv2]),]
+
+total <-
+  plot_twovariable(
+    demean_dropna, iv1, iv2,
+    group = "cuetype", subject = "sub",
+    ymin=-10, ymax=10, xmin=-40, xmax=40,
+    xlab ,ylab,
+    ggtitle = "all stimulus intensity", 
+    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"), 
+    alpha = .8, fit_lm = TRUE, lm_method ="lm", identity_line = FALSE
+  )
+total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
+          )
+
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+iv1 = "EXPECT_demean"; iv2 = "NPSpos" # "NPS_demean"
+group = "cuetype"; subject = "sub"
+xlab = "Expectation rating \n(subjectwise mean-centered)"
+ylab = paste(signature_key)
+# low stimulus intensity
+demean_low = demean_dropna[demean_dropna$stimintensity == "low", ]
+low <-
+  plot_twovariable(
+    demean_low, iv1 , iv2,
+    group = group, subject = subject,
+    ymin=-10, ymax=10, xmin=-40, xmax=40,
+    xlab = xlab, ylab = ylab, 
+    #, " \n(mean-centered)"),
+    ggtitle = "Low intensity",
+    color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
+  )
+
+# med stimulus intensity
+demean_med = demean_dropna[demean_dropna$stimintensity == "med", ]
+med <-
+  plot_twovariable(
+    demean_med, iv1, iv2,
+    group = group, subject = subject,
+    ymin=-10, ymax=10, xmin=-40, xmax=40,
+    xlab = xlab, ylab = ylab, 
+    ggtitle = "Medium intensity",
+    color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
+  )
+
+# high stimulus intensity
+demean_high = demean_dropna[demean_dropna$stimintensity == "high", ]
+high <-
+  plot_twovariable(
+    demean_high, iv1, iv2,
+    group = group, subject = subject,
+    ymin=-10, ymax=10, xmin=-40, xmax=40,
+    xlab = xlab, ylab = ylab, 
+    ggtitle = "High intensity",
+    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
+  )
+plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots, top = text_grob(paste(str_to_title(taskname), "\n NPS/Outcome linear relationship does not differ as a function of stimulus intensity and cue"), color = "black", face = "bold", size = 12))
+plots_title
+```
+
+
+### Is this statistically significant?
 
 
 
+```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
+model.npsexpectdemean <- lmer(NPSpos ~ 
+                          CUE_high_gt_low*STIM_linear*EXPECT_demean + 
+                          CUE_high_gt_low*STIM_quadratic*EXPECT_demean + 
+                          (CUE_high_gt_low+STIM+EXPECT_demean|sub), data = demean_dropna
+                    )
+sjPlot::tab_model(model.npsexpectdemean,
+                  title = "Multilevel-modeling: \nlmer(NPSpos ~ CUE * STIM * EXPECT_demean + (CUE + STIM + EXPECT_demean| sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+```
+
+
+```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
+demean_dropna$EXPECT <- demean_dropna$event02_expect_angle
+model.npsexpect <- lmer(NPSpos ~ 
+                          CUE_high_gt_low*STIM_linear*EXPECT + 
+                          CUE_high_gt_low*STIM_quadratic*EXPECT + 
+                          (CUE_high_gt_low+STIM+EXPECT|sub), data = demean_dropna
+                    )
+sjPlot::tab_model(model.npsexpect,
+                  title = "Multilevel-modeling: \nlmer(NPSpos ~ CUE * STIM * EXPECT + (CUE + STIM + EXPECT| sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+```
+
+```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
+demean_dropna$EXPECT <- demean_dropna$event02_expect_angle
+model.npsd_expectd <- lmer(NPS_demean ~ 
+                          CUE_high_gt_low*STIM_linear*EXPECT_demean + 
+                          CUE_high_gt_low*STIM_quadratic*EXPECT_demean + 
+                          (CUE_high_gt_low+STIM+EXPECT_demean|sub), data = demean_dropna
+                    )
+sjPlot::tab_model(model.npsd_expectd,
+                  title = "Multilevel-modeling: \nlmer(NPS_demean ~ CUE * STIM * EXPECT_demean + (CUE + STIM + EXPECT_demean| sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+```

@@ -1,14 +1,22 @@
-# NPSdummy ~ stim * task (contrast-notscaled-error) {#nps_stim_error}
+# [fMRI] NPSdummy ~ stim * task (contrast-notscaled-error) {#nps_stim_error}
 
 ```
 author: "Heejung Jung"
 date: "2023-02-02"
 ```
+
+## Overview  {.unlisted .unnumbered}
+* Dummy contrasts (pain > rest, cognitive > rest, vicarious > rest) were constructed in SPM for the stimulus phase
+* Afterwards, I calculate the dot product betweeen average subjectwise dummy contrasts and NPS weightmap
+* Here, results are plotted as a function of stimulus intensity and task.
+
+
 ```{r libraries_nps_stim_nonscaled, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(car)
 library(psych)
 library(reshape)
 library(PupillometryR)
+library(gghalves)
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
@@ -19,7 +27,7 @@ file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 ```
-## Function {.unlisted .unnumbered}
+
 
 ```{r function::simple_contrasts_nonscaled_34, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 NPS_simple_contrasts <- function(df) {
@@ -38,8 +46,8 @@ df$stim_con_quad[df$stim == "medstim"] <-  0.66
 df$stim_con_quad[df$stim == "highstim"] <-  -0.33
 
 # cue contrast
-df$cue_con[df$cue == "lowcue"] <-  -0.5 # social influence task
-df$cue_con[df$cue == "highcue"] <-  0.5 # no influence task
+df$CUE_high_gt_low[df$cue == "lowcue"] <-  -0.5 # social influence task
+df$CUE_high_gt_low[df$cue == "highcue"] <-  0.5 # no influence task
 return(df)
 }
 ```
@@ -97,7 +105,6 @@ two_factor_lineplot <-
 ```
 
 
-## Common parameters {.unlisted .unnumbered}
 ```{r common_parameters_34_nonscaled, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 main_dir = dirname(dirname(getwd()))
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
@@ -109,7 +116,7 @@ npsdir = file.path(main_dir,'analysis','fmri','spm','univariate','model01_6cond_
 ```
 
 
-```{r load_df_stack_34_nonscaled}
+```{r load_df_stack_34_nonscaled, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 pain_keys <- list(contrast_name = "P_simple", taskname = "pain",con_list = c(32,33,34,35,36,37), npsdir = npsdir)
 vicarious_keys <- list(contrast_name = "V_simple", taskname = "vicarious",con_list = c(38,39,40,41,42,43), npsdir = npsdir)
 cog_keys <- list(contrast_name = "C_simple", taskname = "cognitive", con_list = c(44,45,46,47,48,49), npsdir = npsdir)
@@ -118,13 +125,9 @@ p = NPS_load_df(pain_keys)
 v = NPS_load_df(vicarious_keys)
 c = NPS_load_df(cog_keys)
 pvc <- reshape::merge_recurse(list(p,v,c))
-```
 
-```{r}
 pvc <- NPS_simple_contrasts(pvc)
-```
 
-```{r pvc_summary_nonscaled}
 subject_varkey <- "subject"
 iv1 <- "task"
 iv2 <- "stim_ordered"
@@ -142,7 +145,7 @@ h <- 6
 
 ```
 
-```{r}
+```{r include=FALSE}
 taskname = "all"
 plot_keys <- list(sub_mean = "mean_per_sub",group_mean = "mean_per_sub_norm_mean", se = "se",
     subject = "subject", taskname = taskname,
@@ -166,7 +169,7 @@ plot_keys <- list(sub_mean = "mean_per_sub",group_mean = "mean_per_sub_norm_mean
     model_iv2 = "cue_ordered")
 ```
 
-```{r}
+```{r include=FALSE}
 summary <- NPS_summary_for_plots(df = pvc, 
                              
                              groupwise_measurevar = "mean_per_sub",
@@ -183,7 +186,7 @@ groupwise <-as.data.frame(summary[[2]])
 ```
 
 ### Raincloud plots
-```{r}
+```{r echo=FALSE}
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02", "#D95F02")
     } else {
@@ -195,7 +198,7 @@ groupwise <-as.data.frame(summary[[2]])
     ylim <- c(-800,800)
     subject <- "subject"
     ggtitle <- paste(taskname, " (3 tasks x 3 stimulus intensity) - NPS dot product")
-    title <- paste(taskname, " (3 tasks x 3 stimulus intensity) - NPS dot product")
+    title <- "stimulus intensity"
     xlab <- ""
     ylab <- "NPS (dot product)"
     plot2_savefname <- file.path(
@@ -206,15 +209,17 @@ groupwise <-as.data.frame(summary[[2]])
             sep = ""
         )
     )
-    plot_rainclouds_twofactor(
-      subjectwise, groupwise, iv1, iv2, 
+p <- plot_halfrainclouds_twofactor(
+      subjectwise, groupwise, iv1 = "task", iv2 = "stim_ordered", 
       subject_mean, group_mean, se, subject, 
       ggtitle, title, xlab, ylab, taskname, ylim,
       w, h, dv_keyword, color, plot2_savefname)
+p
+
 ```
 
 ### Line plots
-```{r}
+```{r echo=FALSE}
 
 g<-two_factor_lineplot(df = groupwise,  iv1 = "stim_ordered",iv2 = "task", mean = "mean_per_sub_norm_mean", error = "se",
                        xlab = "stimulus intensity",

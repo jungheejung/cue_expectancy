@@ -1,7 +1,9 @@
-# [ beh ] outcome ~ cue {#ch03_cue}
+# [beh] outcome ~ cue {#ch03_cue}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
+
 Here, I plot the outcome ratings as a function of cue. 
+
 * Main model: `lmer(outcome_rating ~ cue)` 
 * Main question: do outcome ratings differ as a function of cue type? 
 * If there is a main effect of cue on outcome ratings, does this cue effect differ depending on task type?

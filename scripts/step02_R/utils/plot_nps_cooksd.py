@@ -94,7 +94,7 @@ model_savefname <- file.path(
   )
 )
 
-cooksd <- lmer_two_factor_cooksd_fix(
+cooksd <- lmer_twofactor_cooksd_fix(
   df,  taskname,  iv1,  stim_con1,  stim_con2,  dv,  subject_keyword = "subject",  dv_keyword,  model_savefname,
   effects = 'random_intercept', print_lmer_output = "TRUE")
 influential <- as.numeric(names(cooksd)[(cooksd > (4 / as.numeric(length(

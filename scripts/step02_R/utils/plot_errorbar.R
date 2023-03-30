@@ -19,7 +19,7 @@ plot_errorbar <- function(subjectwise, groupwise, iv, sub_iv, group_by,
         coord_cartesian(ylim = ylim, expand = TRUE) +
         geom_point(
             aes(
-                x = as.numeric(factor(.data[[iv]])) - (level_num / 2) - 0.1,
+                x = as.numeric(as.factor(.data[[iv]])) - (level_num / 2) - 0.1,
                 y = .data[[subjectwise_mean]],
                 color = factor(.data[[group_by]])
             ),

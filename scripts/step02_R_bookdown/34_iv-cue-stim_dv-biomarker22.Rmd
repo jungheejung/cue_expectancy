@@ -1,4 +1,4 @@
-# biomarker NPS ~ cue * stim (2022) {#nps_22}
+# [fMRI] biomarker NPS ~ cue * stim (2022) {#nps_22}
 ```
 author: "Heejung Jung"
 date: "6/12/2022"
