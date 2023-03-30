@@ -14,12 +14,13 @@ function step02_extract_ROI()
     dfolders_remove = dfolders(~ismember({dfolders(:).name},{'.','..','sub-0000','sub-0002'}));
     sub_list = {dfolders_remove.name};
     sub = '*';    ses = '*';    run = '*';    runtype = '*';    event = 'stimulus';
-    test_file = dir(fullfile(singletrial_dir, sub, ...
-    strcat(sub, '_', ses, '_', run, '_runtype-', runtype, '_event-', event,'*.nii.gz')));
-    flist4table = {test_file.name};
+    fname_template = fullfile(singletrial_dir, sub, ...
+    strcat(sub, '_', ses, '_', run, '_runtype-', runtype, '_event-', event,'*.nii.gz'));
+    fname_list = dir(fname_template) 
+    flist4table = {fname_list.name};
     output_table = cell2table(flist4table', "VariableNames",  ["singletrial_fname"]);
 
-    dat = fmri_data(fullfile(test_file.folder, test_file.name));
+    dat = fmri_data(filenames(fname_template));
     %% 2. load pain pathwy object
     % pathway_obj = ''
     pain_pathways = load_atlas(which('pain_pathways_atlas_obj.mat'));
