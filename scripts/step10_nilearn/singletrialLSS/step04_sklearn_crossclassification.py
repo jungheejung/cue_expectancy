@@ -1,4 +1,3 @@
-# %%
 from sklearn.linear_model import LassoCV
 from sklearn.metrics import r2_score, accuracy_score
 import numpy as np
