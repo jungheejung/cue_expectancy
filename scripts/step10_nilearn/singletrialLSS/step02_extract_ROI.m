@@ -6,7 +6,7 @@ function step02_extract_ROI()
     % Purpose of this code: to apply NPS to the extracted singletrials.
     %% 1. load filenames as fmri_data
     current_dir = pwd;
-    main_dir = fileparts(fileparts(current_dir));
+    main_dir = fileparts(fileparts(fileparts(current_dir)));
     singletrial_dir = fullfile(main_dir, 'analysis', 'fmri', 'nilearn', 'singletrial');
     nps_dir = fullfile(main_dir, 'analysis', 'fmri', 'nilearn', 'signature_canlabcore');
     d = dir(singletrial_dir);
@@ -15,9 +15,9 @@ function step02_extract_ROI()
     sub_list = {dfolders_remove.name};
     sub = '*';    ses = '*';    run = '*';    runtype = '*';    event = 'stimulus';
     test_file = dir(fullfile(singletrial_dir, sub, ...
-    strcat(sub, '_', ses, '_', run, '_runtype-', runtype, '_event-', key,'*.nii.gz')));
-    flist4table = {test_file.name}
-    output_table = cell2table(flist4table', "VariableNames",  ["singletrial_fname"])
+    strcat(sub, '_', ses, '_', run, '_runtype-', runtype, '_event-', event,'*.nii.gz')));
+    flist4table = {test_file.name};
+    output_table = cell2table(flist4table', "VariableNames",  ["singletrial_fname"]);
 
     dat = fmri_data(fullfile(test_file.folder, test_file.name));
     %% 2. load pain pathwy object
