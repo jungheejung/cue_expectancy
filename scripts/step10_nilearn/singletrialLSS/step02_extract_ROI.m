@@ -5,6 +5,8 @@ function step02_extract_ROI()
     
     % Purpose of this code: to apply NPS to the extracted singletrials.
     %% 1. load filenames as fmri_data
+    current_dir = pwd;
+    main_dir = fileparts(fileparts(current_dir));
     singletrial_dir = fullfile(main_dir, 'analysis', 'fmri', 'nilearn', 'singletrial');
     nps_dir = fullfile(main_dir, 'analysis', 'fmri', 'nilearn', 'signature_canlabcore');
     d = dir(singletrial_dir);
