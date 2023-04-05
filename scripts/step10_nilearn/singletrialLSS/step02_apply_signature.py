@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# purpose: 
+# I benchmarked the apply_all_signatures.m which uses the code CanlabCore/Data_extraction/load_image_set.m
 # %%
 import os
 import glob
