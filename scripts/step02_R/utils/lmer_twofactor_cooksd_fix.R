@@ -1,3 +1,21 @@
+#' Run lmer on two factors
+#'
+#' @param data dataframe
+#' @param taskname string of task name
+#' @param iv 1st factor with two levels
+#' @param stim_con1 2nd factor with three levels. first contrast
+#' @param stim_con2 2nd factor with three levels. second contrast
+#' @param dv a string of dependent variable
+#' @param subject_keyword random factor. e.g. subject or sessions
+#' @param dv_keyword string of dependent variable. for saving filenames
+#' @param model_savefname full path of filename to save lmer results
+#' @param effects options c("random_intercept", "random_slopes", "no_random")
+#' @param print_lmer_output bool: TRUE if you want the output printed in the Rmd; FALSE if you want the output silent
+#'
+#' @return cooks d distance
+#' @export
+#'
+#' @examples
 lmer_twofactor_cooksd_fix <- function(data, taskname,
                                        iv, stim_con1, stim_con2, dv,
                                        subject_keyword, dv_keyword, model_savefname, effects, print_lmer_output) {
