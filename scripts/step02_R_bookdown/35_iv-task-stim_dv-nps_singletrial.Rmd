@@ -6,6 +6,8 @@
 * Here, I model NPS dot products as a function of cue, stimulus intensity and expectation ratings. 
 * One of the findings is that low cues lead to higher NPS dotproducts in the high intensity group, and that this effect becomes non-significant across sessions. 
 * 03/23/2023: For now, I'm grabbing participants that have complete data, i.e. 18 runs, all three sessions. 
+* 03/26/2023: I've identified correct runs, thereby including additional participants
+* 03/26/2023: Need to correctly model clusterwise means. See https://philippmasur.de/2018/05/23/how-to-center-in-multilevel-models/
 
 
 ```{r libraries_nps_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
@@ -363,7 +365,7 @@ subject_varkey <- "src_subject_id"
 iv <- "param_stimulus_type"; 
 iv_keyword <- "stim"; 
 dv <- "event04_actual_angle"; dv_keyword <- "outcome"
-exclude <- "sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0007|sub-0008|sub-0011|sub-0013|sub-0014|sub-0016|sub-0017|sub-0019|sub-0020|sub-0021|sub-0023|sub-0024|sub-0025|sub-0026|sub-0035|sub-0040|sub-0041|sub-0059|sub-0064|sub-0066|sub-0069|sub-0070|sub-0074|sub-0075|sub-0076|sub-0077|sub-0079|sub-0083|sub-0084|sub-0088|sub-0089|sub-0103|sub-0111|sub-0112|sub-0131"
+exclude <- "sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0007|sub-0008|sub-0013|sub-0016|sub-0017|sub-0019|sub-0020|sub-0021|sub-0025|sub-0075"
 
 p.df <- load_task_social_df(datadir, taskname = "pain", subject_varkey, iv, dv, exclude)
 v.df <- load_task_social_df(datadir, taskname = "vicarious", subject_varkey, iv, dv, exclude)
@@ -668,6 +670,7 @@ model.nps3factor <- lmer(NPSpos ~
                            CUE_high_gt_low*STIM_quadratic*EXPECT +
                           (CUE_high_gt_low+STIM + EXPECT|sub), data = data_screen
                     )
+
 sjPlot::tab_model(model.nps3factor,
                   title = "Multilevel-modeling: \nlmer(NPSpos ~ CUE * STIM * EXPECTATION + (CUE + STIM + EXPECT | sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
@@ -1094,20 +1097,24 @@ plots_title
 
 ### demeaned outcome rating * cue
 ```{r echo=FALSE}
-p.demean <- df_merge[df_merge$task == 'pain', ] %>%
-group_by(sub) %>%
-mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
-mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
-mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
-mutate(OUTCOME_demean = event04_actual_angle - avg_outcome) %>%
-mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
-mutate(EXPECT_demean = event02_expect_angle - avg_expect)
-
-p.demean <- p.demean %>%
-group_by(sub, ses, run) %>%
-mutate(NPSpos = as.numeric(NPSpos)) %>%
-mutate(avg_NPS = mean(NPSpos, na.rm = TRUE)) %>%
-mutate(NPS_demean = NPSpos - avg_NPS)
+p.demean <-
+  df_merge[df_merge$task == 'pain',] %>%
+  group_by(sub) %>%
+  mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
+  mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
+  mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
+  mutate(OUTCOME_demean = event04_actual_angle - avg_outcome) %>%
+  mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
+  mutate(EXPECT_demean = event02_expect_angle - avg_expect) %>%
+  group_by(sub, ses) %>%
+  mutate(NPSpos = as.numeric(NPSpos)) %>%
+  mutate(avg_NPS = mean(NPSpos, na.rm = TRUE)) %>%
+  mutate(NPS_demean = NPSpos - avg_NPS) %>%
+  ungroup %>%
+  mutate(OUTCOME_cmc = avg_outcome - mean(avg_outcome)) %>%
+  mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) %>%
+  mutate(NPS_cmc = avg_NPS - mean(avg_NPS)) 
+  
 # plot parameters
 iv1 = "NPSpos"
 iv2 = "OUTCOME_demean"
@@ -1191,6 +1198,7 @@ plots_title
 # organize variable names
 # NPS_demean vs. NPSpos
 model.npsoutcome <- lmer(OUTCOME_demean ~ CUE_high_gt_low*STIM_linear*NPSpos + CUE_high_gt_low*STIM_quadratic*NPSpos + (CUE_high_gt_low*STIM*NPSpos|sub), data = demean_dropna)
+
 sjPlot::tab_model(model.npsoutcome,
                   title = "Multilevel-modeling: \nlmer(OUTCOME_demean ~ CUE * STIM * NPSpos + (CUE * STIM *NPSpos | sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
@@ -1277,18 +1285,23 @@ plots_title
 
 ### demeaned expect rating * cue
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-p.demean <- df_merge[df_merge$task == 'pain', ] %>%
-group_by(sub) %>%
-mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
-mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
-mutate(NPSpos = as.numeric(NPSpos)) %>%
-mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
-mutate(OUTCOME_demean = event04_actual_angle - avg_outcome) %>%
-mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
-mutate(EXPECT_demean = event02_expect_angle - avg_expect) %>%
-mutate(avg_NPS = mean(NPSpos, na.rm = TRUE)) %>%
-mutate(NPS_demean = NPSpos - avg_NPS)
-
+p.demean <-
+  df_merge[df_merge$task == 'pain',] %>%
+  group_by(sub) %>%
+  mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
+  mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
+  mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
+  mutate(OUTCOME_demean = event04_actual_angle - avg_outcome) %>%
+  mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
+  mutate(EXPECT_demean = event02_expect_angle - avg_expect) %>%
+  group_by(sub, ses) %>%
+  mutate(NPSpos = as.numeric(NPSpos)) %>%
+  mutate(avg_NPS = mean(NPSpos, na.rm = TRUE)) %>%
+  mutate(NPS_demean = NPSpos - avg_NPS) %>%
+  ungroup %>%
+  mutate(OUTCOME_cmc = avg_outcome - mean(avg_outcome)) %>%
+  mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) %>%
+  mutate(NPS_cmc = avg_NPS - mean(avg_NPS)) 
 # plot parameters
 
 iv1 = "EXPECT_demean"
@@ -1367,16 +1380,33 @@ plots_title
 ```
 
 
-### Is this statistically significant?
+### ACCURATE: Is this statistically significant?
 
 
 
 ```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
 model.npsexpectdemean <- lmer(NPSpos ~ 
                           CUE_high_gt_low*STIM_linear*EXPECT_demean + 
-                          CUE_high_gt_low*STIM_quadratic*EXPECT_demean + 
+                          CUE_high_gt_low*STIM_quadratic*EXPECT_demean + EXPECT_cmc +
                           (CUE_high_gt_low+STIM+EXPECT_demean|sub), data = demean_dropna
                     )
+model.npsexpectdemean2 <- lmer(NPSpos ~ 
+                          CUE_high_gt_low*STIM_linear*EXPECT_demean + 
+                          CUE_high_gt_low*STIM_quadratic*EXPECT_demean + EXPECT_cmc +
+                          (1|sub), data = demean_dropna
+                    )
+
+var_reduction = function(m0, m1){
+  library(tidyverse)
+  VarCorr(m0) %>% 
+    as.data.frame %>% 
+    select(grp, var_m0 = vcov) %>% 
+    left_join(VarCorr(m1) %>% 
+                as.data.frame %>% 
+                select(grp, var_m1 = vcov)) %>% 
+    mutate(var_red = 1 - var_m1 / var_m0) 
+}
+var_reduction(model.npsexpectdemean2, model.npsexpectdemean)
 sjPlot::tab_model(model.npsexpectdemean,
                   title = "Multilevel-modeling: \nlmer(NPSpos ~ CUE * STIM * EXPECT_demean + (CUE + STIM + EXPECT_demean| sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
@@ -1395,13 +1425,15 @@ sjPlot::tab_model(model.npsexpect,
                   CSS = list(css.table = '+font-size: 12;'))
 ```
 
+#### ACCURATE
 ```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
 demean_dropna$EXPECT <- demean_dropna$event02_expect_angle
 model.npsd_expectd <- lmer(NPS_demean ~ 
                           CUE_high_gt_low*STIM_linear*EXPECT_demean + 
-                          CUE_high_gt_low*STIM_quadratic*EXPECT_demean + 
-                          (CUE_high_gt_low+STIM+EXPECT_demean|sub), data = demean_dropna
+                          CUE_high_gt_low*STIM_quadratic*EXPECT_demean + EXPECT_cmc +
+                          (1|sub), data = demean_dropna
                     )
+# CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.npsd_expectd,
                   title = "Multilevel-modeling: \nlmer(NPS_demean ~ CUE * STIM * EXPECT_demean + (CUE + STIM + EXPECT_demean| sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
