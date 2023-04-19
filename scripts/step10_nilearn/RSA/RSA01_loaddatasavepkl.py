@@ -212,10 +212,6 @@ def get_unique_ses(sub_id, singletrial_dir):
     return unique_ses
 
 
-# load brain data
-# sub_list = ["sub-0003", "sub-0004", "sub-0005", "sub-0006", "sub-0009",    "sub-0010",    "sub-0018",    "sub-0025",    "sub-0029",    "sub-0031",    "sub-0032",    "sub-0033",    "sub-0034",    "sub-0036",    "sub-0037",    "sub-0038",    "sub-0039",    "sub-0043",    "sub-0044",    "sub-0046",    "sub-0050",    "sub-0051",    "sub-0052",    "sub-0053",    "sub-0055",    "sub-0056",    "sub-0057",    "sub-0058",    "sub-0060",    "sub-0061",    "sub-0062",    "sub-0065",    "sub-0073",
-    "sub-0078",    "sub-0080",    "sub-0081",    "sub-0086",    "sub-0087",    "sub-0090",    "sub-0091",    "sub-0092",    "sub-0093",    "sub-0094",    "sub-0095",    "sub-0098",    "sub-0099",    "sub-0100",    "sub-0101",    "sub-0102",    "sub-0104",    "sub-0105",    "sub-0106",    "sub-0107",    "sub-0109",    "sub-0115",    "sub-0116",    "sub-0122",    "sub-0124",    "sub-0126",    "sub-0127",    "sub-0128",    "sub-0129",    "sub-0130",    "sub-0132",    "sub-0133"]
-
 
 # 0. argparse ________________________________________________________________________________
 parser = argparse.ArgumentParser()
