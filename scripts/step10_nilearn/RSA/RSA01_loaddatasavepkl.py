@@ -20,10 +20,10 @@ import h5py
 import pathlib
 from scipy import io
 import matplotlib.pyplot as plt
+import argparse
 import matplotlib.cm
 cmap = matplotlib.cm.get_cmap('Reds')
 
-%matplotlib inline
 
 sys.path.append(
     '/Users/h/anaconda3/envs/spacetop_datalad/lib/python3.9/site-packages')
@@ -217,35 +217,46 @@ def get_unique_ses(sub_id, singletrial_dir):
     "sub-0078",    "sub-0080",    "sub-0081",    "sub-0086",    "sub-0087",    "sub-0090",    "sub-0091",    "sub-0092",    "sub-0093",    "sub-0094",    "sub-0095",    "sub-0098",    "sub-0099",    "sub-0100",    "sub-0101",    "sub-0102",    "sub-0104",    "sub-0105",    "sub-0106",    "sub-0107",    "sub-0109",    "sub-0115",    "sub-0116",    "sub-0122",    "sub-0124",    "sub-0126",    "sub-0127",    "sub-0128",    "sub-0129",    "sub-0130",    "sub-0132",    "sub-0133"]
 
 
-# sub_list = [ "sub-0078",    "sub-0080",    "sub-0081",    "sub-0086",    "sub-0087",    "sub-0090"]
-# sub_list = ['sub-0061']
-sub_list= ["sub-0080"]
+# 0. argparse ________________________________________________________________________________
+parser = argparse.ArgumentParser()
+parser.add_argument("--slurm_id", type=int,
+                    help="specify slurm array id")
+args = parser.parse_args()
+
+# 0. parameters ________________________________________________________________________________
+print(args.slurm_id)
+slurm_id = args.slurm_id # e.g. 1, 2
+singletrial_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial'
+sub_folders = next(os.walk(singletrial_dir))[1]
+print(sub_folders)
+sub_list = [i for i in sorted(sub_folders) if i.startswith('sub-')]
+sub = sub_list[slurm_id]#f'sub-{sub_list[slurm_id]:04d}'
+print(f" ________ {sub} ________")
+
+# concatenate runs ________________________________________________________________________________
 beh_expect = []
 beh_outcome = []
 fmri_data = []
-pkl_savedir = "/Volumes/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv05_rdmpkl"
-for sub in sub_list:
-    singletrial_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/singletrial/'
-    beh_dir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis/data/beh/beh02_preproc/'
-    ses_list = get_unique_ses(sub_id = sub, singletrial_dir=singletrial_dir)
-    for ses in ses_list:
-        des = {'session': ses, 'subj': sub}
-        # load behavioral data expectation rating
-        expect_df = pd.DataFrame()
-        expect_df = load_expect(data_dir=beh_dir,
-                                sub = sub, ses = ses)
-        # load fMRI data
-        mask, fmri_df, stim_flist=load_fmri(singletrial_dir = singletrial_dir,
-                                              sub = sub, ses = ses, run = '*', atlas = True)
-        obs_des={'pattern': np.array(expect_df.condition)}
-        rsd_data=rsatoolbox.data.Dataset(
-            measurements=fmri_df,
-            descriptors=des,
-            obs_descriptors=obs_des,
-            channel_descriptors={'roi': np.array(['roi_' + str(x) for x in np.arange(fmri_df.shape[1])])})
-        fmri_data.append(rsd_data)
-        pathlib.Path(os.path.join(pkl_savedir, sub)).mkdir(parents = True, exist_ok = True)
-        rsd_data.save(filename = os.path.join(pkl_savedir, sub, f"{sub}_{ses}_rsadata.pkl"), 
-                      file_type = 'pkl', overwrite = True)
-
-
+# pkl_savedir = "/Volumes/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv05_rdmpkl"
+pkl_savedir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv05_rdmpkl"
+beh_dir = "dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/beh/beh02_preproc/"
+ses_list = get_unique_ses(sub_id = sub, singletrial_dir=singletrial_dir)
+for ses in ses_list:
+    des = {'session': ses, 'subj': sub}
+    # load behavioral data expectation rating
+    expect_df = pd.DataFrame()
+    expect_df = load_expect(data_dir=beh_dir,
+                            sub = sub, ses = ses)
+    # load fMRI data
+    mask, fmri_df, stim_flist=load_fmri(singletrial_dir = singletrial_dir,
+                                            sub = sub, ses = ses, run = '*', atlas = True)
+    obs_des={'pattern': np.array(expect_df.condition)}
+    rsd_data=rsatoolbox.data.Dataset(
+        measurements=fmri_df,
+        descriptors=des,
+        obs_descriptors=obs_des,
+        channel_descriptors={'roi': np.array(['roi_' + str(x) for x in np.arange(fmri_df.shape[1])])})
+    fmri_data.append(rsd_data)
+    pathlib.Path(os.path.join(pkl_savedir, sub)).mkdir(parents = True, exist_ok = True)
+    rsd_data.save(filename = os.path.join(pkl_savedir, sub, f"{sub}_{ses}_rsadata.pkl"), 
+                    file_type = 'pkl', overwrite = True)
