@@ -25,8 +25,8 @@ import matplotlib.cm
 cmap = matplotlib.cm.get_cmap('Reds')
 
 
-sys.path.append(
-    '/Users/h/anaconda3/envs/spacetop_datalad/lib/python3.9/site-packages')
+#sys.path.append(
+#    '/Users/h/anaconda3/envs/spacetop_datalad/lib/python3.9/site-packages')
 
 
 def load_expect(data_dir, sub, ses):
@@ -34,8 +34,7 @@ def load_expect(data_dir, sub, ses):
     seswise_expect = pd.DataFrame()
     for task in tasklist:
         runwise_df = pd.DataFrame()
-        flist = glob.glob(os.path.join(data_dir, sub, ses,
-                          f"{sub}_{ses}_*{task}_beh.csv"))
+        flist = glob.glob(os.path.join(data_dir, sub, ses, f"{sub}_{ses}_*{task}_beh.csv"))
         for f in flist:
             df = pd.read_csv(f)
             df['trial'] = df.index
@@ -43,8 +42,7 @@ def load_expect(data_dir, sub, ses):
                                            'param_cond_type'].cumcount()
             runwise_df = pd.concat([runwise_df, df])
         # convert run number
-        runwise_df['run_order'] = runwise_df['param_run_num'].gt(
-            np.mean(runwise_df['param_run_num']), 0)*1
+        runwise_df['run_order'] = runwise_df['param_run_num'].gt(np.mean(runwise_df['param_run_num']), 0)*1
         seswise_02expect = runwise_df.pivot_table(index=['param_cue_type', 'param_stimulus_type'], columns=['trial_order', 'run_order'],
                             values=['event02_expect_angle'])  # , aggfunc='first')
         seswise_02expect.columns = [
@@ -235,14 +233,13 @@ beh_outcome = []
 fmri_data = []
 # pkl_savedir = "/Volumes/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv05_rdmpkl"
 pkl_savedir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv05_rdmpkl"
-beh_dir = "dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/beh/beh02_preproc/"
+beh_dir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/beh/beh02_preproc"
 ses_list = get_unique_ses(sub_id = sub, singletrial_dir=singletrial_dir)
 for ses in ses_list:
     des = {'session': ses, 'subj': sub}
     # load behavioral data expectation rating
     expect_df = pd.DataFrame()
-    expect_df = load_expect(data_dir=beh_dir,
-                            sub = sub, ses = ses)
+    expect_df = load_expect(data_dir=beh_dir, sub = sub, ses = ses)
     # load fMRI data
     mask, fmri_df, stim_flist=load_fmri(singletrial_dir = singletrial_dir,
                                             sub = sub, ses = ses, run = '*', atlas = True)
