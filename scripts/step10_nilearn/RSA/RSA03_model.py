@@ -422,6 +422,7 @@ model_name= ['orthogonal', 'cue', 'stim', 'grid', 'rotationgrid', 'diagonal', 'p
 for i, r_ in enumerate(r):
     plt.plot( r_.squeeze(), label=model_name[i])
             #  model_rdms[i].rdm_descriptors['model_names'][0])
-
+new_r = r.reshape(r.shape[0], r.shape[-1])
+np.savetxt("/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv06_RDMmodelcomparison/compare_result.csv", new_arr, delimiter=",")
 np.save('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv06_RDMmodelcomparison/compareRDMresult.npy', np.array(r, dtype=object), allow_pickle=True)
 print("COMPLETE")
