@@ -164,7 +164,7 @@ for fname in flist:
                                      channel_descriptors=obj['channel_descriptors'])
 #     rdms_fmri = rsr.calc_rdm(rdm_dict)
     fmri_data.append(rdm_dict)
-
+print("finished compiling subjectwise pkl")
 data_rdms = rsatoolbox.rdm.calc_rdm(fmri_data)
 # visualize
 fig, ax, ret_val = rsatoolbox.vis.show_rdm(rsr.calc_rdm(fmri_data))
@@ -391,6 +391,10 @@ model_rdms_copycat = rsatoolbox.rdm.RDMs(rdm_model,
                             dissimilarity_measure='Euclidean'
                            )
 
+fig, ax, ret_val = rsatoolbox.vis.show_rdm(model_rdms_copycat, 
+                        rdm_descriptor='model_names')
+fig.savefig('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv06_RDMmodelcomparison/modelRDM.png', bbox_inches='tight', dpi=300)
+print("model estimation start")
 models = []
 model_names = ['orthogonal', 'cue', 'stim', 'grid', 'rotationgrid', 'diagonal', 'parallel']
 for i_model in np.unique(model_names):
@@ -404,6 +408,20 @@ for i in range(len(models)):
 
 results_1 = rsatoolbox.inference.eval_fixed(models, data_rdms, method='corr')
 fig, ax, ret_val = rsatoolbox.vis.plot_model_comparison(results_1)
-fig.savefig('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv06_RDMmodelcomparison/temp_rdm.png', bbox_inches='tight', dpi=300)
+fig.savefig('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv06_RDMmodelcomparison/inferenceRDM.png', bbox_inches='tight', dpi=300)
 
 print(results_1)
+
+
+# compare ______
+r = []
+for mod in model_rdms_copycat:
+    r.append(rsatoolbox.rdm.compare(mod, data_rdms, method='cosine'))
+
+model_name= ['orthogonal', 'cue', 'stim', 'grid', 'rotationgrid', 'diagonal', 'parallel']
+for i, r_ in enumerate(r):
+    plt.plot( r_.squeeze(), label=model_name[i])
+            #  model_rdms[i].rdm_descriptors['model_names'][0])
+
+np.save('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv06_RDMmodelcomparison/compareRDMresult.npy', np.array(r, dtype=object), allow_pickle=True)
+print("COMPLETE")
