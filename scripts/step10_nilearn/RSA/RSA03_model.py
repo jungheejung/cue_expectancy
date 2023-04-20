@@ -148,7 +148,7 @@ fmri_data = []
 pkl_dir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv05_RDMpkl"
 flist = glob.glob(os.path.join(pkl_dir, '*', f"*.pkl"))
 expect_df = pd.DataFrame()
-expect_df = load_expect(data_dir="dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/beh/beh02_preproc/",
+expect_df = load_expect(data_dir="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/beh/beh02_preproc/",
                         sub="sub-0038", ses="ses-01")
 # fname = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step10_nilearn/RSA/sub-0078_ses-01_RDM.pkl'
 # append with 
