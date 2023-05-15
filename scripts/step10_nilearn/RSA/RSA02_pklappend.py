@@ -9,7 +9,8 @@ import os, sys, glob, re
 import pandas as pd
 fmri_data = []
 # load pkl
-pkl_dir = "/Volumes/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv05_rdmpkl"
+main_dir = '/Volumes/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue'
+pkl_dir = os.path.join(main_dir, "/analysis/fmri/nilearn/rsa/deriv01_rdmpkl")
 flist = glob.glob(os.path.join(pkl_dir, '*', f"*.pkl"))
 # fname = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step10_nilearn/RSA/sub-0078_ses-01_RDM.pkl'
 # append with 
@@ -28,4 +29,4 @@ for fname in flist:
 
 # visualize
 fig, ax, ret_val = rsatoolbox.vis.show_rdm(rsr.calc_rdm(fmri_data))
-fig.savefig('/Volumes/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/resources/temp_rdm.png', bbox_inches='tight', dpi=300)
+fig.savefig(os.path.join(main_dir, '/resources/temp_rdm.png'), bbox_inches='tight', dpi=300)

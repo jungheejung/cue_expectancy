@@ -30,6 +30,16 @@ cmap = matplotlib.cm.get_cmap('Reds')
 
 
 def load_expect(data_dir, sub, ses):
+    """AI is creating summary for load_expect
+
+    Args:
+        data_dir (str): where behavioral data lives
+        sub (str): BIDS subject key
+        ses (str): BIDS session key
+
+    Returns:
+        seswise_expect (pd.DataFrame): returns a pandas dataframe 
+    """
     tasklist = ['pain', 'vicarious', 'cognitive']
     seswise_expect = pd.DataFrame()
     for task in tasklist:
@@ -62,12 +72,32 @@ def load_expect(data_dir, sub, ses):
 
 
 def load_outcome(data_dir, sub, ses):
+    """
+     Loads data to be used in BIDS. This is a function that takes as input a directory of behavioral data and a subject and session.
+     
+     @param data_dir - The directory to load data from
+     @param sub - The subject to load data from
+     @param ses - The session to load data from ( must be a session or a subject )
+     
+     @return A dataframe with one row per task and one column per
+    """
+    """AI is creating summary for load_outcome
+
+    Args:
+        data_dir (str): where behavioral data lives
+        sub (str): BIDS subject key
+        ses (str): BIDS session key
+
+    Returns:
+        seswise_outcome (pd.DataFrame): [description]
+    """
     tasklist = ['pain', 'vicarious', 'cognitive']
     seswise_outcome = pd.DataFrame()
     for task in tasklist:
         runwise_df = pd.DataFrame()
         flist = glob.glob(os.path.join(data_dir, sub, ses,
                           f"{sub}_{ses}_*{task}_beh.csv"))
+        # This function reads the trials and trial_order columns from the list of csv files and returns a dataframe with the trial and trial_order columns.
         for f in flist:
             df = pd.read_csv(f)
             df['trial'] = df.index
@@ -78,7 +108,7 @@ def load_outcome(data_dir, sub, ses):
         runwise_df['run_order'] = runwise_df['param_run_num'].gt(
             np.mean(runwise_df['param_run_num']), 0)*1
         seswise_04outcome = runwise_df.pivot_table(index=['param_cue_type', 'param_stimulus_type'], columns=['trial_order', 'run_order'],
-                            values=['event04_actual_angle'])  # , aggfunc='first')
+                            values=['event04_actual_angle'])
         seswise_04outcome.columns = [
             col[0]+'_'+str(col[1]) for col in seswise_04outcome.columns.values]
         seswise_04outcome = seswise_04outcome.reset_index()
@@ -97,14 +127,27 @@ def load_outcome(data_dir, sub, ses):
 
 
 def load_fmri(singletrial_dir, sub, ses, run, atlas):
+    """Load single trial average beta estimates within session
+
+    Args:
+        singletrial_dir (str): directory containing single trial beta estimates
+        sub (str): BIDS subject id
+        ses (str): BIDS session id
+        run (str): BIDS run id
+        atlas (str): flag to use atlas or not
+
+    Returns:
+        np.array: numpy array of shape num_samples num_labels
+    """
+
     from nilearn import datasets
     from nilearn.maskers import NiftiLabelsMasker
     dataset = datasets.fetch_atlas_schaefer_2018()
     atlas_filename = dataset.maps
-    # labels = dataset.labels
     labels = np.insert(dataset.labels, 0, 'Background')
     masker = NiftiLabelsMasker(labels_img=atlas_filename, standardize=True,
                             memory='nilearn_cache', verbose=5)
+    # Returns an array of the data in the atlas dataset.
     if atlas == True:
         arr = np.empty((0, len(dataset['labels'])), int)
     elif atlas == False:
@@ -113,8 +156,8 @@ def load_fmri(singletrial_dir, sub, ses, run, atlas):
         get_shape_data = image.mean_img(
             image.concat_imgs(get_shape)).get_fdata().ravel()
         arr = np.empty((0, get_shape_data.shape[0]), int)
-    # task_array = np.empty((18,0), int)
 
+    # Stimulus trials for the given runtype.
     for runtype in ['pain', 'cognitive', 'vicarious']:
         stim_H_cue_H = sorted(glob.glob(os.path.join(
             singletrial_dir, sub, f'{sub}_{ses}_{run}_runtype-{runtype}_event-stimulus_trial-*_cuetype-high_stimintensity-high.nii.gz')))
@@ -132,8 +175,7 @@ def load_fmri(singletrial_dir, sub, ses, run, atlas):
         [stim_flist.extend(l) for l in (stim_H_cue_H, stim_M_cue_H,
                            stim_L_cue_H, stim_H_cue_L, stim_M_cue_L, stim_L_cue_L)]
 
-        # task_array = np.vstack((task_array, runwise_array))
-        # arr = np.append(arr, runwise_array, axis=0)
+        # The atlas atlas is true or False.
         if atlas == True:
             stim_H_cue_H_mean = image.mean_img(image.concat_imgs(stim_H_cue_H))
             stim_M_cue_H_mean = image.mean_img(image.concat_imgs(stim_M_cue_H))
@@ -149,7 +191,7 @@ def load_fmri(singletrial_dir, sub, ses, run, atlas):
                                                           stim_L_cue_L_mean
                                                            ]))  # (trials, parcels)
             arr = np.concatenate((arr, runwise_array), axis=0)
-    # np.vstack((arr, runwise_array))
+
         elif atlas == False:
             stim_H_cue_H_mean = image.mean_img(
                 image.concat_imgs(stim_H_cue_H)).get_fdata().ravel()
@@ -175,7 +217,7 @@ def upper_tri(RDM):
     """upper_tri returns the upper triangular index of an RDM
 
     Args:
-        RDM 2Darray: squareform RDM
+        RDM (2Darray): squareform RDM
 
     Returns:
         1D array: upper triangular vector of the RDM
@@ -187,6 +229,14 @@ def upper_tri(RDM):
 
 
 def get_unique_ses(sub_id, singletrial_dir):
+    """Extracts unique values of 'ses' and 'run' from a singletrial nifti file
+    Args:
+        sub_id (str): BIDS subject 
+        singletrial_dir (str): path to directory containing the Singletrial nifti files
+
+    Returns:
+        [type]: set of unique values of'ses'and'run
+    """
 
     flist = glob.glob(os.path.join(singletrial_dir, sub_id,
                       '*stimulus*trial-000_*.nii.gz'))
@@ -195,18 +245,19 @@ def get_unique_ses(sub_id, singletrial_dir):
     unique_run = set()
 
     # Loop through each file path and extract 'ses-##' and 'run-##' using regular expressions
+    # Extract ses run and ses.
     for path in flist:
         # Extract 'ses-##' using regular expression
         ses_match = re.search(r'ses-(\d+)', path)
+        # Add a new session to the unique_ses list
         if ses_match:
             unique_ses.add(ses_match.group(0))
 
         # Extract 'run-##' using regular expression
         run_match = re.search(r'run-(\d+)', path)
+        # Add run_match to unique_run list of run_match. group 0
         if run_match:
             unique_run.add(run_match.group(0))
-    # for run in sorted(unique_run):
-    #     print(run)
     return unique_ses
 
 
@@ -231,8 +282,8 @@ print(f" ________ {sub} ________")
 beh_expect = []
 beh_outcome = []
 fmri_data = []
-# pkl_savedir = "/Volumes/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv05_rdmpkl"
-pkl_savedir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv05_rdmpkl"
+# pkl_savedir = "/Volumes/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/rsa/deriv01_rdmpkl"
+pkl_savedir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/rsa/deriv01_rdmpkl"
 beh_dir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/beh/beh02_preproc"
 ses_list = get_unique_ses(sub_id = sub, singletrial_dir=singletrial_dir)
 for ses in ses_list:

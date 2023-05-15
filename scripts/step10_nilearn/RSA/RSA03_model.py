@@ -107,12 +107,13 @@ def load_fmri(singletrial_dir, sub, ses, run, atlas):
             stim_H_cue_L_mean = image.mean_img(image.concat_imgs(stim_H_cue_L))
             stim_M_cue_L_mean = image.mean_img(image.concat_imgs(stim_M_cue_L))
             stim_L_cue_L_mean = image.mean_img(image.concat_imgs(stim_L_cue_L))
-            runwise_array = masker.fit_transform(image.concat_imgs([stim_H_cue_H_mean,
-                                                          stim_M_cue_H_mean,
-                                                          stim_L_cue_H_mean,
-                                                          stim_H_cue_L_mean,
-                                                          stim_M_cue_L_mean,
-                                                          stim_L_cue_L_mean
+            runwise_array = masker.fit_transform(image.concat_imgs([
+                                                        stim_H_cue_H_mean,
+                                                        stim_M_cue_H_mean,
+                                                        stim_L_cue_H_mean,
+                                                        stim_H_cue_L_mean,
+                                                        stim_M_cue_L_mean,
+                                                        stim_L_cue_L_mean
                                                            ])) # (trials, parcels)
             arr = np.concatenate((arr,runwise_array),axis=0)
     # np.vstack((arr, runwise_array))
@@ -145,8 +146,9 @@ def upper_tri(RDM):
 # load pickl and concat RDM ________________________________________________________________________________
 fmri_data = []
 # load pkl
-pkl_dir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv05_RDMpkl"
+pkl_dir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/rsa/deriv01_rdmpkl"
 flist = glob.glob(os.path.join(pkl_dir, '*', f"*.pkl"))
+save_dir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/rsa/modelrdm"
 expect_df = pd.DataFrame()
 expect_df = load_expect(data_dir="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/beh/beh02_preproc/",
                         sub="sub-0038", ses="ses-01")
@@ -168,9 +170,9 @@ print("finished compiling subjectwise pkl")
 data_rdms = rsatoolbox.rdm.calc_rdm(fmri_data)
 # visualize
 fig, ax, ret_val = rsatoolbox.vis.show_rdm(rsr.calc_rdm(fmri_data))
-fig.savefig('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv06_RDMmodelcomparison/fmri_RDM.png', bbox_inches='tight', dpi=300)
+fig.savefig('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/rsa/deriv02_modelcomparison/fmri_RDM.png', bbox_inches='tight', dpi=300)
 
-# orthogonal _______________________________________________________________________________
+# model setup _______________________________________________________________________________
 stim = np.array([1, 0, -1])
 cue = np.array([ 1, 1, 1, -1, -1, -1])
 task = np.array([1, 0, -1])
@@ -179,7 +181,6 @@ s = np.tile(stim, 6)
 c = np.tile(cue, 3)
 
 tcs = np.vstack((t,c,s)).T
-
 c1 = np.array([[1,0,0],
               [0,0,0],
               [0,0,1]])
@@ -189,192 +190,101 @@ c2 = np.array([[1,0,0],
 c3 = np.array([[0,0,0],
               [0,1,0],
               [0,0,1]])
+c4 = np.array([[0,0,0],
+              [0,1,0],
+              [0,0,0]])
+c5 = np.array([[0,0,0],
+              [0,0,0],
+              [0,0,1]])
+# %%%
+# orthogonal _______________________________________________________________________________
 xy = np.concatenate([
     np.dot(np.dot(tcs[:6,], c1), c1.T),
     np.dot(np.dot(tcs[6:12,], c2), c2.T),
     np.dot(np.dot(tcs[12:,], c3), c3.T)], axis=0)
 
-xy = np.concatenate([
+xy_orthogonal = np.concatenate([
     np.dot(np.dot(tcs[:6,], c3), c3.T),
     np.dot(np.dot(tcs[6:12,], c2), c2.T),
     np.dot(np.dot(tcs[12:,], c1), c1.T)], axis=0)
-
-model_features = [rsatoolbox.data.Dataset(np.array(xy))]
+dist_mat_orth= squareform(pdist(xy_orthogonal))
+plt.imshow(dist_mat_orth)
+np.save(os.path.join(save_dir, 'model-orthogonal.npy'), dist_mat_orth)
+model_features = [rsatoolbox.data.Dataset(np.array(xy_orthogonal))]
 model_orthogonal = rsatoolbox.rdm.calc_rdm(model_features)
 
 # model_cue ________________________________________________________________________________
-
-stim = np.array([1, 0, -1])
-cue = np.array([ 1, 1, 1, -1, -1, -1])
-task = np.array([1, 0, -1])
-t = np.repeat(task, 6)
-s = np.tile(stim, 6)
-c = np.tile(cue, 3)
-
-tcs = np.vstack((t,c,s)).T
-
-c1 = np.array([[1,0,0],
-              [0,0,0],
-              [0,0,1]])
-c2 = np.array([[1,0,0],
-              [0,1,0],
-              [0,0,0]])
-c3 = np.array([[0,0,0],
-              [0,1,0],
-              [0,0,1]])
-c4 = np.array([[0,0,0],
-              [0,1,0],
-              [0,0,0]])
-xy = np.concatenate([
+xy_cue = np.concatenate([
     np.dot(np.dot(tcs[:6,], c4), c4.T),
     np.dot(np.dot(tcs[6:12,], c4), c4.T),
     np.dot(np.dot(tcs[12:,], c4), c4.T)], axis=0)
-
-model_features = [rsatoolbox.data.Dataset(np.array(xy))]
+dist_mat_cue= squareform(pdist(xy_cue))
+# plt.imshow(dist_mat_cue)
+np.save(os.path.join(save_dir, 'model-cue.npy'), dist_mat_cue)
+model_features = [rsatoolbox.data.Dataset(np.array(xy_cue))]
 model_cue = rsatoolbox.rdm.calc_rdm(model_features)
 
 # model_stim ________________________________________________________________________________
-
-stim = np.array([1,2,3])
-cue = np.array([ 1, 1, 1, -1, -1, -1])
-task = np.array([1, 0, -1])
-t = np.repeat(task, 6)
-s = np.tile(stim, 6)
-c = np.tile(cue, 3)
-
-tcs = np.vstack((t,c,s)).T
-
-c1 = np.array([[1,0,0],
-              [0,0,0],
-              [0,0,1]])
-c2 = np.array([[1,0,0],
-              [0,1,0],
-              [0,0,0]])
-c3 = np.array([[0,0,0],
-              [0,1,0],
-              [0,0,1]])
-c4 = np.array([[0,0,0],
-              [0,1,0],
-              [0,0,0]])
-c5 = np.array([[0,0,0],
-              [0,0,0],
-              [0,0,1]])
-xy = np.concatenate([
+xy_stim = np.concatenate([
     np.dot(np.dot(tcs[:6,], c5),np.eye(3)),
     np.dot(np.dot(tcs[6:12,], c5), np.eye(3)),
     np.dot(np.dot(tcs[12:,], c5), np.eye(3))], axis=0)
-
-model_features = rsatoolbox.data.Dataset(np.array(xy))
+dist_mat_stim = squareform(pdist(xy_stim))
+# plt.imshow(dist_mat_stim)
+np.save(os.path.join(save_dir, 'model-stim.npy'), dist_mat_stim)
+model_features = rsatoolbox.data.Dataset(np.array(xy_stim))
 model_stim = rsatoolbox.rdm.calc_rdm(model_features)
 
 # model_grid ________________________________________________________________________________
-stim = np.array([1,0,-1])
-cue = np.array([ 1, 1, 1, -1, -1, -1])
-task = np.array([1, 0, -1])
-t = np.repeat(task, 6)
-s = np.tile(stim, 6)
-c = np.tile(cue, 3)
-
-tcs = np.vstack((t,c,s)).T
-
+dist_mat_grid = squareform(pdist(tcs))
+# plt.imshow(dist_mat_grid)
+np.save(os.path.join(save_dir, 'model-grid.npy'), dist_mat_grid)
 model_features = [rsatoolbox.data.Dataset(np.array(tcs))]
 model_grid = rsatoolbox.rdm.calc_rdm(model_features)
 
 # model_rotationgrid __________________________________________________________________________
-stim = np.array([1,0,-1])
-cue = np.array([ 1, 1, 1, -1, -1, -1])
-task = np.array([1, 0, -1])
-t = np.repeat(task, 6)
-s = np.tile(stim, 6)
-c = np.tile(cue, 3)
-
-tcs = np.vstack((t,c,s)).T
-
-c1 = np.array([[1,0,0],
-              [0,0,0],
-              [0,0,1]])
-c2 = np.array([[1,0,0],
-              [0,1,0],
-              [0,0,0]])
-c3 = np.array([[0,0,0],
-              [0,1,0],
-              [0,0,1]])
-c4 = np.array([[0,0,0],
-              [0,1,0],
-              [0,0,0]])
-c5 = np.array([[0,0,0],
-              [0,0,0],
-              [0,0,1]])
 rot = np.array([[1,0,0],
                 [0, np.cos(np.deg2rad(90)), np.sin(np.deg2rad(90))],
                 [0, -np.sin(np.deg2rad(90)), np.cos(np.deg2rad(90))]])
-
-xy = np.concatenate([
+xy_rotationgrid = np.concatenate([
     np.dot(tcs[:6,], rot),
     tcs[6:12,],
     tcs[12:,]],
     axis=0)
-
-model_features = [rsatoolbox.data.Dataset(np.array(xy))]
+dist_mat_rotationgrid = squareform(pdist(xy_rotationgrid))
+# plt.imshow(dist_mat_rotationgrid)
+np.save(os.path.join(save_dir, 'model-rotationgrid.npy'), dist_mat_rotationgrid)
+model_features = [rsatoolbox.data.Dataset(np.array(xy_rotationgrid))]
 model_rotationgrid = rsatoolbox.rdm.calc_rdm(model_features)
 
-
 # model_diagonal ________________________________________________________________________________
-
-stim = np.array([1,0,-1])
-cue = np.array([ 1, 1, 1, -1, -1, -1])
-task = np.array([1, 0, -1])
-t = np.repeat(task, 6)
-s = np.tile(stim, 6)
-c = np.tile(cue, 3)
-
-tcs = np.vstack((t,c,s)).T
-
 P = np.array([[1,0],[0, np.cos(np.deg2rad(45))],[0, np.sin(np.deg2rad(45))]])
-xy = np.dot(tcs, P)
-
-model_features = [rsatoolbox.data.Dataset(np.array(xy))]
+xy_diag = np.dot(tcs, P)
+dist_mat_diag = squareform(pdist(xy_diag))
+# plt.imshow(dist_mat_diag)
+np.save(os.path.join(save_dir, 'model-diagonal.npy'), dist_mat_diag)
+model_features = [rsatoolbox.data.Dataset(np.array(xy_diag))]
 model_diagonal = rsatoolbox.rdm.calc_rdm(model_features)
 
 
 # model_parallel ________________________________________________________________________________
-stim = np.array([1,0,-1])
-cue = np.array([ 1, 1, 1, -1, -1, -1])
-task = np.array([1, 0, -1])
-t = np.repeat(task, 6)
-s = np.tile(stim, 6)
-c = np.tile(cue, 3)
-
-tcs = np.vstack((t,c,s)).T
-
-c1 = np.array([[1,0,0],
-              [0,0,0],
-              [0,0,1]])
-c2 = np.array([[1,0,0],
-              [0,1,0],
-              [0,0,0]])
-c3 = np.array([[0,0,0],
-              [0,1,0],
-              [0,0,1]])
-c4 = np.array([[0,0,0],
-              [0,1,0],
-              [0,0,0]])
-c5 = np.array([[0,0,0],
-              [0,0,0],
-              [0,0,1]])
 rot = np.array([[1,0,0],
                 [0, np.cos(np.deg2rad(90)), np.sin(np.deg2rad(90))],
                 [0, -np.sin(np.deg2rad(90)), np.cos(np.deg2rad(90))]])
-result = np.dot(np.dot(tcs[:6,], c2), rot)
-xy = np.concatenate([
-    result,
-    np.dot(tcs[6:12,], c1),
+# result = np.dot(np.dot(tcs[:6,], c2), rot)
+xy_parallel = np.concatenate([
+    np.dot(np.dot(tcs[:6,], c1), rot),
+    np.dot(tcs[6:12,], c2),
     np.dot(tcs[12:,], c2)], axis=0)
-
-model_feaures = rsatoolbox.data.Dataset(np.array(xy))
+dist_mat_par = squareform(pdist(xy_parallel))
+# plt.imshow(dist_mat_par)
+np.save(os.path.join(save_dir, 'model-parallel.npy'), dist_mat_par)
+model_feaures = rsatoolbox.data.Dataset(np.array(xy_parallel))
 model_parallel = rsatoolbox.rdm.calc_rdm(model_feaures)
 
-# stack models ________________________________________________________________________________
+
+
+# %%stack models ________________________________________________________________________________
 rdm_model = np.vstack([model_orthogonal.dissimilarities[0],
                        model_cue.dissimilarities[0],
                        model_stim.dissimilarities[0],
@@ -393,7 +303,7 @@ model_rdms_copycat = rsatoolbox.rdm.RDMs(rdm_model,
 
 fig, ax, ret_val = rsatoolbox.vis.show_rdm(model_rdms_copycat, 
                         rdm_descriptor='model_names')
-fig.savefig('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv06_RDMmodelcomparison/modelRDM.png', bbox_inches='tight', dpi=300)
+fig.savefig('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/rsa/deriv02_modelcomparison/modelRDM.png', bbox_inches='tight', dpi=300)
 print("model estimation start")
 models = []
 model_names = ['orthogonal', 'cue', 'stim', 'grid', 'rotationgrid', 'diagonal', 'parallel']
@@ -408,7 +318,7 @@ for i in range(len(models)):
 
 results_1 = rsatoolbox.inference.eval_fixed(models, data_rdms, method='corr')
 fig, ax, ret_val = rsatoolbox.vis.plot_model_comparison(results_1)
-fig.savefig('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv06_RDMmodelcomparison/inferenceRDM.png', bbox_inches='tight', dpi=300)
+fig.savefig('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/rsa/deriv02_modelcomparison/inferenceRDM.png', bbox_inches='tight', dpi=300)
 
 print(results_1)
 
@@ -423,6 +333,6 @@ for i, r_ in enumerate(r):
     plt.plot( r_.squeeze(), label=model_name[i])
             #  model_rdms[i].rdm_descriptors['model_names'][0])
 new_r = r.reshape(r.shape[0], r.shape[-1])
-np.savetxt("/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv06_RDMmodelcomparison/compare_result.csv", new_arr, delimiter=",")
-np.save('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv06_RDMmodelcomparison/compareRDMresult.npy', np.array(r, dtype=object), allow_pickle=True)
+np.savetxt("/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/rsa/deriv02_modelcomparison/compare_result.csv", new_r, delimiter=",")
+np.save('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/rsa/deriv02_modelcomparison/compareRDMresult.npy', np.array(r, dtype=object), allow_pickle=True)
 print("COMPLETE")
