@@ -16,7 +16,7 @@ plot_lineplot_twofactor_subset <- function(data, taskname, iv1, iv2, mean, error
             ymin = (.data[[mean]] - .data[[error]]),
             ymax = (.data[[mean]] + .data[[error]])
         ), width = .1) +
-        geom_line() +
+        geom_line(linewidth=1, aes(linetype = as.factor(.data[[iv2]]) )) + # change back to geom_line() +
         geom_point() +
         # scale_x_continuous(breaks = seq(-3, +3, by = 1)) +
         # scale_y_continuous(breaks = seq(0, 90, by=30), limits=c(0,90)) +
@@ -25,6 +25,7 @@ plot_lineplot_twofactor_subset <- function(data, taskname, iv1, iv2, mean, error
         ylab(ylab) +
         # guides(fill=guide_legend(title="Social Endorsement Position")) +
         scale_color_manual(values = color) +
+        scale_linetype_manual(values = c("dashed", "solid")) +
         theme_classic() +
         theme(legend.position = "none") +
         theme(aspect.ratio = .6)
