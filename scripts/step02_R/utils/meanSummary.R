@@ -1,8 +1,9 @@
-meanSummary <- function(DATA, GROUP, DV) {
-    z <- ddply(DATA, GROUP, .fun = function(xx) {
+meanSummary <- function(data, group, dv) {
+    library(plyr)
+    z <- plyr::ddply(data, group, .fun = function(xx) {
         c(
-            mean_per_sub = mean(xx[, DV], na.rm = TRUE),
-            sd = sd(xx[, DV], na.rm = TRUE)
+            mean_per_sub = mean(xx[, dv], na.rm = TRUE),
+            sd = sd(xx[, dv], na.rm = TRUE)
         )
     })
     return(z)
