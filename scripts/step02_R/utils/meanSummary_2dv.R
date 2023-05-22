@@ -1,4 +1,5 @@
 meanSummary_2dv <- function(DATA, GROUP, DV1, DV2) {
+    library(plyr)
     z <- ddply(DATA, GROUP, .fun = function(xx) {
         c(
             DV1_mean_per_sub = mean(xx[, DV1], na.rm = TRUE),
