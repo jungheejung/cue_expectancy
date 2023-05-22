@@ -112,4 +112,3 @@ plotting.plot_stat_map(masked_stat_img, threshold = 3, display_mode = 'mosaic')
 
 
 
-# %%
