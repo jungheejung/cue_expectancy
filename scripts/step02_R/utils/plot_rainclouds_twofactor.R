@@ -2,6 +2,7 @@ plot_rainclouds_twofactor <- function(subjectwise, groupwise,
                                       iv1, iv2, sub_mean, group_mean, se, subject,
                                       ggtitle, title, xlab, ylab, task_name, ylim,
                                       w, h, dv_keyword, color, save_fname) {
+    library(PupillometryR)
     g <- ggplot(
         data = subjectwise,
         aes(
@@ -11,7 +12,7 @@ plot_rainclouds_twofactor <- function(subjectwise, groupwise,
         )
     ) +
         coord_cartesian(ylim = ylim, expand = TRUE) +
-        geom_flat_violin(
+        PupillometryR::geom_flat_violin(
             aes(fill = .data[[iv2]]),
             position = position_nudge(x = .1, y = 0),
             adjust = 1.5, trim = FALSE, alpha = .3, colour = NA
@@ -77,6 +78,6 @@ plot_rainclouds_twofactor <- function(subjectwise, groupwise,
         ylab(ylab) +
         theme_bw()
 
-    ggsave(save_fname, width = w, height = h)
+    # ggsave(save_fname, width = w, height = h)
     return(g)
 }
