@@ -1,6 +1,6 @@
 plot_halfrainclouds_twofactor <- function(subjectwise, groupwise,
                                       iv1, iv2, sub_mean, group_mean, se, subject,
-                                      ggtitle, title, xlab, ylab, task_name, ylim,
+                                      ggtitle, legend_title, xlab, ylab, task_name, ylim,
                                       w, h, dv_keyword, color, save_fname) {
     library(ggplot2)
     g <- ggplot(
@@ -96,10 +96,10 @@ plot_halfrainclouds_twofactor <- function(subjectwise, groupwise,
 
 
         # legend stuff __________________________________________________________________________________ # nolint
-        expand_limits(x = 3.25) +
+        expand_limits(x = 3.5) +
         guides(fill = "none") +
         guides(color = "none") +
-        guides(fill = guide_legend(title = title)) +
+        guides(fill = guide_legend(title = legend_title)) +
         # geom_text()
 
 
@@ -116,6 +116,6 @@ plot_halfrainclouds_twofactor <- function(subjectwise, groupwise,
     } else {
         g
     }
-    ggsave(save_fname, width = w, height = h)
+    #ggsave(save_fname, width = w, height = h)
     return(g)
 }
