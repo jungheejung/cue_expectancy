@@ -27,6 +27,7 @@ summarySEwithin <- function(data = NULL, measurevar, betweenvars = NULL, withinv
 #       the percent range of the confidence interval (default is 95%)
 #       Ensure that the betweenvars and withinvars are factors
 #   """
+    library(raincloudplots)
     factorvars <- vapply(data[, c(betweenvars, withinvars), drop = FALSE],
         FUN = is.factor, FUN.VALUE = logical(1)
     )
