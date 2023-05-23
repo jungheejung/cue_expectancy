@@ -59,7 +59,7 @@ task = 'pain'
 # %%
 testlist = sub_list[slurm_id]
 # %%
-for sub in sub_list: #[testlist]:
+for sub in [testlist]:
     print(f"_____________{sub}_____________")
     flist= glob.glob(os.path.join(beta_dir, sub, f"{sub}_*{task}*.nii.gz"))
     unique_ses, unique_run = extract_ses_and_run(flist)
