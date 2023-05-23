@@ -87,7 +87,7 @@ taskname <- "pain"
 
 ylab <- "ratings (degree)"
 subject <- "subject"
-exclude <- "sub-0999|sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0007|sub-0008|sub-0009|sub-0010|sub-0011"
+exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 
 # load data _____________________________________
 data <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
@@ -160,6 +160,8 @@ return(df)
 
 ### groupby subject and average
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+
 maindata <- data %>%
 group_by(src_subject_id) %>%
 mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
@@ -181,22 +183,36 @@ data_a3lag <-
     data_a3 %>%
     group_by(src_subject_id, session_id, param_run_num) %>%
     mutate(lag.demean_outcome = dplyr::lag(demean_outcome, n = 1, default = NA))
+data_a3lag <- data_a3lag %>%
+  mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) 
 data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.demean_outcome),]
 
 df <- data_a3lag_omit
 pvc <- simple_contrasts_beh(df)
 ```
 
-## linear model
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-model.factorize_demean = lmer(demean_outcome~ CUE_high_gt_low*stim_factor*demean_expect +lag.demean_outcome+ (1|src_subject_id), data = pvc)
+## linear model 0508
+```{r}
+# model.factorize_demean = lmer(demean_outcome~ CUE_high_gt_low*stim_factor*demean_expect +EXPECT_cmc+ lag.demean_outcome+(1|src_subject_id), data = pvc)
+# summary(model.factorize_demean)
+
+model.factorize_demean = lmer(demean_outcome~ CUE_high_gt_low*stim_con_linear*demean_expect + 
+                                CUE_high_gt_low*stim_con_quad*demean_expect +
+                                EXPECT_cmc + (1|src_subject_id), data = pvc)
 summary(model.factorize_demean)
+
 
 
 ```
 
+## linear model
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+model.factorize_demean = lmer(demean_outcome~ CUE_high_gt_low*stim_factor*demean_expect +lag.demean_outcome+ (1|src_subject_id), data = pvc)
+summary(model.factorize_demean)
+```
+
 ## Q. Are those overestimating for high cues also underestimators for low cues?
-y axis: oiutcome rating
+y axis: outcome rating
 x axis: high cue
 
 distance from 1:1 line
@@ -273,7 +289,7 @@ total <-
     ylab = "outcome rating", 
     ggtitle = "all stimulus intensity", 
     color_scheme = c("high_cue" ="#941100","low_cue" =  "#5D5C5C"),
-    alpha = .8, fit_lm = TRUE
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
   )
 total
 ```
@@ -288,7 +304,7 @@ low <-
     xlab = "expectation rating", ylab = "outcome rating",
     ggtitle = "Low intensity",
     color_scheme = c("high_cue" ="#FF8800","low_cue" =  "#5D5C5C"),
-    alpha = .8, fit_lm = TRUE
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
   )
 df_dropna <- pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
 df_med = df_dropna[df_dropna$param_stimulus_type == "med_stim", ]
@@ -300,7 +316,7 @@ med <-
     xlab = "expectation rating", ylab = "outcome rating",
     ggtitle = "Medium intensity",
     color_scheme = c("high_cue" ="#DB6000","low_cue" =  "#5D5C5C"),
-    alpha = .8, fit_lm = TRUE
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
   )
 df_dropna <- pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
 df_high = df_dropna[df_dropna$param_stimulus_type == "high_stim", ]
@@ -312,7 +328,7 @@ high <-
     xlab = "expectation rating", ylab = "outcome rating",
     ggtitle = "High intensity",
     color_scheme = c("high_cue" ="#941100","low_cue" =  "#5D5C5C"),
-    alpha = .8, fit_lm = TRUE
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
   )
 plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
 plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
@@ -329,7 +345,8 @@ xlab <- ""
 taskname <- "vicarious"
 ylab <- "ratings (degree)"
 subject <- "subject"
-exclude <- "sub-0999|sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0007|sub-0008|sub-0009|sub-0010|sub-0011"
+data = data.frame()
+exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 data <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
 analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model15_iv-cue-stim-N1outcome-expect_dv-outcome-demean", as.character(Sys.Date()))
@@ -358,6 +375,8 @@ data_a3lag <-
     data_a3 %>%
     group_by(src_subject_id, session_id, param_run_num) %>%
     mutate(lag.demean_outcome = dplyr::lag(demean_outcome, n = 1, default = NA))
+data_a3lag <- data_a3lag %>%
+  mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) 
 data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.demean_outcome),]
 
 df <- data_a3lag_omit
@@ -380,9 +399,15 @@ total <-
     ylab = "outcome rating", 
     ggtitle = paste(taskname, "all stimulus intensity"),
     color_scheme = c("high_cue" ="#009411","low_cue" =  "#5D5C5C"),
-    alpha = .8, fit_lm = TRUE
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE, size = 1
   )
 total
+```
+```{r}
+model.factorize_demean = lmer(demean_outcome~ CUE_high_gt_low*stim_con_linear*demean_expect + 
+                                CUE_high_gt_low*stim_con_quad*demean_expect +
+                                EXPECT_cmc + (1|src_subject_id), data = pvc)
+summary(model.factorize_demean)
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
@@ -396,7 +421,7 @@ low <-
     xlab = "expectation rating", ylab = "outcome rating",
     ggtitle = "Low intensity",
     color_scheme = c("high_cue" ="#9CDB06","low_cue" =  "#5D5C5C"),
-    alpha = .8, fit_lm = TRUE
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
   )
 df_dropna <- pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
 df_med = df_dropna[df_dropna$param_stimulus_type == "med_stim", ]
@@ -408,7 +433,7 @@ med <-
     xlab = "expectation rating", ylab = "outcome rating",
     ggtitle = "Medium intensity",
     color_scheme = c("high_cue" ="#4EB80B","low_cue" =  "#5D5C5C"),
-    alpha = .8, fit_lm = TRUE
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
   )
 df_dropna <- pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
 df_high = df_dropna[df_dropna$param_stimulus_type == "high_stim", ]
@@ -420,7 +445,7 @@ high <-
     xlab = "expectation rating", ylab = "outcome rating",
     ggtitle = "High intensity",
     color_scheme = c("high_cue" ="#009411","low_cue" =  "#5D5C5C"),
-    alpha = .8, fit_lm = TRUE
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
   )
 vic_plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
 plots_title <- annotate_figure(vic_plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
@@ -479,7 +504,8 @@ xlab <- ""
 taskname <- "cognitive"
 ylab <- "ratings (degree)"
 subject <- "subject"
-exclude <- "sub-0999|sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0007|sub-0008|sub-0009|sub-0010|sub-0011"
+exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
+data = data.frame()
 data <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
 analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model15_iv-cue-stim-N1outcome-expect_dv-outcome-demean", as.character(Sys.Date()))
@@ -508,11 +534,30 @@ data_a3lag <-
     data_a3 %>%
     group_by(src_subject_id, session_id, param_run_num) %>%
     mutate(lag.demean_outcome = dplyr::lag(demean_outcome, n = 1, default = NA))
+data_a3lag <- data_a3lag %>%
+  mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) 
 data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.demean_outcome),]
 
 df <- data_a3lag_omit
 pvc <- simple_contrasts_beh(df)
 ```
+
+
+## linear model 0508
+```{r}
+# model.factorize_demean = lmer(demean_outcome~ CUE_high_gt_low*stim_factor*demean_expect +EXPECT_cmc+ lag.demean_outcome+(1|src_subject_id), data = pvc)
+# summary(model.factorize_demean)
+
+model.factorize_demean = lmer(demean_outcome~ CUE_high_gt_low*stim_con_linear*demean_expect + 
+                                CUE_high_gt_low*stim_con_quad*demean_expect +
+                                EXPECT_cmc + (1|src_subject_id), data = pvc)
+summary(model.factorize_demean)
+
+# model.factorize_C= lmer(demean_outcome~ CUE_high_gt_low*stim_factor*demean_expect +EXPECT_cmc+ (1|src_subject_id), data = pvc)
+# summary(model.factorize_demean)
+
+```
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 df_dropna <-
   pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
@@ -528,7 +573,7 @@ total <-
     ylab = "outcome rating", 
     ggtitle = "all stimulus intensity",
     color_scheme = c("high_cue" ="#110094","low_cue" =  "#5D5C5C"),
-    alpha = .8, fit_lm = TRUE
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
   )
 total
 ```
@@ -544,7 +589,7 @@ low <-
     xlab = "expectation rating", ylab = "outcome rating",
     ggtitle = "Low intensity",
     color_scheme = c("high_cue" ="#9400DB","low_cue" =  "#5D5C5C"),
-    alpha = .8, fit_lm = TRUE
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
   )
 df_dropna <- pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
 df_med = df_dropna[df_dropna$param_stimulus_type == "med_stim", ]
@@ -556,7 +601,7 @@ med <-
     xlab = "expectation rating", ylab = "outcome rating",
     ggtitle = "Medium intensity",
     color_scheme = c("high_cue" ="#5200B8","low_cue" =  "#5D5C5C"),
-    alpha = .8, fit_lm = TRUE
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
   )
 df_dropna <- pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
 df_high = df_dropna[df_dropna$param_stimulus_type == "high_stim", ]
@@ -568,7 +613,7 @@ high <-
     xlab = "expectation rating", ylab = "outcome rating",
     ggtitle = "High intensity",
     color_scheme = c("high_cue" ="#110094","low_cue" =  "#5D5C5C"),
-    alpha = .8, fit_lm = TRUE
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
   )
 vic_plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
 plots_title <- annotate_figure(vic_plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
