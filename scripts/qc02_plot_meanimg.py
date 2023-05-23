@@ -5,7 +5,8 @@ from nilearn import plotting
 from nilearn import datasets
 from nilearn import image
 import matplotlib.pyplot as plt
-
+from pathlib import Path
+import itertools
 # help -----
 # https://stackoverflow.com/questions/64331987/removing-hiding-empty-subplots-in-matplotlib-when-plotting-a-flexible-grid
 # https://neurostars.org/t/multi-subjects-figures-with-nilearn-plotting/6042
@@ -15,17 +16,18 @@ main_dir = Path(current_dir).parents[1] # discovery: /dartfs-hpc/rc/lab/C/CANlab
 # fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep'
 # load image filename
 # calculate mean image
-local_dir = '/Volumes/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'
-sub_list = ['sub-0018', 'sub-0019', 'sub-0020']
+fmriprep_dir = '/Volumes/fmriprep/results/fmriprep'
+sub_list = ['sub-0019'] #, 'sub-0019', 'sub-0020']
 # sub_list = next(os.walk(csv_dir))[1]
-ses_list = [1,3,4]
+ses_list = [3] #,3,4]
 run_list = [1,2,3,4,5,6]
 total_list = list(itertools.product(sub_list, ses_list, run_list))
 # cuts = np.arange(i,j,k)
 # create a figure with multiple axes to plot each anatomical image
 
+# TODO: 
 fig, axes = plt.subplots(nrows=9, ncols=6, figsize=(14, 20))
-
+fig, axes = plt.subplots(nrows=6, ncols=1, figsize=(14, 20))
 # axes is a 2 dimensional numpy array
 for i, (sub, ses, run) in enumerate(total_list):
     print( sub, ses, run)
@@ -36,7 +38,8 @@ for i, (sub, ses, run) in enumerate(total_list):
     if fullpath.is_file():
         brain = image.load_img(fullpath)
         meanimg = image.mean_img(brain)
-        display = plotting.plot_anat(meanimg, axes=axes.flat[i])
+        display = plotting.plot_anat(meanimg, axes=axes.flat[i], vmax = 300)
+        display = plotting.plot_stat_map(meanimg, axes=axes.flat[i], vmax = 300)
 
-# save the output figure with all the anatomical images
+# %% save the output figure with all the anatomical images
 fig.savefig("task-social_desc-mean-img-per-run.png")
