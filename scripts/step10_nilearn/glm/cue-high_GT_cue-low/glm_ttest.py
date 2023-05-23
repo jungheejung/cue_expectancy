@@ -12,13 +12,15 @@ import numpy as np
 import scipy
 import nilearn
 import pathlib
+from scipy import stats
 from nilearn.image import resample_to_img, math_img
 from nilearn import image
 from nilearn import plotting
 import argparse
+from nilearn.image import new_img_like
 
 
-# 0. argparse ________________________________________________________________________________
+# %%0. argparse ________________________________________________________________________________
 parser = argparse.ArgumentParser()
 parser.add_argument("--slurm_id", type=int,
                     help="specify slurm array id")
@@ -48,14 +50,16 @@ def extract_ses_and_run(flist):
     return list(sorted(unique_ses)), list(sorted(unique_run))
 
 # %% load participant data. average per run
-beta_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial'
-save_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv03_univariate/contrast_cuehigh-GT-cuelow'
+# beta_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial'
+# save_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv03_univariate/contrast_cuehigh-GT-cuelow'
+beta_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/singletrial'
+save_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv03_univariate/contrast_cuehigh-GT-cuelow'
 sub_list = sorted(next(os.walk(beta_dir))[1])
 groupmean = []; groupmeanL = []; groupmeanH = []
 task = 'pain'
-
+# %%
 testlist = sub_list[slurm_id]
-
+# %%
 for sub in [testlist]:
     print(f"_____________{sub}_____________")
     flist= glob.glob(os.path.join(beta_dir, sub, f"{sub}_*{task}*.nii.gz"))
@@ -104,18 +108,60 @@ for sub in [testlist]:
     nifti_path.mkdir(parents = True, exist_ok = True)
     submean_L.to_filename(os.path.join(save_dir, sub, f"subwise-avg_{sub}_runtype-{task}_event-stim_cuetype-low.nii.gz"))
     submean_H.to_filename(os.path.join(save_dir, sub, f"subwise-avg_{sub}_runtype-{task}_event-stim_cuetype-high.nii.gz"))
-    contrasts = math_img("img1 - img2", img1=submean_H, img2=resample_to_img(submean_L, submean_H))
-    contrasts.to_filename(os.path.join(save_dir, sub, f"contrast-cuehighGTcuelow_subwise-avg_{sub}_runtype-{task}_event-stim.nii.gz"))
+    # contrast = scipy.stats.ttest_ind(submean_H.get_fdata().ravel(), submean_L.get_fdata().ravel(),
+    #                                  axis = 1, nan_policy = 'omit',alternative='two-sided' )
+    # contrasts = math_img("img1 - img2", img1=submean_H, img2=resample_to_img(submean_L, submean_H))
+    # contrastimg = new_img_like(meanimg_L, contrast.get_fdata())
+    # contrastimg.to_filename(os.path.join(save_dir, sub, f"contrast-cuehighGTcuelow_subwise-avg_{sub}_runtype-{task}_event-stim.nii.gz"))
     
     # TODO: save intermediate step. save submean into a nii image
     # groupmeanL = image.concat_imgs(submean_L)
     # groupmeanH = image.concat_imgs(submean_H)
 
 
+# %% group level t-test
+subwise_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv03_univariate/contrast_cuehigh-GT-cuelow'
+sub='*'
+runtype='pain'
+fnameL = f'subwise-avg_{sub}_runtype-{runtype}_event-stim_cuetype-low.nii.gz'
+fnameH = f'subwise-avg_{sub}_runtype-{runtype}_event-stim_cuetype-high.nii.gz'
+lowlist = glob.glob(os.path.join(subwise_dir, '*', fnameL))
+highlist = glob.glob(os.path.join(subwise_dir, '*', fnameH))
+groupmean_L = []
+for lowfname in lowlist:
+    submean_L = image.load_img(lowfname).get_fdata().ravel()
+    groupmean_L.append(submean_L)
+groupmean_H = []
+for highfname in highlist:
+    submean_H = image.load_img(highfname).get_fdata().ravel()
+    groupmean_H.append(submean_H)
+# %%
+groupmean_low = np.vstack(groupmean_L)
+groupmean_high = np.vstack(groupmean_H)
 
+low_img = image.load_img(lowfname)
+#  %% t-test
+plotting.plot_stat_map(new_img_like(low_img, np.mean(groupmean_low, axis = 0).reshape(low_img.shape)))
+plotting.plot_stat_map(new_img_like(low_img, np.mean(groupmean_high, axis = 0).reshape(low_img.shape)))
+# %%
+contrast = scipy.stats.ttest_ind(groupmean_low, groupmean_high,
+                                     axis = 0, nan_policy = 'propagate',alternative='two-sided' )
+# %%
 
-# # %% t-test
-# import scipy
+statmap = contrast.statistic.reshape(low_img.shape)
+pval = contrast.pvalue.reshape(low_img.shape)
+indices = np.where(pval < 0.01)
+selected_t_values = statmap[indices]
+# %% canlab mask
+mask = image.load_img('/Users/h/Documents/MATLAB/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask_canlab.nii')
+mask_img = nilearn.masking.compute_epi_mask(mask, target_affine = low_img.affine, target_shape = low_img.shape)
+stat_img = new_img_like(low_img, statmap)
+maskedstatmap = nilearn.masking.apply_mask( stat_img, mask_img)
+masked_stat_img = image.math_img('img1 * img2', img1=stat_img, img2=mask_img)
+
+# %%
+plotting.plot_stat_map(masked_stat_img, threshold = 2, display_mode = 'mosaic')
+# %%import scipy
 # # stats, p = scipy.stats.ttest_1samp(a = np.asarray(groupmean), popmean = 0, axis = 0, nan_policy='omit', alternative = 'two-sided')
 # # stats, p = scipy.stats.ttest_ind(a = np.asarray(groupmeanL),
 # #                                  b = np.asarray(groupmeanH),
@@ -140,3 +186,5 @@ for sub in [testlist]:
 # nilearn.plotting.plot_stat_map(groupmeantest, threshold = p001_uncorrected, display_mode = "mosaic",  colorbar = True)
 # # %%
 
+
+# %%
