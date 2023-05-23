@@ -55,14 +55,18 @@ subavgL = []
 subavgH = []
 suballL = []
 suballH = []
+sub_list.remove(['sub-0070', 'sub-0071'])
+# %%
 for sub in sub_list:
     print(f"_____________{sub}_____________")
     flist = glob.glob(os.path.join(beta_dir, sub, f"{sub}_*{task}*.npy"))
     unique_ses, unique_run = extract_ses_and_run(flist)
-    
+    avgallL = []; avgallH = []
     for ses, run in product(unique_ses, unique_run): #sub-0123_ses-01_run-01_runtype-pain_event-stimulus_trial-000_cuetype-high_stimintensity-low.npy
         cueL_flist = glob.glob(os.path.join(beta_dir, sub, f"{sub}_{ses}_{run}*{task}*event-stimulus_*_cuetype-low*.npy"))
         cueH_flist = glob.glob(os.path.join(beta_dir, sub, f"{sub}_{ses}_{run}*{task}*event-stimulus_*_cuetype-high*.npy"))
+        runstackL = [];runstackH = []
+        avgrunL = []; avgrunH = []
         if cueL_flist != []:
             runstackL = [np.load(cueL_fpath).ravel() for cueL_fpath in cueL_flist]
             runstackH = [np.load(cueH_fpath).ravel() for cueH_fpath in cueH_flist]
@@ -86,30 +90,30 @@ suballHv = np.vstack(suballH)
 np.save(os.path.join(beta_dir, f"sub-avg_ses-avg_run-avg_event-stimulus_cuetype-low.npy"), suballLv)
 np.save(os.path.join(beta_dir, f"sub-avg_ses-avg_run-avg_event-stimulus_cuetype-high.npy"), suballHv)
 # %%
-contrast = scipy.stats.ttest_ind(suballHv, suballLv,
-                                     axis = 0, nan_policy = 'propagate',alternative='two-sided' )
-imgfname = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/singletrial/sub-0060/sub-0060_ses-01_run-05_runtype-vicarious_event-stimulus_trial-011_cuetype-low_stimintensity-low.nii.gz'
-ref_img = image.load_img(imgfname)
-statmap = contrast.statistic.reshape(ref_img.shape)
-pval = contrast.pvalue.reshape(ref_img.shape)
-indices = np.where(pval < 0.01)
-selected_t_values = statmap[indices]
-# %% canlab mask
-mask = image.load_img('/Users/h/Documents/MATLAB/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask_canlab.nii')
-mask_img = nilearn.masking.compute_epi_mask(mask, target_affine = ref_img.affine, target_shape = ref_img.shape)
-stat_img = image.smooth_img(new_img_like(ref_img, statmap), fwhm = 6)
-maskedstatmap = nilearn.masking.apply_mask( stat_img, mask_img)
-masked_stat_img = image.math_img('img1 * img2', img1=stat_img, img2=mask_img)
+# contrast = scipy.stats.ttest_ind(suballHv, suballLv,
+#                                      axis = 0, nan_policy = 'propagate',alternative='two-sided' )
+# imgfname = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/singletrial/sub-0060/sub-0060_ses-01_run-05_runtype-vicarious_event-stimulus_trial-011_cuetype-low_stimintensity-low.nii.gz'
+# ref_img = image.load_img(imgfname)
+# statmap = contrast.statistic.reshape(ref_img.shape)
+# pval = contrast.pvalue.reshape(ref_img.shape)
+# indices = np.where(pval < 0.01)
+# selected_t_values = statmap[indices]
+# # %% canlab mask
+# mask = image.load_img('/Users/h/Documents/MATLAB/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask_canlab.nii')
+# mask_img = nilearn.masking.compute_epi_mask(mask, target_affine = ref_img.affine, target_shape = ref_img.shape)
+# stat_img = image.smooth_img(new_img_like(ref_img, statmap), fwhm = 6)
+# maskedstatmap = nilearn.masking.apply_mask( stat_img, mask_img)
+# masked_stat_img = image.math_img('img1 * img2', img1=stat_img, img2=mask_img)
 
-plotting.plot_stat_map(masked_stat_img, threshold = 4, display_mode = 'mosaic')
-# image.smooth_img(image.load_img(cueL_flist), fwhm = 6))
-# %%
-# just plot the high stim
-# suballHv
-high_img = new_img_like(ref_img, np.mean(suballHv, axis = 0))
-masked_high_img = image.math_img('img1 * img2', img1=high_img, img2=mask_img)
-plotting.plot_stat_map(masked_stat_img, threshold = 3, display_mode = 'mosaic')
+# plotting.plot_stat_map(masked_stat_img, threshold = 4, display_mode = 'mosaic')
+# # image.smooth_img(image.load_img(cueL_flist), fwhm = 6))
+# # %%
+# # just plot the high stim
+# # suballHv
+# high_img = new_img_like(ref_img, np.mean(suballHv, axis = 0))
+# masked_high_img = image.math_img('img1 * img2', img1=high_img, img2=mask_img)
+# plotting.plot_stat_map(masked_stat_img, threshold = 3, display_mode = 'mosaic')
 
 
 
-# %%
+# # %%
