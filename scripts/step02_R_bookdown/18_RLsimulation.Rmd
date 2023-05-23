@@ -1,0 +1,379 @@
+# [beh] RL simulation {#ch18_simulation}
+
+## What is the purpose of this notebook? {.unlisted .unnumbered}
+* Here, Aryan simulated behavioral outcome ratings using a reinforcement learning model. 
+
+## load data {.unlisted .unnumbered}
+```{r include=FALSE}
+library(tidyr)
+library(dplyr)
+library(ggpubr)
+source('http://psych.colorado.edu/~jclab/R/mcSummaryLm.R')
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
+# source("https://gist.github.com/benmarwick/2a1bb0133ff568cbe28d/geom_flat_violin.R")
+
+library(r2mlm)
+file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+                          pattern="*.R", 
+                          full.names=TRUE, 
+                          ignore.case=TRUE)
+sapply(file.sources,source,.GlobalEnv)
+```
+
+## function
+```{r}
+# summarize dataframe __________________________________________________________
+plot_twovariable <- function(df, iv1, iv2, group, subject, xmin, xmax, ymin,ymax,
+xlab, ylab, ggtitle, color_scheme, alpha, fit_lm, lm_method = NULL, identity_line=TRUE, size=NULL) {
+    # x: iv1 e.g. expect rating
+    # y: iv2 e.g. outcome rating
+    # group: param_cue_type
+    # subject: src_subject_id
+    # xlab("expect rating") +
+    # ylab("outcome rating") +
+    # color_scheme = c("high_cue" = "#000000",low_cue" = "#BBBBBB"        )
+    library(ggplot2)
+
+    df_dropna <- df[!is.na(df[, iv1]) & !is.na(df[, iv2]), ]
+    subjectwise_naomit_2dv <- meanSummary_2dv(
+        df_dropna,
+        c(subject, group),
+        iv1, iv2
+    )
+    # subjectwise_naomit_2dv <- na.omit(subjectwise_2dv)
+    subjectwise_naomit_2dv[ , group] <- as.factor(subjectwise_naomit_2dv[, group])
+    # plot _________________________________________________________________________ #nolint
+
+    g <- ggplot(
+        data = subjectwise_naomit_2dv,
+        aes(
+            x = .data[["DV1_mean_per_sub"]],
+            y = .data[["DV2_mean_per_sub"]],
+            color = .data[[group]],
+            size = size
+        )
+    ) +
+        geom_point(
+            aes(shape = .data[[group]],
+            color = .data[[group]]),
+            size = 2,
+            alpha = alpha) +
+
+        theme(aspect.ratio = 1) +
+        scale_color_manual(values = color_scheme) +
+        scale_shape_manual(values = c(16, 3)) +
+        xlab(xlab) +
+        ylab(ylab) +
+        ylim(ymin,ymax) +
+        xlim(xmin,xmax) +
+        ggtitle(ggtitle) +
+        theme(
+            axis.line = element_line(colour = "grey50"),
+            panel.background = element_blank(),
+            plot.subtitle = ggtext::element_textbox_simple(size = 11)
+        )
+
+
+    if (isTRUE(fit_lm)) {
+        g <- g +
+        # geom_ribbon(stat = "smooth", method = lm_method, se = FALSE, alpha = 0.1,
+        #       aes(color = NULL, group = factor(group))) +
+        geom_line(stat = "smooth", method = lm_method, se = FALSE, alpha = 0.8, linewidth = 1.5)
+    } else {
+        g
+    }
+
+    if (isTRUE(identity_line)) {
+        g <- g + geom_abline(
+            intercept = 0, slope = 1, color = "#373737", # color = "green"
+            linetype = "dashed", 
+            linewidth = .5
+        )
+    } else {
+        g
+    }
+    return(g)
+}
+
+```
+
+```{r include=FALSE}
+expect_fname = '/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/data/simulated/0409/table_exp.csv'
+outcome_fname = '/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/data/simulated/0409/table_pain.csv'
+expect = read.csv(expect_fname)
+outcome = read.csv(outcome_fname)
+```
+
+```{r include=FALSE}
+# # create a sequence from 1 to 50
+# my_seq <- 1:50
+# # repeat the sequence 10 times
+# my_seq_repeated <- rep(1:50, each = 10)
+# # print the result
+# my_seq_repeated
+
+expect$sub <- rep(1:250, each = 2)
+expect_long <- expect %>%
+  pivot_longer(
+    cols = c("mean_ExpL_Subj_N1", "mean_ExpL_Subj_N2", "mean_ExpL_Subj_N3", 
+              "mean_ExpH_Subj_N1", "mean_ExpH_Subj_N2", "mean_ExpH_Subj_N3"),
+    names_to = c("cue_level", "noxious"),  # split column names into Exp and Subj columns
+    names_pattern = "mean_(Exp.*)_Subj_N(.*)"  # use regular expression to extract Exp and Subj values
+  )
+E.df <- expect_long %>%
+  mutate(
+    stimulusintensity = case_when(
+      noxious == 1 ~ "low_stim",
+      noxious == 2 ~ "med_stim",
+      noxious == 3 ~ "high_stim",
+    ),
+    cue = case_when(
+      cue_level == "ExpH" ~ "high_cue",
+      cue_level == "ExpL" ~ "low_cue"
+    )
+    )
+E.df$expectation <- E.df$value
+
+# outcome
+outcome$sub <- rep(1:250, each = 2) #1:nrow(outcome)
+outcome_long <- outcome %>%
+  pivot_longer(
+    cols = c("mean_PainL_Subj_N1", "mean_PainL_Subj_N2", "mean_PainL_Subj_N3", 
+              "mean_PainH_Subj_N1", "mean_PainH_Subj_N2", "mean_PainH_Subj_N3"),
+    names_to = c("cue_level", "noxious"),  # split column names into Exp and Subj columns
+    names_pattern = "mean_(Pain.*)_Subj_N(.*)"  # use regular expression to extract Exp and Subj values
+  )
+O.df <- outcome_long %>%
+  mutate(
+    stimulusintensity = case_when(
+      noxious == 1 ~ "low_stim",
+      noxious == 2 ~ "med_stim",
+      noxious == 3 ~ "high_stim",
+    ),
+    cue = case_when(
+      cue_level == "PainH" ~ "high_cue",
+      cue_level == "PainL" ~ "low_cue"
+    )
+    )
+O.df$outcome <- O.df$value
+```
+
+```{r include=FALSE}
+merged_df <- merge(E.df, O.df, by = c("sub", "cue", "stimulusintensity"))
+merge.df <- data.frame(merged_df)
+```
+
+## plot data {.unlisted .unnumbered}
+```{r}
+group = "cue"
+   
+    iv1 = "demean_expect"
+    iv2 = "demean_outcome"
+
+    subject = "sub"
+    xmin=48; xmax=50; ymin=48; ymax=50
+    xlab = "expectation rating"
+    ylab = "outcome rating"
+    ggtitle = "all stimulus intensity"
+    color_scheme = c("high_cue" ="#941100","low_cue" =  "#5D5C5C")
+    alpha = .8; fit_lm = TRUE; lm_method = "lm"; identity_line=TRUE; size=NULL
+    g <- ggplot(
+        data = merged_df,
+        aes(
+            x = .data[["expectation"]],
+            y = .data[["outcome"]],
+            color = .data[[group]],
+            size = size
+        )
+    ) +
+        geom_point(
+            aes(shape = .data[[group]],
+            color = .data[[group]]),
+            size = 2,
+            alpha = alpha) +
+
+        theme(aspect.ratio = 1) +
+        scale_color_manual(values = color_scheme) +
+        scale_shape_manual(values = c(16, 3)) +
+        xlab(xlab) +
+        ylab(ylab) +
+        ylim(ymin,ymax) +
+        xlim(xmin,xmax) +
+        ggtitle(ggtitle) +
+        theme(
+            axis.line = element_line(colour = "grey50"),
+            panel.background = element_blank(),
+            plot.subtitle = ggtext::element_textbox_simple(size = 11)
+        )
+
+
+    if (isTRUE(fit_lm)) {
+        g <- g +
+        # geom_ribbon(stat = "smooth", method = lm_method, se = FALSE, alpha = 0.1,
+        #       aes(color = NULL, group = factor(group))) +
+        geom_line(stat = "smooth", method = lm_method, se = FALSE, alpha = 0.8, linewidth = 1.5)
+    } else {
+        g
+    }
+
+    if (isTRUE(identity_line)) {
+        g <- g + geom_abline(
+            intercept = 0, slope = 1, color = "#373737", # color = "green"
+            linetype = "dashed", 
+            linewidth = .5
+        )
+    } else {
+        g
+    }
+g
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# df_dropna <-
+  # pvc[!is.na(pvc$demean_expect) & !is.na(pvc$event02_expect_angle),] # demean_outcome
+# event02_expect_angle
+clean.df <- merge.df[,c("sub", "cue", "stimulusintensity", "expectation", "outcome")]
+total <-
+  plot_twovariable(
+    clean.df,
+    iv1 = "expectation",
+    iv2 = "outcome",
+    group = "cue",
+    subject = "sub",
+    xmin=48, xmax=50, ymin=48, ymax=50,
+    xlab = "expectation rating",
+    ylab = "outcome rating", 
+    ggtitle = "all stimulus intensity", 
+    color_scheme = c("high_cue" ="#941100","low_cue" =  "#5D5C5C"),
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line=TRUE, size=NULL
+  )
+total
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+iv1 = "expectation";    iv2 = "outcome"
+# low stimulus intensity
+df_low = clean.df[clean.df$stimulusintensity == "low_stim", ]
+low <-
+  plot_twovariable(
+    df_low, iv1, iv2,
+    group = "cue", subject = "sub",
+    # xmin=47.5, xmax=50.5, ymin=47.5, ymax=50.5,
+    xmin=48, xmax=50, ymin=48, ymax=50,
+    xlab = "Simulated\nexpectation rating", ylab = "Simulated\noutcome rating",
+    ggtitle = "Low intensity",
+    color_scheme = c("high_cue" ="#C506FF","low_cue" =  "#5D5C5C"),
+    alpha = .5, fit_lm = FALSE, lm_method = "lm", identity_line=FALSE, size=NULL
+  )
+
+# med stimulus intensity
+df_med = clean.df[clean.df$stimulusintensity == "med_stim", ]
+med <-
+  plot_twovariable(
+    df_med, iv1, iv2,
+    group = "cue", subject = "sub",
+    # xmin=47.5, xmax=50.5, ymin=47.5, ymax=50.5,
+    xmin=48, xmax=50, ymin=48, ymax=50,
+    xlab = "Simulated\nexpectation rating", ylab = " \n ",
+    ggtitle = "Medium intensity",
+    color_scheme = c("high_cue" ="#9118DD","low_cue" =  "#5D5C5C"),
+    alpha = .5, fit_lm = FALSE, lm_method = "lm", identity_line=FALSE, size=NULL
+  )
+
+# high stimulus intensity
+df_high = clean.df[clean.df$stimulusintensity == "high_stim", ]
+high <-
+  plot_twovariable(
+    df_high, iv1, iv2,
+    group = "cue", subject = "sub",
+    # xmin=47.5, xmax=50.5, ymin=47.5, ymax=50.5,
+    xmin=48, xmax=50, ymin=48, ymax=50,
+    xlab = "Simulated\nexpectation rating", ylab = " \n ",
+    ggtitle = "High intensity",
+    color_scheme = c("high_cue" ="#5C29BA","low_cue" =  "#5D5C5C"),
+    alpha = .5, fit_lm = FALSE, lm_method = "lm", identity_line=FALSE, size=NULL
+  )
+integer_breaks <- function(n = 3, ...) {
+  fxn <- function(x) {
+    breaks <- floor(pretty(x, n, ...))
+    names(breaks) <- attr(breaks, "labels")
+    breaks
+  }
+  return(fxn)
+}
+low <- low + theme(text = element_text(size = 13)) + theme(aspect.ratio=1)+ scale_x_continuous(breaks = seq(48, 50)) 
+  # scale_y_continuous(breaks= pretty_breaks())
+med <- med + theme(text = element_text(size = 13)) + theme(aspect.ratio=1) + scale_x_continuous(breaks = seq(48, 50)) 
+high <- high + theme(text = element_text(size = 13)) + theme(aspect.ratio=1) +scale_x_continuous(breaks = seq(48, 50)) 
+
+plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
+plots
+ggsave('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/analysis/mixedeffect/CCNfigures/figD.png', plots)
+```
+
+
+
+### model 04 4-4 lineplot
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+clean.df$stim_name[clean.df$stimulusintensity == "low_stim"] <- "low"
+clean.df$stim_name[clean.df$stimulusintensity == "med_stim"] <- "med"
+clean.df$stim_name[clean.df$stimulusintensity == "high_stim"] <- "high"
+
+clean.df$stim_ordered <- factor(
+        clean.df$stim_name,
+        levels = c("low", "med", "high")
+    )
+
+clean.df$cue_name[clean.df$cue == "low_cue"] <- "low"
+clean.df$cue_name[clean.df$cue == "high_cue"] <- "high"
+
+clean.df$cue_ordered <- factor(
+        clean.df$cue_name,
+        levels = c("low", "high")
+    )
+# DATA = as.data.frame(combined_se_calc_cooksd)
+color = c( "#4575B4", "#D73027")
+iv1 = "stim_ordered"
+iv2 = "cue_ordered"
+dv= "outcome"
+mean = "mean_per_sub_norm_mean"
+error = "ci"
+dv_keyword = "outcome"
+
+    actual_subjectwise <- meanSummary(
+        clean.df,
+        c(subject, iv1, iv2), dv
+    )
+    actual_groupwise <- summarySEwithin(
+        data = actual_subjectwise,
+        measurevar = "mean_per_sub",
+        withinvars = c(iv1, iv2), idvar = subject
+    )
+    g <- ggplot(data = actual_groupwise, aes(
+        x = .data[[iv1]],
+        y = .data[[mean]],
+        group = as.factor(.data[[iv2]]),
+        color = as.factor(.data[[iv2]])
+    ), cex.lab = 1.5, cex.axis = 2, cex.main = 1.5, cex.sub = 1.5) +
+        geom_errorbar(aes(
+            ymin = (.data[[mean]] - .data[[error]]),
+            ymax = (.data[[mean]] + .data[[error]])
+        ), width = .1) +
+        geom_line() +
+        geom_point() +
+        # scale_x_continuous(breaks = seq(-3, +3, by = 1)) +
+        # scale_y_continuous(breaks = seq(0, 90, by=30), limits=c(0,90)) +
+        ggtitle(ggtitle) +
+        xlab(xlab) +
+        ylab(ylab) +
+        # guides(fill=guide_legend(title="Social Endorsement Position")) +
+        scale_color_manual(values = color) +
+        theme_classic() +
+        theme(legend.position = "none") +
+        theme(aspect.ratio = .6)
+    g
+```
