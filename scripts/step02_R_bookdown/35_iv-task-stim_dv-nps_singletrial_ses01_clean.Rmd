@@ -363,6 +363,7 @@ subject_varkey <- "src_subject_id"
 iv <- "param_stimulus_type"; 
 iv_keyword <- "stim"; 
 dv <- "event04_actual_angle"; dv_keyword <- "outcome"
+
 exclude <- "sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0007|sub-0008|sub-0013|sub-0016|sub-0017|sub-0019|sub-0020|sub-0021|sub-0025|sub-0075|sub-0009|sub-0117|sub-0119|sub-0081|sub-0060"
 #sub-0074|sub-0085|sub-0118|sub-0117|sub-0103|sub-0063
 
@@ -415,6 +416,43 @@ pvc.bind = rbind(p.sub, v.sub, c.sub)
 
 ```
 
+```{r}
+main_dir
+```
+
+### change column name
+```{r}
+idkey <- data.frame("original" =  c("src_subject_id", "session_id", "param_run_num", "param_task_name", "event02_expect_angle", "param_cue_type", "param_stimulus_type", "event04_actual_angle", "trial_index"), 
+                    "new" = c("sub", "ses", "run", "task", "RATING_expectation", "IV_cuelevel", "IV_stimintensity", "RATING_outcome", "trialindex"), stringsAsFactors = FALSE)
+library(dplyr)
+pvc.clean <- pvc.bind %>%
+    rename_at(vars(as.character(idkey$original)), ~ as.character(idkey$new))
+
+pvc.order <- pvc.clean[,c("sub", "ses", "run", "task","trialindex",  "IV_cuelevel", "IV_stimintensity","RATING_expectation", "RATING_outcome" )]
+head(pvc.order)
+write.csv(x=pvc.order, file = file.path(main_dir, "resources", "references", "cue_behavioraldata.csv"))
+```
+
+
+```{r}
+library(rjson)
+# list_1 = vector(mode="list", length = 2)
+# list_1[[1]] = c("Rick","Dan","Michelle","Ryan")
+# list_1[[2]] = c("Exclusion criteria: (1) participants with problematic brain data based on fmriprep metrics and CAT12; (2) trials with no RATING_outcome", "sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0007|sub-0008|sub-0013|sub-0016|sub-0017|sub-0019|sub-0020|sub-0021|sub-0025|sub-0075|sub-0009|sub-0117|sub-0119|sub-0081|sub-0060", 
+#                 "NA values in outcome ratings are removed")
+# myfile = toJSON(list_1)
+# 
+library(jsonlite)
+
+lst <- list(exclusion_criteria_description = c("(1) participants with problematic brain data based on fmriprep metrics and CAT12", "(2) trials with no RATING_outcome"),
+                  excluded_subjects = c("sub-0001", "sub-0002", "sub-0003", "sub-0004", "sub-0005", "sub-0007", "sub-0008", "sub-0009", "sub-0013", "sub-0016", "sub-0017", "sub-0019", "sub-0020", "sub-0021", "sub-0025", "sub-0060", "sub-0075", "sub-0081", "sub-0117", "sub-0119"))
+
+myfile = prettify(jsonlite::toJSON(lst))
+# {"pc1":[1,2,98],"pc2":[11,12,99],"othr":[51,51]} 
+write(myfile, file.path(main_dir, "resources", "references", "cue_behavioraldata.json"))
+cat(myfile)
+```
+                    
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 pvc.bind$trial_ind <- pvc.bind$trial_index -1 
 pvc.bind$sub <- sprintf("sub-%04d", pvc.bind$src_subject_id)
@@ -432,6 +470,8 @@ df_merge <- merge(pvc, pvc.beh,
                   by.x = c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity"),
                   by.y = c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity")
                   )
+
+
   
 ```
 
@@ -1229,7 +1269,7 @@ total <-
     ymin=-10, ymax=10, xmin=-40, xmax=40,
     xlab ,ylab,
     ggtitle = "all stimulus intensity", 
-    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"), 
+    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"), 
     alpha = .8, fit_lm = TRUE, lm_method ="lm", identity_line = FALSE
   )
 total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
@@ -1448,6 +1488,40 @@ model.npsexpectdemean <- lmer(NPSpos ~
                           CUE_high_gt_low*STIM_linear*EXPECT_demean +
                           CUE_high_gt_low*STIM_quadratic*EXPECT_demean +
                           EXPECT_cmc +
+                          (CUE_high_gt_low |sub), data = demean_dropna, REML= FALSE
+                    )
+```
+
+### GEORGE SUGGESTION
+```{r echo=TRUE, warning=TRUE, paged.print=FALSE}
+model.nps_randomintercept <- lmer(NPSpos ~ 
+                          CUE_high_gt_low*STIM_linear*EXPECT_demean +
+                          CUE_high_gt_low*STIM_quadratic*EXPECT_demean +
+                          EXPECT_cmc +
+                          (1 |sub), data = demean_dropna, REML = FALSE
+                    ) 
+# CUE_high_gt_low+STIM+EXPECT_demean
+sjPlot::tab_model(model.npsexpectdemean,
+                  title = "Multilevel-modeling: \nlmer(NPSpos ~ CUE * STIM * EXPECT_demean + (1| sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+```
+
+```{r}
+# lmerTest::
+anova(model.npsexpectdemean)
+```
+
+```{r}
+# summary(model.npsexpectdemean)
+anova(model.nps_randomintercept, model.npsexpectdemean)
+```
+
+#### ACCURATE: NPS ~ demean + CMC + SES
+```{r echo=TRUE, warning=TRUE, paged.print=FALSE}
+model.npsexpectdemean <- lmer(NPSpos ~ 
+                          CUE_high_gt_low*STIM_linear*EXPECT_demean +
+                          CUE_high_gt_low*STIM_quadratic*EXPECT_demean +
+                          EXPECT_cmc + 
                           (CUE_high_gt_low |sub), data = demean_dropna
                     ) 
 # CUE_high_gt_low+STIM+EXPECT_demean
