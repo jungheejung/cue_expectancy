@@ -8,6 +8,12 @@
 #       - STIM x intensity
 #       - STIM x N-1 outcome rating
 # %     - ACTUAL
+    """
+    Goal of this script is to create a parametric model 
+    with (N-1) expectation ratings from past trials. 
+    Another is to create a model with expectation ratings in the univariate model
+    
+    """
 
 https://neurostars.org/t/parametric-modulation-in-nistats/3392/2
 
