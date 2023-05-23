@@ -82,17 +82,6 @@ ax.bar(x=np.arange(len(k_df)), #x-coordinates of bars
 # TODO: change axis label
 
 # %% plot 5 in plotly __________________________________________________________________________________
-
-
-fig = go.Figure(data=go.Scatter(
-        x=[0, 1, 2],
-        y=[6, 10, 2],
-        error_y=dict(
-            type='data', # value of error bar given in data coordinates
-            array=[1, 2, 3],
-            visible=True)
-    ))
-
 fig = go.Figure(data=go.Scatter(
         x=np.arange(len(k_df)),
         y=k_df['mean'],
