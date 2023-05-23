@@ -605,14 +605,23 @@ g <- plot_halfrainclouds_twofactor(
 )
 g
 ```
-
+### Lineplots {.unlisted .unnumbered}
+```{r echo=FALSE, warning=FALSE}
+subsetNPS <- NPSstimcue_groupwise[NPSstimcue_groupwise$cue_ordered == "low cue",]
+g <- plot_lineplot_twofactor_subset(subsetNPS, taskname = "pain", 
+                        iv1 = "stim_ordered", iv2 = "cue_ordered", 
+                        mean = "mean_per_sub_norm_mean", error = "se",
+                        color = c("#5D5C5C", "#D73027"), ggtitle = "Within pain task: NPS dotproducts as a function of stimulus intensity level and cue", 
+                        xlab = "Stimulus intensity", ylab = "NPSpos (dot product)")
+g + theme(aspect.ratio=.8)
+```
 
 ### Lineplots {.unlisted .unnumbered}
 ```{r echo=FALSE, warning=FALSE}
 g <- plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain", 
                         iv1 = "stim_ordered", iv2 = "cue_ordered", 
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("#4575B4", "#D73027"), ggtitle = "Within pain task: NPS dotproducts as a function of stimulus intensity level and cue", 
+                        color = c("#5D5C5C", "#D73027"), ggtitle = "Within pain task: NPS dotproducts as a function of stimulus intensity level and cue", 
                         xlab = "Stimulus intensity", ylab = "NPSpos (dot product)")
 g + theme(aspect.ratio=.8)
 ```
@@ -632,6 +641,10 @@ sjPlot::tab_model(model.npscuestim,
                   title = "Multilevel-modeling: \nlmer(NPSpos ~ CUE * STIM + (CUE + STIM | sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
 ```
+```{r}
+summary(model.npscuestim)
+```
+
 
 #### Linear model eta-squared {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
@@ -662,28 +675,29 @@ kableExtra::kable_styling(
 ```{r} 
 # code session
 # contrast code 1 linear
-data$SES_linear[data$ses == "ses-01"] <- -0.5
-data$SES_linear[data$ses == "ses-03"] <- 0
-data$SES_linear[data$ses == "ses-04"] <- 0.5
+combined_psig$SES_linear[combined_psig$ses == "ses-01"] <- -0.5
+combined_psig$SES_linear[combined_psig$ses == "ses-03"] <- 0
+combined_psig$SES_linear[combined_psig$ses == "ses-04"] <- 0.5
 
 # contrast code 2 quadratic
-data$SES_quadratic[data$ses == "ses-01"] <- -0.33
-data$SES_quadratic[data$ses == "ses-03"] <- 0.66
-data$SES_quadratic[data$ses == "ses-04"] <- -0.33
+combined_psig$SES_quadratic[combined_psig$ses == "ses-01"] <- -0.33
+combined_psig$SES_quadratic[combined_psig$ses == "ses-03"] <- 0.66
+combined_psig$SES_quadratic[combined_psig$ses == "ses-04"] <- -0.33
 
 model.npsses <- lmer(NPSpos ~ 
                           CUE_high_gt_low*STIM_linear*SES_linear + 
                           CUE_high_gt_low*STIM_quadratic*SES_linear + 
                           CUE_high_gt_low*STIM_linear*SES_quadratic + 
                           CUE_high_gt_low*STIM_quadratic*SES_quadratic +
-                        
-                          (1|sub), data = data_screen
+                          (1|sub), data = combined_psig
                     ) 
 # CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.npsses,
                   title = "Multilevel-modeling: \nlmer(NPSpos ~ CUE * STIM * SES + (1| sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
 ```
+
+
 #### eta squared {.unlisted .unnumbered}
 ```{r echo=FALSE, warning=TRUE}
 kableExtra::kable_styling(
@@ -1275,19 +1289,139 @@ demean_dropna$SES_quadratic[demean_dropna$ses == "ses-04"] <- -0.33
 #### ACCURATE: NPS ~ EXPECT_demean * CUE * STIM + CMC as a function of session
 ```{r echo=TRUE, message=TRUE, warning=TRUE, paged.print=FALSE}
 
-model.npsexpectdemean <- lmer(NPSpos ~ 
+model.npsexpectdemean.sescontrol <- lmer(NPSpos ~ 
+                          CUE_high_gt_low*STIM_linear*EXPECT_demean + 
+                          CUE_high_gt_low*STIM_quadratic*EXPECT_demean + 
+                          CUE_high_gt_low*STIM_linear*EXPECT_demean + 
+                          CUE_high_gt_low*STIM_quadratic*EXPECT_demean +
+                          EXPECT_cmc +
+                          ses + 
+                          (CUE_high_gt_low|sub), data = demean_dropna
+                    ) 
+# CUE_high_gt_low+STIM+EXPECT_demean
+sjPlot::tab_model(model.npsexpectdemean.sescontrol,
+                  title = "Multilevel-modeling: \nlmer(NPSpos ~ CUE * STIM * EXPECT_demean * SES + (CUE + EXPECT| sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+```
+
+
+#### ACCURATE: NPS ~ EXPECT_demean * CUE * STIM * SES + CMC as a function of session
+```{r echo=TRUE, message=TRUE, warning=TRUE, paged.print=FALSE}
+
+model.npsexpectdemean.ses <- lmer(NPSpos ~ 
                           CUE_high_gt_low*STIM_linear*EXPECT_demean*SES_linear + 
                           CUE_high_gt_low*STIM_quadratic*EXPECT_demean*SES_linear + 
                           CUE_high_gt_low*STIM_linear*EXPECT_demean*SES_quadratic + 
                           CUE_high_gt_low*STIM_quadratic*EXPECT_demean*SES_quadratic +
                           EXPECT_cmc +
-                          (CUE_high_gt_low|sub), data = demean_dropna
+                          (CUE_high_gt_low|sub) + (1|ses), data = demean_dropna
                     ) 
 # CUE_high_gt_low+STIM+EXPECT_demean
-sjPlot::tab_model(model.npsexpectdemean,
+sjPlot::tab_model(model.npsexpectdemean.ses,
                   title = "Multilevel-modeling: \nlmer(NPSpos ~ CUE * STIM * EXPECT_demean * SES + (CUE + EXPECT| sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
 ```
+
+# plotly 3 factors
+```{r}
+# paindf <- data_screen[data_screen$runtype == "runtype-pain",]
+remove_sub_list = c("sub-0009") # "sub-0117", "sub-0081", "sub-0060", "sub-0063", "sub-0074", "sub-0085", "sub-0098", "sub-0118")
+df_merge_drop <- subset(df_merge, !(sub %in% remove_sub_list))
+subset_ses <-  df_merge_drop[df_merge_drop$task == 'pain',]
+p.demean <- subset_ses %>%
+  group_by(sub) %>%
+  mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
+  mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
+  mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
+  mutate(OUTCOME_demean = event04_actual_angle - avg_outcome) %>%
+  mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
+  mutate(EXPECT_demean = event02_expect_angle - avg_expect) %>%
+  group_by(sub, ses) %>%
+  mutate(NPSpos = as.numeric(NPSpos)) %>%
+  mutate(avg_NPS = mean(NPSpos, na.rm = TRUE)) %>%
+  mutate(NPS_demean = NPSpos - avg_NPS) %>%
+  ungroup %>%
+  mutate(OUTCOME_cmc = avg_outcome - mean(avg_outcome)) %>%
+  mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) %>%
+  mutate(NPS_cmc = avg_NPS - mean(avg_NPS)) 
+
+plotly_subjectwise <- meanSummary(
+        p.demean,
+        c("sub","ses",  "cuetype", "stimintensity", "EXPECT_demean"), c("NPSpos")
+    )
+```
+
+
+
+```{r}
+library(plotly)
+# lmer(NPSpos ~ CUE_high_gt_low*STIM_linear*event02_expect_angle + CUE_high_gt_low*STIM_quadratic*event02_expect_angle + (CUE_high_gt_low|sub), data = data_screen)
+ses1 = p.demean[p.demean$ses == "ses-01",]
+x <- seq_len(nrow(volcano)) + 100
+y <- seq_len(ncol(volcano)) + 500
+fig <- plot_ly(ses1, x = ~cuetype, y = ~EXPECT_demean, z = ~NPSpos) %>% #colors = c('#BF382A','yellow', '#0C4B8E')) 
+  # group_by(STIM) %>%
+  group_by(STIM_linear) %>% 
+  # add_markers(color = ~STIM_linear) %>% 
+  # group_by(cuetype) %>%
+  add_lines(color = ~STIM_linear)
+
+fig <- fig %>% layout(scene = list
+                      (
+                        xaxis = list(title = 'Cue'),
+                        zaxis = list(title = 'NPSpos'),
+                        yaxis = list(title = 'Expectation rating')
+                        ))
+
+fig
+```
+
+```{r}
+library(plotly)
+ses1.Lh = p.demean[p.demean$ses == "ses-01" & p.demean$STIM == "low" & p.demean$cue_name == "high",]
+ses1.Lph <- plot_ly(ses1.Lh,x = ~EXPECT_demean, y = ~NPSpos)
+ses1.Mh = p.demean[p.demean$ses == "ses-01" & p.demean$STIM == "med" & p.demean$cue_name == "high",]
+ses1.Mph <- plot_ly(ses1.Mh,x = ~EXPECT_demean, y = ~NPSpos)
+ses1.Hh = p.demean[p.demean$ses == "ses-01" & p.demean$STIM == "high" & p.demean$cue_name == "high",]
+ses1.Hph <- plot_ly(ses1.Hh,x = ~EXPECT_demean, y = ~NPSpos )
+
+ses1.Ll = p.demean[p.demean$ses == "ses-01" & p.demean$STIM == "low" & p.demean$cue_name == "low",]
+ses1.Lpl <- plot_ly(ses1.Ll,x = ~EXPECT_demean, y = ~NPSpos)
+ses1.Ml = p.demean[p.demean$ses == "ses-01" & p.demean$STIM == "med" & p.demean$cue_name == "low",]
+ses1.Mpl <- plot_ly(ses1.Ml,x = ~EXPECT_demean, y = ~NPSpos)
+ses1.Hl = p.demean[p.demean$ses == "ses-01" & p.demean$STIM == "high"& p.demean$cue_name == "low",]
+ses1.Hpl <- plot_ly(ses1.Hl,x = ~EXPECT_demean, y = ~NPSpos )
+
+subplot(
+  add_histogram2d(ses1.Lph, zsmooth = "best") %>%
+    colorbar() %>%
+    layout(xaxis = list(title = "low_stim high_cue")),
+  add_histogram2d(ses1.Mph, zsmooth = "best") %>%
+    colorbar() %>%
+    layout(xaxis = list(title = "med_stim high_cue")),
+  add_histogram2d(ses1.Hph, zsmooth = "best") %>%
+    colorbar() %>%
+    layout(xaxis = list(title = "high_stim high_cue")),
+
+  add_histogram2d(ses1.Lpl, zsmooth = "best") %>%
+    colorbar() %>%
+    layout(xaxis = list(title = "low_stim")),
+  add_histogram2d(ses1.Mpl, zsmooth = "best") %>%
+    colorbar() %>%
+    layout(xaxis = list(title = "med_stim")),
+  add_histogram2d(ses1.Hpl, zsmooth = "best") %>%
+    colorbar() %>%
+    layout(xaxis = list(title = "high_stim")),
+  shareY = TRUE, titleX = TRUE
+)
+```
+
+```{r}
+# save tsv
+test = ses1[, c("sub", "cuetype", "stimintensity", "EXPECT_demean", "NPSpos")]
+write.table(test, file='/Users/h/Downloads/test.tsv', quote=FALSE, sep='\t', row.names = FALSE)
+```
+
 #### eta squared {.unlisted .unnumbered}
 ```{r echo=FALSE, warning=TRUE}
 kableExtra::kable_styling(
@@ -1304,7 +1438,7 @@ kableExtra::kable_styling(
     "html"), "striped", position = "left", font_size = 12)
 ```
 
-3x3 plots
+## 3x3 plots
 ```{r}
 iv1 = "EXPECT_demean"; iv2 = "NPSpos" # "NPS_demean"
 group = "cuetype"; subject = "sub"
