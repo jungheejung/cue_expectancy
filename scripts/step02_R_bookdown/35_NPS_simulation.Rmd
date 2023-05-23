@@ -1,10 +1,4 @@
----
-output:
-  pdf_document: default
-  html_document: default
----
-# NPSsimulation
-
+# [model] NPSsimulation {#ch60_npssimulation}
 
 
 ```{r include=FALSE}
@@ -489,8 +483,8 @@ model.stim2pain <- lmer(Pcalib ~ S  + (1|sub), df)
 
 b_stim2pain = fixef(model.stim2pain)[2] #0.4126089 #36.5757
 
-df$Sprime = df$Szscore * b_stim2pain + painmean
-
+df$Sprime = df$Szscore * b_stim2pain + painmean # subjective pain experience, converted to a scale of 0-180, in order to match expectation ratings
+# df$Sprime = df$S * b_stim2pain 
 
 df <- df %>%
   group_by(sub) %>%
@@ -502,7 +496,7 @@ df <- df %>%
 
 ## simulation **
 ```{r}
-w = 0.5
+w = 0.7
 
 error = rnorm(length(df$C))
 
@@ -511,10 +505,11 @@ df$P.assim <-  w * df$Sprime + (1 - w) * df$E + error
 df$P.pe = df$Sprime - df$E + error
 
 df$P.adapt <- 1
-  minimal.diff <- abs(df$Sprime - df$E)/std(df$Sprime) < b_stim2pain
-  large.diff <- abs(df$Sprime - df$E)/std(df$Sprime) > b_stim2pain
+
+  minimal.diff <- (df$Sprime - df$E)/std(df$Sprime) < b_stim2pain
+  large.diff <- (df$Sprime - df$E)/std(df$Sprime) > b_stim2pain
   df$P.adapt[minimal.diff] <- w * df$Sprime[minimal.diff] + (1 - w) * df$E[minimal.diff] + error[minimal.diff]
-  df$P.adapt[large.diff] <- w * df$Sprime[large.diff] + error[large.diff]
+  df$P.adapt[large.diff] <- w * df$Sprime[large.diff]  + error[large.diff]
 
 ```
 
