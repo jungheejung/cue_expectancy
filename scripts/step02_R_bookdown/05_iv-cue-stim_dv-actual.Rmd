@@ -175,7 +175,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     )
     dv_keyword = "cuecontrast"
     ylim = c(-75,75)
-    g <- plot_rainclouds_onefactor(
+    g <- plot_halfrainclouds_onefactor(
         subjectwise, groupwise, iv, subject_mean, group_mean, p1.se,
         subject, p1.ggtitle, p1.title, p1.xlab, p1.ylab, taskname, ylim,
         w, h, dv_keyword, color, p1.save_fname
@@ -206,10 +206,39 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     r <- r + geom_hline(yintercept = 0, size = 1, linetype = "dashed")
     print(r)
     ggsave(p2.save_fname, plot = r)
+    
+    
+##########################
+    # savee data for Aryan
+subset_df<- data[,c("src_subject_id", "session_id", "param_run_num", "param_task_name", "param_cue_type", "param_stimulus_type","event02_expect_RT", "event02_expect_angle","event04_actual_RT", "event04_actual_angle")]
+df_trials <- subset_df %>% 
+  group_by(src_subject_id, session_id, param_run_num) %>% 
+  mutate(trial_index_runwise = row_number(param_run_num))
+df_filtered <- subset(df_trials, complete.cases(df_trials) & !is.na(event02_expect_angle) & !is.na(event04_actual_angle))
+df_filtered_final= df_filtered %>%
+  arrange(src_subject_id ) %>%
+  group_by(src_subject_id) %>%
+  mutate(trial_index_subjectwise = row_number())
+write.csv(df_filtered_final, file = paste0("spacetop_cue_", taskname, "_0405.csv"), row.names = FALSE)
+##########################
 }
 ```
 
 
+```{r}
+# DELETE LATER
+subset_df<- data[,c("src_subject_id", "session_id", "param_run_num", "param_task_name", "param_cue_type", "param_stimulus_type","event02_expect_RT", "event02_expect_angle","event04_actual_RT", "event04_actual_angle")]
+df_trials <- subset_df %>% 
+  group_by(src_subject_id, session_id, param_run_num) %>% 
+  mutate(trial_index_runwise = row_number(param_run_num))
+df_filtered <- subset(df_trials, complete.cases(df_trials) & !is.na(event02_expect_angle) & !is.na(event04_actual_angle))
+df_filtered_final= df_filtered %>%
+  arrange(src_subject_id ) %>%
+  group_by(src_subject_id) %>%
+  mutate(trial_index_subjectwise = row_number())
+write.csv(df_filtered_final, file = "spacetop_cue_0405.csv", row.names = FALSE)
+
+```
 
 ### model 03 3-2. individual difference
 
