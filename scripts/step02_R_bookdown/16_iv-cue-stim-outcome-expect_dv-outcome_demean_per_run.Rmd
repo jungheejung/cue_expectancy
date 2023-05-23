@@ -205,7 +205,8 @@ summary(model.factorize_demean)
 ## Pain run, collapsed across stimulus intensity
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 df_dropna <-
-  pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
+  pvc[!is.na(pvc$demean_expect) & !is.na(pvc$event02_expect_angle),] # demean_outcome
+# event02_expect_angle
 total <-
   plot_twovariable(
     df_dropna,
@@ -218,7 +219,7 @@ total <-
     ylab = "outcome rating", 
     ggtitle = "all stimulus intensity", 
     color_scheme = c("high_cue" ="#941100","low_cue" =  "#5D5C5C"),
-    alpha = .8, fit_lm = TRUE
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line=TRUE, size=NULL
   )
 total
 ```
@@ -235,7 +236,7 @@ low <-
     xlab = "expectation rating", ylab = "outcome rating",
     ggtitle = "Low stimulus",
     color_scheme = c("high_cue" ="#FF8800","low_cue" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line=TRUE, size=NULL
   )
 
 # med stimulus intensity
@@ -248,7 +249,7 @@ med <-
     xlab = "expectation rating", ylab = "outcome rating",
     ggtitle = "Medium stimulus",
     color_scheme = c("high_cue" ="#DB6000","low_cue" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line=TRUE, size=NULL
   )
 
 # high stimulus intensity
@@ -261,7 +262,7 @@ high <-
     xlab = "expectation rating", ylab = "outcome rating",
     ggtitle = "High stimulus",
     color_scheme = c("high_cue" ="#941100","low_cue" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line=TRUE, size=NULL
   )
 plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
 plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
@@ -387,7 +388,7 @@ total <-
     ylab = "outcome rating", 
     ggtitle = paste(taskname, "all stimulus intensity"),
     color_scheme = c("high_cue" ="#009411","low_cue" =  "#5D5C5C"),
-    alpha = .8, fit_lm = TRUE
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line=TRUE, size=NULL
   )
 total
 ```
@@ -406,7 +407,7 @@ low <-
     xlab = "expectation rating", ylab = "outcome rating",
     ggtitle = "Low stimulus",
     color_scheme = c("high_cue" ="#9CDB06","low_cue" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line=TRUE, size=NULL
   )
 
 # med stimulus intensity
@@ -419,7 +420,7 @@ med <-
     xlab = "expectation rating", ylab = "outcome rating",
     ggtitle = "Medium stimulus",
     color_scheme = c("high_cue" ="#4EB80B","low_cue" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line=TRUE, size=NULL
   )
 
 # high stimulus intensity
@@ -432,7 +433,7 @@ high <-
     xlab = "expectation rating", ylab = "outcome rating",
     ggtitle = "High stimulus",
     color_scheme = c("high_cue" ="#009411","low_cue" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line=TRUE, size=NULL
   )
 vic_plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
 plots_title <- annotate_figure(vic_plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
@@ -538,7 +539,7 @@ total <-
     ylab = "outcome rating", 
     ggtitle = "all stimulus intensity",
     color_scheme = c("high_cue" ="#110094","low_cue" =  "#5D5C5C"),
-    alpha = .8, fit_lm = TRUE
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line=TRUE, size=NULL
   )
 total
 ```
@@ -554,7 +555,7 @@ low <-
     xlab = "expectation rating", ylab = "outcome rating",
     ggtitle = "Low intensity",
     color_scheme = c("high_cue" ="#9400DB","low_cue" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line=TRUE, size=NULL
   )
 df_dropna <- pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
 df_med = df_dropna[df_dropna$param_stimulus_type == "med_stim", ]
@@ -566,7 +567,7 @@ med <-
     xlab = "expectation rating", ylab = "outcome rating",
     ggtitle = "Medium intensity",
     color_scheme = c("high_cue" ="#5200B8","low_cue" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line=TRUE, size=NULL
   )
 df_dropna <- pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
 df_high = df_dropna[df_dropna$param_stimulus_type == "high_stim", ]
@@ -578,7 +579,7 @@ high <-
     xlab = "expectation rating", ylab = "outcome rating",
     ggtitle = "High intensity",
     color_scheme = c("high_cue" ="#110094","low_cue" =  "#5D5C5C"),
-    alpha = .5, fit_lm = TRUE
+    alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line=TRUE, size=NULL
   )
 cog_plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
 plots_title <- annotate_figure(cog_plots, top = text_grob(paste(taskname, "individual differences\n - cue effects from outcome ratings"), color = "black", face = "bold", size = 15))
