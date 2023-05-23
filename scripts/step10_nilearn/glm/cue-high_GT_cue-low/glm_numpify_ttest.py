@@ -81,82 +81,15 @@ for sub in sub_list: #[testlist]:
             stimH_flist = glob.glob(os.path.join(beta_dir, sub, f"{sub}_{ses}_{run}*{task}*event-stimulus_*_stimintensity-high*.nii.gz"))
             print(stimL_flist)
             for stimL_fpath in stimL_flist:
+                # stimL_img = []
                 stimL_img = image.load_img(stimL_fpath)
                 np.save(os.path.join(npy_path, os.path.splitext(os.path.splitext(os.path.basename(stimL_fpath))[0])[0] + '.npy'), stimL_img.get_fdata())
 
-            for stimM_fpath in stimL_flist:
+            for stimM_fpath in stimM_flist:
                 stimM_img = image.load_img(stimM_fpath)
                 np.save(os.path.join(npy_path, os.path.splitext(os.path.splitext(os.path.basename(stimM_fpath))[0])[0] + '.npy'), stimM_img.get_fdata())
 
             for stimH_fpath in stimH_flist:
                 stimH_img = image.load_img(stimH_fpath)
                 np.save(os.path.join(npy_path, os.path.splitext(os.path.splitext(os.path.basename(stimH_fpath))[0])[0] + '.npy'), stimH_img.get_fdata())
-                # %%
-            
-#             if len(stimL_flist) !=0:
-
-#                 meanimg_L = image.mean_img(image.smooth_img(image.load_img(stimL_flist), fwhm = 6))
-#                 meanimg_H = image.mean_img(image.smooth_img(image.load_img(stimH_flist), fwhm = 6))
-#                 orig_shape = meanimg_L.get_fdata().shape
-#                 # runmeanimg.append(meanimg.get_fdata().ravel())
-#                 runstackL.append(meanimg_L)
-#                 runstackH.append(meanimg_H)
-
-#             else:
-#                 continue
-#         # runmean = np.mean(runmeanimg, axis = 0 )
-#         print(runstackL)
-#         runallmeanL = image.mean_img(image.concat_imgs(runstackL))
-#         runallmeanH = image.mean_img(image.concat_imgs(runstackH))
-
-#         sesmean_L.append(runallmeanL) #image.concat_imgs([sesmean_L, runallmeanL])
-#         sesmean_H.append(runallmeanH) #image.concat_imgs([sesmean_H, runallmeanH])
-        
-#     submean_L = image.mean_img(image.concat_imgs(sesmean_L))
-#     submean_H = image.mean_img(image.concat_imgs(sesmean_H))
-#     nifti_path = pathlib.Path(os.path.join(save_dir, sub))
-#     nifti_path.mkdir(parents = True, exist_ok = True)
-#     submean_L.to_filename(os.path.join(save_dir, sub, f"subwise-avg_{sub}_runtype-{task}_event-stim_cuetype-low.nii.gz"))
-#     submean_H.to_filename(os.path.join(save_dir, sub, f"subwise-avg_{sub}_runtype-{task}_event-stim_cuetype-high.nii.gz"))
-
-
-# # %% group level t-test
-# subwise_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv03_univariate/contrast_cuehigh-GT-cuelow'
-# sub='*'
-# runtype='pain'
-# fnameL = f'subwise-avg_{sub}_runtype-{runtype}_event-stim_cuetype-low.nii.gz'
-# fnameH = f'subwise-avg_{sub}_runtype-{runtype}_event-stim_cuetype-high.nii.gz'
-# lowlist = glob.glob(os.path.join(subwise_dir, '*', fnameL))
-# highlist = glob.glob(os.path.join(subwise_dir, '*', fnameH))
-# groupmean_L = []
-# for lowfname in lowlist:
-#     submean_L = image.load_img(lowfname).get_fdata().ravel()
-#     groupmean_L.append(submean_L)
-# groupmean_H = []
-# for highfname in highlist:
-#     submean_H = image.load_img(highfname).get_fdata().ravel()
-#     groupmean_H.append(submean_H)
-
-# groupmean_low = np.vstack(groupmean_L)
-# groupmean_high = np.vstack(groupmean_H)
-
-# low_img = image.load_img(lowfname)
-# #  %% t-test
-# plotting.plot_stat_map(new_img_like(low_img, np.mean(groupmean_low, axis = 0).reshape(low_img.shape)))
-# plotting.plot_stat_map(new_img_like(low_img, np.mean(groupmean_high, axis = 0).reshape(low_img.shape)))
-
-# contrast = scipy.stats.ttest_ind(groupmean_low, groupmean_high,
-#                                      axis = 0, nan_policy = 'propagate',alternative='two-sided' )
-
-# statmap = contrast.statistic.reshape(low_img.shape)
-# pval = contrast.pvalue.reshape(low_img.shape)
-# indices = np.where(pval < 0.01)
-# selected_t_values = statmap[indices]
-# # %% canlab mask
-# mask = image.load_img('/Users/h/Documents/MATLAB/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask_canlab.nii')
-# mask_img = nilearn.masking.compute_epi_mask(mask, target_affine = low_img.affine, target_shape = low_img.shape)
-# stat_img = new_img_like(low_img, statmap)
-# maskedstatmap = nilearn.masking.apply_mask( stat_img, mask_img)
-# masked_stat_img = image.math_img('img1 * img2', img1=stat_img, img2=mask_img)
-
-# plotting.plot_stat_map(masked_stat_img, threshold = 2, display_mode = 'mosaic')
+ 
