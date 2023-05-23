@@ -1,0 +1,1388 @@
+# [conference] CCN figures
+
+* Given that the brain results only includes 80 participants, I'm plotting the behavioral data with identical participants as well
+* behavioral results
+
+```
+title: "CCN_figures"
+author: "Heejung Jung"
+date: "2023-04-06"
+output: html_document
+```
+
+
+```{r load_libraries_5, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
+library(psych)
+library(car)
+# library(lmSupport)
+library(lme4)
+library(lmerTest)
+library(dplyr)
+library(plyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+library(png)
+library(knitr)
+library(TMB)
+library(sjPlot)
+library(ggpubr)
+library(gridExtra)
+library(merTools)
+library(sjstats) #to get ICC
+library(broom)
+library(tidyverse)
+library(GGally)
+library(RCurl)
+library(rstanarm)
+library(reshape)
+library(boot)
+library(afex)
+library(cowplot)
+library(readr)
+library(lavaan)
+library(rmarkdown)
+library(readr)
+library(caTools)
+library(bitops)
+library(stringr)
+library(stats)
+library(ggpubr)
+library(equatiomatic)
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
+library(lme4)
+library(effectsize)
+library(brms)
+library(devtools)
+library(gghalves)
+library(visibly) # 
+library(plotly) #plot
+library(scico) # plot
+source('http://psych.colorado.edu/~jclab/R/mcSummaryLm.R')
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
+source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
+# source("https://gist.github.com/benmarwick/2a1bb0133ff568cbe28d/geom_flat_violin.R")
+
+library(r2mlm)
+file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+                          pattern="*.R", 
+                          full.names=TRUE, 
+                          ignore.case=TRUE)
+sapply(file.sources,source,.GlobalEnv)
+```
+
+```{r function::simple_contrasts_beh, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+simple_contrasts_beh <- function(df) {
+# [ CONTRASTS ]  ________________________________________________________________________________ # nolint
+# contrast code ________________________________________
+df$stim_factor <- factor(df$param_stimulus_type)
+
+# contrast code 1 linear
+df$stim_con_linear[df$param_stimulus_type == "low_stim"] <-  -0.5
+df$stim_con_linear[df$param_stimulus_type == "med_stim"] <-  0
+df$stim_con_linear[df$param_stimulus_type == "high_stim"] <-  0.5
+
+# contrast code 2 quadratic
+df$stim_con_quad[df$param_stimulus_type == "low_stim"] <-  -0.33
+df$stim_con_quad[df$param_stimulus_type == "med_stim"] <-  0.66
+df$stim_con_quad[df$param_stimulus_type == "high_stim"] <-  -0.33
+
+# cue contrast
+df$CUE_high_gt_low[df$param_cue_type == "low_cue"] <-  -0.5 # social influence task
+df$CUE_high_gt_low[df$param_cue_type == "high_cue"] <-  0.5 # no influence task
+
+df$stim_ordered <- factor(
+        df$param_stimulus_type,
+        levels = c("low_stim", "med_stim", "high_stim")
+    )
+
+df$cue_name[df$param_cue_type == "low_cue"] <- "low"
+df$cue_name[df$param_cue_type == "high_cue"] <- "high"
+
+df$cue_ordered <- factor(
+        df$cue_name,
+        levels = c("low", "high")
+    )
+return(df)
+}
+```
+
+```{r function::simple_contrasts_singletrial, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+simple_contrasts_singletrial <- function(df) {
+# [ CONTRASTS ]  ________________________________________________________________________________ # nolint
+# contrast code ________________________________________
+df$STIM <- factor(df$stim)
+
+# contrast code 1 linear
+df$STIM_linear[df$stimintensity == "low"] <-  -0.5
+df$STIM_linear[df$stimintensity == "med"] <-  0
+df$STIM_linear[df$stimintensity == "high"] <-  0.5
+
+# contrast code 2 quadratic
+df$STIM_quadratic[df$stimintensity == "low"] <-  -0.33
+df$STIM_quadratic[df$stimintensity == "med"] <-  0.66
+df$STIM_quadratic[df$stimintensity == "high"] <-  -0.33
+
+# cue contrast
+df$CUE_high_gt_low[df$cuetype == "cuetype-low"] <-  -0.5 # social influence task
+df$CUE_high_gt_low[df$cuetype == "cuetype-high"] <-  0.5 # no influence task
+
+df$stim_ordered <- factor(
+        df$stimintensity,
+        levels = c("low", "med", "high")
+    )
+
+df$cue_name[df$cuetype == "cuetype-low"] <- "low"
+df$cue_name[df$cuetype == "cuetype-high"] <- "high"
+
+df$cue_ordered <- factor(
+        df$cue_name,
+        levels = c("low", "high")
+    )
+return(df)
+}
+```
+
+## behavioral outcome ratings ~ expectations * cue
+Plot pain outcome rating as a function of expectation rating and cue {.unlisted .unnumbered}
+
+```{r load_data_and_exclude_m1, echo=FALSE, message=FALSE, warning=FALSE}
+# parameters ___________________________________________________________________ # nolint
+main_dir = dirname(dirname(getwd()))
+datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "CCNfigures", as.character(Sys.Date()))
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+subject_varkey <- "src_subject_id"; iv <- "param_cue_type"; dv <- "event03_RT"; dv_keyword <- "RT"
+xlab <- ""; taskname <- "pain"; ylab <- "ratings (degree)";subject <- "subject"
+exclude <- "sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0007|sub-0008|sub-0013|sub-0016|sub-0017|sub-0019|sub-0020|sub-0021|sub-0025|sub-0075|sub-0009|sub-0117|sub-0119|sub-0081|sub-0060"
+
+# load data ____________________________________________________________________ # nolint
+df <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+data.2= df %>%
+  arrange(src_subject_id ) %>%
+  group_by(src_subject_id) %>%
+  mutate(trial_number = row_number(event04_actual_angle))
+df_with_trial_number <- aggregate(trial_number ~ src_subject_id, data = data.2, FUN = function(x) length(unique(x)))
+sessions_per_subject <- aggregate(session_id ~ src_subject_id, data = data.2, FUN = function(x) length(unique(x)))
+subset_N <- df_with_trial_number %>%
+  inner_join(sessions_per_subject, by = "src_subject_id") %>%
+  filter(trial_number > 50, session_id == 3)
+# TODO: FIX scripts/step02_R/utils/filter_df_ses_trial.R
+# df_summary <- filter_df_ses_trial(data, session_colname = "session_id", subject_colname = "src_subject_id", session_threshold = 3, trial_threshold = 50)
+data <- df %>%
+semi_join(subset_N, by = "src_subject_id")
+
+# demean ratings _______________________________________________________________ # nolint
+maindata <- data %>%
+group_by(src_subject_id) %>%
+mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
+mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
+mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
+mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
+mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
+mutate(demean_expect = event02_expect_angle - avg_expect)
+
+
+
+# count trial index and shift __________________________________________________ # nolint
+data_p2= maindata %>%
+  arrange(src_subject_id ) %>%
+  group_by(src_subject_id) %>%
+  mutate(trial_index = row_number())
+data_a3 <- data_p2 %>% 
+  group_by(src_subject_id, session_id, param_run_num) %>% 
+  mutate(trial_index = row_number(param_run_num))
+data_a3lag <- 
+    data_a3 %>%
+    group_by(src_subject_id, session_id, param_run_num) %>%
+    mutate(lag.04outcomeangle = dplyr::lag(event04_actual_angle, n = 1, default = NA))
+data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.04outcomeangle),]
+df <- data_a3lag_omit
+pvc <- simple_contrasts_beh(df)
+
+# summarize dataframe __________________________________________________________ # nolint
+iv1 = "event02_expect_angle"; iv2 = "event04_actual_angle"
+df_dropna <- pvc[!is.na(pvc[, iv1]) & !is.na(pvc[, iv2]), ]
+subjectwise_2dv = meanSummary_2dv(df_dropna,
+        c("src_subject_id", "param_cue_type"), 
+          "event02_expect_angle", "event04_actual_angle")
+subjectwise_naomit_2dv <- na.omit(subjectwise_2dv)
+subjectwise_naomit_2dv$param_cue_type <- as.factor(subjectwise_naomit_2dv$param_cue_type)
+
+# plot _________________________________________________________________________ # nolint
+sp <- plot_twovariable(
+  df = pvc, 
+  iv1 = "event02_expect_angle", iv2 = "event04_actual_angle",
+  group = "param_cue_type", subject ="src_subject_id", 
+  xmin=0, xmax=180, ymin=0,ymax=180,
+  xlab = "Expectation rating", ylab = "Outcome rating", 
+  ggtitle="", color_scheme = c("high_cue" ="#941100","low_cue" =  "#5D5C5C"), 
+  alpha = .9, fit_lm = FALSE, lm_method = NULL, identity_line=TRUE, size=NULL)
+
+# add plot description _________________________________________________________  # nolint
+sp +  
+  # labs(title =paste0("task-",taskname, "- What is the pattern for outcome and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
+  #         ) + 
+  theme(text = element_text(size = 15)) +theme(aspect.ratio=1) +
+  theme(axis.line = element_line(colour = "black"),
+      panel.background = element_blank(),
+      plot.subtitle = ggtext::element_textbox_simple(size= 11))
+
+
+```
+
+## behavioral demeaned (both)
+
+```{r echo=FALSE}
+# maindata <- pvc %>%
+# group_by(src_subject_id, session_id, param_run_num) %>%
+# mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
+# mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
+# mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
+# mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
+# mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
+# mutate(demean_expect = event02_expect_angle - avg_expect)
+
+
+sp <- plot_twovariable(
+  df = maindata, 
+  iv1 = "demean_expect", iv2 = "demean_outcome",
+  group = "param_cue_type", subject ="src_subject_id", 
+  xmin=-50, xmax=50, ymin=-25,ymax=25,
+  xlab = "Expectation rating\n(subjectwise-demeaned)", ylab = "Outcome rating\n(subjectwise-demeaned)", 
+  ggtitle="", color_scheme = c("high_cue" ="#941100","low_cue" =  "#5D5C5C"), 
+  alpha = .9, fit_lm = TRUE, lm_method = "lm", identity_line=TRUE, size=NULL)
+
+# Add description ______________________________________________________________
+sp +  
+
+  theme(text = element_text(size = 15)) +theme(aspect.ratio=1) +
+  theme(axis.line = element_line(colour = "black"),
+      panel.background = element_blank(),
+      plot.subtitle = ggtext::element_textbox_simple(size= 11))
+
+```
+## behavioral only expectaiton deman
+
+```{r}
+# maindata <- pvc %>%
+# group_by(src_subject_id, session_id, param_run_num) %>%
+# mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
+# mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
+# mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
+# mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
+# mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
+# mutate(demean_expect = event02_expect_angle - avg_expect)
+
+
+sp <- plot_twovariable(
+  df = maindata, 
+  iv1 = "demean_expect", iv2 = "event04_actual_angle",
+  group = "param_cue_type", subject ="src_subject_id", 
+  xmin=-50, xmax=50, ymin=0,ymax=180,
+  xlab = "Expectation rating\n(subjectwise-demeaned)", ylab = "Outcome rating", 
+  ggtitle="", color_scheme = c("high_cue" ="#941100","low_cue" =  "#5D5C5C"), 
+  alpha = .9, fit_lm = TRUE, lm_method = "lm", identity_line=FALSE, size=NULL)
+
+# Add description ______________________________________________________________
+sp +  
+
+  theme(text = element_text(size = 15)) +theme(aspect.ratio=1) +
+  theme(axis.line = element_line(colour = "black"),
+      panel.background = element_blank(),
+      plot.subtitle = ggtext::element_textbox_simple(size= 11))
+
+```
+
+## behavioral :: line plot cue * stim (outcome demena)
+### model 04 4-4 lineplot (demean)
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#  [ PLOT ] calculate mean and se  _________________________
+pvc <-simple_contrasts_beh(maindata)
+LINEIV1 = "stim_ordered"
+LINEIV2 = "cue_ordered"
+MEAN = "mean_per_sub_norm_mean"
+ERROR = "ci"
+dv_keyword = "actual"
+model_iv1 = "stim_ordered"
+model_iv2 = "cue_ordered"
+dv = "demean_outcome"
+taskname <- "pain"
+stimcue_subjectwise <- meanSummary(pvc,
+                                      c(subject, model_iv1, model_iv2), dv)
+df_dropna <- stimcue_subjectwise[!is.na(stimcue_subjectwise[, "mean_per_sub"]), ]
+stimcue_groupwise <- summarySEwithin(
+  data = df_dropna,
+  measurevar = "mean_per_sub",
+  withinvars = c(model_iv1, model_iv2),
+  idvar = subject
+)
+stimcue_groupwise$task <- taskname
+DATA = as.data.frame(stimcue_groupwise)
+color = c("#5D5C5C", "#941100")
+LINEIV1 = "stim_ordered"
+LINEIV2 = "cue_ordered"
+MEAN = "mean_per_sub_norm_mean"
+ERROR = "ci"
+dv_keyword = "actual"
+p1 = plot_lineplot_twofactor_subset(DATA, task = "pain",
+               LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'pain' , ylab = "Outcome rating\n(subjectwise-demeaned)")
+p1 + theme(text = element_text(size = 15)) +theme(aspect.ratio=1) +
+  theme(axis.line = element_line(colour = "black"),
+      panel.background = element_blank(),
+      plot.subtitle = ggtext::element_textbox_simple(size= 11))
+
+```
+
+## behavioral :: line plots cue * stim * intensity (demean outcome)
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# 
+# # Color: low FF8800, med DB6000, high 941100
+
+maindata.df<- simple_contrasts_beh(maindata)
+pvc.df <- maindata.df %>%
+  mutate(
+    cuetype = case_when(
+      cue_ordered == "low" ~ "low",
+      cue_ordered == "high" ~ "high",
+    ),
+    stimintensity = case_when(
+      stim_ordered == "high_stim" ~ "high",
+      stim_ordered == "med_stim" ~ "med",
+      stim_ordered == "low_stim" ~ "low",
+    )
+    )
+pvc.df$sub = pvc.df$src_subject_id
+df_dropna <- pvc.df[!is.na(pvc.df$demean_expect) & !is.na(pvc.df$demean_outcome),]
+df_low = df_dropna[df_dropna$stimintensity == "low", ]
+low <-
+  plot_twovariable(
+    df_low, iv1 = "demean_expect", iv2 = "demean_outcome",
+    group = "cuetype", subject = "sub",
+    xmin=-50, xmax=50, ymin=-50, ymax=50,
+    xlab = "expectation rating\n(subjectwise mean-centered)", ylab = "outcome ratingn\n(subjectwise mean-centered)",
+    ggtitle = "Low intensity", #DB6000
+    color_scheme = c("high" ="#FF8800","low" =  "#5D5C5C"),
+    alpha = .6, fit_lm = TRUE, lm_method = "lm", identity_line=FALSE, size=NULL
+  )
+
+
+df_med = df_dropna[df_dropna$stimintensity == "med", ]
+med <-
+  plot_twovariable(
+    df_med, iv1 = "demean_expect", iv2 = "demean_outcome",
+    group = "cuetype", subject = "sub",
+    xmin=-50, xmax=50, ymin=-50, ymax=50,
+    xlab = "expectation rating\n(subjectwise mean-centered)", ylab = "outcome ratingn\n(subjectwise mean-centered)",
+    ggtitle = "Medium intensity",
+    color_scheme = c("high" ="#DB6000","low" =  "#5D5C5C"),
+    alpha = .6, fit_lm = TRUE, lm_method = "lm", identity_line=FALSE, size=NULL
+  )
+
+df_high = df_dropna[df_dropna$stimintensity == "high", ]
+high <-
+  plot_twovariable(
+    df_high, iv1 = "demean_expect", iv2 = "demean_outcome",
+    group = "cuetype", subject = "sub",
+    xmin=-50, xmax=50, ymin=-50, ymax=50,
+    xlab = "expectation rating\n(subjectwise mean-centered)", ylab = "outcome ratingn\n(subjectwise mean-centered)",
+    ggtitle = "High intensity",
+    color_scheme = c("high" ="#941100","low" =  "#5D5C5C"),
+    alpha = .6, fit_lm = TRUE, lm_method = "lm", identity_line=FALSE, size=NULL
+  )
+plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
+plots
+```
+  
+## behavioral :: line plots cue * stim * intensity (demean outcome)
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# 
+# # Color: low FF8800, med DB6000, high 941100
+
+maindata.df<- simple_contrasts_beh(maindata)
+pvc.df <- maindata.df %>%
+  mutate(
+    cuetype = case_when(
+      cue_ordered == "low" ~ "low",
+      cue_ordered == "high" ~ "high",
+    ),
+    stimintensity = case_when(
+      stim_ordered == "high_stim" ~ "high",
+      stim_ordered == "med_stim" ~ "med",
+      stim_ordered == "low_stim" ~ "low",
+    )
+    )
+pvc.df$sub = pvc.df$src_subject_id
+df_dropna <- pvc.df[!is.na(pvc.df$demean_expect) & !is.na(pvc.df$event04_actual_angle),]
+df_low = df_dropna[df_dropna$stimintensity == "low", ]
+low <-
+  plot_twovariable(
+    df_low, iv1 = "demean_expect", iv2 = "event04_actual_angle",
+    group = "cuetype", subject = "sub",
+    xmin=-50, xmax=50, ymin=0, ymax=180,
+    xlab = "expectation rating\n(subjectwise mean-centered)", ylab = "Outcome rating",
+    ggtitle = "Low intensity", #DB6000
+    color_scheme = c("high" ="#FF8800","low" =  "#5D5C5C"),
+    alpha = .6, fit_lm = TRUE, lm_method = "lm", identity_line=FALSE, size=NULL
+  )
+
+
+df_med = df_dropna[df_dropna$stimintensity == "med", ]
+med <-
+  plot_twovariable(
+    df_med, iv1 = "demean_expect", iv2 = "event04_actual_angle",
+    group = "cuetype", subject = "sub",
+   xmin=-50, xmax=50, ymin=0, ymax=180,
+    xlab = "expectation rating\n(subjectwise mean-centered)", ylab = "Outcome rating",
+    ggtitle = "Medium intensity",
+    color_scheme = c("high" ="#DB6000","low" =  "#5D5C5C"),
+    alpha = .6, fit_lm = TRUE, lm_method = "lm", identity_line=FALSE, size=NULL
+  )
+
+df_high = df_dropna[df_dropna$stimintensity == "high", ]
+high <-
+  plot_twovariable(
+    df_high, iv1 = "demean_expect", iv2 = "event04_actual_angle",
+    group = "cuetype", subject = "sub",
+    xmin=-50, xmax=50, ymin=0, ymax=180,
+    xlab = "expectation rating\n(subjectwise mean-centered)", ylab = "Outcome rating",
+    ggtitle = "High intensity",
+    color_scheme = c("high" ="#941100","low" =  "#5D5C5C"),
+    alpha = .6, fit_lm = TRUE, lm_method = "lm", identity_line=FALSE, size=NULL
+  )
+plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
+plots
+```
+
+## NPS: stim * cue
+```{r message=FALSE, warning=FALSE, include=FALSE}
+
+# Step 1: Common parameters
+######################################### 01. Load NPS data
+for (signature_key in c("NPSpos")) {
+  dv_keyword = signature_key
+  signature_name = signature_key
+  # step 1: common parameters __________________________________________________
+  main_dir <- dirname(dirname(getwd()))
+  analysis_folder  = paste0("CCNfigures-", signature_key)
+
+  sig_name <-
+    Sys.glob(file.path(
+      main_dir, "analysis/fmri/nilearn/signature_extract",
+      paste0("signature-",signature_key,"_sub-all_runtype-pvc_event-stimulus.tsv")
+    )) # nolint
+  print(sig_name)
+  analysis_dir <-
+    file.path(main_dir, "analysis", "mixedeffect", analysis_folder, as.character(Sys.Date())) # nolint
+  dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+  savedir <- analysis_dir
+  
+  # step 2: load data __________________________________________________________
+  df = read.csv(sig_name)
+  sig_df = df %>% separate(
+    singletrial_fname,
+    sep = "_",
+    c(
+      "sub", "ses", "run", "runtype", "event", "trial", "cuetype", "stimintensity"
+    )
+  )
+  sig_df = sig_df %>% separate(
+    stimintensity,
+    into = c(NA, "stimintensity"),
+    extra = "drop",
+    fill = "left"
+  )
+  pvc <- simple_contrasts_singletrial(sig_df)
+  pvc$task[pvc$runtype == "runtype-pain"] <- "pain"
+  pvc$task[pvc$runtype == "runtype-vicarious"] <- "vicarious"
+  pvc$task[pvc$runtype == "runtype-cognitive"] <- "cognitive"
+  pvc$task <- factor(pvc$task)
+  pvc$sub_id <- as.numeric(str_extract_all(pvc$sub, "\\d+"))
+  pvc$ses_id <- as.numeric(str_extract_all(pvc$ses, "\\d+"))
+  pvc$run_id <- as.numeric(str_extract_all(pvc$run, "\\d+"))
+  pvc[!(pvc$sub_id == 15 & pvc$ses_id == 1 &  pvc$run_id == 6) &
+      !(pvc$sub_id == 2 & pvc$ses_id == 3 & (pvc$run_id == 4 )) &
+      !(pvc$sub_id == 2 & pvc$ses_id == 4 & (pvc$run_id == 3 | pvc$run_id == 4)) &
+      !(pvc$sub_id == 18 & pvc$ses_id == 1) &
+      !(pvc$sub_id == 19 & pvc$ses_id == 1) &
+      !(pvc$sub_id == 20 & pvc$ses_id == 1) &
+      !(pvc$sub_id == 21 & pvc$ses_id == 1) &
+      !(pvc$sub_id == 23 & pvc$ses_id == 1) &
+      !(pvc$sub_id == 24 & pvc$ses_id == 1) &
+      !(pvc$sub_id == 52 & pvc$ses_id == 1 & (pvc$run_id == 2 | pvc$run_id == 3)) &
+      !(pvc$sub_id == 83 & pvc$ses_id == 1) & 
+      !(pvc$sub_id == 87 & pvc$ses_id == 1 & (pvc$run_id == 1 | pvc$run_id == 5)) &
+      !(pvc$sub_id == 91 & pvc$ses_id == 1 & (pvc$run_id ==3)) &
+      !(pvc$sub_id == 91 & pvc$ses_id == 4 & (pvc$run_id ==6)) &
+      !(pvc$sub_id == 112 & pvc$ses_id == 4 & (pvc$run_id ==2 | pvc$run_id ==3)) , ]
+# ______________________________________________________02. Load behavioral data
+main_dir = dirname(dirname(getwd()))
+print(main_dir)
+datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
+taskname = 'pain'
+subject_varkey <- "src_subject_id"
+iv <- "param_stimulus_type"; 
+iv_keyword <- "stim"; 
+dv <- "event04_actual_angle"; dv_keyword <- "outcome"
+exclude <- "sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0007|sub-0008|sub-0013|sub-0016|sub-0017|sub-0019|sub-0020|sub-0021|sub-0025|sub-0075|sub-0009|sub-0117|sub-0119|sub-0081|sub-0060"
+  # 
+  # 
+  # "sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0007|sub-0008|sub-0013|sub-0015|sub-0016|sub-0017|sub-0018|sub-0019|sub-0020|sub-0021|sub-0023|sub-0024|sub-0025|sub-0075|sub-0009|sub-0052|sub-0117|sub-0119|sub-0087|sub-0083|sub-0091|sub-0112"
+#sub-0074|sub-0085|sub-0118|sub-0117|sub-0103|sub-0063
+
+p.df <- load_task_social_df(datadir, taskname = "pain", subject_varkey, iv, dv, exclude)
+v.df <- load_task_social_df(datadir, taskname = "vicarious", subject_varkey, iv, dv, exclude)
+c.df <- load_task_social_df(datadir, taskname = "cognitive", subject_varkey, iv, dv, exclude)
+
+
+
+p.df2= p.df %>%
+  arrange(src_subject_id ) %>%
+  group_by(src_subject_id) %>%
+  mutate(trial_index = row_number())
+data_p <- p.df2 %>% 
+  group_by(src_subject_id, session_id, param_run_num) %>% 
+  mutate(trial_index = row_number(param_run_num))
+
+v.df2= v.df %>%
+  arrange(src_subject_id ) %>%
+  group_by(src_subject_id) %>%
+  mutate(trial_index = row_number())
+data_v <- v.df2 %>% 
+  group_by(src_subject_id, session_id, param_run_num) %>% 
+  mutate(trial_index = row_number(param_run_num))
+
+c.df2= c.df %>%
+  arrange(src_subject_id ) %>%
+  group_by(src_subject_id) %>%
+  mutate(trial_index = row_number()-1)
+data_c <- c.df2 %>% 
+  group_by(src_subject_id, session_id, param_run_num) %>% 
+  mutate(trial_index = row_number(param_run_num) )
+p.sub <- data_p[,c("src_subject_id", "session_id", "param_run_num", "param_task_name", "event02_expect_angle", "param_cue_type", "param_stimulus_type", "event04_actual_angle", "trial_index")]
+v.sub <- data_v[,c("src_subject_id", "session_id", "param_run_num", "param_task_name", "event02_expect_angle", "param_cue_type", "param_stimulus_type", "event04_actual_angle", "trial_index")]
+c.sub <- data_c[,c("src_subject_id", "session_id", "param_run_num", "param_task_name", "event02_expect_angle", "param_cue_type", "param_stimulus_type", "event04_actual_angle", "trial_index")]
+pvc.sub = rbind(p.sub, v.sub, c.sub)
+pvc.sub$trial_ind <- pvc.sub$trial_index -1 
+pvc.sub$sub <- sprintf("sub-%04d", pvc.sub$src_subject_id)
+pvc.sub$ses <- sprintf("ses-%02d", pvc.sub$session_id)
+pvc.sub$run <- sprintf("run-%02d", pvc.sub$param_run_num)
+pvc.sub$runtype <- sprintf("runtype-%s", pvc.sub$param_task_name)
+pvc.sub$trial <- sprintf("trial-%03d", pvc.sub$trial_ind)
+pvc.sub[c('cue', 'DEPc')]  <- str_split_fixed(pvc.sub$param_cue_type , '_', 2)
+pvc.sub$cuetype <- sprintf("cuetype-%s", pvc.sub$cue)
+pvc.sub[c('stimintensity', 'DEP')]  <- str_split_fixed(pvc.sub$param_stimulus_type , '_', 2)
+
+# merge ______________________________________________________
+pvc.beh <- pvc.sub[,c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity","event02_expect_angle", "event04_actual_angle")]
+df_merge <- merge(pvc, pvc.beh, 
+                  by.x = c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity"),
+                  by.y = c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity")
+                  )
+  
+# ______________________________________________________03. filter data Calc summary (subjectwise / groupwise)
+p.sig <- df_merge[df_merge$runtype == "runtype-pain" ,]
+p.sig <-  p.sig[!is.na(p.sig$event04_actual_angle) & !is.na(p.sig$event02_expect_angle),]
+summary_data <- aggregate(cbind(obs = ses) ~ sub + ses, data = p.sig, FUN = length)
+more_exclusion <- subset(summary_data, obs < 10)
+p.filter <-  p.sig[
+  !(p.sig$sub_id == 24 & p.sig$ses_id == 1 ) &
+  !(p.sig$sub_id == 44 & p.sig$ses_id == 1 ) &
+  !(p.sig$sub_id == 73 & p.sig$ses_id == 1) &
+  !(p.sig$sub_id == 83 & p.sig$ses_id == 1) &
+  !(p.sig$sub_id == 85 & p.sig$ses_id == 1) &
+  !(p.sig$sub_id == 86 & p.sig$ses_id == 1) &
+  !(p.sig$sub_id == 87 & p.sig$ses_id == 1) & 
+  !(p.sig$sub_id == 115 & p.sig$ses_id == 1) & 
+  !(p.sig$sub_id == 118 & p.sig$ses_id == 1) & 
+  !(p.sig$sub_id == 123 & p.sig$ses_id == 1) & 
+  !(p.sig$sub_id == 129 & p.sig$ses_id == 1) & 
+  !(p.sig$sub_id == 131 & p.sig$ses_id == 1) & 
+  !(p.sig$sub_id == 133 & p.sig$ses_id == 1) & 
+  !(p.sig$sub_id == 24 & p.sig$ses_id == 3) & 
+  !(p.sig$sub_id == 74 & p.sig$ses_id == 3) & 
+  !(p.sig$sub_id == 82 & p.sig$ses_id == 3) & 
+  !(p.sig$sub_id == 112 & p.sig$ses_id == 3) &
+  !(p.sig$sub_id == 129 & p.sig$ses_id == 3) & 
+  !(p.sig$sub_id == 66 & p.sig$ses_id == 4) & 
+  !(p.sig$sub_id == 79 & p.sig$ses_id == 4) & 
+  !(p.sig$sub_id == 80 & p.sig$ses_id == 4) & 
+  !(p.sig$sub_id == 86 & p.sig$ses_id == 4) & 
+  !(p.sig$sub_id == 112 & p.sig$ses_id == 4) &
+  !(p.sig$sub_id == 129 & p.sig$ses_id == 4), ]
+data.2= p.filter %>%
+  arrange(sub ) %>%
+  group_by(sub) %>%
+  mutate(trial_number = row_number(event04_actual_angle))
+df_with_trial_number <- aggregate(trial_number ~ sub, data = data.2, FUN = function(x) length(unique(x)))
+sessions_per_subject <- aggregate(ses ~ sub, data = data.2, FUN = function(x) length(unique(x)))
+subset_N <- df_with_trial_number %>%
+  inner_join(sessions_per_subject, by = "sub") %>%
+  filter(trial_number > 9)
+
+# TODO: FIX scripts/step02_R/utils/filter_df_ses_trial.R
+# df_summary <- filter_df_ses_trial(data, session_colname = "session_id", subject_colname = "src_subject_id", session_threshold = 3, trial_threshold = 50)
+nps.subset <- df_merge %>%
+semi_join(subset_N, by = "sub")
+
+p.subset <- nps.subset[nps.subset$runtype == "runtype-pain" ,]
+
+
+# combined_psig <- data.frame()
+data <- p.subset
+# combined_psig <-
+  # rbind(combined_psig, p.sig)
+# [ CONTRASTS ]  ________________________________________________________________________________ # nolint
+# contrast code ________________________________________
+data$stim[data$stimintensity == "low"] <-  -0.5 # social influence task
+data$stim[data$stimintensity == "med"] <- 0 # no influence task
+data$stim[data$stimintensity == "high"] <-  0.5 # no influence task
+
+data$STIM <- factor(data$stimintensity)
+
+# contrast code 1 linear
+data$STIM_linear[data$stimintensity == "low"] <- -0.5
+data$STIM_linear[data$stimintensity == "med"] <- 0
+data$STIM_linear[data$stimintensity == "high"] <- 0.5
+
+# contrast code 2 quadratic
+data$STIM_quadratic[data$stimintensity == "low"] <- -0.33
+data$STIM_quadratic[data$stimintensity == "med"] <- 0.66
+data$STIM_quadratic[data$stimintensity == "high"] <- -0.33
+
+# social cue contrast
+data$CUE_high_gt_low[data$cuetype == "cuetype-low"] <-  -0.5 # social influence task
+data$CUE_high_gt_low[data$cuetype == "cuetype-high"] <-  0.5 # no influence task
+
+data$EXPECT <- data$event02_expect_angle
+stim_con1 <- "STIM_linear"
+stim_con2 <- "STIM_quadratic"
+iv1 <- "CUE_high_gt_low"
+dv <- "NPSpos"
+subject <- "sub"
+# [ MODEL ] _________________________________________________ # nolint
+model_savefname <- file.path(
+  analysis_dir,
+  paste(
+    "lmer_task-", taskname, "_rating-", dv_keyword, "_", as.character(Sys.Date()), "_cooksd.txt",
+    sep = ""
+  )
+)
+
+cooksd <- lmer_twofactor_cooksd_fix(
+  data,  taskname,  iv1,  stim_con1,  stim_con2,  dv,  subject = "sub",  dv_keyword,  model_savefname,  'random_intercept',
+  print_lmer_output = FALSE
+)
+influential <- as.numeric(names(cooksd)[(cooksd > (4 / as.numeric(length(unique(
+  data$sub
+)))))])
+data_screen <- data[-influential,]
+# [ PLOT ] reordering for plots _________________________ # nolint
+data_screen$cue_name[data_screen$cuetype == "cuetype-high"] <-  "high cue"
+data_screen$cue_name[data_screen$cuetype == "cuetype-low"] <-  "low cue"
+
+data_screen$stim_name[data_screen$stimintensity == "high"] <-  "high"
+data_screen$stim_name[data_screen$stimintensity == "med"] <-  "med"
+data_screen$stim_name[data_screen$stimintensity == "low"] <-  "low"
+
+# DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
+
+data_screen$stim_ordered <- factor(data_screen$stim_name, levels = c("low", "med", "high"))
+data_screen$cue_ordered <- factor(data_screen$cue_name, levels = c("low cue", "high cue"))
+model_iv1 <- "stim_ordered"
+model_iv2 <- "cue_ordered"
+##### ONLY SES 01 and SES 03
+# data_screen <- data_screen[(data_screen$ses == "ses-01") | (data_screen$ses == "ses-03"), ]
+#  [ PLOT ] calculate mean and se  _____________________________________________
+NPSstimcue_subjectwise <- meanSummary(data_screen,
+                                      c(subject, model_iv1, model_iv2), dv)
+NPSstimcue_groupwise <- summarySEwithin(
+  data = NPSstimcue_subjectwise,
+  measurevar = "mean_per_sub",
+  withinvars = c(model_iv1, model_iv2),
+  idvar = subject
+)
+NPSstimcue_groupwise$task <- taskname
+
+  taskname = "all"
+  plot_keyword = "stimulusintensity"
+  ggtitle_phrase =  "(3 tasks x 3 stimulus intensity)"
+  
+  pvc$task = factor(pvc$task)
+  plot_keys <- list(
+    sub_mean = "mean_per_sub",
+    group_mean = "mean_per_sub_norm_mean",
+    legend_keyword = "stimulus intensity",
+    se = "se",
+    subject = "sub",
+    ggtitle = paste0(
+      str_to_title(signature_key),
+      " dot product: ", str_to_title(taskname), ' ', ggtitle_phrase, " (N = ", length(unique(pvc$sub)), ")"
+    ),
+    title = paste0(
+      str_to_title(signature_key), " - ", str_to_title(plot_keyword)
+    ),
+    xlab = "",
+    ylab = paste(signature_key, " (dot product)"),
+    ylim = c(-250, 500)
+  )
+  
+
+
+### Lineplots {.unlisted .unnumbered} __________________________________________
+
+fig.b <- plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain", 
+                        iv1 = "stim_ordered", iv2 = "cue_ordered", 
+                        mean = "mean_per_sub_norm_mean", error = "se",
+                        color = c("#5D5C5C", "#941100"), ggtitle = "", #"Within pain task: NPS dotproducts as a function of stimulus intensity level and cue", 
+                        xlab = "Stimulus intensity", ylab = "NPS (dot product)")
+fig.b
+}
+```
+
+### Fig B: cue * stim lineplot
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+fig.bsave <- fig.b + theme(aspect.ratio=.9) + 
+  theme(text = element_text(size = 25)) 
+# theme(axis.text.x=element_text(size=40, angle=0)) +
+# theme(axis.text.y=element_text(size=40, angle=0))
+ggsave('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/analysis/mixedeffect/CCNfigures/figB.png', plot = fig.bsave)
+fig.bsave
+```
+
+### lmer
+
+```{r}
+NPS.df$EXPECT_demean <- NPS.df$demean_expect; NPS.df$OUTCOME_demean <- NPS.df$demean_outcome
+model.NPSdemean <- lmer(NPSpos ~ 
+                          CUE_high_gt_low*STIM_linear +
+                          CUE_high_gt_low*STIM_quadratic +
+                           # lag.04outcomeangle +
+                          (1 |sub), data = NPS.df
+                    ) 
+# CUE_high_gt_low+STIM+EXPECT_demean
+sjPlot::tab_model(model.NPSdemean,
+                  title = "Multilevel-modeling: \nlmer(OUTCOME ~ CUE * STIM * EXPECT_demean + (1| sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+```
+
+
+### NPS demeaned: stim*cue
+```{r}
+#  [ PLOT ] calculate mean and se  _________________________
+NPSmaindata <- data_screen %>%
+  group_by(sub) %>%
+  mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
+  mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
+  mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
+  mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
+  mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
+  mutate(demean_expect = event02_expect_angle - avg_expect) 
+  # ungroup() %>%
+
+NPS.df <- NPSmaindata %>%
+  group_by(sub) %>%
+  mutate(NPSpos = as.numeric(NPSpos)) %>%
+  mutate(avg_NPS = mean(NPSpos, na.rm = TRUE)) %>%
+  mutate(demean_NPS = NPSpos - avg_NPS)
+
+cmc <- NPS.df %>%
+mutate(OUTCOME_cmc = avg_outcome - mean(avg_outcome)) %>%
+mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) %>%
+mutate(NPS_cmc = avg_NPS - mean(avg_NPS)) 
+
+
+data_p2= cmc %>%
+  arrange(sub ) %>%
+  group_by(sub) %>%
+  mutate(trial_index = row_number())
+data_a3 <- data_p2 %>% 
+  group_by(sub, ses, run) %>% 
+  mutate(trial_index = row_number(run))
+data_a3lag <- 
+    data_a3 %>%
+    group_by(sub, ses, run) %>%
+    mutate(lag.04outcomeangle = dplyr::lag(event04_actual_angle, n = 1, default = NA))
+# data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.04outcomeangle),]
+NPS.df <- data_a3lag
+# pvc <- simple_contrasts_beh(df)
+
+# pvc <-simple_contrasts_beh(maindata)
+LINEIV1 = "stim_ordered"
+LINEIV2 = "cue_ordered"
+MEAN = "mean_per_sub_norm_mean"
+ERROR = "se"
+dv_keyword = "actual"
+dv = "demean_NPS"
+subject = "sub"
+model_iv1 = "stim_ordered"
+model_iv2 = "cue_ordered"
+
+taskname <- "pain"
+NPSstimcue_subjectwise <- meanSummary(NPS.df,
+                                      c(subject, model_iv1, model_iv2), dv)
+df_dropna <- NPSstimcue_subjectwise[!is.na(NPSstimcue_subjectwise[, "mean_per_sub"]), ]
+NPSstimcue_groupwise <- summarySEwithin(
+  data = df_dropna,
+  measurevar = "mean_per_sub",
+  withinvars = c(model_iv1, model_iv2),
+  idvar = subject
+)
+NPSstimcue_groupwise$task <- taskname
+DATA = as.data.frame(NPSstimcue_groupwise)
+color = c( "#4575B4", "#D73027")
+LINEIV1 = "stim_ordered"
+LINEIV2 = "cue_ordered"
+MEAN = "mean_per_sub_norm_mean"
+ERROR = "se"
+dv_keyword = "actual"
+p1 = plot_lineplot_twofactor(DATA,
+               LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'pain', ylab = "NPSpos\n(subject/runwise mean-centered" )
+
+p1 +   theme(aspect.ratio=.9) + 
+  theme(text = element_text(size = 15)) 
+```
+
+
+
+### NPS: cue * expect (expect demean)
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# df_dropna <-
+  # NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$NPSpos),]
+NPS_dropna <- NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$demean_NPS) & (NPS.df$ses == "ses-01" | NPS.df$ses == "ses-03"),]
+total <-
+  plot_twovariable(
+    NPS_dropna,
+    iv1 = "demean_expect",
+    iv2 = "NPSpos",
+    group = "cuetype",
+    subject = "sub",
+    xmin=-50, xmax=50, ymin=-10, ymax=30,
+    xlab = "Expectation rating\n(subjectwise mean-centered)",
+    ylab = "NPSpos\n(dot product)",
+    ggtitle = "all stimulus intensity",
+    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
+    alpha = .8, fit_lm = TRUE,  lm_method = "lm", identity_line=FALSE, size=NULL
+  )
+total +   theme(aspect.ratio=.9) + 
+  theme(text = element_text(size = 20)) 
+
+```
+### NPS: cue * expect (both demean)
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# df_dropna <-
+  # NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$demean_NPS),]
+NPS_dropna <- NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$demean_NPS) & (NPS.df$ses == "ses-01" | NPS.df$ses == "ses-03"),]
+total <-
+  plot_twovariable(
+    NPS_dropna,
+    iv1 = "demean_expect",
+    iv2 = "demean_NPS",
+    group = "cuetype",
+    subject = "sub",
+    xmin=-50, xmax=50, ymin=-10, ymax=10,
+    xlab = "Expectation rating\n(subjectwise mean-centered)",
+    ylab = "NPSpos\n(subjectwise mean-centered)",
+    ggtitle = "all stimulus intensity",
+    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
+    alpha = .8, fit_lm = TRUE,  lm_method = "lm", identity_line=FALSE, size=NULL
+  )
+total+   theme(aspect.ratio=.9) + 
+  theme(text = element_text(size = 20)) 
+```
+
+### NPS: stim * cue * expect
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+# NPS_dropna <- maindata[!is.na(maindata$demean_expect) & !is.na(maindata$demean_NPS) & (maindata$ses == "ses-01") | (maindata$ses == "ses-03"),]
+# event02_expect_angle
+# _________________________ figure parameters __________________________________
+iv1 = "demean_expect"; iv2 = "NPSpos";group = "cuetype"; subject = "sub";
+xmin = -60; xmax = 80; ymin = -15; ymax = 35;
+xlab = "expectation rating\n(subjectwise mean-centered)"; ylab = "NPSpos\n(dot product)";
+alpha = .6; fit_lm = TRUE; lm_method = "lm";identity_line = FALSE; size =  NULL
+############## ############## ############## 
+
+NPS_dropna <-  NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$demean_NPS) & (NPS.df$ses == "ses-01") | (NPS.df$ses == "ses-03"),]
+
+# NPS_dropna <- NPS.df
+df_low = NPS_dropna[NPS_dropna$stimintensity == "low", ]
+low <-
+  plot_twovariable(
+    df_low, iv1, iv2, group, subject, xmin, xmax, ymin, ymax,
+    xlab, ylab,ggtitle = "Low intensity", #DB6000
+    color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
+    alpha, fit_lm, lm_method, identity_line, size
+  )
+
+df_med = NPS_dropna[NPS_dropna$stimintensity == "med", ]
+med <-
+  plot_twovariable(
+    df_med, iv1, iv2, group, subject, xmin, xmax, ymin, ymax,
+    xlab, ylab,ggtitle = "Medium intensity", #DB6000
+    color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
+    alpha, fit_lm, lm_method, identity_line, size
+  )
+
+df_high = NPS_dropna[NPS_dropna$stimintensity == "high", ]
+high <-
+  plot_twovariable(
+    df_high, iv1, iv2, group, subject, xmin, xmax, ymin, ymax,
+    xlab, ylab,ggtitle = "High intensity", #DB6000
+    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
+    alpha, fit_lm, lm_method, identity_line, size
+  )
+
+low <- low + theme(text = element_text(size = 14)) + theme(aspect.ratio=1) 
+med <- med + theme(text = element_text(size = 14)) + theme(aspect.ratio=1) 
+high <- high + theme(text = element_text(size = 14)) + theme(aspect.ratio=1) 
+
+plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
+plots
+```
+
+
+### NPS: stim * cue * expect (demean)
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+# Color: low FF8800, med DB6000, high 941100
+ # & (NPS.df$ses == "ses-01" | NPS.df$ses == "ses-03")
+# NPS_dropna <- NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$demean_NPS),]
+
+# ---------------------------- figure parameters -------------------------------
+iv1 = "demean_expect"; iv2 = "demean_NPS";group = "cuetype"; subject = "sub";
+xmin = -60; xmax = 80; ymin = -15; ymax = 25;
+xlab = "expectation rating\n(subjectwise mean-centered)"; ylab = "NPSpos\n(dot product)";
+alpha = .6; fit_lm = TRUE; lm_method = "lm";identity_line = FALSE; size =  NULL
+# ------------------------------------------------------------------------------
+
+NPS_dropna <- NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$demean_NPS) & (NPS.df$ses == "ses-01" | NPS.df$ses == "ses-03"),]
+df_low = NPS_dropna[NPS_dropna$stimintensity == "low", ]
+low <-
+  plot_twovariable(
+    df_low, iv1, iv2, group, subject, xmin, xmax, ymin, ymax,
+    xlab, ylab,ggtitle = "Low intensity", #DB6000
+    color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
+    alpha, fit_lm, lm_method, identity_line, size
+  )
+
+df_med = NPS_dropna[NPS_dropna$stimintensity == "med", ]
+med <-
+  plot_twovariable(
+    df_med, iv1, iv2, group, subject, xmin, xmax, ymin, ymax,
+    xlab, ylab,ggtitle = "Medium intensity", #DB6000
+    color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
+    alpha, fit_lm, lm_method, identity_line, size
+  )
+
+df_high = NPS_dropna[NPS_dropna$stimintensity == "high", ]
+high <-
+  plot_twovariable(
+    df_high, iv1, iv2, group, subject, xmin, xmax, ymin, ymax,
+    xlab, ylab,ggtitle = "High intensity", #DB6000
+    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
+    alpha, fit_lm, lm_method, identity_line, size
+  )
+
+low <- low + theme(text = element_text(size = 14)) + theme(aspect.ratio=1) 
+med <- med + theme(text = element_text(size = 14)) + theme(aspect.ratio=1) 
+high <- high + theme(text = element_text(size = 14)) + theme(aspect.ratio=1) 
+
+plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
+plots
+```
+
+### NPS demeaned (both)
+
+```{r echo=FALSE}
+# maindata <- pvc %>%
+# group_by(src_subject_id, session_id, param_run_num) %>%
+# mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
+# mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
+# mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
+# mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
+# mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
+# mutate(demean_expect = event02_expect_angle - avg_expect)
+
+NPS_dropna <- NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$demean_NPS) & (NPS.df$ses == "ses-01" | NPS.df$ses == "ses-03"),]
+sp <- plot_twovariable(
+  df = NPS_dropna, 
+  iv1 = "demean_expect", iv2 = "demean_NPS",
+  group = "cuetype", subject ="sub", 
+  xmin=-50, xmax=50, ymin=-10,ymax=10,
+  xlab = "Expectation rating\n(subjectwise-demeaned)", ylab = "NPSpos\n(subjectwise-demeaned)", 
+  ggtitle="", color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"), 
+  alpha = .9, fit_lm = TRUE, lm_method = "lm", identity_line=TRUE, size=NULL)
+
+# Add description ______________________________________________________________
+sp +  
+
+  theme(text = element_text(size = 15)) +theme(aspect.ratio=1) +
+  theme(axis.line = element_line(colour = "black"),
+      panel.background = element_blank(),
+      plot.subtitle = ggtext::element_textbox_simple(size= 11))
+
+```
+
+### NPS demeaned cue *expect
+
+```{r echo=FALSE}
+# maindata <- pvc %>%
+# group_by(src_subject_id, session_id, param_run_num) %>%
+# mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
+# mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
+# mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
+# mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
+# mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
+# mutate(demean_expect = event02_expect_angle - avg_expect)
+
+# NPS_dropna <- NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$NPSpos) ,]
+NPS_dropna <- NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$demean_NPS) & (NPS.df$ses == "ses-01" | NPS.df$ses == "ses-03"),]
+sp <- plot_twovariable(
+  df = NPS_dropna, 
+  iv1 = "demean_expect", iv2 = "NPSpos",
+  group = "cuetype", subject ="sub", 
+  xmin=-50, xmax=50, ymin=-10,ymax=25,
+  xlab = "Expectation rating\n(subjectwise-demeaned)", ylab = "NPSpos", 
+  ggtitle="", color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"), 
+  alpha = .9, fit_lm = TRUE, lm_method = "lm", identity_line=TRUE, size=NULL)
+
+# Add description ______________________________________________________________
+sp +  
+
+  theme(text = element_text(size = 15)) +theme(aspect.ratio=1) +
+  theme(axis.line = element_line(colour = "black"),
+      panel.background = element_blank(),
+      plot.subtitle = ggtext::element_textbox_simple(size= 11))
+
+
+```
+
+
+
+## Behavioral data
+### lmer
+```{r}
+NPS.df$EXPECT_demean <- NPS.df$demean_expect; NPS.df$OUTCOME_demean <- NPS.df$demean_outcome
+model.behexpectdemean <- lmer(event04_actual_angle ~ 
+                          CUE_high_gt_low*STIM_linear*EXPECT_demean +
+                          CUE_high_gt_low*STIM_quadratic*EXPECT_demean +
+                          EXPECT_cmc + # lag.04outcomeangle +
+                          (1 |sub), data = NPS.df
+                    ) 
+# CUE_high_gt_low+STIM+EXPECT_demean
+sjPlot::tab_model(model.behexpectdemean,
+                  title = "Multilevel-modeling: \nlmer(OUTCOME ~ CUE * STIM * EXPECT_demean + (1| sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+```
+
+```{r}
+# NPS.df$EXPECT_demean <- NPS.df$demean_expect; NPS.df$OUTCOME_demean <- NPS.df$demean_outcome
+model.fig1<- lmer(OUTCOME_demean ~ 
+                          CUE_high_gt_low*EXPECT_demean +
+                          
+                          (1|sub), data = NPS.df
+                    ) 
+# CUE_high_gt_low+STIM+EXPECT_demean
+sjPlot::tab_model(model.fig1,
+                  title = "Multilevel-modeling: \nlmer(OUTCOME ~ CUE * STIM + (CUE| sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+```
+
+```{r}
+# NPS.df$EXPECT_demean <- NPS.df$demean_expect; NPS.df$OUTCOME_demean <- NPS.df$demean_outcome
+model.behoutcome<- lmer(event04_actual_angle ~ 
+                          CUE_high_gt_low*STIM_linear +
+                          CUE_high_gt_low*STIM_quadratic +
+                          (CUE_high_gt_low|sub), data = NPS.df
+                    ) 
+# CUE_high_gt_low+STIM+EXPECT_demean
+sjPlot::tab_model(model.behoutcome,
+                  title = "Multilevel-modeling: \nlmer(OUTCOME ~ CUE * STIM + (CUE| sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+```
+
+
+### Fig A2: behavioral demeaned (both)
+
+```{r echo=FALSE}
+# maindata <- pvc %>%
+# group_by(src_subject_id, session_id, param_run_num) %>%
+# mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
+# mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
+# mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
+# mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
+# mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
+# mutate(demean_expect = event02_expect_angle - avg_expect)
+
+beh_dropna <- NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$demean_outcome) ,]
+
+a2 <- plot_twovariable(
+  df = beh_dropna, 
+  iv1 = "demean_expect", iv2 = "demean_outcome",
+  group = "cuetype", subject ="sub", 
+  xmin=-50, xmax=50, ymin=-25,ymax=25,
+  xlab = "Expectation rating", ylab = " ", 
+  ggtitle="", color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"), 
+  alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line=TRUE, size=NULL)
+
+# Add description ______________________________________________________________
+save.sp <- a2 +  
+
+  theme(text = element_text(size = 20)) +theme(aspect.ratio=1) +
+  theme(
+    # axis.line = element_line(colour = "black"),
+      panel.background = element_blank(),
+      plot.subtitle = ggtext::element_textbox_simple(size= 11))
+save.sp
+ggsave('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/analysis/mixedeffect/CCNfigures/figA2.png', save.sp)
+
+
+# med <- med + theme(text = element_text(size = 14)) + theme(aspect.ratio=1) 
+# high <- high + theme(text = element_text(size = 14)) + theme(aspect.ratio=1) 
+# 
+# plots <- ggpubr::ggarrange(sp, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+# plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
+# plots
+```
+
+### Fig A1: behavioral lineplots
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#  [ PLOT ] calculate mean and se  _________________________
+beh_dropna <- NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$demean_outcome) ,]
+
+# pvc <-simple_contrasts_beh(maindata)
+LINEIV1 = "stim_ordered"
+LINEIV2 = "cue_ordered"
+MEAN = "mean_per_sub_norm_mean"
+ERROR = "ci"
+dv_keyword = "actual"
+model_iv1 = "stim_ordered"
+model_iv2 = "cue_ordered"
+dv = "demean_outcome"
+taskname <- "pain"
+stimcue_subjectwise <- meanSummary(NPS.df,
+                                      c(subject, model_iv1, model_iv2), dv)
+df_dropna <- stimcue_subjectwise[!is.na(stimcue_subjectwise[, "mean_per_sub"]), ]
+stimcue_groupwise <- summarySEwithin(
+  data = df_dropna,
+  measurevar = "mean_per_sub",
+  withinvars = c(model_iv1, model_iv2),
+  idvar = subject
+)
+stimcue_groupwise$task <- taskname
+DATA = as.data.frame(stimcue_groupwise)
+color = c("#5D5C5C", "#941100")
+LINEIV1 = "stim_ordered"
+LINEIV2 = "cue_ordered"
+MEAN = "mean_per_sub_norm_mean"
+ERROR = "ci"
+dv_keyword = "actual"
+a1 = plot_lineplot_twofactor_subset(DATA, task = "pain",
+               LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'pain' , ylab = "Outcome rating")
+a1.save <- a1 + theme(text = element_text(size = 20)) +theme(aspect.ratio=1) +
+  theme(
+    # axis.line = element_line(colour = "black"),
+      panel.background = element_blank(),
+      plot.subtitle = ggtext::element_textbox_simple(size= 11))
+a1.save
+ggsave('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/analysis/mixedeffect/CCNfigures/figA1.png', p1)
+
+```
+### Fig A1, A2, B
+```{r}
+a1.combine <- a1 + theme(text = element_text(size = 14), 
+                       aspect.ratio=1,
+                       axis.line = element_line(colour = "grey50"),
+                       panel.background = element_blank())
+a2.combine <- a2 + theme(text = element_text(size = 14), 
+                       aspect.ratio=1,
+                       axis.line = element_line(colour = "grey50"),
+                       panel.background = element_blank())
+fig.b <- fig.b + theme(text = element_text(size = 14), 
+                       aspect.ratio=1,
+                       axis.line = element_line(colour = "grey50"),
+                       panel.background = element_blank())
+
+fig.ab <- ggpubr::ggarrange(a1.combine, a2.combine, fig.b, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
+ggsave('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/analysis/mixedeffect/CCNfigures/figAB.png', fig.ab)
+fig.ab
+```
+
+
+
+### Fig C: behavioral cue * stim * expect
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# ---------------------------- figure parameters -------------------------------
+iv1 = "demean_expect"; iv2 = "demean_outcome"; group = "cuetype"; subject = "sub";
+xmin = -50; xmax = 50; ymin = -50; ymax = 50;
+xlab = "Expectation rating"; ylab = "Outcome rating";
+alpha = .6; fit_lm = TRUE; lm_method = "lm";identity_line = FALSE; size =  NULL
+# ------------------------------------------------------------------------------
+
+df_dropna <- NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$demean_outcome),]
+df_low = df_dropna[df_dropna$stimintensity == "low", ]
+low <-
+  plot_twovariable(
+    df_low, iv1, iv2, group, subject, xmin, xmax, ymin, ymax, xlab, ylab,  
+    ggtitle = "Low intensity",
+    color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
+    alpha, fit_lm,lm_method, identity_line, size
+  )
+
+df_med = df_dropna[df_dropna$stimintensity == "med", ]
+med <-
+  plot_twovariable(
+    df_med, iv1, iv2, group, subject, xmin, xmax, ymin, ymax, xlab, ylab = " ",  
+    ggtitle = "Medium intensity",
+    color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
+    alpha, fit_lm,lm_method, identity_line, size
+  )
+
+df_high = df_dropna[df_dropna$stimintensity == "high", ]
+high <-
+  plot_twovariable(
+    df_high, iv1, iv2, group, subject, xmin, xmax, ymin, ymax, xlab, ylab = " ",  
+    ggtitle = "High intensity",
+    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
+    alpha, fit_lm,lm_method, identity_line, size
+  )
+
+low <- low + theme(text = element_text(size = 14)) + theme(aspect.ratio=1) 
+med <- med + theme(text = element_text(size = 14)) + theme(aspect.ratio=1) 
+high <- high + theme(text = element_text(size = 14)) + theme(aspect.ratio=1) 
+
+plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 50))
+plots
+ggsave('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/analysis/mixedeffect/CCNfigures/figC.png', plots)
+```
+
+## Simulation
+```{r include=FALSE}
+# _________________________ load files _________________________________________
+expect_fname = '/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/data/simulated/0411/table_exp.csv'
+outcome_fname = '/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/data/simulated/0411/table_pain.csv'
+expect = read.csv(expect_fname)
+outcome = read.csv(outcome_fname)
+
+# _________________________ expectation rating _________________________________
+expect$sub <- rep(1:250, each = 2)
+expect_long <- expect %>%
+  pivot_longer(
+    cols = c("mean_ExpL_Subj_N1", "mean_ExpL_Subj_N2", "mean_ExpL_Subj_N3", 
+              "mean_ExpH_Subj_N1", "mean_ExpH_Subj_N2", "mean_ExpH_Subj_N3"),
+    names_to = c("cue_level", "noxious"),  # split column names into Exp and Subj columns
+    names_pattern = "mean_(Exp.*)_Subj_N(.*)"  # use regular expression to extract Exp and Subj values
+  )
+E.df <- expect_long %>%
+  mutate(
+    stimulusintensity = case_when(
+      noxious == 1 ~ "low_stim",
+      noxious == 2 ~ "med_stim",
+      noxious == 3 ~ "high_stim",
+    ),
+    cue = case_when(
+      cue_level == "ExpH" ~ "high_cue",
+      cue_level == "ExpL" ~ "low_cue"
+    )
+    )
+E.df$expectation <- E.df$value
+
+# _________________________ outcome rating _________________________________
+outcome$sub <- rep(1:250, each = 2) #1:nrow(outcome)
+outcome_long <- outcome %>%
+  pivot_longer(
+    cols = c("mean_PainL_Subj_N1", "mean_PainL_Subj_N2", "mean_PainL_Subj_N3", 
+              "mean_PainH_Subj_N1", "mean_PainH_Subj_N2", "mean_PainH_Subj_N3"),
+    names_to = c("cue_level", "noxious"),  # split column names into Exp and Subj columns
+    names_pattern = "mean_(Pain.*)_Subj_N(.*)"  # use regular expression to extract Exp and Subj values
+  )
+O.df <- outcome_long %>%
+  mutate(
+    stimulusintensity = case_when(
+      noxious == 1 ~ "low_stim",
+      noxious == 2 ~ "med_stim",
+      noxious == 3 ~ "high_stim",
+    ),
+    cue = case_when(
+      cue_level == "PainH" ~ "high_cue",
+      cue_level == "PainL" ~ "low_cue"
+    )
+    )
+O.df$outcome <- O.df$value
+# ---------------------------- combine dataframe -------------------------------
+merged_df <- merge(E.df, O.df, by = c("sub", "cue", "stimulusintensity"))
+merge.df <- data.frame(merged_df)
+clean.df <- merge.df[,c("sub", "cue", "stimulusintensity", "expectation", "outcome")]
+```
+
+### Fig D: 3 panel cue * stim * expect
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# ---------------------------- figure parameters -------------------------------
+iv1 = "expectation"; iv2 = "outcome"; group = "cue"; subject = "sub";
+xmin = 48; xmax = 50; ymin = 48; ymax = 50;
+xlab = "Simulated expectation"; ylab = "Simulated outcome";
+alpha = .6; fit_lm = TRUE; lm_method = "lm";identity_line = FALSE; size =  NULL
+# ------------------------------------------------------------------------------
+
+# low stimulus intensity
+df_low = clean.df[clean.df$stimulusintensity == "low_stim", ]
+low <-
+  plot_twovariable(
+    df_low, iv1, iv2, group, subject, xmin, xmax, ymin, ymax, xlab, ylab,
+    ggtitle = "Low intensity", color_scheme = c("high_cue" ="#C506FF","low_cue" =  "#5D5C5C"),
+    alpha = .5, fit_lm = FALSE, lm_method = "lm", identity_line=FALSE, size=NULL
+  )
+
+# med stimulus intensity
+df_med = clean.df[clean.df$stimulusintensity == "med_stim", ]
+med <-
+  plot_twovariable(
+    df_med, iv1, iv2, group, subject, xmin, xmax, ymin, ymax, xlab, ylab = " ",
+    ggtitle = "Medium intensity", color_scheme = c("high_cue" ="#9118DD","low_cue" =  "#5D5C5C"),
+    alpha = .5, fit_lm = FALSE, lm_method = "lm", identity_line=FALSE, size=NULL
+  )
+
+# high stimulus intensity
+df_high = clean.df[clean.df$stimulusintensity == "high_stim", ]
+high <-
+  plot_twovariable(
+    df_high, iv1, iv2, group, subject, xmin, xmax, ymin, ymax, xlab, ylab = " ",
+    ggtitle = "High intensity", color_scheme = c("high_cue" ="#5C29BA","low_cue" =  "#5D5C5C"),
+    alpha = .5, fit_lm = FALSE, lm_method = "lm", identity_line=FALSE, size=NULL
+  )
+
+integer_breaks <- function(n = 3, ...) {
+  fxn <- function(x) {
+    breaks <- floor(pretty(x, n, ...))
+    names(breaks) <- attr(breaks, "labels")
+    breaks
+  }
+  return(fxn)
+}
+  # scale_y_continuous(breaks= pretty_breaks())
+
+low <- low + theme(text = element_text(size = 12)) + theme(aspect.ratio=1)+ scale_x_continuous(breaks = seq(48, 50)) 
+med <- med + theme(text = element_text(size = 12)) + theme(aspect.ratio=1) + scale_x_continuous(breaks = seq(48, 50)) 
+high <- high + theme(text = element_text(size = 12)) + theme(aspect.ratio=1) +scale_x_continuous(breaks = seq(48, 50)) 
+
+plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
+plots
+ggsave('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/analysis/mixedeffect/CCNfigures/figD.png', plots)
+```
+
+## save dataframe
+```{r}
+write.csv(NPS.df,'/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/analysis/mixedeffect/CCNfigures/dataframe.csv')
+```
+
