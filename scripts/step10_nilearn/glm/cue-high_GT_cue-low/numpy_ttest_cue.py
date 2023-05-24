@@ -55,34 +55,39 @@ subavgL = []
 subavgH = []
 suballL = []
 suballH = []
-sub_list.remove(['sub-0070', 'sub-0071'])
+sub_list.remove( 'sub-0071')
 # %%
 for sub in sub_list:
     print(f"_____________{sub}_____________")
     flist = glob.glob(os.path.join(beta_dir, sub, f"{sub}_*{task}*.npy"))
-    unique_ses, unique_run = extract_ses_and_run(flist)
-    avgallL = []; avgallH = []
-    for ses, run in product(unique_ses, unique_run): #sub-0123_ses-01_run-01_runtype-pain_event-stimulus_trial-000_cuetype-high_stimintensity-low.npy
-        cueL_flist = glob.glob(os.path.join(beta_dir, sub, f"{sub}_{ses}_{run}*{task}*event-stimulus_*_cuetype-low*.npy"))
-        cueH_flist = glob.glob(os.path.join(beta_dir, sub, f"{sub}_{ses}_{run}*{task}*event-stimulus_*_cuetype-high*.npy"))
-        runstackL = [];runstackH = []
-        avgrunL = []; avgrunH = []
-        if cueL_flist != []:
-            runstackL = [np.load(cueL_fpath).ravel() for cueL_fpath in cueL_flist]
-            runstackH = [np.load(cueH_fpath).ravel() for cueH_fpath in cueH_flist]
-            
-            avgrunL = np.mean(np.vstack(runstackL), axis=0)
-            avgallL.append(avgrunL)
-            
-            avgrunH = np.mean(np.vstack(runstackH), axis=0)
-            avgallH.append(avgrunH)
-        else:
-            continue
-    subavgL = np.mean(np.vstack(avgallL), axis=0)
-    suballL.append(subavgL)
-    
-    subavgH = np.mean(np.vstack(avgallH), axis=0)
-    suballH.append(subavgH)
+    if flist != []:
+        unique_ses, unique_run = extract_ses_and_run(flist)
+        avgallL = []; avgallH = []
+        for ses, run in product(unique_ses, unique_run): #sub-0123_ses-01_run-01_runtype-pain_event-stimulus_trial-000_cuetype-high_stimintensity-low.npy
+            # print(f"_____________{ses} {run} _____________")
+            cueL_flist = glob.glob(os.path.join(beta_dir, sub, f"{sub}_{ses}_{run}*{task}*event-stimulus_*_cuetype-low*.npy"))
+            cueH_flist = glob.glob(os.path.join(beta_dir, sub, f"{sub}_{ses}_{run}*{task}*event-stimulus_*_cuetype-high*.npy"))
+            runstackL = [];runstackH = []
+            # avgrunL = []; avgrunH = []
+            if cueL_flist != [] or cueH_flist != []:
+                runstackL = [np.load(cueL_fpath).ravel() for cueL_fpath in cueL_flist]
+                runstackH = [np.load(cueH_fpath).ravel() for cueH_fpath in cueH_flist]
+                
+                avgrunL = np.mean(np.vstack(runstackL), axis=0)
+                avgallL.append(avgrunL)
+                
+                avgrunH = np.mean(np.vstack(runstackH), axis=0)
+                avgallH.append(avgrunH)
+            else:
+                continue
+        
+        subavgL = np.mean(np.vstack(avgallL), axis=0)
+        suballL.append(subavgL)
+        print(f"{sub} {suballL.shape}")
+        subavgH = np.mean(np.vstack(avgallH), axis=0)
+        suballH.append(subavgH)
+    else:
+        continue
     # subavgL.appen()
 # %%
 suballLv = np.vstack(suballL)
