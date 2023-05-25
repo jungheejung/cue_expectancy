@@ -4,6 +4,7 @@ import glob
 import os
 import pathlib
 import re
+import json
 
 import scipy
 import nilearn
@@ -39,7 +40,7 @@ def extract_ses_and_run(flist):
 
 # beta_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv05_singletrialnpy'
 beta_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv05_singletrialnpy'
-task = 'pain'
+
 sub_list = sorted(next(os.walk(beta_dir))[1])
  
 
@@ -48,7 +49,7 @@ import glob
 import os
 import numpy as np
 from itertools import product
-
+task = 'pain'
 avgallL = []
 avgallH = []
 subavgL = []
@@ -86,9 +87,16 @@ for sub in sub_list:
 
 suballLv = np.vstack(suballL)
 suballHv = np.vstack(suballH)
-np.save(os.path.join(beta_dir, f"sub-avg_ses-avg_run-avg_event-stimulus_stimintensity-low.npy"), suballLv)
-np.save(os.path.join(beta_dir, f"sub-avg_ses-avg_run-avg_event-stimulus_stimintensity-high.npy"), suballHv)
+np.save(os.path.join(beta_dir, f"sub-avg_ses-avg_run-avg_task-{task}_event-stimulus_stimintensity-low.npy"), suballLv)
+np.save(os.path.join(beta_dir, f"sub-avg_ses-avg_run-avg_task-{task}_event-stimulus_stimintensity-high.npy"), suballHv)
+
+dict = {'sub': sub_list, 
+        'code': '../scripts/step10_nilearn/glm/cue-high_GT_cue-low/numpy_ttest_cue.py'}
+with open(os.path.join(beta_dir, f"sub-avg_ses-avg_run-avg_task-{task}_event-stimulus_stimintensity-high.json"), 'w') as json_file:
+    json.dump(dict, json_file)
+with open(os.path.join(beta_dir, f"sub-avg_ses-avg_run-avg_task-{task}_event-stimulus_stimintensity-low.json"), 'w') as json_file:
+    json.dump(dict, json_file)
 
 
 
-
+# %%
