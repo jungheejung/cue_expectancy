@@ -289,7 +289,7 @@ for beh_fname in beh_clean_list:
     glm_parameters = {'drift_model':None,
     'drift_order': 1,
     'fir_delays': [0],
-    'high_pass': 0.01,
+    # 'high_pass': 0.01, This parameter specifies the cut frequency of the high-pass filter in Hz for the design matrices. Used only if drift_model is ‘cosine’. Default=0.01.
     'hrf_model': 'spm', #
     'mask_img': None,
     #  'memory': Memory(location=None),
