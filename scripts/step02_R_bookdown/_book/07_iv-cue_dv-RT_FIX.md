@@ -1,9 +1,8 @@
-# RT ~ cue {#ch07_RT-cue}
+# [beh] RT ~ cue {#ch07_RT-cue}
 
-""" 
-This Rmarkdown tests the cue effect (high vs. low) on Reaction time and performance in the cogntive, mental-rotation tasks
-"""
+## What is the purpose of this notebook? {.unlisted .unnumbered}
 
+Here, I test the cue effect (high vs. low) on Reaction time and performance in the cogntive, mental-rotation tasks
 
 * left = diff, right = same
 * model 1: Does RT differ as a function of cue type?
@@ -176,6 +175,17 @@ groupwise <- summarySEwithin(
 ```
 
 ```
+## 
+## Attaching package: 'raincloudplots'
+```
+
+```
+## The following object is masked _by_ '.GlobalEnv':
+## 
+##     GeomFlatViolin
+```
+
+```
 ## Automatically converting the following non-factors to factors: param_cue_type
 ```
 
@@ -198,7 +208,7 @@ plot_savefname <- file.path(
             sep = ""
         )
     )
-plot_rainclouds_onefactor(
+plot_halfrainclouds_onefactor(
         subjectwise, groupwise,
         iv, subjectwise_mean, group_mean, se, subject,
         ggtitle, title, xlab, ylab, task_name, ylim,
@@ -207,57 +217,8 @@ plot_rainclouds_onefactor(
 ```
 
 ```
-## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], y
-## = .data[[subjectwise_mean]], : Ignoring unknown aesthetics: fill
-```
-
-```
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-```
-
-```
-## Warning in min(x): no non-missing arguments to min; returning Inf
-```
-
-```
-## Warning in max(x): no non-missing arguments to max; returning -Inf
-```
-
-```
-## Warning: Using the `size` aesthietic with geom_polygon was deprecated in ggplot2 3.4.0.
-## ℹ Please use the `linewidth` aesthetic instead.
-```
-
-```
-## Warning: Removed 210 rows containing missing values (`geom_line()`).
-```
-
-```
-## Warning: Removed 210 rows containing missing values (`geom_point()`).
-```
-
-```
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-```
-
-```
-## Warning in min(x): no non-missing arguments to min; returning Inf
-```
-
-```
-## Warning in max(x): no non-missing arguments to max; returning -Inf
-```
-
-```
-## Warning: Removed 210 rows containing missing values (`geom_line()`).
-```
-
-```
-## Warning: Removed 210 rows containing missing values (`geom_point()`).
+## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
+## as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
 ```
 
 <img src="07_iv-cue_dv-RT_FIX_files/figure-html/m1_cue_effect_on_RT_6-1.png" width="672" />
@@ -351,52 +312,8 @@ write.csv(new_total, rand_savefname, row.names = FALSE)
 ```
 
 ```
-## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], y
-## = .data[[subjectwise_mean]], : Ignoring unknown aesthetics: fill
-```
-
-```
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-```
-
-```
-## Warning in min(x): no non-missing arguments to min; returning Inf
-```
-
-```
-## Warning in max(x): no non-missing arguments to max; returning -Inf
-```
-
-```
-## Warning: Removed 210 rows containing missing values (`geom_line()`).
-```
-
-```
-## Warning: Removed 210 rows containing missing values (`geom_point()`).
-```
-
-```
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-```
-
-```
-## Warning in min(x): no non-missing arguments to min; returning Inf
-```
-
-```
-## Warning in max(x): no non-missing arguments to max; returning -Inf
-```
-
-```
-## Warning: Removed 210 rows containing missing values (`geom_line()`).
-```
-
-```
-## Warning: Removed 210 rows containing missing values (`geom_point()`).
+## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
+## as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
 ```
 
 <img src="07_iv-cue_dv-RT_FIX_files/figure-html/model_1-1_correct_trials_only_6-1.png" width="672" />
@@ -446,18 +363,12 @@ write.csv(new_total, rand_savefname, row.names = FALSE)
 ```
 
 ```
-## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], y
-## = .data[[subjectwise_mean]], : Ignoring unknown aesthetics: fill
+## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
+## as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
 ```
 
 ```
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-```
-
-```
-## Warning: Removed 1 rows containing non-finite values (`stat_ydensity()`).
+## Warning: Removed 1 rows containing non-finite values (`stat_half_ydensity()`).
 ```
 
 ```
@@ -465,29 +376,15 @@ write.csv(new_total, rand_savefname, row.names = FALSE)
 ```
 
 ```
-## Warning in min(x): no non-missing arguments to min; returning Inf
+## Warning: Removed 1 row containing missing values (`geom_line()`).
 ```
 
 ```
-## Warning in max(x): no non-missing arguments to max; returning -Inf
+## Warning: Removed 1 rows containing missing values (`geom_point()`).
 ```
 
 ```
-## Warning: Removed 198 rows containing missing values (`geom_line()`).
-```
-
-```
-## Warning: Removed 198 rows containing missing values (`geom_point()`).
-```
-
-```
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-```
-
-```
-## Warning: Removed 1 rows containing non-finite values (`stat_ydensity()`).
+## Warning: Removed 1 rows containing non-finite values (`stat_half_ydensity()`).
 ```
 
 ```
@@ -495,19 +392,11 @@ write.csv(new_total, rand_savefname, row.names = FALSE)
 ```
 
 ```
-## Warning in min(x): no non-missing arguments to min; returning Inf
+## Warning: Removed 1 row containing missing values (`geom_line()`).
 ```
 
 ```
-## Warning in max(x): no non-missing arguments to max; returning -Inf
-```
-
-```
-## Warning: Removed 198 rows containing missing values (`geom_line()`).
-```
-
-```
-## Warning: Removed 198 rows containing missing values (`geom_point()`).
+## Warning: Removed 1 rows containing missing values (`geom_point()`).
 ```
 
 <img src="07_iv-cue_dv-RT_FIX_files/figure-html/model_1-2_incorrect_trials_only_6-1.png" width="672" />
@@ -556,52 +445,8 @@ write.csv(new_total, rand_savefname, row.names = FALSE)
 ```
 
 ```
-## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], y
-## = .data[[subjectwise_mean]], : Ignoring unknown aesthetics: fill
-```
-
-```
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-```
-
-```
-## Warning in min(x): no non-missing arguments to min; returning Inf
-```
-
-```
-## Warning in max(x): no non-missing arguments to max; returning -Inf
-```
-
-```
-## Warning: Removed 210 rows containing missing values (`geom_line()`).
-```
-
-```
-## Warning: Removed 210 rows containing missing values (`geom_point()`).
-```
-
-```
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-```
-
-```
-## Warning in min(x): no non-missing arguments to min; returning Inf
-```
-
-```
-## Warning in max(x): no non-missing arguments to max; returning -Inf
-```
-
-```
-## Warning: Removed 210 rows containing missing values (`geom_line()`).
-```
-
-```
-## Warning: Removed 210 rows containing missing values (`geom_point()`).
+## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
+## as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
 ```
 
 <img src="07_iv-cue_dv-RT_FIX_files/figure-html/m2_cue_effect_on_log-RT_6-1.png" width="672" />
