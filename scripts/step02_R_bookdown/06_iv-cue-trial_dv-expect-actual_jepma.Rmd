@@ -10,7 +10,6 @@ Here, we plot the expectancy ratings and the actual ratings, with the high and l
 * I need to check whether the counterbalancing was done correctly. 
 
 
-
 ```{r load_libraries_5, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
 library(psych)
 library(car)
@@ -133,10 +132,7 @@ car::vif(lm(event04_actual_angle ~  event02_expect_angle + event02_expect_RT + e
 ```{r transform data to longform}
 
 # subject # run # param_cue # param_stim # rating_type # rating_value
-#tidyr::pivot(data, key = "rating_value", value = c('event02_expect_angle', 'event04_actual_angle'))
-# TODO: need to add tirla numbers
 
-#data$trial = lapply(c("src_subject_id", "session_id", "param_run_num"), factor)
 data_trial= data %>%
   arrange(src_subject_id, session_id, param_run_num) %>%
   group_by(src_subject_id) %>%
@@ -382,13 +378,7 @@ Averaging across participants will be the only source of variability, reflected 
 trialorder_groupwise_p2$rating_type_key <- mapvalues(trialorder_groupwise_p2$rating_type,
                                                 from = c("event02_expect_angle", "event04_actual_angle"),
                                                 to = c("expect", "actual"))
-# trialorder_groupwise_p2$rating_type_key <- mapvalues(trialorder_groupwise_p2$rating_type,
-#                                                 from = c("event02_expect_angle", "event04_actual_angle"),
-#                                                 to = c("expect", "actual"))
-# actual_trialorder_groupwise <- trialorder_groupwise_p2[which(trialorder_groupwise_p2$rating_type_key == "actual"),]
-# expect_trialorder_groupwise <-trialorder_groupwise_p2[which(trialorder_groupwise_p2$rating_type_key == "expect"),]
-# actual_trialorder_subjectwise <- trialorder_subjectwise_p2[which(trialorder_subjectwise_p2$rating_type_key == "actual"),]
-# expect_trialorder_subjectwise <-trialorder_subjectwise_p2[which(trialorder_subjectwise_p2$rating_type_key == "expect"),]
+
 ```
 
 ggplot
@@ -908,145 +898,7 @@ g <- ggplot(
 theme(aspect.ratio = .7)
 g
 ```
-## pain - outcome rating only
-```{r}
-# * dataset: trialorder_groupwise_p2
-# * x-axis: trial_index (sorted)
-# * y-axis: rating
-# * group: cue_ordered, rating_type
-# * DV: mean_per_sub_norm_mean
-# * error bar: se
-main_dir = dirname(dirname(getwd()))
-datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
-# parameters _____________________________________ # nolint
-subject_varkey <- "src_subject_id"
-iv <- "param_cue_type"
-dv <- "event03_RT"
-dv_keyword <- "RT"
-xlab <- ""
-taskname <- "pain"
 
-ylab <- "Outcome Ratings (degree)"
-subject <- "subject"
-exclude <-
-  "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999" #/ "sub-0999|sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0007|sub-0008|sub-0009|sub-0010|sub-0011"
-data <- data.frame()
-# load data _____________________________________
-data <-
-  load_task_social_df(
-    datadir,
-    taskname = taskname,
-    subject_varkey = subject_varkey,
-    iv = iv,
-    exclude = exclude
-  )
-data$event03_RT <-
-  data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
-data_p2 = data %>%
-  arrange(src_subject_id) %>%
-  group_by(src_subject_id) %>%
-  mutate(trial_index = row_number())
-
-
-df_clean <- data_p2[complete.cases(data_p2$event02_expect_angle),]
-
-count_trial <- df_clean %>% count("src_subject_id")
-included_ids <-
-  count_trial[(count_trial$freq > 60) &
-                (count_trial$freq < 73), ]$src_subject_id
-
-# Subset the data frame to include only the listed IDs
-
-data_p2_long = df_clean %>%
-  pivot_longer(
-    cols = c('event04_actual_angle'),
-    names_to = "rating_type",
-    values_to = "rating_value"
-  )
-data_p2_long <-
-  data_p2_long[data_p2_long$src_subject_id %in% included_ids,]
-
-data_p2_long$cue_name[data_p2_long$param_cue_type == "high_cue"] <-
-  "high cue"
-data_p2_long$cue_name[data_p2_long$param_cue_type == "low_cue"] <-
-  "low cue"
-
-data_p2_long$stim_name[data_p2_long$param_stimulus_type == "high_stim"] <-
-  "high"
-data_p2_long$stim_name[data_p2_long$param_stimulus_type == "med_stim"] <-
-  "med"
-data_p2_long$stim_name[data_p2_long$param_stimulus_type == "low_stim"] <-
-  "low"
-
-data_p2_long$stim_ordered <- factor(data_p2_long$stim_name,
-                                    levels = c("low", "med", "high"))
-data_p2_long$cue_ordered <- factor(data_p2_long$cue_name,
-                                   levels = c("low cue", "high cue"))
-model_iv1 <- "stim_ordered"
-model_iv2 <- "cue_ordered"
-rating <- "rating_type"
-dv <- "rating_value"
-
-trialorder_subjectwise_p2 <- meanSummary(data_p2_long,
-                                         c(model_iv2, "trial_index"), dv)
-
-subjectwise_naomit_p2 <- na.omit(trialorder_subjectwise_p2)
-trialorder_groupwise_p2 <- summarySEwithin(
-  data = subjectwise_naomit_p2,
-  measurevar = "mean_per_sub",
-  withinvars = c("cue_ordered", "trial_index"), #
-  idvar = subject
-)
-# trialorder_subjectwise_p2
-trialorder_subjectwise_p2[nrow(trialorder_subjectwise_p2) + 1,] <- c("low cue", 73, NA, NA)
-trialorder_subjectwise_p2[nrow(trialorder_subjectwise_p2) + 1,] <- c("high cue", 73, NA, NA)
-g <- ggplot(data = trialorder_subjectwise_p2,
-            aes(x = trial_index,
-                y = mean_per_sub,
-                color = cue_ordered))+
-                # group = rating_type)) +
-                geom_segment(data = trialorder_subjectwise_p2,
-                             aes(xend = c(tail(trial_index, n = -1), NA),
-                                 yend = c(tail(mean_per_sub, n = -1), NA))) +
-                  geom_point(
-                    data = trialorder_subjectwise_p2,
-                    aes(# shape = as.character(rating_type),
-                      x = trial_index,
-                      y = mean_per_sub,
-                      # group = rating_type,
-                      color = cue_ordered),
-                    #position = position_jitter(width = .05),
-                    size = 2.5,
-                    na.rm = FALSE
-                  ) +
-                  scale_shape_manual(values = c(16, 21)) +
-                  
-                  # scale_x_continuous(breaks = seq(0, 72, by = 5)) +
-  geom_errorbar(
-    data = trialorder_subjectwise_p2,
-    aes(
-      x = as.numeric(trial_index),
-      y = mean_per_sub,
-      # group = rating_type,
-      colour = cue_ordered,
-      ymin = mean_per_sub - sd/sqrt(length(unique(data_p2_long$src_subject_id))),
-      ymax = mean_per_sub + sd/sqrt(length(unique(data_p2_long$src_subject_id)))
-      ), width = .1, size = 0.5, na.rm = TRUE
-    ) +
-                  scale_color_manual(values = c("high cue" = "red",
-                                                "low cue" = "blue")) +
-                  xlab("No. of trials") +
-                  ylab("Outcome Rating") +
-                  labs(
-                    title = paste(
-                      taskname  )) +
-                  ylim(0, 120) +
-                  theme_classic2() +
-                  
-                  theme(aspect.ratio = .7)
-                
-                g
-```
 
 # within subject vicarious
 
@@ -1763,28 +1615,6 @@ ggplot(data_a3lag_omit, aes(y = event02_expect_angle,
   geom_point(size = .1) + 
   geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .3) +
   theme_bw()
-```
-
-```{r DEP}
-# data_a3lag_omit$subject = as.factor(data_a3lag_omit$src_subject_id)
-# model.lagoutcome = lmer(event02_expect_angle ~ lag.04outcomeangle + (1 |subject), data = data_a3lag_omit)
-# # unique(as.numeric(row.names(ranef(model.lagoutcome)$src_subject_id)))
-# 
-# data_a3lag %>%
-#   modelr::add_predictions(model.lagoutcome, var = 'event02_expect_angle') %>%
-#   dplyr::group_by(subject) %>%
-#   # group_by(src_subject_id) %>%
-#   plot_ly %>%
-#   add_lines(
-#     x =  ~ lag.04outcomeangle,
-#     y =  ~ mixed,
-#     opacity = .2,
-#     color = '#00aaff',
-#     size = .5,
-#     name = 'Mixed\nModel'
-#   ) %>%
-#   layout(yaxis = list(title = 'event02_expect_angle')) %>%
-#   theme_plotly()
 ```
 
 ## Additional analysis
