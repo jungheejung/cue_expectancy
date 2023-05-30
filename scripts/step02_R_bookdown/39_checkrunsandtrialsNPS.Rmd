@@ -1,8 +1,8 @@
-# single trial QC {#singletrialqc}
+# [fMRI] single trial QC {#ch39_singletrialqc}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
-* The single trials and the univariate maps seems different, in the sense that the NPS extracted values are non-significant for the dummy univariate maps; the single trials are significant. 
-* Here, I test whether the order of single trials and session order has signficantly different values for NPS
+* I started this analysis because the single trial models and the univariate maps seemed different. The NPS extracted values are non-significant for the dummy univariate maps; the single trials are significant. Also, the activation for the pain dummy contrast between high and low stimulus intensity is almost non-significant.  ~/social_influence_analysis/scripts/step04_SPM/6conditions/6cond_stimlinear_dummy.html
+* Here, I test whether the order of single trials and session order are significantly different in terms of NPS values. If so, this systematic difference may indicate a modeling difference across runs. 
 
 ## Reference {.unlisted .unnumbered}
 https://aosmith.rbind.io/2019/04/15/custom-contrasts-emmeans/
@@ -424,6 +424,18 @@ for (signature_key in c("NPSpos")) {
 ```{r}
 p
 ```
+### line plots {.unlisted .unnumbered}
+```{r echo=FALSE, warning=FALSE}
+
+g <- plot_lineplot_twofactor(groupwise,
+                        iv1 = "trial", iv2 = "task", 
+                        mean = "mean_per_sub_norm_mean", error = "se",
+                        color = c( 'pain' = "#941100", 'cognitive' = "#110094", 'vicarious' = '#009411'), ggtitle = "NPS (positive weights) & single trial dotproduct \nas a function of task and trial order", 
+                        xlab = "Trial order", ylab = "NPSpos (dot product)")
+g +  theme(legend.position = "bottom")
+g
+```
+
 
 ```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 addSmallLegend <- function(myPlot, pointSize = 0.5, textSize = 3, spaceLegend = 0.1) {
@@ -632,7 +644,7 @@ for (signature_key in c("NPSpos")) {
   dplyr::mutate(mean_run = mean(run_num))
   # compared to mean_run, is the run_num smaller or larger?
   pvc$formerlatter_run <- ifelse(pvc$mean_run >= pvc$run_num , "former", "latter")
-  pvc$ses_run <- interaction( pvc$ses, pvc$formerlatter_run,sep = "_")
+  pvc$ses_run <- interaction( pvc$formerlatter_run, pvc$ses,sep = "_")
 
   # step 3: parameters _________________________________________________________
   
@@ -642,25 +654,14 @@ for (signature_key in c("NPSpos")) {
   
   pvc$task = factor(pvc$task)
   plot_keys <- list(
-    sub_mean = "mean_per_sub",
-    group_mean = "mean_per_sub_norm_mean",
+    sub_mean = "mean_per_sub", group_mean = "mean_per_sub_norm_mean",
     legend_keyword = "ses_run",
-    se = "se",
-    subject = "sub",
+    se = "se", subject = "sub",
     ggtitle = paste0(
-      str_to_title(signature_key),
-      " dot product: ",
-      str_to_title(taskname),
-      ' ',
-      ggtitle_phrase,
-      " (N = ",
-      length(unique(pvc$sub)),
-      ")"
+      str_to_title(signature_key)," dot product: ",str_to_title(taskname),' ',ggtitle_phrase," (N = ",length(unique(pvc$sub)),")"
     ),
     title = paste0(
-      str_to_title(signature_key),
-      " - ",
-      str_to_title(plot_keyword)
+      str_to_title(signature_key)," - ",str_to_title(plot_keyword)
     ),
     xlab = "",
     ylab = paste(signature_key, " (dot product)"),
@@ -672,11 +673,8 @@ for (signature_key in c("NPSpos")) {
   subjectwise <- data.frame()
   summary <- summary_for_plots_PVC(
     df = pvc,
-    # taskname = taskname,
     groupwise_measurevar = plot_keys$sub_mean,
-    # "mean_per_sub",
     subject_keyword = plot_keys$subject,
-    # "sub",
     model_iv1 =  "task",
     model_iv2 =  "ses_run",
     dv = signature_key #"NPSpos"
@@ -709,12 +707,8 @@ for (signature_key in c("NPSpos")) {
   ggtitle <-
     paste0(
       str_to_title(signature_name),
-      " dot product: ",
-      str_to_title(taskname),
-      ' ',
-      ggtitle_phrase,
-      " (N = ",
-      length(unique(pvc$sub)),
+      " dot product: ",str_to_title(taskname),
+      ' ',ggtitle_phrase," (N = ",length(unique(pvc$sub)),
       ")"
     )
   
@@ -728,14 +722,10 @@ for (signature_key in c("NPSpos")) {
   plot2_savefname <- file.path(
     analysis_dir,
     paste(
-      "signature_task-",
-      taskname,
-      "_event-",
-      plot_keyword,
-      "_dv-",
-      signature_key,
-      "_",
-      as.character(Sys.Date()),
+      "signature_task-",      taskname,
+      "_event-",      plot_keyword,
+      "_dv-",      signature_key,
+      "_",      as.character(Sys.Date()),
       ".png",
       sep = ""
     )
@@ -766,6 +756,17 @@ for (signature_key in c("NPSpos")) {
 ```
 ```{r echo=FALSE, warning=TRUE}
 s
+```
+
+```{r echo=FALSE, warning=FALSE}
+
+g <- plot_lineplot_twofactor(groupwise,
+                        iv1 = "ses_run", iv2 = "task", 
+                        mean = "mean_per_sub_norm_mean", error = "se",
+                        color = c( 'pain' = "#941100", 'cognitive' = "#110094", 'vicarious' = '#009411'), ggtitle = "NPS (positive weights) & single trial dotproduct \nas a function of task and trial order", 
+                        xlab = "Session and Run order", ylab = "NPSpos (dot product)")
+g +  theme(legend.position = "bottom")
+g
 ```
 ### linear model: run/ses wise
 ```
