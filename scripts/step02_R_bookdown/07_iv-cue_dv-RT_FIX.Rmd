@@ -41,11 +41,13 @@ library(afex)
 library(cowplot)
 library(readr)
 library(lavaan)
+library(PupillometryR)
 library(rmarkdown)
 library(readr)
 library(caTools)
 library(bitops)
 library(stringr)
+library(gghalves)
 ## library(extraoperators)
 ##library(JWileymisc)
 ##library(multilevelTools)
@@ -108,8 +110,8 @@ ggplot(data,aes(x=event03_RT, group = subject)) +
 
 ---
 
-### exclude participants with RT of 5 seconds
-```{r}
+### exclude participants with RT of 5 seconds {.unlisted .unnumbered}
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 # parameters _____________________________________ # nolint
 subject_varkey <- "src_subject_id"
 iv <- "param_cue_type"
@@ -140,7 +142,7 @@ data$event03_correct <- ifelse(data$event03_C_stim_match == data$event03_respons
 * plotting all of the code
 * Does RT differ as a function of high vs. low cue?
 * conclusion: No. RT does not differ as a function of cue
-```{r m1_cue_effect_on_RT_6, echo=TRUE}
+```{r m1_cue_effect_on_RT_6, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # parameters ________________________________
 subject_varkey <- "src_subject_id"
 iv <- "param_cue_type"
@@ -205,7 +207,7 @@ plot_savefname <- file.path(
             sep = ""
         )
     )
-plot_rainclouds_onefactor(
+plot_halfrainclouds_onefactor(
         subjectwise, groupwise,
         iv, subjectwise_mean, group_mean, se, subject,
         ggtitle, title, xlab, ylab, task_name, ylim,
@@ -324,7 +326,7 @@ plot_savefname <- file.path(
             sep = ""
         )
     )
-plot_rainclouds_onefactor(
+plot_halfrainclouds_onefactor(
         subjectwise, groupwise,
         iv, subjectwise_mean, group_mean, se, subject,
         ggtitle, title, xlab, ylab, task_name, ylim,
@@ -444,7 +446,7 @@ plot_savefname <- file.path(
             sep = ""
         )
     )
-plot_rainclouds_onefactor(
+plot_halfrainclouds_onefactor(
         subjectwise, groupwise,
         iv, subjectwise_mean, group_mean, se, subject,
         ggtitle, title, xlab, ylab, task_name, ylim,
@@ -563,7 +565,7 @@ plot_savefname <- file.path(
             sep = ""
         )
     )
-plot_rainclouds_onefactor(
+plot_halfrainclouds_onefactor(
         subjectwise, groupwise,
         iv, subjectwise_mean, group_mean, se, subject,
         ggtitle, title, xlab, ylab, task_name, ylim,

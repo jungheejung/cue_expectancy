@@ -72,7 +72,8 @@ library(ggpubr)
 #library(Hmisc)
 #library(Rmisc)
 #library(dplyr)
-# library(PupillometryR)
+library(PupillometryR)
+library(gghalves)
 source('http://psych.colorado.edu/~jclab/R/mcSummaryLm.R')
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
@@ -96,7 +97,7 @@ datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
 
 ## Prepare data and preprocess
 ### 1) load data  {.unlisted .unnumbered}
-```{r load_data_7}
+```{r load_data_7, include=FALSE}
 # parameters _____________________________________ # nolint
 subject_varkey <- "src_subject_id"
 iv <- "param_cue_type"
@@ -130,7 +131,7 @@ ggplot(data,aes(x=event03_RT, group = subject)) +
 ---
 
 ### 3) exclude participants with RT of 5 seconds  {.unlisted .unnumbered}
-```{r}
+```{r include=FALSE}
 # parameters _____________________________________ # nolint
 subject_varkey <- "src_subject_id"
 iv <- "param_cue_type"
@@ -162,7 +163,7 @@ data$event03_correct <- ifelse(data$event03_C_stim_match == data$event03_respons
 * DV: RT of the incorrect trials
 * contrast code two factors -- stimulus intensity and cue type
 * plotting all trials (including correct and incorrect trials)
-```{r model_1_contrast_coding_7}
+```{r include=FALSE}
 # contrast code 1 linear _____________________________________
 data$stim_con_linear[data$param_stimulus_type == "low_stim"] <- -0.5
 data$stim_con_linear[data$param_stimulus_type == "med_stim"] <- 0
@@ -186,7 +187,7 @@ data$cue_factor = factor(data$param_cue_type)
 data$subject = factor(data$src_subject_id)
 ```
 
-```{r model 1_cue_effect_on_RT_7}
+```{r echo=FALSE}
 
 # parameters ___________________________________________________________________
 subject_varkey <- "src_subject_id"
@@ -269,7 +270,7 @@ plot_savefname <- file.path(
             sep = ""
         )
     )
-plot_rainclouds_twofactor(
+plot_halfrainclouds_twofactor(
         subjectwise, groupwise,
         model_iv1, model_iv2, subjectwise_mean, group_mean, se, subject,
         ggtitle, title, xlab, ylab, task_name, ylim,
@@ -326,7 +327,7 @@ Model 1 Interim summary
     * stimulus intensity (high vs. medium vs. low)
 * DV: RT of the correct trials
 * Subsetting trials (identical to model 1, except for subsetting correct trials)
-```{r model_1-1_correct_trials_only_7}
+```{r include=FALSE}
 # parameters ___________________________________________________________________
 subject_varkey <- "src_subject_id"
 iv <- "param_cue_type"
@@ -407,7 +408,7 @@ plot_savefname <- file.path(
             sep = ""
         )
     )
-plot_rainclouds_onefactor(
+plot_halfrainclouds_onefactor(
         subjectwise, groupwise,
         iv, subjectwise_mean, group_mean, se, subject,
         ggtitle, title, xlab, ylab, task_name, ylim,
@@ -464,7 +465,7 @@ Model 1-1 Interim summary (correct trials)
 * IV: cue (high vs. low)
 * DV: RT of the incorrect trials
 * Subsetting trials (identical to model 1, except for subsetting incorrect trials)
-```{r model_1-2_incorrect_trials_only_7}
+```{r include=FALSE}
 # parameters ___________________________________________________________________
 subject_varkey <- "src_subject_id"
 iv <- "param_cue_type"
@@ -527,7 +528,7 @@ plot_savefname <- file.path(
             sep = ""
         )
     )
-plot_rainclouds_onefactor(
+plot_halfrainclouds_onefactor(
         subjectwise, groupwise,
         iv, subjectwise_mean, group_mean, se, subject,
         ggtitle, title, xlab, ylab, task_name, ylim,
@@ -645,7 +646,7 @@ plot_savefname <- file.path(
             sep = ""
         )
     )
-plot_rainclouds_onefactor(
+plot_halfrainclouds_onefactor(
         subjectwise, groupwise,
         iv, subjectwise_mean, group_mean, se, subject,
         ggtitle, title, xlab, ylab, task_name, ylim,
