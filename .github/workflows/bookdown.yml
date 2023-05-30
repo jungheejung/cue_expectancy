@@ -16,12 +16,12 @@ jobs:
         node-version: '16.x'
         
     - name: Checkout code
-      uses: actions/checkout@v2.3.4
+      uses: actions/checkout@v2
       with:
         ref: ${{ github.ref }}
 
     - name: Setup R
-      uses: r-lib/actions/setup-r@v2
+      uses: r-lib/actions/setup-r@v1
       with:
         r-version: '4.2.2'
 
@@ -44,11 +44,17 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-r-
 
+    # - name: Install pandoc
+    #   uses: r-lib/actions/setup-pandoc@v1
+    #   with:
+    #     pandoc-version: '2.14'
     - name: Install pandoc
-      uses: r-lib/actions/setup-pandoc@v1
-      with:
-        pandoc-version: '2.14'
-        
+      run: |
+        wget https://github.com/jgm/pandoc/releases/download/2.14.0.3/pandoc-2.14.0.3-linux-amd64.tar.gz
+        tar xvzf pandoc-2.14.0.3-linux-amd64.tar.gz
+        sudo mv pandoc-2.14.0.3/bin/* /usr/local/bin/
+        rm -rf pandoc-2.14.0.3 pandoc-2.14.0.3-linux-amd64.tar.gz
+
     - name: Build Bookdown Project
       run: |
         Rscript -e "setwd('scripts/step02_R_bookdown'); bookdown::render_book('index.Rmd', 'bookdown::gitbook')"
