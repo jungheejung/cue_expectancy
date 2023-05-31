@@ -1,9 +1,13 @@
----
-title: "Untitled"
-author: "Heejung Jung"
-date: "2023-05-04"
-output: html_document
----
+# RL simulation Jepma PE {#ch21_jepmaPE}
+
+
+## Overview
+The purpose of this markdown is to benchmark the plots from Jepma et al. (2018). 
+Here, we plot the expectancy ratings and the actual ratings, with the high and low cues -- in one panel. 
+
+### Some thoughts, TODOs {.unlisted .unnumbered}
+* plot 2. some runs were repeated or omitted for the subjects that have more than 72 trials. I need to identify that list and work on the behavioral data. 
+* I need to check whether the counterbalancing was done correctly. 
 
 
 ```{r message=FALSE, warning=FALSE, include=FALSE}
@@ -56,7 +60,7 @@ library(gghalves)
 library(visibly) # 
 library(plotly) #plot
 library(scico) # plot
-source('http://psych.colorado.edu/~jclab/R/mcSummaryLm.R')
+
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
 source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
@@ -71,7 +75,7 @@ sapply(file.sources,source,.GlobalEnv)
 
 ```
 
-# load behavioral daata
+## load behavioral daata
 ```{r}
 df = read.csv('/Users/h/Dropbox/projects_dropbox/social_influence_analysis/resources/references/cue_behavioraldata.csv')
 ```
@@ -116,7 +120,7 @@ df_jepma <- df_jepma[!is.na(df_jepma$RATING_expectation),]
 write.csv(df_jepma, '/Users/h/Desktop/cuerating_0505.csv')
 ```
 
-# JEPMA
+## JEPMA
 ```{r}
 # summary statistics ____________________________________________________________
 subject = "sub"
@@ -172,7 +176,7 @@ plot_lineplot_twofactor(groupwise, model_iv1, model_iv2, "mean_per_sub_norm_mean
                       ylab = "Learning rate") 
 ```
 
-# PREVIOUS TRIAL WITHOUT DIVING
+## PREVIOUS TRIAL WITHOUT DIVING
 ```{r}
 # summary statistics ____________________________________________________________
 subject = "sub"
@@ -229,7 +233,7 @@ plot_lineplot_twofactor(groupwise, model_iv1, model_iv2, "mean_per_sub_norm_mean
 ```
 
 
-# NEXT TRIAL WITHOUT DIVING
+## NEXT TRIAL WITHOUT DIVING
 ```{r}
 # summary statistics ____________________________________________________________
 subject = "sub"

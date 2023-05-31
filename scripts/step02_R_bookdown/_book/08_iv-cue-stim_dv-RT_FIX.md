@@ -1,4 +1,4 @@
-# RT ~ cue * stim {#ch08_RT-cueXstim}
+# [beh] RT ~ cue * stim {#ch08_RT-cueXstim}
 
 ```
 author: "Heejung Jung"
@@ -92,32 +92,6 @@ ggplot(data,aes(x=event03_RT, group = subject)) +
 
 ### 3) exclude participants with RT of 5 seconds  {.unlisted .unnumbered}
 
-```r
-# parameters _____________________________________ # nolint
-subject_varkey <- "src_subject_id"
-iv <- "param_cue_type"
-dv <- "event03_RT"
-dv_keyword <- "RT"
-xlab <- ""
-taskname <- "cognitive"
-
-ylab <- "ratings (degree)"
-subject <- "subject"
-exclude <- "sub-0999|sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0007|sub-0008|sub-0009|sub-0010|sub-0011"
-
-# load data _____________________________________
-data <-  load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
-data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
-
-analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model05_iv-cue-stim_dv-RT", as.character(Sys.Date()))
-dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
-
-data$event03_response_samediff <- mapvalues(data$event03_stimulusC_response,
-                                                from = c(1, 2),
-                                                to = c("diff", "same"))
-
-data$event03_correct <- ifelse(data$event03_C_stim_match == data$event03_response_samediff, 1, ifelse(data$event03_C_stim_match != data$event03_response_samediff, 0, "NA"))
-```
 
 ## model 1: 
 * IV: cue (high vs. low)
@@ -125,71 +99,7 @@ data$event03_correct <- ifelse(data$event03_C_stim_match == data$event03_respons
 * contrast code two factors -- stimulus intensity and cue type
 * plotting all trials (including correct and incorrect trials)
 
-```r
-# contrast code 1 linear _____________________________________
-data$stim_con_linear[data$param_stimulus_type == "low_stim"] <- -0.5
-data$stim_con_linear[data$param_stimulus_type == "med_stim"] <- 0
-data$stim_con_linear[data$param_stimulus_type == "high_stim"] <- 0.5
 
-# contrast code 2 quadratic _____________________________________
-data$stim_con_quad[data$param_stimulus_type == "low_stim"] <- -0.33
-data$stim_con_quad[data$param_stimulus_type == "med_stim"] <- 0.66
-data$stim_con_quad[data$param_stimulus_type == "high_stim"] <- -0.33
-
-# social cue contrast _____________________________________
-# data$social_cue[data$param_cue_type == "low_cue"] <- -0.5 # social influence task
-# data$social_cue[data$param_cue_type == "high_cue"] <- 0.5 # no influence task
-# data$cue_factor = factor(data$social_cue)
-
-data$social_cue[data$param_cue_type == 'low_cue'] <- -0.5 # social influence task
-data$social_cue[data$param_cue_type == 'high_cue'] <- 0.5 # no influence task
-data$cue_factor = factor(data$param_cue_type)
-
-# factorize group variable _____________________________________
-data$subject = factor(data$src_subject_id)
-```
-
-
-```r
-# parameters ___________________________________________________________________
-subject_varkey <- "src_subject_id"
-iv <- "param_cue_type"
-stim_con1 = "stim_con_linear"
-stim_con2 = "stim_con_quad"
-dv <- "event03_RT"
-iv_keyword <- "cue-stim"
-dv_keyword <- "RT"
-xlab <- ""
-taskname <- "cognitive"
-ylim = c(0,5)
-    
-# lmer filename ________________________________________________________________
-model_savefname <- file.path(
-        analysis_dir,
-        paste("lmer_task-", taskname, "_iv-", iv_keyword,
-            "_dv-", dv_keyword,
-            "_", as.character(Sys.Date()), ".txt",
-            sep = ""
-        )
-    )
-
-# removing NA values ___________________________________________________________
-data_clean = data[!is.na(data$event03_RT),]
-data_clean$subject = factor(data_clean$src_subject_id)
-
-# lmer model ___________________________________________________________________
-cooksd <- lmer_twofactor_cooksd_fix(data = data_clean,
-                                     taskname = "cognitive",
-                                     iv = "cue_factor",
-                                     stim_con1 = "stim_con_linear",
-                                     stim_con2 = "stim_con_quad",
-                                     dv = "event03_RT",
-                                     subject_keyword = "subject",
-                                     dv_keyword = "RT",
-                                     model_savefname = model_savefname,
-                                     effects = "random_intercept",
-                                     print_lmer_output = FALSE)
-```
 
 ```
 ## 
@@ -203,121 +113,17 @@ cooksd <- lmer_twofactor_cooksd_fix(data = data_clean,
 ```
 
 ```
-## $$
-## \begin{aligned}
-##   \operatorname{event03\_RT}_{i}  &\sim N \left(\mu, \sigma^2 \right) \\
-##     \mu &=\alpha_{j[i]} + \beta_{1}(\operatorname{cue\_factor}_{\operatorname{low\_cue}}) + \beta_{2}(\operatorname{stim\_con\_linear}) + \beta_{3}(\operatorname{stim\_con\_quad}) + \beta_{4}(\operatorname{cue\_factor}_{\operatorname{low\_cue}} \times \operatorname{stim\_con\_linear}) + \beta_{5}(\operatorname{cue\_factor}_{\operatorname{low\_cue}} \times \operatorname{stim\_con\_quad}) \\
-##     \alpha_{j}  &\sim N \left(\mu_{\alpha_{j}}, \sigma^2_{\alpha_{j}} \right)
-##     \text{, for subject j = 1,} \dots \text{,J}
-## \end{aligned}
-## $$
-```
-
-```r
-influential <- as.numeric(names(cooksd)[
-    (cooksd > (4 / as.numeric(length(unique(data_clean$subject)))))])
-data_screen <- data_clean[-influential, ]
-
-# reordering for plots _________________________________________________________
-data_clean$cue_name[data_clean$param_cue_type == "high_cue"] <- "high cue"
-data_clean$cue_name[data_clean$param_cue_type == "low_cue"] <- "low cue" # no influence task
-
-data_clean$stim_name[data_clean$param_stimulus_type == "high_stim"] <- "high" # no influence task
-data_clean$stim_name[data_clean$param_stimulus_type == "med_stim"] <- "med" # no influence task
-data_clean$stim_name[data_clean$param_stimulus_type == "low_stim"] <- "low" # no influence task
-
-data_clean$stim_ordered <- factor(data_clean$stim_name, levels=c("low", "med", "high"))
-data_clean$cue_ordered <- factor(data_clean$cue_name, levels=c("low cue", "high cue"))
-model_iv1 = "stim_ordered";model_iv2 = "cue_ordered"
-
-# summary statistics for plots _________________________________________________
-subjectwise <- meanSummary(data_clean, c(subject, model_iv1, model_iv2), dv)
-groupwise <- summarySEwithin(
-        data = subjectwise,
-        measurevar = "mean_per_sub", # variable created from above
-        withinvars = c(model_iv1, model_iv2), # iv
-        idvar = "subject"
-    )
-
-subjectwise_mean <- "mean_per_sub";    group_mean <- "mean_per_sub_norm_mean"
-se <- "se";    subject <- "subject"
-ggtitle <- paste(taskname, " - Reaction Time (s)");    title <- paste(taskname, " - RT")
-xlab <- "";    ylab <- "Reaction Time (s)";    
-w = 5; h = 3; dv_keyword <- "RT"
-if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
-        color <- c("#1B9E77", "#D95F02")
-    } else {
-        color <- c("#4575B4", "#D73027")
-    }
-plot_savefname <- file.path(
-        analysis_dir,
-        paste("raincloud_task-", taskname,
-              "_iv-", iv_keyword,"_dv-", dv_keyword,
-            "_", as.character(Sys.Date()), ".png",
-            sep = ""
-        )
-    )
-plot_rainclouds_twofactor(
-        subjectwise, groupwise,
-        model_iv1, model_iv2, subjectwise_mean, group_mean, se, subject,
-        ggtitle, title, xlab, ylab, task_name, ylim,
-        w, h, dv_keyword, color, plot_savefname
-    )
+## 
+## Attaching package: 'raincloudplots'
 ```
 
 ```
-## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], y
-## = .data[[sub_mean]], : Ignoring unknown aesthetics: fill
+## The following object is masked _by_ '.GlobalEnv':
+## 
+##     GeomFlatViolin
 ```
 
-```
-## Warning: Duplicated aesthetics after name standardisation: width
-```
-
-```
-## Warning: Using the `size` aesthietic with geom_polygon was deprecated in ggplot2 3.4.0.
-## ℹ Please use the `linewidth` aesthetic instead.
-```
-
-<img src="08_iv-cue-stim_dv-RT_FIX_files/figure-html/model 1_cue_effect_on_RT_7-1.png" width="672" />
-
-```r
-# save random effects for individual difference analysis _______________________
-randEffect$newcoef <- mapvalues(randEffect$term,
-    from = c("(Intercept)"),
-    to = c("rand_intercept")
-)
-rand_subset <- subset(randEffect, select = -c(grpvar, term, condsd))
-wide_rand <- spread(rand_subset, key = newcoef, value = condval)
-
-wide_fix <- do.call(
-    "rbind",
-    replicate(nrow(wide_rand),
-        as.data.frame(t(as.matrix(fixEffect))),
-        simplify = FALSE
-    )
-)
-rownames(wide_fix) <- NULL
-new_wide_fix <- dplyr::rename(wide_fix,
-    fix_intercept = `(Intercept)`,
-    fix_cue = `cue_factorlow_cue`,
-)
-
-total <- cbind(wide_rand, new_wide_fix)
-total$task <- taskname
-new_total <- total %>% dplyr::select(task, everything())
-new_total <- dplyr::rename(total, subj = grp)
-
-rand_savefname <- file.path(
-    analysis_dir,
-    paste("randeffect_task-", taskname, 
-          "_iv-", iv_keyword,"_dv-", dv_keyword,
-        "_",as.character(Sys.Date()), "_outlier-cooksd.csv",
-        sep = ""
-    )
-)
-write.csv(new_total, rand_savefname, row.names = FALSE)
-```
+<img src="08_iv-cue-stim_dv-RT_FIX_files/figure-html/unnamed-chunk-4-1.png" width="672" />
 
 \BeginKnitrBlock{rmdnote}<div class="rmdnote">Model 1 Interim summary
 * Research question: Does RT differ as a function of high vs. low cue?
@@ -427,7 +233,7 @@ plot_savefname <- file.path(
             sep = ""
         )
     )
-plot_rainclouds_onefactor(
+plot_halfrainclouds_onefactor(
         subjectwise, groupwise,
         iv, subjectwise_mean, group_mean, se, subject,
         ggtitle, title, xlab, ylab, task_name, ylim,
@@ -436,52 +242,8 @@ plot_rainclouds_onefactor(
 ```
 
 ```
-## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], y
-## = .data[[subjectwise_mean]], : Ignoring unknown aesthetics: fill
-```
-
-```
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-```
-
-```
-## Warning in min(x): no non-missing arguments to min; returning Inf
-```
-
-```
-## Warning in max(x): no non-missing arguments to max; returning -Inf
-```
-
-```
-## Warning: Removed 210 rows containing missing values (`geom_line()`).
-```
-
-```
-## Warning: Removed 210 rows containing missing values (`geom_point()`).
-```
-
-```
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-```
-
-```
-## Warning in min(x): no non-missing arguments to min; returning Inf
-```
-
-```
-## Warning in max(x): no non-missing arguments to max; returning -Inf
-```
-
-```
-## Warning: Removed 210 rows containing missing values (`geom_line()`).
-```
-
-```
-## Warning: Removed 210 rows containing missing values (`geom_point()`).
+## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
+## as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
 ```
 
 <img src="08_iv-cue-stim_dv-RT_FIX_files/figure-html/model_1-1_correct_trials_only_7-1.png" width="672" />
@@ -616,7 +378,7 @@ plot_savefname <- file.path(
             sep = ""
         )
     )
-plot_rainclouds_onefactor(
+plot_halfrainclouds_onefactor(
         subjectwise, groupwise,
         iv, subjectwise_mean, group_mean, se, subject,
         ggtitle, title, xlab, ylab, task_name, ylim,
@@ -625,18 +387,12 @@ plot_rainclouds_onefactor(
 ```
 
 ```
-## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], y
-## = .data[[subjectwise_mean]], : Ignoring unknown aesthetics: fill
+## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
+## as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
 ```
 
 ```
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-```
-
-```
-## Warning: Removed 1 rows containing non-finite values (`stat_ydensity()`).
+## Warning: Removed 1 rows containing non-finite values (`stat_half_ydensity()`).
 ```
 
 ```
@@ -644,29 +400,15 @@ plot_rainclouds_onefactor(
 ```
 
 ```
-## Warning in min(x): no non-missing arguments to min; returning Inf
+## Warning: Removed 1 row containing missing values (`geom_line()`).
 ```
 
 ```
-## Warning in max(x): no non-missing arguments to max; returning -Inf
+## Warning: Removed 1 rows containing missing values (`geom_point()`).
 ```
 
 ```
-## Warning: Removed 199 rows containing missing values (`geom_line()`).
-```
-
-```
-## Warning: Removed 199 rows containing missing values (`geom_point()`).
-```
-
-```
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-
-## Warning in FUN(X[[i]], ...): NAs introduced by coercion
-```
-
-```
-## Warning: Removed 1 rows containing non-finite values (`stat_ydensity()`).
+## Warning: Removed 1 rows containing non-finite values (`stat_half_ydensity()`).
 ```
 
 ```
@@ -674,19 +416,11 @@ plot_rainclouds_onefactor(
 ```
 
 ```
-## Warning in min(x): no non-missing arguments to min; returning Inf
+## Warning: Removed 1 row containing missing values (`geom_line()`).
 ```
 
 ```
-## Warning in max(x): no non-missing arguments to max; returning -Inf
-```
-
-```
-## Warning: Removed 199 rows containing missing values (`geom_line()`).
-```
-
-```
-## Warning: Removed 199 rows containing missing values (`geom_point()`).
+## Warning: Removed 1 rows containing missing values (`geom_point()`).
 ```
 
 <img src="08_iv-cue-stim_dv-RT_FIX_files/figure-html/model_1-2_incorrect_trials_only_7-1.png" width="672" />
@@ -844,7 +578,7 @@ plot_savefname <- file.path(
             sep = ""
         )
     )
-plot_rainclouds_onefactor(
+plot_halfrainclouds_onefactor(
         subjectwise, groupwise,
         iv, subjectwise_mean, group_mean, se, subject,
         ggtitle, title, xlab, ylab, task_name, ylim,
@@ -853,8 +587,8 @@ plot_rainclouds_onefactor(
 ```
 
 ```
-## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], y
-## = .data[[subjectwise_mean]], : Ignoring unknown aesthetics: fill
+## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
+## as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill
 ```
 
 <img src="08_iv-cue-stim_dv-RT_FIX_files/figure-html/model_2_cue_effect_on_log-RT_7-1.png" width="672" />

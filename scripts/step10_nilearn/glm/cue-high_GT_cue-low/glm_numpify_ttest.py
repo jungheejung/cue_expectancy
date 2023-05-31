@@ -53,9 +53,13 @@ def extract_ses_and_run(flist):
 beta_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial'
 save_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv03_univariate/contrast_cuehigh-GT-cuelow'
 save_betanpy = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv05_singletrialnpy'
+# beta_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/singletrial'
+# save_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv03_univariate/contrast_cuehigh-GT-cuelow'
+# save_betanpy = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv05_singletrialnpy'
+
 sub_list = sorted(next(os.walk(beta_dir))[1])
 groupmean = []; groupmeanL = []; groupmeanH = []
-task = 'pain'
+task = 'cognitive' # 'pain' 'cognitive'
 # %%
 testlist = sub_list[slurm_id]
 # %%
@@ -93,3 +97,7 @@ for sub in [testlist]:
                 stimH_img = image.load_img(stimH_fpath)
                 np.save(os.path.join(npy_path, os.path.splitext(os.path.splitext(os.path.basename(stimH_fpath))[0])[0] + '.npy'), stimH_img.get_fdata())
  
+<<<<<<< HEAD
+=======
+# %%
+>>>>>>> e199193a44c88190d185c6ba114b3d802dc0fad1
