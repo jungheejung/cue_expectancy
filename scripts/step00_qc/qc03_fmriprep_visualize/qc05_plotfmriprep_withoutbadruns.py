@@ -70,6 +70,17 @@ for f in sorted(flist):
         labels_list.append(f"ses-{match_ses.group(1)}_run-{match_run.group(1)}")
     else:
         print("Pattern not found in the filename.")
+# %% -------------------------------------------------------------------
+#                 load bad data metadata
+# ----------------------------------------------------------------------
+# bad_dict = #TODO: load json
+with open("./bad_runs.json", "r") as json_file:
+    bad_dict = json.load(json_file)
+bad_runs = bad_dict[sub]
+badrun_index = []
+for bad_runs_label in bad_runs:
+    badrun_index.append(labels_list.index(bad_runs_label))
+
 
 # %% -------------------------------------------------------------------
 #                 get images and calculate correlation matrix 
@@ -80,13 +91,6 @@ x,y,z,n = full_img.get_fdata().shape
 reshaped_arr = arr.reshape((x*y*z, n))
 corr_matrix = np.corrcoef(reshaped_arr, rowvar=False)
 
-# %% -------------------------------------------------------------------
-#                 load bad data metadata
-# ----------------------------------------------------------------------
-# bad_dict = #TODO: load json
-with open("./bad_runs.json", "r") as json_file:
-    bad_dict = json.load(json_file)
-bad_runs = bad_dict[sub]
 # For interactive development: bad_runs = "ses-01_run-6"
 # For interactive development: np.save(os.path.join(output_dir, f'{sub}_corr_matrix.npy'), corr_matrix)
 # %% -------------------------------------------------------------------
