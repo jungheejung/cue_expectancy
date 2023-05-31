@@ -23,18 +23,27 @@ import re
 import nibabel as nib
 import json
 import argparse
+from pathlib import Path
 # %% -------------------------------------------------------------------
 #                               parameters 
 # ----------------------------------------------------------------------
 parser = argparse.ArgumentParser()
 parser.add_argument("--slurm-id", 
                     type=int, help="slurm id in numbers")
+parser.add_argument("--fmriprepdir", 
+                    type=str, help="the top directory of fmriprep preprocessed files")
+parser.add_argument("--outputdir", 
+                    type=str, help="the directory where you want to save your files")
 args = parser.parse_args()
 slurm_id = args.slurm_id
+fmriprep_dir = args.fmriprepdir
+output_dir = args.outputdir
 
-fmriprep_dir = '/Volumes/spacetop_data/derivatives/fmriprep/results/fmriprep'
-fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop_data/derivatives/fmriprep/results/fmriprep'
-save_dir  = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue'
+# fmriprep_dir = '/Volumes/spacetop_data/derivatives/fmriprep/results/fmriprep'
+# fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop_data/derivatives/fmriprep/results/fmriprep'
+# output_dir  = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue'
+
+Path(output_dir).mkdir( parents=True, exist_ok=True )
 sub_folders = next(os.walk(fmriprep_dir))[1]
 print(sub_folders)
 sub_list = [i for i in sorted(sub_folders) if i.startswith('sub-')]
@@ -75,9 +84,9 @@ corr_matrix = np.corrcoef(reshaped_arr, rowvar=False)
 # bad_dict = #TODO: load json
 with open("./bad_runs.json", "r") as json_file:
     bad_dict = json.load(json_file)
-wanted_label = bad_dict[sub]
-# For interactive development: wanted_label = "ses-01_run-6"
-# For interactive development: np.save(os.path.join(save_dir, f'{sub}_corr_matrix.npy'), corr_matrix)
+bad_runs = bad_dict[sub]
+# For interactive development: bad_runs = "ses-01_run-6"
+# For interactive development: np.save(os.path.join(output_dir, f'{sub}_corr_matrix.npy'), corr_matrix)
 # %% -------------------------------------------------------------------
 #                 plot
 # ----------------------------------------------------------------------
@@ -99,25 +108,23 @@ ax_heatmap.set_yticklabels(names)
 from matplotlib.patches import Rectangle
 # Convert indices to grid coordinates
 N = len(labels_list)
-wanted_index = labels_list.index(wanted_label)
-x = run_transition[wanted_index-1] * (ax_heatmap.get_xlim()[1] - ax_heatmap.get_xlim()[0]) / corr_matrix.shape[1]
-y = run_transition[wanted_index] * (ax_heatmap.get_ylim()[1] - ax_heatmap.get_ylim()[0]) / corr_matrix.shape[0]
-w = nii_shape[wanted_index] * (ax_heatmap.get_xlim()[1] - ax_heatmap.get_xlim()[0]) / corr_matrix.shape[1]
-h = nii_shape[wanted_index] * (ax_heatmap.get_ylim()[1] - ax_heatmap.get_ylim()[0]) / corr_matrix.shape[0]
+for bad_runs_label in bad_runs:
+    badrun_index = labels_list.index(bad_runs_label)
+    x = run_transition[badrun_index-1] #* (ax_heatmap.get_xlim()[1] - ax_heatmap.get_xlim()[0]) / corr_matrix.shape[1]
+    y = run_transition[badrun_index-1] #* (ax_heatmap.get_ylim()[1] - ax_heatmap.get_ylim()[0]) / corr_matrix.shape[0]
+    w = nii_shape[badrun_index]# * (ax_heatmap.get_xlim()[1] - ax_heatmap.get_xlim()[0]) / corr_matrix.shape[1]
+    h = nii_shape[badrun_index]# * (ax_heatmap.get_ylim()[1] - ax_heatmap.get_ylim()[0]) / corr_matrix.shape[0]
 
-for _ in range(2):
-    ax_heatmap.add_patch(Rectangle((x, y), w, h, fill=False, edgecolor='crimson', lw=4, clip_on=False))
-    x, y = y, x  # exchange the roles of x and y
-    w, h = h, w  # exchange the roles of w and h
+    for _ in range(2):
+        ax_heatmap.add_patch(Rectangle((x, y), w, h, fill=False, edgecolor='crimson', lw=4, clip_on=False))
+        x, y = y, x  # exchange the roles of x and y
+        w, h = h, w  # exchange the roles of w and h
 
 ax_heatmap.tick_params(length=0)
 ax_heatmap.set_title(f'{sub} \ncorrelation across niftis')
-# x, y, w, h = middle_indices[wanted_index-1], middle_indices[wanted_index], run_transition[wanted_index], 1
-# for _ in range(2):
-#     ax_heatmap.add_patch(Rectangle((x, y), w, h, fill=False, edgecolor='crimson', lw=4, clip_on=False))
-#     x, y = y, x # exchange the roles of x and y
-#     w, h = h, w # exchange the roles of w and h
-# ax_heatmap.tick_params(length=0)
+
+
+
 # ____________________________________________________________________________________
 
 # Add a horizontal lines for any run chunks of nifti images
@@ -154,41 +161,6 @@ ax_z.set_ylabel('z-scored correlation coefficient')
 
 # save figure _____________________________________________________
 fig.tight_layout(pad=2)
-plt.savefig(os.path.join(save_dir, f'{sub}_figure_TEST.png'))
+plt.savefig(os.path.join(output_dir, f'{sub}_figure_TEST.png'))
 
 plt.close('all')
-
-
-# %%
-# import plotly.graph_objects as go
-# import plotly.subplots as sp
-# import numpy as np
-# import plotly.io as pio
-# fig = sp.make_subplots(rows=1, cols=3, subplot_titles=("Heatmap", "Correlation Values", "Z Scores"))
-
-# # Plot 1: Heatmap
-# heatmap_trace = go.Heatmap(z=corr_matrix, colorscale='Viridis', showscale=False)
-# fig.add_trace(heatmap_trace, row=1, col=1)
-
-# # Plot 2: Correlation Values
-# upper_triangle = corr_matrix[np.triu_indices(corr_matrix.shape[0])]
-# histogram_trace = go.Histogram(y=upper_triangle, nbinsx=30, marker=dict(color='blue', line=dict(color='black', width=1)), opacity=0.7)
-# fig.add_trace(histogram_trace, row=1, col=2)
-
-# # Plot 3: Z Scores
-# z_scores = (upper_triangle - np.mean(upper_triangle)) / np.std(upper_triangle)
-# z_scores_trace = go.Histogram(x=z_scores, nbinsx=30, marker=dict(color='blue', line=dict(color='black', width=1)), opacity=0.7)
-# fig.add_trace(z_scores_trace, row=1, col=3)
-
-# # Set layout and styling
-# fig.update_layout(height=500, width=900, showlegend=False)
-
-# # Rotate Heatmap 90 degrees
-# fig.update_xaxes(autorange='reversed', row=1, col=1)
-# fig.update_yaxes(autorange='reversed', row=1, col=1)
-
-# # Color extreme values in Z Scores
-# fig.add_hrect(y0=np.min(z_scores), y1=-3, fillcolor='blue', opacity=0.3, line_width=0, row=1, col=3)
-# fig.add_hrect(y0=3, y1=np.max(z_scores), fillcolor='red', opacity=0.3, line_width=0, row=1, col=3)
-
-# pio.write_html(fig, os.path.join(save_dir, f'{sub}_figure_TEST.html'))

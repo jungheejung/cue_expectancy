@@ -14,4 +14,9 @@ conda activate spacetop_env
 echo "SLURMSARRAY: " ${SLURM_ARRAY_TASK_ID}
 ID=$((SLURM_ARRAY_TASK_ID-1))
 MAINDIR='/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue'
-python ${MAINDIR}/scripts/step00_qc/qc03_fmriprep_visualize/qc05_plotfmriprep.py --slurm_id ${ID} 
+FMRIPREPDIR='/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop_data/derivatives/fmriprep/results/fmriprep'
+OUTPUTDIR='/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/figure/fmri/qc/fmriprep_bold_correlation'
+python ${MAINDIR}/scripts/step00_qc/qc03_fmriprep_visualize/qc05_plotfmriprep.py \
+--slurm_id ${ID} \
+--fmriprepdir ${FMRIPREPDIR} \
+--outputdir ${OUTPUTDIR}
