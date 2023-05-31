@@ -10,6 +10,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os, glob, sys
 from nilearn import image
+import numpy as np
+import seaborn as sns
 # %%
 fmriprep_dir = '/Volumes/spacetop_data/derivatives/fmriprep/results/fmriprep'
 sub = 'sub-0015'
@@ -17,4 +19,15 @@ flist = glob.glob(os.path.join(fmriprep_dir, sub, '**', 'func', f"{sub}*task-soc
 full_img = image.concat_imgs(sorted(flist))
 # %%
 # load fieldmap data 
-# load bad data
+# load bad datacorr_matrix = np.corrcoef(data, rowvar=False)
+corr_matrix = np.corrcoef(full_img.get_fdata(), rowvar=False)
+
+# Plot the correlation matrix as a density heatmap
+sns.heatmap(corr_matrix, cmap='viridis', annot=True, fmt='.2f', square=True)
+
+plt.title('Correlation Matrix')
+plt.xlabel('Features')
+plt.ylabel('Features')
+
+plt.show()
+# %%
