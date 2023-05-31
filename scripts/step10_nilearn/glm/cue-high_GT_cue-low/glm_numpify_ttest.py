@@ -63,8 +63,7 @@ task = 'cognitive' # 'pain' 'cognitive'
 # %%
 testlist = sub_list[slurm_id]
 # %%
-
-for sub in sub_list: #[testlist]:
+for sub in [testlist]:
     print(f"_____________{sub}_____________")
     flist= glob.glob(os.path.join(beta_dir, sub, f"{sub}_*{task}*.nii.gz"))
     unique_ses, unique_run = extract_ses_and_run(flist)
@@ -98,4 +97,7 @@ for sub in sub_list: #[testlist]:
                 stimH_img = image.load_img(stimH_fpath)
                 np.save(os.path.join(npy_path, os.path.splitext(os.path.splitext(os.path.basename(stimH_fpath))[0])[0] + '.npy'), stimH_img.get_fdata())
  
+<<<<<<< HEAD
+=======
 # %%
+>>>>>>> e199193a44c88190d185c6ba114b3d802dc0fad1
