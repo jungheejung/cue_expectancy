@@ -24,6 +24,7 @@ import nibabel as nib
 import json
 import argparse
 from pathlib import Path
+import psutil
 # %% -------------------------------------------------------------------
 #                               parameters 
 # ----------------------------------------------------------------------
@@ -78,7 +79,16 @@ full_img = image.concat_imgs(sorted(flist))
 arr = full_img.get_fdata()
 x,y,z,n = full_img.get_fdata().shape
 reshaped_arr = arr.reshape((x*y*z, n))
-corr_matrix = np.corrcoef(reshaped_arr, rowvar=False)
+memory_before = psutil.virtual_memory().used
+print("Memory Usage Before:", memory_before)
+
+corr_matrix = np.corrcoef(reshaped_arr, rowvar=False).astype(np.float32)
+memory_after = psutil.virtual_memory().used
+print("Memory Usage After:", memory_after)
+
+# Calculate the memory used by the correlation matrix
+memory_used = memory_after - memory_before
+print("Memory Used by Correlation Matrix:", memory_used)
 
 # %% -------------------------------------------------------------------
 #                 load bad data metadata
