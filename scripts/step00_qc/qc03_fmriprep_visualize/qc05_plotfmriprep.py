@@ -63,15 +63,16 @@ nii_shape = []
 niistack = []
 for f in flist:
     # brain_vol = nib.load(f)
-    brain_vol = np.load(f, allow_pickle=True)
+    brain_vol = np.load(f, allow_pickle=True).astype(np.float32)
     x, y, z, n = brain_vol.shape
     nii_shape.append(n)
 
     nii_reshape = brain_vol.reshape((x * y * z, n))
-    niistack.append(nii_reshape)
+    niistack.append(nii_reshape.T.astype(np.float32))
+print(nii_reshape)
 run_transition = [sum(nii_shape[:i]) + nii_shape[i] for i in range(len(nii_shape))]
 middle_indices = [sum(nii_shape[:i]) + nii_shape[i] // 2 for i in range(len(nii_shape))]
-reshaped_arr = np.vstack(niistack)
+reshaped_arr = np.vstack(niistack).astype(np.float32)
 # %% get run ses information --> later used for plot tick values
 labels_list = []
 for f in sorted(flist):
@@ -87,7 +88,7 @@ for f in sorted(flist):
 #                 get images and calculate correlation matrix 
 # ----------------------------------------------------------------------
 print("get images and calculate correlation matrix ")
-niistack = []
+#niistack = []
 #for f in sorted(flist):
 #    memory_before = psutil.virtual_memory().used
 #    print("Memory Usage Before:", memory_before)
@@ -150,16 +151,16 @@ niistack = []
 #     # Perform any additional operations with the output file if needed
 #     print("Processed data saved to:", output_file)
 #full_img = image.concat_imgs(sorted(flist))
-reshaped_arr = np.vstack(niistack)
+#reshaped_arr = np.vstack(niistack)
 
 # %% np load
-npyflist = glob.glob(f'/Volumes/spacetop_data/derivatives/fmriprep_qc/correlation_bold/{sub}/*-preproc_bold.npy')
-niistack = []
-for f in npyflist:
-    arr = np.load(f)
-    print(arr.shape)
-    niistack.append(arr)
-#arr = full_img.get_fdata()
+#npyflist = glob.glob(f'/Volumes/spacetop_data/derivatives/fmriprep_qc/correlation_bold/{sub}/*-preproc_bold.npy')
+#niistack = []
+#for f in npyflist:
+#    arr = np.load(f)
+#    print(arr.shape)
+#    niistack.append(arr)
+##arr = full_img.get_fdata()
 #x,y,z,n = full_img.get_fdata().shape
 #print(f"full array size: {arr.shape}")
 #reshaped_arr = arr.reshape((x*y*z, n))
@@ -168,7 +169,7 @@ print("correlation matrix")
 memory_before = psutil.virtual_memory().used
 print("Memory Usage Before:", memory_before)
 
-corr_matrix = np.corrcoef(reshaped_arr, rowvar=False).astype(np.float32)
+corr_matrix = np.corrcoef(reshaped_arr.astype(np.float32), rowvar=True).astype(np.float32)
 memory_after = psutil.virtual_memory().used
 print("Memory Usage After:", memory_after)
 
@@ -263,6 +264,6 @@ ax_z.set_ylabel('z-scored correlation coefficient')
 
 # save figure _____________________________________________________
 fig.tight_layout(pad=2)
-plt.savefig(os.path.join(output_dir, f'{sub}_figure_TEST.png'))
+plt.savefig(os.path.join(output_dir, f'{sub}_{taskname}_boldcorrelation.png'))
 
 plt.close('all')
