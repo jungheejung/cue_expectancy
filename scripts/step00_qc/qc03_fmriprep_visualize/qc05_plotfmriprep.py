@@ -74,16 +74,21 @@ for f in sorted(flist):
 # %% -------------------------------------------------------------------
 #                 get images and calculate correlation matrix 
 # ----------------------------------------------------------------------
+print("get images and calculate correlation matrix ")
 full_img = image.concat_imgs(sorted(flist))
 arr = full_img.get_fdata()
 x,y,z,n = full_img.get_fdata().shape
+print(f"full array size: {arr.shape}")
 reshaped_arr = arr.reshape((x*y*z, n))
+print(f"reshaped array size: {reshaped_arr}")
+print("correlation matrix")
 corr_matrix = np.corrcoef(reshaped_arr, rowvar=False)
 
 # %% -------------------------------------------------------------------
 #                 load bad data metadata
 # ----------------------------------------------------------------------
 # bad_dict = #TODO: load json
+print("load bad data metadata")
 with open("./bad_runs.json", "r") as json_file:
     bad_dict = json.load(json_file)
 bad_runs = bad_dict[sub]
@@ -92,7 +97,7 @@ bad_runs = bad_dict[sub]
 # %% -------------------------------------------------------------------
 #                 plot
 # ----------------------------------------------------------------------
-
+print("plot")
 # Plot the correlation matrix as a density heatmap
 fig, (ax_heatmap, ax_hist, ax_z) = plt.subplots(1, 3, figsize=(12, 4),gridspec_kw={
     # 'height_ratios': [10, 3],
