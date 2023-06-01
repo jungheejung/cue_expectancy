@@ -77,19 +77,67 @@ for f in sorted(flist):
 # ----------------------------------------------------------------------
 print("get images and calculate correlation matrix ")
 niistack = []
-for f in sorted(flist):
-    memory_before = psutil.virtual_memory().used
-    print("Memory Usage Before:", memory_before)
-    nii = image.load_img(f)
-    nii_arr = nii.get_fdata()
-    x,y,z,n = nii.get_fdata().shape
-    nii_reshape = nii_arr.reshape((x*y*z, n))
-    niistack.append(nii_reshape)
-    memory_after = psutil.virtual_memory().used
-    print("Memory Usage After:", memory_after)
+#for f in sorted(flist):
+#    memory_before = psutil.virtual_memory().used
+#    print("Memory Usage Before:", memory_before)
+#    nii = image.load_img(f)
+#    nii_arr = np.asarray(nii.dataobj)#nii.get_fdata()
+#    x,y,z,n = nii_arr.shape
+#    print(nii_arr.shape)
+#    nii_reshape = nii_arr.reshape((x*y*z, n))
+#    niistack.append(nii_reshape)
+#    memory_after = psutil.virtual_memory().used
+#    print("Memory Usage After:", memory_after)
+#    memory_used = memory_after - memory_before
+#    print("Memory Used by Loading in Data:", memory_used)
+#    print(nii.in_memory)
+#    nii.uncache()
+#    del nii
+#    del nii_arr
 
-    memory_used = memory_after - memory_before
-    print("Memory Used by Loading in Data:", memory_used)
+def load_data_generator(flist):
+    for f in sorted(flist):
+        memory_before = psutil.virtual_memory().used
+        print("Memory Usage Before:", memory_before)
+        nii = nib.load(f) #image.load_img(f)
+        nii_arr = np.asarray(nii.dataobj)
+        x, y, z, n = nii_arr.shape
+        print(nii_arr.shape)
+        nii_reshape = nii_arr.reshape((x * y * z, n))
+        memory_after = psutil.virtual_memory().used
+        print("Memory Usage After:", memory_after)
+        memory_used = memory_after - memory_before
+        print("Memory Used by Loading in Data:", memory_used)
+        print(nii.in_memory)
+        nii.uncache()
+        del nii
+        del nii_arr
+        yield nii_reshape
+
+def process_data_generator(flist, output_dir):
+    for f in sorted(flist):
+        nii = nib.load(f)
+        nii_arr = np.asarray(nii.dataobj)
+        x, y, z, n = nii_arr.shape
+        nii_reshape = nii_arr.reshape((x * y * z, n))
+        output_file = os.path.join(output_dir, os.path.splitext(os.path.basename(f))[0] + '.npy')  # Output file path
+        np.save(output_file, nii_reshape)  # Save processed data to disk
+        yield output_file
+
+# Usage: Iterate over the generator
+#niistack = []
+#data_generator = load_data_generator(flist)
+#for data_batch in data_generator:
+#    niistack.append(data_batch)
+niistack = []
+output_dir = f'/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop_data/derivatives/fmriprep_qc/correlation_bold/{sub}'
+os.makedirs(output_dir, exist_ok=True)
+data_generator = process_data_generator(flist, output_dir)
+for output_file in data_generator:
+    nii_reshape = np.load(output_file)
+    niistack.append(nii_reshape)
+    # Perform any additional operations with the output file if needed
+    print("Processed data saved to:", output_file)
 #full_img = image.concat_imgs(sorted(flist))
 reshaped_arr = np.vstack(niistack)
 
