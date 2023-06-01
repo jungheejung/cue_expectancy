@@ -78,11 +78,18 @@ for f in sorted(flist):
 print("get images and calculate correlation matrix ")
 niistack = []
 for f in sorted(flist):
+    memory_before = psutil.virtual_memory().used
+    print("Memory Usage Before:", memory_before)
     nii = image.load_img(f)
     nii_arr = nii.get_fdata()
     x,y,z,n = nii.get_fdata().shape
     nii_reshape = nii_arr.reshape((x*y*z, n))
     niistack.append(nii_reshape)
+    memory_after = psutil.virtual_memory().used
+    print("Memory Usage After:", memory_after)
+
+    memory_used = memory_after - memory_before
+    print("Memory Used by Loading in Data:", memory_used)
 #full_img = image.concat_imgs(sorted(flist))
 reshaped_arr = np.vstack(niistack)
 
