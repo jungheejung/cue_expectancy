@@ -22,12 +22,12 @@ args = parser.parse_args()
 slurm_id = args.slurm_id
 fmriprep_dir = args.fmriprepdir
 output_dir = args.outputdir
-save_dir = os.path.join(output_dir, sub)
-Path(save_dir).mkdir(parents=True, exist_ok=True)
 sub_folders = next(os.walk(fmriprep_dir))[1]
 sub_list = [i for i in sorted(sub_folders) if i.startswith('sub-')]
-
+print(sub_list)
 sub = sub_list[slurm_id]
+save_dir = os.path.join(output_dir, sub)
+Path(save_dir).mkdir(parents=True, exist_ok=True)
 task = 'task-social'
 flist = glob.glob(os.path.join(fmriprep_dir, sub, "**", "func",  f"{sub}_*{task}*.nii.gz"), recursive = True)
 for fpath in flist:
