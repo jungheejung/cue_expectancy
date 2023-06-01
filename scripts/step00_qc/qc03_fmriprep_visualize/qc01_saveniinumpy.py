@@ -24,12 +24,13 @@ fmriprep_dir = args.fmriprepdir
 output_dir = args.outputdir
 sub_folders = next(os.walk(fmriprep_dir))[1]
 sub_list = [i for i in sorted(sub_folders) if i.startswith('sub-')]
-print(sub_list)
 sub = sub_list[slurm_id]
+print(f"-------{sub}-------")
 save_dir = os.path.join(output_dir, sub)
 Path(save_dir).mkdir(parents=True, exist_ok=True)
+print(save_dir)
 task = 'task-social'
-flist = glob.glob(os.path.join(fmriprep_dir, sub, "**", "func",  f"{sub}_*{task}*.nii.gz"), recursive = True)
+flist = glob.glob(os.path.join(fmriprep_dir, sub, "**", "func",  f"{sub}_*{task}*MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"), recursive = True)
 for fpath in flist:
     nii = image.load_img(fpath)
     np.save(os.path.join(save_dir, os.path.splitext(os.path.splitext(os.path.basename(fpath))[0])[0] + '.npy'), nii.get_fdata())
