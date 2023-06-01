@@ -31,8 +31,8 @@ Path(save_dir).mkdir(parents=True, exist_ok=True)
 print(save_dir)
 task = 'task-social'
 flist = glob.glob(os.path.join(fmriprep_dir, sub, "**", "func",  f"{sub}_*{task}*MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"), recursive = True)
-for fpath in flist:
+for fpath in sorted(flist):
     nii = image.load_img(fpath)
-    np.save(os.path.join(save_dir, os.path.splitext(os.path.splitext(os.path.basename(fpath))[0])[0] + '.npy'), nii.get_fdata())
+    np.save(os.path.join(save_dir, os.path.splitext(os.path.splitext(os.path.basename(fpath))[0])[0] + '.npy'), nii.get_fdata().astype(np.float32), allow_pickle=True, fix_imports=True)
     nii.uncache()
     del nii
