@@ -40,9 +40,6 @@ slurm_id = args.slurm_id
 npydir = args.inputdir
 output_dir = args.outputdir
 
-# fmriprep_dir = '/Volumes/spacetop_data/derivatives/fmriprep/results/fmriprep'
-# fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop_data/derivatives/fmriprep/results/fmriprep'
-# output_dir  = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue'
 # %%
 Path(output_dir).mkdir( parents=True, exist_ok=True )
 sub_folders = next(os.walk(npydir))[1]
@@ -50,29 +47,24 @@ print(sub_folders)
 sub_list = [i for i in sorted(sub_folders) if i.startswith('sub-')]
 sub = sub_list[slurm_id]#f'sub-{sub_list[slurm_id]:04d}'
 # %%
-# sub = 'sub-0006'
-# npydir = '/Volumes/spacetop_data/derivatives/fmriprep_qc/numpy_bold'
 print(f" ________ {sub} ________")
 taskname = 'task-social'
-# flist = glob.glob(os.path.join(fmriprep_dir, sub, '**', 'func', f"{sub}*{taskname}*MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"), recursive = True)
 flist = glob.glob(os.path.join(npydir, sub, f"{sub}*{taskname}*MNI152NLin2009cAsym_desc-preproc_bold.npy"), recursive = True)
 
-# %% get shape of nifti --> later used for plot lines
-# TODO: load nifti. reshape and get last shape
+# %% NOTE: get shape of nifti --> later used for plot lines. reshape to 2d numpy array
 nii_shape = []
 niistack = []
 for f in flist:
     # brain_vol = nib.load(f)
-    brain_vol = np.load(f, allow_pickle=True)
+    brain_vol = np.load(f, allow_pickle=True).astype(np.float32)
     x, y, z, n = brain_vol.shape
     nii_shape.append(n)
-
     nii_reshape = brain_vol.reshape((x * y * z, n))
-    niistack.append(nii_reshape)
+    niistack.append(nii_reshape.T)
 run_transition = [sum(nii_shape[:i]) + nii_shape[i] for i in range(len(nii_shape))]
 middle_indices = [sum(nii_shape[:i]) + nii_shape[i] // 2 for i in range(len(nii_shape))]
 reshaped_arr = np.vstack(niistack)
-# %% get run ses information --> later used for plot tick values
+# %% NOTE: get run ses information --> later used for plot tick values
 labels_list = []
 for f in sorted(flist):
     match_ses = re.search(r"ses-(\d+)", f)  # Find the match in the filename
@@ -87,7 +79,7 @@ for f in sorted(flist):
 #                 get images and calculate correlation matrix 
 # ----------------------------------------------------------------------
 print("get images and calculate correlation matrix ")
-niistack = []
+
 #for f in sorted(flist):
 #    memory_before = psutil.virtual_memory().used
 #    print("Memory Usage Before:", memory_before)
