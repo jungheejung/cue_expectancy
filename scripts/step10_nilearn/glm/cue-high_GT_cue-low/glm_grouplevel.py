@@ -1,4 +1,4 @@
-   
+  
 # TODO: save intermediate step. save submean into a nii image
 # %%
 import glob, os
