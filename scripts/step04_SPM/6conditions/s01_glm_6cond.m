@@ -123,6 +123,12 @@ function s01_glm_6cond(sub, input_dir, main_dir, fmriprep_dir)
         disp(strcat('onset folder: ', onset_glob.folder));
         disp(strcat('onset file:   ', onset_glob.name));
         cue = struct2table(tdfread(onset_fname));
+
+        % bug report: there were spaces that added to a mistmach in dataframes
+        % remove spaces
+        cue.pmod_stimtype = strtrim(cue.pmod_stimtype);
+        cue.pmod_cuetype = strtrim(cue.pmod_cuetype);
+
         highcue = cue.pmod_cuetype == 'high_cue';
         lowcue = cue.pmod_cuetype == 'low_cue';
         highstim = cue.pmod_stimtype == 'high_stim';
