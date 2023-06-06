@@ -160,7 +160,7 @@ event = 'stimulus'
 ntrials = 36 # average maps
 
 sub_list = [] #list(np.arange(1,134))
-sub_list = [77, 84, 11, 31]
+# sub_list = [77, 84, 11, 31]
 badruns_fname = '/Users/h/Documents/projects_local/cue_expectancy/scripts/step00_qc/qc03_fmriprep_visualize/bad_runs.json'
 
 
@@ -260,16 +260,26 @@ print(f"{X_cognitive.shape}")# X, y should be identical for both pain and cognit
 # After all iterations of the for loop, the mean accuracy scores for cognitive and pain data are printed out.
 # Overall, the code looks correct, and should perform PredefinedSplit cross-validation to generate predictions of y_cog and y_pain, and then calculate the accuracy of those predictions.
 
-assert pdf['cuetype'].tolist() == cdf['cuetype'].tolist()
+##############
+# validation
+pdf = pdf[pdf['sub'].isin(cdf['sub'])]
+cdf = cdf[cdf['sub'].isin(pdf['sub'])]
+
+# validation
+################
+
+
 y = np.array(paindf_meta['cuetype'])
 
 # only grab trials that match pdf and cdf index ( given that we dropped unbalanced trials)
 X_pain = X_painstim[pdf.index]
 X_cog = X_cognitive[cdf.index]
-print(f"after balancing: {X_pain.shape}")
-print(f"{X_coX_coggnitive.shape}")
+print(f"after balancing: \n * pain run: {X_pain.shape} \n * cog run: {X_cog.shape}")
+assert pdf['cuetype'].tolist() == cdf['cuetype'].tolist()
+assert pdf['sub'].tolist() == cdf['sub'].tolist()
+
 # %%
-subjects = pd.factorize(paindf['sub'])[0]#np.repeat(np.arange(N), ntrials*2)
+subjects = pd.factorize(pdf['sub'])[0]#np.repeat(np.arange(N), ntrials*2)
 # assert len(y) == len(subjects) 
 cv = PredefinedSplit(subjects)
 accuracy_cognitive = []
@@ -281,8 +291,8 @@ for train_index, test_index in cv.split(X_pain, y):
     scaler = StandardScaler() # TODO: standard scalar. .fit_transform(X_train) -> mean/sd of the transformed data
     X_pain_train = scaler.fit_transform(X_pain[train_index]) # z-score on the samples
     X_pain_test = scaler.transform(X_pain[test_index])
-    X_cog_train = scaler.fit_transform(X_cognitive[train_index]) # z-score on the samples
-    X_cog_test = scaler.transform(X_cognitive[test_index])
+    X_cog_train = scaler.fit_transform(X_cog[train_index]) # z-score on the samples
+    X_cog_test = scaler.transform(X_cog[test_index])
 
     # betwee tasks prediction __________________________________________
     clf.fit(X_pain_train, y[train_index])
@@ -302,6 +312,7 @@ print(f"cognitive: {accuracy_cognitive}, pain: {accuracy_pain}")
 # TODO:
 # permutation labels
 # boot strap accuracy
+
 
 
 # %%
