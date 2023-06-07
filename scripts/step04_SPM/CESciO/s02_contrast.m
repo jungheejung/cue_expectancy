@@ -1,4 +1,4 @@
-function s02_contrast(input)
+function s02_contrast(sub, input_dir, main_dir)
 
 % NOTE 01 start jobs
 disp('...STARTING JOBS');
@@ -14,6 +14,15 @@ disp(strcat('[ STEP 01 ] setting parameters...'));
 keySet = {'pain','vicarious','cognitive'};
 con1 = [2 -1 -1];   con2 = [-1 2 -1];  con3 = [-1 -1 2];  con4 = [1 1 1];
 con5 = [1 0 0]; con6 = [0 1 0]; con7 = [0 0 1];
+% m1 = containers.Map(keySet,con1);
+% m2 = containers.Map(keySet,con2);
+% m3 = containers.Map(keySet,con3);
+% m4 = containers.Map(keySet,con4);
+% m5 = containers.Map(keySet,con5);
+% m6 = containers.Map(keySet,con6);
+% m7 = containers.Map(keySet,con7);
+
+
 m1 = containers.Map(keySet,con1);
 m2 = containers.Map(keySet,con2);
 m3 = containers.Map(keySet,con3);
@@ -21,24 +30,33 @@ m4 = containers.Map(keySet,con4);
 m5 = containers.Map(keySet,con5);
 m6 = containers.Map(keySet,con6);
 m7 = containers.Map(keySet,con7);
+% C E S c i O  
+% 1 2 3 4 5 6
+epoch_cue               = [1,0,0,0,0,0];
+epoch_motor             = [0,1,0,0,0,1];
+epoch_stim              = [0,0,1,0,0,0];
+pmod_stimXcue           = [0,0,0,1,0,0];
+pmod_stimXintensity     = [0,0,0,0,1,0];
 
 % NOTE 02 define directories _______________________________________________________
-fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'; % sub / ses
-main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
-motion_dir = fullfile(main_dir, 'data', 'dartmouth', 'd05_motion');
-onset_dir = fullfile(main_dir, 'data', 'dartmouth', 'd04_EV_SPM');
+motion_dir = fullfile(main_dir, 'data', 'fmri', 'fmri02_motion');
+onset_dir = fullfile(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset02_SPM');
 
-sub_num = sscanf(char(input),'%d');
-sub = strcat('sub-', sprintf('%04d', sub_num));
-disp( sub );
-% /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/analysis/fmri/spm/model-01_CcEScaA/1stLevel/sub-0005
-fmri_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'model-01_CcEScaA',...
-    '1stLevel', sub); % first level spm mat.
-spm_fname = fullfile(fmri_dir, 'SPM.mat');
+% fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop/derivatives/dartmouth/fmriprep/fmriprep/'; % sub / ses
+% main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/';
+% motion_dir = fullfile(main_dir, 'data', 'dartmouth', 'd05_motion');
+% onset_dir = fullfile(main_dir, 'data', 'dartmouth', 'd04_EV_SPM');
+
+% sub_num = sscanf(char(input),'%d');
+disp( strcat('-----------------------',sub,'----------------------' ));
+output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model02_CESciO', ...
+'1stLevel', sub);
+spm_fname = fullfile(output_dir, 'SPM.mat');
+load(spm_fname);
 
 % NOTE 03 find intersection of nifti and onset files
 % find nifti files
-niilist = dir(fullfile(fmriprep_dir, sub, '*/func/smooth_5mm_*task-social*_bold.nii'));
+niilist = dir(fullfile(input_dir, sub, '*/smooth-6mm_*task-cue*_bold.nii'));
 nT = struct2table(niilist); % convert the struct array to a table
 sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
 
@@ -50,37 +68,37 @@ nii_col_names = sortedT.Properties.VariableNames;
 nii_num_colomn = nii_col_names(endsWith(nii_col_names, '_num'));
 
 % find onset files
-onsetlist = dir(fullfile(onset_dir, sub, '*', strcat(sub, '_*_task-social_*_events.tsv')));
+onsetlist = dir(fullfile(onset_dir, sub, '*', strcat(sub, '_*_task-cue_*_events.tsv')));
 onsetT = struct2table(onsetlist);
 sortedonsetT = sortrows(onsetT, 'name');
-disp(strcat(sortedonsetT.name))
+
 sortedonsetT.sub_num(:) = str2double(extractBetween(sortedonsetT.name, 'sub-', '_'));
 sortedonsetT.ses_num(:) = str2double(extractBetween(sortedonsetT.name, 'ses-', '_'));
-sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '-'));
+sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '_'));
 
 onset_col_names = sortedonsetT.Properties.VariableNames;
 onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
-
+disp(nii_num_colomn)
 %intersection of nifti and onset files
-A = intersect(sortedT(:,nii_num_colomn),sortedonsetT(:,onset_num_colomn));
+A = intersect(sortedT(:, nii_num_colomn), sortedonsetT(:, onset_num_colomn));
 
 % NOTE 04 define contrast
+contrast_name = {
+    'P_VC_epoch_cue', 'V_PC_epoch_cue', 'C_PV_epoch_cue',...
+    'P_VC_epoch_stim', 'V_PC_epoch_stim', 'C_PV_epoch_stim',...
+    'P_VC_pmod_stimXcue', 'V_PC_pmod_stimXcue', 'C_PV_pmod_stimXcue',...
+    'P_VC_pmod_stimXintensity', 'V_PC_pmod_stimXintensity', 'C_PV_pmod_stimXintensity',...
+    'motor',...
+    'P_simple_epoch_cue', 'V_simple_epoch_cue', 'C_simple_epoch_cue',...
+    'P_simple_epoch_stim', 'V_simple_epoch_stim', 'C_simple_epoch_stim',...
+    'P_simple_pmod_stimXcue', 'V_simple_pmod_stimXcue', 'C_simple_pmod_stimXcue',...
+    'P_simple_pmod_stimXintensity', 'V_simple_pmod_stimXintensity', 'C_simple_pmod_stimXintensity'
+};
 
-contrast_name = {'cue_P', 'cue_V', 'cue_C', 'cue_G',...
-    'cueXcue_P', 'cueXcue_V', 'cueXcue_C', 'cueXcue_G',...
-    'stim_P', 'stim_V', 'stim_C', 'stim_G',...
-    'stimXcue_P', 'stimXcue_V', 'stimXcue_C', 'stimXcue_G',...
-    'stimXactual_P', 'stimXactual_V', 'stimXactual_C', 'stimXactual_G', 'motor', ...
-    'simple_cue_P', 'simple_cue_V', 'simple_cue_C', ...
-    'simple_cueXcue_P', 'simple_cueXcue_V', 'simple_cueXcue_C', ...
-    'simple_stim_P', 'simple_stim_V', 'simple_stim_C', ...
-    'simple_stimXcue_P', 'simple_stimXcue_V', 'simple_stimXcue_C',...
-    'simple_stimXactual_P', 'simple_stimXactual_V', 'simple_stimXactual_C'};
-
+    
 c01 = []; c02 = []; c03 = []; c04 = []; c05 = []; c06 = []; c07 = []; c08 = []; c09 = []; c10 = [];
 c11 = []; c12 = []; c13 = []; c14 = []; c15 = []; c16 = []; c17 = []; c18 = []; c19 = []; c20 = []; 
-c21 = []; c22 = []; c23 = []; c24 = []; c25 = []; c26 = []; c27 = []; c28 = []; c29 = []; c30 = []; 
-c31 = []; c32 = []; c33 = []; c34 = []; c35 = []; c36 = [];
+c21 = []; c22 = []; c23 = []; c24 = []; c25 = []; 
 
 matlabbatch = cell(1,1);
 
@@ -102,55 +120,50 @@ for run_ind = 1: size(A,1)
     keyword       = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
     task          = char(extractAfter(keyword, '-'));
 
-    cue_P         = [ m1(task),0,0,0,0,0,0,0,0,0,0,0,0,0,0  ];
-    cue_V         = [ m2(task),0,0,0,0,0,0,0,0,0,0,0,0,0,0  ];
-    cue_C         = [ m3(task),0,0,0,0,0,0,0,0,0,0,0,0,0,0  ];
-    cue_G         = [ m4(task),0,0,0,0,0,0,0,0,0,0,0,0,0,0  ];
-    cueXcue_P     = [ 0,m1(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ];
-    cueXcue_V     = [ 0,m2(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ];
-    cueXcue_C     = [ 0,m3(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ];
-    cueXcue_G     = [ 0,m4(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ];
-    stim_P        = [ 0,0,0,m1(task),0,0,0,0,0,0,0,0,0,0,0  ];
-    stim_V        = [ 0,0,0,m2(task),0,0,0,0,0,0,0,0,0,0,0  ];
-    stim_C        = [ 0,0,0,m3(task),0,0,0,0,0,0,0,0,0,0,0  ];
-    stim_G        = [ 0,0,0,m4(task),0,0,0,0,0,0,0,0,0,0,0  ];
-    stimXcue_P    = [ 0,0,0,0,m1(task),0,0,0,0,0,0,0,0,0,0  ];
-    stimXcue_V    = [ 0,0,0,0,m2(task),0,0,0,0,0,0,0,0,0,0  ];
-    stimXcue_C    = [ 0,0,0,0,m3(task),0,0,0,0,0,0,0,0,0,0  ];
-    stimXcue_G    = [ 0,0,0,0,m4(task),0,0,0,0,0,0,0,0,0,0  ];
-    stimXactual_P = [ 0,0,0,0,0,m1(task),0,0,0,0,0,0,0,0,0  ];
-    stimXactual_V = [ 0,0,0,0,0,m2(task),0,0,0,0,0,0,0,0,0  ];
-    stimXactual_C = [ 0,0,0,0,0,m3(task),0,0,0,0,0,0,0,0,0  ];
-    stimXactual_G = [ 0,0,0,0,0,m4(task),0,0,0,0,0,0,0,0,0  ];
-    motor         = [ 0,0,1,0,0,0,1,0,0,0,0,0,0,0,0    ];
-    simple_cue_P         = [ m5(task),0,0,0,0,0,0,0,0,0,0,0,0,0,0  ];
-    simple_cue_V         = [ m6(task),0,0,0,0,0,0,0,0,0,0,0,0,0,0  ];
-    simple_cue_C         = [ m7(task),0,0,0,0,0,0,0,0,0,0,0,0,0,0  ];
-    simple_cueXcue_P     = [ 0,m5(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ];
-    simple_cueXcue_V     = [ 0,m6(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ];
-    simple_cueXcue_C     = [ 0,m7(task),0,0,0,0,0,0,0,0,0,0,0,0,0  ];
-    simple_stim_P        = [ 0,0,0,m5(task),0,0,0,0,0,0,0,0,0,0,0  ];
-    simple_stim_V        = [ 0,0,0,m6(task),0,0,0,0,0,0,0,0,0,0,0  ];
-    simple_stim_C        = [ 0,0,0,m7(task),0,0,0,0,0,0,0,0,0,0,0  ];
-    simple_stimXcue_P    = [ 0,0,0,0,m5(task),0,0,0,0,0,0,0,0,0,0  ];
-    simple_stimXcue_V    = [ 0,0,0,0,m6(task),0,0,0,0,0,0,0,0,0,0  ];
-    simple_stimXcue_C    = [ 0,0,0,0,m7(task),0,0,0,0,0,0,0,0,0,0  ];
-    simple_stimXactual_P = [ 0,0,0,0,0,m5(task),0,0,0,0,0,0,0,0,0  ];
-    simple_stimXactual_V = [ 0,0,0,0,0,m6(task),0,0,0,0,0,0,0,0,0  ];
-    simple_stimXactual_C = [ 0,0,0,0,0,m7(task),0,0,0,0,0,0,0,0,0  ];
-
-    c01 = [ c01  cue_P];          c02 = [ c02  cue_V];          c03 = [ c03  cue_C];          c04 = [ c04  cue_G];
-    c05 = [ c05  cueXcue_P];      c06 = [ c06  cueXcue_V];      c07 = [ c07  cueXcue_C];      c08 = [ c08  cueXcue_G];
-    c09 = [ c09  stim_P];         c10 = [ c10  stim_V];         c11 = [ c11  stim_C];         c12 = [ c12  stim_G];
-    c13 = [ c13  stimXcue_P];     c14 = [ c14  stimXcue_V];     c15 = [ c15  stimXcue_C];     c16 = [ c16  stimXcue_G];
-    c17 = [ c17  stimXactual_P];  c18 = [ c18  stimXactual_V];  c19 = [ c19  stimXactual_C];  c20 = [ c20  stimXactual_G];
-    c21 = [ c21  motor];
-    c22 = [ c22  simple_cue_P];          c23 = [ c23  simple_cue_V];         c24 = [ c24  simple_cue_C];
-    c25 = [ c25  simple_cueXcue_P];      c26 = [ c26  simple_cueXcue_V];     c27 = [ c27  simple_cueXcue_C];
-    c28 = [ c28  simple_stim_P];         c29 = [ c29  simple_stim_V];        c30 = [ c30  simple_stim_C];
-    c31 = [ c31  simple_stimXcue_P];     c32 = [ c32  simple_stimXcue_V];    c33 = [ c33  simple_stimXcue_C];
-    c34 = [ c34  simple_stimXactual_P];  c35 = [ c35  simple_stimXactual_V]; c36 = [ c36  simple_stimXactual_C];
-
+    P_VC_epoch_cue               = [ (m1(task)*epoch_cue)/runlength,covariate ];
+    V_PC_epoch_cue               = [ (m2(task)*epoch_cue)/runlength,covariate ];
+    C_PV_epoch_cue               = [ (m3(task)*epoch_cue)/runlength,covariate ];
+    
+    P_VC_epoch_stim              = [ (m1(task)*epoch_stim )/runlength,covariate ];
+    V_PC_epoch_stim              = [ (m2(task)*epoch_stim )/runlength,covariate ];
+    C_PV_epoch_stim              = [ (m3(task)*epoch_stim )/runlength,covariate ];
+    
+    P_VC_pmod_stimXcue           = [ (m1(task)*pmod_stimXcue )/runlength,covariate ];
+    V_PC_pmod_stimXcue           = [ (m2(task)*pmod_stimXcue )/runlength,covariate ];
+    C_PV_pmod_stimXcue           = [ (m3(task)*pmod_stimXcue )/runlength,covariate ];
+    
+    P_VC_pmod_stimXintensity     = [ (m1(task)*pmod_stimXintensity )/runlength,covariate ];
+    V_PC_pmod_stimXintensity     = [ (m2(task)*pmod_stimXintensity )/runlength,covariate ];
+    C_PV_pmod_stimXintensity     = [ (m3(task)*pmod_stimXintensity )/runlength,covariate ];
+    
+    motor                        = [ epoch_motor,covariate ];
+    
+    P_simple_epoch_cue               = [ (m5(task)*epoch_cue)/runlength,covariate ];
+    V_simple_epoch_cue               = [ (m6(task)*epoch_cue)/runlength,covariate ];
+    C_simple_epoch_cue               = [ (m7(task)*epoch_cue)/runlength,covariate ];
+    
+    P_simple_epoch_stim              = [ (m5(task)*epoch_stim )/runlength,covariate ];
+    V_simple_epoch_stim              = [ (m6(task)*epoch_stim )/runlength,covariate ];
+    C_simple_epoch_stim              = [ (m7(task)*epoch_stim )/runlength,covariate ];
+    
+    P_simple_pmod_stimXcue           = [ (m5(task)*pmod_stimXcue )/runlength,covariate ];
+    V_simple_pmod_stimXcue           = [ (m6(task)*pmod_stimXcue )/runlength,covariate ];
+    C_simple_pmod_stimXcue           = [ (m7(task)*pmod_stimXcue )/runlength,covariate ];
+    
+    P_simple_pmod_stimXintensity     = [ (m5(task)*pmod_stimXintensity )/runlength,covariate ];
+    V_simple_pmod_stimXintensity     = [ (m6(task)*pmod_stimXintensity )/runlength,covariate ];
+    C_simple_pmod_stimXintensity     = [ (m7(task)*pmod_stimXintensity )/runlength,covariate ];
+    
+    c01 = [c01, P_VC_epoch_cue];          c02 = [c02, V_PC_epoch_cue];          c03 = [c03, C_PV_epoch_cue];
+    c04 = [c04, P_VC_epoch_stim];         c05 = [c05, V_PC_epoch_stim];         c06 = [c06, C_PV_epoch_stim];
+    c07 = [c07, P_VC_pmod_stimXcue];      c08 = [c08, V_PC_pmod_stimXcue];      c09 = [c09, C_PV_pmod_stimXcue];
+    c10 = [c10, P_VC_pmod_stimXintensity];c11 = [c11, V_PC_pmod_stimXintensity];c12 = [c12, C_PV_pmod_stimXintensity];
+    c13 = [c13, motor];
+    c14 = [c14, P_simple_epoch_cue];          c15 = [c15, V_simple_epoch_cue];          c16 = [c16, C_simple_epoch_cue];
+    c17 = [c17, P_simple_epoch_stim];         c18 = [c18, V_simple_epoch_stim];         c19 = [c19, C_simple_epoch_stim];
+    c20 = [c20, P_simple_pmod_stimXcue];      c21 = [c21, V_simple_pmod_stimXcue];      c22 = [c22, C_simple_pmod_stimXcue];
+    c23 = [c23, P_simple_pmod_stimXintensity];c24 = [c24, V_simple_pmod_stimXintensity];c25 = [c25, C_simple_pmod_stimXintensity];
+    
     disp(strcat('task: ', task));
 
  end
@@ -167,12 +180,8 @@ contrast_vector{17} = c17; contrast_vector{18} = c18;
 contrast_vector{19} = c19; contrast_vector{20} = c20;
 contrast_vector{21} = c21; contrast_vector{22} = c22;
 contrast_vector{23} = c23; contrast_vector{24} = c24;
-contrast_vector{25} = c25; contrast_vector{26} = c26;
-contrast_vector{27} = c27; contrast_vector{28} = c28;
-contrast_vector{29} = c29; contrast_vector{30} = c30;
-contrast_vector{31} = c31; contrast_vector{32} = c32;
-contrast_vector{33} = c33; contrast_vector{34} = c34;
-contrast_vector{35} = c35; contrast_vector{36} = c36;
+contrast_vector{25} = c25; 
+
 
 %% 1. contrast batch _______________________________________________________
 for con_num = 1: length(contrast_name)

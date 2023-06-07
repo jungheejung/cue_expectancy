@@ -11,17 +11,45 @@
 #SBATCH --partition=standard
 #SBATCH --array=1-25%5
 
-subjects=( "'0002'" "'0003'" "'0004'" "'0005'" "'0006'" "'0007'" "'0008'" "'0009'" "'0010'" "'0011'" \
-"'0013'" "'0014'" "'0015'" "'0016'" "'0017'" "'0018'" "'0019'"  "'0020'" "'0021'" "'0023'" \
-"'0024'" "'0025'" "'0026'" "'0028'" "'0029'")
+# """
+# This code produces contrasts from a parametric modulation analysis.
+# It converts the task dummy coding based on task contrast (e.g. if pain run, 1 is converted to 2 while the other vicarious and cognitive runs are convert to -1, to account for a contrast effect)
 
-PARTICIPANT_LABEL=${subjects[$((SLURM_ARRAY_TASK_ID -1))]}
-echo "array id: " ${SLURM_ARRAY_TASK_ID}, "subject id: " ${PARTICIPANT_LABEL}
+# """
+
+conda activate spacetop_env
+
 CANLABCORE_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore"
-SCRIPT_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/scripts/step04_SPM"
-SUBJECT=${SLURM_ARRAY_TASK_ID//[!0-9]/}
-echo ${SUBJECT}
-# sub_list = {2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,23,24,25}
+SPM_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/spm12"
+MAIN_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue" #"$(realpath "${PWD}/../..")"
+# SPMINPUT_DIR="${MAIN_DIR}/analysis/fmri/spm/univariate/model01_6cond/1stLevel"
+INPUT_DIR="${MAIN_DIR}/analysis/fmri/smooth6mm"
+### GPT
+FILE="${MAIN_DIR}/scripts/step00_qc/qc03_fmriprep_visualize/bad_runs.json"
+BAD=$(jq -r 'keys[]' ${FILE})   
+IFS=$'\n' bad_array=($BAD)
+subdirectories=($(find "$INPUT_DIR" -mindepth 1 -maxdepth 1 -type d -exec basename {} \;))
+
+filtered_subdirectories=()
+for subdirectory in "${subdirectories[@]}"; do
+    skip=false
+    for bad_participant in "${bad_array[@]}"; do
+        if [[ $subdirectory == $bad_participant ]]; then
+            skip=true
+            break
+        fi
+    done
+    if ! $skip; then
+        filtered_subdirectories+=("$subdirectory")
+    fi
+done
+# Print the filtered subdirectories
+sorted_subdirectories=($(printf '%s\n' "${filtered_subdirectories[@]}" | sort))
+PARTICIPANT_LABEL="$(basename "${sorted_subdirectories[$((SLURM_ARRAY_TASK_ID-1))]}")"
+
+echo ${PARTICIPANT_LABEL}
+
 module load matlab/r2020a
-matlab -nodisplay -nosplash -batch "addpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12'); addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore')); addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/scripts/step04_SPM/model01_CcEScaA')); s02_contrast($PARTICIPANT_LABEL);"
+matlab -nodisplay -nosplash -batch "addpath('${SPM_DIR}'); addpath(genpath('${CANLABCORE_DIR}')); addpath(genpath('${MAIN_DIR}')); s02_contrast('${PARTICIPANT_LABEL}', '${INPUT_DIR}', '${MAIN_DIR}');"
+
 
