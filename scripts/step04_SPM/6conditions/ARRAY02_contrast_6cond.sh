@@ -9,7 +9,7 @@
 #SBATCH -e ./log_con/contrast_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1-2%10
+#SBATCH --array=1-133%10
 
 conda activate spacetop_env
 
@@ -22,7 +22,7 @@ INPUT_DIR="${MAIN_DIR}/analysis/fmri/smooth6mm"
 FILE="${MAIN_DIR}/scripts/step00_qc/qc03_fmriprep_visualize/bad_runs.json"
 BAD=$(jq -r 'keys[]' ${FILE})   
 IFS=$'\n' bad_array=($BAD)
-subdirectories=($(find "$SPMINPUT_DIR" -mindepth 1 -maxdepth 1 -type d -exec basename {} \;))
+subdirectories=($(find "$INPUT_DIR" -mindepth 1 -maxdepth 1 -type d -exec basename {} \;))
 
 filtered_subdirectories=()
 for subdirectory in "${subdirectories[@]}"; do
