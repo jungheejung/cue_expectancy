@@ -9,8 +9,9 @@
 #SBATCH -e ./log_con/contrast_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1-100%10
+#SBATCH --array=1-2%10
 
+conda activate spacetop_env
 
 CANLABCORE_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore"
 SPM_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/spm12"
@@ -38,7 +39,6 @@ for subdirectory in "${subdirectories[@]}"; do
 done
 # Print the filtered subdirectories
 sorted_subdirectories=($(printf '%s\n' "${filtered_subdirectories[@]}" | sort))
-printf '%s\n' "${sorted_subdirectories[@]}"
 PARTICIPANT_LABEL="$(basename "${sorted_subdirectories[$((SLURM_ARRAY_TASK_ID-1))]}")"
 
 echo ${PARTICIPANT_LABEL}
