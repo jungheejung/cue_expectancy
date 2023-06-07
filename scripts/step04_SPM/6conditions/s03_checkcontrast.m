@@ -1,3 +1,6 @@
+% The purpose of this script is to find where the "cue" keyword exists 
+% and find it in the contrast list. 
+
 % load SPM for every participant
 firstlevel_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/spm/univariate/model01_CESO/1stLevel';
 list = dir(firstlevel_dir);
