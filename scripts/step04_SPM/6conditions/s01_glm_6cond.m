@@ -126,19 +126,20 @@ function s01_glm_6cond(sub, input_dir, main_dir, fmriprep_dir)
 
         % bug report: there were spaces that added to a mistmach in dataframes
         % remove spaces
+        cue.pmod_cuetype = cellstr(cue.pmod_cuetype);
+        cue.pmod_stimtype = cellstr(cue.pmod_stimtype);
         cue.pmod_stimtype = strtrim(cue.pmod_stimtype);
         cue.pmod_cuetype = strtrim(cue.pmod_cuetype);
-
-        highcue = cue.pmod_cuetype == 'high_cue';
-        lowcue = cue.pmod_cuetype == 'low_cue';
-        highstim = cue.pmod_stimtype == 'high_stim';
-        medstim = cue.pmod_stimtype == 'med_stim ';
-        lowstim = cue.pmod_stimtype == 'low_stim ';
+        disp(cue.pmod_cuetype)
+        highcue = strcmp(cue.pmod_cuetype,'high_cue');
+        lowcue = strcmp(cue.pmod_cuetype,'low_cue');
+        highstim = strcmp(cue.pmod_stimtype, 'high_stim');
+        medstim = strcmp(cue.pmod_stimtype, 'med_stim');
+        lowstim = strcmp(cue.pmod_stimtype, 'low_stim');
 
         keyword = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
         task = char(extractAfter(keyword, '-'));
 
-                % 
         if strcmp(task,'pain')
             test = dir(fullfile(onset_glob.folder, strcat(sub, '_', ses, '_task-cue_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '*_events_ttl.tsv')))
             if ~isempty(test)
@@ -156,7 +157,6 @@ function s01_glm_6cond(sub, input_dir, main_dir, fmriprep_dir)
         %% regressor covariates ______________________________________________________
         motion_fname = fullfile(motion_dir, 'csf_24dof_dummy_spike', sub, ses, ...
         strcat(sub, '_', ses, '_task-cue_run-', sprintf('%02d', A.run_num(run_ind)), '_confounds-subset.txt'));
-        %    if ~isfile(motion_fname)
         if ~exist(fullfile(motion_dir, 'csf_24dof_dummy_spike', sub, ses), 'dir'), mkdir(fullfile(motion_dir, 'csf_24dof_dummy_spike', sub, ses))
         end
 
