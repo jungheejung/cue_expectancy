@@ -1,4 +1,3 @@
-% function s01_glm(input)
 function s01_glm_CESciO(sub, input_dir, main_dir, fmriprep_dir)
 %-----------------------------------------------------------------------
 % Job saved on 30-Jun-2021 19:26:24 by cfg_util (rev $Rev: 7345 $)
@@ -23,7 +22,6 @@ rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = 'v7.3';
 %sub_list = {2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,23,24,25}
 numscans = 56;
 disacqs = 0;
-disp(input);
 disp(strcat('[ STEP 01 ] setting parameters...'));
 
 % contrast mapper _______________________________________________________
@@ -45,10 +43,10 @@ disp(strcat('motion_dir: ', motion_dir));
 disp(strcat('onset_dir: ', onset_dir));
 disp(strcat('main_dir: ', main_dir));
 %% 2. for loop "subject-wise" _______________________________________________________
-sub_num = sscanf(char(sub),'%d');
-sub = strcat('sub-', sprintf('%04d', sub_num));
+%sub_num = sscanf(char(sub),'%d');
+%sub = strcat('sub-', sprintf('%04d', sub_num));
 disp(strcat('[ STEP 02 ] PRINT VARIABLE'))
-disp(strcat('sub_num:  ', sub_num));
+%disp(strcat('sub_num:  ', sub_num));
 disp(strcat('sub:    ', sub));
 
 % find nifti files
@@ -78,91 +76,93 @@ onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
 %intersection of nifti and onset files
 A = intersect(sortedT(:,nii_num_colomn),sortedonsetT(:,onset_num_colomn));
 
-output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'univariate', 'model-01_CESciO',...
+disp(A);
+output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'univariate', 'model02_CESciO',...
 '1stLevel',sub);
 if ~exist(output_dir, 'dir')
     mkdir(output_dir)
 end
+
 if isfile(fullfile(output_dir,'SPM.mat'))
-   delete *.nii
-   delete SPM.mat
-end
-
-
-matlabbatch = cell(1,2);
-% matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind) = cell(1,size(sortedT,1));
-%% 3. for loop "run-wise" _______________________________________________________
-for run_ind = 1: size(A,1)
-    disp(strcat('______________________run', num2str(run_ind), '____________________________'));
-    % [x] extract sub, ses, run info
-    sub=[]; ses=[]; run = [];
-    sub = strcat('sub-', sprintf('%04d', A.sub_num(run_ind)));
-    ses = strcat('ses-', sprintf('%02d', A.ses_num(run_ind)));
-    run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
-
-    disp(strcat('[ STEP 03 ] gunzip and saving nifti...'));
-    smooth_nii = fullfile(input_dir, sub, ses, ...
-        strcat('smooth-6mm_', sub, '_', ses, '_task-cue_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
-    if ~exist(smooth_nii, 'file')
-        disp(strcat('ABORT [!] ', smooth_nii, 'does not exist'))
-        break 
-    end
-
-    disp(strcat('[ STEP 04 ]constructing contrasts...'));
-    onset_glob = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-cue_', strcat('run-', sprintf('%02d', A.run_num(run_ind))), '*_events.tsv')));
-    onset_fname = fullfile(char(onset_glob.folder), char(onset_glob.name));
-
-    if isempty(onset_glob)
-      disp('ABORT')
-      break
-    end
-    disp(strcat('onset folder: ', onset_glob.folder));
-    disp(strcat('onset file:   ', onset_glob.name));
-    % social        = struct2table(tdfread(onset_fname));
-    % keyword       = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
-    % task          = char(extractAfter(keyword, '-'));
-
-
-    disp(strcat('onset folder: ', onset_glob.folder));
-    disp(strcat('onset file:   ', onset_glob.name));
-    cue = struct2table(tdfread(onset_fname));
-    highcue = cue.pmod_cuetype == 'high_cue';
-    lowcue = cue.pmod_cuetype == 'low_cue';
-    highstim = cue.pmod_stimtype == 'high_stim';
-    medstim = cue.pmod_stimtype == 'med_stim ';
-    lowstim = cue.pmod_stimtype == 'low_stim ';
-
-    keyword = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
-    task = char(extractAfter(keyword, '-'));
-
-            % 
-    if strcmp(task,'pain')
-        test = dir(fullfile(onset_glob.folder, strcat(sub, '_', ses, '_task-cue_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '*_events_ttl.tsv')));
-        if ~isempty(test)
-            onset_fname = fullfile(char(test.folder), char(test.name));
-            disp(strcat('this is a pain run with a ttl file: ', onset_fname))
-        else
-            disp(strcat('this is a pain run without a ttl file'))
-        end
-    end
-    
-    disp(strcat('task: ', task));
-    disp(strcat('[ STEP 05 ]creating motion covariate text file...'));
-
-
-    %% regressor covariates ______________________________________________________
-    motion_fname = fullfile(motion_dir, 'csf_24dof_dummy_spike', sub, ses, ...
-    strcat(sub, '_', ses, '_task-cue_run-', sprintf('%02d', A.run_num(run_ind)), '_confounds-subset.txt'));
-    %    if ~isfile(motion_fname)
-    if ~exist(fullfile(motion_dir, 'csf_24dof_dummy_spike', sub, ses), 'dir'), mkdir(fullfile(motion_dir, 'csf_24dof_dummy_spike', sub, ses))
-    end
-
-    if ~isfile(motion_fname)
-        m_fmriprep = fullfile(fmriprep_dir, sub, ses, 'func', ...
-            strcat(sub, '_', ses, '_task-social_acq-mb8_run-', sprintf('%01d', A.run_num(run_ind)), '_desc-confounds_timeseries.tsv'));
-        opts = detectImportOptions(m_fmriprep, 'FileType', 'text');
-        opts = setvaropts(opts, 'TreatAsMissing', {'n/a', 'NA'});
-        m = readtable(m_fmriprep, opts);
+    delete *.nii
+    delete SPM.mat
+ end
+ 
+ 
+ matlabbatch = cell(1,2);
+ % matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind) = cell(1,size(sortedT,1));
+ %% 3. for loop "run-wise" _______________________________________________________
+ for run_ind = 1: size(A,1)
+     disp(strcat('______________________run', num2str(run_ind), '____________________________'));
+     % [x] extract sub, ses, run info
+     sub=[]; ses=[]; run = [];
+     sub = strcat('sub-', sprintf('%04d', A.sub_num(run_ind)));
+     ses = strcat('ses-', sprintf('%02d', A.ses_num(run_ind)));
+     run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
+ 
+     disp(strcat('[ STEP 03 ] gunzip and saving nifti...'));
+     smooth_nii = fullfile(input_dir, sub, ses, ...
+         strcat('smooth-6mm_', sub, '_', ses, '_task-cue_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
+     if ~exist(smooth_nii, 'file')
+         disp(strcat('ABORT [!] ', smooth_nii, 'does not exist'))
+         break
+     end
+ 
+     disp(strcat('[ STEP 04 ]constructing contrasts...'));
+     onset_glob = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-cue_', strcat('run-', sprintf('%02d', A.run_num(run_ind))), '*_events.tsv')));
+     onset_fname = fullfile(char(onset_glob.folder), char(onset_glob.name));
+ 
+     if isempty(onset_glob)
+       disp('ABORT')
+       break
+     end
+     disp(strcat('onset folder: ', onset_glob.folder));
+     disp(strcat('onset file:   ', onset_glob.name));
+     % social        = struct2table(tdfread(onset_fname));
+     % keyword       = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
+     % task          = char(extractAfter(keyword, '-'));
+ 
+ 
+     disp(strcat('onset folder: ', onset_glob.folder));
+     disp(strcat('onset file:   ', onset_glob.name));
+     cue = struct2table(tdfread(onset_fname));
+     %highcue = cue.pmod_cuetype == 'high_cue';
+     %lowcue = cue.pmod_cuetype == 'low_cue';
+     %highstim = cue.pmod_stimtype == 'high_stim';
+     %medstim = cue.pmod_stimtype == 'med_stim ';
+     %lowstim = cue.pmod_stimtype == 'low_stim ';
+ 
+     keyword = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
+     task = char(extractAfter(keyword, '-'));
+ 
+             % 
+     if strcmp(task,'pain')
+         test = dir(fullfile(onset_glob.folder, strcat(sub, '_', ses, '_task-cue_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '*_events_ttl.tsv')));
+         if ~isempty(test)
+             onset_fname = fullfile(char(test.folder), char(test.name));
+             disp(strcat('this is a pain run with a ttl file: ', onset_fname))
+         else
+             disp(strcat('this is a pain run without a ttl file'))
+         end
+     end
+ 
+     disp(strcat('task: ', task));
+     disp(strcat('[ STEP 05 ]creating motion covariate text file...'));
+ 
+ 
+     %% regressor covariates ______________________________________________________
+     motion_fname = fullfile(motion_dir, 'csf_24dof_dummy_spike', sub, ses, ...
+     strcat(sub, '_', ses, '_task-cue_run-', sprintf('%02d', A.run_num(run_ind)), '_confounds-subset.txt'));
+     %    if ~isfile(motion_fname)
+     if ~exist(fullfile(motion_dir, 'csf_24dof_dummy_spike', sub, ses), 'dir'), mkdir(fullfile(motion_dir, 'csf_24dof_dummy_spike', sub, ses))
+     end
+ 
+     if ~isfile(motion_fname)
+         m_fmriprep = fullfile(fmriprep_dir, sub, ses, 'func', ...
+             strcat(sub, '_', ses, '_task-social_acq-mb8_run-', sprintf('%01d', A.run_num(run_ind)), '_desc-confounds_timeseries.tsv'));
+         opts = detectImportOptions(m_fmriprep, 'FileType', 'text');
+         opts = setvaropts(opts, 'TreatAsMissing', {'n/a', 'NA'});
+         m = readtable(m_fmriprep, opts);
         m_subset = m(:, {'csf', 'trans_x', 'trans_x_derivative1', 'trans_x_power2', 'trans_x_derivative1_power2', ...
                              'trans_y', 'trans_y_derivative1', 'trans_y_derivative1_power2', 'trans_y_power2', ...
                              'trans_z', 'trans_z_derivative1', 'trans_z_derivative1_power2', 'trans_z_power2', ...
@@ -178,16 +178,16 @@ for run_ind = 1: size(A,1)
             disp("-- there are motion outliers")
             motion_outlier = m(:, m.Properties.VariableNames(hasMatch));
             spike = sum(motion_outlier{:, :}, 2);
-            if size(motion_outlier,2) <= 20
+            if size(motion_outlier,2) <= 80
                 disp("-- motion outliers are less than 20 columns")
                 m_cov = [m_subset, dummy, motion_outlier];
                 m_clean = standardizeMissing(m_cov, 'n/a');
                 for i = 1:size(m_clean,2)
                     m_clean.(i)(isnan(m_clean.(i))) = nanmean(m_clean.(i));
                 end
-            elseif size(motion_outlier,2) > 20
+            elseif size(motion_outlier,2) > 80
                 disp(strcat('-- ABORT [!] too many spikes: ', size(motion_outlier,2)));
-                continue 
+                continue
             end
         else
             disp("-- there are no motion outliers")
@@ -272,7 +272,6 @@ for run_ind = 1: size(A,1)
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).multi_reg = cellstr(motion_fname);
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).hpf = 128;
 end
-
 
 %% 2. estimation __________________________________________________________
 %
