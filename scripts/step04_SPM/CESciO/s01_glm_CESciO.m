@@ -1,3 +1,4 @@
+% function s01_glm(input)
 function s01_glm_CESciO(sub, input_dir, main_dir, fmriprep_dir)
 %-----------------------------------------------------------------------
 % Job saved on 30-Jun-2021 19:26:24 by cfg_util (rev $Rev: 7345 $)
@@ -22,6 +23,7 @@ rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = 'v7.3';
 %sub_list = {2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,23,24,25}
 numscans = 56;
 disacqs = 0;
+disp(input);
 disp(strcat('[ STEP 01 ] setting parameters...'));
 
 % contrast mapper _______________________________________________________
@@ -43,10 +45,10 @@ disp(strcat('motion_dir: ', motion_dir));
 disp(strcat('onset_dir: ', onset_dir));
 disp(strcat('main_dir: ', main_dir));
 %% 2. for loop "subject-wise" _______________________________________________________
-%sub_num = sscanf(char(sub),'%d');
-%sub = strcat('sub-', sprintf('%04d', sub_num));
+sub_num = sscanf(char(sub),'%d');
+sub = strcat('sub-', sprintf('%04d', sub_num));
 disp(strcat('[ STEP 02 ] PRINT VARIABLE'))
-%disp(strcat('sub_num:  ', sub_num));
+disp(strcat('sub_num:  ', sub_num));
 disp(strcat('sub:    ', sub));
 
 % find nifti files
@@ -76,8 +78,7 @@ onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
 %intersection of nifti and onset files
 A = intersect(sortedT(:,nii_num_colomn),sortedonsetT(:,onset_num_colomn));
 
-disp(A);
-output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'univariate', 'model02_CESciO',...
+output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'univariate', 'model-01_CESciO',...
 '1stLevel',sub);
 if ~exist(output_dir, 'dir')
     mkdir(output_dir)
@@ -125,11 +126,11 @@ for run_ind = 1: size(A,1)
     disp(strcat('onset folder: ', onset_glob.folder));
     disp(strcat('onset file:   ', onset_glob.name));
     cue = struct2table(tdfread(onset_fname));
-    %highcue = cue.pmod_cuetype == 'high_cue';
-    %lowcue = cue.pmod_cuetype == 'low_cue';
-    %highstim = cue.pmod_stimtype == 'high_stim';
-    %medstim = cue.pmod_stimtype == 'med_stim ';
-    %lowstim = cue.pmod_stimtype == 'low_stim ';
+    highcue = cue.pmod_cuetype == 'high_cue';
+    lowcue = cue.pmod_cuetype == 'low_cue';
+    highstim = cue.pmod_stimtype == 'high_stim';
+    medstim = cue.pmod_stimtype == 'med_stim ';
+    lowstim = cue.pmod_stimtype == 'low_stim ';
 
     keyword = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
     task = char(extractAfter(keyword, '-'));
@@ -177,14 +178,14 @@ for run_ind = 1: size(A,1)
             disp("-- there are motion outliers")
             motion_outlier = m(:, m.Properties.VariableNames(hasMatch));
             spike = sum(motion_outlier{:, :}, 2);
-            if size(motion_outlier,2) <= 80
+            if size(motion_outlier,2) <= 20
                 disp("-- motion outliers are less than 20 columns")
                 m_cov = [m_subset, dummy, motion_outlier];
                 m_clean = standardizeMissing(m_cov, 'n/a');
                 for i = 1:size(m_clean,2)
                     m_clean.(i)(isnan(m_clean.(i))) = nanmean(m_clean.(i));
                 end
-            elseif size(motion_outlier,2) > 80
+            elseif size(motion_outlier,2) > 20
                 disp(strcat('-- ABORT [!] too many spikes: ', size(motion_outlier,2)));
                 continue 
             end
@@ -249,7 +250,7 @@ for run_ind = 1: size(A,1)
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).orth = 0;
 
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).name = 'STIM';
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).onset = double(cue.onset03_stim);
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).onset = double(cue.onset03_stim) + 2 ;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).duration = double(repelem(5,12)');
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).tmod = 0;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(1).name = 'cue';
