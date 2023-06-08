@@ -1,4 +1,3 @@
-% function s01_glm(input)
 function s01_glm_CESciO(sub, input_dir, main_dir, fmriprep_dir)
 %-----------------------------------------------------------------------
 % Job saved on 30-Jun-2021 19:26:24 by cfg_util (rev $Rev: 7345 $)
@@ -44,10 +43,10 @@ disp(strcat('motion_dir: ', motion_dir));
 disp(strcat('onset_dir: ', onset_dir));
 disp(strcat('main_dir: ', main_dir));
 %% 2. for loop "subject-wise" _______________________________________________________
-sub_num = sscanf(char(sub),'%d');
-sub = strcat('sub-', sprintf('%04d', sub_num));
+%sub_num = sscanf(char(sub),'%d');
+%sub = strcat('sub-', sprintf('%04d', sub_num));
 disp(strcat('[ STEP 02 ] PRINT VARIABLE'))
-disp(strcat('sub_num:  ', sub_num));
+%disp(strcat('sub_num:  ', sub_num));
 disp(strcat('sub:    ', sub));
 
 % find nifti files
@@ -77,7 +76,8 @@ onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
 %intersection of nifti and onset files
 A = intersect(sortedT(:,nii_num_colomn),sortedonsetT(:,onset_num_colomn));
 
-output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'univariate', 'model-01_CESciO',...
+disp(A);
+output_dir = fullfile(main_dir,'analysis', 'fmri', 'spm', 'univariate', 'model02_CESciO',...
 '1stLevel',sub);
 if ~exist(output_dir, 'dir')
     mkdir(output_dir)
@@ -125,11 +125,11 @@ for run_ind = 1: size(A,1)
     disp(strcat('onset folder: ', onset_glob.folder));
     disp(strcat('onset file:   ', onset_glob.name));
     cue = struct2table(tdfread(onset_fname));
-    highcue = cue.pmod_cuetype == 'high_cue';
-    lowcue = cue.pmod_cuetype == 'low_cue';
-    highstim = cue.pmod_stimtype == 'high_stim';
-    medstim = cue.pmod_stimtype == 'med_stim ';
-    lowstim = cue.pmod_stimtype == 'low_stim ';
+    %highcue = cue.pmod_cuetype == 'high_cue';
+    %lowcue = cue.pmod_cuetype == 'low_cue';
+    %highstim = cue.pmod_stimtype == 'high_stim';
+    %medstim = cue.pmod_stimtype == 'med_stim ';
+    %lowstim = cue.pmod_stimtype == 'low_stim ';
 
     keyword = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
     task = char(extractAfter(keyword, '-'));
