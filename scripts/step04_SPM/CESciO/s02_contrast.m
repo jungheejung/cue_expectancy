@@ -107,6 +107,9 @@ for run_ind = 1: size(A,1)
     sub = strcat('sub-', sprintf('%04d', A.sub_num(run_ind)));
     ses = strcat('ses-', sprintf('%02d', A.ses_num(run_ind)));
     run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
+    disp('identify covariates');
+    covariate = zeros(1, size(SPM.Sess(run_ind).C.name,2));
+
     disp(strcat('[ STEP 04 ]constructing contrasts...'));
     onset_glob    = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-social_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '-*_events.tsv')));
     onset_fname   = fullfile(char(onset_glob.folder), char(onset_glob.name));
