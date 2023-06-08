@@ -7,7 +7,7 @@ rootgroup = settings; rootgroup.matlab.general.matfile.SaveFormat.PersonalValue 
 
 numscans = 56;
 disacqs = 0;
-disp(input);
+disp(sub);
 disp(strcat('[ STEP 01 ] setting parameters...'));
 
 % contrast mapper _______________________________________________________
@@ -101,14 +101,17 @@ c11 = []; c12 = []; c13 = []; c14 = []; c15 = []; c16 = []; c17 = []; c18 = []; 
 c21 = []; c22 = []; c23 = []; c24 = []; c25 = []; 
 
 matlabbatch = cell(1,1);
-
-for run_ind = 1: size(A,1)
+runlength = size(A,1);
+for run_ind = 1: runlength
     disp(strcat('run', num2str(run_ind)));
     sub = strcat('sub-', sprintf('%04d', A.sub_num(run_ind)));
     ses = strcat('ses-', sprintf('%02d', A.ses_num(run_ind)));
     run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
+    disp('identify covariates');
+    covariate = zeros(1, size(SPM.Sess(run_ind).C.name,2));
+
     disp(strcat('[ STEP 04 ]constructing contrasts...'));
-    onset_glob    = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-social_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '-*_events.tsv')));
+    onset_glob    = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-cue_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '_*_events.tsv')));
     onset_fname   = fullfile(char(onset_glob.folder), char(onset_glob.name));
     if isempty(onset_glob)
       disp('ABORT')
@@ -195,7 +198,7 @@ end
 
 matlabbatch{1}.spm.stats.con.delete = 1; % delete previous contrast
 
-con_batch = fullfile(fmri_dir, 'contrast_estimation.mat' );
+con_batch = fullfile(output_dir, 'contrast_estimation.mat' );
 save( con_batch  ,'matlabbatch');
 
 % 2. Run ___________________________________________________________________
