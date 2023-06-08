@@ -68,7 +68,7 @@ sortedonsetT = sortrows(onsetT, 'name');
 
 sortedonsetT.sub_num(:) = str2double(extractBetween(sortedonsetT.name, 'sub-', '_'));
 sortedonsetT.ses_num(:) = str2double(extractBetween(sortedonsetT.name, 'ses-', '_'));
-sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '-'));
+sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '_'));
 
 onset_col_names = sortedonsetT.Properties.VariableNames;
 onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
