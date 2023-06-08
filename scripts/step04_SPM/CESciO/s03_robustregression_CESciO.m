@@ -1,7 +1,10 @@
 contrast_name = {### ADD };
 
 % load dataset
-mount_dir = '/Volumes/spacetop_projects_social/analysis/fmri/spm/univariate/model-02_CcEScA/1stLevel'
+mount_dir = '/Volumes/spacetop_projects_social/analysis/fmri/spm/univariate/model02_CESciO/1stLevel'
+
+% TODO: grab subject contrasts that match subject id in the model simulated data
+% TODO: load module simulated dataframe
 con_list = dir(fullfile(mount_dir, '*/con_0017.nii'));
 spm('Defaults','fMRI')
 con_fldr = {con_list.folder}; fname = {con_list.name};
@@ -17,5 +20,6 @@ orthviews(m, 'trans') % display
 
 %% run ols
 out = regress(con_data_obj, .05, 'unc', 'nodisplay');
-out = robfit_parcelwise(con_data_obj);
+regressor
+out = robfit_parcelwise(con_data_obj, 'names', );
 % run robust
