@@ -7,7 +7,7 @@ rootgroup = settings; rootgroup.matlab.general.matfile.SaveFormat.PersonalValue 
 
 numscans = 56;
 disacqs = 0;
-disp(input);
+disp(sub);
 disp(strcat('[ STEP 01 ] setting parameters...'));
 
 % contrast mapper _______________________________________________________
@@ -195,7 +195,7 @@ end
 
 matlabbatch{1}.spm.stats.con.delete = 1; % delete previous contrast
 
-con_batch = fullfile(fmri_dir, 'contrast_estimation.mat' );
+con_batch = fullfile(output_dir, 'contrast_estimation.mat' );
 save( con_batch  ,'matlabbatch');
 
 % 2. Run ___________________________________________________________________
