@@ -1,7 +1,16 @@
-contrast_name = {### ADD };
-
+contrast_name = {
+    'P_VC_epoch_cue', 'V_PC_epoch_cue', 'C_PV_epoch_cue',...
+    'P_VC_epoch_stim', 'V_PC_epoch_stim', 'C_PV_epoch_stim',...
+    'P_VC_pmod_stimXcue', 'V_PC_pmod_stimXcue', 'C_PV_pmod_stimXcue',...
+    'P_VC_pmod_stimXintensity', 'V_PC_pmod_stimXintensity', 'C_PV_pmod_stimXintensity',...
+    'motor',...
+    'P_simple_epoch_cue', 'V_simple_epoch_cue', 'C_simple_epoch_cue',...
+    'P_simple_epoch_stim', 'V_simple_epoch_stim', 'C_simple_epoch_stim',...
+    'P_simple_pmod_stimXcue', 'V_simple_pmod_stimXcue', 'C_simple_pmod_stimXcue',...
+    'P_simple_pmod_stimXintensity', 'V_simple_pmod_stimXintensity', 'C_simple_pmod_stimXintensity'
+};
 % load dataset
-mount_dir = '/Volumes/spacetop_projects_social/analysis/fmri/spm/univariate/model02_CESciO/1stLevel'
+mount_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/spm/univariate/model02_CESciO/1stLevel';
 
 % TODO: grab subject contrasts that match subject id in the model simulated data
 % TODO: load module simulated dataframe
@@ -21,5 +30,7 @@ orthviews(m, 'trans') % display
 %% run ols
 out = regress(con_data_obj, .05, 'unc', 'nodisplay');
 regressor
-out = robfit_parcelwise(con_data_obj, 'names', );
+out = robfit_parcelwise(con_data_obj, 'names', ## );
 % run robust
+
+
