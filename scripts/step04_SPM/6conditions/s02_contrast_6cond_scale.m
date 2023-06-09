@@ -131,7 +131,7 @@ for run_ind = 1: runlength
     social        = struct2table(tdfread(onset_fname));
     keyword       = extractBetween(onset_glob.name, 'runtype-', '_events');
     %task          = char(extractAfter(keyword, '-'));
-    task          = char(keyword)
+    task          = char(keyword);
     disp(task);
 
 
