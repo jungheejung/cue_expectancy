@@ -61,7 +61,7 @@ parser.add_argument("--savedir", type=str,
 args = parser.parse_args()
 slurm_id = args.slurm_id 
 task = args.tasktype #pain
-fmri_event = args.fmrievent
+fmri_event = args.fmri_event
 beh_regressor = args.beh_regressor # event02_expect_angle
 beh_savename = args.beh_savename #expectrating
 save_dir = args.savedir
@@ -76,7 +76,7 @@ main_dir = Path(current_dir).parents[2] # discovery: /dartfs-hpc/rc/lab/C/CANlab
 beta_dir = join(main_dir, 'analysis', 'fmri', 'nilearn', 'deriv05_singletrialnpy')
 beh_dir = join(main_dir, 'data', 'beh', 'beh02_preproc')
 canlab_dir = '/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore'
-
+# /Users/h/Documents/MATLAB/CanlabCore
 sub_list = sorted(next(os.walk(beta_dir))[1])
 sub = sub_list[slurm_id]
 
@@ -102,10 +102,10 @@ for subject, runs in bad_dict.items():
 # Here, we create a brain mask based on brainmask_canlab.nii; 
 # We also use sample single trial as target shape and target affine
 sub = 'sub-0073'
-imgfname = join(main_dir, 'analysis/fmri/nilearn/singletrial/sub-0060/sub-0060_ses-01_run-05_runtype-vicarious_event-{fmri_event}_trial-011_cuetype-low_stimintensity-low.nii.gz')
+imgfname = join(main_dir, 'analysis', 'fmri', 'nilearn', 'singletrial', 'sub-0060', f'sub-0060_ses-01_run-05_runtype-vicarious_event-{fmri_event}_trial-011_cuetype-low_stimintensity-low.nii.gz')
 ref_img = image.load_img(imgfname)
 
-mask = image.load_img('/Users/h/Documents/MATLAB/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask_canlab.nii')
+mask = image.load_img(join(canlab_dir, 'CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask_canlab.nii'))
 mask_img = nilearn.masking.compute_epi_mask(mask, target_affine = ref_img.affine, target_shape = ref_img.shape)
 
 nifti_masker = nilearn.maskers.NiftiMasker(mask_img= mask_img,
@@ -116,88 +116,92 @@ nifti_masker = nilearn.maskers.NiftiMasker(mask_img= mask_img,
 # %% -------------------------------------------------------------------
 #                        main correlation
 # ----------------------------------------------------------------------
-for sub in sub_list:
-    print(f"_____________{sub}_____________")
-    subwise_stack = []
-    # 01 glob files filter if needed using bad_json ____________________
-    nii_flist = sorted(glob.glob(os.path.join(beta_dir, sub, f"{sub}_*{task}*{fmri_event}.npy")))
-    filtered_files = [file_path for file_path in nii_flist 
+#for sub in sub_list:
+print(f"_____________{sub}_____________")
+subwise_stack = []
+# 01 glob files filter if needed using bad_json ____________________
+nii_flist = sorted(glob.glob(os.path.join(beta_dir, sub, f"{sub}_*{task}*{fmri_event}*.npy")))
+print(beta_dir)
+
+filtered_files = [file_path for file_path in nii_flist 
                       if not any(subject in file_path and run in file_path 
                                  for subject, runs in padded_dict.items() 
                                  for run in runs)]
-
-    # 02 extract metadata from filenames _______________________________
-    keyword_names = ["sub", "ses", "run", "runtype", "event", "trial", "cuetype", "stimintensity"] # Define the desired keyword names
-    dfs = [
-        pd.DataFrame(
-            [dict(zip(keyword_names, re.findall(r'-(.*?)(?:_|$)', os.path.splitext(os.path.basename(nii_fname))[0])))]
-            )
-        for nii_fname in flist
-    ]
-    metadf = pd.concat(dfs, ignore_index=True)
-    for column in ['sub', 'ses', 'run', 'trial']:
-        metadf[column] = metadf[column].apply(lambda x: x.strip('0') if x != '000' else '0') # Strip leading zeros from specific columns
-
-    # 03 load behavioral data ___________________________________________
-    beh_flist = sorted(glob.glob(
-        join(main_dir, 'data', 'beh', 'beh02_preproc', sub, '**', f"{sub}_*{task}_beh.csv"), recursive=True))
-    dfs = [pd.read_csv(beh_fname) for beh_fname in beh_flist]
-    behdf = pd.concat(dfs, axis=0)
-    behdf['trial'] = behdf.groupby('param_run_num').cumcount()
-    behdf['sub'] = behdf['src_subject_id']
-    behdf['ses'] = behdf['session_id']
-    behdf['run'] = behdf['param_run_num']
-    
-    # 04 grab intersection of metadata and behavioral data ______________
-    metadf = metadf.reset_index(drop=True)
-    behdf = behdf.reset_index(drop=True)
-    keys = ['sub', 'ses', 'run', 'trial']
-    metadf[keys] = metadf[keys].astype(int)
-    behdf[keys] = behdf[keys].astype(int)
-    intersection = pd.merge(behdf, metadf, on=keys, how='inner')
-    flist = []
-
-    # 05 using intersection, grab nifti/npy _____________________________
-    for index, row in intersection.iterrows():
-        fname = sorted(glob.glob(join(beta_dir, sub, f"sub-{row['sub']:04d}_ses-{row['ses']:02d}_run-{row['run']:02d}_runtype-{row['runtype']}_event-{row['event']}_trial-{row['trial']:03d}_*.npy")))
-        flist.append(fname)
-    flatlist=[]
-    for sublist in flist:
-        for element in sublist:
-            flatlist.append(element)
-    if flist != []:
-        subwise_stack = [np.load(fpath).ravel() for fpath in sorted(flatlist)]
-    subwise  = np.vstack(subwise_stack)
-
-    # 06 apply mask _____________________________________________________
-    x,y,z=ref_img.shape
-    singlemasked = []
-    for index in range(subwise.shape[0]):
-        singlemasked.append(
-            nifti_masker.fit_transform(
-        new_img_like(ref_img, subwise[index].reshape(x,y,z)))
+print(nii_flist)
+print(filtered_files)
+# 02 extract metadata from filenames _______________________________
+keyword_names = ["sub", "ses", "run", "runtype", "event", "trial", "cuetype", "stimintensity"] # Define the desired keyword names
+dfs = [
+    pd.DataFrame(
+        [dict(zip(keyword_names, re.findall(r'-(.*?)(?:_|$)', os.path.splitext(os.path.basename(nii_fname))[0])))]
         )
-    fmri_masked_single = np.vstack(singlemasked)
+    for nii_fname in filtered_files
+]
+print(dfs)
+metadf = pd.concat(dfs, ignore_index=True)
+for column in ['sub', 'ses', 'run', 'trial']:
+    metadf[column] = metadf[column].apply(lambda x: x.strip('0') if x != '000' else '0') # Strip leading zeros from specific columns
 
-    # 07 calculate correlation with behavioral value ____________________
-    runwise_correlations = []
-    for run, run_indices in intersection.groupby('run').groups.items():
-        beh_subset = intersection[beh_regressor].iloc[run_indices]
-        fmri_subset = fmri_masked_single[run_indices, :]
-        # if there's a nan in the beh_regressor, mask it
-        b=ma.masked_invalid(beh_subset)
-        msk = (~b.mask)
-        correlations = np.apply_along_axis(lambda col: np.corrcoef(col, beh_subset[msk].squeeze())[0, 1], axis=0, arr=fmri_subset[msk])
-        fisherz_run = np.arctanh(correlations)
-        runwise_correlations.append(fisherz_run)
-    avg_run = np.mean(np.vstack(runwise_correlations), axis = 0)
-    corr_subjectnifti = nifti_masker.inverse_transform(avg_run)
-    # TODO: save plot
-    plot = plotting.plot_stat_map(corr_subjectnifti,  display_mode = 'mosaic', title = f'task-{task} corr w/ {fmri_event} and {beh_savename}', cut_coords = 8)
+# 03 load behavioral data ___________________________________________
+beh_flist = sorted(glob.glob(
+    join(main_dir, 'data', 'beh', 'beh02_preproc', sub, '**', f"{sub}_*{task}_beh.csv"), recursive=True))
+dfs = [pd.read_csv(beh_fname) for beh_fname in beh_flist]
+behdf = pd.concat(dfs, axis=0)
+behdf['trial'] = behdf.groupby('param_run_num').cumcount()
+behdf['sub'] = behdf['src_subject_id']
+behdf['ses'] = behdf['session_id']
+behdf['run'] = behdf['param_run_num']
 
-    new_img_like(ref_img, corr_subjectnifti).to_filename(join(save_dir, f'corr_{sub}_x-{fmri_event}_y-{beh_savename}.nii.gz'))
+# 04 grab intersection of metadata and behavioral data ______________
+metadf = metadf.reset_index(drop=True)
+behdf = behdf.reset_index(drop=True)
+keys = ['sub', 'ses', 'run', 'trial']
+metadf[keys] = metadf[keys].astype(int)
+behdf[keys] = behdf[keys].astype(int)
+intersection = pd.merge(behdf, metadf, on=keys, how='inner')
+flist = []
+
+# 05 using intersection, grab nifti/npy _____________________________
+for index, row in intersection.iterrows():
+    fname = sorted(glob.glob(join(beta_dir, sub, f"sub-{row['sub']:04d}_ses-{row['ses']:02d}_run-{row['run']:02d}_runtype-{row['runtype']}_event-{row['event']}_trial-{row['trial']:03d}_*.npy")))
+    flist.append(fname)
+flatlist=[]
+for sublist in flist:
+    for element in sublist:
+        flatlist.append(element)
+if flist != []:
+    subwise_stack = [np.load(fpath).ravel() for fpath in sorted(flatlist)]
+subwise  = np.vstack(subwise_stack)
+
+# 06 apply mask _____________________________________________________
+x,y,z=ref_img.shape
+singlemasked = []
+for index in range(subwise.shape[0]):
+    singlemasked.append(
+        nifti_masker.fit_transform(
+    new_img_like(ref_img, subwise[index].reshape(x,y,z)))
+    )
+fmri_masked_single = np.vstack(singlemasked)
+
+# 07 calculate correlation with behavioral value ____________________
+runwise_correlations = []
+for run, run_indices in intersection.groupby('run').groups.items():
+    beh_subset = intersection[beh_regressor].iloc[run_indices]
+    fmri_subset = fmri_masked_single[run_indices, :]
+    # if there's a nan in the beh_regressor, mask it
+    b=ma.masked_invalid(beh_subset)
+    msk = (~b.mask)
+    correlations = np.apply_along_axis(lambda col: np.corrcoef(col, beh_subset[msk].squeeze())[0, 1], axis=0, arr=fmri_subset[msk])
+    fisherz_run = np.arctanh(correlations)
+    runwise_correlations.append(fisherz_run)
+avg_run = np.mean(np.vstack(runwise_correlations), axis = 0)
+corr_subjectnifti = nifti_masker.inverse_transform(avg_run)
+# TODO: save plot
+plot = plotting.plot_stat_map(corr_subjectnifti,  display_mode = 'mosaic', title = f'task-{task} corr w/ {fmri_event} and {beh_savename}', cut_coords = 8)
+Path(save_dir).mkdir(parents = True, exist_ok = True)
+new_img_like(ref_img, corr_subjectnifti).to_filename(join(save_dir, f'corr_{sub}_x-{fmri_event}_y-{beh_savename}.nii.gz'))
 #     for run, run_indices in intersection.groupby('run').groups.items():
-        
+    
 #         # group_indices = [24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]
 #         beh_subset = intersection.event02_expect_angle.iloc[run_indices]
 #         fmri_subset = fmri_masked_single[run_indices, :]
