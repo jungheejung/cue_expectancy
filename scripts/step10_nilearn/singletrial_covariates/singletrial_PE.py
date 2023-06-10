@@ -73,11 +73,11 @@ save_dir = args.savedir
 current_dir = os.getcwd()
 main_dir = Path(current_dir).parents[2] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
 
-# main_dir = '/Volumes/spacetop_projects_cue'
+main_dir = '/Volumes/spacetop_projects_cue'
 beta_dir = join(main_dir, 'analysis', 'fmri', 'nilearn', 'deriv05_singletrialnpy')
 beh_dir = join(main_dir, 'data', 'beh', 'beh02_preproc')
 canlab_dir = '/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore'
-# /Users/h/Documents/MATLAB/CanlabCore
+canlab_dir = '/Users/h/Documents/MATLAB/CanlabCore'
 sub_list = sorted(next(os.walk(beta_dir))[1])
 sub = sub_list[slurm_id]
 
@@ -125,7 +125,7 @@ filtered_files = [file_path for file_path in nii_flist
                       if not any(subject in file_path and run in file_path 
                                  for subject, runs in padded_dict.items() 
                                  for run in runs)]
-# 02 extract metadata from filenames _______________________________
+# %%02 extract metadata from filenames _______________________________
 keyword_names = ["sub", "ses", "run", "runtype", "event", "trial", "cuetype", "stimintensity"] # Define the desired keyword names
 dfs = [
     pd.DataFrame(
@@ -137,7 +137,7 @@ metadf = pd.concat(dfs, ignore_index=True)
 for column in ['sub', 'ses', 'run', 'trial']:
     metadf[column] = metadf[column].apply(lambda x: x.strip('0') if x != '000' else '0') # Strip leading zeros from specific columns
 
-# 03 load behavioral data ___________________________________________
+# %% 03 load behavioral data ___________________________________________
 beh_flist = sorted(glob.glob(
     join(main_dir, 'data', 'beh', 'beh02_preproc', sub, '**', f"{sub}_*{task}_beh.csv"), recursive=True))
 dfs = [pd.read_csv(beh_fname) for beh_fname in beh_flist]
@@ -147,7 +147,7 @@ behdf['sub'] = behdf['src_subject_id']
 behdf['ses'] = behdf['session_id']
 behdf['run'] = behdf['param_run_num']
 
-# 04 grab intersection of metadata and behavioral data ______________
+# %% 04 grab intersection of metadata and behavioral data ______________
 metadf = metadf.reset_index(drop=True)
 behdf = behdf.reset_index(drop=True)
 keys = ['sub', 'ses', 'run', 'trial']
@@ -158,7 +158,7 @@ intersection['beh_demean'] = intersection[beh_regressor].sub(intersection[beh_re
 flist = []
 intersection.to_csv(join(save_dir, f"{sub}_intersection.csv"))
 
-# 05 using intersection, grab nifti/npy _____________________________
+# %% 05 using intersection, grab nifti/npy _____________________________
 for index, row in intersection.iterrows():
     fname = sorted(glob.glob(join(beta_dir, sub, f"sub-{row['sub']:04d}_ses-{row['ses']:02d}_run-{row['run']:02d}_runtype-{row['runtype']}_event-{row['event']}_trial-{row['trial']:03d}_*.npy")))
     flist.append(fname)
@@ -170,7 +170,7 @@ if flist != []:
     subwise_stack = [np.load(fpath).ravel() for fpath in sorted(flatlist)]
 subwise  = np.vstack(subwise_stack)
 
-# 06 apply mask _____________________________________________________
+# %% 06 apply mask _____________________________________________________
 x,y,z=ref_img.shape
 singlemasked = []
 for index in range(subwise.shape[0]):
@@ -180,7 +180,7 @@ for index in range(subwise.shape[0]):
     )
 fmri_masked_single = np.vstack(singlemasked)
 
-# 07 calculate correlation with behavioral value ____________________
+# %% 07 calculate correlation with behavioral value ____________________
 runwise_correlations = []
 for run, run_indices in intersection.groupby('run').groups.items():
     print(run, run_indices)
@@ -196,10 +196,11 @@ avg_run = np.mean(np.vstack(runwise_correlations), axis = 0)
 corr_subjectnifti = nifti_masker.inverse_transform(avg_run)
 print(corr_subjectnifti.shape)
 print(corr_subjectnifti)
+
+# %% Save the resampled image using the reference affine
 Path(save_dir).mkdir(parents = True, exist_ok = True)
-resampled_image = image.resample_to_img(corr_subjectnifti, ref_img.affine, ref_img.shape)
+resampled_image = image.resample_to_img(corr_subjectnifti, ref_img)
 plot = plotting.plot_stat_map(resampled_image,  display_mode = 'mosaic', title = f'task-{task} corr w/ {fmri_event} and {beh_savename}', cut_coords = 8)
-plt.savefig(join(save_dir ,  f'corr_{sub}_x-{fmri_event}_y-{beh_savename}.png'))
-# Save the resampled image using the reference affine
-# nib.save(resampled_image, '/path/to/output_image.nii.gz')
+plot.savefig(join(save_dir ,  f'corr_{sub}_x-{fmri_event}_y-{beh_savename}.png'))
 resampled_image.to_filename(join(save_dir, f'corr_{sub}_x-{fmri_event}_y-{beh_savename}.nii.gz'))
+
