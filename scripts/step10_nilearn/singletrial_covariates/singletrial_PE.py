@@ -101,7 +101,6 @@ for subject, runs in bad_dict.items():
 # ----------------------------------------------------------------------
 # Here, we create a brain mask based on brainmask_canlab.nii; 
 # We also use sample single trial as target shape and target affine
-sub = 'sub-0073'
 imgfname = join(main_dir, 'analysis', 'fmri', 'nilearn', 'singletrial', 'sub-0060', f'sub-0060_ses-01_run-05_runtype-vicarious_event-{fmri_event}_trial-011_cuetype-low_stimintensity-low.nii.gz')
 ref_img = image.load_img(imgfname)
 
@@ -121,14 +120,10 @@ print(f"_____________{sub}_____________")
 subwise_stack = []
 # 01 glob files filter if needed using bad_json ____________________
 nii_flist = sorted(glob.glob(os.path.join(beta_dir, sub, f"{sub}_*{task}*{fmri_event}*.npy")))
-print(beta_dir)
-
 filtered_files = [file_path for file_path in nii_flist 
                       if not any(subject in file_path and run in file_path 
                                  for subject, runs in padded_dict.items() 
                                  for run in runs)]
-print(nii_flist)
-print(filtered_files)
 # 02 extract metadata from filenames _______________________________
 keyword_names = ["sub", "ses", "run", "runtype", "event", "trial", "cuetype", "stimintensity"] # Define the desired keyword names
 dfs = [
@@ -137,7 +132,6 @@ dfs = [
         )
     for nii_fname in filtered_files
 ]
-print(dfs)
 metadf = pd.concat(dfs, ignore_index=True)
 for column in ['sub', 'ses', 'run', 'trial']:
     metadf[column] = metadf[column].apply(lambda x: x.strip('0') if x != '000' else '0') # Strip leading zeros from specific columns
@@ -160,7 +154,7 @@ metadf[keys] = metadf[keys].astype(int)
 behdf[keys] = behdf[keys].astype(int)
 intersection = pd.merge(behdf, metadf, on=keys, how='inner')
 flist = []
-
+intersection.to_csv(join(save_dir, f"{sub}_intersection.csv"))
 # 05 using intersection, grab nifti/npy _____________________________
 for index, row in intersection.iterrows():
     fname = sorted(glob.glob(join(beta_dir, sub, f"sub-{row['sub']:04d}_ses-{row['ses']:02d}_run-{row['run']:02d}_runtype-{row['runtype']}_event-{row['event']}_trial-{row['trial']:03d}_*.npy")))
@@ -186,6 +180,7 @@ fmri_masked_single = np.vstack(singlemasked)
 # 07 calculate correlation with behavioral value ____________________
 runwise_correlations = []
 for run, run_indices in intersection.groupby('run').groups.items():
+    print(run, run_indices)
     beh_subset = intersection[beh_regressor].iloc[run_indices]
     fmri_subset = fmri_masked_single[run_indices, :]
     # if there's a nan in the beh_regressor, mask it
@@ -196,10 +191,18 @@ for run, run_indices in intersection.groupby('run').groups.items():
     runwise_correlations.append(fisherz_run)
 avg_run = np.mean(np.vstack(runwise_correlations), axis = 0)
 corr_subjectnifti = nifti_masker.inverse_transform(avg_run)
+print(corr_subjectnifti.shape)
+print(corr_subjectnifti)
 # TODO: save plot
-plot = plotting.plot_stat_map(corr_subjectnifti,  display_mode = 'mosaic', title = f'task-{task} corr w/ {fmri_event} and {beh_savename}', cut_coords = 8)
 Path(save_dir).mkdir(parents = True, exist_ok = True)
-new_img_like(ref_img, corr_subjectnifti).to_filename(join(save_dir, f'corr_{sub}_x-{fmri_event}_y-{beh_savename}.nii.gz'))
+resampled_image = image.resample_to_img(corr_subjectnifti, ref_img.affine, ref_img.shape)
+plot = plotting.plot_stat_map(resampled_img,  display_mode = 'mosaic', title = f'task-{task} corr w/ {fmri_event} and {beh_savename}', cut_coords = 8)
+plt.savefig(join(save_dir ,  f'corr_{sub}_x-{fmri_event}_y-{beh_savename}.png'))
+# Save the resampled image using the reference affine
+nib.save(resampled_image, '/path/to/output_image.nii.gz')
+resampled_image.to_filename(join(save_dir, f'corr_{sub}_x-{fmri_event}_y-{beh_savename}.nii.gz'))
+#corr_subjectnifti.to_filename(join(save_dir, f'corr_{sub}_x-{fmri_event}_y-{beh_savename}.nii.gz'))
+#new_img_like(ref_img, corr_subjectnifti).to_filename(join(save_dir, f'corr_{sub}_x-{fmri_event}_y-{beh_savename}.nii.gz'))
 #     for run, run_indices in intersection.groupby('run').groups.items():
     
 #         # group_indices = [24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]
@@ -315,34 +318,33 @@ new_img_like(ref_img, corr_subjectnifti).to_filename(join(save_dir, f'corr_{sub}
             # cueH_flist
                 
 # ######################
-
-import numpy as np
-from scipy.stats import fisher_zscore
-
+#import numpy as np
+#from scipy.stats import fisher_zscore
+#
 # Assume you have the (n*t) x v data matrix stored in 'data_matrix'
 # where n is the number of subjects, t is the number of trials, and v is the number of voxels
 
-n, t, v = data_matrix.shape[0] // t, t, data_matrix.shape[1]
+#n, t, v = data_matrix.shape[0] // t, t, data_matrix.shape[1]
 
 # Reshape the data matrix to have dimensions (n, t, v)
-reshaped_data = np.reshape(data_matrix, (n, t, v))
+#reshaped_data = np.reshape(data_matrix, (n, t, v))
 
 # Calculate correlation coefficients per participant
-correlation_coefficients = np.zeros((n, v))
-for i in range(n):
-    correlation_coefficients[i] = np.corrcoef(reshaped_data[i].T)
+#correlation_coefficients = np.zeros((n, v))
+#for i in range(n):
+#    correlation_coefficients[i] = np.corrcoef(reshaped_data[i].T)
 
 # Perform Fisher's z-transformation
-fisher_z = np.arctanh(correlation_coefficients)
+#fisher_z = np.arctanh(correlation_coefficients)
 
 # Perform t-test to determine significant correlations
-t_values = fisher_zscore(fisher_z, axis=0)
-p_values = 2 * (1 - stats.t.cdf(np.abs(t_values), df=n-2))
+#t_values = fisher_zscore(fisher_z, axis=0)
+#p_values = 2 * (1 - stats.t.cdf(np.abs(t_values), df=n-2))
 
 # Extract significant correlations (e.g., with p-value threshold)
-significant_correlations = t_values[p_values < 0.05]
+#significant_correlations = t_values[p_values < 0.05]
 
 # Print significant correlations (example)
-print(f"Significant correlations: {significant_correlations}")
+#print(f"Significant correlations: {significant_correlations}")
 
 # %%
