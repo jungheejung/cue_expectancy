@@ -21,7 +21,7 @@ echo "SLURMSARRAY: " ${SLURM_ARRAY_TASK_ID}
 ID=$((SLURM_ARRAY_TASK_ID-1))
 MAINDIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue"
 SAVEDIR="${MAINDIR}/analysis/fmri/nilearn/covariate"
-python ${MAINDIR}/scripts/step10_nilearn/singletrial_covariates/singletrial_PE.py \
+python ${MAINDIR}/scripts/step10_nilearn/singletrial_covariates/singletrial_cov.py \
 --slurm_id ${ID} \
 --tasktype "pain" \
 --fmri-event "stimulus" \
