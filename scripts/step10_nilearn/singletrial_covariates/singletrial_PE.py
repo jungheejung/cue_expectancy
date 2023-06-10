@@ -155,6 +155,7 @@ for sub in sub_list:
     metadf[keys] = metadf[keys].astype(int)
     behdf[keys] = behdf[keys].astype(int)
     intersection = pd.merge(behdf, metadf, on=keys, how='inner')
+    intersection['beh_demean'] = intersection[beh_regressor].sub(intersection[beh_regressor].mean())
     flist = []
 
     # 05 using intersection, grab nifti/npy _____________________________
@@ -182,7 +183,7 @@ for sub in sub_list:
     # 07 calculate correlation with behavioral value ____________________
     runwise_correlations = []
     for run, run_indices in intersection.groupby('run').groups.items():
-        beh_subset = intersection[beh_regressor].iloc[run_indices]
+        beh_subset = intersection['beh_demean'].iloc[run_indices]
         fmri_subset = fmri_masked_single[run_indices, :]
         # if there's a nan in the beh_regressor, mask it
         b=ma.masked_invalid(beh_subset)
