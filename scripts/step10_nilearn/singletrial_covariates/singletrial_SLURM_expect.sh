@@ -19,10 +19,10 @@ conda activate spacetop_env
 echo "SLURMSARRAY: " ${SLURM_ARRAY_TASK_ID}
 ID=$((SLURM_ARRAY_TASK_ID-1))
 MAINDIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue"
-SAVEDIR="${MAINDIR}/analysis/fmri/nilearn/covariate"
+SAVEDIR="${MAINDIR}/analysis/fmri/nilearn/covariate/"
 python ${MAINDIR}/scripts/step10_nilearn/singletrial_covariates/singletrial_cov.py \
 --slurm_id ${ID} \
---tasktype "pain" \
+--tasktype "cognitive" \
 --fmri-event "stimulus" \
 --beh-regressor "event02_expect_angle" \
 --beh-savename "expectrating" \
