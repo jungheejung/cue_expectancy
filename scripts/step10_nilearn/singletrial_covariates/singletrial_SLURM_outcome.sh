@@ -4,11 +4,12 @@
 #SBATCH --ntasks=4
 #SBATCH --mem-per-cpu=12gb
 #SBATCH --time=01:00:00
-#SBATCH -o ./log/PE_%A_%a.o
-#SBATCH -e ./log/PE_%A_%a.e
+#SBATCH -o ./log/outcome_%A_%a.o
+#SBATCH -e ./log/outcome_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1-133%100
+#SBATCH --array=1-13
+#33%10
 
 # TODO:
 # [ ] submit PE per participant
@@ -19,11 +20,11 @@ conda activate spacetop_env
 echo "SLURMSARRAY: " ${SLURM_ARRAY_TASK_ID}
 ID=$((SLURM_ARRAY_TASK_ID-1))
 MAINDIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue"
-SAVEDIR="${MAINDIR}/analysis/fmri/nilearn/covariate/expectrating"
-python ${MAINDIR}/scripts/step10_nilearn/singletrial_covariates/singletrial_PE.py \
+SAVEDIR="${MAINDIR}/analysis/fmri/nilearn/covariate"
+python ${MAINDIR}/scripts/step10_nilearn/singletrial_covariates/singletrial_cov.py \
 --slurm_id ${ID} \
 --tasktype "pain" \
 --fmri-event "stimulus" \
---beh-regressor "event02_expect_angle" \
---beh-savename "expectrating" \
+--beh-regressor "event04_actual_angle" \
+--beh-savename "outcomerating" \
 --savedir ${SAVEDIR}
