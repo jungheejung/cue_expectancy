@@ -73,11 +73,11 @@ save_dir = args.savedir
 current_dir = os.getcwd()
 main_dir = Path(current_dir).parents[2] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
 
-main_dir = '/Volumes/spacetop_projects_cue'
+#main_dir = '/Volumes/spacetop_projects_cue'
 beta_dir = join(main_dir, 'analysis', 'fmri', 'nilearn', 'deriv05_singletrialnpy')
 beh_dir = join(main_dir, 'data', 'beh', 'beh02_preproc')
 canlab_dir = '/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore'
-canlab_dir = '/Users/h/Documents/MATLAB/CanlabCore'
+#canlab_dir = '/Users/h/Documents/MATLAB/CanlabCore'
 sub_list = sorted(next(os.walk(beta_dir))[1])
 sub = sub_list[slurm_id]
 
