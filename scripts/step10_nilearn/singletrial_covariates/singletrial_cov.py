@@ -157,7 +157,7 @@ behdf[keys] = behdf[keys].astype(int)
 intersection = pd.merge(behdf, metadf, on=keys, how='inner')
 intersection['beh_demean'] = intersection[beh_regressor].sub(intersection[beh_regressor].mean())
 flist = []
-intersection.to_csv(join(save_dir, f"{sub}_{beh_savename}_intersection.csv"))
+intersection.to_csv(join(save_dir, task, f"{sub}_task-{task}_beh-{beh_savename}_intersection.csv"))
 
 # %% 05 using intersection, grab nifti/npy _____________________________
 for index, row in intersection.iterrows():
@@ -201,6 +201,6 @@ print(corr_subjectnifti)
 # %% Save the resampled image using the reference affine
 resampled_image = image.resample_to_img(corr_subjectnifti, ref_img)
 plot = plotting.plot_stat_map(resampled_image,  display_mode = 'mosaic', title = f'task-{task} corr w/ {fmri_event} and {beh_savename}', cut_coords = 8)
-plot.savefig(join(save_dir ,  f'corr_{sub}_x-{fmri_event}_y-{beh_savename}.png'))
-resampled_image.to_filename(join(save_dir, f'corr_{sub}_x-{fmri_event}_y-{beh_savename}.nii.gz'))
+plot.savefig(join(save_dir , task, f'{sub}_task-{task}_corr_x-{fmri_event}_y-{beh_savename}.png'))
+resampled_image.to_filename(join(save_dir,task, f'{sub}_task-{task}_corr_x-{fmri_event}_y-{beh_savename}.nii.gz'))
 
