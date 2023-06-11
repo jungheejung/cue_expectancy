@@ -73,11 +73,11 @@ save_dir = args.savedir
 current_dir = os.getcwd()
 main_dir = Path(current_dir).parents[2] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
 
-#main_dir = '/Volumes/spacetop_projects_cue'
+# main_dir = '/Volumes/spacetop_projects_cue'
 beta_dir = join(main_dir, 'analysis', 'fmri', 'nilearn', 'deriv05_singletrialnpy')
 beh_dir = join(main_dir, 'data', 'beh', 'beh02_preproc')
 canlab_dir = '/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore'
-#canlab_dir = '/Users/h/Documents/MATLAB/CanlabCore'
+# canlab_dir = '/Users/h/Documents/MATLAB/CanlabCore'
 sub_list = sorted(next(os.walk(beta_dir))[1])
 sub = sub_list[slurm_id]
 Path(join(save_dir, beh_savename, task)).mkdir(parents = True, exist_ok = True)
@@ -141,17 +141,27 @@ for column in ['sub', 'ses', 'run']:
 for column in ['trial']:
     metadf[column] = metadf[column].apply(lambda x: str(x).lstrip('0') if x != '000' else '0')
 
-
 # %% 03 load behavioral data ___________________________________________
-beh_flist = sorted(glob.glob(
-    join(main_dir, 'data', 'beh', 'beh02_preproc', sub, '**', f"{sub}_*{task}_beh.csv"), recursive=True))
-dfs = [pd.read_csv(beh_fname) for beh_fname in beh_flist]
-behdf = pd.concat(dfs, axis=0)
-behdf['trial'] = behdf.groupby('param_run_num').cumcount()
-behdf['sub'] = behdf['src_subject_id']
-behdf['ses'] = behdf['session_id']
-behdf['run'] = behdf['param_run_num']
+# beh_flist = sorted(glob.glob(
+#     join(main_dir, 'data', 'beh', 'beh02_preproc', sub, '**', f"{sub}_*{task}_beh.csv"), recursive=True))
+# dfs = [pd.read_csv(beh_fname) for beh_fname in beh_flist]
+# behdf = pd.concat(dfs, axis=0)
+# behdf['trial'] = behdf.groupby('param_run_num').cumcount()
+# behdf['sub'] = behdf['src_subject_id']
+# behdf['ses'] = behdf['session_id']
+# behdf['run'] = behdf['param_run_num']
 
+# beh_flist = 
+beh_fname = '/Volumes/spacetop_projects_cue/data/RL/modelfit_jepma_0525/table_pain.csv'
+behdf = pd.read_csv(beh_fname)
+# count trials based on transition
+behdf['trial'] = behdf.groupby(['src_subject_id', 'session_id', 'param_run_num']).cumcount()
+new_columns = {'src_subject_id': 'sub', 
+               'session_id': 'ses', 
+               'param_run_num': 'run',
+               }
+behdf = behdf.rename(columns=new_columns)
+# beh_subset = 
 # %% 04 grab intersection of metadata and behavioral data ______________
 metadf = metadf.reset_index(drop=True)
 behdf = behdf.reset_index(drop=True)
@@ -208,3 +218,5 @@ plot = plotting.plot_stat_map(resampled_image,  display_mode = 'mosaic', title =
 plot.savefig(join(save_dir ,beh_savename, task, f'{sub}_task-{task}_corr_x-{fmri_event}_y-{beh_savename}.png'))
 resampled_image.to_filename(join(save_dir, beh_savename, task, f'{sub}_task-{task}_corr_x-{fmri_event}_y-{beh_savename}.nii.gz'))
 
+
+# %%
