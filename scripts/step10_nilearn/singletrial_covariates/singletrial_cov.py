@@ -73,14 +73,14 @@ save_dir = args.savedir
 current_dir = os.getcwd()
 main_dir = Path(current_dir).parents[2] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
 
-main_dir = '/Volumes/spacetop_projects_cue'
+#main_dir = '/Volumes/spacetop_projects_cue'
 beta_dir = join(main_dir, 'analysis', 'fmri', 'nilearn', 'deriv05_singletrialnpy')
 beh_dir = join(main_dir, 'data', 'beh', 'beh02_preproc')
 canlab_dir = '/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore'
-canlab_dir = '/Users/h/Documents/MATLAB/CanlabCore'
+#canlab_dir = '/Users/h/Documents/MATLAB/CanlabCore'
 sub_list = sorted(next(os.walk(beta_dir))[1])
 sub = sub_list[slurm_id]
-
+Path(save_dir).mkdir(parents = True, exist_ok = True)
 # %% -------------------------------------------------------------------
 #                        load bad_dict and reformat 
 # ----------------------------------------------------------------------
@@ -125,6 +125,7 @@ filtered_files = [file_path for file_path in nii_flist
                       if not any(subject in file_path and run in file_path 
                                  for subject, runs in padded_dict.items() 
                                  for run in runs)]
+print(filtered_files)
 # %%02 extract metadata from filenames _______________________________
 keyword_names = ["sub", "ses", "run", "runtype", "event", "trial", "cuetype", "stimintensity"] # Define the desired keyword names
 dfs = [
@@ -156,7 +157,7 @@ behdf[keys] = behdf[keys].astype(int)
 intersection = pd.merge(behdf, metadf, on=keys, how='inner')
 intersection['beh_demean'] = intersection[beh_regressor].sub(intersection[beh_regressor].mean())
 flist = []
-intersection.to_csv(join(save_dir, f"{sub}_intersection.csv"))
+intersection.to_csv(join(save_dir, f"{sub}_{beh_savename}_intersection.csv"))
 
 # %% 05 using intersection, grab nifti/npy _____________________________
 for index, row in intersection.iterrows():
@@ -198,7 +199,6 @@ print(corr_subjectnifti.shape)
 print(corr_subjectnifti)
 
 # %% Save the resampled image using the reference affine
-Path(save_dir).mkdir(parents = True, exist_ok = True)
 resampled_image = image.resample_to_img(corr_subjectnifti, ref_img)
 plot = plotting.plot_stat_map(resampled_image,  display_mode = 'mosaic', title = f'task-{task} corr w/ {fmri_event} and {beh_savename}', cut_coords = 8)
 plot.savefig(join(save_dir ,  f'corr_{sub}_x-{fmri_event}_y-{beh_savename}.png'))
