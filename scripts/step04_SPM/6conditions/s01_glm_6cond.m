@@ -123,16 +123,23 @@ function s01_glm_6cond(sub, input_dir, main_dir, fmriprep_dir)
         disp(strcat('onset folder: ', onset_glob.folder));
         disp(strcat('onset file:   ', onset_glob.name));
         cue = struct2table(tdfread(onset_fname));
-        highcue = cue.pmod_cuetype == 'high_cue';
-        lowcue = cue.pmod_cuetype == 'low_cue ';
-        highstim = cue.pmod_stimtype == 'high_stim';
-        medstim = cue.pmod_stimtype == 'med_stim ';
-        lowstim = cue.pmod_stimtype == 'low_stim ';
+
+        % bug report: there were spaces that added to a mistmach in dataframes
+        % remove spaces
+        cue.pmod_cuetype = cellstr(cue.pmod_cuetype);
+        cue.pmod_stimtype = cellstr(cue.pmod_stimtype);
+        cue.pmod_stimtype = strtrim(cue.pmod_stimtype);
+        cue.pmod_cuetype = strtrim(cue.pmod_cuetype);
+        disp(cue.pmod_cuetype)
+        highcue = strcmp(cue.pmod_cuetype,'high_cue');
+        lowcue = strcmp(cue.pmod_cuetype,'low_cue');
+        highstim = strcmp(cue.pmod_stimtype, 'high_stim');
+        medstim = strcmp(cue.pmod_stimtype, 'med_stim');
+        lowstim = strcmp(cue.pmod_stimtype, 'low_stim');
 
         keyword = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
         task = char(extractAfter(keyword, '-'));
 
-                % 
         if strcmp(task,'pain')
             test = dir(fullfile(onset_glob.folder, strcat(sub, '_', ses, '_task-cue_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '*_events_ttl.tsv')))
             if ~isempty(test)
@@ -150,7 +157,6 @@ function s01_glm_6cond(sub, input_dir, main_dir, fmriprep_dir)
         %% regressor covariates ______________________________________________________
         motion_fname = fullfile(motion_dir, 'csf_24dof_dummy_spike', sub, ses, ...
         strcat(sub, '_', ses, '_task-cue_run-', sprintf('%02d', A.run_num(run_ind)), '_confounds-subset.txt'));
-        %    if ~isfile(motion_fname)
         if ~exist(fullfile(motion_dir, 'csf_24dof_dummy_spike', sub, ses), 'dir'), mkdir(fullfile(motion_dir, 'csf_24dof_dummy_spike', sub, ses))
         end
 
@@ -231,42 +237,42 @@ function s01_glm_6cond(sub, input_dir, main_dir, fmriprep_dir)
 
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).name = 'cue-high_stim-high';
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).onset = double(cue.onset03_stim(highcue(:,1) & highstim(:,1)));
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).duration = double(repelem(1, 2)');
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).duration = double(repelem(5, 2)');
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).tmod = 0;
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).pmod = struct('name', {}, 'param', {}, 'poly', {});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).orth = 0;
 
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).name = 'cue-high_stim-med';
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).onset = double(cue.onset03_stim(highcue(:,1) & medstim(:,1)));
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).duration = double(repelem(1, 2)');
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).duration = double(repelem(5, 2)');
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).tmod = 0;
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).pmod = struct('name', {}, 'param', {}, 'poly', {});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).orth = 0;
 
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).name = 'cue-high_stim-low';
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).onset = double(cue.onset03_stim(highcue(:,1) & lowstim(:,1)));
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).duration = double(repelem(1, 2)');
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).duration = double(repelem(5, 2)');
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).tmod = 0;
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod = struct('name', {}, 'param', {}, 'poly', {});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).orth = 0;
 
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).name = 'cue-low_stim-high';
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).onset = double(cue.onset03_stim(lowcue(:,1) & highstim(:,1)));
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).duration = double(repelem(1, 2)');
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).duration = double(repelem(5, 2)');
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).tmod = 0;
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).pmod = struct('name', {}, 'param', {}, 'poly', {});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).orth = 0;
 
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(5).name = 'cue-low_stim-med';
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(5).onset = double(cue.onset03_stim(lowcue(:,1) & medstim(:,1)));
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(5).duration = double(repelem(1, 2)');
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(5).duration = double(repelem(5, 2)');
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(5).tmod = 0;
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(5).pmod = struct('name', {}, 'param', {}, 'poly', {});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(5).orth = 0;
 
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(6).name = 'cue-low_stim-low';
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(6).onset = double(cue.onset03_stim(lowcue(:,1) & lowstim(:,1)));
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(6).duration = double(repelem(1, 2)');
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(6).duration = double(repelem(5, 2)');
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(6).tmod = 0;
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(6).pmod = struct('name', {}, 'param', {}, 'poly', {});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(6).orth = 0;

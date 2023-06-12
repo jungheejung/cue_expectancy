@@ -55,6 +55,7 @@ output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model0
 '1stLevel', sub);
 spm_fname = fullfile(output_dir, 'SPM.mat');
 load(spm_fname);
+
 % NOTE 03 find intersection of nifti and onset files
 % find nifti files
 niilist = dir(fullfile(input_dir, sub, '*/smooth-6mm_*task-cue*_bold.nii'));
@@ -130,7 +131,7 @@ for run_ind = 1: runlength
     social        = struct2table(tdfread(onset_fname));
     keyword       = extractBetween(onset_glob.name, 'runtype-', '_events');
     %task          = char(extractAfter(keyword, '-'));
-    task          = char(keyword)
+    task          = char(keyword);
     disp(task);
 
 

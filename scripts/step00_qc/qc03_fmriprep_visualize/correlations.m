@@ -1,7 +1,7 @@
-function s01_glm_6cond(sub)
+function correlations(sub)
 
 
-D=dir(sprintf('/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop_data/derivatives/fmriprep/results/fmriprep/%s/ses-*/func/*task-social*MNI152NLin2009cAsym*',sub));
+D=dir(sprintf('/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop_data/derivatives/fmriprep/results/fmriprep/%s/ses-*/func/*task-social*MNI152NLin2009cAsym*preproc_bold.nii.gz',sub));
 
 if ~isempty(D)
 fnames={};
