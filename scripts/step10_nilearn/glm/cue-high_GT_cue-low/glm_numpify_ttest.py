@@ -97,7 +97,4 @@ for sub in [testlist]:
                 stimH_img = image.load_img(stimH_fpath)
                 np.save(os.path.join(npy_path, os.path.splitext(os.path.splitext(os.path.basename(stimH_fpath))[0])[0] + '.npy'), stimH_img.get_fdata())
  
-<<<<<<< HEAD
-=======
 # %%
->>>>>>> e199193a44c88190d185c6ba114b3d802dc0fad1
