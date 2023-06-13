@@ -1,11 +1,9 @@
 # [beh] RL simulation Aryan {#ch18_simulation_aryan}
 
-```
-title: "model_generated_pain"
-author: "Heejung Jung"
-date: "2023-05-08"
-output: html_document
-```
+
+
+## What is the purpose of this notebook? {.unlisted .unnumbered}
+* Here, I model Aryans model fitted results, using the same scheme as my behavioral analysis (15*.Rmd)
 
 
 ```{r load_libraries_5, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
@@ -69,7 +67,9 @@ file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 ```
-## load data
+
+### load data {.unlisted .unnumbered}
+
 ```{r load_data_and_exclude_m1, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 main_dir = dirname(dirname(getwd()))
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
@@ -93,7 +93,8 @@ data <- read.csv('/Users/h/Dropbox/projects_dropbox/social_influence_analysis/da
 analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model19_RLsimulationplot", as.character(Sys.Date()))
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 ```
-## plot using same scheme as iv15
+
+
 
 
 ```{r function::simple_contrasts_beh, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
@@ -132,7 +133,7 @@ return(df)
 }
 ```
 
-### groupby subject and average
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
 data$event04_actual_angle <- data$Pain_mdl4
@@ -165,7 +166,8 @@ data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.demean_outcome),]
 df <- data_a3lag_omit
 pvc <- simple_contrasts_beh(df)
 ```
-## pain run, collapsed across stimulus intensity
+
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 df_dropna <-
   pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
@@ -185,6 +187,8 @@ total <-
   )
 total
 ```
+
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 df_dropna <- pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
 df_low = df_dropna[df_dropna$param_stimulus_type == "low_stim", ]
@@ -229,7 +233,6 @@ plots_title
 
 ## model version 2
 
-### groupby subject and average
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
 data$event04_actual_angle <- data$Pain_mdl2
@@ -262,7 +265,8 @@ data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.demean_outcome),]
 df <- data_a3lag_omit
 pvc <- simple_contrasts_beh(df)
 ```
-## pain run, collapsed across stimulus intensity
+
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 df_dropna <-
   pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
@@ -282,6 +286,7 @@ total <-
   )
 total
 ```
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 df_dropna <- pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
 df_low = df_dropna[df_dropna$param_stimulus_type == "low_stim", ]
@@ -323,3 +328,61 @@ plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = F
 plots_title <- annotate_figure(plots, top = text_grob("model fitted data Jepma version\n - predicted data from Aryan", color = "black", face = "bold", size = 15))
 plots_title
 ```
+
+
+## model fits
+```{r}
+data <- read.csv('/Users/h/Dropbox/projects_dropbox/social_influence_analysis/data/simulated/model_ver04_0508/table_pain_new.csv')
+subjectwise_2dv <- meanSummary_2dv(data, c("src_subject_id"), 
+                                   "event02_expect_angle", "Exp_mdl2" )
+ggplot(data = subjectwise_2dv, 
+       aes(x = .data[["DV1_mean_per_sub"]], 
+           y = .data[["DV2_mean_per_sub"]],
+           size = .5
+           )) +
+  geom_point(size = 2, alpha = .5  ) + 
+  ylim(0,180) + 
+  xlim(0,180) +
+  coord_fixed() +
+  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) + 
+  xlab("Observed\nexpectation rating") + 
+  ylab("Model-fitted \nexpectation rating")+
+  theme(
+    axis.line = element_line(colour = "grey50"),
+    panel.background = element_blank(),
+    plot.subtitle = ggtext::element_textbox_simple(size = 1), 
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 10),
+    axis.title.x = element_text(size = 15),
+    axis.title.y = element_text(size = 15)
+      
+  )
+```
+
+```{r}
+subjectwise_2dv <- meanSummary_2dv(data, c("src_subject_id"), 
+                                   "event04_actual_angle", "Pain_mdl2" )
+ggplot(data = subjectwise_2dv, 
+       aes(x = .data[["DV1_mean_per_sub"]], 
+           y = .data[["DV2_mean_per_sub"]],
+           size = .5
+           )) +
+  geom_point(size = 2, alpha = .5  ) + 
+  ylim(0,180) + 
+  xlim(0,180) +
+  coord_fixed() +
+  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) + 
+  xlab("Observed\noutcome rating") + 
+  ylab("Model-fitted \noutcome rating")+
+  theme(
+    axis.line = element_line(colour = "grey50"),
+    panel.background = element_blank(),
+    plot.subtitle = ggtext::element_textbox_simple(size = 1), 
+    axis.text.x = element_text(size = 15),
+    axis.text.y = element_text(size = 15),
+    axis.title.x = element_text(size = 20),
+    axis.title.y = element_text(size = 20)
+      
+  )
+```
+

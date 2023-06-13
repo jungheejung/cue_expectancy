@@ -286,7 +286,6 @@ for (signature_key in c("Kragel18CogControl")) {
 
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 main_dir = dirname(dirname(getwd()))
-print(main_dir)
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
 taskname = '*'
 subject_varkey <- "src_subject_id"
@@ -332,7 +331,7 @@ pvc.sub = rbind(p.sub, v.sub, c.sub)
 
 ```
 
-```{r}
+```{r include=FALSE}
 pvc.sub$trial_ind <- pvc.sub$trial_index -1 
 pvc.sub$sub <- sprintf("sub-%04d", pvc.sub$src_subject_id)
 pvc.sub$ses <- sprintf("ses-%02d", pvc.sub$session_id)
@@ -416,7 +415,7 @@ plot_halfrainclouds_twofactor(
   se = "se",
   subject = "sub",
   ggtitle = "All tasks",
-  title = "task Stim intensity",
+  legend_title = "task Stim intensity",
   xlab = "Task",
   ylab = paste(signature_key, ' (dot product)'),
   task_name = "all",
@@ -561,9 +560,9 @@ g
 
 
 
-### Linear model ver 1: Kragel2018 ~ stimulus_intenisy * cue 
+### Linear model ver 1: Kragel2018 ~ stimulus_intenisy 
 ```{r echo=TRUE, message=TRUE, warning=TRUE, paged.print=FALSE}
-model.cogstim <- lmer(Kragel18CogControl ~ stim_con_linear + stim_con_quad +(stim_con_linear + stim_con_quad |sub), data = data_screen)
+model.cogstim <- lmer(Kragel18CogControl ~ stim_con_linear + stim_con_quad +(1 |sub), data = data_screen)
 sjPlot::tab_model(model.cogstim)
 ```
 
@@ -587,7 +586,7 @@ kableExtra::kable_styling(
 ### Linear model ver 2: Kragel2018 ~ stimulus_intenisy * cue 
 
 ```{r echo=FALSE, message=TRUE, warning=TRUE, class.output="bg-warning", paged.print=FALSE}
-model.cogcuestim <- lmer(Kragel18CogControl ~ CUE_high_gt_low*stim_con_linear + CUE_high_gt_low*stim_con_quad + (CUE_high_gt_low|sub), data = data_screen)
+model.cogcuestim <- lmer(Kragel18CogControl ~ CUE_high_gt_low*stim_con_linear + CUE_high_gt_low*stim_con_quad + (1|sub), data = data_screen)
 sjPlot::tab_model(model.cogcuestim)
 ```
 
@@ -646,14 +645,14 @@ fig
 
 ---
 
-## Kragel2018 ~ session * cue * stimulus_intensity
-### Q. Is the cue effect on Cognitive signature different across sessions? (Vicarious task only)  {.unlisted .unnumbered}
+## Kragel2018 ~ session * cue * stimulus_intensity {.tabset}
+**Q. Is the cue effect on Cognitive signature different across sessions? (Vicarious task only)**  {.unlisted .unnumbered}
 
 
 > Quick answer: Yes, the cue effect in session 1 (for medium intensity group) is significantly different; low cues lead to higher similarity between the Cog-control brain maps. Howevere, this difference becomes non significant in session 4.
 
 
-### Session 1: 2 cue * 3 stimulus_intensity  {.unlisted .unnumbered}
+### Session 1: 2 cue * 3 stimulus_intensity  {.unlisted .unnumbered} 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 taskname = "cognitive"
@@ -1035,7 +1034,7 @@ g
 ---
 
 ## Kragel2018 ~ outcome_rating
-### Q. Do higher Kragel 2018 map dotproducts values indicate higher outcome ratings? (Vicarious task only)  {.unlisted .unnumbered}
+**Q. Do higher Kragel 2018 map dotproducts values indicate higher outcome ratings? (Vicarious task only) ** {.unlisted .unnumbered}
 
 > Yes, Higher Cog-control signature values are associated with higher outcome ratings. Interstingly, lower Cog-control signatures are associateed with lower outcome ratings
 
@@ -1158,7 +1157,7 @@ plots_title
 ---
 
 ## Kragel2018 ~ expectation_rating
-### Q. What is the relationship betweeen expectation ratings & Cog-control signature? (Cognitive task only) {.unlisted .unnumbered}
+**Q. What is the relationship betweeen expectation ratings & Cog-control signature? (Cognitive task only)** {.unlisted .unnumbered}
 
 
 > Quick answer: Kind of flat. 

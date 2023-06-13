@@ -4,19 +4,38 @@
 clear;
 close all;
 
-basedir = '/Users/clinpsywoo/github/CRB_project/MWW_inprep/scripts';
+basedir = '/Users/h/Dropbox (Dartmouth College)/projects_dropbox/cognitive_regulation_physiology/scripts';
+
+
 cd(basedir);
 
-load('../data/CRB_dataset_SCR_lpf5Hz_DS25Hz_011516.mat');
+load('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/cognitive_regulation_physiology/data/CRB_dataset_SCR_lpf5Hz_DS25Hz_011516.mat');
 
 figdir = '../figures';
 datdir = '../data';
 
 %% Step 1. Creating Y: pain ratings
 %%
+% 01'SessionNumber'
+% 02'RunNumber',
+% 03'TaskName',
+% 04'TrialNumber',
+% 05'Onsets:Stim',
+% 06'Onsets:Rating1',
+% 07'Onsets:Rating2',
+% 08'Durations:Stim',
+% 09'Durations:Rating1',
+% 10'Durations:Rating2',
+% 11'Temperature',
+% 12'Intensity',
+% 13'Unpleasantness',
+% 14'Expectation:Pre',
+% 15'Expectation:Post',
+% 16'Regulation_runs'
+
 for i = 1:numel(D.Event_Level.data)
-    y_int{i} = D.Event_Level.data{i}(:,12);
-    y_unp{i} = -2*(D.Event_Level.data{i}(:,13)-50);
+    y_int{i} = D.Event_Level.data{i}(:,12); % intensity
+    y_unp{i} = -2*(D.Event_Level.data{i}(:,13)-50); % unpleasantless (bipolar)
     xx{i} = [D.Event_Level.data{i}(:,11) D.Event_Level.data{i}(:,16) scale(D.Event_Level.data{i}(:,11),1).*scale(D.Event_Level.data{i}(:,16),1)];
     reg{i} = D.Event_Level.data{i}(:,16);
     temp{i} = D.Event_Level.data{i}(:,11);
@@ -60,6 +79,10 @@ end
 clear signal_m;
 k = 0;
 
+% snipping out 23 seconds in total. 0 is the onset of occurrence; the first
+% 3 seconds are used for baseline.
+% They use the first 3 seconds as baseline. calculate the mean within
+% subject per condition and subtract
 for i = 1:6
     for j = 1:3
         k = k + 1;
@@ -81,21 +104,22 @@ for i = 1:6
     end
 end
 
+% dat_int: 41 subjects, 6 x 3 cell
 dat.int = fmri_data;                                 % to use fmri_data.predict function, 
                                                  % put the data in fmri_data object
 dat.int.Y = cat(1,dat_int{:,2});                     % add concatenated intensity ratings in dat.Y
-dat.int.dat = cat(1,signal_m{:,2})';                 % add concatenated epoch data in dat.dat
+dat.int.dat = cat(1,signal_m{:,2})';                 % add concatenated epoch data in dat.dat: [ 25*20sec SCR X 41*6condition ]
                                                  % **For the training, we only used passive experience runs.**
 dat.int.dat = dat.int.dat(76:575,:);                     % Stimulus-locked 20 seconds epoch 
-whfolds = cat(1,subjs{:,2});                     % cross-validaion folds (LOPO CV)
+whfolds = cat(1,subjs{:,2});                     % cross-validaion folds (LOPO CV) [ rep(41sub x 6conditions) ]
 
 dat.unp = dat.int;
 dat.unp.Y = cat(1,dat_unp{:,2});  
-
-savename = fullfile(datdir, 'SCR_prediction_dat_112816.mat');
-save(savename, '-append', 'dat', 'whfolds', 'dat_int', 'dat_unp', 'signal_m');
-
-clear rmse pred_outcome_r;
+datdir = '/Users/h/Desktop';
+% savename = fullfile(datdir, 'SCR_prediction_dat_112816.mat');
+% save(savename, '-append', 'dat', 'whfolds', 'dat_int', 'dat_unp', 'signal_m');
+% 
+% clear rmse pred_outcome_r;
 
 for i = 2:10
     if i == 2, disp('SCR predictive model for intensity ratings'); end
@@ -210,9 +234,9 @@ save(fullfile(datdir, 'SCR_prediction_dat_112816.mat'), '-append', 'pcr_stats', 
 % 
 % 3-4-1. Plot for intensity 
 %%
-close all;
-
-load(fullfile(datdir, 'SCR_prediction_dat_112816.mat'));
+% close all;
+% 
+% load(fullfile(datdir, 'SCR_prediction_dat_112816.mat'));
 
 x = 1:500;
 create_figure('PCR weights');
@@ -227,6 +251,11 @@ idx{1} = 1:67;
 idx{2} = 216:282;
 idx{3} = 67:216;
 idx{4} = 282:500;
+% NOTE: not sure what other_output is and how it differs from
+% other_output_cv. 
+% I do see the description differnce, but don't understand the conceptual
+% difference as to how this was obtained: "['Other output from algorithm -
+% trained on all data (these depend on algorithm)']"
 for i = 1:2, plot(x(idx{i}), pcr_stats.int.other_output{1}(idx{i}), 'color', [.3 .3 .3], 'linewidth', 3); end
 for i = 3:4, plot(x(idx{i}), pcr_stats.int.other_output{1}(idx{i}), 'color', [0.8431    0.1882    0.1216], 'linewidth', 3); end
 
@@ -235,17 +264,17 @@ set(gca, 'ylim', [-.08 .12], 'xlim', [0 500], 'linewidth', 1.5, 'TickDir', 'out'
 set(gca, 'XTickLabel', get(gca, 'XTick')./25);
 set(gca, 'fontSize', 22);
 
-savename = fullfile(figdir, 'SCR_intensity_predictive_weights.pdf');
+% savename = fullfile(figdir, 'SCR_intensity_predictive_weights.pdf');
 
 pagesetup(gcf);
-saveas(gcf, savename);
+% saveas(gcf, savename);
 
 pagesetup(gcf);
-saveas(gcf, savename);
+% saveas(gcf, savename);
 %% 
 % 3-4-2. Plot for unpleasantness
 %%
-close all;
+% close all;
 
 x = 1:500;
 create_figure('PCR weights');
@@ -269,15 +298,21 @@ set(gca, 'fontSize', 22);
 savename = fullfile(figdir, 'SCR_unpleasantness_predictive_weights.pdf');
 
 pagesetup(gcf);
-saveas(gcf, savename);
+% saveas(gcf, savename);
 
 pagesetup(gcf);
-saveas(gcf, savename);
+% saveas(gcf, savename);
 
 fprintf('\ncorrelation between intensity and unpleasantness weights r = %1.3f\n', corr(pcr_stats.int.other_output{1}, pcr_stats.unp.other_output{1}));
 %% Step 4. Testing on regulation trials
 %%
-scr = load(fullfile(datdir, 'SCR_prediction_dat_112816.mat'));
+% % scr = load(fullfile(datdir, 'SCR_prediction_dat_112816.mat'));
+scr  = struct();
+scr.signal_m = signal_m;
+scr.pcr_stats = pcr_stats;
+scr.dat_unp = dat_unp;
+scr.dat_int = dat_int;
+
 
 % Applying the model on regulation trials using leave-one-participant-out cross validation
 for i = [1 3]
@@ -297,7 +332,7 @@ for j = 1:6
     test_scr_unp{j,2} = temp_unp(:,j);
 end
 
-save(fullfile(datdir, 'SCR_prediction_dat_112816.mat'), '-append', 'test_scr_*');
+% save(fullfile(datdir, 'SCR_prediction_dat_112816.mat'), '-append', 'test_scr_*');
 
 % scatter plot
 y_int = [cat(2,scr.dat_int{:,1}) cat(2,scr.dat_int{:,3})];
@@ -360,6 +395,7 @@ pagesetup(gcf);
 saveas(gcf, savename);
 
 
+%% 
 create_figure('predicted_unp');
 dif = 1/size(colors,1);
 
@@ -414,8 +450,8 @@ fprintf('\nTest results: mean prediction_outcome_r for unpleasantness = %1.3f', 
 %% Step 5. Test the effects of temperature and regulation on SCR pattern response
 % 5-1. Intensity
 %%
-load('../data/CRB_dataset_SCR_lpf5Hz_DS25Hz_011516.mat');
-load(fullfile(datdir, 'SCR_prediction_dat_112816.mat'));
+% load('../data/CRB_dataset_SCR_lpf5Hz_DS25Hz_011516.mat');
+% load(fullfile(datdir, 'SCR_prediction_dat_112816.mat'));
 
 clear reg_all;
 
@@ -537,7 +573,7 @@ glm_scr_unp = glmfit_multilevel(yy_unp, xx, [], 'names', {'intcp', 'temp', 'reg'
 % 
 % Intensity
 %%
-load(fullfile(datdir, 'SCR_prediction_dat_112816.mat'));
+% load(fullfile(datdir, 'SCR_prediction_dat_112816.mat'));
 
 dosavefig = true;
 edgecolor = 'k';
