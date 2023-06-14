@@ -8,7 +8,7 @@
 #SBATCH -e ./log/skl_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1
+#SBATCH --array=2
 conda activate spacetop_env
 echo "SLURMSARRAY: " ${SLURM_ARRAY_TASK_ID}
 ID=$((SLURM_ARRAY_TASK_ID-1))
@@ -21,5 +21,5 @@ python ${PWD}/c01_sklearn_crossprediction.py \
 --slurm-id ${ID} \
 --maindir ${MAINDIR} \
 --singletrialdir ${SINGLETRIALDIR} \
---outputdir ${OUTPUTDIR} \ 
+--outputdir ${OUTPUTDIR} \
 --canlabcoredir ${CANLABCOREDIR}
