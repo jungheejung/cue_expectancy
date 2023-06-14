@@ -105,7 +105,7 @@ def restructure_task_cue_beh(beh_fname):
 
 # 0. argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("--slurm_id", type=int,
+parser.add_argument("--slurm-id", type=int,
                     help="specify slurm array id")
 parser.add_argument("--subject-num", type=int,
                     help="subject num")

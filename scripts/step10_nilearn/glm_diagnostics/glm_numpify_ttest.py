@@ -22,7 +22,7 @@ from nilearn.image import new_img_like
 
 # %%0. argparse ________________________________________________________________________________
 parser = argparse.ArgumentParser()
-parser.add_argument("--slurm_id", type=int,
+parser.add_argument("--slurm-id", type=int,
                     help="specify slurm array id")
 args = parser.parse_args()
 slurm_id = args.slurm_id 
