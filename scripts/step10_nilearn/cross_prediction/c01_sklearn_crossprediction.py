@@ -153,7 +153,7 @@ def get_Xdata(singletrial_dir, sub_list, runtype, event, mask_fname, badruns_fna
 
 # %%0. argparse ________________________________________________________________________________
 parser = argparse.ArgumentParser()
-parser.add_argument("--slurm_id", type=int,
+parser.add_argument("--slurm-id", type=int,
                     help="specify slurm array id")
 parser.add_argument("--maindir", type=str,
                     help="specify slurm array id")
