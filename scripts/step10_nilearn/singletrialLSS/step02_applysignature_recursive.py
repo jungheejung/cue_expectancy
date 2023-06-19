@@ -172,7 +172,7 @@ def utils_extractsignature(img_flist, signature_dict, signature_key):
 
 # 0. argparse ________________________________________________________________________________
 parser = argparse.ArgumentParser()
-parser.add_argument("--slurm_id", type=int,
+parser.add_argument("--slurm-id", type=int,
                     help="specify slurm array id")
 args = parser.parse_args()
 print(args.slurm_id)

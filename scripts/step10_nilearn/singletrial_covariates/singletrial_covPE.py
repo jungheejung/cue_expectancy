@@ -47,7 +47,7 @@ def extract_ses_and_run(flist):
 #                               argparse
 # ----------------------------------------------------------------------
 parser = argparse.ArgumentParser()
-parser.add_argument("--slurm_id", type=int,
+parser.add_argument("--slurm-id", type=int,
                     help="specify slurm array id")
 parser.add_argument("-t", "--tasktype",
                     choices=['pain','vicarious','cognitive','all'], help="specify runtype name (e.g. pain, cognitive, variance)")
