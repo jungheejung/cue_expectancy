@@ -151,8 +151,12 @@ for column in ['trial']:
 # behdf['ses'] = behdf['session_id']
 # behdf['run'] = behdf['param_run_num']
 
-# beh_flist = 
-beh_fname = '/Volumes/spacetop_projects_cue/data/RL/modelfit_jepma_0525/table_pain.csv'
+# beh_flist =
+if task == 'vicarious':
+    keyword = 'vic'
+elif task == 'cognitive':
+    keyword = 'cog' 
+beh_fname = join(main_dir,f'data/RL/modelfit_jepma_0525/table_{keyword}.csv')
 behdf = pd.read_csv(beh_fname)
 # count trials based on transition
 behdf['trial'] = behdf.groupby(['src_subject_id', 'session_id', 'param_run_num']).cumcount()
