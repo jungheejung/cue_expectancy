@@ -54,10 +54,43 @@ for r = 1:length(run)
     dat_fname =  fullfile(task_subfldr, strcat('task-',run{r},'_PDM_x-', x_keyword, '_m-', m_keyword,'_y-',y_keyword, '_DAT.mat'));
     if ~isfile(dat_fname)
         for s = 1:length(sublist)
-            % step 01 __________________________________________________________________
+        % step 01 __________________________________________________________________
             % grab singletrial filelists
             sub = strcat('sub-', sprintf('%04d', sublist(s)));
             singletrial_flist = filenames(fullfile(main_dir,'analysis', 'fmri', 'nilearn', 'singletrial', sub, '*stimintensity*.nii'));
+
+        % step 00 __________________________________________________________________
+            % load badruns json
+            json_fname = fullfile(main_dir, 'scripts/step00_qc/qc03_fmriprep_visualize/bad_runs.json');
+            fileContent = fileread(json_fname);
+            badRunsData = jsondecode(fileContent);
+            % Iterate over the singletrial_flist and filter out filenames
+            filtered_list = singletrial_flist; 
+            for i = 1:numel(singletrial_flist)
+                filepath = singletrial_flist{i};
+                
+                [~, filename, ~] = fileparts(filepath);
+                sub_key = strcat("sub_", extractBetween(filename, "sub-", "_")); % Extract subject and run information from the filepath
+                if isfield(badRunsData, sub_key)
+                    disp(strcat("Current subject", sub, "has bad runs. Filtering..."))
+                    % Iterate over the bad runs for the subject
+                    for j = 1:numel(badRunsData.(sub_key))
+                        % reconstruct the badrun string (it doesn't have zeropadding)
+                        badRun = badRunsData.(sub_key){j};
+                        [session, ~] = regexp(badRun, 'ses-(\d+)_run-(\d+)', 'tokens', 'match');
+                        badrun_ses_num = session{1}{1};                    badrun_run_num = session{1}{2};
+                        run_to_remove = sprintf('ses-%s_run-%02d', badrun_ses_num, str2double(badrun_run_num));
+                        disp(run_to_remove);
+                        % remove the matching bad runs from the filtered_list
+                        filtered_list = filtered_list(~cellfun(@(x) ~isempty(strfind(x, run_to_remove)), filtered_list));
+                    end
+                    disp(strcat("left with ", num2str(length(filtered_list)), " of trials"));
+                end
+
+            end
+            singletrial_flist = filtered_list; 
+            % Display the filtered filenames
+                
             % fname_nifti = fullfile(nifti_dir, sub, strcat(basename, '.nii.gz'));
             % fname_nii = fullfile(nifti_dir, sub, strcat(basename, '.nii'));
             % if ~exist(fname_nii,'file'), gunzip(fname_nifti)
