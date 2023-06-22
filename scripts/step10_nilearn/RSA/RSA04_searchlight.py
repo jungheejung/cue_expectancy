@@ -237,9 +237,9 @@ K = arr*mask.get_fdata().ravel()
 print(f"masked fMRI array shape: {K.shape}")
 print(f"number of non-NaN values in entire fMRI-array: {np.sum(~np.isnan(K))}")
 # apply mask to stacked fMRI data
-test = mask.get_fdata().ravel() * arr
-print(f"----test----")
-print(f"shape: {test.shape}")
+# test = mask.get_fdata().ravel() * arr
+print(f"----K----")
+print(f"shape: {K.shape}")
 print(f"any NaNs?: {np.sum(np.isnan(test))}")
 
 print(f"----mask----")
@@ -251,10 +251,10 @@ print(f"any NaNs?: {np.sum(np.isnan(mask.get_fdata()))}")
 centers, neighbors = get_volume_searchlight(mask.get_fdata(), radius=2, threshold=0.5)
 
 # %% Step 2: Get an RDM for each voxel¶
-image_value = np.arange(arr.shape[0])
-data_2d = np.nan_to_num(arr)
+image_value = np.arange(K.shape[0])
+data_2d = np.nan_to_num(K)
 
-SL_RDM = get_searchlight_RDMs(arr, centers, neighbors, image_value, method='correlation') # Get RDMs
+SL_RDM = get_searchlight_RDMs(K, centers, neighbors, image_value, method='correlation') # Get RDMs
 
 print(f"voxel indices: {SL_RDM.rdm_descriptors['voxel_index'].shape}")
 print(f"number of nans?: {np.sum(np.isnan(SL_RDM.dissimilarities))}")
