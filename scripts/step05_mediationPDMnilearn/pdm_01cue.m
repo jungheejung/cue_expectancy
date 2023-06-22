@@ -149,8 +149,8 @@ for r = 1:length(run)
             cue_map = {'high_cue', 'low_cue'};
             cue_contrast = [1, -1];
             % Convert the column values to a categorical array
-            categoricalColumn = categorical(concat_beh.cuetype, cue_map);
-            concat_beh.cuecon = cue_contrast(grp2idx(categoricalColumn));
+            categoricalColumn = categorical(subset_beh.cuetype, cue_map);
+            subset_beh.cuecon = cue_contrast(grp2idx(categoricalColumn));
 
 
             % step 05 __________________________________________________________________
