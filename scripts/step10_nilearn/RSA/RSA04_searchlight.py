@@ -77,7 +77,8 @@ def load_searchlight(singletrial_dir, sub, ses):
     from nilearn import datasets
     from nilearn import masking
     get_shape = glob.glob(join(
-            singletrial_dir, sub, f'{sub}_{ses}_run-01_runtype-*_event-stimulus_trial-*_cuetype-high_stimintensity-high.nii.gz'))
+            singletrial_dir, sub, f'{sub}_{ses}_*_runtype-*_event-stimulus_trial-*_cuetype-high_stimintensity-high.nii.gz'))
+    print(f"get_shape: {get_shape}")
     tmp_img = nib.load(get_shape[0])
     x, y, z = tmp_img.get_fdata().shape
     # arr = np.empty((0, get_shape_data.shape[0]), int)
@@ -212,6 +213,7 @@ ses = f'ses-{ses_num:02d}'
 # %% parameters ________________________________________________________________________
 current_dir = os.getcwd()
 main_dir = Path(current_dir).parents[2]
+print(main_dir)
 print(args.slurm_id)
 slurm_id = args.slurm_id # e.g. 1, 2
 singletrial_dir = join(main_dir, 'analysis/fmri/nilearn/singletrial')
@@ -240,7 +242,7 @@ print(f"number of non-NaN values in entire fMRI-array: {np.sum(~np.isnan(K))}")
 # test = mask.get_fdata().ravel() * arr
 print(f"----K----")
 print(f"shape: {K.shape}")
-print(f"any NaNs?: {np.sum(np.isnan(test))}")
+print(f"any NaNs?: {np.sum(np.isnan(K))}")
 
 print(f"----mask----")
 print(f"shape: {mask.get_fdata().shape}")
