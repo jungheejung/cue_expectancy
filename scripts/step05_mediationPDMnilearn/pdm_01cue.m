@@ -53,7 +53,7 @@ for r = 1:length(run)
     end
     dat_fname =  fullfile(task_subfldr, strcat('task-',run{r},'_PDM_x-', x_keyword, '_m-', m_keyword,'_y-',y_keyword, '_DAT.mat'));
     if ~isfile(dat_fname)
-        for s = 1:length(sublist)
+        for s = 1% :length(sublist)
         % step 01 __________________________________________________________________
             % grab singletrial filelists
             sub = strcat('sub-', sprintf('%04d', sublist(s)));
@@ -70,9 +70,9 @@ for r = 1:length(run)
                 filepath = singletrial_flist{i};
                 
                 [~, filename, ~] = fileparts(filepath);
-                sub_key = strcat("sub_", extractBetween(filename, "sub-", "_")); % Extract subject and run information from the filepath
+                sub_key = strcat('sub_', extractBetween(filename, 'sub-', '_')); % Extract subject and run information from the filepath
                 if isfield(badRunsData, sub_key)
-                    disp(strcat("Current subject", sub, "has bad runs. Filtering..."))
+                    disp(strcat('Current subject ', sub, 'has bad runs. Filtering...'));
                     % Iterate over the bad runs for the subject
                     for j = 1:numel(badRunsData.(sub_key))
                         % reconstruct the badrun string (it doesn't have zeropadding)
@@ -150,7 +150,7 @@ for r = 1:length(run)
             cue_contrast = [1, -1];
             % Convert the column values to a categorical array
             categoricalColumn = categorical(subset_beh.cuetype, cue_map);
-            subset_beh.cuecon = cue_contrast(grp2idx(categoricalColumn));
+            subset_beh.cuecon = cue_contrast(grp2idx(categoricalColumn))';
 
 
             % step 05 __________________________________________________________________
@@ -193,7 +193,8 @@ for r = 1:length(run)
     cue_input.m_keyword = m_keyword;
     cue_input.y_keyword = y_keyword;
     cue_input.main_dir = main_dir;
-    cue_input.single_nii = fullfile(main_dir, strcat('/analysis/fmri/spm/multivariate/s03_concatnifti/sub-0065/sub-0065_task-social_run-', run{r}, '_ev-', event,'.nii'));
+    cue_input.single_nii = filenames(fullfile(main_dir, 'analysis', 'fmri', 'nilearn', 'singletrial', sub, strcat(sub, '*runtype-', run{r}, '_ev-', event,'*trial-000*.nii')));
+    % cue_input.single_nii = fullfile(main_dir, strcat('/analysis/fmri/spm/multivariate/s03_concatnifti/sub-0065/sub-0065_task-social_run-', run{r}, '_ev-', event,'.nii'));
     cue_input.sublist = sublist;
     cue_input.task = run{r};
     cue_input.iter = 5000;
