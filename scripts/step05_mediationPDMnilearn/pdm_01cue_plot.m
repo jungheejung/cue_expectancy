@@ -64,7 +64,7 @@ X{s} = Xoutlier{s}(idx_nan,:);
 end
 
 disp(strcat('ultimate subject list: ', sublist))
-
+disp(strcat('size of M: ', num2str(size(M{s}))));
 %% Reduce the dimensionality of the brain-mediator data using PVD
 pdmX = X; pdmY= Y; pdmM = M;
 %min_comp = min(cellfun('size',pdmY,1));
