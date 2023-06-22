@@ -57,7 +57,20 @@ for r = 1:length(run)
         % step 01 __________________________________________________________________
             % grab singletrial filelists
             sub = strcat('sub-', sprintf('%04d', sublist(s)));
-            singletrial_flist = filenames(fullfile(main_dir,'analysis', 'fmri', 'nilearn', 'singletrial', sub, '*stimintensity*.nii'));
+            basename = strcat(sub, '*runtype-', run{r}, '*_event-', event, '*');
+            fname_nifti = filenames(nifti_dir, sub, strcat(basename, '*.nii.gz'));
+            fname_nii = fullfile(nifti_dir, sub, strcat(basename, '.nii'));
+            % if ~exist(fname_nii,'file'), gunzip(fname_nifti); end
+            fileList = dir(fname_nifti);
+            for i = 1:numel(fileList)
+                file = fileList(i);
+                fileFullPath = fullfile(file.folder, file.name);
+                
+                if ~exist(fname_nii, 'file')
+                    gunzip(fileFullPath);
+                end
+            end
+            singletrial_flist = filenames(fullfile(nifti_dir, sub, strcat(sub, '*runtype-', run{r}, '*_event-', event,'*.nii')));
 
         % step 00 __________________________________________________________________
             % load badruns json
