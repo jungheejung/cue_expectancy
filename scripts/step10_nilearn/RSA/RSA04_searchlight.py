@@ -1,20 +1,29 @@
-# https://rsatoolbox.readthedocs.io/en/latest/rsatoolbox.util.searchlight.html
-# https://rsatoolbox.readthedocs.io/en/stable/demo_searchlight.html#3.-Load-animal-model-and-evaluate
+#!/usr/bin/env python
+# coding: utf-8
+"""
+TODO: add more documentation
+Stack fMRI single trials, creates RDM and applies model RDM per fMRI array using a searchlight
 
-# %%
-import os
-import glob
+Raises:
+    ValueError: [description]
+
+Returns:
+    [type]: [description]
+"""
+import os, glob, re
 from os.path import join
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 from nilearn.image import new_img_like
+from pathlib import Path
+
 import pandas as pd
 import nibabel as nib
 import seaborn as sns
-from pathlib import Path
 from nilearn import plotting
 from nilearn import image
+from nilearn import masking
 import matplotlib.colors
 from rsatoolbox.inference import eval_fixed
 from rsatoolbox.model import ModelFixed
@@ -23,6 +32,8 @@ from rsatoolbox.util.searchlight import get_volume_searchlight, get_searchlight_
 import rsatoolbox
 from scipy.spatial.distance import pdist, squareform
 
+
+# functions __________________________________________________________________
 def upper_tri(RDM):
     """upper_tri returns the upper triangular index of an RDM
 
@@ -37,6 +48,7 @@ def upper_tri(RDM):
     r, c = np.triu_indices(m, 1)
     return RDM[r, c]
 
+
 def RDMcolormapObject(direction=1):
     """
     Returns a matplotlib color map object for RSA and brain plotting
@@ -50,7 +62,7 @@ def RDMcolormapObject(direction=1):
     cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", cs)
     return cmap
 
-def load_searchlight(singletrial_dir, sub, ses, run):
+def load_searchlight(singletrial_dir, sub, ses):
     """Load single trial average beta estimates within session
 
     Args:
@@ -118,6 +130,7 @@ def load_searchlight(singletrial_dir, sub, ses, run):
     print(np.sum(~np.isnan(mask_img.get_fdata())))
     return arr, mask_img, x,y,z
 
+
 def load_expect(data_dir, sub, ses ):
     tasklist = ['pain', 'vicarious', 'cognitive']
     seswise_expect = pd.DataFrame()
@@ -143,8 +156,44 @@ def load_expect(data_dir, sub, ses ):
         ses_expect = seswise_02expect.sort_values(['cue_order','stim_order'])
         seswise_expect = pd.concat([seswise_expect, ses_expect])
     return(seswise_expect.reset_index(drop = True))
-# %%
-# Parameters from job submission script
+
+
+def get_unique_run(sub_id, ses, singletrial_dir):
+    """
+    Extracts unique values of 'ses' and 'run' from a singletrial nifti file
+
+    Args:
+        sub_id (str): BIDS subject
+        singletrial_dir (str): path to directory containing the singletrial nifti files
+
+    Returns:
+        [type]: set of unique values of ses and run
+    """
+
+    flist = glob.glob(
+        join(singletrial_dir, sub_id, f"*{ses}*stimulus*trial-000_*.nii.gz")
+    )
+    # Initialize empty sets to store unique values of 'ses' and 'run'
+    # unique_ses = set()
+    unique_run = set()
+
+    # Loop through each file path and extract 'ses-##' and 'run-##' using regular expressions
+    # Extract ses run and ses.
+    for path in flist:
+        # Extract 'ses-##' using regular expression
+        # ses_match = re.search(r"ses-(\d+)", path)
+        # # Add a new session to the unique_ses list
+        # if ses_match:
+        #     unique_ses.add(ses_match.group(0))
+
+        # Extract 'run-##' using regular expression
+        run_match = re.search(r"run-(\d+)", path)
+        # Add run_match to unique_run list of run_match. group 0
+        if run_match:
+            unique_run.add(run_match.group(0))
+    return  unique_run
+
+
 parser = argparse.ArgumentParser()
 
 parser.add_argument("--slurm-id", 
@@ -158,7 +207,6 @@ args = parser.parse_args()
 slurm_id = args.slurm_id # 'ws', 'aa', 'ha_test', 'ha_common'
 ses_num = args.ses # 'lh' or 'rh'
 radius = args.radius
-
 ses = f'ses-{ses_num:02d}'
 
 # %% parameters ________________________________________________________________________
@@ -171,26 +219,55 @@ sub_folders = next(os.walk(singletrial_dir))[1]
 print(sub_folders)
 sub_list = [i for i in sorted(sub_folders) if i.startswith('sub-')]
 sub = sub_list[slurm_id]#f'sub-{sub_list[slurm_id]:04d}'
-print(f" ________ {sub} ________")
+print(f" ________ {sub} {ses} ________")
 # nifti_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/singletrial/'
 modelRDM_dir = join(main_dir, 'analysis/fmri/nilearn/rsa/modelrdm')
 nifti_dir = join(main_dir, 'analysis/fmri/nilearn/singletrial/')
 save_dir = join(main_dir, 'analysis/fmri/nilearn/rsa/deriv03_searchlight')
-# flist = glob.glob(join(nifti_dir, sub, f"{sub}_{ses}_{run}_*event-stimulus*.nii.gz"))
-flist = glob.glob(join(nifti_dir, sub, f"{sub}_{ses}_*event-stimulus_trial-*.nii.gz"))
-arr, mask, x,y,z = load_searchlight(nifti_dir, sub, ses, run = '*')
 
-# %% Step 1: Get searchlight centers and neighbors
-centers, neighbors = get_volume_searchlight(mask.get_fdata(), radius = radius, threshold = 0.5)
 
-# %% Step 2: Get an RDM for each voxel
+
+# fMRI parameters __________________________________________________________________
+# set this path to wherever you saved the folder containing the img-files
+# flist = glob.glob(join(nifti_dir, sub, f"{sub}_{ses}_*event-stimulus_trial-*.nii.gz"))
+arr, mask, x,y,z = load_searchlight(nifti_dir, sub, ses)
+
+# check output __________________________________________________________________
+K = arr*mask.get_fdata().ravel()
+print(f"masked fMRI array shape: {K.shape}")
+print(f"number of non-NaN values in entire fMRI-array: {np.sum(~np.isnan(K))}")
+# apply mask to stacked fMRI data
+test = mask.get_fdata().ravel() * arr
+print(f"----test----")
+print(f"shape: {test.shape}")
+print(f"any NaNs?: {np.sum(np.isnan(test))}")
+
+print(f"----mask----")
+print(f"shape: {mask.get_fdata().shape}")
+print(f"any NaNs?: {np.sum(np.isnan(mask.get_fdata()))}")
+
+
+# %% Step 1: Get searchlight centers and neighbors ____________________________________________
+centers, neighbors = get_volume_searchlight(mask.get_fdata(), radius=2, threshold=0.5)
+
+# %% Step 2: Get an RDM for each voxel¶
 image_value = np.arange(arr.shape[0])
 data_2d = np.nan_to_num(arr)
 
-SL_RDM = get_searchlight_RDMs(arr, centers, neighbors, image_value, method = 'correlation') # Get RDMs
+SL_RDM = get_searchlight_RDMs(arr, centers, neighbors, image_value, method='correlation') # Get RDMs
 
+print(f"voxel indices: {SL_RDM.rdm_descriptors['voxel_index'].shape}")
+print(f"number of nans?: {np.sum(np.isnan(SL_RDM.dissimilarities))}")
+print(f"number of nan in mask? {np.sum(np.isnan(mask.get_fdata()))}")
+
+centers.shape
+print(f"{SL_RDM.dissimilarities.shape}")
+
+save_dir = join(main_dir,'analysis/fmri/nilearn/rsa/deriv03_searchlight', sub)
+Path(save_dir).mkdir( parents=True, exist_ok=True )
 # %% Step 3: Load animal model and evaluate
 # model_grid ________________________________________________________________________________
+modelRDM_dir = join(main_dir,'analysis/fmri/nilearn/rsa/modelrdm')
 cue_RDM = np.load(join(modelRDM_dir, 'model-cue.npy'))
 stim_RDM = np.load(join(modelRDM_dir, 'model-stim.npy'))
 grid_RDM = np.load(join(modelRDM_dir, 'model-grid.npy'))
@@ -208,7 +285,11 @@ X = [rsatoolbox.model.ModelWeighted('cue', upper_tri(cue_RDM)),
      rsatoolbox.model.ModelWeighted('parallel', upper_tri(parallel_RDM)),
      rsatoolbox.model.ModelWeighted('diagonal', upper_tri(diagonal_RDM))]
 model_names = ['cue', 'stim', 'grid', 'orthogonal', 'rotationgrid',  'parallel', 'diagonal']   
-eval_results = evaluate_models_searchlight(SL_RDM, X, eval_fixed, method = 'spearman', n_jobs = 3)
+eval_results = evaluate_models_searchlight(SL_RDM, X, eval_fixed, method='spearman', n_jobs=3)
+# TODO: sklearn linear regression and dot fit. dot coef. fit intercept
+# SL_RDM and X. zscore and rank. standardized rank regression
+
+
 
 # %%
 df = pd.DataFrame(index=range(len(X)), columns=range(len(eval_results)))
@@ -218,32 +299,39 @@ for i, e in enumerate(eval_results):
 # %% Create an 3D array, with the size of mask, and
 for model_i, model_name in enumerate(model_names):
     x, y, z = mask.shape
-    RDM_brain = np.zeros([x*y*z])
+    RDM_brain = np.zeros([x * y * z])
     RDM_brain[list(SL_RDM.rdm_descriptors['voxel_index'])] = df.T[model_i].tolist()
     RDM_brain = RDM_brain.reshape([x, y, z])
 
     sns.distplot(df.T[model_i].tolist())
     plt.title(f'Distributions of correlations {model_name}', size=18)
-    plt.ylabel('Occurance', size=18)
-    plt.xlabel('Spearmann correlation', size=18)
+    plt.ylabel('Occurrence', size=18)
+    plt.xlabel('Spearman correlation', size=18)
     sns.despine()
-    # plt.show()
-
-    # lets plot the voxels above the 99th percentile
+    
+    # Save the distribution plot
+    plt.savefig(join(save_dir, f'searchlist-hist_{sub}_{ses}_model-{model_name}.png'))
+    plt.close()
+    
     threshold = np.percentile(df.T[model_i].tolist(), 99)
     plot_img = new_img_like(mask, RDM_brain)
-
+    plot_img.to_filename(join(save_dir, f"searchlight_{sub}_{ses}_model-{model_name}.nii.gz"))
     cmap = RDMcolormapObject()
 
     coords = range(-20, 40, 5)
     fig = plt.figure(figsize=(12, 3))
 
     display = plotting.plot_stat_map(
-            plot_img, colorbar=True, threshold=threshold,
-            display_mode='mosaic', draw_cross=False, figure=fig,
-            title=f'{model_name}', cmap=cmap,
-            black_bg=False, annotate=False) #cut_coords=coords,
-    # plt.show()
+        plot_img, colorbar=True, threshold=threshold,
+        display_mode='mosaic', draw_cross=False, figure=fig,
+        title=f'{model_name}', cmap=cmap,
+        black_bg=False, annotate=False)
+    
+    # Save the statistical map plot
+    plt.savefig(join(save_dir, f'searchlight_thres-99_{sub}_{ses}_model-{model_name}.png'))
+    plt.close()
 
-    # save seearchlight
-    plot_img.to_filename(join(save_dir, f"{sub}_{ses}_model-{model_name}.nii.gz"))
+# eval_results = evaluate_models_searchlight(SL_RDM, X, eval_fixed, method='spearman', n_jobs=3)
+results_1 = rsatoolbox.inference.eval_fixed(X, SL_RDM, method='corr')
+rsatoolbox.vis.plot_model_comparison(results_1)
+
