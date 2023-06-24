@@ -124,11 +124,11 @@ def load_searchlight(singletrial_dir, sub, ses):
                                 stim_H_cue_L, stim_M_cue_L, stim_L_cue_L])
         # image.concat_imgs([mask, stim_H_cue_H, stim_M_cue_H, stim_L_cue_H,
         #                         stim_H_cue_L, stim_M_cue_L, stim_L_cue_L])
-    print(masklist)
+    #print(masklist)
     print(len(masklist))
     mask_img = masking.compute_brain_mask(masklist, threshold=.1)
-    print(mask_img.get_fdata().shape)
-    print(np.sum(~np.isnan(mask_img.get_fdata())))
+    print(f"mask image shape: {mask_img.get_fdata().shape}")
+    print(f"number of nan values in mask:{np.sum(~np.isnan(mask_img.get_fdata()))}")
     return arr, mask_img, x,y,z
 
 
