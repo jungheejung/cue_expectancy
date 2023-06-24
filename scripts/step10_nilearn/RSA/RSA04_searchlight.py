@@ -17,7 +17,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from nilearn.image import new_img_like
 from pathlib import Path
-
+import nilearn
 import pandas as pd
 import nibabel as nib
 import seaborn as sns
@@ -221,6 +221,7 @@ sub_folders = next(os.walk(singletrial_dir))[1]
 print(sub_folders)
 sub_list = [i for i in sorted(sub_folders) if i.startswith('sub-')]
 sub = sub_list[slurm_id]#f'sub-{sub_list[slurm_id]:04d}'
+fmri_event = 'stimulus'
 print(f" ________ {sub} {ses} ________")
 # nifti_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/singletrial/'
 modelRDM_dir = join(main_dir, 'analysis/fmri/nilearn/rsa/modelrdm')
@@ -235,41 +236,59 @@ save_dir = join(main_dir, 'analysis/fmri/nilearn/rsa/deriv03_searchlight')
 arr, mask, x,y,z = load_searchlight(nifti_dir, sub, ses)
 
 # check output __________________________________________________________________
-K = arr*mask.get_fdata().ravel()
-print(f"masked fMRI array shape: {K.shape}")
-print(f"number of non-NaN values in entire fMRI-array: {np.sum(~np.isnan(K))}")
-# apply mask to stacked fMRI data
-# test = mask.get_fdata().ravel() * arr
-print(f"----K----")
-print(f"shape: {K.shape}")
-print(f"any NaNs?: {np.sum(np.isnan(K))}")
+# K = arr*mask.get_fdata().ravel()
+# print(f"masked fMRI array shape: {K.shape}")
+# print(f"number of non-NaN values in entire fMRI-array: {np.sum(~np.isnan(K))}")
+# # apply mask to stacked fMRI data
+# # test = mask.get_fdata().ravel() * arr
+# print(f"----K----")
+# print(f"shape: {K.shape}")
+# print(f"any NaNs?: {np.sum(np.isnan(K))}")
 
-print(f"----mask----")
-print(f"shape: {mask.get_fdata().shape}")
-print(f"any NaNs?: {np.sum(np.isnan(mask.get_fdata()))}")
+# print(f"----mask----")
+# print(f"shape: {mask.get_fdata().shape}")
+# print(f"any NaNs?: {np.sum(np.isnan(mask.get_fdata()))}")
+plotting.plot_stat_map(mask)
+imgfname = glob.glob(join(nifti_dir, sub, f'{sub}_{ses}_*_runtype-vicarious_event-{fmri_event}_trial-011_cuetype-low_stimintensity-low.nii.gz'))
+ref_img = image.load_img(imgfname[0])
+nifti_masker = nilearn.maskers.NiftiMasker(mask_img= mask,
+                                           
+                            target_affine = ref_img.affine, target_shape = ref_img.shape, 
+                    memory="nilearn_cache", memory_level=1)
+
+singlemasked = []
+for index in range(arr.shape[0]):
+    singlemasked.append(
+        nifti_masker.fit_transform(
+    new_img_like(ref_img, arr[index].reshape(x,y,z)))
+    )
+fmri_masked_single = np.vstack(singlemasked)
 
 
+# Step 0: convert masked array back into brain 3d
+masked_arr = nifti_masker.inverse_transform(fmri_masked_single)
+img = new_img_like(ref_img, masked_arr.get_fdata()[..., 0])
+plotting.plot_stat_map(img)
 # %% Step 1: Get searchlight centers and neighbors ____________________________________________
-centers, neighbors = get_volume_searchlight(mask.get_fdata(), radius=2, threshold=0.5)
-
-# %% Step 2: Get an RDM for each voxel¶
-image_value = np.arange(K.shape[0])
-data_2d = np.nan_to_num(K)
-
-SL_RDM = get_searchlight_RDMs(K, centers, neighbors, image_value, method='correlation') # Get RDMs
+centers, neighbors = get_volume_searchlight(nifti_masker.mask_img.get_fdata(), radius=2, threshold=0.5)
+# # %% Step 2: Get an RDM for each voxel¶
+image_value = np.arange(masked_arr.shape[-1])
+reshaped_array = np.reshape(masked_arr.get_fdata(), (-1, masked_arr.shape[3]))
+data_2d = reshaped_array.T #masked_arr.reshape([masked_arr.shape[0], -1])
+data_2d_nan = np.nan_to_num(data_2d)
+SL_RDM = get_searchlight_RDMs(data_2d_nan, centers, neighbors, image_value, method='correlation') # Get RDMs
 
 print(f"voxel indices: {SL_RDM.rdm_descriptors['voxel_index'].shape}")
 print(f"number of nans?: {np.sum(np.isnan(SL_RDM.dissimilarities))}")
 print(f"number of nan in mask? {np.sum(np.isnan(mask.get_fdata()))}")
-
-centers.shape
-print(f"{SL_RDM.dissimilarities.shape}")
+print(f"centers shape: {centers.shape}")
+print(f"searchlight RDM shape: {SL_RDM.dissimilarities.shape}")
 
 save_dir = join(main_dir,'analysis/fmri/nilearn/rsa/deriv03_searchlight', sub)
 Path(save_dir).mkdir( parents=True, exist_ok=True )
 # %% Step 3: Load animal model and evaluate
 # model_grid ________________________________________________________________________________
-modelRDM_dir = join(main_dir,'analysis/fmri/nilearn/rsa/modelrdm')
+modelRDM_dir = join(main_dir,'analysis', 'fmri', 'nilearn', 'rsa', 'modelrdm')
 cue_RDM = np.load(join(modelRDM_dir, 'model-cue.npy'))
 stim_RDM = np.load(join(modelRDM_dir, 'model-stim.npy'))
 grid_RDM = np.load(join(modelRDM_dir, 'model-grid.npy'))
@@ -278,7 +297,9 @@ rotationgrid_RDM = np.load(join(modelRDM_dir, 'model-rotationgrid.npy'))
 parallel_RDM = np.load(join(modelRDM_dir, 'model-parallel.npy'))
 diagonal_RDM = np.load(join(modelRDM_dir, 'model-diagonal.npy'))
 
-# %%
+# essential
+SL_RDM.dissimilarities[np.isnan(SL_RDM.dissimilarities)] = 0
+
 X = [rsatoolbox.model.ModelWeighted('cue', upper_tri(cue_RDM)),
      rsatoolbox.model.ModelWeighted('stim', upper_tri(stim_RDM)),
      rsatoolbox.model.ModelWeighted('grid', upper_tri(grid_RDM)),
