@@ -226,8 +226,9 @@ print(f" ________ {sub} {ses} ________")
 # nifti_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/singletrial/'
 modelRDM_dir = join(main_dir, 'analysis/fmri/nilearn/rsa/modelrdm')
 nifti_dir = join(main_dir, 'analysis/fmri/nilearn/singletrial/')
-save_dir = join(main_dir, 'analysis/fmri/nilearn/rsa/deriv03_searchlight')
-
+# save_dir = join(main_dir, 'analysis/fmri/nilearn/rsa/deriv03_searchlight')
+save_dir = join(main_dir,'analysis/fmri/nilearn/rsa/deriv03_searchlight', sub)
+Path(save_dir).mkdir( parents=True, exist_ok=True )
 
 
 # fMRI parameters __________________________________________________________________
@@ -269,6 +270,8 @@ fmri_masked_single = np.vstack(singlemasked)
 masked_arr = nifti_masker.inverse_transform(fmri_masked_single)
 img = new_img_like(ref_img, masked_arr.get_fdata()[..., 0])
 plotting.plot_stat_map(img)
+plt.savefig(join(save_dir, f"maskedimage_{sub}_{ses}.png"))
+plt.close()
 # %% Step 1: Get searchlight centers and neighbors ____________________________________________
 centers, neighbors = get_volume_searchlight(nifti_masker.mask_img.get_fdata(), radius=2, threshold=0.5)
 # # %% Step 2: Get an RDM for each voxel¶
@@ -284,8 +287,7 @@ print(f"number of nan in mask? {np.sum(np.isnan(mask.get_fdata()))}")
 print(f"centers shape: {centers.shape}")
 print(f"searchlight RDM shape: {SL_RDM.dissimilarities.shape}")
 
-save_dir = join(main_dir,'analysis/fmri/nilearn/rsa/deriv03_searchlight', sub)
-Path(save_dir).mkdir( parents=True, exist_ok=True )
+
 # %% Step 3: Load animal model and evaluate
 # model_grid ________________________________________________________________________________
 modelRDM_dir = join(main_dir,'analysis', 'fmri', 'nilearn', 'rsa', 'modelrdm')
