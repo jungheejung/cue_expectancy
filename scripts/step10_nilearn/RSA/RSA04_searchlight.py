@@ -249,7 +249,7 @@ arr, mask, x,y,z = load_searchlight(nifti_dir, sub, ses)
 # print(f"shape: {mask.get_fdata().shape}")
 # print(f"any NaNs?: {np.sum(np.isnan(mask.get_fdata()))}")
 plotting.plot_stat_map(mask)
-imgfname = glob.glob(join(nifti_dir, sub, f'{sub}_{ses}_*_runtype-vicarious_event-{fmri_event}_trial-011_cuetype-low_stimintensity-low.nii.gz'))
+imgfname = glob.glob(join(nifti_dir, sub, f'{sub}_{ses}_*_runtype-vicarious_event-{fmri_event}_*_cuetype-low_stimintensity-low.nii.gz'))
 ref_img = image.load_img(imgfname[0])
 nifti_masker = nilearn.maskers.NiftiMasker(mask_img= mask,
                                            
