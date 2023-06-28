@@ -202,6 +202,7 @@ for r = 1:length(run)
 end
 
 %% PDM
+sub = sublist(1);
 for r = 1:length(run)
     
     % input variables
