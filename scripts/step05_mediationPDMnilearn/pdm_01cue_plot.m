@@ -1,14 +1,14 @@
 function pdm_01cue_plot(input)
 
-x_keyword = input.x_keyword;
-m_keyword = input.m_keyword;
-y_keyword = input.y_keyword;
-main_dir = input.main_dir;
-single_nii = input.single_nii;
-sublist = input.sublist;
-task = input.task;
-iter = input.iter;
-num_components = input.num_components;
+    x_keyword = input.x_keyword;
+    m_keyword = input.m_keyword;
+    y_keyword = input.y_keyword;
+    main_dir = input.main_dir;
+    single_nii = input.single_nii;
+    sublist = input.sublist;
+    task = input.task;
+    iter = input.iter;
+    num_components = input.num_components;
 
 save_dir = fullfile(main_dir, 'analysis', 'fmri', 'mediation', 'pdm');
 
@@ -54,15 +54,31 @@ disp('SIZE -------------')
 disp(size(Xoutlier));    disp(size(Moutlier));    disp(size(Youtlier));
 
 % 3. remove nan trials
-X = cell( size(Xoutlier,1), 1);    Y = cell( size(Xoutlier,1), 1);    M = cell( size(Xoutlier,1), 1);
-for s = 1:length(Youtlier)
-idx_nan = [];
-idx_nan = ~isnan(Youtlier{s});
-Y{s} = Youtlier{s}(idx_nan,:);
-M{s} = Moutlier{s}(:,idx_nan');
-X{s} = Xoutlier{s}(idx_nan,:);
-end
+% X = cell( size(Xoutlier,1), 1);    Y = cell( size(Xoutlier,1), 1);    M = cell( size(Xoutlier,1), 1);
+% for s = 1:length(Youtlier)
+% idx_nan = [];
+% idx_nan = ~isnan(Youtlier{s});
+% Y{s} = Youtlier{s}(idx_nan,:);
+% M{s} = Moutlier{s}(:,idx_nan');
+% X{s} = Xoutlier{s}(idx_nan,:);
+% end
+% X = cell( size(Xoutlier,1), 1);    Y = cell( size(Xoutlier,1), 1);    M = cell( size(Xoutlier,1), 1);
+% for s = 1:length(Youtlier)
+% X{s} = Xoutlier{s}(~cellfun(@(x) any(isnan(x(:))), Moutlier{s}));
+% M{s} = Moutlier{s}(~cellfun(@(x) any(isnan(x(:))), Moutlier{s}));
+% Y{s} = Youtlier{s}(~cellfun(@(x) any(isnan(x(:))), Moutlier{s}));
+% end
 
+% Find indices of empty cells
+emptyIndices = cellfun(@isempty, Moutlier);
+
+% Remove empty cells from structure
+Xoutlier(emptyIndices) = [];
+Moutlier(emptyIndices) = [];
+Youtlier(emptyIndices) = [];
+X = Xoutlier;
+M = Moutlier;
+Y = Youtlier;
 disp(strcat('ultimate subject list: ', sublist))
 disp(strcat('size of M: ', num2str(size(M{s}))));
 %% Reduce the dimensionality of the brain-mediator data using PVD
