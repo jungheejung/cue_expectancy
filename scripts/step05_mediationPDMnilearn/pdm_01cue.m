@@ -211,7 +211,8 @@ for r = 1:length(run)
     cue_input.m_keyword = m_keyword;
     cue_input.y_keyword = y_keyword;
     cue_input.main_dir = main_dir;
-    fname_template = filenames(fullfile(main_dir, 'analysis', 'fmri', 'nilearn', 'singletrial', sublist(1), strcat(sublist(1), '*runtype-', run{r}, '_ev-', event,'*trial-000*.nii')));
+    disp(fname_template);
+    fname_template = filenames(fullfile(main_dir, 'analysis', 'fmri', 'nilearn', 'singletrial', sublist{1}, strcat(sublist{1}, '*runtype-', run{r}, '_ev-', event,'*trial-000*.nii')));
     disp(fname_template)
     cue_input.single_nii = fname_template{1};
     % cue_input.single_nii = fullfile(main_dir, strcat('/analysis/fmri/spm/multivariate/s03_concatnifti/sub-0065/sub-0065_task-social_run-', run{r}, '_ev-', event,'.nii'));
