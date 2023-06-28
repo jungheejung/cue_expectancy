@@ -29,8 +29,18 @@ nifti_dir = fullfile(main_dir,'analysis','fmri','nilearn','singletrial');
 meta_dir = fullfile(main_dir, 'data', 'beh', 'beh03_bids');
 save_dir = fullfile(main_dir,'analysis','fmri','mediation','pdm');
 % TODO: 
-% [ ] load bad_run json. From that exclude bad runs. 
-sublist = [6,7,8,9,10,11,13,14,15,16,17,21,23,24,28,29,30,31,32,33,35,37,43,47,51,53,55,58,60,61,62,64,65,66,68,69,70,73,74,76,78,79,80,81,84,85];
+% [x] load bad_run json. From that exclude bad runs. 
+
+% Use the dir function to list the contents of the parent directory
+contents = dir(nifti_dir);
+% Filter the results to include only directories
+subDirectories = contents([contents.isdir]);
+% Exclude '.' and '..' directories from the list
+subDirectories = subDirectories(~ismember({subDirectories.name}, {'.', '..'}));
+% Extract the names of the subdirectories
+sublist = {subDirectories.name};
+
+% sublist = [6,7,8,9,10,11,13,14,15,16,17,21,23,24,28,29,30,31,32,33,35,37,43,47,51,53,55,58,60,61,62,64,65,66,68,69,70,73,74,76,78,79,80,81,84,85];
 xx = cell( length(sublist), 1);
 mm = cell( length(sublist), 1);
 mm_fdata = cell( length(sublist), 1);
@@ -53,22 +63,17 @@ for r = 1:length(run)
     end
     dat_fname =  fullfile(task_subfldr, strcat('task-',run{r},'_PDM_x-', x_keyword, '_m-', m_keyword,'_y-',y_keyword, '_DAT.mat'));
     if ~isfile(dat_fname)
-        for s = 1% :length(sublist)
+        for s = 1:length(sublist)
         % step 01 __________________________________________________________________
             % grab singletrial filelists
-            sub = strcat('sub-', sprintf('%04d', sublist(s)));
+            % sub = strcat('sub-', sprintf('%04d', sublist(s)));
+            sub = sublist(s);
             basename = strcat(sub, '*runtype-', run{r}, '*_event-', event, '*');
-            fname_nifti = filenames(nifti_dir, sub, strcat(basename, '*.nii.gz'));
-            fname_nii = fullfile(nifti_dir, sub, strcat(basename, '.nii'));
-            % if ~exist(fname_nii,'file'), gunzip(fname_nifti); end
-            fileList = dir(fname_nifti);
-            for i = 1:numel(fileList)
-                file = fileList(i);
-                fileFullPath = fullfile(file.folder, file.name);
-                
-                if ~exist(fname_nii, 'file')
-                    gunzip(fileFullPath);
-                end
+            fname_nifti = filenames(fullfile(nifti_dir, sub, strcat(basename, '*.nii.gz')));
+            % unzip for matlab
+            for i = 1:numel(fname_nifti)
+                fname_nii = strrep(fname_nifti{i}, '.nii.gz', '.nii');
+                if ~exist(fname_nii,'file'),gunzip(fname_nifti{i}); end
             end
             singletrial_flist = filenames(fullfile(nifti_dir, sub, strcat(sub, '*runtype-', run{r}, '*_event-', event,'*.nii')));
             disp(singletrial_flist);
