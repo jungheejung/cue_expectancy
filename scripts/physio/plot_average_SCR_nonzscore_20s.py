@@ -45,20 +45,20 @@ fig_savedir = join(main_dir, 'figure/physio/physio01_SCL', date)
 Path(fig_savedir).mkdir( parents=True, exist_ok=True )
 # %%
 for task in [ 'pain', 'cognitive', 'vicarious']:
-     # NOTE: <<--------only run once
-     flist = glob.glob(
-         join(physio_dir, '**', f'sub-0*{task}*_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), recursive=True)
-     # sub-0053_ses-01_run-02_runtype-vicarious_epochstart--1_epochend-20_samplingrate-25_ttlindex-2_physio-scltimecourse
-     # sub-0062_ses-01_run-06_runtype-vicarious_epochstart--1_epochend-20_samplingrate-25_ttlindex-2_physio-scltimecourse
-     #  NOTE: stack all data and save as .csv ________________________
-     li = []
-     frame = pd.DataFrame()
-     for filename in sorted(flist):
-         df = pd.read_csv(filename, index_col=None, header=0)
-         li.append(df)
-     frame = pd.concat(li, axis=0, ignore_index=True)
-     frame.to_csv(join(local_physiodir, 'physio01_SCL', f'sub-all_ses-all_run-all_runtype-{task}_epochstart-{epochstart}_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), index = False)
-     # NOTE: only run once -------- >>
+    # NOTE: <<--------only run once
+    flist = glob.glob(
+        join(physio_dir, '**', f'sub-0*{task}*_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), recursive=True)
+    # sub-0053_ses-01_run-02_runtype-vicarious_epochstart--1_epochend-20_samplingrate-25_ttlindex-2_physio-scltimecourse
+    # sub-0062_ses-01_run-06_runtype-vicarious_epochstart--1_epochend-20_samplingrate-25_ttlindex-2_physio-scltimecourse
+    #  NOTE: stack all data and save as .csv ________________________
+    li = []
+    frame = pd.DataFrame()
+    for filename in sorted(flist):
+        df = pd.read_csv(filename, index_col=None, header=0)
+        li.append(df)
+    frame = pd.concat(li, axis=0, ignore_index=True)
+    frame.to_csv(join(local_physiodir, 'physio01_SCL', f'sub-all_ses-all_run-all_runtype-{task}_epochstart-{epochstart}_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), index = False)
+    # NOTE: only run once -------- >>
 
 
     frame = pd.DataFrame()
