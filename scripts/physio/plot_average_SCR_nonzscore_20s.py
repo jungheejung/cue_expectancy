@@ -31,33 +31,34 @@ from pathlib import Path
 # %% glob data ________________________
 main_dir = '/Volumes/spacetop_projects_social'
 # main_dir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis'
+main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue'
 local_physiodir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/physio'
 physio_dir = join(main_dir, 'analysis/physio/')
+local_physiodir = physio_dir
 # task = 'cognitive'
-epochstart = -1
-epochend = 15
+epochstart = -3
+epochend = 20
 samplingrate = 25
 ttlindex = 2
 date = datetime.now().strftime("%m-%d-%Y")
-fig_savedir = join('/Users/h/Dropbox/projects_dropbox/social_influence_analysis', 'figure/physio/physio01_SCL', date)
+fig_savedir = join(main_dir, 'figure/physio/physio01_SCL', date)
 Path(fig_savedir).mkdir( parents=True, exist_ok=True )
 # %%
 for task in [ 'pain', 'cognitive', 'vicarious']:
-    # # NOTE: <<--------only run once
-    # flist = glob.glob(
-    #     join(physio_dir, '**', f'sub-0*{task}*_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), recursive=True)
-    # # sub-0053_ses-01_run-02_runtype-vicarious_epochstart--1_epochend-20_samplingrate-25_ttlindex-2_physio-scltimecourse
-    # # sub-0062_ses-01_run-06_runtype-vicarious_epochstart--1_epochend-20_samplingrate-25_ttlindex-2_physio-scltimecourse
-    # #  NOTE: stack all data and save as .csv ________________________
-    # li = []
-    # frame = pd.DataFrame()
-    # for filename in sorted(flist):
-    #     df = pd.read_csv(filename, index_col=None, header=0)
-    #     li.append(df)
-    # frame = pd.concat(li, axis=0, ignore_index=True)
-    # frame.to_csv(join(local_physiodir, 'physio01_SCL',
-    #             f'sub-all_ses-all_run-all_runtype-{task}_epochstart-{epochstart}_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), index = False)
-    # # NOTE: only run once -------- >>
+     # NOTE: <<--------only run once
+     flist = glob.glob(
+         join(physio_dir, '**', f'sub-0*{task}*_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), recursive=True)
+     # sub-0053_ses-01_run-02_runtype-vicarious_epochstart--1_epochend-20_samplingrate-25_ttlindex-2_physio-scltimecourse
+     # sub-0062_ses-01_run-06_runtype-vicarious_epochstart--1_epochend-20_samplingrate-25_ttlindex-2_physio-scltimecourse
+     #  NOTE: stack all data and save as .csv ________________________
+     li = []
+     frame = pd.DataFrame()
+     for filename in sorted(flist):
+         df = pd.read_csv(filename, index_col=None, header=0)
+         li.append(df)
+     frame = pd.concat(li, axis=0, ignore_index=True)
+     frame.to_csv(join(local_physiodir, 'physio01_SCL', f'sub-all_ses-all_run-all_runtype-{task}_epochstart-{epochstart}_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), index = False)
+     # NOTE: only run once -------- >>
 
 
     frame = pd.DataFrame()
