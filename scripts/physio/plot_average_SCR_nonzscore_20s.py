@@ -88,6 +88,7 @@ for task in [ 'pain', 'cognitive', 'vicarious']:
     def plot_condition_timeseries(df, cond, level_list, col_start, col_end, color_list, line_style):
         for ind, stim in enumerate(level_list):
             stim_df = df[df[cond] == stim]
+            col_end = stim_df.columns[-1]
             stim_mean = stim_df.loc[:, col_start:col_end].mean()
             stim_sd = stim_df.loc[:, col_start:col_end].std()
             timeseries = np.arange(len(stim_mean))
