@@ -115,7 +115,7 @@ for task in [ 'pain', 'cognitive', 'vicarious']:
         color_list=['#E23201', '#FD9415', '#848484'], 
         line_style = ['solid'])
     plt.title(f'{task} stimulus SCR')
-    plt.savefig(join(fig_savedir, f"task-{task}_sample-25_iv-time_dv-stim.png"))
+    plt.savefig(join(fig_savedir, f"task-{task}_sample-25_ttlindex-{ttlindex}_iv-time_dv-stim.png"))
     plt.close()
     
     # NOTE: plot cue factor
@@ -128,7 +128,7 @@ for task in [ 'pain', 'cognitive', 'vicarious']:
         color_list=['#FAAE7B', '#432371'],
         line_style = ['dashed'])
     plt.title(f'{task} cue SCR')
-    plt.savefig(join(fig_savedir, f"task-{task}_sample-25_iv-time_dv-cue.png"))
+    plt.savefig(join(fig_savedir, f"task-{task}_sample-25_ttlindex-{ttlindex}_iv-time_dv-cue.png"))
     plt.close()
 
     # NOTE: plot interaction
@@ -161,7 +161,7 @@ for task in [ 'pain', 'cognitive', 'vicarious']:
     plt.title(f'{task} stimulus * cue SCR')
     plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
     # plt.show()
-    plt.savefig(join(fig_savedir, f"task-{task}_sample-25_iv-time_dv-stimXcue.png"))
+    plt.savefig(join(fig_savedir, f"task-{task}_sample-25_ttlindex-{ttlindex}_iv-time_dv-stimXcue.png"))
     plt.close()
 # TODO:
 # combine behavioral data
