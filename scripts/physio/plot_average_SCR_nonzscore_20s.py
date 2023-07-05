@@ -39,7 +39,7 @@ local_physiodir = physio_dir
 epochstart = -3
 epochend = 20
 samplingrate = 25
-ttlindex = 2
+ttlindex = 1
 date = datetime.now().strftime("%m-%d-%Y")
 fig_savedir = join(main_dir, 'figure/physio/physio01_SCL', date)
 Path(fig_savedir).mkdir( parents=True, exist_ok=True )
