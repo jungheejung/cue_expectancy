@@ -56,15 +56,15 @@ for fname in flist:
 
     fmri_masked = np.vstack(arr)
     # %% 
-    np.save(join(save_dir, 'masked_' + 'sub-avg_ses-avg_run-avg_event-stimulus_cuetype-high.npy'), fmri_masked)
+    np.save(join(save_dir, 'masked_' + fname), fmri_masked)
     rowwise_corr = np.corrcoef(fmri_masked, rowvar=False, dtype=np.float32)
  
     isc = rowwise_corr[0]
     print(isc.shape)
     assert isc.shape == (98053,)
-    np.save(join(save_dir, 'isc_' + os.path.splitext(os.path.basename(high_fname))[0]) + '.npy', isc) 
+    np.save(join(save_dir, 'isc_' + os.path.splitext(os.path.basename(fname))[0]) + '.npy', isc) 
     singletrial_t = nifti_masker.inverse_transform(isc) 
     resampled_image = image.resample_to_img(singletrial_t, ref_img)
-    plot = plotting.plot_stat_map(resampled_image,  display_mode = 'mosaic', title = f'{os.path.splitext(os.path.basename(high_fname))[0]}', cut_coords = 8)
-    plot.savefig(join(save_dir ,os.path.splitext(os.path.basename(high_fname))[0] + '.png'))
-    resampled_image.to_filename(join(save_dir, os.path.splitext(os.path.basename(high_fname))[0] + '.nii.gz'))
+    plot = plotting.plot_stat_map(resampled_image,  display_mode = 'mosaic', title = f'{os.path.splitext(os.path.basename(fname))[0]}', cut_coords = 8)
+    plot.savefig(join(save_dir ,os.path.splitext(os.path.basename(fname))[0] + '.png'))
+    resampled_image.to_filename(join(save_dir, os.path.splitext(os.path.basename(fname))[0] + '.nii.gz'))
