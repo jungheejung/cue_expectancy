@@ -59,6 +59,7 @@ for index in range(high_cue.shape[0]):
 
 fmri_masked_stimhighp = np.vstack(Hp)
 # %% 
+# TODO: 07/14/2023 = # figure out why my isc matrix becomes so big
 iscs = np.corrcoef(fmri_masked_stimhighp, rowvar=False)
 diagonal_elements = np.diagonal(iscs)
 np.save(join(save_dir, 'isc_' + os.path.basename(high_fname)), diagonal_elements)
