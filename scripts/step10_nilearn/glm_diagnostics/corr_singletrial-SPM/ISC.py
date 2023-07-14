@@ -45,26 +45,30 @@ nifti_masker = nilearn.maskers.NiftiMasker(mask_img=mask_img, smoothing_fwhm=6,
                                             memory_level=1)
 
 x,y,z=ref_img.shape
-Hp = []
-Lp = []
+flist = ['sub-avg_ses-avg_run-avg_event-stimulus_cuetype-high.npy', 'sub-avg_ses-avg_run-avg_event-stimulus_cuetype-low.npy']
 high_fname = join(npy_dir, 'sub-avg_ses-avg_run-avg_event-stimulus_cuetype-high.npy')
 high_cue = np.load(high_fname)
+arr = []
+for fname in flist:
+    data = np.load(join(npy_dir, fname))
+    for index in range(data.shape[0]):
 
-for index in range(high_cue.shape[0]):
+        arr.append(
+            nifti_masker.fit_transform(
+        new_img_like(ref_img, data[index].reshape(x,y,z)))
+        )
 
-    Hp.append(
-        nifti_masker.fit_transform(
-    new_img_like(ref_img, high_cue[index].reshape(x,y,z)))
-    )
-
-fmri_masked_stimhighp = np.vstack(Hp)
-# %% 
-# TODO: 07/14/2023 = # figure out why my isc matrix becomes so big
-iscs = np.corrcoef(fmri_masked_stimhighp, rowvar=False)
-diagonal_elements = np.diagonal(iscs)
-np.save(join(save_dir, 'isc_' + os.path.basename(high_fname)), diagonal_elements)
-singletrial_t = nifti_masker.inverse_transform(diagonal_elements)
-resampled_image = image.resample_to_img(singletrial_t, ref_img)
-plot = plotting.plot_stat_map(resampled_image,  display_mode = 'mosaic', title = f'{os.path.splitext(os.path.basename(high_fname))[0]}', cut_coords = 8)
-plot.savefig(join(save_dir ,os.path.splitext(os.path.basename(high_fname))[0] + '.png'))
-resampled_image.to_filename(join(save_dir, os.path.splitext(os.path.basename(high_fname))[0] + '.nii.gz'))
+    fmri_masked = np.vstack(arr)
+    # %% 
+    np.save(join(save_dir, 'masked_' + 'sub-avg_ses-avg_run-avg_event-stimulus_cuetype-high.npy'), fmri_masked)
+    rowwise_corr = np.corrcoef(fmri_masked, rowvar=False, dtype=np.float32)
+ 
+    isc = rowwise_corr[0]
+    print(isc.shape)
+    assert isc.shape == (98053,)
+    np.save(join(save_dir, 'isc_' + os.path.splitext(os.path.basename(high_fname))[0]) + '.npy', isc) 
+    singletrial_t = nifti_masker.inverse_transform(isc) 
+    resampled_image = image.resample_to_img(singletrial_t, ref_img)
+    plot = plotting.plot_stat_map(resampled_image,  display_mode = 'mosaic', title = f'{os.path.splitext(os.path.basename(high_fname))[0]}', cut_coords = 8)
+    plot.savefig(join(save_dir ,os.path.splitext(os.path.basename(high_fname))[0] + '.png'))
+    resampled_image.to_filename(join(save_dir, os.path.splitext(os.path.basename(high_fname))[0] + '.nii.gz'))
