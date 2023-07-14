@@ -54,6 +54,8 @@ subavgL = []
 subavgH = []
 suballL = []
 suballH = []
+suballL_list = []
+suballH_list = []
 sub_list.remove( 'sub-0071')
 
 # %%
@@ -87,6 +89,9 @@ for sub in sub_list:
         # print(f"{sub} {suballL.shape}")
         subavgH = np.mean(np.vstack(avgallH), axis=0)
         suballH.append(subavgH)
+
+        suballL_list.append(sub)
+        suballH_list.append(sub)
     else:
         continue
 
@@ -95,11 +100,13 @@ suballHv = np.vstack(suballH)
 np.save(os.path.join(beta_dir, f"sub-avg_ses-avg_run-avg_task-{task}_event-stimulus_cuetype-low.npy"), suballLv)
 np.save(os.path.join(beta_dir, f"sub-avg_ses-avg_run-avg_task-{task}_event-stimulus_cuetype-high.npy"), suballHv)
 
-dict = {'sub': sub_list, 
+Ldict = {'sub': suballL_list, 
+        'code': '../scripts/step10_nilearn/glm/cue-high_GT_cue-low/numpy_ttest_cue.py'}
+Hdict = {'sub': suballH_list, 
         'code': '../scripts/step10_nilearn/glm/cue-high_GT_cue-low/numpy_ttest_cue.py'}
 with open(os.path.join(beta_dir, f"sub-avg_ses-avg_run-avg_task-{task}_event-stimulus_cuetype-high.json"), 'w') as json_file:
-    json.dump(dict, json_file)
+    json.dump(Hdict, json_file)
 with open(os.path.join(beta_dir, f"sub-avg_ses-avg_run-avg_task-{task}_event-stimulus_cuetype-low.json"), 'w') as json_file:
-    json.dump(dict, json_file)
+    json.dump(Ldict, json_file)
 
 # %%
