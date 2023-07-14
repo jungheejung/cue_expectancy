@@ -5,8 +5,6 @@ import os, glob, re, gzip, shutil, json
 from os.path import join
 import pathlib
 import numpy as np
-import statsmodels 
-from statsmodels.stats import multitest
 import scipy
 import nilearn
 from scipy import stats
