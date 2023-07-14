@@ -58,11 +58,16 @@ for index in range(high_cue.shape[0]):
     )
 
 fmri_masked_stimhighp = np.vstack(Hp)
+print(fmri_masked_stimhighp.shape)
 # %% 
-iscs = np.corrcoef(fmri_masked_stimhighp, rowvar=False)
+np.save(join(save_dir, 'masked_' + 'sub-avg_ses-avg_run-avg_event-stimulus_cuetype-high.npy'), fmri_masked_stimhighp)
+iscs = np.corrcoef(fmri_masked_stimhighp, rowvar=False, dtype=np.float32)
 #diagonal_elements = np.diagonal(iscs)
-np.save(join(save_dir, 'isc_' + os.path.basename(high_fname)), iscs)
-singletrial_t = nifti_masker.inverse_transform(iscs)
+correlations_row = iscs[0]
+print(correlations_row.shape)
+assert correlations_row.shape == (98053,)
+np.save(join(save_dir, 'isc_' + os.path.splitext(os.path.basename(high_fname))[0]) + '.npy', correlations_row) #iscs)
+singletrial_t = nifti_masker.inverse_transform(correlations_row) # iscs)
 resampled_image = image.resample_to_img(singletrial_t, ref_img)
 plot = plotting.plot_stat_map(resampled_image,  display_mode = 'mosaic', title = f'{os.path.splitext(os.path.basename(high_fname))[0]}', cut_coords = 8)
 plot.savefig(join(save_dir ,os.path.splitext(os.path.basename(high_fname))[0] + '.png'))
