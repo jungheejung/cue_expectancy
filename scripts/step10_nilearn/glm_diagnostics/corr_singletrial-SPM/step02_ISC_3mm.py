@@ -62,9 +62,9 @@ for fname in flist:
     isc = rowwise_corr[0]
     print(isc.shape)
     assert isc.shape == (fmri_masked.shape[1],)
-    np.save(join(save_dir, 'isc_' + os.path.splitext(os.path.basename(fname))[0]) + '.npy', isc) 
+    np.save(join(save_dir, 'isc_' + os.path.splitext(os.path.basename(fname))[0]) + '_mask-mni3mm.npy', isc) 
     singletrial_t = nifti_masker.inverse_transform(isc) 
     # resampled_image = image.resample_to_img(singletrial_t, ref_img)
     plot = plotting.plot_stat_map(singletrial_t,  display_mode = 'mosaic', title = f'{os.path.splitext(os.path.basename(fname))[0]}', cut_coords = 8)
-    plot.savefig(join(save_dir ,os.path.splitext(os.path.basename(fname))[0] + '.png'))
-    singletrial_t.to_filename(join(save_dir, os.path.splitext(os.path.basename(fname))[0] + '.nii.gz'))
+    plot.savefig(join(save_dir ,os.path.splitext(os.path.basename(fname))[0] + '_mask-mni3mm.png'))
+    singletrial_t.to_filename(join(save_dir, os.path.splitext(os.path.basename(fname))[0] + '_mask-mni3mm.nii.gz'))
