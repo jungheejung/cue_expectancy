@@ -43,10 +43,12 @@ nifti_masker = nilearn.maskers.NiftiMasker(mask_img=mask_img, smoothing_fwhm=6,
                                             memory_level=1)
 
 x,y,z=ref_img.shape
-flist = ['sub-avg_ses-avg_run-avg_event-stimulus_cuetype-high.npy', 'sub-avg_ses-avg_run-avg_event-stimulus_cuetype-low.npy']
+#flist = ['sub-avg_ses-avg_run-avg_event-stimulus_cuetype-high.npy', 'sub-avg_ses-avg_run-avg_event-stimulus_cuetype-low.npy']
+flist = glob.glob(join(npy_dir, '*.npy'))
 arr = []
-for fname in flist:
-    data = np.load(join(npy_dir, fname))
+for fpath in flist:
+    fname = os.path.basename(fpath)
+    data = np.load(fpath)
     for index in range(data.shape[0]):
 
         arr.append(
