@@ -28,13 +28,6 @@ def extract_meta(fname):
 # %% ----------------------------------------------------------------------
 #            parameters - atlas, atlas labels, functional image
 # ----------------------------------------------------------------------
-# argparse: main_dir, subcortex_dir, ref_img, task
-# main_dir = '/Volumes/spacetop_projects_cue'
-# task = 'pain'
-# subcortex_dir = '/Users/h/Documents/projects_local/Tian2020MSA/3T/Cortex-Subcortex'
-# subcortex_dir = '/dartfs-hpc/rc/lab/C/CANlab/modules/other_repos/subcortex/Group-Parcellation/3T/Cortex-Subcortex'
-# ref_img = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial/sub-0061/sub-0061_ses-04_run-06_runtype-pain_event-stimulus_trial-011_cuetype-low_stimintensity-low.nii.gz'
-
 parser = argparse.ArgumentParser()
 parser.add_argument("--maindir", type=str,
                     help="main directory")
@@ -51,28 +44,23 @@ task = args.task
 subcortex_dir = args.subcortexdir 
 refimg_fname = args.refimg 
 
+singletrial_dir = join(main_dir, 'analysis', 'fmri', 'nilearn','deriv05_singletrialnpy')
+save_dir = join(main_dir, 'analysis', 'fmri', 'nilearn', 'deriv08_parcel', 'subcortex_Tian2020')
+singletrials = sorted(glob.glob(join(singletrial_dir, '**', f'*{task}*event-stimulus*.npy'), recursive=True))
+
+# %% ======= NOTE: resample Atlas into 3mm image
 subcortex = join(subcortex_dir,'MNIvolumetric', 'Schaefer2018_200Parcels_7Networks_order_Tian_Subcortex_S1_3T_MNI152NLin2009cAsym_2mm.nii.gz')
 subcortex_label = join(subcortex_dir,  'Schaefer2018_200Parcels_7Networks_order_Tian_Subcortex_S1_label.txt')
 labels = pd.read_csv(subcortex_label, sep='\t', header=None)
 template = load_mni152_template(resolution=3)
-# high_cue = '/Users/h/Documents/projects_local/sandbox/cue/sub-avg_ses-avg_run-avg_task-pain_event-stimulus_cuetype-high.nii.gz'
-# singletrial_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv05_singletrialnpy'
-singletrial_dir = join(main_dir, 'analysis', 'fmri', 'nilearn','deriv05_singletrialnpy')
-save_dir = join(main_dir, 'analysis', 'fmri', 'nilearn', 'deriv08_parcel', 'subcortex_Tian2020')
-singletrials = sorted(glob.glob(join(singletrial_dir, '**', f'*{task}*event-stimulus*.npy'), recursive=True))
+subcortex_atlas = image.load_img(subcortex)
+subcortex_img = image.resample_to_img(subcortex_atlas, template, interpolation='nearest') #, target_affine=ref_img.affine, target_shape=ref_img.shape)
+nifti_masker = maskers.NiftiMasker(mask_img=masking.compute_epi_mask(template))
 
 # %% ======== NOTE: extract ROI labels of interest
 nested_list = labels[0::2].values.tolist()
 labels_list = list(chain(*nested_list))
 roi_list = labels_list[:16]
-
-# %% ======= NOTE: resample Atlas into 3mm image
-subcortex = join(main_dir,'MNIvolumetric', 'Schaefer2018_200Parcels_7Networks_order_Tian_Subcortex_S1_3T_MNI152NLin2009cAsym_2mm.nii.gz')
-subcortex_atlas = image.load_img(subcortex)
-subcortex_img = image.resample_to_img(subcortex_atlas, template, interpolation='nearest') #, target_affine=ref_img.affine, target_shape=ref_img.shape)
-nifti_masker = maskers.NiftiMasker(mask_img=masking.compute_epi_mask(template))
-# squeezed_image = np.squeeze(image)
-
 # %% ======= NOTE: create empty dataframe
 df_column = ['filename', 'sub', 'ses', 'run', 'runtype', 'trial', 'cuetype', 'stimintensity'] + roi_list
 roidf = pd.DataFrame(index=range(len(singletrials)), columns=df_column)
