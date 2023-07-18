@@ -93,6 +93,7 @@ for ind, singletrial in enumerate(sorted(singletrials)):
         roidf.at[ind, 'filename'] = basename
         roidf.at[ind, atlas_label] = np.mean(func_roi)
         roi_data[region_mask] = np.mean(func_roi)
+    roidf['sub']= roidf['filename'].str.extract(r'(sub-\d+)')
     filtered_df = roidf[roidf['sub'] == sub]
     # save results
     Path(join(save_dir, sub)).mkdir(parents=True, exist_ok=True)
