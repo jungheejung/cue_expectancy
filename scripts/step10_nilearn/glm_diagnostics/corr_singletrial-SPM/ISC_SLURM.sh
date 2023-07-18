@@ -5,7 +5,7 @@
 #SBATCH --mem-per-cpu=40G
 #SBATCH --time=01:00:00
 #SBATCH -o ./logisc/isc_%A_%a.o
-#SBATCH -e ./logisc/isc%A_%a.e
+#SBATCH -e ./logisc/isc_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
 
