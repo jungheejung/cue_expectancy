@@ -17,8 +17,8 @@ from nilearn import regions, maskers, masking, image, surface
 from nilearn.datasets import (load_mni152_template)
 from itertools import chain
 from pathlib import Path
-def extract_meta(fname):
-    basename = os.path.basename(fname)
+def extract_meta(basename):
+    # basename = os.path.basename(fname)
     sub_ind = int(re.search(r'sub-(\d+)', basename).group(1))
     ses_ind = int(re.search(r'ses-(\d+)', basename).group(1))
     run_ind = int(re.search(r'run-(\d+)', basename).group(1))
@@ -93,6 +93,14 @@ for ind, singletrial in enumerate(sorted(singletrials)):
         roidf.at[ind, 'filename'] = basename
         roidf.at[ind, atlas_label] = np.mean(func_roi)
         roi_data[region_mask] = np.mean(func_roi)
+    roidf['sub']= roidf['filename'].str.extract(r'(sub-\d+)')
+    roidf['ses'] = roidf['filename'].str.extract(r'(ses-\d+)')
+    roidf['run'] = roidf['filename'].str.extract(r'(run-\d+)')
+    roidf['runtype'] = roidf['filename'].str.extract(r'runtype-(\w+)_')
+    roidf['trial'] = roidf['filename'].str.extract(r'(trial-\d+)')
+    roidf['cuetype'] = roidf['filename'].str.extract(r'(cuetype-\w+)_')
+    roidf['stimintensity'] = roidf['filename'].str.extract(r'(stimintensity-\w+)')
+    roidf.to_csv(join(save_dir, f'roi-subcortex_task-{task}.tsv'))
     # save results
     Path(join(save_dir, sub)).mkdir(parents=True, exist_ok=True)
     np.save(join(save_dir, sub, os.path.splitext(basename)[0] + '_roi-subcortex_temp-mni3mm.npy'), roi_data)
