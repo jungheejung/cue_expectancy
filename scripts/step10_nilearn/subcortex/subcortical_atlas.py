@@ -93,17 +93,11 @@ for ind, singletrial in enumerate(sorted(singletrials)):
         roidf.at[ind, 'filename'] = basename
         roidf.at[ind, atlas_label] = np.mean(func_roi)
         roi_data[region_mask] = np.mean(func_roi)
-    roidf['sub']= roidf['filename'].str.extract(r'(sub-\d+)')
-    roidf['ses'] = roidf['filename'].str.extract(r'(ses-\d+)')
-    roidf['run'] = roidf['filename'].str.extract(r'(run-\d+)')
-    roidf['runtype'] = roidf['filename'].str.extract(r'runtype-(\w+)_')
-    roidf['trial'] = roidf['filename'].str.extract(r'(trial-\d+)')
-    roidf['cuetype'] = roidf['filename'].str.extract(r'(cuetype-\w+)_')
-    roidf['stimintensity'] = roidf['filename'].str.extract(r'(stimintensity-\w+)')
-    roidf.to_csv(join(save_dir, f'roi-subcortex_task-{task}.tsv'))
+    filtered_df = roidf[roidf['sub'] == sub]
     # save results
     Path(join(save_dir, sub)).mkdir(parents=True, exist_ok=True)
     np.save(join(save_dir, sub, os.path.splitext(basename)[0] + '_roi-subcortex_temp-mni3mm.npy'), roi_data)
+    filtered_df.to_csv(join(save_dir, sub, f'roi-subcortex_task-{task}_{sub}.tsv'))
     # ======= NOTE: save roi_data as .nii.gz
     # masked_avg = image.new_img_like(subcortex_img, roi_data)
     # masked_atlas = image.new_img_like(subcortex_img, nifti_masker.inverse_transform(roi_data))
