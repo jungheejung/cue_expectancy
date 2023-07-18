@@ -190,7 +190,7 @@ badruns_fname = join(main_dir,'scripts', 'step00_qc', 'qc03_fmriprep_visualize',
 N = len(sub_list)
 # y = np.tile(np.repeat(['high', 'low'], ntrials), N) # high cue, low cue
 
-mask_fname = join(canlabcore_dir, 'CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/gray_matter_mask.nii.gz')
+mask_fname = join(canlabcore_dir, 'CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/gray_matter_mask.nii')
 X_painstim, paindf = get_Xdata(singletrial_dir, sub_list = sub_list, runtype = 'pain', event='stimulus', mask_fname = mask_fname, badruns_fname = badruns_fname)
 X_cognitive, cogdf = get_Xdata(singletrial_dir, sub_list = sub_list, runtype = 'cognitive', event='stimulus', mask_fname = mask_fname, badruns_fname = badruns_fname)
 
@@ -328,7 +328,7 @@ accuracy_cognitive = []
 accuracy_pain = []
 # TODO: retain the subject ides and 
 for train_index, test_index in cv.split(X_pain, y):
-    
+    print(f"iteration: {train_index}, test: {test_index}")    
     # TODO: 
     train_index_cog = np.where(subjects_cog == np.unique(subjects[train_index]))[0]
     test_index_cog = np.where(subjects_cog == np.unique(subjects[test_index]))[0]
@@ -359,7 +359,7 @@ for train_index, test_index in cv.split(X_pain, y):
     grid_search = GridSearchCV(svm.LinearSVC(class_weight='balanced'), {'C': Cs}, cv=inner_cv)
     grid_search.fit(X_pain_train, y[train_index])
     C = grid_search.best_params_['C']#grid_search.cv_results_["params"]["alpha"]
-
+    print(f"best param {C}")
     # between tasks prediction __________________________________________
     # TODO: for inner_train_index, inner_test_index in cv.split(X_pain[train_index], y[train_index]):
     clf = svm.LinearSVC(class_weight = 'balanced', C = C)    #svm.SVC()

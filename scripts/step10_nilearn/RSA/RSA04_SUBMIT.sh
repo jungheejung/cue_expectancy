@@ -3,12 +3,13 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=12
 #SBATCH --mem-per-cpu=40G
-#SBATCH --time=06:00:00
+#SBATCH --time=01:00:00
 #SBATCH -o ./log_sl/sl_%A_%a.o
 #SBATCH -e ./log_sl/sl_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1-3
+#SBATCH --array=1-133%30
+#110%10
 #33%10
 
 conda activate rsa
