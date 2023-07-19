@@ -120,9 +120,28 @@ def restructure_task_cue_beh(beh_fname):
         'outcomerating':list(np.repeat(np.nan,len(beh['onset02_ratingexpect']))),
         'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-expectrating_trial-{i:03d}_cuetype-{cuetype_list[i]}.nii.gz" for i in range(len(beh['onset02_ratingexpect']))]
     })
-    if runtype == 'pain':
+    if runtype == 'pain' and 'ttl' in beh_fname:
         onset03_stim = pd.DataFrame({
             'onset' : list(beh['TTL2']),
+            'duration' : list(np.repeat(5,len(beh['onset03_stim']))),
+            'trial_type' : list(np.repeat('stimulus',len(beh['onset03_stim']))),
+            # 'full_trial_type' : list('event-stimulus_cue-' + beh.pmod_cuetype.str.split('_').str.get(0) + '_stim-' + beh.pmod_stimtype.str.split('_').str.get(0)),
+            'sub': list(np.repeat(sub,len(beh['onset03_stim']))),
+            'ses': list(np.repeat(ses,len(beh['onset03_stim']))),
+            'run': list(np.repeat(run,len(beh['onset03_stim']))),
+            'runtype': list(np.repeat(runtype,len(beh['onset03_stim']))),
+            'eventtype': list(np.repeat('stimulus',len(beh['onset03_stim']))),
+            'trialnum': list(range(len(beh['onset03_stim']))),
+            'cuetype':beh.pmod_cuetype,
+            'stimtype':beh.pmod_stimtype,
+            'expectrating':beh.pmod_expectangle,
+            'outcomerating':beh.pmod_outcomeangle,
+            'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-stimulus_trial-{i:03d}_cuetype-{cuetype_list[i]}_stimintensity-{stimtype_list[i]}.nii.gz" for i in range(len(beh['onset03_stim']))]
+        })
+
+    elif runtype == 'pain' and 'ttl' not in beh_fname :
+        onset03_stim = pd.DataFrame({
+            'onset' : list(beh['onset03_stim']),
             'duration' : list(np.repeat(5,len(beh['onset03_stim']))),
             'trial_type' : list(np.repeat('stimulus',len(beh['onset03_stim']))),
             # 'full_trial_type' : list('event-stimulus_cue-' + beh.pmod_cuetype.str.split('_').str.get(0) + '_stim-' + beh.pmod_stimtype.str.split('_').str.get(0)),
