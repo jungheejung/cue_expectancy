@@ -48,21 +48,21 @@ lmer_twofactor_cooksd_fix <- function(data, taskname,
       #   """
 
       library(lme4)
-      library(equatiomatic)
+      #library(equatiomatic)
 
       if (effects == "random_intercept") {
             model_string <- reformulate(c(sprintf("%s*%s", iv, stim_con1), sprintf("%s*%s", iv, stim_con2), sprintf("(1|%s)", subject_keyword)), response = dv) #nolint
             model_full <- lmer(as.formula(model_string), data = data)
             fixEffect <<- as.data.frame(fixef(model_full))
             randEffect <<- as.data.frame(ranef(model_full))
-            equatiomatic::extract_eq(model_full)
+            #equatiomatic::extract_eq(model_full)
             # model_string = paste0(dv, "~ ", iv,"*",stim_con1, "+", iv,"*",stim_con2, "+","(1|", subject, ")") #nolint
       } else if (effects == "random_slopes") {
             model_string <- reformulate(c(sprintf("%s*%s", iv, stim_con1), sprintf("%s*%s", iv, stim_con2), sprintf("(%s*%s+%s*%s|%s)", iv, stim_con1, iv, stim_con2, subject_keyword)), response = dv) # nolint
             model_full <- lmer(as.formula(model_string), data = data)
             fixEffect <<- as.data.frame(fixef(model_full))
             randEffect <<- as.data.frame(ranef(model_full))
-            equatiomatic::extract_eq(model_full)
+            #equatiomatic::extract_eq(model_full)
             # model_string = paste0(dv, "~ ", iv,"*",stim_con1, "+", iv,"*",stim_con2, "+ (", iv,"*",stim_con1, "+", iv,"*",stim_con2,"|", subject, ")") #nolint
       } else if (effects == "no_random") {
             model_string <- reformulate(c(sprintf("%s*%s", iv, stim_con1), sprintf("%s*%s", iv, stim_con2)), response = dv) #nolint
@@ -80,7 +80,7 @@ lmer_twofactor_cooksd_fix <- function(data, taskname,
       if (print_lmer_output == TRUE) {
             print(paste("model: ", str_to_title(dv_keyword), " ratings - ", taskname)) #nolint
             print(summary(model_full))
-            equatiomatic::extract_eq(model_full, wrap = TRUE, intercept = "beta")
+            #equatiomatic::extract_eq(model_full, wrap = TRUE, intercept = "beta")
       }
 
       cooksd <- cooks.distance(model_full)
