@@ -17,7 +17,7 @@ SINGLETRIALDIR=${MAINDIR}/analysis/fmri/nilearn/singletrial
 OUTPUTDIR=${MAINDIR}/analysis/fmri/nilearn/crossprediction
 CANLABCOREDIR="/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore"
 
-python ${PWD}/c01_sklearn_crossprediction.py \
+python ${PWD}/c01_crossprediction_snaglab.py \
 --slurm-id ${ID} \
 --maindir ${MAINDIR} \
 --singletrialdir ${SINGLETRIALDIR} \

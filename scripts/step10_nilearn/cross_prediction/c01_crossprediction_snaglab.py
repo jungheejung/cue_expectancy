@@ -176,6 +176,10 @@ print(args.slurm_id)
 # %% ver 2 # predefined split
 # singletrial_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/singletrial'
 # main_dir = os.getcwd()
+main_dir = '/Volumes/spacetop_projects_cue/'
+singletrial_dir = join(main_dir, 'analysis', 'fmri', 'nilearn', 'singletrial')
+output_dir = '/Users/h/Desktop'
+canlabcore_dir = '/Users/h/Documents/MATLAB/CanlabCore'
 #stack high from first participants, stack low from first participant
 # test partiicpants: "sub-0034", "sub-0036", "sub-0037", "sub-0061", "sub-0062"
 runtype = 'pain'
@@ -235,15 +239,22 @@ cdf = cdf[cdf['sub'].isin(pdf['sub'])]
 
 
 
-y = np.array(paindf_meta['cuetype'])
-y_cog = np.array(cogdf_meta['cuetype'])
+# y = np.array(paindf_meta['cuetype'])
+# y_cog = np.array(cogdf_meta['cuetype'])
 # only grab trials that match pdf and cdf index ( given that we dropped unbalanced trials)
 X_pain = X_painstim[pdf.index]
 X_cog = X_cognitive[cdf.index]
+y = paindf_meta.loc[pdf.index, 'cuetype']
+y_cog = cogdf_meta.loc[cdf.index, 'cuetype']
 print(f"after balancing: \n * pain run: {X_pain.shape} \n * cog run: {X_cog.shape}")
 # assert pdf['cuetype'].tolist() == cdf['cuetype'].tolist()
 # assert pdf['sub'].tolist() == cdf['sub'].tolist()
-
+# %%
+group_kfold = GroupKFold(n_splits=5)
+for i, (train_index, test_index) in enumerate(group_kfold.split(X_pain, y, subjects)):
+    print(f"Fold {i}:")
+    print(f"  Train: index={train_index}, group={subjects[train_index]}")
+    print(f"  Test:  index={test_index}, group={subjects[test_index]}")
 # %%
 subjects = pd.factorize(pdf['sub'])[0]#np.repeat(np.arange(N), ntrials*2)
 subjects_cog = pd.factorize(cdf['sub'])[0]
@@ -252,11 +263,14 @@ cv = PredefinedSplit(subjects)
 accuracy_cognitive = []
 accuracy_pain = []
 group_kfold = GroupKFold(n_splits=5)
+# y = pd.factorize(y)[0]
 group_kfold.get_n_splits(X_pain, y, subjects)
 for i, (train_index, test_index) in enumerate(group_kfold.split(X_pain, y, subjects)):
 # for train_index, test_index in cv.split(X_pain, y):
-    train_index_cog = np.where(subjects_cog == np.unique(subjects[train_index]))[0]
-    test_index_cog = np.where(subjects_cog == np.unique(subjects[test_index]))[0]
+    train_index_cog = np.where(np.isin(subjects_cog, np.unique(subjects[train_index])))[0]
+    test_index_cog = np.where(np.isin(subjects_cog, np.unique(subjects[test_index])))[0]
+    # train_index_cog = np.where(subjects_cog == np.unique(subjects[train_index]))[0]
+    # test_index_cog = np.where(subjects_cog == np.unique(subjects[test_index]))[0]
     # scaling __________________________________________
     scaler = StandardScaler() # TODO: standard scalar. .fit_transform(X_train) -> mean/sd of the transformed data
     X_pain_train = scaler.fit_transform(X_pain[train_index]) # z-score on the samples
@@ -276,7 +290,7 @@ for i, (train_index, test_index) in enumerate(group_kfold.split(X_pain, y, subje
     Cs = np.exp(exponents)
     inner_cv = PredefinedSplit(subjects[train_index])
     grid_search = GridSearchCV(svm.LinearSVC(class_weight='balanced'), {'C': Cs}, cv=inner_cv)
-    grid_search.fit(X_pain_train, y[train_index])
+    grid_search.fit(X_pain_train, y.iloc[train_index].values)
     C = grid_search.best_params_['C']
     #### snaglab meeting ####
     # TODO: find the model in grid_search and use it to predict X_cog_test
@@ -294,20 +308,20 @@ pred_pain = clf.predict(X_pain_test)
 acc_pain = accuracy_score(y[test_index], pred_pain)
 accuracy_pain.append(acc_pain)
 
-    ########################
-    # between tasks prediction __________________________________________
-    # TODO: for inner_train_index, inner_test_index in cv.split(X_pain[train_index], y[train_index]):
-    clf = svm.LinearSVC(class_weight = 'balanced', C = C)    #svm.SVC()
-    clf.fit(X_pain_train, y_cog[train_index])
-    pred_cog = clf.predict(X_cog_test) 
-    # NOTE: DO  NOT fit a new model nor fit it, 
-    acc_cog = accuracy_score(y_cog[test_index_cog], pred_cog)
-    accuracy_cognitive.append(acc_cog)
+    # ########################
+    # # between tasks prediction __________________________________________
+    # # TODO: for inner_train_index, inner_test_index in cv.split(X_pain[train_index], y[train_index]):
+    # clf = svm.LinearSVC(class_weight = 'balanced', C = C)    #svm.SVC()
+    # clf.fit(X_pain_train, y_cog[train_index])
+    # pred_cog = clf.predict(X_cog_test) 
+    # # NOTE: DO  NOT fit a new model nor fit it, 
+    # acc_cog = accuracy_score(y_cog[test_index_cog], pred_cog)
+    # accuracy_cognitive.append(acc_cog)
 
-    # within tasks prediction __________________________________________
-    y_pain = clf.predict(X_pain_test)
-    acc_pain = accuracy_score(y[test_index], y_pain)
-    accuracy_pain.append(acc_pain)
+    # # within tasks prediction __________________________________________
+    # y_pain = clf.predict(X_pain_test)
+    # acc_pain = accuracy_score(y[test_index], y_pain)
+    # accuracy_pain.append(acc_pain)
 print(f"cognitive: {accuracy_cognitive}, pain: {accuracy_pain}")
 
 withintask = 'pain'
@@ -317,3 +331,5 @@ save_cross_task = join(output_dir, 'accuracy-{crosstask}_train-{withintask}.npy'
 np.save(np.array(accuracy_pain), save_within_task)
 np.save(np.array(accuracy_cognitive), save_within_task)
 # data = [1, 2, 2, 3, 3, 3, 4, 4, 5]
+
+# %%
