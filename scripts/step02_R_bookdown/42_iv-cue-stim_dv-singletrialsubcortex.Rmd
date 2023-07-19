@@ -143,11 +143,29 @@ two_factor_lineplot <-
 ```
 
 ##TODO: outline
+```{r}
+taskname <- 'pain'
+# load dataframe
+datadir = "/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv08_parcel/subcortex_Tian2020"
+filename <- paste("roi-subcortex_task-", taskname, "_*.tsv", sep = "")
+common_path <- Sys.glob(file.path(datadir, "sub-*", filename))
+df <- do.call("rbind", lapply(common_path, FUN = function(files) {
+    as.data.frame(read.csv(files))
+  }))
+
+```
+```{r}
+df$sub <- sub("^(sub-\\d+).*", "\\1", df$filename)
+df$ses <- sub("^.*(ses-\\d+).*", "\\1", df$filename)
+df$run <- sub("^.*(run-\\d+).*", "\\1", df$filename)
+df$runtype <- sub("^.*runtype-(\\w+)_.*", "\\1", df$filename)
+df$trial <- sub("^.*(trial-\\d+).*", "\\1", df$filename)
+df$cuetype <- sub("^.*(cuetype-\\w+)_.*", "\\1", df$filename)
+df$stimintensity <- sub("^.*(stimintensity-\\w+).*", "\\1", df$filename)
+
+```
 
 ```{r}
-# load dataframe
-df_name = "/Users/h/Desktop/roi-subcortex_task-pain.tsv"
-df = read.csv(df_name)
 
 # parameters
 main_dir <- dirname(dirname(getwd()))
@@ -175,7 +193,12 @@ pvc <- simple_contrasts_singletrial(df)
 
 ## LMER
 ```{r}
-# paramters
+# ----------------------------------------------------------------------
+#                               parameters
+# ----------------------------------------------------------------------
+
+for (dv in c("HIP.rh", "AMY.rh", "pTHA.rh", "aTHA.rh", "NAc.rh", "GP.rh","PUT.rh","CAU.rh",
+             "HIP.lh","AMY.lh","pTHA.lh","aTHA.lh","NAc.lh","GP.lh","PUT.lh","CAU.lh"  ))
 taskname = "pain"
 ggtitle <- paste(taskname, " - NPS (degree)")
 title <- paste(taskname, " - actual")
@@ -185,7 +208,7 @@ h <- 6
 stim_con1 <- "STIM_linear"
 stim_con2 <- "STIM_quadratic"
 iv1 <- "CUE_high_gt_low"
-dv <- "HIP.rh"
+# dv <- "HIP.rh"
 dv_keyword = paste0("subcortex-",dv)
 
 data <- pvc
@@ -199,7 +222,10 @@ model_savefname <- file.path(
   )
 )
 
-# model
+# ----------------------------------------------------------------------
+#                               lmer model
+# ----------------------------------------------------------------------
+
 cooksd <- lmer_twofactor_cooksd_fix(
   data,  taskname,  iv1,  stim_con1,  stim_con2,  dv,
   subject,  dv_keyword,  model_savefname,
@@ -210,15 +236,16 @@ influential <- as.numeric(names(cooksd)[(cooksd > (4 / as.numeric(length(unique(
 )))))])
 
 data_screen <- data #data[-influential,]
-```
-## RAINCLOUDPLOTS
-```{r}
+
+# ----------------------------------------------------------------------
+#                     summary statistics for plots
+# ----------------------------------------------------------------------
 
 model_iv1 <- "stim_ordered"
 model_iv2 <- "cue_ordered"
 
 
-#  [ PLOT ] calculate mean and se  _________________________
+# ======= NOTE: calculate mean and se ----------------------------------
 NPSstimcue_subjectwise <- meanSummary(data_screen,
                                       c(subject, model_iv1, model_iv2), dv)
 NPSstimcue_groupwise <- summarySEwithin(
@@ -241,7 +268,7 @@ title <- paste(taskname, " - ", dv)
 xlab <- ""
 ylab <- "ROI average activation (A.U)"
 ylim <- c(-10, 60)
-# dv_keyword <- "NPSpos"
+
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
@@ -254,6 +281,11 @@ plot_savefname <- file.path(
     sep = ""
   )
 )
+
+# ----------------------------------------------------------------------
+#                            raincloudplots
+# ----------------------------------------------------------------------
+
 g <- plot_halfrainclouds_twofactor(
   NPSstimcue_subjectwise,
   NPSstimcue_groupwise,
