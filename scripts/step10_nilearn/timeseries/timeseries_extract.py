@@ -42,8 +42,8 @@ def extract_meta(basename):
     sub_ind = int(re.search(r'sub-(\d+)', basename).group(1))
     ses_ind = int(re.search(r'ses-(\d+)', basename).group(1))
     run_ind = int(re.search(r'run-(\d+)', basename).group(1))
-    runtype = re.search(r'runtype-(.*?)_', basename).group(1)
-    return sub_ind, ses_ind, run_ind, runtype
+    # runtype = re.search(r'runtype-(.*?)_', basename).group(1)
+    return sub_ind, ses_ind, run_ind
 
 def extract_timecourse_condition_per_beh(behdf, column_name,time_series, prior_event_sec, after_event_sec):
     """extract_timecourse_condition
@@ -106,53 +106,56 @@ template = load_mni152_template(resolution=3)
 
 masker = maskers.NiftiLabelsMasker(
     labels_img=subcortex,
-    standardize="zscore_sample",
-    standardize_confounds="zscore_sample",
+    standardize=False,#"zscore_sample",
+    standardize_confounds=True,
     memory="nilearn_cache",
-    verbose=5,
+    verbose=5
 )
 
 # ----------------------------------------------------------------------
 #                              timeseries extraction
 # ----------------------------------------------------------------------
 for roi_index in np.arange(17):
+    beh_fname = []
     stacked_dfs = []
-    for fmri_fname in fmriprep_flist:
+    for fmri_fname in sorted(fmriprep_flist):
+        
         # NOTE: load behavioral file, nifti image, fmriprep derived confound file
-        sub_ind, ses_ind, run_ind, runtype = extract_meta(os.path.basename(fmri_fname))
+        sub_ind, ses_ind, run_ind = extract_meta(os.path.basename(fmri_fname))
         sub = f"sub-{sub_ind:04d}"; ses = f"ses-{ses_ind:02d}"; run = f"run-{run_ind:02d}"; 
-        confounds = join(fmriprep_dir, sub, ses, 'func', f"{sub}_{ses}_task-social_acq-mb8_{run_ind}_desc-confounds_timeseries.tsv") #'sub-0002_ses-01_task-social_acq-mb8_run-1_desc-confounds_timeseries.tsv'
+        confounds = join(fmriprep_dir, sub, ses, 'func', f"{sub}_{ses}_task-social_acq-mb8_run-{run_ind}_desc-confounds_timeseries.tsv") #'sub-0002_ses-01_task-social_acq-mb8_run-1_desc-confounds_timeseries.tsv'
         # fmri_fname = '/Users/h/Documents/projects_local/sandbox/fmriprep_bold/sub-0002_ses-01_task-social_acq-mb8_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'
-        beh_fname = join(beh_dir, sub, ses, f'{sub}_{ses}_task-cue_{run}_runtype-{runtype}_events.tsv') #'/Users/h/Documents/projects_local/sandbox/fmriprep_bold/sub-0002_ses-01_task-cue_run-01_runtype-pain_events.tsv'
-        behdf = pd.read_csv(beh_fname, sep='\t')
-        behdf['trial'] = behdf.index
-        confoundsdf = pd.read_csv(confounds, sep='\t')
-        atlas_label = labels.iloc[(roi_index+1)*2-2,0]
-        confounds_subset = confoundsdf[['csf', 'trans_x', 'trans_x_derivative1', 'trans_x_power2', 'trans_x_derivative1_power2',
-                                        'trans_y', 'trans_y_derivative1', 'trans_y_derivative1_power2', 'trans_y_power2',
-                                        'trans_z', 'trans_z_derivative1', 'trans_z_derivative1_power2', 'trans_z_power2', 
-                                        'rot_x', 'rot_x_derivative1', 'rot_x_derivative1_power2', 'rot_x_power2', 
-                                        'rot_y', 'rot_y_derivative1', 'rot_y_derivative1_power2', 'rot_y_power2', 
-                                        'rot_z', 'rot_z_derivative1', 'rot_z_derivative1_power2', 'rot_z_power2']]
-        column_means = confounds_subset.mean()
-        for column in confounds_subset.columns:
-            confounds_subset[column].fillna(column_means[column], inplace=True)
+        beh_fname = glob.glob(join(beh_dir, sub, ses, f'{sub}_{ses}_task-cue_{run}_runtype-{runtype}_events.tsv')) #'/Users/h/Documents/projects_local/sandbox/fmriprep_bold/sub-0002_ses-01_task-cue_run-01_runtype-pain_events.tsv'
+        if beh_fname != []:
+            behdf = pd.read_csv(beh_fname[0], sep='\t')
+            behdf['trial'] = behdf.index
+            confoundsdf = pd.read_csv(confounds, sep='\t')
+            atlas_label = labels.iloc[(roi_index+1)*2-2,0]
+            confounds_subset = confoundsdf[['csf', 'trans_x', 'trans_x_derivative1', 'trans_x_power2', 'trans_x_derivative1_power2',
+                                            'trans_y', 'trans_y_derivative1', 'trans_y_derivative1_power2', 'trans_y_power2',
+                                            'trans_z', 'trans_z_derivative1', 'trans_z_derivative1_power2', 'trans_z_power2', 
+                                            'rot_x', 'rot_x_derivative1', 'rot_x_derivative1_power2', 'rot_x_power2', 
+                                            'rot_y', 'rot_y_derivative1', 'rot_y_derivative1_power2', 'rot_y_power2', 
+                                            'rot_z', 'rot_z_derivative1', 'rot_z_derivative1_power2', 'rot_z_power2']]
+            column_means = confounds_subset.mean()
+            for column in confounds_subset.columns:
+                confounds_subset[column].fillna(column_means[column], inplace=True)
 
 
-        time_series = masker.fit_transform(
-            fmri_fname, confounds=confounds_subset)
+            time_series = masker.fit_transform(
+                fmri_fname, confounds=confounds_subset)
 
-        output = extract_timecourse_condition_per_beh(behdf,column_name='onset03_stim', time_series=time_series.T[roi_index], prior_event_sec=-3, after_event_sec=10)
-        metadf = pd.concat([behdf, pd.DataFrame(output)], axis=1)
-        sub_ind, ses_ind, run_ind, runtype = extract_meta(os.path.basename(beh_fname))
-        bidsdf = pd.DataFrame({'sub':[f"sub-{sub_ind:04d}"], 
-                            'ses':[f"ses-{ses_ind:02d}"],
-                            'run':[f"run-{run_ind:02d}"],
-                            'runtype':[runtype]
-                            })
-        bidsmerge = pd.concat([bidsdf] * len(behdf), ignore_index=True)
-        nifti_extraction = pd.concat([bidsmerge, behdf, pd.DataFrame(output)], axis=1)
-        stacked_dfs.append(nifti_extraction)
+            output = extract_timecourse_condition_per_beh(behdf,column_name='onset03_stim', time_series=time_series.T[roi_index], prior_event_sec=-3, after_event_sec=10)
+            metadf = pd.concat([behdf, pd.DataFrame(output)], axis=1)
+            sub_ind, ses_ind, run_ind = extract_meta(os.path.basename(beh_fname))
+            bidsdf = pd.DataFrame({'sub':[f"sub-{sub_ind:04d}"], 
+                                'ses':[f"ses-{ses_ind:02d}"],
+                                'run':[f"run-{run_ind:02d}"],
+                                'runtype':[runtype]
+                                })
+            bidsmerge = pd.concat([bidsdf] * len(behdf), ignore_index=True)
+            nifti_extraction = pd.concat([bidsmerge, behdf, pd.DataFrame(output)], axis=1)
+            stacked_dfs.append(nifti_extraction)
 
     concatenated_df = pd.concat(stacked_dfs, ignore_index=True)
     concatenated_df.to_csv(join(save_dir, f"{sub}_singletrialextract-{atlas_label}.tsv"), sep='\t')
