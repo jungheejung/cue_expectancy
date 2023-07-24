@@ -111,7 +111,7 @@ masker = maskers.NiftiLabelsMasker(
     memory="nilearn_cache",
     verbose=5
 )
-
+runtype='*'
 # ----------------------------------------------------------------------
 #                              timeseries extraction
 # ----------------------------------------------------------------------
@@ -127,7 +127,8 @@ for roi_index in np.arange(17):
         # fmri_fname = '/Users/h/Documents/projects_local/sandbox/fmriprep_bold/sub-0002_ses-01_task-social_acq-mb8_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'
         beh_fname = glob.glob(join(beh_dir, sub, ses, f'{sub}_{ses}_task-cue_{run}_runtype-{runtype}_events.tsv')) #'/Users/h/Documents/projects_local/sandbox/fmriprep_bold/sub-0002_ses-01_task-cue_run-01_runtype-pain_events.tsv'
         if beh_fname != []:
-            behdf = pd.read_csv(beh_fname[0], sep='\t')
+            beh_fname = beh_fname[0]
+            behdf = pd.read_csv(beh_fname, sep='\t')
             behdf['trial'] = behdf.index
             confoundsdf = pd.read_csv(confounds, sep='\t')
             atlas_label = labels.iloc[(roi_index+1)*2-2,0]
