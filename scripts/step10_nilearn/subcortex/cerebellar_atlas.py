@@ -43,6 +43,12 @@ task = args.task
 cerebellum_dir = args.cerebellumdir 
 refimg_fname = args.refimg 
 
+# %%################# local dir for testing
+main_dir = '/Volumes/spacetop_projects_cue'
+task = 'pain'
+cerebellum_dir = '/Users/h/Dropbox (Dartmouth College)/projects_dropbox/cerebellar_atlases'
+refimg_fname = join(main_dir, 'analysis/fmri/nilearn/singletrial/sub-0061/sub-0061_ses-04_run-06_runtype-pain_event-stimulus_trial-011_cuetype-low_stimintensity-low.nii.gz')
+##########################################
 # %%
 
 singletrial_dir = join(main_dir, 'analysis', 'fmri', 'nilearn','deriv05_singletrialnpy')
@@ -60,17 +66,6 @@ print(singletrial_dir)
 #     npystack.append(nparr)
 
 ref_img = image.load_img(refimg_fname)
-# canlab_dir = '/Users/h/Documents/MATLAB/CanlabCore'
-# mask = image.load_img(join(canlab_dir, 'CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask_canlab.nii'))
-# get region index
-# atlas_index = 7
-# atlas_label = labels.loc[atlas_index, 'name']
-# region_mask = (cerebellum_atlas.get_fdata() == atlas_index)
-# masked_roi = image.new_img_like(cerebellum_atlas, region_mask)
-# masker = maskers.NiftiMasker(mask_img=masked_roi)
-# masked_data = masker.fit_transform(ref_img)
-# masked_img = masker.inverse_transform(masked_data)
-# plotting.plot_stat_map(masked_img, title=f"{atlas_label}")
 # %% ======= NOTE: resample Atlas into 3mm image
 cerebellum = join(cerebellum_dir,'King_2019', 'atl-MDTB10_space-MNI_dseg.nii')
 cerebellum_atlas = image.load_img(cerebellum)
@@ -114,6 +109,9 @@ for ind, singletrial in enumerate(sorted(singletrials)):
     plot.savefig(f'/scratch/f0042x1/spacetop/roi{sub}.png')
     roidf['sub']= roidf['filename'].str.extract(r'(sub-\d+)')
     filtered_df = roidf[roidf['sub'] == sub]
+# plot to see roi
+    masked_roi = image.new_img_like(template, region_mask)
+    plot = plotting.plot_glass_brain(masked_roi, title=f"{atlas_label}")
 # save results
     Path(join(save_dir, sub)).mkdir(parents=True, exist_ok=True)
     np.save(join(save_dir, sub, os.path.splitext(basename)[0] + '_roi-cerebellum_temp-mni3mm.npy'), roi_data)
