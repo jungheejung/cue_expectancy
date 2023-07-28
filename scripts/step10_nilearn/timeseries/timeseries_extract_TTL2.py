@@ -9,6 +9,7 @@ import numpy as np
 from nilearn import maskers, masking, image
 from nilearn.datasets import (load_mni152_template)
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 def extract_timecourse_condition(behdf, column_name, level_name, time_series, prior_event_sec, after_event_sec):
     """extract_timecourse_condition
@@ -95,7 +96,7 @@ slurm_id = args.slurm_id
 
 fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop_data/derivatives/fmriprep/results/fmriprep'
 beh_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/fmri/fmri01_onset/onset02_SPM'
-save_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv08_parcel/subcortex_Tian2020_timeseries'
+save_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv08_parcel/subcortex_Tian2020_timeseries_TTL2'
 subcortex_dir = '/dartfs-hpc/rc/lab/C/CANlab/modules/other_repos/subcortex/Group-Parcellation/3T/Cortex-Subcortex'
 sub_folders = next(os.walk(fmriprep_dir))[1]
 sub_list = [i for i in sorted(sub_folders) if i.startswith('sub-')]
@@ -153,13 +154,18 @@ for roi_index in np.arange(17):
                 fmri_fname, confounds=confounds_subset)
             if 'pain' in beh_fname:
                 new_filename = beh_fname[0].replace("_events.tsv", "_events_ttl.tsv")
-                beh_fname = glob.glob(join(beh_dir, sub, ses, new_filename ))
-                behdf = pd.read_csv(beh_fname, sep='\t')
-                output = extract_timecourse_condition_per_beh(behdf,column_name='TTL2', time_series=time_series.T[roi_index], prior_event_sec=-3, after_event_sec=10)
+                if os.path.exist(new_filename):
+                    beh_fname = glob.glob(join(beh_dir, sub, ses, new_filename ))
+                    behdf = pd.read_csv(beh_fname[0], sep='\t')
+                    output = extract_timecourse_condition_per_beh(behdf,column_name='TTL2', time_series=time_series.T[roi_index], prior_event_sec=-3, after_event_sec=10)
+                else:
+                    print("non-ttl pain runs")
+                    behdf = pd.read_csv(beh_fname[0], sep='\t')
+                    output = extract_timecourse_condition_per_beh(behdf,column_name='onset03_stim', time_series=time_series.T[roi_index], prior_event_sec=-3, after_event_sec=10)
             else:
                 output = extract_timecourse_condition_per_beh(behdf,column_name='onset03_stim', time_series=time_series.T[roi_index], prior_event_sec=-3, after_event_sec=10)
             metadf = pd.concat([behdf, pd.DataFrame(output)], axis=1)
-            sub_ind, ses_ind, run_ind, runtype = extract_meta_runtype(os.path.basename(beh_fname))
+            sub_ind, ses_ind, run_ind, runtype = extract_meta_runtype(os.path.basename(beh_fname[0]))
             bidsdf = pd.DataFrame({'sub':[f"sub-{sub_ind:04d}"], 
                                 'ses':[f"ses-{ses_ind:02d}"],
                                 'run':[f"run-{run_ind:02d}"],
@@ -168,8 +174,8 @@ for roi_index in np.arange(17):
             bidsmerge = pd.concat([bidsdf] * len(behdf), ignore_index=True)
             nifti_extraction = pd.concat([bidsmerge, behdf, pd.DataFrame(output)], axis=1)
             stacked_dfs.append(nifti_extraction)
-
+    Path(save_dir).mkdir(parents=True, exist_ok=True)
     concatenated_df = pd.concat(stacked_dfs, ignore_index=True)
-    concatenated_df.to_csv(join(save_dir, f"{sub}_singletrialextract-{atlas_label}.tsv"), sep='\t')
+    concatenated_df.to_csv(join(save_dir, sub, f"{sub}_singletrialextract-{atlas_label}.tsv"), sep='\t')
     # Sort the concatenated DataFrame based on the desired column(s)
     # sorted_df = concatenated_df.sort_values(by='column_name_to_sort')
