@@ -45,6 +45,13 @@ def extract_meta(basename):
     # runtype = re.search(r'runtype-(.*?)_', basename).group(1)
     return sub_ind, ses_ind, run_ind
 
+def extract_meta_runtype(basename):
+    sub_ind = int(re.search(r'sub-(\d+)', basename).group(1))
+    ses_ind = int(re.search(r'ses-(\d+)', basename).group(1))
+    run_ind = int(re.search(r'run-(\d+)', basename).group(1))
+    runtype = re.search(r'runtype-(.*?)_', basename).group(1)
+    return sub_ind, ses_ind, run_ind, runtype
+
 def extract_timecourse_condition_per_beh(behdf, column_name,time_series, prior_event_sec, after_event_sec):
     """extract_timecourse_condition
 
@@ -125,7 +132,7 @@ for roi_index in np.arange(17):
         sub = f"sub-{sub_ind:04d}"; ses = f"ses-{ses_ind:02d}"; run = f"run-{run_ind:02d}"; 
         confounds = join(fmriprep_dir, sub, ses, 'func', f"{sub}_{ses}_task-social_acq-mb8_run-{run_ind}_desc-confounds_timeseries.tsv") #'sub-0002_ses-01_task-social_acq-mb8_run-1_desc-confounds_timeseries.tsv'
         # fmri_fname = '/Users/h/Documents/projects_local/sandbox/fmriprep_bold/sub-0002_ses-01_task-social_acq-mb8_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'
-        beh_fname = glob.glob(join(beh_dir, sub, ses, f'{sub}_{ses}_task-cue_{run}_runtype-{runtype}_events.tsv')) #'/Users/h/Documents/projects_local/sandbox/fmriprep_bold/sub-0002_ses-01_task-cue_run-01_runtype-pain_events.tsv'
+        beh_fname = glob.glob(join(beh_dir, sub, ses, f'{sub}_{ses}_task-cue_{run}_runtype-*_events.tsv')) #'/Users/h/Documents/projects_local/sandbox/fmriprep_bold/sub-0002_ses-01_task-cue_run-01_runtype-pain_events.tsv'
         if beh_fname != []:
             beh_fname = beh_fname[0]
             behdf = pd.read_csv(beh_fname, sep='\t')
@@ -148,7 +155,7 @@ for roi_index in np.arange(17):
 
             output = extract_timecourse_condition_per_beh(behdf,column_name='onset03_stim', time_series=time_series.T[roi_index], prior_event_sec=-3, after_event_sec=10)
             metadf = pd.concat([behdf, pd.DataFrame(output)], axis=1)
-            sub_ind, ses_ind, run_ind = extract_meta(os.path.basename(beh_fname))
+            sub_ind, ses_ind, run_ind, runtype = extract_meta_runtype(os.path.basename(beh_fname))
             bidsdf = pd.DataFrame({'sub':[f"sub-{sub_ind:04d}"], 
                                 'ses':[f"ses-{ses_ind:02d}"],
                                 'run':[f"run-{run_ind:02d}"],
