@@ -9,7 +9,7 @@ import numpy as np
 from nilearn import maskers, masking, image
 from nilearn.datasets import (load_mni152_template)
 import matplotlib.pyplot as plt
-
+from pathlib import Path
 def extract_timecourse_condition(behdf, column_name, level_name, time_series, prior_event_sec, after_event_sec):
     """extract_timecourse_condition
 
@@ -157,8 +157,8 @@ for roi_index in np.arange(17):
             bidsmerge = pd.concat([bidsdf] * len(behdf), ignore_index=True)
             nifti_extraction = pd.concat([bidsmerge, behdf, pd.DataFrame(output)], axis=1)
             stacked_dfs.append(nifti_extraction)
-
+    Path(join(save_dir, sub)).mkdir(parents=True, exist_ok=True )
     concatenated_df = pd.concat(stacked_dfs, ignore_index=True)
-    concatenated_df.to_csv(join(save_dir, f"{sub}_singletrialextract-{atlas_label}.tsv"), sep='\t')
+    concatenated_df.to_csv(join(save_dir, sub, f"{sub}_singletrialextract-{atlas_label}.tsv"), sep='\t')
     # Sort the concatenated DataFrame based on the desired column(s)
     # sorted_df = concatenated_df.sort_values(by='column_name_to_sort')
