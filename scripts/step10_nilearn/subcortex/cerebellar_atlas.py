@@ -109,9 +109,9 @@ for ind, singletrial in enumerate(sorted(singletrials)):
         roidf.at[ind, 'filename'] = basename
         roidf.at[ind, atlas_label] = np.mean(func_roi)
         roi_data[region_mask] = np.mean(func_roi)
-    masked_roi = image.new_img_like(cerebellum_atlas, func_roi)
+    masked_roi = image.new_img_like(template, region_mask)
     plot = plotting.plot_glass_brain(masked_roi, title=f"{atlas_label}")
-    plot.savefig('/scratch/f0042x1/spacetop/roi.png')
+    plot.savefig(f'/scratch/f0042x1/spacetop/roi{sub}.png')
     roidf['sub']= roidf['filename'].str.extract(r'(sub-\d+)')
     filtered_df = roidf[roidf['sub'] == sub]
 # save results
