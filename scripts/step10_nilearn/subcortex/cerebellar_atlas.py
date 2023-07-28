@@ -48,7 +48,7 @@ refimg_fname = args.refimg
 singletrial_dir = join(main_dir, 'analysis', 'fmri', 'nilearn','deriv05_singletrialnpy')
 save_dir = join(main_dir, 'analysis', 'fmri', 'nilearn', 'deriv08_parcel', 'cerebellum_King2019')
 singletrials = sorted(glob.glob(join(singletrial_dir, '**', f'*{task}*event-stimulus*.npy'), recursive=True))
-
+print(singletrial_dir)
 
 # high_cue = '/Users/h/Documents/projects_local/sandbox/cue/sub-avg_ses-avg_run-avg_task-pain_event-stimulus_cuetype-high.nii.gz'
 # flist = glob.glob(join(npy_dir, f"*event-stimulus*cuetype-high.npy"))
@@ -74,7 +74,7 @@ ref_img = image.load_img(refimg_fname)
 # %% ======= NOTE: resample Atlas into 3mm image
 cerebellum = join(cerebellum_dir,'King_2019', 'atl-MDTB10_space-MNI_dseg.nii')
 cerebellum_atlas = image.load_img(cerebellum)
-cerebellum_label = join(main_dir, 'King_2019', 'atl-MDTB10.tsv')
+cerebellum_label = join(cerebellum_dir, 'King_2019', 'atl-MDTB10.tsv')
 labels = pd.read_csv(cerebellum_label, sep='\t')
 
 template = load_mni152_template(resolution=3)
@@ -103,12 +103,15 @@ for ind, singletrial in enumerate(sorted(singletrials)):
     for atlas_index in np.arange(len(labels)): 
         atlas_label = labels.loc[atlas_index,'name']
 # # a) create mask based on atlas index and b) extract functional activation values from mask
-        region_mask = (cerebellum_img.get_fdata() == atlas_index)
+        region_mask = (cerebellum_img.get_fdata() == atlas_index + 1)
         func_roi = masked_func_img.get_fdata()[region_mask]
 # insert extracted roi values into pandas
         roidf.at[ind, 'filename'] = basename
         roidf.at[ind, atlas_label] = np.mean(func_roi)
         roi_data[region_mask] = np.mean(func_roi)
+    masked_roi = image.new_img_like(cerebellum_atlas, func_roi)
+    plot = plotting.plot_glass_brain(masked_roi, title=f"{atlas_label}")
+    plot.savefig('/scratch/f0042x1/spacetop/roi.png')
     roidf['sub']= roidf['filename'].str.extract(r'(sub-\d+)')
     filtered_df = roidf[roidf['sub'] == sub]
 # save results
