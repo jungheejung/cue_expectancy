@@ -181,14 +181,14 @@ function s01_glm_6cond(sub, input_dir, main_dir, fmriprep_dir)
                 disp("-- there are motion outliers")
                 motion_outlier = m(:, m.Properties.VariableNames(hasMatch));
                 spike = sum(motion_outlier{:, :}, 2);
-                if size(motion_outlier,2) <= 20
+                if size(motion_outlier,2) <= 800
                     disp("-- motion outliers are less than 20 columns")
                     m_cov = [m_subset, dummy, motion_outlier];
                     m_clean = standardizeMissing(m_cov, 'n/a');
                     for i = 1:size(m_clean,2)
                         m_clean.(i)(isnan(m_clean.(i))) = nanmean(m_clean.(i));
                     end
-                elseif size(motion_outlier,2) > 20
+                elseif size(motion_outlier,2) > 800
                     disp(strcat('-- ABORT [!] too many spikes: ', size(motion_outlier,2)));
                     continue 
                 end
