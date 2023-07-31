@@ -1,4 +1,4 @@
-function s01_glm_6cond(sub, input_dir, main_dir, fmriprep_dir)
+function s01_glm_6cond(sub, input_dir, main_dir, fmriprep_dir, badruns_json)
 
     %  if spike number is more than 20? flag and terminate. also save that in a text file. 
     %-----------------------------------------------------------------------
@@ -72,14 +72,14 @@ function s01_glm_6cond(sub, input_dir, main_dir, fmriprep_dir)
     disp(nii_num_colomn)
 
     % load badruns from json _________________________________________________________________
-    bad_runs_table = readBadRunsFromJSON(badruns_file);
+    bad_runs_table = readBadRunsFromJSON(badruns_json);
     json_col_names = bad_runs_table.Properties.VariableNames;
     json_num_colomn = json_col_names(endsWith(json_col_names, '_num'));
     disp(bad_runs_table);
     intersectRuns = intersect(bad_runs_table(:,json_num_colomn),sortedT(:, nii_num_colomn) );
     %intersection of nifti and onset files
     % A = intersect(sortedT(:, nii_num_colomn), sortedonsetT(:, onset_num_colomn));
-    A = intersect(intersectRuns(:nii_num_column),sortedonsetT(:, onset_num_colomn));
+    A = intersect(intersectRuns(:, nii_num_column),sortedonsetT(:, onset_num_colomn));
     
 
     output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_6cond', ...
