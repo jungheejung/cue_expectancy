@@ -151,7 +151,9 @@ def get_Xdata(singletrial_dir, sub_list, runtype, event, mask_fname, badruns_fna
     #                    title="display_mode='z', cut_coords=5")
     ############################################################################################
 
-# %%0. argparse ________________________________________________________________________________
+# ----------------------------------------------------------------------
+#                               argparse
+# ----------------------------------------------------------------------
 parser = argparse.ArgumentParser()
 parser.add_argument("--slurm-id", type=int,
                     help="specify slurm array id")
@@ -171,29 +173,23 @@ singletrial_dir = args.singletrialdir
 output_dir = args.outputdir 
 canlabcore_dir = args.canlabcoredir
 print(args.slurm_id)
-# %%0. argparse ________________________________________________________________________________
 
-# %% ver 2 # predefined split
-# singletrial_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/singletrial'
-# main_dir = os.getcwd()
+# ----------------------------------------------------------------------
+#                               paramters
+# ----------------------------------------------------------------------
 main_dir = '/Volumes/spacetop_projects_cue/'
 singletrial_dir = join(main_dir, 'analysis', 'fmri', 'nilearn', 'singletrial')
 output_dir = '/Users/h/Desktop'
 canlabcore_dir = '/Users/h/Documents/MATLAB/CanlabCore'
-#stack high from first participants, stack low from first participant
-# test partiicpants: "sub-0034", "sub-0036", "sub-0037", "sub-0061", "sub-0062"
 runtype = 'pain'
 event = 'stimulus'
-# ntrials = 36 # average maps
-
-sub_list = [] #list(np.arange(1,134))
+sub_list = [] 
 badruns_fname = join(main_dir,'scripts', 'step00_qc', 'qc03_fmriprep_visualize', 'bad_runs.json' )
 
-
-# %%
+# ----------------------------------------------------------------------
+#                               fetch data
+# ----------------------------------------------------------------------
 N = len(sub_list)
-# y = np.tile(np.repeat(['high', 'low'], ntrials), N) # high cue, low cue
-
 mask_fname = join(canlabcore_dir, 'CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/gray_matter_mask.nii.gz')
 X_painstim, paindf = get_Xdata(singletrial_dir, sub_list = sub_list, runtype = 'pain', event='stimulus', mask_fname = mask_fname, badruns_fname = badruns_fname)
 X_cognitive, cogdf = get_Xdata(singletrial_dir, sub_list = sub_list, runtype = 'cognitive', event='stimulus', mask_fname = mask_fname, badruns_fname = badruns_fname)
@@ -209,9 +205,10 @@ keywords_cogh = cogdf['filename'].str.extract(pattern)
 keywords_cogh.columns = ['sub', 'ses', 'run', 'runtype', 'event', 'trial', 'cuetype', 'stimintensity']
 cogdf_meta = keywords_cogh.apply(lambda x: x.str.lstrip('0'))
 
-# %% 
-###########################################################################################################################
-# save data 
+# ----------------------------------------------------------------------
+#                               save data
+# ----------------------------------------------------------------------
+
 with h5py.File(join(output_dir, 'task-pain_event-stimulus.h5'), 'w') as f:
     f.create_dataset('data', data=X_painstim)
 paindf_meta.to_csv(join(output_dir, 'task-pain_event-stimulus.csv'))
@@ -230,61 +227,50 @@ with h5py.File(join(output_dir, 'task-cognitive_event-stimulus.h5'), 'r') as f:
 print(f"{X_painstim.shape}")
 print(f"{X_cognitive.shape}")# X, y should be identical for both pain and cognitive
 # X = brain_maps # (conditions x subjects) x voxels . 2d (72 x subject) x voxel # NOTE: I could also average within conditions
-# %%
 
+# ======= NOTE: grab intersection of subjects in pain and cognitive
 pdf = paindf_meta.copy()
 cdf = cogdf_meta.copy()
 pdf = pdf[pdf['sub'].isin(cdf['sub'])]
 cdf = cdf[cdf['sub'].isin(pdf['sub'])]
 
-
-
-# y = np.array(paindf_meta['cuetype'])
-# y_cog = np.array(cogdf_meta['cuetype'])
-# only grab trials that match pdf and cdf index ( given that we dropped unbalanced trials)
 X_pain = X_painstim[pdf.index]
 X_cog = X_cognitive[cdf.index]
 y = paindf_meta.loc[pdf.index, 'cuetype']
 y_cog = cogdf_meta.loc[cdf.index, 'cuetype']
 print(f"after balancing: \n * pain run: {X_pain.shape} \n * cog run: {X_cog.shape}")
-# assert pdf['cuetype'].tolist() == cdf['cuetype'].tolist()
-# assert pdf['sub'].tolist() == cdf['sub'].tolist()
-# %%
+
+# ----------------------------------------------------------------------
+#                               k fold
+# ----------------------------------------------------------------------
+
 group_kfold = GroupKFold(n_splits=5)
-for i, (train_index, test_index) in enumerate(group_kfold.split(X_pain, y, subjects)):
-    print(f"Fold {i}:")
-    print(f"  Train: index={train_index}, group={subjects[train_index]}")
-    print(f"  Test:  index={test_index}, group={subjects[test_index]}")
-# %%
-subjects = pd.factorize(pdf['sub'])[0]#np.repeat(np.arange(N), ntrials*2)
+
+subjects = pd.factorize(pdf['sub'])[0]
 subjects_cog = pd.factorize(cdf['sub'])[0]
-# assert len(y) == len(subjects) 
+
 cv = PredefinedSplit(subjects)
 accuracy_cognitive = []
 accuracy_pain = []
 group_kfold = GroupKFold(n_splits=5)
-# y = pd.factorize(y)[0]
+
 group_kfold.get_n_splits(X_pain, y, subjects)
 for i, (train_index, test_index) in enumerate(group_kfold.split(X_pain, y, subjects)):
 # for train_index, test_index in cv.split(X_pain, y):
     train_index_cog = np.where(np.isin(subjects_cog, np.unique(subjects[train_index])))[0]
     test_index_cog = np.where(np.isin(subjects_cog, np.unique(subjects[test_index])))[0]
-    # train_index_cog = np.where(subjects_cog == np.unique(subjects[train_index]))[0]
-    # test_index_cog = np.where(subjects_cog == np.unique(subjects[test_index]))[0]
-    # scaling __________________________________________
+    # NOTE: scaling standard scalar. .fit_transform(X_train) -> mean/sd of the transformed data__________________________________________
     scaler = StandardScaler() # TODO: standard scalar. .fit_transform(X_train) -> mean/sd of the transformed data
     X_pain_train = scaler.fit_transform(X_pain[train_index]) # z-score on the samples
     X_pain_test = scaler.transform(X_pain[test_index])
     X_cog_test = scaler.transform(X_cog[test_index_cog])
-    # NOTE: 
-    # 2) PCA in this loop - 80000 features-> 90% of the variance 
+    # NOTE:  # 2) PCA in this loop - 80000 features-> 90% of the variance 
     pca = PCA(n_components=.9)
     X_pain_train = pca.fit_transform(X_pain[train_index])
     X_pain_test = pca.transform(X_pain[test_index])
     X_cog_test = pca.transform(X_cog[test_index_cog])
     print(f'number of PCs = {X_pain_train.shape[1]}')
 
-    # inner loop __________________________________________
     # 1) inner loop and grid search for hyperparameter C. 
     exponents = np.array([-3, -2, -1, 0, 1, 2, 3])
     Cs = np.exp(exponents)
@@ -299,7 +285,7 @@ for i, (train_index, test_index) in enumerate(group_kfold.split(X_pain, y, subje
 # you would want to fit the best model on pain and see if you can use that to predict cognitive
 clf = svm.LinearSVC(class_weight = 'balanced', C = C) 
 # clf.fit(X_pain, y)
-clf.fit(X_pain_test, y)
+clf.fit(X_pain_test, y.iloc[test_index].values)
 pred_cog = clf.predict(X_cog_test) 
 acc_cog = accuracy_score(y_cog[test_index_cog], pred_cog)
 accuracy_cognitive.append(acc_cog)
@@ -307,6 +293,20 @@ accuracy_cognitive.append(acc_cog)
 pred_pain = clf.predict(X_pain_test)
 acc_pain = accuracy_score(y[test_index], pred_pain)
 accuracy_pain.append(acc_pain)
+
+
+print(f"cognitive: {accuracy_cognitive}, pain: {accuracy_pain}")
+
+withintask = 'pain'
+crosstask = 'cognitive'
+save_within_task = join(output_dir, f'accuracy-{withintask}_train-{withintask}.npy')
+save_cross_task = join(output_dir, f'accuracy-{crosstask}_train-{withintask}.npy')
+np.save(np.array(accuracy_pain), save_within_task)
+np.save(np.array(accuracy_cognitive), save_within_task)
+
+# ----------------------------------------------------------------------
+#                               archive
+# ----------------------------------------------------------------------
 
     # ########################
     # # between tasks prediction __________________________________________
@@ -322,14 +322,3 @@ accuracy_pain.append(acc_pain)
     # y_pain = clf.predict(X_pain_test)
     # acc_pain = accuracy_score(y[test_index], y_pain)
     # accuracy_pain.append(acc_pain)
-print(f"cognitive: {accuracy_cognitive}, pain: {accuracy_pain}")
-
-withintask = 'pain'
-crosstask = 'cognitive'
-save_within_task = join(output_dir, 'accuracy-{withintask}_train-{withintask}.npy')
-save_cross_task = join(output_dir, 'accuracy-{crosstask}_train-{withintask}.npy')
-np.save(np.array(accuracy_pain), save_within_task)
-np.save(np.array(accuracy_cognitive), save_within_task)
-# data = [1, 2, 2, 3, 3, 3, 4, 4, 5]
-
-# %%
