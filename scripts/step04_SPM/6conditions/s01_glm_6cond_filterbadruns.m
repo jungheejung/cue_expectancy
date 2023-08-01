@@ -353,15 +353,16 @@ function bad_runs_table = readBadRunsFromJSON(badruns_file)
             sub = subjects{i};
             bad_run_list = bad_runs.(sub);
             num_bad_runs = numel(bad_run_list);
-
+            sub_num = str2double(regexp(sub, '\d+', 'match'));
             % Extract the sub_num, ses_num, and run_num from each bad run
             for j = 1:num_bad_runs
-                run_info = extractBetween(bad_run_list{j}, 'ses-', '_run-');
-                ses_num = str2double(run_info{1});
-                run_num = str2double(run_info{2});
+                ses_num = str2double(extractBetween(bad_run_list{j}, 'ses-', '_run-'));
+                run_num = str2double(regexp(bad_run_list{j}, 'run-(\d+)', 'tokens', 'once'));%extractBetween(bad_run_list{j}, 'ses-', '_run-');
+%                 ses_num = str2double(run_info{1});
+%                 run_num = str2double(run_info{2});
 
                 % Append the data to the table
-                new_row = table(sub, ses_num, run_num, 'VariableNames', {'sub_num', 'ses_num', 'run_num'});
+                new_row = table(sub_num, ses_num, run_num, 'VariableNames', {'sub_num', 'ses_num', 'run_num'});
                 bad_runs_table = [bad_runs_table; new_row];
             end
         end
