@@ -166,7 +166,9 @@ two_factor_lineplot <-
 
 # Step 1: Common parameters
 # step 1: load data
-for (signature_key in c("NPSpos")) {
+for (signature_key in c("NPS", "NPSpos", "NPSneg", "VPS", #"VPSnooccip", "ThermalPain", "MechPain", "GeneralAversive", "AversiveVisual"
+                        "ZhouVPS", "PINES",  "GSR", "GeuterPaincPDM", "SIIPS")) {
+  
      #c("NPS", "NPSpos", "NPSneg", "VPS", #"VPSnooccip", "ThermalPain", "MechPain", "GeneralAversive", "AversiveVisual"
                       #  "ZhouVPS", "PINES",  "GSR", "GeuterPaincPDM")) {
   dv_keyword = signature_key
@@ -174,28 +176,20 @@ for (signature_key in c("NPSpos")) {
   # step 1: common parameters _______
   main_dir <- dirname(dirname(getwd()))
 
-  analysis_folder  = paste0("model35_iv-task-stim_dv-", signature_key)
+  analysis_folder  = paste0("model41_iv-task-stim_dv-TTL2", signature_key)
 
   sig_name <-
     Sys.glob(file.path(
-      main_dir,
-      "analysis/fmri/nilearn/signature_extract",
+      main_dir,"analysis/fmri/nilearn/deriv01_signature/ttl2",
       paste0(
-        "signature-",
-        signature_key,
-        "_sub-all_runtype-pvc_event-stimulus.tsv"
+        "signature-",signature_key,"_sub-all_runtype-pvc_event-stimulus.tsv"
       )
     )) # nolint
   print(sig_name)
   analysis_dir <-
-    file.path(main_dir,
-              "analysis",
-              "mixedeffect",
-              analysis_folder,
+    file.path(main_dir,"analysis","mixedeffect",analysis_folder,
               as.character(Sys.Date())) # nolint
-  dir.create(analysis_dir,
-             showWarnings = FALSE,
-             recursive = TRUE)
+  dir.create(analysis_dir,showWarnings = FALSE,recursive = TRUE)
   savedir <- analysis_dir
   
   # step 2: load data
@@ -204,14 +198,7 @@ for (signature_key in c("NPSpos")) {
     singletrial_fname,
     sep = "_",
     c(
-      "sub",
-      "ses",
-      "run",
-      "runtype",
-      "event",
-      "trial",
-      "cuetype",
-      "stimintensity"
+      "sub","ses","run","runtype","event","trial","cuetype","stimintensity"
     )
   )
   sig_df = sig_df %>% separate(
@@ -242,18 +229,10 @@ for (signature_key in c("NPSpos")) {
     subject = "sub",
     ggtitle = paste0(
       str_to_title(signature_key),
-      " dot product: ",
-      str_to_title(taskname),
-      ' ',
-      ggtitle_phrase,
-      " (N = ",
-      length(unique(pvc$sub)),
-      ")"
+      " dot product: ",str_to_title(taskname),' ',ggtitle_phrase," (N = ",length(unique(pvc$sub)),")"
     ),
     title = paste0(
-      str_to_title(signature_key),
-      " - ",
-      str_to_title(plot_keyword)
+      str_to_title(signature_key)," - ",str_to_title(plot_keyword)
     ),
     xlab = "",
     ylab = paste(signature_key, " (dot product)"),
@@ -279,11 +258,12 @@ for (signature_key in c("NPSpos")) {
   if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
     plot_keys$color <- c("#1B9E77", "#D95F02", "#D95F02")
   } else {
-    plot_keys$color <- c(
-                           "pain" = "#941100",
-                           "vicarious" = "#008F51",
-                           "cognitive" = "#011891"
+    plot_keys$color <- c("#011891",
+                            "#941100",
+                           "#008F51"
+                            
                          )
+    #c("#4575B4", "#FFA500", "#D73027")
   }
   
   # step 5: plot
@@ -295,10 +275,199 @@ for (signature_key in c("NPSpos")) {
     color <- c("#1B9E77", "#D95F02", "#D95F02")
   } else {
     color <- c(
-                           "pain" = "#941100",
-                           "vicarious" = "#008F51",
-                           "cognitive" = "#011891"
-                         )
+                          "#011891",
+                            "#941100",
+                           "#008F51"
+                         )#c("#4575B4", "#FFA500", "#D73027")
+  }
+  subject_mean <- "mean_per_sub"
+  sub_mean = subject_mean
+  group_mean <- "mean_per_sub_norm_mean"
+  se <- "se"
+  ylim <- c(-25, 26)
+  subject <- "sub"
+  ggtitle_phrase <-  "(3 tasks x 3 stimulus intensity)"
+  ggtitle <-
+    paste0(
+      str_to_title(signature_name),
+      " dot product: ",
+      str_to_title(taskname),
+      ' ',
+      ggtitle_phrase,
+      " (N = ",
+      length(unique(pvc$sub)),
+      ")"
+    )
+  
+  title <-
+    paste0(str_to_title(dv_keyword),
+           " - ",
+           str_to_title(plot_keys$legend_keyword))
+  xlab <- ""
+  plot_keyword = "stimintensity"
+  ylab <- paste(signature_name, " (dot product)")
+  plot2_savefname <- file.path(
+    analysis_dir,
+    paste(
+      "signature_task-",
+      taskname,
+      "_event-",
+      plot_keyword,
+      "_dv-",
+      signature_key,
+      "_",
+      as.character(Sys.Date()),
+      ".png",
+      sep = ""
+    )
+  )
+  p <- plot_halfrainclouds_twofactor(
+    subjectwise,
+    groupwise,
+    iv2,
+    iv1,
+    subject_mean,
+    group_mean,
+    se,
+    subject,
+    ggtitle,
+    title,
+    xlab,
+    ylab,
+    taskname,
+    ylim,
+    w = 10,
+    h = 6,
+    dv_keyword,
+    color,
+    plot2_savefname
+  )
+print(p)
+
+k <- plot_lineplot_twofactor(groupwise,
+                        iv1 =iv2, iv2 = iv1, 
+                        mean = group_mean, error = "se",
+                        color=color,
+                        ggtitle = title, 
+                        xlab = xlab, ylab = ylab)
+k <- k + theme(aspect.ratio=.8)
+
+print(k)
+}
+```
+
+```{r echo=FALSE}
+p
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# Step 1: Common parameters
+# step 1: load data
+for (signature_key in c("NPSpos")) {
+  
+     #c("NPS", "NPSpos", "NPSneg", "VPS", #"VPSnooccip", "ThermalPain", "MechPain", "GeneralAversive", "AversiveVisual"
+                      #  "ZhouVPS", "PINES",  "GSR", "GeuterPaincPDM")) {
+  dv_keyword = signature_key
+  signature_name = signature_key
+  # step 1: common parameters _______
+  main_dir <- dirname(dirname(getwd()))
+
+  analysis_folder  = paste0("model41_iv-task-stim_dv-TTL2", signature_key)
+
+  sig_name <-
+    Sys.glob(file.path(
+      main_dir,"analysis/fmri/nilearn/deriv01_signature/ttl2",
+      paste0(
+        "signature-",signature_key,"_sub-all_runtype-pvc_event-stimulus.tsv"
+      )
+    )) # nolint
+  print(sig_name)
+  analysis_dir <-
+    file.path(main_dir,"analysis","mixedeffect",analysis_folder,
+              as.character(Sys.Date())) # nolint
+  dir.create(analysis_dir,showWarnings = FALSE,recursive = TRUE)
+  savedir <- analysis_dir
+  
+  # step 2: load data
+  df = read.csv(sig_name)
+  sig_df = df %>% separate(
+    singletrial_fname,
+    sep = "_",
+    c(
+      "sub","ses","run","runtype","event","trial","cuetype","stimintensity"
+    )
+  )
+  sig_df = sig_df %>% separate(
+    stimintensity,
+    into = c(NA, "stimintensity"),
+    extra = "drop",
+    fill = "left"
+  )
+  pvc <- simple_contrasts_singletrial(sig_df)
+  pvc$task[pvc$runtype == "runtype-pain"] <- "pain"
+  pvc$task[pvc$runtype == "runtype-vicarious"] <- "vicarious"
+  pvc$task[pvc$runtype == "runtype-cognitive"] <- "cognitive"
+  pvc$task <- factor(pvc$task)
+  
+  
+  # step 3: parameters
+  
+  taskname = "all"
+  plot_keyword = "stimulusintensity"
+  ggtitle_phrase =  "(3 tasks x 3 stimulus intensity)"
+  
+  pvc$task = factor(pvc$task)
+  plot_keys <- list(
+    sub_mean = "mean_per_sub",
+    group_mean = "mean_per_sub_norm_mean",
+    legend_keyword = "stimulus intensity",
+    se = "se",
+    subject = "sub",
+    ggtitle = paste0(
+      str_to_title(signature_key),
+      " dot product: ",str_to_title(taskname),' ',ggtitle_phrase," (N = ",length(unique(pvc$sub)),")"
+    ),
+    title = paste0(
+      str_to_title(signature_key)," - ",str_to_title(plot_keyword)
+    ),
+    xlab = "",
+    ylab = paste(signature_key, " (dot product)"),
+    ylim = c(-250, 500)
+  )
+  
+  # step 4: within between summary
+  groupwise <- data.frame()
+  subjectwise <- data.frame()
+  summary <- summary_for_plots_PVC(
+    df = pvc,
+    # taskname = taskname,
+    groupwise_measurevar = plot_keys$sub_mean,
+    # "mean_per_sub",
+    subject_keyword = plot_keys$subject,
+    # "sub",
+    model_iv1 =  "task",
+    model_iv2 =  "stim_ordered",
+    dv = signature_key #"NPSpos"
+  )
+  subjectwise <<- as.data.frame(summary[[1]])
+  groupwise <<- as.data.frame(summary[[2]])
+  if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+    plot_keys$color <- c("#1B9E77", "#D95F02", "#D95F02")
+  } else {
+    plot_keys$color <- c("#4575B4", "#FFA500", "#D73027")
+  }
+  
+  # step 5: plot
+  
+  iv2 = "stim_ordered"
+  iv1 = "task"
+  taskname = "all"
+  if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+    color <- c("#1B9E77", "#D95F02", "#D95F02")
+  } else {
+    color <- c("#4575B4", "#FFA500", "#D73027")
   }
   subject_mean <- "mean_per_sub"
   sub_mean = subject_mean
@@ -363,22 +532,82 @@ for (signature_key in c("NPSpos")) {
     plot2_savefname
   )
 print(p)
-
-k <- plot_lineplot_twofactor(groupwise,
-                        iv1 =iv1, iv2 = iv2, 
-                        mean = group_mean, error = "se",
-                        color=color,
-                        ggtitle = title, 
-                        xlab = xlab, ylab = ylab)
-k <- k + theme(aspect.ratio=.8)
-
-print(k)
 }
 ```
 
-```{r echo=FALSE}
-p
+
+```{r}
+# contrast code 1 linear
+pvc$task_V_gt_C[pvc$task == "pain"] <-  0
+pvc$task_V_gt_C[pvc$task == "vicarious"] <-  0.5
+pvc$task_V_gt_C[pvc$task == "cognitive"] <- -0.5
+
+# contrast code 2 quadratic
+pvc$task_P_gt_VC[pvc$task == "pain"] <-  0.66
+pvc$task_P_gt_VC[pvc$task == "vicarious"] <-  0.34
+pvc$task_P_gt_VC[pvc$task == "cognitive"] <-  -0.34
+
+
 ```
+
+#### Contrast weight table {.unlisted .unnumbered}
+
+```{r echo=FALSE}
+tab <- matrix(c(0, .5, -.5, 
+                .66, -.34, -.34), ncol=3, byrow=TRUE)
+colnames(tab) <- c('pain','vicarious','cognitive')
+rownames(tab) <- c('task_V_gt_C','task_P_gt_VC')
+kableExtra::kable_styling(
+  knitr::kable(
+    tab, caption = "Contrast weights", "html"), 
+  "striped", position = "left", font_size = 15)
+```
+
+
+### Linear model results (NPS \~ paintask: 2 cue x 3 stimulus_intensity)
+
+```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
+
+model.task_stim <- lmer(NPSpos ~ 
+                          task_P_gt_VC*stimintensity +  task_V_gt_C*stimintensity +
+                          (1|sub), data = pvc
+                    )
+sjPlot::tab_model(model.task_stim,
+                  title = "Multilevel-modeling: \nlmer(DATA ~ TASK * STIM + (1 | sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+```
+
+```         
+lmer(NPSpos ~ 
+                          CUE_high_gt_low*STIM_linear +CUE_high_gt_low * STIM_quadratic +
+                          (CUE_high_gt_low+STIM|sub), data = data_screen
+                    )
+```
+
+```{r echo=FALSE}
+summary(model.task_stim)
+```
+
+#### Linear model eta-squared {.unlisted .unnumbered}
+
+```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+kableExtra::kable_styling(
+  knitr::kable(
+    eta_squared(model.task_stim, partial = TRUE), # MODIFY
+    "html"), "striped", position = "left", font_size = 12)
+#parameters::model_parameters(model.npscuestim)
+```
+
+#### Linear model Cohen's d: NPS stimulus_intensity d = 1.16, cue d = 0.45 {.unlisted .unnumbered}
+
+```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+
+kableExtra::kable_styling(
+  knitr::kable(
+    lme.dscore(model.task_stim, pvc, type = "lme4"),
+    "html"), "striped", position = "left", font_size = 12)
+```
+
 
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 
@@ -458,20 +687,6 @@ df_merge <- merge(pvc, pvc.beh,
   
 ```
 
-```{r}
-# contrast code 1 linear
-df_merge$task_V_gt_C[df_merge$task == "pain"] <-  0
-df_merge$task_V_gt_C[df_merge$task == "vicarious"] <-  0.5
-df_merge$task_V_gt_C[df_merge$task == "cognitive"] <- -0.5
-
-# contrast code 2 quadratic
-df_merge$task_P_gt_VC[df_merge$task == "pain"] <-  0.66
-df_merge$task_P_gt_VC[df_merge$task == "vicarious"] <-  0.34
-df_merge$task_P_gt_VC[df_merge$task == "cognitive"] <-  -0.34
-
-
-```
-
 #### Contrast weight table {.unlisted .unnumbered}
 
 ```{r echo=FALSE}
@@ -485,51 +700,6 @@ kableExtra::kable_styling(
   "striped", position = "left", font_size = 15)
 ```
 
-
-### Linear model results (NPS \~ paintask: 2 cue x 3 stimulus_intensity)
-
-```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
-
-model.task_stim <- lmer(NPSpos ~ 
-                          task_P_gt_VC*STIM_linear + task_P_gt_VC* STIM_quadratic + task_V_gt_C*STIM_linear + task_V_gt_C*STIM_quadratic + 
-                          (1|sub), data = df_merge
-                    )
-sjPlot::tab_model(model.task_stim,
-                  title = "Multilevel-modeling: \nlmer(DATA ~ TASK * STIM + (1 | sub), data = pvc)",
-                  CSS = list(css.table = '+font-size: 12;'))
-```
-
-```         
-lmer(NPSpos ~ 
-                          CUE_high_gt_low*STIM_linear +CUE_high_gt_low * STIM_quadratic +
-                          (CUE_high_gt_low+STIM|sub), data = data_screen
-                    )
-```
-
-```{r echo=FALSE}
-summary(model.task_stim)
-```
-
-#### Linear model eta-squared {.unlisted .unnumbered}
-
-```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
-kableExtra::kable_styling(
-  knitr::kable(
-    eta_squared(model.task_stim, partial = TRUE), # MODIFY
-    "html"), "striped", position = "left", font_size = 12)
-#parameters::model_parameters(model.npscuestim)
-```
-
-#### Linear model Cohen's d: NPS stimulus_intensity d = 1.16, cue d = 0.45 {.unlisted .unnumbered}
-
-```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
-
-kableExtra::kable_styling(
-  knitr::kable(
-    lme.dscore(model.task_stim, df_merge, type = "lme4"),
-    "html"), "striped", position = "left", font_size = 12)
-```
-
 ## 2. NPS \~ paintask: 2 cue x 3 stimulus_intensity
 
 ### Q. Within pain task, Does stimulus intenisty level and cue level significantly predict NPS dotproducts? {.unlisted .unnumbered}
@@ -539,7 +709,7 @@ combined_se_calc_cooksd <- data.frame()
 combined_psig <- data.frame()
 taskname = "pain"
 ggtitle <- paste(taskname, " - NPS (degree)")
-title <- paste(taskname, " - actual")
+title <- paste(taskname, " - outcome")
 subject <- "sub"
 w <- 10
 h <- 6
@@ -713,7 +883,7 @@ g + theme(aspect.ratio=.8)
 ### Lineplots {.unlisted .unnumbered}
 
 ```{r echo=FALSE, warning=FALSE}
-g <- plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain", 
+g <- plot_lineplot_twofactor_subsetthick(NPSstimcue_groupwise, taskname = "pain", 
                         iv1 = "stim_ordered", iv2 = "cue_ordered", 
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("low cue" = "#5D5C5C","high cue" = "#D73027"), ggtitle = "Within pain task: NPS dotproducts as a function of stimulus intensity level and cue", 
@@ -721,8 +891,7 @@ g <- plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain",
 g + theme(aspect.ratio=.8)
 ```
 
-```{r}
-```
+
 
 ### Lineplots {.unlisted .unnumbered}
 
@@ -839,8 +1008,8 @@ kableExtra::kable_styling(
 combined_se_calc_cooksd <- data.frame()
 for (sesname in c("ses-01", "ses-03", "ses-04")) {
 taskname = "pain"
-    ggtitle <- paste(taskname, " - actual judgment (degree)")
-    title <- paste(taskname, " - actual")
+    ggtitle <- paste(taskname, " - outcome rating (degree)")
+    title <- paste(taskname, " - outcome")
     subject <- "sub"
     w <- 10
     h <- 6
@@ -914,20 +1083,20 @@ data$STIM_quadratic[data$stimintensity == "high"] <- -0.33
     model_iv2 <- "cue_ordered"
 
     #  [ PLOT ] calculate mean and se  _________________________
-    actual_subjectwise <- meanSummary(
+    outcome_subjectwise <- meanSummary(
         data_screen,
         c(subject, model_iv1, model_iv2), dv
     )
-    actual_groupwise <- summarySEwithin(
-        data = actual_subjectwise,
+    outcome_groupwise <- summarySEwithin(
+        data = outcome_subjectwise,
         measurevar = "mean_per_sub",
         withinvars = c(model_iv1, model_iv2), idvar = subject
     )
-    actual_groupwise$task <- taskname
-    actual_groupwise$ses <- sesname
+    outcome_groupwise$task <- taskname
+    outcome_groupwise$ses <- sesname
     # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
     
-    combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, actual_groupwise)
+    combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, outcome_groupwise)
    # calculate mean and se  
     sub_mean <- "mean_per_sub"
     group_mean <- "mean_per_sub_norm_mean"
@@ -953,7 +1122,7 @@ data$STIM_quadratic[data$stimintensity == "high"] <- -0.33
         )
     )
     g <- plot_halfrainclouds_twofactor(
-        actual_subjectwise, actual_groupwise, model_iv1, model_iv2,
+        outcome_subjectwise, outcome_groupwise, model_iv1, model_iv2,
         sub_mean, group_mean, se, subject,
         ggtitle, title, xlab, ylab, taskname,ylim,
         w, h, dv_keyword, color, plot_savefname
@@ -975,7 +1144,7 @@ LINEIV1 = "stim_ordered"
 LINEIV2 = "cue_ordered"
 MEAN = "mean_per_sub_norm_mean"
 ERROR = "se"
-dv_keyword = "actual"
+dv_keyword = "outcome"
 p1 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-01",],
                LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'ses-01', 
                ylab = "NPS (dot products)" )
