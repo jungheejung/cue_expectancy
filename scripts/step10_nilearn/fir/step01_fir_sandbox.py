@@ -82,7 +82,7 @@ for ses_ind in np.arange(len(subject_subset)):
 
     fmriprep_flist = []
     for run_num in run_list:
-        flist = sorted(glob.glob(join(fmriprep_dir, sub, ses, 'func', f'{sub}_{ses}_task-social_acq-mb8_run-{run_num}_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'), recursive=True))
+        flist = sorted(glob.glob(join(fmriprep_dir, sub, ses, 'func', f'{sub}_{ses}_task-social_acq-mb8_run-{run_num}_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'), recursive=True))
         fmriprep_flist.append(flist[0])
     fmri_img = [image.load_img(fname) for fname in fmriprep_flist]
 
