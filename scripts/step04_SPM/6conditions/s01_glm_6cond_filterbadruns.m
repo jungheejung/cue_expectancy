@@ -69,21 +69,30 @@ function s01_glm_6cond_filterbadruns(sub, input_dir, main_dir, fmriprep_dir, bad
 
     onset_col_names = sortedonsetT.Properties.VariableNames;
     onset_num_column = onset_col_names(endsWith(onset_col_names, '_num'));
-    disp(nii_num_column)
+    disp(onset_num_column)
 
     % load badruns from json _________________________________________________________________
     bad_runs_table = readBadRunsFromJSON(badruns_json);
     json_col_names = bad_runs_table.Properties.VariableNames;
     json_num_colomn = json_col_names(endsWith(json_col_names, '_num'));
     disp(bad_runs_table);
-    intersectRuns = intersect(bad_runs_table(:,json_num_colomn),sortedT(:, nii_num_column) );
+    % intersectRuns = intersect(bad_runs_table(:,json_num_colomn),sortedT(:, nii_num_column) );
+    % intersectRuns = setdiff(bad_runs_table(:,json_num_colomn), sortedT(:, nii_num_column));
+    % intersect_col_names = intersectRuns.Properties.VariableNames;
+    % inter_num_column = intersect_col_names(endsWith(intersect_col_names, '_num'));
+
+
+    [~, ia] = ismember(sortedT(:, nii_num_column), bad_runs_table(:,json_num_colomn), 'rows');
+    intersectRuns = sortedT(setdiff(1:size(sortedT, 1), ia), :);
     intersect_col_names = intersectRuns.Properties.VariableNames;
     inter_num_column = intersect_col_names(endsWith(intersect_col_names, '_num'));
-    %intersection of nifti and onset files
-    % A = intersect(sortedT(:, nii_num_colomn), sortedonsetT(:, onset_num_column));
-    A = intersect(intersectRuns(:, nii_num_column),sortedonsetT(:, onset_num_column));
-    
 
+
+
+
+    %intersection of nifti and onset files
+    A = intersect( intersectRuns(:, inter_num_column), sortedonsetT(:, onset_num_column) );
+    disp(A);
     output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_6cond', ...
         '1stLevel', sub);
 
@@ -152,9 +161,9 @@ function s01_glm_6cond_filterbadruns(sub, input_dir, main_dir, fmriprep_dir, bad
         task = char(extractAfter(keyword, '-'));
 
         if strcmp(task,'pain')
-            test = dir(fullfile(onset_glob.folder, strcat(sub, '_', ses, '_task-cue_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '*_events_ttl.tsv')))
+            test = dir(fullfile(onset_glob.folder, strcat(sub, '_', ses, '_task-cue_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '*_events_ttl.tsv')));
             if ~isempty(test)
-                onset_fname = fullfile(char(test.folder), char(test.name))
+                onset_fname = fullfile(char(test.folder), char(test.name));
                 disp(strcat('this is a pain run with a ttl file: ', onset_fname))
             else
                 disp(strcat('this is a pain run without a ttl file'))
