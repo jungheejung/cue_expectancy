@@ -24,7 +24,7 @@ from nilearn.plotting import plot_contrast_matrix, plot_design_matrix
 import matplotlib.pyplot as plt
 from nilearn.plotting import plot_event
 from nilearn import glm, image, plotting, maskers, masking
-from nilearn.datasets import (load_mni152_template)
+from nilearn.datasets import load_mni152_template
 import matplotlib.pyplot as plt
 
 from nilearn.plotting import plot_stat_map
@@ -50,7 +50,7 @@ onset_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/
 main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue'
 sub_folders = next(os.walk(fmriprep_dir))[1]
 sub_list = [i for i in sorted(sub_folders) if i.startswith('sub-')]
-sub = sub_list[slurm_id]#f'sub-{sub_list[slurm_id]:04d}'
+sub = sub_list[slurm_id] #f'sub-{sub_list[slurm_id]:04d}'
 save_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/glm/fir'
 pathlib.Path(join(save_dir, sub)).mkdir(parents=True, exist_ok=True)
 
@@ -71,7 +71,7 @@ cuelowdfs = []
 
 for ses_ind in np.arange(len(subject_subset)):
     ses = subject_subset.iloc[ses_ind, subject_subset.columns.get_loc("ses")]
-    ses = 'ses-01' ########DELETED LATER
+    #ses = 'ses-01' ########DELETED LATER
     subset_df = metadf[(metadf['sub'] == sub) & (metadf['ses'] == ses)]
     task_columns = subset_df.columns[subset_df.eq('pain').any()]
     run_list = [int(col.split('-')[-1]) for col in task_columns]
