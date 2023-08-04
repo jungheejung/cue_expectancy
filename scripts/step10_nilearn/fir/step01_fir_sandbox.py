@@ -240,14 +240,14 @@ for ses_ind in np.arange(len(subject_subset)):
 
 
     
-    for i in np.arange(len(first_level_model.design_matrices_)):
-        plot_contrast_matrix(contrasts["cue_highGTlow"][i], first_level_model.design_matrices_[i])
+    # for i in np.arange(len(first_level_model.design_matrices_)):
+    #     plot_contrast_matrix(contrasts["cue_highGTlow"][i], first_level_model.design_matrices_[i])
 
-    for i in np.arange(len(first_level_model.design_matrices_)):
-        plot_contrast_matrix(contrasts["cue_high"][i], first_level_model.design_matrices_[i])
+    # for i in np.arange(len(first_level_model.design_matrices_)):
+    #     plot_contrast_matrix(contrasts["cue_high"][i], first_level_model.design_matrices_[i])
 
-    for i in np.arange(len(first_level_model.design_matrices_)):
-        plot_contrast_matrix(contrasts["stim_high_delay_5"][i], first_level_model.design_matrices_[i])
+    # for i in np.arange(len(first_level_model.design_matrices_)):
+    #     plot_contrast_matrix(contrasts["stim_high_delay_5"][i], first_level_model.design_matrices_[i])
 
     #   subset contrasts
 
