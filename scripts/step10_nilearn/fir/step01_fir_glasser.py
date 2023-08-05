@@ -374,7 +374,6 @@ for ses_ind in np.arange(len(subject_subset)):
 
     mmpmasker = maskers.NiftiMapsMasker(
         maps_img=mmp4d,
-        standardize="zscore_sample",
         memory="nilearn_cache",
         verbose=5,
     )
