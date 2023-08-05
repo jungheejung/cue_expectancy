@@ -28,7 +28,7 @@ from nilearn.datasets import load_mni152_template
 import matplotlib.pyplot as plt
 
 from nilearn.plotting import plot_stat_map
-
+import hcp_utils as hcp
 
 # %%
 # ----------------------------------------------------------------------
