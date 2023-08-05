@@ -14,7 +14,7 @@ conda activate spacetop_env
 echo "SLURMSARRAY: " ${SLURM_ARRAY_TASK_ID}
 ID=$((SLURM_ARRAY_TASK_ID-1))
 MAINDIR='/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue'
-${MAINDIR}/scripts/step10_nilearn/fir/step01_fir_sandbox.py \
+${MAINDIR}/scripts/step10_nilearn/fir/step01_fir_glasser.py \
 --slurm-id ${ID} \
 --taskname "pain" \
 --firdelay 20
