@@ -8,11 +8,7 @@
 % %%%%%%%% 
 
 function FIR_spm(sub, onset_dir, main_dir, fmriprep_dir, badruns_json, save_dir)
-clear
-% onset_dir = '';
-% mainpath = '/Users/h/Documents/projects_local/sandbox/timeseries';
-% fmriprep_dir = '';
-% save_dir = '';
+
 TR = 0.46;
 T = 10;
 mode = 0;
@@ -101,7 +97,7 @@ for run_ind = 1:1%size(A, 1)
     sub = []; ses = []; run = [];
     sub = strcat('sub-', sprintf('%04d', A.sub_num(run_ind)));
     ses = strcat('ses-', sprintf('%02d', A.ses_num(run_ind)));
-    run01 = strcat('run-', sprintf('%02d', A.run_num(run_ind)));
+    run01 = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
     run = strcat('run-', sprintf('%02d', A.run_num(run_ind)));
     run_num = A.run_num(run_ind);
     % runtype = A.runtype(run_ind);
@@ -109,7 +105,7 @@ for run_ind = 1:1%size(A, 1)
     disp(strcat('[ STEP 03 ] gunzip and saving nifti...'));
     %smooth_fname = fullfile(fmriprep_dir, sub, ses,  ...
     %    strcat('smooth-6mm_', sub, '_', ses, '_task-cue_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
-    func = fullfile(fmriprep_dir, sub, ses, ...
+    func = fullfile(fmriprep_dir, sub, ses, 'func',...
         strcat( sub, '_', ses, '_task-social_acq-mb8_', run01, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
 
     if ~exist(func, 'file')
@@ -220,14 +216,14 @@ for i = 1:length(fields)
 
     % Create a sample 6x20 double array
     data = h';
-    
+    disp(strcat("runtype: ", runtype)); 
     % Create values for the additional columns to be appended
     sub_col = repmat(sub, 6, 1);    ses_col = repmat(ses, 6, 1);
     run_col = repmat(run, 1, 1)';    runtype_col = repmat(runtype, 6, 1);
     ROI_col = repmat(key, 6, 1);    condition_col = {"cueH_stimH";  "cueL_stimH"; "cueH_stimM"; "cueL_stimM" ;"cueH_stimL" ;"cueL_stimL"};
     
     % Combine the data and additional columns
-    combinedData = [sub_col, ses_col, num2cell(run), runtype, ROI, condition_col, num2cell(data)];
+    combinedData = [sub_col, ses_col, num2cell(run_col), runtype_col, ROI_col, condition_col, num2cell(data)];
     combinedDataCell = [cellstr(sub_col), cellstr(ses_col), num2cell(run_col), ...
                         cellstr(runtype_col), cellstr(ROI_col), cellstr(condition_col), ...
                         num2cell(data)]; % Convert data to cell array along rows
