@@ -23,14 +23,14 @@ rois.V1 = [1];
 rois.SM = [8,9,51,52,53];
 rois.MT = [2,23];
 rois.RSC = [14];
-rois.LO_DEP = [20,21,159,156,157]
-rois.LOC = [140,141,157,156,159,2,23]
-rois.FFC= [18]
-rois.PIT= [22]
-rois.TPJ= [139,140,141]
-rois.pSTS= [28,139]
-rois.AIP= [117, 116, 148, 147]
-rois.premotor= [78,80]
+rois.LO_DEP = [20,21,159,156,157];
+rois.LOC = [140,141,157,156,159,2,23];
+rois.FFC= [18];
+rois.PIT= [22];
+rois.TPJ= [139,140,141];
+rois.pSTS= [28,139];
+rois.AIP= [117, 116, 148, 147];
+rois.premotor= [78,80];
 % Add other keys and arrays...
 
 % Define a function that takes a key and array as input
@@ -133,11 +133,11 @@ for run_ind = 1:size(A, 1)
     cue.pmod_stimtype = strtrim(cue.pmod_stimtype);
     cue.pmod_cuetype = strtrim(cue.pmod_cuetype);
     disp(cue.pmod_cuetype)
-    highcue = strcmp(cue.pmod_cuetype,'high_cue');
-    lowcue = strcmp(cue.pmod_cuetype,'low_cue');
-    highstim = strcmp(cue.pmod_stimtype, 'high_stim');
-    medstim = strcmp(cue.pmod_stimtype, 'med_stim');
-    lowstim = strcmp(cue.pmod_stimtype, 'low_stim');
+    % highcue = strcmp(cue.pmod_cuetype,'high_cue');
+    % lowcue = strcmp(cue.pmod_cuetype,'low_cue');
+    % highstim = strcmp(cue.pmod_stimtype, 'high_stim');
+    % medstim = strcmp(cue.pmod_stimtype, 'med_stim');
+    % lowstim = strcmp(cue.pmod_stimtype, 'low_stim');
 
     keyword = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
     task = char(extractAfter(keyword, '-'));
@@ -155,11 +155,7 @@ for run_ind = 1:size(A, 1)
     disp(strcat('task: ', task));
     disp(strcat('[ STEP 05 ]creating motion covariate text file...'));
 
-
-
 events = readtable(onset_fname, "FileType","delimitedtext");
-
-% [sub, ses, task, run, runtype] = extract_bids(filename);
 
 cueH_stimH = events(strcmp(events.pmod_cuetype , 'high_cue') & strcmp(events.pmod_stimtype , 'high_stim'), :);
 cueL_stimH = events(strcmp(events.pmod_cuetype , 'low_cue') & strcmp(events.pmod_stimtype , 'high_stim'), :);
@@ -179,6 +175,8 @@ onset_cueH_stimM = round(cueH_stimM.onset03_stim/TR);
 onset_cueL_stimM = round(cueL_stimM.onset03_stim/TR);
 onset_cueH_stimL = round(cueH_stimL.onset03_stim/TR);
 onset_cueL_stimL = round(cueL_stimL.onset03_stim/TR);
+onset_rating     = [round(events.onset02_ratingexpect/TR); round(events.onset04_ratingoutcome/TR)];
+onset_cue        = round(events.onset01_cue/TR);
 
 onset_cueH_stimH_Time = zeros(872,1);   onset_cueH_stimH_Time(onset_cueH_stimH)=1;
 onset_cueL_stimH_Time = zeros(872,1);   onset_cueL_stimH_Time(onset_cueL_stimH)=1;
@@ -186,8 +184,10 @@ onset_cueH_stimM_Time = zeros(872,1);   onset_cueH_stimM_Time(onset_cueH_stimM)=
 onset_cueL_stimM_Time = zeros(872,1);   onset_cueL_stimM_Time(onset_cueL_stimM)=1;
 onset_cueH_stimL_Time = zeros(872,1);   onset_cueH_stimL_Time(onset_cueH_stimL)=1;
 onset_cueL_stimL_Time = zeros(872,1);   onset_cueL_stimL_Time(onset_cueL_stimL)=1;
+onset_rating_Time     = zeros(872,1);   onset_rating_Time(onset_rating)=1;
+onset_cue_Time        = zeros(872,1);   onset_cue_Time(onset_cue)=1;
 
-Runc = {onset_cueH_stimH_Time  onset_cueL_stimH_Time onset_cueH_stimM_Time onset_cueL_stimM_Time onset_cueH_stimL_Time onset_cueL_stimL_Time};
+Runc = {onset_cueH_stimH_Time  onset_cueL_stimH_Time onset_cueH_stimM_Time onset_cueL_stimM_Time onset_cueH_stimL_Time onset_cueL_stimL_Time onset_rating_Time onset_cue_Time};
 
 % load fmri data
 
@@ -195,21 +195,14 @@ fmriprep_fname = fullfile(fmriprep_dir, sub, ses, 'func', strcat(sub, '_', ses, 
 % '/Users/h/Documents/projects_local/sandbox/fmriprep_bold/sub-0002/ses-01/func/sub-0002_ses-01_task-social_acq-mb8_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'
 fmridata = fmri_data(fmriprep_fname);
 [parcel_means, parcel_pattern_expression, parcel_valence, ~, ~, voxel_count]=apply_parcellation(fmridata, atlas_obj);
-% timeseries_parcel = reshape(parcel_means, [1, size(parcel_means)]);
 disp("------loaded fmriprep image and parcellation! --------")
-% for i=1:length(atlas_obj.labels)
+num_conditions = size(Runc,2);
 
-
-
-% timeseries_parcel = reshape(parcel_means, [1, size(parcel_means)]);
-
-% for i=3%:length(labels)
 for i = 1:length(fields)
 
     key = fields{i};
     array = rois.(key);
     function_name(key, array);
-
 
     tc = mean(parcel_means(:,array),2);% timeseries_parcel(sub,:,[8,9,51,52,53])';
     [h, fit, e, param]=hrf_fit_one_voxel(tc,TR,Runc,T,'FIR',0); % 0: non-smooth, 1: smooth
@@ -217,15 +210,15 @@ for i = 1:length(fields)
     % Create a sample 6x20 double array
     data = h';
     disp(strcat("runtype: ", runtype)); 
+
     % Create values for the additional columns to be appended
-    sub_col = repmat(sub, 6, 1);    ses_col = repmat(ses, 6, 1);
-    run_col = repmat(run, 6, 1);    runtype_col = repmat(runtype, 6, 1);
-    ROI_col = repmat(key, 6, 1);    condition_col = {"cueH_stimH";  "cueL_stimH"; "cueH_stimM"; "cueL_stimM" ;"cueH_stimL" ;"cueL_stimL"};
+    sub_col = repmat(sub, num_conditions, 1);    ses_col = repmat(ses, num_conditions, 1);
+    run_col = repmat(run, num_conditions, 1);    runtype_col = repmat(runtype, num_conditions, 1);
+    ROI_col = repmat(key, num_conditions, 1);    condition_col = {"cueH_stimH";  "cueL_stimH"; "cueH_stimM"; "cueL_stimM" ;"cueH_stimL" ;"cueL_stimL"; "rating"; "cue"};
     disp(sub_col);    
     disp(size(sub_col)); disp(size(data));
     % Combine the data and additional columnsi
     combinedDataCell = [];
-    %combinedData = [sub_col, ses_col, run_col, runtype_col, ROI_col, condition_col, num2cell(data)];
     combinedDataCell = [cellstr(sub_col), cellstr(ses_col), cellstr(run_col), ...
                         cellstr(runtype_col), cellstr(ROI_col), cellstr(condition_col), ...
                         num2cell(data)]; % Convert data to cell array along rows
@@ -241,9 +234,7 @@ for i = 1:length(fields)
     disp(strcat(sub, ses, run, runtype{1}, key));
     save_fname = fullfile(save_dir, sub, strcat(sub,'_',ses,'_',run,'_runtype-',runtype{1},'-roi-',key,'_tr-42.csv' ));
     writetable(dataTable, save_fname);
-    %     H_All_Reg(:,sub,i)=h(:,1);
-    %     H_All_Neg(:,sub,i)=h(:,2);
-    %     H_All_Neu(:,sub,i)=h(:,3);
+
     plot(h(:,1), 'color', 'red', 'LineStyle', '-');
     hold on;
     plot(h(:,2), 'color', 'red', 'LineStyle', '--');
@@ -255,21 +246,7 @@ for i = 1:length(fields)
     save_plotname = fullfile(save_dir, sub, strcat(sub,'_',ses,'_',run,'_runtype-',runtype{1},'-roi-',key,'_tr-42.png' ));
     saveas(gcf, save_plotname, 'png');
     hold off;
-    %     plot(h(:,3), 'color', 'b');
 
-%    [h1,t1,w1,w_times1,halfh1, auc1] = fir2htw2(h(:,1));
-%    [h2,t2,w2,w_times2,halfh2, auc2] = fir2htw2(h(:,2));
-%    [h3,t3,w3,w_times3,halfh3, auc3] = fir2htw2(h(:,3));
-%    [h4,t4,w4,w_times4,halfh4, auc4] = fir2htw2(h(:,4));
-%    [h5,t5,w5,w_times5,halfh5, auc5] = fir2htw2(h(:,5));
-%    [h6,t6,w6,w_times6,halfh6, auc6] = fir2htw2(h(:,6));
-%    Martin_Param{i,sub}=param;
-%   IndexM1(sub,i,:)=[h1,t1,w1,w_times1,halfh1, auc1];
-%   IndexM2(sub,i,:)=[h2,t2,w2,w_times2,halfh2, auc2];
-%   IndexM3(sub,i,:)=[h3,t3,w3,w_times3,halfh3, auc3];
-%   IndexM4(sub,i,:)=[h4,t4,w4,w_times4,halfh4, auc4];
-%   IndexM5(sub,i,:)=[h5,t5,w5,w_times5,halfh5, auc5];
-%   IndexM6(sub,i,:)=[h6,t6,w6,w_times6,halfh6, auc6];
 end
 
 end
