@@ -7,7 +7,7 @@
 % TODO: save extracted values per subject, session, run, runtype, ROI
 % %%%%%%%%
 
-function FIR_spm(sub, onset_dir, main_dir, fmriprep_dir, badruns_json, save_dir)
+function FIR_spm_ttl1(sub, onset_dir, main_dir, fmriprep_dir, badruns_json, save_dir)
 disp(strcat('--------------------',sub,'----------------'));
 TR = 0.46;
 T = 20;
@@ -142,15 +142,15 @@ for run_ind = 1:size(A, 1)
     keyword = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
     task = char(extractAfter(keyword, '-'));
     
-    if strcmp(task,'pain')
-        test = dir(fullfile(onset_glob.folder, strcat(sub, '_', ses, '_task-cue_',run, '*_events_ttl.tsv')));
-        if ~isempty(test)
-            onset_fname = fullfile(char(test.folder), char(test.name));
-            disp(strcat('this is a pain run with a ttl file: ', onset_fname))
-        else
-            disp(strcat('this is a pain run without a ttl file'))
-        end
-    end
+    % if strcmp(task,'pain')
+    %     test = dir(fullfile(onset_glob.folder, strcat(sub, '_', ses, '_task-cue_',run, '*_events_ttl.tsv')));
+    %     if ~isempty(test)
+    %         onset_fname = fullfile(char(test.folder), char(test.name));
+    %         disp(strcat('this is a pain run with a ttl file: ', onset_fname))
+    %     else
+    %         disp(strcat('this is a pain run without a ttl file'))
+    %     end
+    % end
     
     disp(strcat('task: ', task));
     disp(strcat('[ STEP 05 ]creating motion covariate text file...'));
