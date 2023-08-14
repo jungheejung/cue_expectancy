@@ -18,19 +18,21 @@ labels = atlas_obj.labels;
 % dictionary _________
 
 % Create a structure similar to the Python dictionary
-rois.PHG = [126, 155, 127];
-rois.V1 = [1];
-rois.SM = [8,9,51,52,53];
-rois.MT = [2,23];
-rois.RSC = [14];
-rois.LO_DEP = [20,21,159,156,157];
-rois.LOC = [140,141,157,156,159,2,23];
-rois.FFC= [18];
-rois.PIT= [22];
-rois.TPJ= [139,140,141];
-rois.pSTS= [28,139];
-rois.AIP= [117, 116, 148, 147];
-rois.premotor= [78,80];
+rois.PHG = [251,252,309,310,253,254]; %[126, 155, 127];
+rois.V1 = [1,2];%[1];
+rois.SM =[15,16,17,18,101,102,103,104,105,106];%[8,9,51,52,53];
+rois.MT = [3,4,45,46]; %[2,23];
+rois.RSC =[27,28];%[14];
+% rois.LO_DEP = [] %[20,21,159,156,157];
+rois.LOC = [279,280,281,282,313,314,311,312,317,318,3,4,45,46]; %[140,141,157,156,159,2,23];
+rois.FFC= [35,37];%[18];
+rois.PIT= [43,44]; %[22];
+rois.TPJ= [277,278,279,280,281,282];%[139,140,141];
+rois.pSTS= [55,56,277,278]; %[28,139];
+rois.AIP= [233,234,231,232,295,296,293,294]; %[117, 116, 148, 147];
+rois.premotor= [155,156,159,160]; %[78,80];
+rois.rINS = [216,218,226];
+rois.dACC = [82,115,116];
 % Add other keys and arrays...
 
 % Define a function that takes a key and array as input
@@ -248,7 +250,7 @@ for run_ind = 1:size(A, 1)
     onset_rating_Time     = zeros(872,1);   onset_rating_Time(onset_rating)=1;
     onset_cue_Time        = zeros(872,1);   onset_cue_Time(onset_cue)=1;
     
-    Runc = {onset_cueH_stimH_Time  onset_cueL_stimH_Time onset_cueH_stimM_Time onset_cueL_stimM_Time onset_cueH_stimL_Time onset_cueL_stimL_Time onset_rating_Time onset_cue_Time R};
+    Runc = {onset_cueH_stimH_Time  onset_cueL_stimH_Time onset_cueH_stimM_Time onset_cueL_stimM_Time onset_cueH_stimL_Time onset_cueL_stimL_Time onset_rating_Time onset_cue_Time};
     
     % load fmri data
     
@@ -259,7 +261,7 @@ for run_ind = 1:size(A, 1)
     disp("------loaded fmriprep image and parcellation! --------")
     num_conditions = size(Runc,2);
     
-    for i = 1:length(fields)
+    parfor i = 1:length(fields)
         
         key = fields{i};
         array = rois.(key);
