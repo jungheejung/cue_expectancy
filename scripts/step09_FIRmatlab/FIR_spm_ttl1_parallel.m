@@ -101,19 +101,19 @@ parfor run_ind = 1:size(A, 1)
     func = fullfile(fmriprep_dir, sub, ses, 'func',...
         strcat( sub, '_', ses, '_task-social_acq-mb8_', run01, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
     
-    if ~exist(func, 'file')
-        disp(strcat('ABORT [!] ', func, 'does not exist'))
-        break
-    end
+    %if ~exist(func, 'file')
+    %    disp(strcat('ABORT [!] ', func, 'does not exist'))
+    %    break
+    %end
     
     disp(strcat('[ STEP 04 ]constructing contrasts...'));
     onset_glob = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-cue_', run, '*_events.tsv')));
     onset_fname = fullfile(char(onset_glob.folder), char(onset_glob.name));
     runtype = extractBetween(onset_fname, 'runtype-', '_');
-    if isempty(onset_glob)
-        disp('ABORT')
-        break
-    end
+    %if isempty(onset_glob)
+    %    disp('ABORT')
+    %    break
+    %end
     
     disp(strcat('onset folder: ', onset_glob.folder));
     disp(strcat('onset file:   ', onset_glob.name));
@@ -148,8 +148,8 @@ parfor run_ind = 1:size(A, 1)
     cueL_stimL = events(strcmp(events.pmod_cuetype , 'low_cue') & strcmp(events.pmod_stimtype , 'low_stim'), :);
     
     TR = 0.46;
-    Time_Index=1:4;
-    ones(1,length(Time_Index));
+    %Time_Index=1:4;
+    %ones(1,length(Time_Index));
     onset_cueH_stimH = round(cueH_stimH.onset03_stim/TR);
     onset_cueL_stimH = round(cueL_stimH.onset03_stim/TR);
     onset_cueH_stimM = round(cueH_stimM.onset03_stim/TR);
@@ -210,18 +210,18 @@ parfor run_ind = 1:size(A, 1)
     disp(strcat(sub, ses, run, runtype{1}, key));
     save_fname = fullfile(save_dir, sub, strcat(sub,'_',ses,'_',run,'_runtype-',runtype{1},'-roi-',key,'_tr-42.csv' ));
     writetable(dataTable, save_fname);
-    
-    plot(h(:,1), 'color', 'red', 'LineStyle', '-');
-    hold on;
-    plot(h(:,2), 'color', 'red', 'LineStyle', '--');
-    plot(h(:,3), 'color', 'black', 'LineStyle', '-');
-    plot(h(:,4), 'color', 'black', 'LineStyle', '--');
-    plot(h(:,5), 'color', 'blue', 'LineStyle', '-');
-    plot(h(:,6), 'color', 'blue', 'LineStyle', '--');
+    %%%% PLOT
+    %plot(h(:,1), 'color', 'red', 'LineStyle', '-');
+    %hold on;
+    %plot(h(:,2), 'color', 'red', 'LineStyle', '--');
+    %plot(h(:,3), 'color', 'black', 'LineStyle', '-');
+    %plot(h(:,4), 'color', 'black', 'LineStyle', '--');
+    %plot(h(:,5), 'color', 'blue', 'LineStyle', '-');
+    %plot(h(:,6), 'color', 'blue', 'LineStyle', '--');
     %     save TODO:
-    save_plotname = fullfile(save_dir, sub, strcat(sub,'_',ses,'_',run,'_runtype-',runtype{1},'-roi-',key,'_tr-42.png' ));
-    saveas(gcf, save_plotname, 'png');
-    hold off;
+    %save_plotname = fullfile(save_dir, sub, strcat(sub,'_',ses,'_',run,'_runtype-',runtype{1},'-roi-',key,'_tr-42.png' ));
+    %saveas(gcf, save_plotname, 'png');
+    %hold off;
     
     
 end
