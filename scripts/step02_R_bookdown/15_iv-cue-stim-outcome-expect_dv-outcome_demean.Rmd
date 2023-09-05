@@ -53,19 +53,19 @@ library(lme4)
 library(gghalves)
 library(effectsize)
 library(devtools)
-library(visibly) # 
+library(visibly) #
 library(plotly) #plot
 library(scico) # plot
 library(emmeans) # v. 1.7.0
 library(magrittr) # v. 2.0.1
-
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
+# 
+# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
+# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
+# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
 # source("https://gist.github.com/benmarwick/2a1bb0133ff568cbe28d/geom_flat_violin.R")
 
 library(r2mlm)
-file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+file.sources = list.files(c("/Users/h/Documents/projects_local/cue_expectancy/scripts/step02_R/utils"),
                           pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
@@ -758,3 +758,346 @@ library(emmeans)
 # emm1
 ```
 
+## Alireza congruent incongruent (PE)
+* categorize based on congruent, incongruent
+* split dataframe
+
+### archive this cell
+```{r}
+
+# previous_congruency <- is_congruent(param_cue_type[previous_index], param_stimulus_type[previous_index])
+
+is_congruent <- function(cue, stim) {
+  if (cue == "low_cue" && stim == "low_stim") {
+    return("congruent")
+  } else if (cue == "low_cue" && stim == "high_stim") {
+    return("incongruent")
+  } else if (cue == "high_cue" && stim == "low_stim") {
+    return("incongruent")
+  } else if (cue == "high_cue" && stim == "high_stim") {
+    return("congruent")
+  } else if (cue == "high_cue" && stim == "med_stim") {
+    return("congruent")
+  } else if (cue == "low_cue" && stim == "med_stim") {
+    return("incongruent")
+  } else {
+    return(NA)  # Handle other cases
+  }
+}
+```
+
+
+```{r}
+
+pvc.pain <- pvc[pvc$param_task_name == "pain",]
+pvc.pain$pe <- pvc.pain$demean_outcome - pvc.pain$demean_expect
+
+# define congruency patterns
+pvc.pain$congruency[(pvc.pain$param_cue_type == "low_cue") & (pvc.pain$pe < 0)] <- "congruent"
+pvc.pain$congruency[(pvc.pain$param_cue_type == "high_cue") & (pvc.pain$pe > 0)] <- "congruent"
+
+pvc.pain$congruency[(pvc.pain$param_cue_type == "low_cue") & (pvc.pain$pe > 0)] <- "incongruent"
+pvc.pain$congruency[(pvc.pain$param_cue_type == "high_cue") & (pvc.pain$pe < 0)] <- "incongruent"
+
+
+library(dplyr)
+
+# definition: current cue level (high, low). 
+# Find N-1 trial where cue level matches current trial
+# populate that as "congruency_vector"
+pvc.pain <- pvc.pain %>%
+  # group by subject, session, run
+  group_by(src_subject_id, session_id, param_run_num) %>%
+  mutate(
+    congruency_status = {
+      congruency_vector <- vector("character", n())
+      
+      for (i in 1:n()) {
+        # get the current cue. find the trial indices with the same cue level as current trial `matching_indices`
+        current_cue <- param_cue_type[i]
+        # identifying all existing trials that matches the current cue level
+        matching_indices <- which(param_cue_type[1:(i - 1)] == current_cue)
+        if (length(matching_indices) > 0) {
+          # from matching_indices, grab the largest number. 
+          # this maximum number would be the most recent N-1 cue trial, based on matching_indices
+          previous_index <- max(matching_indices)
+          # populate congruency_vector with previous N-1 trial's congruency value. (NOTE: must match current cue level)
+          congruency_vector[i] <- congruency[previous_index] 
+        } else {
+          congruency_vector[i] <- NA
+        }
+      }
+      congruency_vector
+    }
+  ) 
+  # ungroup() %>%
+  # mutate(
+  #   congruency_status = ifelse(is.na(congruency_status), pvc$congruency, congruency_status)
+  # )
+
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+con.pvc <- pvc.pain[pvc.pain$congruency_status == "congruent", ]
+
+df_dropna <- con.pvc[!is.na(con.pvc$congruency_status),]
+df_low = df_dropna[df_dropna$param_stimulus_type == "low_stim", ]
+low <-
+  plot_twovariable(
+    df_low, iv1 = "demean_expect", iv2 = "demean_outcome",
+    group = "param_cue_type", subject = "src_subject_id",
+    xmin=-60, xmax=60, ymin=-60, ymax=60,
+    xlab = "expectation rating", ylab = "outcome rating",
+    ggtitle = "Low intensity",
+    color_scheme = c("high_cue" ="#FF8800","low_cue" =  "#5D5C5C"),
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
+  )
+
+df_med = df_dropna[df_dropna$param_stimulus_type == "med_stim", ]
+med <-
+  plot_twovariable(
+    df_med, iv1 = "demean_expect", iv2 = "demean_outcome",
+    group = "param_cue_type", subject = "src_subject_id",
+    xmin=-60, xmax=60, ymin=-60, ymax=60,
+    xlab = "expectation rating", ylab = "outcome rating",
+    ggtitle = "Medium intensity",
+    color_scheme = c("high_cue" ="#DB6000","low_cue" =  "#5D5C5C"),
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
+  )
+
+df_high = df_dropna[df_dropna$param_stimulus_type == "high_stim", ]
+high <-
+  plot_twovariable(
+    df_high, iv1 = "demean_expect", iv2 = "demean_outcome",
+    group = "param_cue_type", subject = "src_subject_id",
+    xmin=-60, xmax=60, ymin=-60, ymax=60,
+    xlab = "expectation rating", ylab = "outcome rating",
+    ggtitle = "High intensity",
+    color_scheme = c("high_cue" ="#941100","low_cue" =  "#5D5C5C"),
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
+  )
+plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
+plots
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+incon.pvc <- pvc.pain[pvc.pain$congruency_status == "incongruent", ]
+
+df_dropna <- incon.pvc[!is.na(incon.pvc$congruency_status),]
+df_low = df_dropna[df_dropna$param_stimulus_type == "low_stim", ]
+low <-
+  plot_twovariable(
+    df_low, iv1 = "demean_expect", iv2 = "demean_outcome",
+    group = "param_cue_type", subject = "src_subject_id",
+    xmin=-80, xmax=80, ymin=-80, ymax=80,
+    xlab = "expectation rating", ylab = "outcome rating",
+    ggtitle = "Low intensity",
+    color_scheme = c("high_cue" ="#C24EB2","low_cue" =  "#5D5C5C"),
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
+  )
+
+df_med = df_dropna[df_dropna$param_stimulus_type == "med_stim", ]
+med <-
+  plot_twovariable(
+    df_med, iv1 = "demean_expect", iv2 = "demean_outcome",
+    group = "param_cue_type", subject = "src_subject_id",
+    xmin=-80, xmax=80, ymin=-80, ymax=80,
+    xlab = "expectation rating", ylab = "outcome rating",
+    ggtitle = "Medium intensity",
+    color_scheme = c("high_cue" ="#B238D9","low_cue" =  "#5D5C5C"),
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
+  )
+
+df_high = df_dropna[df_dropna$param_stimulus_type == "high_stim", ]
+high <-
+  plot_twovariable(
+    df_high, iv1 = "demean_expect", iv2 = "demean_outcome",
+    group = "param_cue_type", subject = "src_subject_id",
+    xmin=-80, xmax=80, ymin=-80, ymax=80,
+    xlab = "expectation rating", ylab = "outcome rating",
+    ggtitle = "High intensity",
+    color_scheme = c("high_cue" ="#A323FF","low_cue" =  "#5D5C5C"),
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
+  )
+plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
+plots
+```
+
+
+
+## Alireza congruent incongruent (incorrect)
+* categorize based on congruent, incongruent
+* split dataframe
+
+### archive this cell
+```{r}
+
+previous_congruency <- is_congruent(param_cue_type[previous_index], param_stimulus_type[previous_index])
+
+is_congruent <- function(cue, stim) {
+  if (cue == "low_cue" && stim == "low_stim") {
+    return("congruent")
+  } else if (cue == "low_cue" && stim == "high_stim") {
+    return("incongruent")
+  } else if (cue == "high_cue" && stim == "low_stim") {
+    return("incongruent")
+  } else if (cue == "high_cue" && stim == "high_stim") {
+    return("congruent")
+  } else if (cue == "high_cue" && stim == "med_stim") {
+    return("congruent")
+  } else if (cue == "low_cue" && stim == "med_stim") {
+    return("incongruent")
+  } else {
+    return(NA)  # Handle other cases
+  }
+}
+```
+
+
+```{r}
+
+pvc <- pvc[pvc$param_task_name == "pain",]
+
+# define congruency patterns
+pvc.pain$congruency2[(pvc.pain$param_cue_type == "low_cue") & (pvc.pain$param_stimulus_type == "low_stim")] <- "congruent"
+pvc.pain$congruency2[(pvc.pain$param_cue_type == "high_cue") & (pvc.pain$param_stimulus_type == "low_stim")] <- "incongruent"
+
+pvc.pain$congruency2[(pvc.pain$param_cue_type == "low_cue") & (pvc.pain$param_stimulus_type == "med_stim")] <- "incongruent"
+pvc.pain$congruency2[(pvc.pain$param_cue_type == "high_cue") & (pvc.pain$param_stimulus_type == "med_stim")] <- "congruent"
+
+pvc.pain$congruency2[(pvc.pain$param_cue_type == "low_cue") & (pvc.pain$param_stimulus_type == "high_stim")] <- "incongruent"
+pvc.pain$congruency2[(pvc.pain$param_cue_type == "high_cue") & (pvc.pain$param_stimulus_type == "high_stim")] <- "congruent"
+
+
+library(dplyr)
+
+# definition: current cue level (high, low). 
+# Find N-1 trial where cue level matches current trial
+# populate that as "congruency_vector"
+pvc.pain <- pvc.pain %>%
+  # group by subject, session, run
+  group_by(src_subject_id, session_id, param_run_num) %>%
+  mutate(
+    congruency_status2 = {
+      congruency_vector <- vector("character", n())
+      
+      for (i in 1:n()) {
+        # get the current cue. find the trial indices with the same cue level as current trial `matching_indices`
+        current_cue <- param_cue_type[i]
+        # identifying all existing trials that matches the current cue level
+        matching_indices <- which(param_cue_type[1:(i - 1)] == current_cue)
+        if (length(matching_indices) > 0) {
+          # from matching_indices, grab the largest number. 
+          # this maximum number would be the most recent N-1 cue trial, based on matching_indices
+          previous_index <- max(matching_indices)
+          # populate congruency_vector with previous N-1 trial's congruency value. (NOTE: must match current cue level)
+          congruency_vector[i] <- congruency2[previous_index] 
+        } else {
+          congruency_vector[i] <- NA
+        }
+      }
+      congruency_vector
+    }
+  ) 
+  # ungroup() %>%
+  # mutate(
+  #   congruency_status2 = ifelse(is.na(congruency_status2), pvc$congruency2, congruency_status2)
+  # )
+
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+con.pvc <- pvc.pain[pvc.pain$congruency_status2 == "congruent", ]
+
+df_dropna <- con.pvc[!is.na(con.pvc$demean_expect) & !is.na(con.pvc$demean_outcome),]
+df_low = df_dropna[df_dropna$param_stimulus_type == "low_stim", ]
+low <-
+  plot_twovariable(
+    df_low, iv1 = "demean_expect", iv2 = "demean_outcome",
+    group = "param_cue_type", subject = "src_subject_id",
+    xmin=-50, xmax=50, ymin=-50, ymax=50,
+    xlab = "expectation rating", ylab = "outcome rating",
+    ggtitle = "Low intensity",
+    color_scheme = c("high_cue" ="#FF8800","low_cue" =  "#5D5C5C"),
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
+  )
+
+df_med = df_dropna[df_dropna$param_stimulus_type == "med_stim", ]
+med <-
+  plot_twovariable(
+    df_med, iv1 = "demean_expect", iv2 = "demean_outcome",
+    group = "param_cue_type", subject = "src_subject_id",
+    xmin=-50, xmax=50, ymin=-50, ymax=50,
+    xlab = "expectation rating", ylab = "outcome rating",
+    ggtitle = "Medium intensity",
+    color_scheme = c("high_cue" ="#DB6000","low_cue" =  "#5D5C5C"),
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
+  )
+
+df_high = df_dropna[df_dropna$param_stimulus_type == "high_stim", ]
+high <-
+  plot_twovariable(
+    df_high, iv1 = "demean_expect", iv2 = "demean_outcome",
+    group = "param_cue_type", subject = "src_subject_id",
+    xmin=-50, xmax=50, ymin=-50, ymax=50,
+    xlab = "expectation rating", ylab = "outcome rating",
+    ggtitle = "High intensity",
+    color_scheme = c("high_cue" ="#941100","low_cue" =  "#5D5C5C"),
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
+  )
+plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
+plots
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+incon.pvc <- pvc.pain[pvc.pain$congruency_status2 == "incongruent", ]
+
+df_dropna <- incon.pvc[!is.na(incon.pvc$demean_expect) & !is.na(incon.pvc$demean_outcome),]
+df_low = df_dropna[df_dropna$param_stimulus_type == "low_stim", ]
+low <-
+  plot_twovariable(
+    df_low, iv1 = "demean_expect", iv2 = "demean_outcome",
+    group = "param_cue_type", subject = "src_subject_id",
+    xmin=-50, xmax=50, ymin=-50, ymax=50,
+    xlab = "expectation rating", ylab = "outcome rating",
+    ggtitle = "Low intensity",
+    color_scheme = c("high_cue" ="#C24EB2","low_cue" =  "#5D5C5C"),
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
+  )
+
+df_med = df_dropna[df_dropna$param_stimulus_type == "med_stim", ]
+med <-
+  plot_twovariable(
+    df_med, iv1 = "demean_expect", iv2 = "demean_outcome",
+    group = "param_cue_type", subject = "src_subject_id",
+    xmin=-50, xmax=50, ymin=-50, ymax=50,
+    xlab = "expectation rating", ylab = "outcome rating",
+    ggtitle = "Medium intensity",
+    color_scheme = c("high_cue" ="#B238D9","low_cue" =  "#5D5C5C"),
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
+  )
+
+df_high = df_dropna[df_dropna$param_stimulus_type == "high_stim", ]
+high <-
+  plot_twovariable(
+    df_high, iv1 = "demean_expect", iv2 = "demean_outcome",
+    group = "param_cue_type", subject = "src_subject_id",
+    xmin=-50, xmax=50, ymin=-50, ymax=50,
+    xlab = "expectation rating", ylab = "outcome rating",
+    ggtitle = "High intensity",
+    color_scheme = c("high_cue" ="#A323FF","low_cue" =  "#5D5C5C"),
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
+  )
+plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
+plots
+```

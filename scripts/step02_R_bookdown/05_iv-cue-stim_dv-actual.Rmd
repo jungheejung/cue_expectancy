@@ -48,11 +48,11 @@ library(gghalves)
 library(ggpubr)
 library(PupillometryR) # geom_flat_violin
 
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
-source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
-file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
+# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
+# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
+# source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+file.sources = list.files(c("/Users/h/Dropbox/projects_local/cue_expectancy/scripts/step02_R/utils"),
                           pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
@@ -312,7 +312,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     )
     cooksd <- lmer_twofactor_cooksd_fix(
         data, taskname, iv1, stim_con1, stim_con2, dv,
-        subject, dv_keyword, model_savefname, 'random_slopes', print_lmer_output = FALSE
+        subject, dv_keyword, model_savefname, 'random_intercept', print_lmer_output = FALSE
     )
     influential <- as.numeric(names(cooksd)[
         (cooksd > (4 / as.numeric(length(unique(data$src_subject_id)))))
