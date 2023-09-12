@@ -46,7 +46,8 @@ xlab, ylab, ggtitle, color_scheme, alpha, fit_lm, lm_method = NULL, identity_lin
         theme(
             axis.line = element_line(colour = "grey50"),
             panel.background = element_blank(),
-            plot.subtitle = ggtext::element_textbox_simple(size = 11)
+            plot.subtitle = ggtext::element_textbox_simple(size = 20),
+            text = element_text(size = 15)
         )
 
 

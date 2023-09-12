@@ -1,4 +1,4 @@
-function s02_contrast_6cond_scale(sub, input_dir, main_dir)
+function s02_contrast_6cond_scale_filterbadruns(sub, input_dir, main_dir)
 
     % need to scale the contrasts, other wise, missing runs may lead to greater weigthing and messed up estimation
     % PARAMETERS
@@ -80,9 +80,20 @@ sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '
 
 onset_col_names = sortedonsetT.Properties.VariableNames;
 onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
-disp(nii_num_colomn)
+disp(onset_num_colomn)
 %intersection of nifti and onset files
-A = intersect(sortedT(:, nii_num_colomn), sortedonsetT(:, onset_num_colomn));
+% load badruns from json _________________________________________________________________
+bad_runs_table = readBadRunsFromJSON(badruns_json);
+json_col_names = bad_runs_table.Properties.VariableNames;
+json_num_colomn = json_col_names(endsWith(json_col_names, '_num'));
+disp(bad_runs_table);
+
+[~, ia] = ismember(sortedT(:, nii_num_column), bad_runs_table(:,json_num_colomn), 'rows');
+intersectRuns = sortedT(setdiff(1:size(sortedT, 1), ia), :);
+intersect_col_names = intersectRuns.Properties.VariableNames;
+inter_num_column = intersect_col_names(endsWith(intersect_col_names, '_num'));
+
+A = intersect( intersectRuns(:, inter_num_column), sortedonsetT(:, onset_num_column) );
 
 % NOTE 04 define contrast
 
@@ -111,7 +122,7 @@ c21 = []; c22 = []; c23 = []; c24 = []; c25 = []; c26 = []; c27 = []; c28 = []; 
 c31 = []; c32 = []; c33 = []; c34 = []; c35 = []; c36 = []; c37 = []; c38 = []; c39 = []; c40 = [];
 c41 = []; c42 = []; c43 = []; c44 = []; c45 = []; c46 = []; c47 = []; c48 = []; c49 = []; 
 matlabbatch = cell(1,1);
-runlength = size(A,1)
+runlength = size(A,1);
 for run_ind = 1: runlength
     disp(strcat('run', num2str(run_ind)));
     sub = strcat('sub-', sprintf('%04d', A.sub_num(run_ind)));

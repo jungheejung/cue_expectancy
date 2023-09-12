@@ -3,11 +3,11 @@ import re
 import glob
 from os.path import join
 
-folder_path = '/Volumes/spacetop_projects_cue/scripts/step04_SPM/6conditions/log_con'
+folder_path = '/Volumes/spacetop_projects_cue/scripts/step04_SPM/6conditions/log_glm'
 pattern = r"sub-(\d+)"
 
 # Get a list of log file paths in the folder
-log_files = glob.glob(join(folder_path, 'contrast_6530783_*.e'))
+log_files = sorted(glob.glob(join(folder_path, 'GLM_7058872_*.e')))
 failed_sub = []
 failed_fname = []
 for log_file in log_files:
@@ -16,6 +16,37 @@ for log_file in log_files:
         
         # Search for the error message pattern in the file contents
         if "Error using load\nUnable to read file" in file_contents:
+            match = re.search(pattern, file_contents)
+            
+            if match:
+                sub_id = match.group(1)
+                print(f"Subject ID in {log_file}: {sub_id}")
+                failed_sub.append(f"sub-{sub_id}")
+                failed_fname.append(log_file)
+                # Perform additional actions as needed
+            else:
+                print(f"Subject ID not found in {log_file}")
+        else:
+            print(f"No error message found in {log_file}")
+
+# %% GLM
+import re
+import glob
+from os.path import join
+
+folder_path = '/Volumes/spacetop_projects_cue/scripts/step04_SPM/6conditions/log_glm'
+pattern = r"sub-(\d+)"
+
+# Get a list of log file paths in the folder
+log_files = sorted(glob.glob(join(folder_path, 'GLM_7058872_*.o')))
+failed_sub = []
+failed_fname = []
+for log_file in log_files:
+    with open(log_file, 'r') as file:
+        file_contents = file.read()
+        
+        # Search for the error message pattern in the file contents
+        if "Failed: fMRI model specification" in file_contents:
             match = re.search(pattern, file_contents)
             
             if match:

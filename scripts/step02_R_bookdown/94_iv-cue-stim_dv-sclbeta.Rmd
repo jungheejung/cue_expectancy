@@ -53,6 +53,8 @@ df$stim_name[df$stim == "med_stim"] <-  "med"
 df$stim_name[df$stim == "high_stim"] <-  "high"
 
 # cue contrast
+df$cue_con[df$cue == "low_cue"] <- -0.5
+df$cue_con[df$cue == "high_cue"] <- 0.5
 
 # df$cue_name[df$cue == "intercept"] <- "intercept"
 df$cue_name[df$cue == "low_cue"] <- "low"
@@ -92,7 +94,8 @@ beta_con <- simple_contrasts_singletrial(beta_long)
 ```
 
 ```{r}
-lmer()
+model.factorial <- lmer(beta ~ STIM_linear*cue_factor + STIM_quadratic*cue_factor + (1|sub), data = beta_con)
+summary(model.factorial)
 ```
 
 ```{r}
