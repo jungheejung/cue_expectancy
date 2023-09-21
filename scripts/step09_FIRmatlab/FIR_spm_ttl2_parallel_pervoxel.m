@@ -7,8 +7,9 @@
 % TODO: save extracted values per subject, session, run, runtype, ROI
 % %%%%%%%%
 
-function FIR_spm_ttl2_parallel(sub, onset_dir, main_dir, fmriprep_dir, badruns_json, save_dir, key)
+function FIR_spm_ttl2_parallel_pervoxel(sub, onset_dir, main_dir, fmriprep_dir, badruns_json, save_dir, key)
 disp(strcat('--------------------',sub,'----------------'));
+addpath(genpath(fullfile(fmriprep_dir, sub)));
 TR = 0.46;
 T = 20;
 mode = 0;
@@ -46,7 +47,7 @@ end
 niilist = dir(fullfile(fmriprep_dir, sub,  '*/func/*task-social*_bold.nii'));
 nT = struct2table(niilist); % convert the struct array to a table
 sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
-
+disp(sortedT);
 sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
 sortedT.ses_num(:) = str2double(extractBetween(sortedT.name, 'ses-', '_'));
 sortedT.run_num(:) = str2double(extractBetween(sortedT.name, 'run-', '_'));
@@ -84,7 +85,7 @@ A = intersect( intersectRuns(:, inter_num_column), sortedonsetT(:, onset_num_col
 disp(A);
 
 %% 3. for loop "run-wise" _______________________________________________________
-parfor run_ind = 1:size(A, 1)
+for run_ind = 1:size(A, 1)
     disp(strcat('______________________run', num2str(run_ind), '____________________________'));
     % [x] extract sub, ses, run info
     sub = []; ses = []; run = [];
@@ -277,9 +278,10 @@ parfor run_ind = 1:size(A, 1)
     
 end
 
-
+disp("------------------COMPLETE------------------");
 
     function [sub, ses, task, run, runtype] = extract_bids(filename)
+
         
         pattern = '/sub-(\w+)_ses-(\w+)_task-(\w+)_run-(\d+)_runtype-(\w+)_events\.tsv';
         matches = regexp(filename, pattern, 'tokens');
@@ -319,6 +321,44 @@ end
         
         roiArray = rois.(keyword);
     end
+
+
+function bad_runs_table = readBadRunsFromJSON(badruns_file)
+    % Read the badruns_file and construct a table with sub_num, ses_num, and run_num
+    bad_runs_table = table();
+
+    try
+        fid = fopen(badruns_file);
+        json_str = fread(fid, '*char').';
+        fclose(fid);
+        bad_runs = jsondecode(json_str);
+        
+        subjects = fieldnames(bad_runs);
+        num_subjects = numel(subjects);
+
+        % Loop through each subject and their corresponding bad runs
+        for i = 1:num_subjects
+            sub = subjects{i};
+            bad_run_list = bad_runs.(sub);
+            num_bad_runs = numel(bad_run_list);
+            sub_num = str2double(regexp(sub, '\d+', 'match'));
+            % Extract the sub_num, ses_num, and run_num from each bad run
+            for j = 1:num_bad_runs
+                ses_num = str2double(extractBetween(bad_run_list{j}, 'ses-', '_run-'));
+                run_num = str2double(regexp(bad_run_list{j}, 'run-(\d+)', 'tokens', 'once'));%extractBetween(bad_run_list{j}, 'ses-', '_run-');
+%                 ses_num = str2double(run_info{1});
+%                 run_num = str2double(run_info{2});
+
+                % Append the data to the table
+                new_row = table(sub_num, ses_num, run_num, 'VariableNames', {'sub_num', 'ses_num', 'run_num'});
+                bad_runs_table = [bad_runs_table; new_row];
+            end
+        end
+
+    catch
+        disp('Error reading badruns JSON file.');
+    end
+end
 
 end
 
