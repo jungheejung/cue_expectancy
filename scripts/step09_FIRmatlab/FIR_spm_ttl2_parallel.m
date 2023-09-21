@@ -6,9 +6,20 @@
 % TODO: save plot
 % TODO: save extracted values per subject, session, run, runtype, ROI
 % %%%%%%%%
-
+%parpool(6)
 function FIR_spm_ttl2_parallel(sub, onset_dir, main_dir, fmriprep_dir, badruns_json, save_dir, key)
 disp(strcat('--------------------',sub,'----------------'));
+rmpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip/compat/matlablt2010b');
+rmpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip/compat/matlablt2010b');
+rmpath(genpath('/Users/h/Documents/MATLAB/spm12/external/fieldtrip'));
+rmpath(genpath('/Users/h/Documents/MATLAB/spm12/external/fieldtrip/external/stats'));
+rmpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip/compat/matlablt2017b');
+rmpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip/compat/matlablt2013b');
+addpath(genpath('/Users/h/Documents/MATLAB/CanlabCore'));
+addpath(genpath('/Users/h/Documents/MATLAB/spm12'));
+
+tic
+
 TR = 0.46;
 T = 20;
 mode = 0;
@@ -25,7 +36,6 @@ rois.V1 = [1,2];%[1];
 rois.SM =[15,16,17,18,101,102,103,104,105,106];%[8,9,51,52,53];
 rois.MT = [3,4,45,46]; %[2,23];
 rois.RSC =[27,28];%[14];
-% rois.LO_DEP = [] %[20,21,159,156,157];
 rois.LOC = [279,280,281,282,313,314,311,312,317,318,3,4,45,46]; %[140,141,157,156,159,2,23];
 rois.FFC= [35,37];%[18];
 rois.PIT= [43,44]; %[22];
@@ -36,13 +46,15 @@ rois.premotor= [155,156,159,160]; %[78,80];
 rois.rINS = [216,218,226];
 rois.dACC = [82,115,116];
 
-% events_fname = '/Users/h/Documents/projects_local/sandbox/fmriprep_bold/sub-0002/ses-01/onset/sub-0002_ses-01_task-cue_run-01_runtype-pain_events.tsv';
-% events_fname = fullfile(onset_dir, sub, ses, )
 
 if ~exist(fullfile(save_dir, sub), 'dir')
     mkdir(fullfile(save_dir, sub))
 end
+
+disp('\n>> STEP: beginning of function, addpath genpath and parameters');
+toc
 % find nifti files
+tic
 niilist = dir(fullfile(fmriprep_dir, sub,  '*/func/*task-social*_bold.nii'));
 nT = struct2table(niilist); % convert the struct array to a table
 sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
@@ -82,37 +94,38 @@ inter_num_column = intersect_col_names(endsWith(intersect_col_names, '_num'));
 %intersection of nifti and onset files
 A = intersect( intersectRuns(:, inter_num_column), sortedonsetT(:, onset_num_column) );
 disp(A);
+disp('\n >> STEP: grab intersection of func, beh, badruns');
+toc
 
 %% 3. for loop "run-wise" _______________________________________________________
-parfor run_ind = 1:size(A, 1)
+
+for run_ind = 1:1%:size(A, 1)
     disp(strcat('______________________run', num2str(run_ind), '____________________________'));
-    % [x] extract sub, ses, run info
+    tic
+    
     sub = []; ses = []; run = [];
     sub = strcat('sub-', sprintf('%04d', A.sub_num(run_ind)));
     ses = strcat('ses-', sprintf('%02d', A.ses_num(run_ind)));
     run01 = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
     run = strcat('run-', sprintf('%02d', A.run_num(run_ind)));
     run_num = A.run_num(run_ind);
-    % runtype = A.runtype(run_ind);
     
-    disp(strcat('[ STEP 03 ] gunzip and saving nifti...'));
-    %smooth_fname = fullfile(fmriprep_dir, sub, ses,  ...
-    %    strcat('smooth-6mm_', sub, '_', ses, '_task-cue_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
+    disp(strcat('\n>> identify corresponding functional'));
     func = fullfile(fmriprep_dir, sub, ses, 'func',...
         strcat( sub, '_', ses, '_task-social_acq-mb8_', run01, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
     
     if ~exist(func, 'file')
         disp(strcat('ABORT [!] ', func, 'does not exist'))
-        break
     end
-    
-    disp(strcat('[ STEP 04 ]constructing contrasts...'));
+    toc    
+
+    tic
+    disp(strcat('\n>> load onset file'));
     onset_glob = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-cue_', run, '*_events.tsv')));
     onset_fname = fullfile(char(onset_glob.folder), char(onset_glob.name));
     runtype = extractBetween(onset_fname, 'runtype-', '_');
     if isempty(onset_glob)
         disp('ABORT')
-        break
     end
     
     disp(strcat('onset folder: ', onset_glob.folder));
@@ -141,7 +154,9 @@ parfor run_ind = 1:size(A, 1)
     end
     
     disp(strcat('task: ', task));
-    disp(strcat('[ STEP 05 ]creating motion covariate text file...'));
+    toc
+    tic
+    disp(strcat('\n>> load onset time and construct matrix'));
     
     
     events = readtable(onset_fname, "FileType","delimitedtext");
@@ -177,24 +192,29 @@ parfor run_ind = 1:size(A, 1)
     onset_cue_Time        = zeros(872,1);   onset_cue_Time(onset_cue)=1;
     
     Runc = {onset_cueH_stimH_Time  onset_cueL_stimH_Time onset_cueH_stimM_Time onset_cueL_stimM_Time onset_cueH_stimL_Time onset_cueL_stimL_Time onset_rating_Time onset_cue_Time};
-    
+    toc
     % load fmri data
-    
+    tic
     fmriprep_fname = fullfile(fmriprep_dir, sub, ses, 'func', strcat(sub, '_', ses, '_task-social_acq-mb8_',run01, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
     % '/Users/h/Documents/projects_local/sandbox/fmriprep_bold/sub-0002/ses-01/func/sub-0002_ses-01_task-social_acq-mb8_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'
     fmridata = fmri_data(fmriprep_fname);
     [parcel_means, parcel_pattern_expression, parcel_valence, ~, ~, voxel_count]=apply_parcellation(fmridata, atlas_obj);
-    disp("------loaded fmriprep image and parcellation! --------")
+    disp('\n >> STEP: ------loaded fmriprep image and parcellation! --------')
     num_conditions = size(Runc,2);
+    toc
     
+    tic
+    disp(strcat('size of arrays: ', size(array), 'size of parcel:', size(parcel_means(:,array))));
     
     tc = mean(parcel_means(:,array),2);% timeseries_parcel(sub,:,[8,9,51,52,53])';
+    disp(strcat('size of tc', size(tc), 'should be 872 x 1'));
     [h, fit, e, param]=hrf_fit_one_voxel(tc,TR,Runc,T,'FIR',0); % 0: non-smooth, 1: smooth
-    
+    disp('\n>> STEP: hrf fit one voxel');
+    toc
     % Create a sample 6x20 double array
     data = h';
     disp(strcat("runtype: ", runtype));
-    
+    tic
     % Create values for the additional columns to be appended
     sub_col = repmat(sub, num_conditions, 1);    ses_col = repmat(ses, num_conditions, 1);
     run_col = repmat(run, num_conditions, 1);    runtype_col = repmat(runtype, num_conditions, 1);
@@ -230,7 +250,8 @@ parfor run_ind = 1:size(A, 1)
     save_plotname = fullfile(save_dir, sub, strcat(sub,'_',ses,'_',run,'_runtype-',runtype{1},'-roi-',key,'_tr-42.png' ));
     saveas(gcf, save_plotname, 'png');
     hold off;
-    
+    disp('STEP:save data');
+    toc
     
 end
 
@@ -283,4 +304,4 @@ end
 
 
 
-
+%delete(gcp);
