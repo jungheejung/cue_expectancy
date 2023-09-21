@@ -94,7 +94,6 @@ parfor run_ind = 1:size(A, 1)
     run = strcat('run-', sprintf('%02d', A.run_num(run_ind)));
     run_num = A.run_num(run_ind);
     % runtype = A.runtype(run_ind);
-    
     disp(strcat('[ STEP 03 ] gunzip and saving nifti...'));
     %smooth_fname = fullfile(fmriprep_dir, sub, ses,  ...
     %    strcat('smooth-6mm_', sub, '_', ses, '_task-cue_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));

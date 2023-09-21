@@ -8,6 +8,16 @@
 % %%%%%%%%
 
 function FIR_spm_ttl2_parallel(sub, onset_dir, main_dir, fmriprep_dir, badruns_json, save_dir, key)
+    % sub = 'sub-0014';
+    % onset_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/fmri/fmri01_onset/onset02_SPM';
+    % main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue';
+    % fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop_data/derivatives/fmriprep/results/fmriprep';
+    % badruns_json = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/scripts/bad_runs.json';
+    % save_dir = '/dartfs-hpc/scratch/f0042x1';
+    % addpath(genpath(strcat(fmriprep_dir, '/', sub)));
+    % addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore'));
+    % addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/Neuroimaging_Pattern_Masks/Atlases_and_parcellations'));
+    % addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12'))
 disp(strcat('--------------------',sub,'----------------'));
 TR = 0.46;
 T = 20;
@@ -259,7 +269,7 @@ parfor run_ind = 1:size(A, 1)
     % Display the resulting table
     disp(stackedDataTable);
     disp(strcat(sub, ses, run, runtype{1}, key));
-    save_fname = fullfile(save_dir, sub, strcat(sub,'_',ses,'_',run,'_runtype-',runtype{1},'-roi-',key,'_tr-42.csv' ));
+    save_fname = fullfile(save_dir, sub, strcat(sub,'_',ses,'_',run,'_runtype-',runtype{1},'_roi-',key,'_tr-42.csv' ));
     writetable(stackedDataTable, save_fname);
     
     plot(h(:,1), 'color', 'red', 'LineStyle', '-');
@@ -270,7 +280,7 @@ parfor run_ind = 1:size(A, 1)
     plot(h(:,5), 'color', 'blue', 'LineStyle', '-');
     plot(h(:,6), 'color', 'blue', 'LineStyle', '--');
     %     save TODO:
-    save_plotname = fullfile(save_dir, sub, strcat(sub,'_',ses,'_',run,'_runtype-',runtype{1},'-roi-',key,'_tr-42.png' ));
+    save_plotname = fullfile(save_dir, sub, strcat(sub,'_',ses,'_',run,'_runtype-',runtype{1},'_roi-',key,'_tr-42.png' ));
     saveas(gcf, save_plotname, 'png');
     hold off;
     
