@@ -129,7 +129,7 @@ for run_ind = 1:size(A, 1)
     
     keyword = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
     task = char(extractAfter(keyword, '-'));
-    onset_fname = fullfile(char(test.folder), char(test.name));
+%    onset_fname = fullfile(char(test.folder), char(test.name));
     % if strcmp(task,'pain')
     %     test = dir(fullfile(onset_glob.folder, strcat(sub, '_', ses, '_task-cue_',run, '*_events_ttl.tsv')));
     %     if ~isempty(test)
