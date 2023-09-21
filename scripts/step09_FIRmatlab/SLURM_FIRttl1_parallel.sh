@@ -3,12 +3,12 @@
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=6
 #SBATCH --mem-per-cpu=24G
-#SBATCH --time=3-00:00:00
-#SBATCH -o ./log_glm/GLM_%A_%a.o
-#SBATCH -e ./log_glm/GLM_%A_%a.e
+#SBATCH --time=16:00:00
+#SBATCH -o ./log_par/GLM_%A_%a.o
+#SBATCH -e ./log_par/GLM_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1-13
+#SBATCH --array=1-133%50
 
 CANLABCORE_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore"
 MAIN_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue"
@@ -23,10 +23,10 @@ IFS=$'\n' sorted=($(sort <<<"${mylist[*]}") )
 PARTICIPANT_LABEL="$(basename "${sorted[$((SLURM_ARRAY_TASK_ID-1))]}")"
 echo "* total of ${#mylist[@]} participants in ${INPUT_DIR}"
 echo "* array id: " ${SLURM_ARRAY_TASK_ID}, "subject id: " ${PARTICIPANT_LABEL}
-KEYWORD="rINS"
+KEYWORD="MT"
 
 module load matlab/r2020a
-matlab -nodesktop -nosplash -batch 'opengl("save","hardware"); rootgroup = settings;rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = "v7.3"; rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = "v7.3";addpath(genpath('"'${CANLABCORE_DIR}'"'));addpath(genpath('"'${SPM_DIR}'"'));addpath(genpath('"'${ATLAS_DIR}'"'));addpath(genpath('"'${MAIN_DIR}'"'));addpath(genpath('"'${ONSET_DIR}'"'));addpath(genpath('"'${PWD}'"'));FIR_spm_ttl1('"'${PARTICIPANT_LABEL}'"','"'${ONSET_DIR}'"','"'${MAIN_DIR}'"', '"'${FMRIPREP_DIR}'"', '"'${BADRUNJSON}'"',  '"'${SAVE_DIR}'"', '"'${KEYWORD}'"');'
+matlab -nodesktop -nosplash -batch 'opengl("save","hardware"); rootgroup = settings;rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = "v7.3"; rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = "v7.3";addpath(genpath('"'${CANLABCORE_DIR}'"'));addpath(genpath('"'${SPM_DIR}'"'));addpath(genpath('"'${ATLAS_DIR}'"'));addpath(genpath('"'${MAIN_DIR}'"'));addpath(genpath('"'${ONSET_DIR}'"'));addpath(genpath('"'${PWD}'"'));FIR_spm_ttl1_parallel('"'${PARTICIPANT_LABEL}'"','"'${ONSET_DIR}'"','"'${MAIN_DIR}'"', '"'${FMRIPREP_DIR}'"', '"'${BADRUNJSON}'"',  '"'${SAVE_DIR}'"', '"'${KEYWORD}'"');'
 
 echo "\n\nCODE:\nmatlab -nodesktop -nosplash -batch 'opengl("save","hardware"); 
 rootgroup = settings; 
