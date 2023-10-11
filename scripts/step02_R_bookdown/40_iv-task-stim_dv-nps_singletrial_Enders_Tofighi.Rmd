@@ -166,9 +166,8 @@ two_factor_lineplot <-
 
 # Step 1: Common parameters
 # step 1: load data
-for (signature_key in c("NPSpos")) {
-     #c("NPS", "NPSpos", "NPSneg", "VPS", #"VPSnooccip", "ThermalPain", "MechPain", "GeneralAversive", "AversiveVisual"
-                      #  "ZhouVPS", "PINES",  "GSR", "GeuterPaincPDM")) {
+for (signature_key in c("NPS", "NPSpos", "NPSneg", "VPS", "VPSnooccip", "ThermalPain", "MechPain", "GeneralAversive", "AversiveVisual", "ZhouVPS", "PINES",  "GSR", "GeuterPaincPDM"))  {
+     #{
   dv_keyword = signature_key
   signature_name = signature_key
   # step 1: common parameters _______
@@ -344,8 +343,8 @@ for (signature_key in c("NPSpos")) {
   p <- plot_halfrainclouds_twofactor(
     subjectwise,
     groupwise,
-    iv1,
     iv2,
+    iv1,
     subject_mean,
     group_mean,
     se,
@@ -365,7 +364,7 @@ for (signature_key in c("NPSpos")) {
 print(p)
 
 k <- plot_lineplot_twofactor(groupwise,
-                        iv1 =iv1, iv2 = iv2, 
+                        iv1 =iv2, iv2 = iv1, 
                         mean = group_mean, error = "se",
                         color=color,
                         ggtitle = title, 
