@@ -1,4 +1,4 @@
-function s02_contrast_6cond_scale(sub, input_dir, main_dir)
+function s02_contrast_6cond_scale_filterbadruns(sub, input_dir, main_dir)
 
     % need to scale the contrasts, other wise, missing runs may lead to greater weigthing and messed up estimation
     % PARAMETERS
