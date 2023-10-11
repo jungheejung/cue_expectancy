@@ -114,12 +114,20 @@ sortedonsetT = sortrows(onsetT, 'name');
 sortedonsetT.sub_num(:) = str2double(extractBetween(sortedonsetT.name, 'sub-', '_'));
 sortedonsetT.ses_num(:) = str2double(extractBetween(sortedonsetT.name, 'ses-', '_'));
 sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '_'));
+sortedonsetT.runtype(:) = extractBetween(sortedonsetT.name, 'runtype-', '_events.tsv');
 
 onset_col_names = sortedonsetT.Properties.VariableNames;
 onset_num_column = onset_col_names(endsWith(onset_col_names, '_num'));
 disp(onset_num_column)
 %intersection of nifti and onset files
-A = intersect(sortedT(:, nii_num_column), sortedonsetT(:, onset_num_column));
+% A = intersect(sortedT(:, nii_num_column), sortedonsetT(:, onset_num_column));
+
+
+% Use innerjoin to find the intersection and retain runtype info
+A = innerjoin(sortedT, sortedonsetT, 'Keys', {'sub_num', 'ses_num', 'run_num'});
+
+% The resulting table, MergedTable, will contain all columns from both sortedT and sortedonsetT where 
+% sub_num, ses_num, and run_num matched. So, it will include the runtype column as well.
 
 % NOTE 04 define contrast
 
@@ -150,27 +158,29 @@ c41 = []; c42 = []; c43 = []; c44 = []; c45 = []; c46 = []; c47 = []; c48 = []; 
 matlabbatch = cell(1,1);
 runlength = size(A,1);
 numRegressorsPerRun = arrayfun(@(x) length(x.col), SPM.Sess);
+runtype_counts = tabulate(A.runtype);
 for run_ind = 1: runlength
     disp(strcat('run', num2str(run_ind)));
     sub = strcat('sub-', sprintf('%04d', A.sub_num(run_ind)));
     ses = strcat('ses-', sprintf('%02d', A.ses_num(run_ind)));
     run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
+    task = A.runtype{run_ind};
     disp('identify covariates');
     
-    covariate = zeros(1, size(SPM.Sess(run_ind).C.name,2));
-    disp(strcat('[ STEP 04 ]constructing contrasts...'));
-    onset_glob    = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-cue_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '*_events.tsv')));
-    onset_fname   = fullfile(char(onset_glob.folder), char(onset_glob.name));
-    if isempty(onset_glob)
-      disp('ABORT')
-      break
-    end
-    disp(strcat('onset folder: ', onset_glob.folder));
-    disp(strcat('onset file:   ', onset_glob.name));
-    social        = struct2table(tdfread(onset_fname));
-    keyword       = extractBetween(onset_glob.name, 'runtype-', '_events');
+    % covariate = zeros(1, size(SPM.Sess(run_ind).C.name,2));
+    % disp(strcat('[ STEP 04 ]constructing contrasts...'));
+    % onset_glob    = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-cue_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '*_events.tsv')));
+    % onset_fname   = fullfile(char(onset_glob.folder), char(onset_glob.name));
+    % if isempty(onset_glob)
+    %   disp('ABORT')
+    %   break
+    % end
+    % disp(strcat('onset folder: ', onset_glob.folder));
+    % disp(strcat('onset file:   ', onset_glob.name));
+    % social        = struct2table(tdfread(onset_fname));
+    % keyword       = extractBetween(onset_glob.name, 'runtype-', '_events');
     %task          = char(extractAfter(keyword, '-'));
-    task          = char(keyword);
+    % task          = char(keyword);
     disp(task);
 
     % consider aborted runs:
@@ -181,68 +191,75 @@ for run_ind = 1: runlength
 
     %%%%%%%%%%%%%%%
 
-    P_VC_cue_high_gt_low         = [ (m1(task)*cue_high_gt_low)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*cue_high_gt_low)/runlength,2)) ];
-    V_PC_cue_high_gt_low         = [ (m2(task)*cue_high_gt_low)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*cue_high_gt_low)/runlength,2)) ];
-    C_PV_cue_high_gt_low         = [ (m3(task)*cue_high_gt_low)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*cue_high_gt_low)/runlength,2)) ];
 
-    P_VC_stimlin_high_gt_low     = [ (m1(task)*stimlin_high_gt_low)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*stimlin_high_gt_low)/runlength,2)) ];
-    V_PC_stimlin_high_gt_low     = [ (m2(task)*stimlin_high_gt_low)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*stimlin_high_gt_low)/runlength,2)) ];
-    C_PV_stimlin_high_gt_low     = [ (m3(task)*stimlin_high_gt_low)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*stimlin_high_gt_low)/runlength,2)) ];
+    % Extract the frequency for the 'cognitive' runtype
+    task_idx = strcmp(runtype_counts(:, 1), task);
+    task_freq = runtype_counts{task_idx, 2};
 
-    P_VC_stimquad_med_gt_other   = [ (m1(task)*stimquad_med_gt_other)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*stimquad_med_gt_other)/runlength,2)) ];
-    V_PC_stimquad_med_gt_other   = [ (m2(task)*stimquad_med_gt_other)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*stimquad_med_gt_other)/runlength,2)) ];
-    C_PV_stimquad_med_gt_other   = [ (m3(task)*stimquad_med_gt_other)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*stimquad_med_gt_other)/runlength,2)) ];
+    % disp(['Frequency of cognitive: ', num2str(cognitive_frequency)]);
 
-    P_VC_cue_int_stimlin         = [ (m1(task)*cue_int_stimlin)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*cue_int_stimlin)/runlength,2)) ];
-    V_PC_cue_int_stimlin         = [ (m2(task)*cue_int_stimlin)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*cue_int_stimlin)/runlength,2)) ];
-    C_PV_cue_int_stimlin         = [ (m3(task)*cue_int_stimlin)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*cue_int_stimlin)/runlength,2)) ];
+    P_VC_cue_high_gt_low         = [ (m1(task)*cue_high_gt_low)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*cue_high_gt_low)/runlength,2)) ];
+    V_PC_cue_high_gt_low         = [ (m2(task)*cue_high_gt_low)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*cue_high_gt_low)/runlength,2)) ];
+    C_PV_cue_high_gt_low         = [ (m3(task)*cue_high_gt_low)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*cue_high_gt_low)/runlength,2)) ];
 
-    P_VC_cue_int_stimquad        = [ (m1(task)*cue_int_stimquad)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*cue_int_stimquad)/runlength,2)) ];
-    V_PC_cue_int_stimquad        = [ (m2(task)*cue_int_stimquad)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*cue_int_stimquad)/runlength,2)) ];
-    C_PV_cue_int_stimquad        = [ (m3(task)*cue_int_stimquad)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*cue_int_stimquad)/runlength,2)) ];
+    P_VC_stimlin_high_gt_low     = [ (m1(task)*stimlin_high_gt_low)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*stimlin_high_gt_low)/runlength,2)) ];
+    V_PC_stimlin_high_gt_low     = [ (m2(task)*stimlin_high_gt_low)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*stimlin_high_gt_low)/runlength,2)) ];
+    C_PV_stimlin_high_gt_low     = [ (m3(task)*stimlin_high_gt_low)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*stimlin_high_gt_low)/runlength,2)) ];
+
+    P_VC_stimquad_med_gt_other   = [ (m1(task)*stimquad_med_gt_other)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*stimquad_med_gt_other)/runlength,2)) ];
+    V_PC_stimquad_med_gt_other   = [ (m2(task)*stimquad_med_gt_other)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*stimquad_med_gt_other)/runlength,2)) ];
+    C_PV_stimquad_med_gt_other   = [ (m3(task)*stimquad_med_gt_other)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*stimquad_med_gt_other)/runlength,2)) ];
+
+    P_VC_cue_int_stimlin         = [ (m1(task)*cue_int_stimlin)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*cue_int_stimlin)/runlength,2)) ];
+    V_PC_cue_int_stimlin         = [ (m2(task)*cue_int_stimlin)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*cue_int_stimlin)/runlength,2)) ];
+    C_PV_cue_int_stimlin         = [ (m3(task)*cue_int_stimlin)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*cue_int_stimlin)/runlength,2)) ];
+
+    P_VC_cue_int_stimquad        = [ (m1(task)*cue_int_stimquad)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*cue_int_stimquad)/runlength,2)) ];
+    V_PC_cue_int_stimquad        = [ (m2(task)*cue_int_stimquad)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*cue_int_stimquad)/runlength,2)) ];
+    C_PV_cue_int_stimquad        = [ (m3(task)*cue_int_stimquad)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*cue_int_stimquad)/runlength,2)) ];
 
     motor                        = [ 0,0,0,0,0,0,0,1,1, zeros(1, numRegressorsPerRun(run_ind) - 9 ) ];
 
-    P_simple_cue_high_gt_low         = [ (m5(task)*cue_high_gt_low)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*cue_high_gt_low)/runlength,2)) ];
-    V_simple_cue_high_gt_low         = [ (m6(task)*cue_high_gt_low)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*cue_high_gt_low)/runlength,2)) ];
-    C_simple_cue_high_gt_low         = [ (m7(task)*cue_high_gt_low)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*cue_high_gt_low)/runlength,2)) ];
+    P_simple_cue_high_gt_low         = [ (m5(task)*cue_high_gt_low)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*cue_high_gt_low)/runlength,2)) ];
+    V_simple_cue_high_gt_low         = [ (m6(task)*cue_high_gt_low)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*cue_high_gt_low)/runlength,2)) ];
+    C_simple_cue_high_gt_low         = [ (m7(task)*cue_high_gt_low)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*cue_high_gt_low)/runlength,2)) ];
 
-    P_simple_stimlin_high_gt_low     = [ (m5(task)*stimlin_high_gt_low)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*stimlin_high_gt_low)/runlength,2)) ];
-    V_simple_stimlin_high_gt_low     = [ (m6(task)*stimlin_high_gt_low)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*stimlin_high_gt_low)/runlength,2)) ];
-    C_simple_stimlin_high_gt_low     = [ (m7(task)*stimlin_high_gt_low)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*stimlin_high_gt_low)/runlength,2)) ];
+    P_simple_stimlin_high_gt_low     = [ (m5(task)*stimlin_high_gt_low)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*stimlin_high_gt_low)/runlength,2)) ];
+    V_simple_stimlin_high_gt_low     = [ (m6(task)*stimlin_high_gt_low)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*stimlin_high_gt_low)/runlength,2)) ];
+    C_simple_stimlin_high_gt_low     = [ (m7(task)*stimlin_high_gt_low)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*stimlin_high_gt_low)/runlength,2)) ];
 
-    P_simple_stimquad_med_gt_other   = [ (m5(task)*stimquad_med_gt_other)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*stimquad_med_gt_other)/runlength,2))  ];
-    V_simple_stimquad_med_gt_other   = [ (m6(task)*stimquad_med_gt_other)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*stimquad_med_gt_other)/runlength,2))  ];
-    C_simple_stimquad_med_gt_other   = [ (m7(task)*stimquad_med_gt_other)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*stimquad_med_gt_other)/runlength,2))  ];
+    P_simple_stimquad_med_gt_other   = [ (m5(task)*stimquad_med_gt_other)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*stimquad_med_gt_other)/runlength,2))  ];
+    V_simple_stimquad_med_gt_other   = [ (m6(task)*stimquad_med_gt_other)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*stimquad_med_gt_other)/runlength,2))  ];
+    C_simple_stimquad_med_gt_other   = [ (m7(task)*stimquad_med_gt_other)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*stimquad_med_gt_other)/runlength,2))  ];
 
-    P_simple_cue_int_stimlin         = [ (m5(task)*cue_int_stimlin)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*cue_int_stimlin)/runlength,2)) ];
-    V_simple_cue_int_stimlin         = [ (m6(task)*cue_int_stimlin)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*cue_int_stimlin)/runlength,2)) ];
-    C_simple_cue_int_stimlin         = [ (m7(task)*cue_int_stimlin)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*cue_int_stimlin)/runlength,2)) ];
+    P_simple_cue_int_stimlin         = [ (m5(task)*cue_int_stimlin)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*cue_int_stimlin)/runlength,2)) ];
+    V_simple_cue_int_stimlin         = [ (m6(task)*cue_int_stimlin)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*cue_int_stimlin)/runlength,2)) ];
+    C_simple_cue_int_stimlin         = [ (m7(task)*cue_int_stimlin)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*cue_int_stimlin)/runlength,2)) ];
 
-    P_simple_cue_int_stimquad        = [ (m5(task)*cue_int_stimquad)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*cue_int_stimquad)/runlength,2))  ];
-    V_simple_cue_int_stimquad        = [ (m6(task)*cue_int_stimquad)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*cue_int_stimquad)/runlength,2))  ];
-    C_simple_cue_int_stimquad        = [ (m7(task)*cue_int_stimquad)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*cue_int_stimquad)/runlength,2))  ];
+    P_simple_cue_int_stimquad        = [ (m5(task)*cue_int_stimquad)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*cue_int_stimquad)/runlength,2))  ];
+    V_simple_cue_int_stimquad        = [ (m6(task)*cue_int_stimquad)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*cue_int_stimquad)/runlength,2))  ];
+    C_simple_cue_int_stimquad        = [ (m7(task)*cue_int_stimquad)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*cue_int_stimquad)/runlength,2))  ];
 
-    P_simple_highcue_highstim        = [ (m5(task)*highcue_highstim)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*highcue_highstim)/runlength,2))  ]; 
-    P_simple_highcue_medstim         = [ (m5(task)*highcue_medstim)/runlength,  zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*highcue_medstim)/runlength,2))  ]; 
-    P_simple_highcue_lowstim         = [ (m5(task)*highcue_lowstim)/runlength,  zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*highcue_lowstim)/runlength,2))  ]; 
-    P_simple_lowcue_highstim         = [ (m5(task)*lowcue_highstim)/runlength,  zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*lowcue_highstim)/runlength,2))  ]; 
-    P_simple_lowcue_medstim          = [ (m5(task)*lowcue_medstim)/runlength,   zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*lowcue_medstim)/runlength,2))  ]; 
-    P_simple_lowcue_lowstim          = [ (m5(task)*lowcue_lowstim)/runlength,   zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*lowcue_lowstim)/runlength,2))  ]; 
+    P_simple_highcue_highstim        = [ (m5(task)*highcue_highstim)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*highcue_highstim)/runlength,2))  ]; 
+    P_simple_highcue_medstim         = [ (m5(task)*highcue_medstim)/task_freq,  zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*highcue_medstim)/runlength,2))  ]; 
+    P_simple_highcue_lowstim         = [ (m5(task)*highcue_lowstim)/task_freq,  zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*highcue_lowstim)/runlength,2))  ]; 
+    P_simple_lowcue_highstim         = [ (m5(task)*lowcue_highstim)/task_freq,  zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*lowcue_highstim)/runlength,2))  ]; 
+    P_simple_lowcue_medstim          = [ (m5(task)*lowcue_medstim)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*lowcue_medstim)/runlength,2))  ]; 
+    P_simple_lowcue_lowstim          = [ (m5(task)*lowcue_lowstim)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*lowcue_lowstim)/runlength,2))  ]; 
 
-    V_simple_highcue_highstim        = [ (m6(task)*highcue_highstim)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*highcue_highstim)/runlength,2)) ]; 
-    V_simple_highcue_medstim         = [ (m6(task)*highcue_medstim)/runlength,  zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*highcue_medstim)/runlength,2)) ]; 
-    V_simple_highcue_lowstim         = [ (m6(task)*highcue_lowstim)/runlength,  zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*highcue_lowstim)/runlength,2)) ]; 
-    V_simple_lowcue_highstim         = [ (m6(task)*lowcue_highstim)/runlength,  zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*lowcue_highstim)/runlength,2)) ]; 
-    V_simple_lowcue_medstim          = [ (m6(task)*lowcue_medstim)/runlength,   zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*lowcue_medstim)/runlength,2)) ]; 
-    V_simple_lowcue_lowstim          = [ (m6(task)*lowcue_lowstim)/runlength,   zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*lowcue_lowstim)/runlength,2)) ]; 
+    V_simple_highcue_highstim        = [ (m6(task)*highcue_highstim)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*highcue_highstim)/runlength,2)) ]; 
+    V_simple_highcue_medstim         = [ (m6(task)*highcue_medstim)/task_freq,  zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*highcue_medstim)/runlength,2)) ]; 
+    V_simple_highcue_lowstim         = [ (m6(task)*highcue_lowstim)/task_freq,  zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*highcue_lowstim)/runlength,2)) ]; 
+    V_simple_lowcue_highstim         = [ (m6(task)*lowcue_highstim)/task_freq,  zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*lowcue_highstim)/runlength,2)) ]; 
+    V_simple_lowcue_medstim          = [ (m6(task)*lowcue_medstim)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*lowcue_medstim)/runlength,2)) ]; 
+    V_simple_lowcue_lowstim          = [ (m6(task)*lowcue_lowstim)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*lowcue_lowstim)/runlength,2)) ]; 
 
-    C_simple_highcue_highstim        = [ (m7(task)*highcue_highstim)/runlength, zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*highcue_highstim)/runlength,2)) ]; 
-    C_simple_highcue_medstim         = [ (m7(task)*highcue_medstim)/runlength,  zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*highcue_medstim)/runlength,2)) ]; 
-    C_simple_highcue_lowstim         = [ (m7(task)*highcue_lowstim)/runlength,  zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*highcue_lowstim)/runlength,2)) ]; 
-    C_simple_lowcue_highstim         = [ (m7(task)*lowcue_highstim)/runlength,  zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*lowcue_highstim)/runlength,2)) ]; 
-    C_simple_lowcue_medstim          = [ (m7(task)*lowcue_medstim)/runlength,   zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*lowcue_medstim)/runlength,2)) ]; 
-    C_simple_lowcue_lowstim          = [ (m7(task)*lowcue_lowstim)/runlength,   zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*lowcue_lowstim)/runlength,2)) ]; 
+    C_simple_highcue_highstim        = [ (m7(task)*highcue_highstim)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*highcue_highstim)/runlength,2)) ]; 
+    C_simple_highcue_medstim         = [ (m7(task)*highcue_medstim)/task_freq,  zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*highcue_medstim)/runlength,2)) ]; 
+    C_simple_highcue_lowstim         = [ (m7(task)*highcue_lowstim)/task_freq,  zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*highcue_lowstim)/runlength,2)) ]; 
+    C_simple_lowcue_highstim         = [ (m7(task)*lowcue_highstim)/task_freq,  zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*lowcue_highstim)/runlength,2)) ]; 
+    C_simple_lowcue_medstim          = [ (m7(task)*lowcue_medstim)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*lowcue_medstim)/runlength,2)) ]; 
+    C_simple_lowcue_lowstim          = [ (m7(task)*lowcue_lowstim)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*lowcue_lowstim)/runlength,2)) ]; 
 
     c01 = [ c01  P_VC_cue_high_gt_low];         c02 = [ c02  V_PC_cue_high_gt_low];         c03 = [ c03  C_PV_cue_high_gt_low];
     c04 = [ c04  P_VC_stimlin_high_gt_low];     c05 = [ c05  V_PC_stimlin_high_gt_low];     c06 = [ c06  C_PV_stimlin_high_gt_low];   
