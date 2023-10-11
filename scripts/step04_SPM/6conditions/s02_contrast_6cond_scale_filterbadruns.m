@@ -56,18 +56,55 @@ output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model0
 spm_fname = fullfile(output_dir, 'SPM.mat');
 load(spm_fname);
 
+paths = cellstr(SPM.xY.P);
+
+% Get unique file paths (without slice numbers)
+uniqueFilePaths = unique(cellfun(@(x) x(1:strfind(x, '.nii,')-1), paths, 'UniformOutput', false));
+
+% Extract 'sub', 'ses', and 'run' info
+numFiles = length(uniqueFilePaths);
+% subInfo = cell(numFiles, 1);
+% sesInfo = cell(numFiles, 1);
+% runInfo = cell(numFiles, 1);
+
+subInfo = zeros(1, numFiles);  % Pre-allocate a matrix for efficiency
+sesInfo = zeros(1, numFiles);   % We will keep these as cells since you didn't specify to change them
+runInfo = zeros(1, numFiles);   % Same here
+
+for i = 1:numFiles
+    [~, fileName, ~] = fileparts(uniqueFilePaths{i});
+    subInfo(i) = str2double(regexp(fileName, '(?<=sub-)\d+', 'match', 'once'));
+    sesInfo(i) = str2double(regexp(fileName, '(?<=ses-)\d+', 'match', 'once'));
+    runInfo(i) = str2double(regexp(fileName, '(?<=run-)\d+', 'match', 'once'));
+end
+
+
+% for i = 1:numFiles
+%     [~, fileName, ~] = fileparts(uniqueFilePaths{i});
+%     % subInfo{i} = regexp(fileName, 'sub-\d+', 'match', 'once');
+%     % sesInfo{i} = regexp(fileName, 'ses-\d+', 'match', 'once');
+%     % runInfo{i} = regexp(fileName, 'run-\d+', 'match', 'once');
+%     sub_num(i) = str2double(regexp(fileName, '(?<=sub-)\d+', 'match', 'once'));
+%     sesInfo{i} = regexp(fileName, '(?<=ses-)\d+', 'match', 'once');
+%     runInfo{i} = regexp(fileName, '(?<=run-)\d+', 'match', 'once');
+% end
+
+% TODO: create a table. Aftereward, find the corresponding run-type info
+% infoTable = table(subInfo, sesInfo, runInfo);
+sortedT = table(subInfo', sesInfo', runInfo', 'VariableNames', {'sub_num', 'ses_num', 'run_num'});
+
 % NOTE 03 find intersection of nifti and onset files
 % find nifti files
-niilist = dir(fullfile(input_dir, sub, '*/smooth-6mm_*task-cue*_bold.nii'));
-nT = struct2table(niilist); % convert the struct array to a table
-sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
+% niilist = dir(fullfile(input_dir, sub, '*/smooth-6mm_*task-cue*_bold.nii'));
+% nT = struct2table(niilist); % convert the struct array to a table
+% sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
 
-sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
-sortedT.ses_num(:) = str2double(extractBetween(sortedT.name, 'ses-', '_'));
-sortedT.run_num(:) = str2double(extractBetween(sortedT.name, 'run-', '_'));
+% sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
+% sortedT.ses_num(:) = str2double(extractBetween(sortedT.name, 'ses-', '_'));
+% sortedT.run_num(:) = str2double(extractBetween(sortedT.name, 'run-', '_'));
 
 nii_col_names = sortedT.Properties.VariableNames;
-nii_num_colomn = nii_col_names(endsWith(nii_col_names, '_num'));
+nii_num_column = nii_col_names(endsWith(nii_col_names, '_num'));
 
 % find onset files
 onsetlist = dir(fullfile(onset_dir, sub, '*', strcat(sub, '_*_task-cue_*_events.tsv')));
@@ -79,10 +116,10 @@ sortedonsetT.ses_num(:) = str2double(extractBetween(sortedonsetT.name, 'ses-', '
 sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '_'));
 
 onset_col_names = sortedonsetT.Properties.VariableNames;
-onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
-disp(onset_num_colomn)
+onset_num_column = onset_col_names(endsWith(onset_col_names, '_num'));
+disp(onset_num_column)
 %intersection of nifti and onset files
-A = intersect(sortedT(:, nii_num_colomn), sortedonsetT(:, onset_num_colomn));
+A = intersect(sortedT(:, nii_num_column), sortedonsetT(:, onset_num_column));
 
 % NOTE 04 define contrast
 
@@ -111,7 +148,7 @@ c21 = []; c22 = []; c23 = []; c24 = []; c25 = []; c26 = []; c27 = []; c28 = []; 
 c31 = []; c32 = []; c33 = []; c34 = []; c35 = []; c36 = []; c37 = []; c38 = []; c39 = []; c40 = [];
 c41 = []; c42 = []; c43 = []; c44 = []; c45 = []; c46 = []; c47 = []; c48 = []; c49 = []; 
 matlabbatch = cell(1,1);
-runlength = size(A,1)
+runlength = size(A,1);
 for run_ind = 1: runlength
     disp(strcat('run', num2str(run_ind)));
     sub = strcat('sub-', sprintf('%04d', A.sub_num(run_ind)));
@@ -134,6 +171,13 @@ for run_ind = 1: runlength
     task          = char(keyword);
     disp(task);
 
+    % consider aborted runs:
+    %%%%%%%%%%%%%%%
+
+
+
+
+    %%%%%%%%%%%%%%%
 
     P_VC_cue_high_gt_low         = [ (m1(task)*cue_high_gt_low)/runlength,0,0,0,covariate ];
     V_PC_cue_high_gt_low         = [ (m2(task)*cue_high_gt_low)/runlength,0,0,0,covariate ];
