@@ -61,17 +61,14 @@ library(effectsize)
 library(gghalves)
 library(brms)
 
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
-source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
-
 library(r2mlm)
-file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+main_dir <- dirname(dirname(getwd()))
+file.sources = list.files(file.path(main_dir, 'scripts', 'step02_R', 'utils'),
                           pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
+
 ```
 
 
@@ -79,7 +76,7 @@ sapply(file.sources,source,.GlobalEnv)
 ```{r load_data_and_exclude_51}
 main_dir = dirname(dirname(getwd()))
 datadir = file.path(main_dir, "analysis", "physio", "physio01_SCL")
-analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model51_iv-cue-stim_dv-scl", as.character(Sys.Date()))
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model91_physio_iv-cue-stim_dv-scl", as.character(Sys.Date()))
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 ```
 ```{r}
@@ -107,6 +104,7 @@ filename <- paste0("*_runtype-", taskname,"_epochstart--1_epochend-20_physio-scl
 #     read.csv(files)
 #     }))
 
+  
 scl <- do.call("rbind.fill", lapply(filter_path, FUN = function(files) {
     read.csv(files)
     }))
@@ -127,6 +125,7 @@ scl <- do.call("rbind.fill", lapply(filter_path, FUN = function(files) {
 This is the data that we will use
 
 ```{r echo=FALSE}
+scl <- read.csv("/Users/h/Documents/projects_local/cue_expectancy/data/physio/sub-all_ses-all_run-all_runtype-cognitive_epochstart--3_epochend-20_samplingrate-25_ttlindex-1_physio-scltimecourse.csv")
 head(scl)
 ```
 
