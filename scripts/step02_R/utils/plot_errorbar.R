@@ -3,11 +3,11 @@ plot_errorbar <- function(subjectwise, groupwise, iv, sub_iv, group_by,
                           ggtitle, title, xlab, ylab, taskname, ylim,
                           w, h, dv_keyword, color, level_num, save_fname) {
     library(ggplot2)
-    file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
-                          ignore.case=TRUE)
-    sapply(file.sources,source,.GlobalEnv)
+    # file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+    #                       pattern="*.R", 
+    #                       full.names=TRUE, 
+    #                       ignore.case=TRUE)
+    # sapply(file.sources,source,.GlobalEnv)
     g <- ggplot(
         data = subjectwise,
         aes(
