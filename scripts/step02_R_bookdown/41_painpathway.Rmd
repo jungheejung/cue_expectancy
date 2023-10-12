@@ -24,14 +24,14 @@ library(devtools)
 options(es.use_symbols = TRUE) # get nice symbols when printing! (On Windows, requires R >= 4.2.0)
 library(EMAtools)
 library(emmeans)
-library(equatiomatic)
+# library(equatiomatic)
 library(sjPlot)
 library(sjmisc)
 library(sjlabelled)
 library(DT)
 library(raincloudplots)
 devtools::source_url("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
-file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+file.sources = list.files(c("/Users/h/Documents/projects_local/cue_expectancy/scripts/step02_R/utils"),
                           pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
@@ -48,7 +48,7 @@ exclude_list <- "sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0007|sub-0008|
 
 ```{r}
 ## load brain extracted values {.unlisted .unnumbered}
-extraction_fname = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/fmri/nilearn/signature_canlabcore/roi-painpathway_sub-all_runtype-pvc_event-stimulus.csv'
+extraction_fname = file.path(main_dir,'analysis/fmri/nilearn/signature_canlabcore/roi-painpathway_sub-all_runtype-pvc_event-stimulus.csv')
 brain.df <- load_extraction(fname = extraction_fname)
 head(brain.df)
 
@@ -104,6 +104,8 @@ taskname = "all"
 plot_keyword = "stimulusintensity"
 ggtitle_phrase =  "(2 cue x 3 stimulus intensity)"
 pvc$task = factor(pvc.df$task)
+analysis_dir = '/Users/h/Desktop'
+dv_keyword = 'NPSpos'
 for (extract_key in c("Thal_VPLM_R","Thal_VPLM_L", "Thal_MD", "dpIns_L", "dpIns_R", "aMCC_MPFC")) {
 PLOT_KEYS <- list(
     iv1 = "stim_ordered", iv2 = "cue_ordered", dv = extract_key,
@@ -118,11 +120,40 @@ PLOT_KEYS <- list(
     save_fname = '/Users/h/Desktop/TEMP.png',
     color =  c("#4575B4", "#D73027")
   )
+  # [ MODEL ] _________________________________________________ # nolint
+model_savefname <- file.path(
+  analysis_dir,
+  paste(
+    "lmer_task-",
+    taskname,
+    "_rating-",
+    extract_key,
+    "_",
+    as.character(Sys.Date()),
+    "_cooksd.txt",
+    sep = ""
+  )
+)
+
+cooksd <- lmer_twofactor_cooksd_fix(
+  pvc.df,
+  taskname,
+  "cue_ordered",
+  "stim_ordered",
+  "stim_ordered",
+  dv=extract_key,
+  "sub",
+  extract_key,
+  model_savefname,
+  'random_intercept',
+  print_lmer_output = FALSE
+)
   p <- plot_signature_tworaincloud(signature_key = extract_key, plot_keys = PLOT_KEYS, df = pvc.df[pvc.df$task == "pain",])
   print(p)
 
   g <- plot_signature_twolineplot(signature_key = extract_key, plot_keys = PLOT_KEYS, df = pvc.df[pvc.df$task == "pain",])
   print(g)
+  
 }
 ```
 

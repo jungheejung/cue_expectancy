@@ -11,7 +11,7 @@ library(car)
 library(psych)
 library(reshape)
 library(PupillometryR)
-library(dplyr)
+library(plyr); library(dplyr)
 library(tidyselect)
 library(tidyr)
 library(stringr)
@@ -198,7 +198,7 @@ pvc <- simple_contrasts_singletrial(df)
 # ----------------------------------------------------------------------
 
 for (dv in c("HIP.rh", "AMY.rh", "pTHA.rh", "aTHA.rh", "NAc.rh", "GP.rh","PUT.rh","CAU.rh",
-             "HIP.lh","AMY.lh","pTHA.lh","aTHA.lh","NAc.lh","GP.lh","PUT.lh","CAU.lh"  ))
+             "HIP.lh","AMY.lh","pTHA.lh","aTHA.lh","NAc.lh","GP.lh","PUT.lh","CAU.lh"  )){
 taskname = "pain"
 ggtitle <- paste(taskname, " - NPS (degree)")
 title <- paste(taskname, " - actual")
@@ -257,7 +257,7 @@ NPSstimcue_groupwise <- summarySEwithin(
 NPSstimcue_groupwise$task <- taskname
 # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
 
-combined_se_calc_cooksd <-NPSstimcue_groupwise
+# combined_se_calc_cooksd <-NPSstimcue_groupwise
 # calculate mean and se
 sub_mean <- "mean_per_sub"
 group_mean <- "mean_per_sub_norm_mean"
@@ -308,24 +308,153 @@ g <- plot_halfrainclouds_twofactor(
   plot_savefname
 )
 g
-```
-## LINEPLOTS {.unlisted .unnumbered}
+print(g)
 
-```{r echo=FALSE, warning=FALSE}
-g <- plot_lineplot_twofactor(NPSstimcue_groupwise,
+k <- plot_lineplot_twofactor(NPSstimcue_groupwise,
                         iv1 = "stim_ordered", iv2 = "cue_ordered", 
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("high cue" = "red",
-                                  # "med" = "orange", 
-                                  "low cue" = "blue"), 
-                        ggtitle = "Within pain task: NPS dotproducts as a function of stimulus intensity level and cue", 
-                        xlab = "Stimulus intensity", ylab = "NPSpos (dot product)")
-g + theme(aspect.ratio=.8)
+                        color = c("high" = "red",
+                                  # "med" = "orange",
+                                  "low" = "blue"), 
+                        ggtitle = title, 
+                        xlab = "Stimulus intensity", ylab = "ROI average activation (A.U.)")
+k <- k + theme(aspect.ratio=.8)
+print(k)
+}
 ```
 
+## Plot different axis
+
+```{r}
+# ----------------------------------------------------------------------
+#                               parameters
+# ----------------------------------------------------------------------
+
+for (dv in c("HIP.rh", "AMY.rh", "pTHA.rh", "aTHA.rh", "NAc.rh", "GP.rh","PUT.rh","CAU.rh",
+             "HIP.lh","AMY.lh","pTHA.lh","aTHA.lh","NAc.lh","GP.lh","PUT.lh","CAU.lh"  )){
+taskname = "pain"
+ggtitle <- paste(taskname, " - NPS (degree)")
+title <- paste(taskname, " - actual")
+subject <- "sub"
+w <- 10
+h <- 6
+stim_con1 <- "STIM_linear"
+stim_con2 <- "STIM_quadratic"
+iv1 <- "CUE_high_gt_low"
+# dv <- "HIP.rh"
+dv_keyword = paste0("subcortex-",dv)
+
+data <- pvc
+data <- pvc[complete.cases(pvc[[dv]]), ]
+
+model_savefname <- file.path(
+  analysis_dir,  
+  paste(
+    "lmer_task-",taskname,"_rating-",dv_keyword,"_",as.character(Sys.Date()),"_cooksd.txt",
+    sep = ""
+  )
+)
+
+# ----------------------------------------------------------------------
+#                               lmer model
+# ----------------------------------------------------------------------
+
+cooksd <- lmer_twofactor_cooksd_fix(
+  data,  taskname,  iv1,  stim_con1,  stim_con2,  dv,
+  subject,  dv_keyword,  model_savefname,
+  'random_intercept',  print_lmer_output = FALSE
+)
+influential <- as.numeric(names(cooksd)[(cooksd > (4 / as.numeric(length(unique(
+  data$sub
+)))))])
+
+data_screen <- data #data[-influential,]
+
+# ----------------------------------------------------------------------
+#                     summary statistics for plots
+# ----------------------------------------------------------------------
+
+model_iv2 <- "stim_ordered"
+model_iv1 <- "cue_ordered"
 
 
+# ======= NOTE: calculate mean and se ----------------------------------
+NPSstimcue_subjectwise <- meanSummary(data_screen,
+                                      c(subject, model_iv1, model_iv2), dv)
+NPSstimcue_groupwise <- summarySEwithin(
+  data = NPSstimcue_subjectwise,
+  measurevar = "mean_per_sub",
+  withinvars = c(model_iv1, model_iv2),
+  idvar = subject
+)
+NPSstimcue_groupwise$task <- taskname
+# https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
 
+# combined_se_calc_cooksd <-NPSstimcue_groupwise
+# calculate mean and se
+sub_mean <- "mean_per_sub"
+group_mean <- "mean_per_sub_norm_mean"
+se <- "se"
+subject <- "sub"
+ggtitle <- paste(taskname, " - ", dv, "Cooksd removed")
+title <- paste(taskname, " - ", dv)
+xlab <- ""
+ylab <- "ROI average activation (A.U)"
+ylim <- c(-10, 60)
+
+if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+  color <- c("#1B9E77", "#D95F02", "black")
+} else {
+  color <- c("#4575B4", "#D73027", "black")
+} # if keyword starts with
+plot_savefname <- file.path(
+  analysis_dir,
+  paste(
+    "raincloud_task-", taskname, "_rating-", dv_keyword, "_", as.character(Sys.Date()), "_cooksd.png",
+    sep = ""
+  )
+)
+
+# ----------------------------------------------------------------------
+#                            raincloudplots
+# ----------------------------------------------------------------------
+
+g <- plot_halfrainclouds_twofactor(
+  NPSstimcue_subjectwise,
+  NPSstimcue_groupwise,
+  model_iv1,
+  model_iv2,
+  sub_mean,
+  group_mean,
+  se,
+  subject,
+  ggtitle,
+  title,
+  xlab,
+  ylab,
+  taskname,
+  ylim,
+  w,
+  h,
+  dv_keyword,
+  color,
+  plot_savefname
+)
+g
+print(g)
+
+k <- plot_lineplot_twofactor(NPSstimcue_groupwise,
+                        iv2 = "stim_ordered", iv1 = "cue_ordered", 
+                        mean = "mean_per_sub_norm_mean", error = "se",
+                        color = c("high" = "red",
+                                   "med" = "orange",
+                                  "low" = "blue"), 
+                        ggtitle = title, 
+                        xlab = "cue type", ylab = "ROI average activation (A.U.)")
+k <- k + theme(aspect.ratio=.8)
+print(k)
+}
+```
 
 
 
