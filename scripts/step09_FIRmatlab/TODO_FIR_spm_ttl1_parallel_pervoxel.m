@@ -183,7 +183,12 @@ for run_ind = 1:size(A, 1)
     fmriprep_fname = fullfile(fmriprep_dir, sub, ses, 'func', strcat(sub, '_', ses, '_task-social_acq-mb8_',run01, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
     % '/Users/h/Documents/projects_local/sandbox/fmriprep_bold/sub-0002/ses-01/func/sub-0002_ses-01_task-social_acq-mb8_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'
     fmridata = fmri_data(fmriprep_fname);
-    [parcel_means, parcel_pattern_expression, parcel_valence, ~, ~, voxel_count]=apply_parcellation(fmridata, atlas_obj);
+    % confounds = TODO
+    tr = 0.46;
+       %% TODO
+    [preproc_dat]=canlab_connectivity_preproc(fmridata, confounds, 'hpf', .007, tr, 'average_over', 'no_plots');
+    %% TODO
+    [parcel_means, parcel_pattern_expression, parcel_valence, ~, ~, voxel_count]=apply_parcellation(preproc_dat, atlas_obj);
     disp("------loaded fmriprep image and parcellation! --------")
     num_conditions = size(Runc,2);
     
