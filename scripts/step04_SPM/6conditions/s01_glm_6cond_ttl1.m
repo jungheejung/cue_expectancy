@@ -1,4 +1,4 @@
-function s01_glm_6cond_ttl1(sub, input_dir, main_dir, fmriprep_dir, badruns_json)
+function s01_glm_6cond_ttl1(sub, input_dir, main_dir, fmriprep_dir, badruns_json, save_dir)
     % combined regressors of both ratings into one
     % do not use ttl2 for pain regressors
 
@@ -97,7 +97,7 @@ function s01_glm_6cond_ttl1(sub, input_dir, main_dir, fmriprep_dir, badruns_json
     disp(A);
     output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_6cond_ttl1', ...
         '1stLevel', sub);
-
+    output_dir = fullfile(save_dir, sub);
     if ~exist(output_dir, 'dir')
         mkdir(output_dir)
     end
