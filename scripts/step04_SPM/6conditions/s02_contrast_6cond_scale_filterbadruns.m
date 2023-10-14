@@ -1,4 +1,4 @@
-function s02_contrast_6cond_scale_filterbadruns(sub, input_dir, main_dir)
+function s02_contrast_6cond_scale_filterbadruns(sub, input_dir, main_dir, save_dir)
 
     % need to scale the contrasts, other wise, missing runs may lead to greater weigthing and messed up estimation
     % PARAMETERS
@@ -51,9 +51,10 @@ motion_dir = fullfile(main_dir, 'data', 'fmri', 'fmri02_motion');
 onset_dir = fullfile(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset02_SPM');
 
 disp( strcat('-----------------------',sub,'----------------------' ));
-output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_6cond', ...
+output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_6cond_ttl1', ...
 '1stLevel', sub);
-spm_fname = fullfile(output_dir, 'SPM.mat');
+output_dir = save_dir;
+spm_fname = fullfile(output_dir, sub, 'SPM.mat');
 load(spm_fname);
 
 paths = cellstr(SPM.xY.P);
@@ -182,14 +183,6 @@ for run_ind = 1: runlength
     %task          = char(extractAfter(keyword, '-'));
     % task          = char(keyword);
     disp(task);
-
-    % consider aborted runs:
-    %%%%%%%%%%%%%%%
-
-
-
-
-    %%%%%%%%%%%%%%%
 
 
     % Extract the frequency for the 'cognitive' runtype
