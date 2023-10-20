@@ -49,7 +49,7 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir, badruns_json, save_dir)
     sortedT.run_num(:) = str2double(extractBetween(sortedT.name, 'run-', '_'));
 
     nii_col_names = sortedT.Properties.VariableNames;
-    nii_num_colomn = nii_col_names(endsWith(nii_col_names, '_num'));
+    nii_num_column = nii_col_names(endsWith(nii_col_names, '_num'));
 
     % find onset files
     onsetlist = dir(fullfile(onset_dir, sub, '*', strcat(sub, '_*_task-cue_*_events.tsv')));
@@ -61,23 +61,23 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir, badruns_json, save_dir)
     sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '_'));
 
     onset_col_names = sortedonsetT.Properties.VariableNames;
-    onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
-    disp(nii_num_colomn)
+    onset_num_column = onset_col_names(endsWith(onset_col_names, '_num'));
+    disp(nii_num_column)
 
     % load badruns from json _________________________________________________________________
     bad_runs_table = readBadRunsFromJSON(badruns_json);
     json_col_names = bad_runs_table.Properties.VariableNames;
-    json_num_colomn = json_col_names(endsWith(json_col_names, '_num'));
+    json_num_column = json_col_names(endsWith(json_col_names, '_num'));
     disp(bad_runs_table);
 
-    [~, ia] = ismember(sortedT(:, nii_num_column), bad_runs_table(:,json_num_colomn), 'rows');
+    [~, ia] = ismember(sortedT(:, nii_num_column), bad_runs_table(:,json_num_column), 'rows');
     intersectRuns = sortedT(setdiff(1:size(sortedT, 1), ia), :);
     intersect_col_names = intersectRuns.Properties.VariableNames;
     inter_num_column = intersect_col_names(endsWith(intersect_col_names, '_num'));
 
 
     %intersection of nifti and onset files
-    A = intersect(sortedT(:, nii_num_colomn), sortedonsetT(:, onset_num_colomn));
+    A = intersect(sortedT(:, nii_num_column), sortedonsetT(:, onset_num_column));
 
     % output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_CESO', ...
     %     '1stLevel', sub);
