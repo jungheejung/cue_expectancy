@@ -23,7 +23,7 @@ m7 = containers.Map(keySet,con7);
 
 cue_con  = [1,0,0,0];
 stim_con = [0,0,1,0];
-motor    = [0,1,0,1];
+motor_con    = [0,1,0,1];
 % NOTE 02 define directories _______________________________________________________
 % motion_dir = fullfile(main_dir, 'data', 'fmri', 'fmri02_motion');
 onset_dir = fullfile(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset02_SPM');
@@ -105,7 +105,7 @@ for run_ind = 1: runlength
     stim_C        = [ m3(task)*stim_con/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*stim_con),2)) ];
     stim_G        = [ m4(task)*stim_con/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m4(task)*stim_con),2)) ];
     
-    motor        = [ motor, zeros(1, numRegressorsPerRun(run_ind) - size((motor),2)) ];
+    motor        = [ motor_con, zeros(1, numRegressorsPerRun(run_ind) - size((motor_con),2)) ];
 
     simple_cue_P         = [ m5(task)*cue_con/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*cue_con),2)) ];
     simple_cue_V         = [ m6(task)*cue_con/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*cue_con),2)) ];
