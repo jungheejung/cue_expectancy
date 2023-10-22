@@ -21,42 +21,52 @@ m5 = containers.Map(keySet,con5);
 m6 = containers.Map(keySet,con6);
 m7 = containers.Map(keySet,con7);
 
+cue_con  = [1,0,0,0];
+stim_con = [0,0,1,0];
+motor    = [0,1,0,1];
 % NOTE 02 define directories _______________________________________________________
-motion_dir = fullfile(main_dir, 'data', 'fmri', 'fmri02_motion');
+% motion_dir = fullfile(main_dir, 'data', 'fmri', 'fmri02_motion');
 onset_dir = fullfile(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset02_SPM');
 
 disp( sub );
-output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_CESO', ...
-'1stLevel', sub);
-spm_fname = fullfile(output_dir, 'SPM.mat');
+% output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_CESO', ...
+% '1stLevel', sub);
+% output_dir = fullfile(input_dir, sub);
+spm_fname = fullfile(input_dir, sub, 'SPM.mat');
 load(spm_fname);
+
+paths = cellstr(SPM.xY.P);
+
 % NOTE 03 find intersection of nifti and onset files
-% find nifti files
-niilist = dir(fullfile(input_dir, sub, '*/smooth-6mm_*task-cue*_bold.nii'));
-nT = struct2table(niilist); % convert the struct array to a table
-sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
+% Get unique file paths (without slice numbers)
+uniqueFilePaths = unique(cellfun(@(x) x(1:strfind(x, '.nii,')-1), paths, 'UniformOutput', false));
 
-sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
-sortedT.ses_num(:) = str2double(extractBetween(sortedT.name, 'ses-', '_'));
-sortedT.run_num(:) = str2double(extractBetween(sortedT.name, 'run-', '_'));
+% Extract 'sub', 'ses', and 'run' info
+numFiles = length(uniqueFilePaths);
 
-nii_col_names = sortedT.Properties.VariableNames;
-nii_num_colomn = nii_col_names(endsWith(nii_col_names, '_num'));
+subInfo = zeros(1, numFiles);  % Pre-allocate a matrix for efficiency
+sesInfo = zeros(1, numFiles);   % We will keep these as cells since you didn't specify to change them
+runInfo = zeros(1, numFiles);   % Same here
 
+for i = 1:numFiles
+    [~, fileName, ~] = fileparts(uniqueFilePaths{i});
+    subInfo(i) = str2double(regexp(fileName, '(?<=sub-)\d+', 'match', 'once'));
+    sesInfo(i) = str2double(regexp(fileName, '(?<=ses-)\d+', 'match', 'once'));
+    runInfo(i) = str2double(regexp(fileName, '(?<=run-)\d+', 'match', 'once'));
+end
+
+sortedT = table(subInfo', sesInfo', runInfo', 'VariableNames', {'sub_num', 'ses_num', 'run_num'});
 % find onset files
 onsetlist = dir(fullfile(onset_dir, sub, '*', strcat(sub, '_*_task-cue_*_events.tsv')));
 onsetT = struct2table(onsetlist);
 sortedonsetT = sortrows(onsetT, 'name');
-
 sortedonsetT.sub_num(:) = str2double(extractBetween(sortedonsetT.name, 'sub-', '_'));
 sortedonsetT.ses_num(:) = str2double(extractBetween(sortedonsetT.name, 'ses-', '_'));
 sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '_'));
+sortedonsetT.runtype(:) = extractBetween(sortedonsetT.name, 'runtype-', '_events.tsv');
 
-onset_col_names = sortedonsetT.Properties.VariableNames;
-onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
-disp(nii_num_colomn)
 %intersection of nifti and onset files
-A = intersect(sortedT(:, nii_num_colomn), sortedonsetT(:, onset_num_colomn));
+A = innerjoin(sortedT, sortedonsetT, 'Keys', {'sub_num', 'ses_num', 'run_num'});
 
 % NOTE 04 define contrast
 
@@ -70,48 +80,40 @@ c01 = []; c02 = []; c03 = []; c04 = []; c05 = []; c06 = []; c07 = []; c08 = []; 
 c11 = []; c12 = []; c13 = []; c14 = []; c15 = []; 
 
 matlabbatch = cell(1,1);
-
-for run_ind = 1: size(A,1)
-    disp(strcat('run', num2str(run_ind)));
+runlength = size(A,1);
+numRegressorsPerRun = arrayfun(@(x) length(x.col), SPM.Sess);
+runtype_counts = tabulate(A.runtype);
+for run_ind = 1: runlength
+% for run_ind = 1: size(A,1)
+   
     sub = strcat('sub-', sprintf('%04d', A.sub_num(run_ind)));
     ses = strcat('ses-', sprintf('%02d', A.ses_num(run_ind)));
     run = strcat('run-', sprintf('%01d', A.run_num(run_ind)));
-    disp('identify covariates');
-    covariate = zeros(1, size(SPM.Sess(run_ind).C.name,2));
-    disp(strcat('[ STEP 04 ]constructing contrasts...'));
-    onset_glob    = dir(fullfile(onset_dir, sub, ses, strcat(sub, '_', ses, '_task-cue_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '*_events.tsv')));
-    onset_fname   = fullfile(char(onset_glob.folder), char(onset_glob.name));
-    if isempty(onset_glob)
-      disp('ABORT')
-      break
-    end
-    disp(strcat('onset folder: ', onset_glob.folder));
-    disp(strcat('onset file:   ', onset_glob.name));
-    social        = struct2table(tdfread(onset_fname));
-    keyword       = extractBetween(onset_glob.name, 'runtype-', '_events');
-    %task          = char(extractAfter(keyword, '-'));
-    task          = char(keyword)
-    disp(task);
+    task = A.runtype{run_ind};
+    disp(strcat('run-', num2str(run_ind), '  task-', task));
 
-    cue_P         = [ m1(task),0,0,0,covariate ];
-    cue_V         = [ m2(task),0,0,0,covariate ];
-    cue_C         = [ m3(task),0,0,0,covariate ];
-    cue_G         = [ m4(task),0,0,0,covariate ];
+    task_idx = strcmp(runtype_counts(:, 1), task);
+    task_freq = runtype_counts{task_idx, 2};
 
-    stim_P        = [ 0,0,m1(task),0,covariate ];
-    stim_V        = [ 0,0,m2(task),0,covariate ];
-    stim_C        = [ 0,0,m3(task),0,covariate ];
-    stim_G        = [ 0,0,m4(task),0,covariate ];
+    cue_P         = [ m1(task)*cue_con/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*cue_con),2)) ];
+    cue_V         = [ m2(task)*cue_con/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*cue_con),2)) ];
+    cue_C         = [ m3(task)*cue_con/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*cue_con),2)) ];
+    cue_G         = [ m4(task)*cue_con/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m4(task)*cue_con),2)) ];
 
-    motor         = [ 0,1,0,1,covariate ];
+    stim_P        = [ m1(task)*stim_con/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*stim_con),2)) ];
+    stim_V        = [ m2(task)*stim_con/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*stim_con),2)) ];
+    stim_C        = [ m3(task)*stim_con/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*stim_con),2)) ];
+    stim_G        = [ m4(task)*stim_con/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m4(task)*stim_con),2)) ];
+    
+    motor        = [ motor, zeros(1, numRegressorsPerRun(run_ind) - size((motor),2)) ];
 
-    simple_cue_P         = [ m5(task),0,0,0,covariate ];
-    simple_cue_V         = [ m6(task),0,0,0,covariate ];
-    simple_cue_C         = [ m7(task),0,0,0,covariate ];
+    simple_cue_P         = [ m5(task)*cue_con/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*cue_con),2)) ];
+    simple_cue_V         = [ m6(task)*cue_con/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*cue_con),2)) ];
+    simple_cue_C         = [ m7(task)*cue_con/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*cue_con),2)) ];
 
-    simple_stim_P        = [ 0,0,m5(task),0,covariate ];
-    simple_stim_V        = [ 0,0,m6(task),0,covariate ];
-    simple_stim_C        = [ 0,0,m7(task),0,covariate ];
+    simple_stim_P        = [ m5(task)*stim_con/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*stim_con),2)) ];
+    simple_stim_V        = [ m6(task)*stim_con/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*stim_con),2)) ];
+    simple_stim_C        = [ m7(task)*stim_con/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*stim_con),2)) ];
 
     c01 = [ c01  cue_P];          c02 = [ c02  cue_V];          c03 = [ c03  cue_C];          c04 = [ c04  cue_G];
     c05 = [ c05  stim_P];         c06 = [ c06  stim_V];         c07 = [ c07  stim_C];         c08 = [ c08  stim_G];
@@ -144,7 +146,7 @@ end
 
 matlabbatch{1}.spm.stats.con.delete = 1; % delete previous contrast
 
-con_batch = fullfile(output_dir, 'contrast_estimation.mat' );
+con_batch = fullfile(input_dir, sub, 'contrast_estimation.mat' );
 save( con_batch  ,'matlabbatch');
 
 % 2. Run ___________________________________________________________________
