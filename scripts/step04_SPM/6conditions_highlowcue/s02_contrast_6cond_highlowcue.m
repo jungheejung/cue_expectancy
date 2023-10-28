@@ -321,7 +321,7 @@ for run_ind = 1: runlength
  contrast_vector{55} = c55/norm(c55);
 
 
- checkOrthogonality(contrast_vector)
+%  checkOrthogonality(contrast_vector)
 %% 1. contrast batch _______________________________________________________
 for con_num = 1: length(contrast_name)
 
