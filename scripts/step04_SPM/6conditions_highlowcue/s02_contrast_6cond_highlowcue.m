@@ -83,31 +83,12 @@ for i = 1:numFiles
     runInfo(i) = str2double(regexp(fileName, '(?<=run-)\d+', 'match', 'once'));
 end
 
-
-% for i = 1:numFiles
-%     [~, fileName, ~] = fileparts(uniqueFilePaths{i});
-%     % subInfo{i} = regexp(fileName, 'sub-\d+', 'match', 'once');
-%     % sesInfo{i} = regexp(fileName, 'ses-\d+', 'match', 'once');
-%     % runInfo{i} = regexp(fileName, 'run-\d+', 'match', 'once');
-%     sub_num(i) = str2double(regexp(fileName, '(?<=sub-)\d+', 'match', 'once'));
-%     sesInfo{i} = regexp(fileName, '(?<=ses-)\d+', 'match', 'once');
-%     runInfo{i} = regexp(fileName, '(?<=run-)\d+', 'match', 'once');
-% end
-
 % TODO: create a table. Aftereward, find the corresponding run-type info
 % infoTable = table(subInfo, sesInfo, runInfo);
 sortedT = table(subInfo', sesInfo', runInfo', 'VariableNames', {'sub_num', 'ses_num', 'run_num'});
 
 % NOTE 03 find intersection of nifti and onset files
 % find nifti files
-% niilist = dir(fullfile(input_dir, sub, '*/smooth-6mm_*task-cue*_bold.nii'));
-% nT = struct2table(niilist); % convert the struct array to a table
-% sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
-
-% sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
-% sortedT.ses_num(:) = str2double(extractBetween(sortedT.name, 'ses-', '_'));
-% sortedT.run_num(:) = str2double(extractBetween(sortedT.name, 'run-', '_'));
-
 nii_col_names = sortedT.Properties.VariableNames;
 nii_num_column = nii_col_names(endsWith(nii_col_names, '_num'));
 
@@ -125,8 +106,6 @@ onset_col_names = sortedonsetT.Properties.VariableNames;
 onset_num_column = onset_col_names(endsWith(onset_col_names, '_num'));
 disp(onset_num_column)
 %intersection of nifti and onset files
-% A = intersect(sortedT(:, nii_num_column), sortedonsetT(:, onset_num_column));
-
 
 % Use innerjoin to find the intersection and retain runtype info
 A = innerjoin(sortedT, sortedonsetT, 'Keys', {'sub_num', 'ses_num', 'run_num'});
@@ -137,33 +116,25 @@ A = innerjoin(sortedT, sortedonsetT, 'Keys', {'sub_num', 'ses_num', 'run_num'});
 % NOTE 04 define contrast
 
 contrast_name = {
-    % contratss
-    'P_VC_STIM_cue_high_gt_low', 'V_PC_STIM_cue_high_gt_low', 'C_PV_STIM_cue_high_gt_low',...
+    'P_VC_STIM_cue_high_gt_low', 'V_PC_STIM_cue_high_gt_low', 'C_PV_STIM_cue_high_gt_low',...% contratss
     'P_VC_STIM_stimlin_high_gt_low', 'V_PC_STIM_stimlin_high_gt_low', 'C_PV_STIM_stimlin_high_gt_low',...
     'P_VC_STIM_stimquad_med_gt_other', 'V_PC_STIM_stimquad_med_gt_other', 'C_PV_STIM_stimquad_med_gt_other',...
     'P_VC_STIM_cue_int_stimlin','V_PC_STIM_cue_int_stimlin', 'C_PV_STIM_cue_int_stimlin',...
     'P_VC_STIM_cue_int_stimquad','V_PC_STIM_cue_int_stimquad','C_PV_STIM_cue_int_stimquad',...
-    %motor
-    'motor',...
-    % dummay contrasts
-    'P_simple_STIM_cue_high_gt_low',      'V_simple_STIM_cue_high_gt_low', 'C_simple_STIM_cue_high_gt_low',...
+    'motor',... %motor
+    'P_simple_STIM_cue_high_gt_low',      'V_simple_STIM_cue_high_gt_low', 'C_simple_STIM_cue_high_gt_low',... % dummay contrasts
     'P_simple_STIM_stimlin_high_gt_low',  'V_simple_STIM_stimlin_high_gt_low', 'C_simple_STIM_stimlin_high_gt_low',...
     'P_simple_STIM_stimquad_med_gt_other','V_simple_STIM_stimquad_med_gt_other', 'C_simple_STIM_stimquad_med_gt_other',...
     'P_simple_STIM_cue_int_stimlin',      'V_simple_STIM_cue_int_stimlin', 'C_simple_STIM_cue_int_stimlin',...
     'P_simple_STIM_cue_int_stimquad',     'V_simple_STIM_cue_int_stimquad','C_simple_STIM_cue_int_stimquad',...
-    % pain events
-    'P_simple_STIM_highcue_highstim',     'P_simple_STIM_highcue_medstim', 'P_simple_STIM_highcue_lowstim',...
+    'P_simple_STIM_highcue_highstim',     'P_simple_STIM_highcue_medstim', 'P_simple_STIM_highcue_lowstim',... % pain events
     'P_simple_STIM_lowcue_highstim',      'P_simple_STIM_lowcue_medstim', 'P_simple_STIM_lowcue_lowstim',...
-    % vicarious events
-    'V_simple_STIM_highcue_highstim',     'V_simple_STIM_highcue_medstim', 'V_simple_STIM_highcue_lowstim',...
+    'V_simple_STIM_highcue_highstim',     'V_simple_STIM_highcue_medstim', 'V_simple_STIM_highcue_lowstim',... % vicarious events
     'V_simple_STIM_lowcue_highstim',      'V_simple_STIM_lowcue_medstim', 'V_simple_STIM_lowcue_lowstim',...
-    % cognitive events
-    'C_simple_STIM_highcue_highstim',    'C_simple_STIM_highcue_medstim', 'C_simple_STIM_highcue_lowstim',...
+    'C_simple_STIM_highcue_highstim',    'C_simple_STIM_highcue_medstim', 'C_simple_STIM_highcue_lowstim',... % cognitive events
     'C_simple_STIM_lowcue_highstim',    'C_simple_STIM_lowcue_medstim', 'C_simple_STIM_lowcue_lowstim',...
-    % cue epoch contrasts
-    'P_VC_CUE_STIM_cue_high_gt_low','V_PC_CUE_STIM_cue_high_gt_low','C_PV_CUE_STIM_cue_high_gt_low',...
-    % cue epoch dummy
-    'P_simple_CUE_STIM_cue_high_gt_low','V_simple_CUE_STIM_cue_high_gt_low','C_simple_CUE_STIM_cue_high_gt_low',...
+    'P_VC_CUE_STIM_cue_high_gt_low','V_PC_CUE_STIM_cue_high_gt_low','C_PV_CUE_STIM_cue_high_gt_low',...% cue epoch contrasts
+    'P_simple_CUE_STIM_cue_high_gt_low','V_simple_CUE_STIM_cue_high_gt_low','C_simple_CUE_STIM_cue_high_gt_low',...% cue epoch dummy
 
 };
 
