@@ -146,7 +146,7 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
 
         keyword = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
         task = char(extractAfter(keyword, '-'));
-        
+
         if strcmp(task,'pain')
             test = dir(fullfile(onset_glob.folder, strcat(sub, '_', ses, '_task-cue_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '*_events_ttl.tsv')));
             if ~isempty(test)
@@ -157,7 +157,7 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
                 cue.rampup_onset = cue.TTL1;
                 cue.rampup_dur = cue.TTL2 - cue.TTL1;
                 cue.plateau_onset = cue.TTL2;
-                cue.plateau_dur = 5;
+                % cue.plateau_dur = double(repelem(5, length(cue.onset03_stim))');
                 cue.rampdown_onset =cue.TTL3;
                 cue.rampdown_dur =cue.TTL4 - cue.TTL3;
                 disp(strcat('this is a pain run with a ttl file: ', onset_fname))
@@ -195,8 +195,8 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
                 cue.rampdown_dur(cue.pmod_stimtype == "high_stim") = rampdown_values.high_stim;
                 cue.rampup_onset = cue.onset03_stim;
                 % cue.rampup_dur = cue.rampup_dur;
-                cue.plateau_onset = rampup_dur + cue.onset03_stim;
-                cue.rampdown_onset = rampup_dur + cue.onset03_stim + 5;
+                cue.plateau_onset = cue.rampup_dur + cue.onset03_stim;
+                cue.rampdown_onset = cue.rampup_dur + cue.onset03_stim + 5;
                 % cue.rampdown_dur = cue.rampdown_dur;
 
                 
@@ -204,6 +204,14 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
                 % Display the updated table
                 disp(cue);
             end
+        else% for cognitive and vicarious tasks
+            cue = struct2table(tdfread(onset_fname));
+            cue.plateau_onset = cue.onset03_stim;
+            cue.rampup_onset = cue.onset03_stim - 2;
+            cue.rampdown_onset = cue.onset03_stim + 5;
+            cue.rampup_dur = double(repelem(2, length(cue.onset03_stim))');
+            cue.rampdown_dur = double(repelem(2, length(cue.onset03_stim))');;
+            
         end
         
         disp(strcat('task: ', task));
@@ -353,7 +361,7 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
 
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(6).name = 'STIM_cue-high_stim-med_rampdown';
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(6).onset = double(cue.rampdown_onset(highcue(:,1) & medstim(:,1)));
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(6).duration = double(cue.rampdowm_dur(highcue(:,1) & medstim(:,1)));
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(6).duration = double(cue.rampdown_dur(highcue(:,1) & medstim(:,1)));
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(6).tmod = 0;
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(6).pmod = struct('name', {}, 'param', {}, 'poly', {});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(6).orth = 0;
