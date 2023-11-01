@@ -157,7 +157,7 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
                 cue.rampup_onset = cue.TTL1;
                 cue.rampup_dur = cue.TTL2 - cue.TTL1;
                 cue.plateau_onset = cue.TTL2;
-                cue.plateau_dur = 5;
+                % cue.plateau_dur = double(repelem(5, length(cue.onset03_stim))');
                 cue.rampdown_onset =cue.TTL3;
                 cue.rampdown_dur =cue.TTL4 - cue.TTL3;
                 disp(strcat('this is a pain run with a ttl file: ', onset_fname))
@@ -195,8 +195,8 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
                 cue.rampdown_dur(cue.pmod_stimtype == "high_stim") = rampdown_values.high_stim;
                 cue.rampup_onset = cue.onset03_stim;
                 % cue.rampup_dur = cue.rampup_dur;
-                cue.plateau_onset = rampup_dur + cue.onset03_stim;
-                cue.rampdown_onset = rampup_dur + cue.onset03_stim + 5;
+                cue.plateau_onset = cue.rampup_dur + cue.onset03_stim;
+                cue.rampdown_onset = cue.rampup_dur + cue.onset03_stim + 5;
                 % cue.rampdown_dur = cue.rampdown_dur;
 
                 
