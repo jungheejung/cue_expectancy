@@ -439,7 +439,7 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(16).pmod = struct('name', {}, 'param', {}, 'poly', {});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(16).orth = 0;
 
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(16).name = 'STIM_cue-low_stim-low_rampup';
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(17).name = 'STIM_cue-low_stim-low_rampup';
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(17).onset = double(cue.rampup_onset(lowcue(:,1) & lowstim(:,1)));
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(17).duration = double(cue.rampup_dur(lowcue(:,1) & lowstim(:,1)));
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(17).tmod = 0;
