@@ -8,7 +8,7 @@ function s02_contrast_6cond_rampplateau(sub, input_dir, main_dir, save_dir)
     %     - STIM: CUE l x STIM h
     %     - STIM: CUE l x STIM m
     %     - STIM: CUE l x STIM l
-    %        X ramp up and rampdown period
+    %        X 1) ramp up, 2) plateau, and 3) rampdown period
     %     - CUE:  CUE h (onset01_cue)
     %             CUE l
     %     - EXPECT RATING: onset02_ratingexpect, pmod_expectRT
