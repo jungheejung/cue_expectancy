@@ -170,6 +170,8 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
                 % | med_stim      | 3.758      | 5.000      | 3.606        |
                 % | high_stim     | 4.008      | 5.001      | 3.813        | 
                 % Define the rampup values for each stim type
+                
+                cue = struct2table(tdfread(onset_fname));
                 rampup_values = struct();
                 rampup_values.low_stim = 3.502;
                 rampup_values.med_stim = 3.758;
