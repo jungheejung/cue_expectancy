@@ -189,12 +189,15 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
                 cue.plateau_onset = NaN(height(cue), 1); % onset03_stim + rampup_values (per stim)
 
                 % Assign rampup values based on pmod_stimtype
-                cue.rampup_dur(cue.pmod_stimtype == "low_stim") = rampup_values.low_stim;
-                cue.rampup_dur(cue.pmod_stimtype == "med_stim") = rampup_values.med_stim;
-                cue.rampup_dur(cue.pmod_stimtype == "high_stim") = rampup_values.high_stim;
-                cue.rampdown_dur(cue.pmod_stimtype == "low_stim") = rampdown_values.low_stim;
-                cue.rampdown_dur(cue.pmod_stimtype == "med_stim") = rampdown_values.med_stim;
-                cue.rampdown_dur(cue.pmod_stimtype == "high_stim") = rampdown_values.high_stim;
+                low_indices = cellfun(@(x) strcmp(x, 'low_stim'), cellstr(cue.pmod_stimtype));
+                med_indices = cellfun(@(x) strcmp(x, 'med_stim'), cellstr(cue.pmod_stimtype));
+                high_indices = cellfun(@(x) strcmp(x, 'high_stim'), cellstr(cue.pmod_stimtype));
+                cue.rampup_dur(low_indices)= rampup_values.low_stim;
+                cue.rampup_dur(med_indices)= rampup_values.med_stim;
+                cue.rampup_dur(high_indices)= rampup_values.high_stim;
+                cue.rampdown_dur(low_indices)= rampdown_values.low_stim;
+                cue.rampdown_dur(med_indices)= rampdown_values.med_stim;
+                cue.rampdown_dur(high_indices)= rampdown_values.high_stim;
                 cue.rampup_onset = cue.onset03_stim;
                 % cue.rampup_dur = cue.rampup_dur;
                 cue.plateau_onset = cue.rampup_dur + cue.onset03_stim;
