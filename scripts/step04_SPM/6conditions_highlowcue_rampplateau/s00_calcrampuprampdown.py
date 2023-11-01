@@ -34,16 +34,17 @@ pattern = r"sub-\d+"
 unique_subs = set(re.findall(pattern, ' '.join(ttl_list)))
 
 results = {}  # Dictionary to hold average difference score per cue for each subject
-
+delays = {}
 for subject in unique_subs:
     concatenated_df = concatenate_files_for_subject(subject, ttl_list)
     concatenated_df['rampup'] = concatenated_df['TTL2'] - concatenated_df['TTL1']
     concatenated_df['plateau'] = concatenated_df['TTL3'] - concatenated_df['TTL2']
     concatenated_df['rampdown'] = concatenated_df['TTL4'] - concatenated_df['TTL3']
+    concatenated_df['delay'] = concatenated_df['TTL1'] - concatenated_df['onset03_stim']
     
     # Assuming you have a column named 'intensity' to group by for each stimulus intensity type
     avg_diff_per_intensity = concatenated_df.groupby('pmod_stimtype')[['rampup', 'plateau', 'rampdown']].mean()
-    
+    delays[subject] = concatenated_df['delay'].mean()
     results[subject] = avg_diff_per_intensity
 
 # Print or save results
@@ -52,7 +53,8 @@ for subject, result_df in results.items():
     print(result_df)
 
 print(results)
-
+average_delay = sum(delays.values()) / len(delays)
+print(f"average delay across trials (from psychtoolbox to Medoc): {average_delay}")
 # Ramp-up: per participant, calculate average TTL2-TTL1 per stimulus intensity level
 # Plateau: per participant, calculate average TTL3-TTL2 per stimulus intensity level
 # Ramp-down: per participant, calculate average TTL4-TTL3 per stimulus intensity level
@@ -66,7 +68,7 @@ for subject, result_df in results.items():
     master_df_list.append(result_df)
 
 master_df = pd.concat(master_df_list, ignore_index=True)
-cols = ['subject', 'pmod_stimtype', 'rampup', 'plateau', 'rampdown']
+cols = ['subject', 'pmod_stimtype', 'rampup', 'plateau', 'rampdown', 'delay']
 master_df = master_df[cols]
 
 # %%
