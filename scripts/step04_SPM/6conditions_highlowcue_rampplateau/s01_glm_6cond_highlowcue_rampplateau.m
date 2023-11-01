@@ -144,6 +144,9 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
         disp(strcat('onset folder: ', onset_glob.folder));
         disp(strcat('onset file:   ', onset_glob.name));
 
+        keyword = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
+        task = char(extractAfter(keyword, '-'));
+        
         if strcmp(task,'pain')
             test = dir(fullfile(onset_glob.folder, strcat(sub, '_', ses, '_task-cue_',strcat('run-', sprintf('%02d', A.run_num(run_ind))), '*_events_ttl.tsv')));
             if ~isempty(test)
@@ -206,7 +209,7 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
         disp(strcat('task: ', task));
         disp(strcat('[ STEP 05 ]creating motion covariate text file...'));
 
-        cue = struct2table(tdfread(onset_fname));
+        % cue = struct2table(tdfread(onset_fname));
 
         % bug report: there were spaces that added to a mistmach in dataframes
         % remove spaces
@@ -229,8 +232,6 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
 
 
 
-        keyword = extractBetween(onset_glob.name, 'run-0', '_events.tsv');
-        task = char(extractAfter(keyword, '-'));
 
         %% regressor covariates ______________________________________________________
         motion_fname = fullfile(motion_dir, 'csf_24dof_dummy_spike', sub, ses, ...
