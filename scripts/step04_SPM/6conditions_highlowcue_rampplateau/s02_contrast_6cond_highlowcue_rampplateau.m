@@ -183,7 +183,7 @@ for run_ind = 1: runlength
     V_PC_STIM_cue_int_stimquad        = [ (m2(task)*STIM_cue_int_stimquad), zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*STIM_cue_int_stimquad),2)) ]; % c14
     C_PV_STIM_cue_int_stimquad        = [ (m3(task)*STIM_cue_int_stimquad), zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*STIM_cue_int_stimquad),2)) ]; % c15
 
-    motor                             = [ 0,0,0,0,0,0,0,0,1,1, zeros(1, numRegressorsPerRun(run_ind) - size(motor_con,2) ) ];  % c16
+    motor                             = [ motor_con, zeros(1, numRegressorsPerRun(run_ind) - size(motor_con,2) ) ];  % c16
 
     P_simple_STIM_cue_high_gt_low         = [ (m5(task)*STIM_cue_high_gt_low), zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*STIM_cue_high_gt_low),2)) ]; % c17
     V_simple_STIM_cue_high_gt_low         = [ (m6(task)*STIM_cue_high_gt_low), zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*STIM_cue_high_gt_low),2)) ]; % c18
