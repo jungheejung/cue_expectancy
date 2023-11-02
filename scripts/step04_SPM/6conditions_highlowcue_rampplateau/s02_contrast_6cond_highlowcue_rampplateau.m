@@ -133,6 +133,7 @@ contrast_name = {
     'C_simple_STIM_lowcue_highstim',    'C_simple_STIM_lowcue_medstim', 'C_simple_STIM_lowcue_lowstim',...
     'P_VC_CUE_cue_high_gt_low','V_PC_CUE_cue_high_gt_low','C_PV_CUE_cue_high_gt_low',...% cue epoch contrasts
     'P_simple_CUE_cue_high_gt_low','V_simple_CUE_STIM_cue_high_gt_low','C_simple_CUE_cue_high_gt_low',...% cue epoch dummy
+    'G_simple_CUE_cue_high_gt_low',...
     'P_VC_STIM', 'V_PC_STIM', 'C_PV_STIM'
 };
 
@@ -141,7 +142,7 @@ c11 = []; c12 = []; c13 = []; c14 = []; c15 = []; c16 = []; c17 = []; c18 = []; 
 c21 = []; c22 = []; c23 = []; c24 = []; c25 = []; c26 = []; c27 = []; c28 = []; c29 = []; c30 = [];
 c31 = []; c32 = []; c33 = []; c34 = []; c35 = []; c36 = []; c37 = []; c38 = []; c39 = []; c40 = [];
 c41 = []; c42 = []; c43 = []; c44 = []; c45 = []; c46 = []; c47 = []; c48 = []; c49 = []; c50 = [];
-c51 = []; c52 = []; c53 = []; c54 = []; c55 = []; c56 = []; c57 = []; c58 = [];
+c51 = []; c52 = []; c53 = []; c54 = []; c55 = []; c56 = []; c57 = []; c58 = []; c59 = [];
 
 matlabbatch = cell(1,1);
 runlength = size(A,1);
@@ -231,14 +232,16 @@ for run_ind = 1: runlength
     P_VC_CUE_cue_high_gt_low         = [ (m1(task)*CUE_cue_high_gt_low),   zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*CUE_cue_high_gt_low),2)) ]; % c50
     V_PC_CUE_cue_high_gt_low         = [ (m2(task)*CUE_cue_high_gt_low),   zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*CUE_cue_high_gt_low),2)) ]; % c51
     C_PV_CUE_cue_high_gt_low         = [ (m3(task)*CUE_cue_high_gt_low),   zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*CUE_cue_high_gt_low),2)) ]; % c52
+
     P_simple_CUE_cue_high_gt_low     = [ (m5(task)*CUE_cue_high_gt_low),   zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*CUE_cue_high_gt_low),2)) ]; % c53
     V_simple_CUE_cue_high_gt_low     = [ (m6(task)*CUE_cue_high_gt_low),   zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*CUE_cue_high_gt_low),2)) ]; % c54
     C_simple_CUE_cue_high_gt_low     = [ (m7(task)*CUE_cue_high_gt_low),   zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*CUE_cue_high_gt_low),2)) ]; % c55
+    G_simple_CUE_cue_high_gt_low     = [ (m4(task)*CUE_cue_high_gt_low),   zeros(1, numRegressorsPerRun(run_ind) - size((m4(task)*CUE_cue_high_gt_low),2)) ]; % c52
 
     P_VC_STIM                        = [ (m1(task)*stim_con),   zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*stim_con),2)) ]; % c50
     V_PC_STIM                        = [ (m2(task)*stim_con),   zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*stim_con),2)) ]; % c51
     C_PV_STIM                        = [ (m3(task)*stim_con),   zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*stim_con),2)) ]; % c52
-
+    
 
     c01 = [ c01  P_VC_STIM_cue_high_gt_low];         c02 = [ c02  V_PC_STIM_cue_high_gt_low];         c03 = [ c03  C_PV_STIM_cue_high_gt_low];
     c04 = [ c04  P_VC_STIM_stimlin_high_gt_low];     c05 = [ c05  V_PC_STIM_stimlin_high_gt_low];     c06 = [ c06  C_PV_STIM_stimlin_high_gt_low];   
@@ -261,8 +264,8 @@ for run_ind = 1: runlength
 
     c50 = [ c50  P_VC_CUE_cue_high_gt_low];         c51 = [ c51  V_PC_CUE_cue_high_gt_low];        c52 = [ c52  C_PV_CUE_cue_high_gt_low];
     c53 = [ c53  P_simple_CUE_cue_high_gt_low];     c54 = [ c54  V_simple_CUE_cue_high_gt_low];    c55 = [ c55  C_simple_CUE_cue_high_gt_low];
-    c56 = [ c56  P_VC_STIM];                        c57 = [ c57  V_PC_STIM];                       c58 = [ c58  C_PV_STIM];
-
+    c56 = [ c56  G_simple_CUE_cue_high_gt_low];
+    c57 = [ c57  P_VC_STIM];                        c58 = [ c58  V_PC_STIM];                       c59 = [ c59  C_PV_STIM];
     disp(strcat('task: ', task));
 
  end
@@ -322,9 +325,10 @@ for run_ind = 1: runlength
  contrast_vector{53} = c53/norm(c53);
  contrast_vector{54} = c54/norm(c54);
  contrast_vector{55} = c55/norm(c55);
- contrast_vector{56} = c55/norm(c56);
- contrast_vector{57} = c55/norm(c57);
- contrast_vector{58} = c55/norm(c58);
+ contrast_vector{56} = c56/norm(c56);
+ contrast_vector{57} = c57/norm(c57);
+ contrast_vector{58} = c58/norm(c58);
+ contrast_vector{59} = c59/norm(c59);
 
 
 %  checkOrthogonality(contrast_vector)
