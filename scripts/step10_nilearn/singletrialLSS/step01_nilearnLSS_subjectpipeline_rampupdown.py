@@ -7,8 +7,7 @@
 # 2. Setup glm paramters and extract confounds from fmriprep confounds.tsv
 # 3. Fit glm model per trial
 """
-    """NOTE: TTL2 has been creating issues. Need to use original onset time
-    """
+
 # %%
 import os, re, glob
 import argparse
