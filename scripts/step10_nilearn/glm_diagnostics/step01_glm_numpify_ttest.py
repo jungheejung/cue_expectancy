@@ -50,7 +50,7 @@ def extract_ses_and_run(flist):
     return list(sorted(unique_ses)), list(sorted(unique_run))
 
 # %% load participant data. average per run
-beta_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial'
+beta_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupdown'
 save_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv03_univariate/contrast_stimhigh-GT-stimlow'
 save_betanpy = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv05_singletrialnpy'
 # beta_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/singletrial'
