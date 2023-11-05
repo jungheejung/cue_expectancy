@@ -1,52 +1,43 @@
-# %%
+# %% -------------------------------------------------------------------------
+#                           libraries
+# ----------------------------------------------------------------------------
+import os, re, glob, json
 import numpy as np
-import glob
-import os
-import pathlib
-import re
-import json
-
-import scipy
-import nilearn
-from scipy import stats
 from nilearn.image import resample_to_img, math_img
-from nilearn import image
-from nilearn import plotting
-import argparse
 from nilearn.image import new_img_like
 import matplotlib.pyplot as plt
 
+# %% -------------------------------------------------------------------------
+#                           functions
+# ----------------------------------------------------------------------------
 
-def extract_ses_and_run(flist):
-    # Initialize empty sets to store unique values of 'ses' and 'run'
-    unique_ses = set()
-    unique_run = set()
+# def extract_ses_and_run(flist):
+#     # Initialize empty sets to store unique values of 'ses' and 'run'
+#     unique_ses = set()
+#     unique_run = set()
 
-    # Loop through each file path and extract 'ses-##' and 'run-##' using regular expressions
-    for path in flist:
-        # Extract 'ses-##' using regular expression
-        ses_match = re.search(r"ses-(\d+)", path)
-        if ses_match:
-            unique_ses.add(ses_match.group(0))
+#     # Loop through each file path and extract 'ses-##' and 'run-##' using regular expressions
+#     for path in flist:
+#         # Extract 'ses-##' using regular expression
+#         ses_match = re.search(r"ses-(\d+)", path)
+#         if ses_match:
+#             unique_ses.add(ses_match.group(0))
 
-        # Extract 'run-##' using regular expression
-        run_match = re.search(r"run-(\d+)", path)
-        if run_match:
-            unique_run.add(run_match.group(0))
+#         # Extract 'run-##' using regular expression
+#         run_match = re.search(r"run-(\d+)", path)
+#         if run_match:
+#             unique_run.add(run_match.group(0))
 
-    # Print the unique values of 'ses' and 'run'
-    print(f"Unique ses values: {sorted(unique_ses)}")
-    print(f"Unique run values: {sorted(unique_run)}")
-    return list(sorted(unique_ses)), list(sorted(unique_run))
+#     # Print the unique values of 'ses' and 'run'
+#     print(f"Unique ses values: {sorted(unique_ses)}")
+#     print(f"Unique run values: {sorted(unique_run)}")
+#     return list(sorted(unique_ses)), list(sorted(unique_run))
 
 
 def unique_ses_run(file_paths):
     import re
 
-    # Regular expression pattern to match the session and run parts of the file path
     pattern = r"sub-\d+_ses-(\d+)_run-(\d+)_"
-
-    # Set to store unique ses-run pairs
     unique_ses_run_pairs = set()
 
     # Extracting ses and run values and adding them to the set
@@ -55,30 +46,27 @@ def unique_ses_run(file_paths):
         if match:
             # Adding the session-run tuple to the set ensures uniqueness
             unique_ses_run_pairs.add((match.group(1), match.group(2)))
-
     # Convert the set to a list and sort it for better readability
     unique_ses_run_pairs = sorted(list(unique_ses_run_pairs))
-
-    # Printing out the unique session-run pairs
-    # for ses_run in unique_ses_run_pairs:
-    #     print(f"Session: {ses_run[0]}, Run: {ses_run[1]}")
     formatted_strings = [f"ses-{ses}_run-{run}" for ses, run in unique_ses_run_pairs]
-    print("formatted_strings")
+    print(formatted_strings)
     return formatted_strings
 
 
+# %% -------------------------------------------------------------------------
+#                           parameters
+# ----------------------------------------------------------------------------
 # beta_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv05_singletrialnpy'
 beta_dir = "/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv05_singletrialnpy"
+all_subdirs = next(os.walk(beta_dir))[1]
+sub_list = sorted([d for d in all_subdirs if d.startswith("sub-")])
 
-sub_list = sorted(next(os.walk(beta_dir))[1])
 
-
-# %%
-import glob
-import os
-import numpy as np
-from itertools import product
-
+# %% -------------------------------------------------------------------------
+#                           main code
+# ----------------------------------------------------------------------------
+# per participant, glob all numpy files and average them. Stack into one list
+# on a group level, average the participant-average numpy arrays
 task = "pain"
 avgallL = []
 avgallH = []
@@ -86,11 +74,12 @@ subavgL = []
 subavgH = []
 suballL = []
 suballH = []
+subjsonlist = []
 for sub in sub_list:
     print(f"_____________{sub}_____________")
     flist = glob.glob(os.path.join(beta_dir, sub, f"{sub}_*{task}*.npy"))
     if flist != []:
-        # unique_ses, unique_run = extract_ses_and_run(flist)
+        # extract session and run instances. For each participant, glob numpys and stack
         sesrunlist = unique_ses_run(flist)
         avgallL = []
         avgallH = []
@@ -131,8 +120,10 @@ for sub in sub_list:
         print(f"{sub} {len(suballL)}")
         subavgH = np.mean(np.vstack(avgallH), axis=0)
         suballH.append(subavgH)
+        subjsonlist.append(sub)
     else:
         continue
+
 
 suballLv = np.vstack(suballL)
 suballHv = np.vstack(suballH)
@@ -151,8 +142,10 @@ np.save(
     suballHv,
 )
 
+# ----------------------------------------------------------------------------
+# save the number of participants that were included in this numpy average
 dict = {
-    "sub": sub_list,
+    "sub": subjsonlist,
     "code": "../scripts/step10_nilearn/glm/stim-high_GT_cue-low/numpy_ttest_stim.py",
 }
 with open(
