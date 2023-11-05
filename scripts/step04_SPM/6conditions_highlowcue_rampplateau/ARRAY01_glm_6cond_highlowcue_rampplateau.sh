@@ -1,14 +1,14 @@
 #!/bin/bash -l
 #SBATCH --job-name=glm
 #SBATCH --nodes=1
-#SBATCH --ntasks=8
-#SBATCH --mem-per-cpu=40gb
-#SBATCH --time=24:00:00
-#SBATCH -o /dartfs-hpc/scratch/f0042x1/spm/log_modelcue/GLM_%A_%a.o
-#SBATCH -e /dartfs-hpc/scratch/f0042x1/spm/log_modelcue/GLM_%A_%a.e
+#SBATCH --ntasks=16
+#SBATCH --mem-per-cpu=8gb
+#SBATCH --time=06:00:00
+#SBATCH -o /dartfs-hpc/scratch/f0042x1/spm/log_ramp/GLM_%A_%a.o
+#SBATCH -e /dartfs-hpc/scratch/f0042x1/spm/log_ramp/GLM_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1-133%20
+#SBATCH --array=1-133%30
 
 CANLABCORE_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore"
 SPM_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/spm12"
@@ -16,7 +16,7 @@ MAIN_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue" #"
 INPUT_DIR="${MAIN_DIR}/analysis/fmri/smooth6mm"
 FMRIPREP_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop_data/derivatives/fmriprep/results/fmriprep"
 BADRUNJSON="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/scripts/bad_runs.json"
-SAVE_DIR="/dartfs-hpc/scratch/f0042x1/spm/model01_6cond_highlowcue" #/scratch/main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_6cond_ttl1'
+SAVE_DIR="/dartfs-hpc/scratch/f0042x1/spm/model01_6cond_highlowcuei_rampplateau" #/scratch/main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_6cond_ttl1'
 mylist=($(find ${INPUT_DIR} -maxdepth 1 -mindepth 1 -type d -iname "sub-*"))
 IFS=$'\n' sorted=($(sort <<<"${mylist[*]}") )
 PARTICIPANT_LABEL="$(basename "${sorted[$((SLURM_ARRAY_TASK_ID-1))]}")"
