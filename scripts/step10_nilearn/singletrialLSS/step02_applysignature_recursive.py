@@ -17,86 +17,10 @@ import numpy as np
 import pandas as pd
 import argparse
 
-
-# TODO: FM-Multisens
-def utils_extract_schaefer2018(nifti_fname_dict):
-    # parameters
-    # ==========
-    #   nifti_fname:
-    # result
-    # ======
-    # run them through nifti masker
-    import argparse
-    import numpy as np
-    import os
-    import glob
-    import pandas as pd
-    from nilearn import image
-    from nilearn.maskers import NiftiLabelsMasker
-    from nilearn import datasets
-
-    singletrial_dir = nifti_fname_dict["singletrial_dir"]
-    sub = nifti_fname_dict["sub"]
-    ses = nifti_fname_dict["ses"]
-    run = nifti_fname_dict["run"]
-    runtype = nifti_fname_dict["runtype"]
-    event = nifti_fname_dict["event"]
-
-    img_flist = glob.glob(
-        os.path.join(
-            singletrial_dir,
-            sub,
-            f"{sub}_{ses}_{run}_{runtype}_event-{event}_trial-*.nii.gz",
-        )
-    )
-    img_flist = sorted(img_flist)
-
-    stacked_singletrial = image.concat_imgs(sorted(img_flist))
-
-    dataset = datasets.fetch_atlas_schaefer_2018()
-    atlas_filename = dataset.maps
-    # labels = dataset.labels
-    labels = np.insert(dataset.labels, 0, "Background")
-    masker = NiftiLabelsMasker(
-        labels_img=atlas_filename, standardize=True, memory="nilearn_cache", verbose=5
-    )
-    time_series = masker.fit_transform(stacked_singletrial)  # (trials, parcels)
-    labels_utfstring = [x.decode("utf-8") for x in labels[1:]]
-    singletrial_vstack_beta = pd.DataFrame(time_series, columns=labels_utfstring)
-    flist_basename = [os.path.basename(m) for m in sorted(img_flist)]
-    singletrial_vstack_beta.insert(0, "singletrial_fname", flist_basename)
-    return singletrial_vstack_beta
-
-    # def convert_imggz_to_niigz(img_fname):
-    # fslchfiletype NIFTI_GZ weights_NSF_grouppred_cvpcr.img
-    # import subprocess
-    # from pathlib import Path
-
-    # img_dir = os.path.dirname(img_fname)
-    # img_fnamestem = Path(img_fname).with_suffix("").stem
-    # if ".img.gz" in img_fname:
-    #     # unzip
-    #     # and then run on os.path.splitext(os.path.basename(img_fname))
-    #     import gzip
-    #     import shutil
-
-    #     print(img_fname)
-    #     # img_dir = os.path.dirname(img_fname)
-    #     # img_fnamestem = Path(img_fname).with_suffix('').stem
-    #     img_fpath = os.path.join(img_dir, img_fnamestem + ".img")
-    #     with gzip.open(img_fname, "rb") as f_in:
-    #         with open(img_fpath, "wb") as f_out:
-    #             shutil.copyfileobj(f_in, f_out)
-    #     command = f"fslchfiletype NIFTI_GZ {img_fpath}"
-    #     process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
-    #     output, error = process.communicate()
-    #     new_fname = os.path.join(img_dir, img_fnamestem + ".nii.gz")
-    # else:
-    #     command = f"fslchfiletype NIFTI_GZ {img_fname}"
-    #     process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
-    #     output, error = process.communicate()
-    #     new_fname = os.path.join(img_dir, img_fnamestem + ".nii.gz")
-    # return None
+# %% -------------------------------------------------------------------------
+#  functions
+# ----------------------------------------------------------------------------
+# TODO: ADD FM-Multisens signature
 
 
 def convert_imggz_to_niigz_nib(img_fname):
@@ -109,8 +33,7 @@ def convert_imggz_to_niigz_nib(img_fname):
     img_fnamestem = Path(img_fname).with_suffix("").stem
     new_fname = os.path.join(img_dir, img_fnamestem + ".nii.gz")
     if ".img.gz" in img_fname:
-        # unzip
-        # and then run on os.path.splitext(os.path.basename(img_fname))
+        # unzip  and then run on os.path.splitext(os.path.basename(img_fname))
         import gzip
         import shutil
 
@@ -138,6 +61,9 @@ def convert_imggz_to_niigz_nib(img_fname):
 
 def utils_extractsignature(img_flist, signature_dict, signature_key):
     """
+    Using signature_dict, select a signature that you want to use.
+    This code will apply the signatures onto your img_flist and return the dot product between signature and each Nifti image.
+
     Args:
         img_flist (list): list of Nifti filepaths
         signature_dict (dict): dictionary with signature names as keys, signature paths as values.
@@ -212,7 +138,9 @@ def utils_extractsignature(img_flist, signature_dict, signature_key):
     return nps_df
 
 
-# 0. argparse ________________________________________________________________________________
+# %% -------------------------------------------------------------------------
+#  0. argparse
+# ----------------------------------------------------------------------------
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "--slurm-id",
@@ -232,13 +160,15 @@ singletrial_dir = args.input_niidir
 save_signaturedir = args.output_savedir
 
 
-# %%
-# 1. load nifti image
-singletrial_dir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_TTL2"
-save_signaturedir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/ttl2"
+# %% -------------------------------------------------------------------------
+#  parameters
+# ----------------------------------------------------------------------------
+# TODO: delete section1. load nifti image
+# singletrial_dir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_TTL2"
+# save_signaturedir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/ttl2"
 
 
-# TODO: load in the signatures:
+# load in the signatures:
 signature_dict = {
     "NPS": "weights_NSF_grouppred_cvpcr.img.gz",  # Wager et al. 2013 NPS   - somatic pain
     "NPSpos": "NPSp_Lopez-Sola_2017_PAIN.img.gz",  # 2017 Lopez-Sola positive NPS regions only
@@ -285,10 +215,12 @@ signature_dict = {
 }
 
 sig_df = pd.DataFrame(columns=["singletrial_fname"])
-# for signature_key in signature_dict.keys():
 signature_key = list(signature_dict.keys())[slurm_id]  # signature_dict.keys()[slurm_id]
 print(signature_key)
-# signature_key = 'NPS'
+
+# %% -------------------------------------------------------------------------
+#  load single trial images
+# ----------------------------------------------------------------------------
 nifti_fname_dict = {
     "singletrial_dir": singletrial_dir,
     "sub": "*",
@@ -305,7 +237,7 @@ if nifti_fname_dict["runtype"] == "*":
     save_runtype = "pvc"
 else:
     save_runtype = nifti_fname_dict["runtype"]
-# singletrial_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/singletrial/'
+
 sub = "*"
 ses = "*"
 run = "*"
@@ -323,6 +255,9 @@ print(sorted(img_flist)[0:10])
 img_flist = sorted(img_flist)
 
 stacked_singletrial = image.concat_imgs(sorted(img_flist))
+# %% -------------------------------------------------------------------------
+#  extract signature and save as tsv
+# ----------------------------------------------------------------------------
 df = utils_extractsignature(img_flist, signature_dict, signature_key)
 df.to_csv(
     os.path.join(
