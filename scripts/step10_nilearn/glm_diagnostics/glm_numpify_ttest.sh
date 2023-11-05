@@ -9,7 +9,7 @@
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
 #SBATCH --array=1-133%10
-#33%10
+
 
 conda activate rsa
 echo "SLURMSARRAY: " ${SLURM_ARRAY_TASK_ID}
