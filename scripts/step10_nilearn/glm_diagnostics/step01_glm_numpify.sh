@@ -15,4 +15,4 @@ conda activate rsa
 echo "SLURMSARRAY: " ${SLURM_ARRAY_TASK_ID}
 ID=$((SLURM_ARRAY_TASK_ID-1))
 MAINDIR='/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue'
-python ${MAINDIR}/scripts/step10_nilearn/glm/glm_diagnostics/step01_glm_numpify_ttest.py --slurm_id ${ID}
+python ${MAINDIR}/scripts/step10_nilearn/glm_diagnostics/step01_glm_numpify_ttest.py --slurm-id ${ID}
