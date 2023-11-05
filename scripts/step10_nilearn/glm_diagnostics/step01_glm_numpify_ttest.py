@@ -24,8 +24,14 @@ from nilearn.image import new_img_like
 parser = argparse.ArgumentParser()
 parser.add_argument("--slurm-id", type=int,
                     help="specify slurm array id")
+parser.add_argument("--input-betadir", type=int,
+                    help="path where single trial beta nifti images exist")
+parser.add_argument("--save-npydir", type=int,
+                    help="path to save the generated numpy arrays")
 args = parser.parse_args()
 slurm_id = args.slurm_id 
+beta_dir = args.input_betadir 
+save_betanpy = args.save_npydir
 
 def extract_ses_and_run(flist):
     # Initialize empty sets to store unique values of 'ses' and 'run'
@@ -50,51 +56,47 @@ def extract_ses_and_run(flist):
     return list(sorted(unique_ses)), list(sorted(unique_run))
 
 # %% load participant data. average per run
-beta_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupdown'
-save_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv03_univariate/contrast_stimhigh-GT-stimlow'
-save_betanpy = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv05_singletrialnpy'
-# beta_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/singletrial'
-# save_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv03_univariate/contrast_cuehigh-GT-cuelow'
-# save_betanpy = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv05_singletrialnpy'
+# beta_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupdown'
+# save_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv03_univariate/contrast_stimhigh-GT-stimlow'
+# save_betanpy = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv05_singletrialnpy'
 
 sub_list = sorted(next(os.walk(beta_dir))[1])
 groupmean = []; groupmeanL = []; groupmeanH = []
-task = 'cognitive' # 'pain' 'cognitive'
-# %%
+tasklist = ['pain', 'vicarious', 'cognitive']
 testlist = sub_list[slurm_id]
 # %%
-for sub in [testlist]:
-    print(f"_____________{sub}_____________")
-    flist= glob.glob(os.path.join(beta_dir, sub, f"{sub}_*{task}*.nii.gz"))
-    unique_ses, unique_run = extract_ses_and_run(flist)
-    sesmean = []
-    sesmean_L, sesmean_H = [], []
-    npy_path = pathlib.Path(os.path.join(save_betanpy, sub))
-    npy_path.mkdir(parents = True, exist_ok = True)
-    for ses in unique_ses:
+for task in tasklist:
+    for sub in [testlist]:
+        print(f"_____________{sub}_____________")
+        flist= glob.glob(os.path.join(beta_dir, sub, f"{sub}_*{task}*.nii.gz"))
+        unique_ses, unique_run = extract_ses_and_run(flist)
+        sesmean = []
+        sesmean_L, sesmean_H = [], []
+        npy_path = pathlib.Path(os.path.join(save_betanpy, sub))
+        npy_path.mkdir(parents = True, exist_ok = True)
+        for ses in unique_ses:
 
-        runstackL = []; runstackH = []
-        for run in unique_run:
-            print(run)
-            runmeanimg = []
-            runmeanconcat = []
-            matching_files = []
+            runstackL = []; runstackH = []
+            for run in unique_run:
+                print(run)
+                runmeanimg = []
+                runmeanconcat = []
+                matching_files = []
 
-            stimL_flist = glob.glob(os.path.join(beta_dir, sub, f"{sub}_{ses}_{run}*{task}*event-stimulus_*_stimintensity-low*.nii.gz"))
-            stimM_flist = glob.glob(os.path.join(beta_dir, sub, f"{sub}_{ses}_{run}*{task}*event-stimulus_*_stimintensity-med*.nii.gz"))
-            stimH_flist = glob.glob(os.path.join(beta_dir, sub, f"{sub}_{ses}_{run}*{task}*event-stimulus_*_stimintensity-high*.nii.gz"))
-            print(stimL_flist)
-            for stimL_fpath in stimL_flist:
-                # stimL_img = []
-                stimL_img = image.load_img(stimL_fpath)
-                np.save(os.path.join(npy_path, os.path.splitext(os.path.splitext(os.path.basename(stimL_fpath))[0])[0] + '.npy'), stimL_img.get_fdata())
+                stimL_flist = glob.glob(os.path.join(beta_dir, sub, f"{sub}_{ses}_{run}*{task}*event-stimulus_*_stimintensity-low*.nii.gz"))
+                stimM_flist = glob.glob(os.path.join(beta_dir, sub, f"{sub}_{ses}_{run}*{task}*event-stimulus_*_stimintensity-med*.nii.gz"))
+                stimH_flist = glob.glob(os.path.join(beta_dir, sub, f"{sub}_{ses}_{run}*{task}*event-stimulus_*_stimintensity-high*.nii.gz"))
+                print(stimL_flist)
+                for stimL_fpath in stimL_flist:
+                    # stimL_img = []
+                    stimL_img = image.load_img(stimL_fpath)
+                    np.save(os.path.join(npy_path, os.path.splitext(os.path.splitext(os.path.basename(stimL_fpath))[0])[0] + '.npy'), stimL_img.get_fdata())
 
-            for stimM_fpath in stimM_flist:
-                stimM_img = image.load_img(stimM_fpath)
-                np.save(os.path.join(npy_path, os.path.splitext(os.path.splitext(os.path.basename(stimM_fpath))[0])[0] + '.npy'), stimM_img.get_fdata())
+                for stimM_fpath in stimM_flist:
+                    stimM_img = image.load_img(stimM_fpath)
+                    np.save(os.path.join(npy_path, os.path.splitext(os.path.splitext(os.path.basename(stimM_fpath))[0])[0] + '.npy'), stimM_img.get_fdata())
 
-            for stimH_fpath in stimH_flist:
-                stimH_img = image.load_img(stimH_fpath)
-                np.save(os.path.join(npy_path, os.path.splitext(os.path.splitext(os.path.basename(stimH_fpath))[0])[0] + '.npy'), stimH_img.get_fdata())
- 
-# %%
+                for stimH_fpath in stimH_flist:
+                    stimH_img = image.load_img(stimH_fpath)
+                    np.save(os.path.join(npy_path, os.path.splitext(os.path.splitext(os.path.basename(stimH_fpath))[0])[0] + '.npy'), stimH_img.get_fdata())
+    

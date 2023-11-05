@@ -15,4 +15,11 @@ conda activate rsa
 echo "SLURMSARRAY: " ${SLURM_ARRAY_TASK_ID}
 ID=$((SLURM_ARRAY_TASK_ID-1))
 MAINDIR='/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue'
-python ${MAINDIR}/scripts/step10_nilearn/glm_diagnostics/step01_glm_numpify_ttest.py --slurm-id ${ID}
+BETADIR='/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupdown'
+# save_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv03_univariate/contrast_stimhigh-GT-stimlow'
+SAVEDIR='/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv05_singletrialnpy'
+
+python ${MAINDIR}/scripts/step10_nilearn/glm_diagnostics/step01_glm_numpify_ttest.py \
+--slurm-id ${ID} \
+--input-betadir ${BETADIR} \
+--save-npydir ${SAVEDIR}
