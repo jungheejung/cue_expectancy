@@ -5,8 +5,10 @@ How to investigate?
 2) stack mean images (ravel)
 3) t-test
 4) plot brains
+
+This code is the first step of a running a t-test with the single trials. 
 """
-# %%sub_
+
 import os, glob, re
 import numpy as np
 import scipy
@@ -26,10 +28,10 @@ from nilearn.image import new_img_like
 parser = argparse.ArgumentParser()
 parser.add_argument("--slurm-id", type=int, help="specify slurm array id")
 parser.add_argument(
-    "--input-betadir", type=int, help="path where single trial beta nifti images exist"
+    "--input-betadir", type=str, help="path where single trial beta nifti images exist"
 )
 parser.add_argument(
-    "--save-npydir", type=int, help="path to save the generated numpy arrays"
+    "--save-npydir", type=str, help="path to save the generated numpy arrays"
 )
 args = parser.parse_args()
 slurm_id = args.slurm_id
