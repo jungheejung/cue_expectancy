@@ -9,10 +9,8 @@ Benchmarks the apply_all_signatures.m
 Signature indices are inputted as slurm ids (environment variable)
 """
 
-import os
-import glob
-from nilearn import image
-from nilearn import plotting
+import os, glob, pathlib
+from nilearn import image, plotting
 import numpy as np
 import pandas as pd
 import argparse
@@ -38,19 +36,12 @@ def convert_imggz_to_niigz_nib(img_fname):
         import shutil
 
         print(img_fname)
-        # img_dir = os.path.dirname(img_fname)
-        # img_fnamestem = Path(img_fname).with_suffix('').stem
-
         img_fpath = os.path.join(img_dir, img_fnamestem + ".img")
         with gzip.open(img_fname, "rb") as f_in:
             with open(img_fpath, "wb") as f_out:
                 shutil.copyfileobj(f_in, f_out)
-        # fname = '<file name>.img'
         img = nb.load(img_fpath)
         nb.save(img, new_fname)
-        # command = f'fslchfiletype NIFTI_GZ {img_fpath}'
-        # process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
-        # output, error = process.communicate()
         new_fname = os.path.join(img_dir, img_fnamestem + ".nii.gz")
     else:
         img = nb.load(img_fname)
@@ -259,6 +250,7 @@ stacked_singletrial = image.concat_imgs(sorted(img_flist))
 #  extract signature and save as tsv
 # ----------------------------------------------------------------------------
 df = utils_extractsignature(img_flist, signature_dict, signature_key)
+pathlib.Path(save_signaturedir).mkdir(parents=True, exist_ok=True)
 df.to_csv(
     os.path.join(
         save_signaturedir,
