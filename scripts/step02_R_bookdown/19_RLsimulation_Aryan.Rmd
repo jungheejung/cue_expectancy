@@ -68,7 +68,7 @@ file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_
 sapply(file.sources,source,.GlobalEnv)
 ```
 
-### load data {.unlisted .unnumbered}
+## load data {.unlisted .unnumbered}
 
 ```{r load_data_and_exclude_m1, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 main_dir = dirname(dirname(getwd()))
@@ -80,16 +80,12 @@ dv <- "event03_RT"
 dv_keyword <- "RT"
 xlab <- ""
 taskname <- "pain"
-
 ylab <- "ratings (degree)"
 subject <- "subject"
 exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 
 # load data _____________________________________
 data <- read.csv('/Users/h/Dropbox/projects_dropbox/social_influence_analysis/data/simulated/model_ver04_0508/table_pain_new.csv')
-# data <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
-# data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
-# data['event03_RT'], data.event03_RT - pandas
 analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model19_RLsimulationplot", as.character(Sys.Date()))
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 ```
@@ -99,8 +95,7 @@ dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
 ```{r function::simple_contrasts_beh, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 simple_contrasts_beh <- function(df) {
-# [ CONTRASTS ]  ________________________________________________________________________________ # nolint
-# contrast code ________________________________________
+#factorize stimulus type ________________________________________
 df$stim_factor <- factor(df$param_stimulus_type)
 
 # contrast code 1 linear
@@ -133,42 +128,51 @@ return(df)
 }
 ```
 
-
+## Plot the relationship between expectation and outcome rating using model 4 simulations (Jepma)
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-
+# convert column names
 data$event04_actual_angle <- data$Pain_mdl4
 data$event02_expect_angle <- data$Exp_mdl4
-maindata <- data %>%
-group_by(src_subject_id) %>%
-mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
-mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
-mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
-mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
-mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
-mutate(demean_expect = event02_expect_angle - avg_expect)
 
-data_p2= maindata %>%
+# demean data
+maindata <- data %>%
+  group_by(src_subject_id) %>%
+    mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
+    mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
+    mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
+    mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
+    mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
+    mutate(demean_expect = event02_expect_angle - avg_expect)
+
+# assign trial numbers
+data_p2 <- maindata %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number())
+
 data_a3 <- data_p2 %>% 
   group_by(src_subject_id, session_id, param_run_num) %>% 
   mutate(trial_index = row_number(param_run_num))
 
+# calculate lag score (N-1 outcome score_)
 data_a3lag <- 
     data_a3 %>%
     group_by(src_subject_id, session_id, param_run_num) %>%
     mutate(lag.demean_outcome = dplyr::lag(demean_outcome, n = 1, default = NA))
+
+# calculate subject level average score
 data_a3lag <- data_a3lag %>%
   mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) 
 data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.demean_outcome),]
 
+# compute contrasts
 df <- data_a3lag_omit
 pvc <- simple_contrasts_beh(df)
 ```
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# plot expectation and outcome rating
 df_dropna <-
   pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
 total <-
@@ -190,6 +194,7 @@ total
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# only keep rows that both have expectation and outcome ratings
 df_dropna <- pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
 df_low = df_dropna[df_dropna$param_stimulus_type == "low_stim", ]
 low <-
@@ -231,7 +236,7 @@ plots_title <- annotate_figure(plots, top = text_grob("model fitted data\n - pre
 plots_title
 ```
 
-## model version 2
+## Plot the relationship between expectation and outcome rating using model 2 simulations (Jepma)
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
@@ -330,7 +335,7 @@ plots_title
 ```
 
 
-## model fits
+### model fits from model 2. expectation ratings (Jepma model)
 ```{r}
 data <- read.csv('/Users/h/Dropbox/projects_dropbox/social_influence_analysis/data/simulated/model_ver04_0508/table_pain_new.csv')
 subjectwise_2dv <- meanSummary_2dv(data, c("src_subject_id"), 
@@ -359,6 +364,7 @@ ggplot(data = subjectwise_2dv,
   )
 ```
 
+### model fits from model 2. outcome ratings (Jepma model)
 ```{r}
 subjectwise_2dv <- meanSummary_2dv(data, c("src_subject_id"), 
                                    "event04_actual_angle", "Pain_mdl2" )
@@ -386,3 +392,297 @@ ggplot(data = subjectwise_2dv,
   )
 ```
 
+## correlation betweeen alpha_incongruent and cue trial slope (randome effects of cue)
+```{r echo=FALSE}
+# load dataframe
+cue_trial <- data.frame(read.csv(file.path(main_dir, 'data/RL/cue_trial_ranef_pain.csv')))
+# grab alpha_incongruent
+model_param <- data.frame(read.csv(file.path(main_dir, "data/RL/modelfit_jepma_0525/par_mdl2_pain.csv")))
+# grab cue slope
+# Perform inner join merge on common columns
+merged_df <- merge(cue_trial, model_param, by.x = "sub", by.y = "subj_num_new_pain", all = FALSE)
+# Filter the rows in the first data frame based on the intersection
+# plot ggplot
+# run lmer
+merged_df$alpha_c_gt_i <- merged_df$alpha_c - merged_df$alpha_i
+merged_2dv <- meanSummary_2dv(merged_df, c("sub"), 
+                                   "cue_randomslope", "pain_err" )
+ggplot(data = merged_df, 
+       aes(x = .data[["cue_randomslope"]], 
+           y = .data[["alpha_c_gt_i"]],
+           size = .5
+           )) +
+  geom_point(size = 2, alpha = .5  ) + 
+  ylim(-10,10) + 
+  xlim(-10,10) +
+  coord_fixed() +
+  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) + 
+  xlab("Cue random slopes") + 
+  ylab("Alpha \n(congruent > incongruent)")+
+  theme(
+    axis.line = element_line(colour = "grey50"),
+    panel.background = element_blank(),
+    plot.subtitle = ggtext::element_textbox_simple(size = 1), 
+    axis.text.x = element_text(size = 15),
+    axis.text.y = element_text(size = 15),
+    axis.title.x = element_text(size = 20),
+    axis.title.y = element_text(size = 20)
+      
+  )
+```
+```{r echo=FALSE}
+# load dataframe
+cue_trial <- data.frame(read.csv(file.path(main_dir, 'data/RL/cue_trial_ranef_vicarious.csv')))
+# grab alpha_incongruent
+model_param <- data.frame(read.csv(file.path(main_dir, "data/RL/modelfit_jepma_0525/par_mdl2_vic.csv")))
+# grab cue slope
+# Perform inner join merge on common columns
+merged_df <- merge(cue_trial, model_param, by.x = "sub", by.y = "subj_num_new_vicarious", all = FALSE)
+# Filter the rows in the first data frame based on the intersection
+# plot ggplot
+# run lmer
+merged_df$alpha_c_gt_i <- merged_df$alpha_c - merged_df$alpha_i
+merged_2dv <- meanSummary_2dv(merged_df, c("sub"), 
+                                   "cue_randomslope", "pain_err" )
+ggplot(data = merged_df, 
+       aes(x = .data[["cue_randomslope"]], 
+           y = .data[["alpha_c_gt_i"]],
+           size = .5
+           )) +
+  geom_point(size = 2, alpha = .5  ) + 
+  ylim(-10,10) + 
+  xlim(-10,10) +
+  coord_fixed() +
+  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) + 
+  xlab("Cue random slopes") + 
+  ylab("Alpha \n(congruent > incongruent)")+
+  theme(
+    axis.line = element_line(colour = "grey50"),
+    panel.background = element_blank(),
+    plot.subtitle = ggtext::element_textbox_simple(size = 1), 
+    axis.text.x = element_text(size = 15),
+    axis.text.y = element_text(size = 15),
+    axis.title.x = element_text(size = 20),
+    axis.title.y = element_text(size = 20)
+      
+  )
+```
+
+```{r echo=FALSE}
+# load dataframe
+cue_trial <- data.frame(read.csv(file.path(main_dir, 'data/RL/cue_trial_ranef_cognitive.csv')))
+# grab alpha_incongruent
+model_param <- data.frame(read.csv(file.path(main_dir, "data/RL/modelfit_jepma_0525/par_mdl2_cog.csv")))
+# grab cue slope
+# Perform inner join merge on common columns
+merged_df <- merge(cue_trial, model_param, by.x = "sub", by.y = "subj_num_new_cognitive", all = FALSE)
+# Filter the rows in the first data frame based on the intersection
+# plot ggplot
+# run lmer
+merged_df$alpha_c_gt_i <- merged_df$alpha_c - merged_df$alpha_i
+merged_2dv <- meanSummary_2dv(merged_df, c("sub"), 
+                                   "cue_randomslope", "pain_err" )
+ggplot(data = merged_df, 
+       aes(x = .data[["cue_randomslope"]], 
+           y = .data[["alpha_c_gt_i"]],
+           size = .5
+           )) +
+  geom_point(size = 2, alpha = .5  ) + 
+  ylim(-10,10) + 
+  xlim(-10,10) +
+  coord_fixed() +
+  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) + 
+  xlab("Cue random slopes") + 
+  ylab("Alpha \n(congruent > incongruent)")+
+  theme(
+    axis.line = element_line(colour = "grey50"),
+    panel.background = element_blank(),
+    plot.subtitle = ggtext::element_textbox_simple(size = 1), 
+    axis.text.x = element_text(size = 15),
+    axis.text.y = element_text(size = 15),
+    axis.title.x = element_text(size = 20),
+    axis.title.y = element_text(size = 20)
+      
+  )
+```
+
+
+## correlation betweeen alpha_incongruent and NPS
+```{r}
+# load dataframe
+NPS <- data.frame(read.csv(file.path(main_dir, 'data/NPS_curated.csv')))
+NPS <- NPS %>%
+  mutate(congruency = case_when(
+    cuetype == "cuetype-low" & stimintensity == "low" ~ "congruent",
+    cuetype == "cuetype-high" & stimintensity == "high" ~ "congruent",
+    cuetype == "cuetype-low" & stimintensity == "high" ~ "incongruent",
+    cuetype == "cuetype-high" & stimintensity == "low" ~ "incongruent",
+    TRUE ~ "other"
+  ))
+NPS_congru <- NPS %>%
+  group_by(sub) %>%
+  summarise(avg_diff = mean(NPSpos[congruency == "congruent"]) - mean(NPSpos[congruency == "incongruent"]))
+
+# grab alpha_incongruent
+model_param <- data.frame(read.csv(file.path(main_dir, "data/RL/modelfit_jepma_0525/par_mdl2_pain.csv")))
+
+model_param <- model_param %>%
+  mutate(sub = sprintf("sub-%04d", subj_num_new_pain))
+
+# Merge the two dataframes based on the "sub" column
+merged_NPS <- merge(NPS_congru, model_param, by = "sub")
+merged_NPS$alpha_c_gt_i <- merged_NPS$alpha_c - merged_NPS$alpha_i
+# grab cue slope
+# grab intersection of subject ids
+# plot ggplot
+ggplot(data = merged_NPS, 
+       aes(x = .data[["avg_diff"]], 
+           y = .data[["alpha_c_gt_i"]],
+           size = .5
+           )) +
+  geom_point(size = 2, alpha = .5  ) + 
+  ylim(-10,10) + 
+  xlim(-10,10) +
+  coord_fixed() +
+  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) + 
+  xlab("NPS \n(congruent > incongruent)") + 
+  ylab("Alpha \n(congruent > incongruent)")+
+  theme(
+    axis.line = element_line(colour = "grey50"),
+    panel.background = element_blank(),
+    plot.subtitle = ggtext::element_textbox_simple(size = 1), 
+    axis.text.x = element_text(size = 15),
+    axis.text.y = element_text(size = 15),
+    axis.title.x = element_text(size = 20),
+    axis.title.y = element_text(size = 20)
+      
+  )
+# run lmer
+
+```
+
+## correlation bettween NPS and PE
+
+### test similarity between NPS positive values and PE (11/06/2023)
+```{r}
+model.25 <- lmer(merged_NPSpe$NPSpos ~ merged_NPSpe$PE_mdl2 + (1|sub), data = merged_NPSpe)
+summary(model.25)
+```
+
+```{r}
+PEdf <- read.csv('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/data/RL/modelfit_jepma_0525/table_pain.csv')
+NPS <- data.frame(read.csv(file.path(main_dir, 'data/NPS_curated.csv')))
+
+PEdf <- PEdf %>%
+  mutate(sub = sprintf("sub-%04d", src_subject_id),
+         ses = sprintf("ses-%02d", session_id),
+         run = sprintf("run-%02d", param_run_num),
+         trial = sprintf("trial-%03d", trial_index_runwise-1)
+         )
+merged_NPSpe <- merge(NPS, PEdf, by = c("sub", "ses", "run", "trial"))
+
+
+subjectwise_2dv <- meanSummary_2dv(merged_NPSpe, c("src_subject_id","stimintensity", "cuetype"), 
+                                   "PE_mdl2", "NPSpos" )
+ggplot(data = subjectwise_2dv, 
+       aes(x = .data[["DV1_mean_per_sub"]], 
+           y = .data[["DV2_mean_per_sub"]],
+           color = .data[["cuetype"]],
+           # shape = .data[["stimintensity"]],
+           # size = .5
+           )) +
+  geom_point(size = 2, alpha = .5  ) + 
+  ylim(-50,50) + 
+  xlim(-50,50) +
+  coord_fixed() +
+  scale_color_manual(values = c("cuetype-high" ="red","cuetype-low" =  "#5D5C5C"))+
+  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) + 
+  xlab("PE") + 
+  ylab("NPSpos")+
+  theme(
+    axis.line = element_line(colour = "grey50"),
+    panel.background = element_blank(),
+    plot.subtitle = ggtext::element_textbox_simple(size = 1), 
+    axis.text.x = element_text(size = 15),
+    axis.text.y = element_text(size = 15),
+    axis.title.x = element_text(size = 20),
+    axis.title.y = element_text(size = 20)
+      
+  )
+```
+
+### test relationship between PE and cue type and stimintensity (06/16/2023)
+```{r}
+model.PENPS <- lmer(NPSpos ~ PE_mdl2*cuetype*stimintensity + (1|sub), data = merged_NPSpe)
+summary(model.PENPS)
+```
+
+### plot the relationship between PE and NPS as a function of cue
+```{r}
+ggplot(data = merged_NPSpe, 
+       aes(x = .data[["PE_mdl2"]], 
+           y = .data[["NPSpos"]],
+           color = .data[["cuetype"]],
+           size = .5
+           )) +
+  geom_point(size = 2, alpha = .5  ) + 
+  ylim(-150,150) + 
+  xlim(-150,150) +
+  coord_fixed() +
+  scale_color_manual(values = c("cuetype-high" ="red","cuetype-low" =  "#5D5C5C"))+
+  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) + 
+  xlab("PE") + 
+  ylab("NPSpos")+
+  theme(
+    axis.line = element_line(colour = "grey50"),
+    panel.background = element_blank(),
+    plot.subtitle = ggtext::element_textbox_simple(size = 1), 
+    axis.text.x = element_text(size = 15),
+    axis.text.y = element_text(size = 15),
+    axis.title.x = element_text(size = 20),
+    axis.title.y = element_text(size = 20)
+      
+  )
+```
+
+### plot the relationship between PE and NPS as a function of cue and stimulus intensity
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+df_low = merged_NPSpe[merged_NPSpe$stimintensity == "low", ]
+low <-
+  plot_twovariable(
+    df_low, iv1 = "PE_mdl2", iv2 = "NPSpos",
+    group = "param_cue_type", subject = "sub",
+    xmin=-50, xmax=50, ymin=-50, ymax=50,
+    xlab = "PE", ylab = "NPSpos",
+    ggtitle = "Low intensity",
+    color_scheme = c("high_cue" ="#FF8800","low_cue" =  "#5D5C5C"),
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
+  )
+
+df_med = merged_NPSpe[merged_NPSpe$stimintensity == "med", ]
+med <-
+  plot_twovariable(
+    df_med, iv1 = "PE_mdl2", iv2 = "NPSpos",
+    group = "param_cue_type", subject = "src_subject_id",
+    xmin=-50, xmax=50, ymin=-50, ymax=50,
+    xlab = "PE", ylab = "NPSpos",
+    ggtitle = "Medium intensity",
+    color_scheme = c("high_cue" ="#DB6000","low_cue" =  "#5D5C5C"),
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
+  )
+df_high = merged_NPSpe[merged_NPSpe$stimintensity == "high", ]
+high <-
+  plot_twovariable(
+    df_high, iv1 = "PE_mdl2", iv2 = "NPSpos",
+    group = "param_cue_type", subject = "src_subject_id",
+    xmin=-50, xmax=50, ymin=-50, ymax=50,
+    xlab = "PE", ylab = "NPSpos",
+    ggtitle = "High intensity",
+    color_scheme = c("high_cue" ="#941100","low_cue" =  "#5D5C5C"),
+    alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
+  )
+plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
+plots
+```
