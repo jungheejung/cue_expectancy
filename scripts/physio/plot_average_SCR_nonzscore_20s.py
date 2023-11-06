@@ -32,32 +32,34 @@ from pathlib import Path
 main_dir = '/Volumes/spacetop_projects_cue'
 # main_dir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis'
 local_physiodir = '/Volumes/spacetop_projects_cue/analysis/physio'
-physio_dir = join(main_dir, 'analysis/physio/')
+main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue'
+#local_physiodir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/physio'
+#physio_dir = join(main_dir, 'analysis/physio/')
+#local_physiodir = physio_dir
 # task = 'cognitive'
-epochstart = -1
+epochstart = -3
 epochend = 20
 samplingrate = 25
-ttlindex = 2
+ttlindex = 1
 date = datetime.now().strftime("%m-%d-%Y")
-fig_savedir = join('/Users/h/Dropbox/projects_dropbox/social_influence_analysis', 'figure/physio/physio01_SCL', date)
+fig_savedir = join(main_dir, 'figure/physio/physio01_SCL', date)
 Path(fig_savedir).mkdir( parents=True, exist_ok=True )
 # %%
 for task in [ 'pain', 'cognitive', 'vicarious']:
-    # # NOTE: <<--------only run once
-    # flist = glob.glob(
-    #     join(physio_dir, '**', f'sub-0*{task}*_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), recursive=True)
-    # # sub-0053_ses-01_run-02_runtype-vicarious_epochstart--1_epochend-20_samplingrate-25_ttlindex-2_physio-scltimecourse
-    # # sub-0062_ses-01_run-06_runtype-vicarious_epochstart--1_epochend-20_samplingrate-25_ttlindex-2_physio-scltimecourse
-    # #  NOTE: stack all data and save as .csv ________________________
-    # li = []
-    # frame = pd.DataFrame()
-    # for filename in sorted(flist):
-    #     df = pd.read_csv(filename, index_col=None, header=0)
-    #     li.append(df)
-    # frame = pd.concat(li, axis=0, ignore_index=True)
-    # frame.to_csv(join(local_physiodir, 'physio01_SCL',
-    #             f'sub-all_ses-all_run-all_runtype-{task}_epochstart-{epochstart}_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), index = False)
-    # # NOTE: only run once -------- >>
+    # NOTE: <<--------only run once
+    flist = glob.glob(
+        join(physio_dir, '**', f'sub-0*{task}*_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), recursive=True)
+    # sub-0053_ses-01_run-02_runtype-vicarious_epochstart--1_epochend-20_samplingrate-25_ttlindex-2_physio-scltimecourse
+    # sub-0062_ses-01_run-06_runtype-vicarious_epochstart--1_epochend-20_samplingrate-25_ttlindex-2_physio-scltimecourse
+    #  NOTE: stack all data and save as .csv ________________________
+    li = []
+    frame = pd.DataFrame()
+    for filename in sorted(flist):
+        df = pd.read_csv(filename, index_col=None, header=0)
+        li.append(df)
+    frame = pd.concat(li, axis=0, ignore_index=True)
+    frame.to_csv(join(local_physiodir, 'physio01_SCL', f'sub-all_ses-all_run-all_runtype-{task}_epochstart-{epochstart}_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), index = False)
+    # NOTE: only run once -------- >>
 
 
     frame = pd.DataFrame()
@@ -87,6 +89,7 @@ for task in [ 'pain', 'cognitive', 'vicarious']:
     def plot_condition_timeseries(df, cond, level_list, col_start, col_end, color_list, line_style):
         for ind, stim in enumerate(level_list):
             stim_df = df[df[cond] == stim]
+            col_end = stim_df.columns[-1]
             stim_mean = stim_df.loc[:, col_start:col_end].mean()
             stim_sd = stim_df.loc[:, col_start:col_end].std()
             timeseries = np.arange(len(stim_mean))
@@ -114,7 +117,7 @@ for task in [ 'pain', 'cognitive', 'vicarious']:
         color_list=['#E23201', '#FD9415', '#848484'], 
         line_style = ['solid'])
     plt.title(f'{task} stimulus SCR')
-    plt.savefig(join(fig_savedir, f"task-{task}_sample-25_iv-time_dv-stim.png"))
+    plt.savefig(join(fig_savedir, f"task-{task}_sample-25_ttlindex-{ttlindex}_iv-time_dv-stim.png"))
     plt.close()
     
     # NOTE: plot cue factor
@@ -127,7 +130,7 @@ for task in [ 'pain', 'cognitive', 'vicarious']:
         color_list=['#FAAE7B', '#432371'],
         line_style = ['dashed'])
     plt.title(f'{task} cue SCR')
-    plt.savefig(join(fig_savedir, f"task-{task}_sample-25_iv-time_dv-cue.png"))
+    plt.savefig(join(fig_savedir, f"task-{task}_sample-25_ttlindex-{ttlindex}_iv-time_dv-cue.png"))
     plt.close()
 
     # NOTE: plot interaction
@@ -160,7 +163,7 @@ for task in [ 'pain', 'cognitive', 'vicarious']:
     plt.title(f'{task} stimulus * cue SCR')
     plt.legend(bbox_to_anchor=(1.05, 1.0), loc='upper left')
     # plt.show()
-    plt.savefig(join(fig_savedir, f"task-{task}_sample-25_iv-time_dv-stimXcue.png"))
+    plt.savefig(join(fig_savedir, f"task-{task}_sample-25_ttlindex-{ttlindex}_iv-time_dv-stimXcue.png"))
     plt.close()
 # TODO:
 # combine behavioral data

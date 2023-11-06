@@ -9,7 +9,7 @@
 #SBATCH -e ./log_con/contrast_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1-133%10
+#SBATCH --array=1-133%50
 
 conda activate spacetop_env
 
@@ -18,6 +18,8 @@ SPM_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/spm12"
 MAIN_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue" #"$(realpath "${PWD}/../..")"
 # SPMINPUT_DIR="${MAIN_DIR}/analysis/fmri/spm/univariate/model01_6cond/1stLevel"
 INPUT_DIR="${MAIN_DIR}/analysis/fmri/smooth6mm"
+INPUT_DIR="/dartfs-hpc/scratch/f0042x1/spm/model01_6cond_ttl1"
+SAVE_DIR="/dartfs-hpc/scratch/f0042x1/spm/model01_6cond_ttl1"
 ### GPT
 FILE="${MAIN_DIR}/scripts/step00_qc/qc03_fmriprep_visualize/bad_runs.json"
 BAD=$(jq -r 'keys[]' ${FILE})   
@@ -43,4 +45,4 @@ PARTICIPANT_LABEL="$(basename "${sorted_subdirectories[$((SLURM_ARRAY_TASK_ID-1)
 
 echo ${PARTICIPANT_LABEL}
 module load matlab/r2020a
-matlab -nodisplay -nosplash -batch "addpath('${SPM_DIR}'); addpath(genpath('${CANLABCORE_DIR}')); addpath(genpath('${MAIN_DIR}')); s02_contrast_6cond_scale('${PARTICIPANT_LABEL}', '${INPUT_DIR}', '${MAIN_DIR}');"
+matlab -nodisplay -nosplash -batch "addpath('${SPM_DIR}'); addpath(genpath('${CANLABCORE_DIR}')); addpath(genpath('${MAIN_DIR}/scripts/step04_SPM/6conditions')); s02_contrast_6cond_scale_filterbadruns('${PARTICIPANT_LABEL}', '${INPUT_DIR}', '${MAIN_DIR}', '${SAVE_DIR}');"

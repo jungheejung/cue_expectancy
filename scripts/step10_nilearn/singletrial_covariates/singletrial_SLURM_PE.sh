@@ -8,7 +8,8 @@
 #SBATCH -e ./log/PE_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1-133%100
+#SBATCH --array=1-133
+##20-133%100
 
 # TODO:
 # [x] submit PE per participant
@@ -22,7 +23,7 @@ MAINDIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue"
 SAVEDIR="${MAINDIR}/analysis/fmri/nilearn/covariate/"
 python ${MAINDIR}/scripts/step10_nilearn/singletrial_covariates/singletrial_covPE.py \
 --slurm_id ${ID} \
---tasktype "pain" \
+--tasktype "vicarious" \
 --fmri-event "stimulus" \
 --beh-regressor "PE_mdl2" \
 --beh-savename "PE" \

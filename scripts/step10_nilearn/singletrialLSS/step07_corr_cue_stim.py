@@ -65,7 +65,7 @@ def extract_bids(filename: str, key: str) -> str:
 
 # 0. parameters ________________________________________________________________________________
 parser = argparse.ArgumentParser()
-parser.add_argument("--slurm_id", type=int,
+parser.add_argument("--slurm-id", type=int,
                     help="specify slurm array id")
 args = parser.parse_args()
 print(args.slurm_id)

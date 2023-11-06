@@ -24,7 +24,10 @@ function step02_extract_ROI()
     %% 2. load pain pathwy object
     % pathway_obj = ''
     pain_pathways = load_atlas(which('pain_pathways_atlas_obj.mat'));
-    pain_pathways = pain_pathways.select_atlas_subset({'vermis','rIns','rV1','rThal','lIns','rdpIns','rS2_Op','dACC','dpIns', 'aMCC_MPFC', 'Thal_VPLM','Thal_MD'});
+    
+    pain_pathways = pain_pathways.select_atlas_subset({'Thal_VPLM_R','Thal_VPLM_L','Thal_IL','Thal_MD',...
+    'Hythal','pbn_R','pbn_L','Bstem_PAG','rvm_R','Amy_R','Amy_L','dpIns_L','dpIns_R','S2_L','S2_R','mIns_L','mIns_R',...
+    'aIns_L','aIns_R','aMCC_MPFC','s1_foot_L','s1_foot_R','s1_handplus_L','s1_handplus_R'});
     pain_pathways_mean = extract_roi_averages(dat, fmri_data(pain_pathways), 'unique_mask_values', 'nonorm');
     % output_table
     output_table = [ table(pain_pathways_mean.dat, 'VariableNames', pain_pathways.labels)  output_table]; 

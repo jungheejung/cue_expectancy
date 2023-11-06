@@ -1,4 +1,4 @@
-function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
+function s01_glm(sub, input_dir, main_dir, fmriprep_dir, badruns_json, save_dir)
     %-----------------------------------------------------------------------
     % spm SPM - SPM12 (7771)
     % cfg_basicio BasicIO - Unknown
@@ -49,7 +49,7 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
     sortedT.run_num(:) = str2double(extractBetween(sortedT.name, 'run-', '_'));
 
     nii_col_names = sortedT.Properties.VariableNames;
-    nii_num_colomn = nii_col_names(endsWith(nii_col_names, '_num'));
+    nii_num_column = nii_col_names(endsWith(nii_col_names, '_num'));
 
     % find onset files
     onsetlist = dir(fullfile(onset_dir, sub, '*', strcat(sub, '_*_task-cue_*_events.tsv')));
@@ -61,14 +61,27 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
     sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '_'));
 
     onset_col_names = sortedonsetT.Properties.VariableNames;
-    onset_num_colomn = onset_col_names(endsWith(onset_col_names, '_num'));
-    disp(nii_num_colomn)
+    onset_num_column = onset_col_names(endsWith(onset_col_names, '_num'));
+    disp(nii_num_column)
+
+    % load badruns from json _________________________________________________________________
+    bad_runs_table = readBadRunsFromJSON(badruns_json);
+    json_col_names = bad_runs_table.Properties.VariableNames;
+    json_num_column = json_col_names(endsWith(json_col_names, '_num'));
+    disp(bad_runs_table);
+
+    [~, ia] = ismember(sortedT(:, nii_num_column), bad_runs_table(:,json_num_column), 'rows');
+    intersectRuns = sortedT(setdiff(1:size(sortedT, 1), ia), :);
+    intersect_col_names = intersectRuns.Properties.VariableNames;
+    inter_num_column = intersect_col_names(endsWith(intersect_col_names, '_num'));
+
+
     %intersection of nifti and onset files
-    A = intersect(sortedT(:, nii_num_colomn), sortedonsetT(:, onset_num_colomn));
+    A = intersect(sortedT(:, nii_num_column), sortedonsetT(:, onset_num_column));
 
-    output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_CESO', ...
-        '1stLevel', sub);
-
+    % output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_CESO', ...
+    %     '1stLevel', sub);
+    output_dir = fullfile(save_dir, sub);
     if ~exist(output_dir, 'dir')
         mkdir(output_dir)
     end
@@ -132,15 +145,6 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
         
         disp(strcat('task: ', task));
         disp(strcat('[ STEP 05 ]creating motion covariate text file...'));
-        %m_subset     = m(:, {'csf', 'white_matter', 'trans_x', 'trans_y', 'trans_z', 'rot_x', 'rot_y', 'rot_z'});
-
-        % mask_fname = fullfile(input_dir, sub, 'ses-01', 'anat', ...
-        % strcat(sub, '_ses-01_acq-MPRAGEXp3X08mm_desc-brain_mask.nii.gz'));
-        % mask_nii = fullfile(input_dir, sub, 'ses-01', 'anat', ...
-        %     strcat(sub, '_ses-01_acq-MPRAGEXp3X08mm_desc-brain_mask.nii'));
-
-        % if ~exist(mask_nii, 'file'), gunzip(mask_fname)
-        % end
 
         %% regressor covariates ______________________________________________________
         motion_fname = fullfile(motion_dir, 'csf_24dof_dummy_spike', sub, ses, ...
@@ -167,21 +171,26 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
             hasMatch = ~cellfun('isempty', regexp(m.Properties.VariableNames, 'motion_outlier', 'once'));
 
             if any(hasMatch)
+                disp("-- there are motion outliers")
                 motion_outlier = m(:, m.Properties.VariableNames(hasMatch));
                 spike = sum(motion_outlier{:, :}, 2);
-
-                m_cov = [m_subset, dummy, array2table(spike)];
-                m_clean = standardizeMissing(m_cov, 'n/a');
-
-                for i = 1:25
-                    m_clean.(i)(isnan(m_clean.(i))) = nanmean(m_clean.(i));
+                if size(motion_outlier,2) <= 800
+                    disp("-- motion outliers are less than 800 columns")
+                    m_cov = [m_subset, dummy, motion_outlier];
+                    m_clean = standardizeMissing(m_cov, 'n/a');
+                    for i = 1:size(m_clean,2)
+                        m_clean.(i)(isnan(m_clean.(i))) = nanmean(m_clean.(i));
+                    end
+                elseif size(motion_outlier,2) > 800
+                    disp(strcat('-- ABORT [!] too many spikes: ', size(motion_outlier,2)));
+                    continue 
                 end
-
             else
+                disp("-- there are no motion outliers")
                 m_cov = [m_subset, dummy];
                 m_clean = standardizeMissing(m_cov, 'n/a');
 
-                for i = 1:25
+                for i = 1:size(m_clean,2);
                     m_clean.(i)(isnan(m_clean.(i))) = nanmean(m_clean.(i));
                 end
 
@@ -220,7 +229,7 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).scans = cellstr(scans);
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).name = 'CUE';
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).onset = double(cue.onset01_cue);
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).duration = double(repelem(1, 12)'); ;
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).duration = double(repelem(1, length(double(cue.onset01_cue)))'); 
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).tmod = 0;
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).pmod = struct('name', {}, 'param', {}, 'poly', {});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).orth = 0;
@@ -234,7 +243,7 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
 
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).name = 'STIM';
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).onset = double(cue.onset03_stim);
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).duration = double(repelem(5, 12)');
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).duration = double(repelem(5, length(double(cue.onset03_stim)))');
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).tmod = 0;
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod = struct('name', {}, 'param', {}, 'poly', {});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).orth = 0;
@@ -270,4 +279,42 @@ function s01_glm(sub, input_dir, main_dir, fmriprep_dir)
 
     disp(strcat('FINISH - subject ', sub, ' complete'))
 
+end
+
+
+function bad_runs_table = readBadRunsFromJSON(badruns_file)
+    % Read the badruns_file and construct a table with sub_num, ses_num, and run_num
+    bad_runs_table = table();
+
+    try
+        fid = fopen(badruns_file);
+        json_str = fread(fid, '*char').';
+        fclose(fid);
+        bad_runs = jsondecode(json_str);
+        
+        subjects = fieldnames(bad_runs);
+        num_subjects = numel(subjects);
+
+        % Loop through each subject and their corresponding bad runs
+        for i = 1:num_subjects
+            sub = subjects{i};
+            bad_run_list = bad_runs.(sub);
+            num_bad_runs = numel(bad_run_list);
+            sub_num = str2double(regexp(sub, '\d+', 'match'));
+            % Extract the sub_num, ses_num, and run_num from each bad run
+            for j = 1:num_bad_runs
+                ses_num = str2double(extractBetween(bad_run_list{j}, 'ses-', '_run-'));
+                run_num = str2double(regexp(bad_run_list{j}, 'run-(\d+)', 'tokens', 'once'));%extractBetween(bad_run_list{j}, 'ses-', '_run-');
+%                 ses_num = str2double(run_info{1});
+%                 run_num = str2double(run_info{2});
+
+                % Append the data to the table
+                new_row = table(sub_num, ses_num, run_num, 'VariableNames', {'sub_num', 'ses_num', 'run_num'});
+                bad_runs_table = [bad_runs_table; new_row];
+            end
+        end
+
+    catch
+        disp('Error reading badruns JSON file.');
+    end
 end

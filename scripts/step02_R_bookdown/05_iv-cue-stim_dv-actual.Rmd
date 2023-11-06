@@ -48,11 +48,11 @@ library(gghalves)
 library(ggpubr)
 library(PupillometryR) # geom_flat_violin
 
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
-source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
-file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
+# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
+# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
+# source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+file.sources = list.files(c("/Users/h/Dropbox/projects_local/cue_expectancy/scripts/step02_R/utils"),
                           pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
@@ -312,7 +312,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     )
     cooksd <- lmer_twofactor_cooksd_fix(
         data, taskname, iv1, stim_con1, stim_con2, dv,
-        subject, dv_keyword, model_savefname, 'random_slopes', print_lmer_output = FALSE
+        subject, dv_keyword, model_savefname, 'random_intercept', print_lmer_output = FALSE
     )
     influential <- as.numeric(names(cooksd)[
         (cooksd > (4 / as.numeric(length(unique(data$src_subject_id)))))
@@ -520,3 +520,247 @@ plot_filename = file.path(analysis_dir,
 ggsave(plot_filename, width = 8, height = 4)
 ```
 
+
+
+# Clinical trials
+## cue contrast average across intensity
+```{r common_parameters_4, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+## common dir for saving plots and model outputs
+analysis_dir <- file.path(
+    main_dir, "analysis",
+    "mixedeffect", "model04_iv-cuecontrast_dv-outcome", as.character(Sys.Date()))
+dir.create(analysis_dir, recursive = TRUE, showWarnings = FALSE)
+
+for (taskname in c("pain", "vicarious", "cognitive")) {
+    subject_varkey <- "src_subject_id"
+    iv <- "param_cue_type"; iv_keyword <- "cue"
+    dv <- "event04_actual_angle"
+    dv_keyword <- "actual"
+    subject <- "subject"
+    xlab <- ""
+    ylab <- "ratings (degree)"
+    exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
+    w <- 10
+    h <- 6
+    model_savefname <- file.path(
+        analysis_dir,
+        paste("lmer_task-", taskname, "_cue_on_rating-", dv_keyword, "_",
+            as.character(Sys.Date()), ".txt",
+            sep = ""
+        )
+    )
+    # ___ 1) load data _______________________________________________________________ # nolint
+    data <- load_task_social_df(datadir, taskname, subject_varkey, iv, dv, exclude)
+    unique(data$src_subject_id)
+    data$subject <- factor(data$src_subject_id)
+
+    # ___ 2) mixed effects model _____________________________________________________ # nolint
+    cooksd <- lmer_onefactor_cooksd(
+        df = data, taskname, iv, dv, subject_keyword = subject, dv_keyword, model_savefname, print_lmer_output=FALSE
+    )
+    influential <- as.numeric(names(cooksd)[
+        (cooksd > (4 / as.numeric(length(unique(data$subject)))))
+    ])
+    data_screen <- data[-influential, ]
+
+    # ___ 3) calculate difference scores and summarize _______________________________ # nolint
+    # TODO: within param_run_num
+    data$run_order[data$param_run_num > 3] <- "a"
+    data$run_order[data$param_run_num <= 3] <- "b"
+    sub_diff <- subset(data, select = c(
+        "subject", "session_id", "run_order",
+        "param_task_name", "param_cue_type",
+       # "param_stimulus_type", 
+        dv
+    ))
+    subjectwise <- meanSummary(sub_diff, c(
+        "subject", "session_id", "run_order",
+        "param_task_name", "param_cue_type"
+        #"param_stimulus_type"
+    ), dv)
+    mean_actual <- subjectwise[1:(length(subjectwise) - 1)]
+    wide <- mean_actual %>%
+        spread(param_cue_type, mean_per_sub)
+    wide$diff <- wide$high_cue - wide$low_cue
+    # wide$stim_name[wide$param_stimulus_type == "high_stim"] <- "high"
+    # wide$stim_name[wide$param_stimulus_type == "med_stim"] <- "med"
+    # wide$stim_name[wide$param_stimulus_type == "low_stim"] <- "low"
+    # wide$stim_ordered <- factor(wide$stim_name,
+    #     levels = c("low", "med", "high")
+    # )
+
+    subjectwise_diff <- meanSummary(wide, c("subject"), "diff")
+    # subjectwise_diff$stim_ordered <- factor(subjectwise_diff$stim_ordered,
+    #     # levels = c("low", "med", "high")
+    # )
+    groupwise_diff <- summarySE(
+        data = subjectwise_diff,
+        measurevar = "mean_per_sub" # variable created from above
+        # withinvars = c("stim_ordered"), # iv
+        # idvar = "subject"
+    )
+    print(taskname)
+    print(groupwise_diff$mean_per_sub_mean)
+    print(groupwise_diff$se)
+    
+# 
+#     # ___ 4) plot ____________________________________________________________________  # nolint
+#     # 4-1. parameters ______________________________________________________________ # nolint
+#     subjectwise <- subjectwise_diff
+#     groupwise <- groupwise_diff
+#     iv <- "mean_per_sub"
+#     subject_mean <- "mean_per_sub"
+#     group_mean <- "mean_per_sub_norm_mean"
+#     p1.se <- "se"
+#     subject <- "subject"
+#     if (any(startsWith(taskname, c("pain", "Pain")))) { # red
+#         color <- c("#B7021E", "#B7021E", "#B7021E")
+#     } else if (any(startsWith(taskname, c("vicarious", "Vicarious")))) { # green
+#         color <- c("#22834A", "#22834A", "#22834A")
+#     } else if (any(startsWith(taskname, c("cognitive", "Cognitive")))) { # blue
+#         color <- c("#0237C9", "#0237C9", "#0237C9")
+#     }
+# 
+#     # 4-2. plot rain cloud plots ____________________________________________________ # nolint
+#     p1.xlab <- ""
+#     p1.ylab <- "Cue effect \n(actual ratings of high > low cue)"
+#     ylim <- c()
+#     p1.ggtitle <- paste(taskname, " - actual judgment (degree)")
+#     p1.title <- paste(taskname, " - actual")
+#     p1.save_fname <- file.path(
+#         analysis_dir,
+#         paste("raincloud_task-", taskname, "_rating-",
+#             dv_keyword, "-cuecontrast_", as.character(Sys.Date()), ".png",
+#             sep = ""
+#         )
+#     )
+#     dv_keyword = "cuecontrast"
+#     ylim = c(-75,75)
+#     g <- plot_halfrainclouds_onefactor(
+#         subjectwise, groupwise, iv, subject_mean, group_mean, p1.se,
+#         subject, p1.ggtitle, p1.title, p1.xlab, p1.ylab, taskname, ylim,
+#         w, h, dv_keyword, color, p1.save_fname
+#     )
+#     g <- g + geom_hline(yintercept = 0, size = 0.5, linetype = "dashed")
+#     print(g)
+#     ggsave(p1.save_fname, plot = g)
+# 
+#     # 4-3.  plot geom range _________________________________________________________ # nolint
+#     p2.se <- "sd" # se, sd, ci
+#     p2.xlab <- "stimulus intensity"
+#     p2.ylab <- "Cue effect \n(actual ratings of high > low cue)"
+#     p2.ggtitle <- paste(taskname, " - cue effect per stimulus intensity", sep = "")
+#     w <- 5
+#     h <- 5
+#     p2.save_fname <- file.path(
+#         analysis_dir,
+#         paste("cueeffect_task-", taskname, "_rating-", dv_keyword, "_",
+#             as.character(Sys.Date()), ".png",
+#             sep = ""
+#         )
+#     )
+#     r <- plot_geompointrange_onefactor(
+#         subjectwise, groupwise, iv,
+#         subject_mean, group_mean, p2.se,
+#         p2.xlab, p2.ylab, color, p2.ggtitle, w, h, p2.save_fname
+#     )
+#     r <- r + geom_hline(yintercept = 0, size = 1, linetype = "dashed")
+#     print(r)
+#     # ggsave(p2.save_fname, plot = r)
+    
+    
+##########################
+    # savee data for Aryan
+# subset_df<- data[,c("src_subject_id", "session_id", "param_run_num", "param_task_name", "param_cue_type", "param_stimulus_type","event02_expect_RT", "event02_expect_angle","event04_actual_RT", "event04_actual_angle")]
+# df_trials <- subset_df %>% 
+#   group_by(src_subject_id, session_id, param_run_num) %>% 
+#   mutate(trial_index_runwise = row_number(param_run_num))
+# df_filtered <- subset(df_trials, complete.cases(df_trials) & !is.na(event02_expect_angle) & !is.na(event04_actual_angle))
+# df_filtered_final= df_filtered %>%
+#   arrange(src_subject_id ) %>%
+#   group_by(src_subject_id) %>%
+#   mutate(trial_index_subjectwise = row_number())
+# write.csv(df_filtered_final, file = paste0("spacetop_cue_", taskname, "_0405.csv"), row.names = FALSE)
+##########################
+}
+```
+
+## cue contrast average across expectation
+```{r common_parameters_4, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+## common dir for saving plots and model outputs
+analysis_dir <- file.path(
+    main_dir, "analysis",
+    "mixedeffect", "model04_iv-cuecontrast_dv-outcome", as.character(Sys.Date()))
+dir.create(analysis_dir, recursive = TRUE, showWarnings = FALSE)
+
+for (taskname in c("pain")) {
+    subject_varkey <- "src_subject_id"
+    iv <- "param_cue_type"; iv_keyword <- "cue"
+    dv <- "event02_expect_angle"
+    dv_keyword <- "expect"
+    subject <- "subject"
+    xlab <- ""
+    ylab <- "ratings (degree)"
+    exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
+    w <- 10
+    h <- 6
+    model_savefname <- file.path(
+        analysis_dir,
+        paste("lmer_task-", taskname, "_cue_on_rating-", dv_keyword, "_",
+            as.character(Sys.Date()), ".txt",
+            sep = ""
+        )
+    )
+    # ___ 1) load data _______________________________________________________________ # nolint
+    data <- load_task_social_df(datadir, taskname, subject_varkey, iv, dv, exclude)
+    unique(data$src_subject_id)
+    data$subject <- factor(data$src_subject_id)
+
+    # ___ 2) mixed effects model _____________________________________________________ # nolint
+    cooksd <- lmer_onefactor_cooksd(
+        df = data, taskname, iv, dv, subject_keyword = subject, dv_keyword, model_savefname, print_lmer_output=FALSE
+    )
+    influential <- as.numeric(names(cooksd)[
+        (cooksd > (4 / as.numeric(length(unique(data$subject)))))
+    ])
+    data_screen <- data[-influential, ]
+
+    # ___ 3) calculate difference scores and summarize _______________________________ # nolint
+    # TODO: within param_run_num
+    data$run_order[data$param_run_num > 3] <- "a"
+    data$run_order[data$param_run_num <= 3] <- "b"
+    sub_diff <- subset(data, select = c(
+        "subject", "session_id", "run_order",
+        "param_task_name", "param_cue_type",
+       # "param_stimulus_type", 
+        dv
+    ))
+    subjectwise <- meanSummary(sub_diff, c(
+        "subject", "session_id", "run_order",
+        "param_task_name", "param_cue_type"
+        #"param_stimulus_type"
+    ), dv)
+    mean_actual <- subjectwise[1:(length(subjectwise) - 1)]
+    wide <- mean_actual %>%
+        spread(param_cue_type, mean_per_sub)
+    wide$diff <- wide$high_cue - wide$low_cue
+
+    subjectwise_diff <- meanSummary(wide, c("subject"), "diff")
+    # subjectwise_diff$stim_ordered <- factor(subjectwise_diff$stim_ordered,
+    #     # levels = c("low", "med", "high")
+    # )
+    subjectwise_diff<- na.omit(subjectwise_diff)
+    groupwise_diff <- summarySE(
+        data = subjectwise_diff,
+        measurevar = "mean_per_sub" # variable created from above
+        # withinvars = c("stim_ordered"), # iv
+        # idvar = "subject"
+    )
+    print(taskname)
+    print(groupwise_diff$mean_per_sub_mean)
+    print(groupwise_diff$se)
+    
+}
+```

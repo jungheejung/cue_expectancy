@@ -1,0 +1,231 @@
+---
+title: "93_iv-cue_dv-sclbeta"
+output: html_document
+date: "2023-07-20"
+---
+---
+title: "92_SCL_beta"
+output: html_document
+date: "2023-07-20"
+---
+
+## Outline
+# load data
+# subjectwise, groupwise mean
+
+```{r message=TRUE, warning=TRUE, include=FALSE}
+library(car)
+library(psych)
+library(reshape)
+library(PupillometryR)
+library(plyr); library(dplyr)
+library(tidyselect)
+library(tidyr)
+library(stringr)
+library(lmerTest)
+library(gghalves)
+source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+file.sources = list.files(c("/Users/h/Documents/projects_local/cue_expectancy/scripts/step02_R/utils"),
+                          pattern="*.R", 
+                          full.names=TRUE, 
+                          ignore.case=TRUE)
+sapply(file.sources,source,.GlobalEnv)
+```
+
+```{r function::simple_contrasts_singletrial, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+simple_contrasts_singletrial <- function(df) {
+# [ CONTRASTS ]  ________________________________________________________________________________ # nolint
+# contrast code ________________________________________
+df$cue_factor <- factor(df$cue)
+
+# # contrast code 1 linear
+df$STIM_linear[df$stim == "low_stim"] <-  -0.5
+df$STIM_linear[df$stim == "med_stim"] <-  0
+df$STIM_linear[df$stim == "high_stim"] <-  0.5
+#
+# # contrast code 2 quadratic
+df$STIM_quadratic[df$stim == "low_stim"] <-  -0.33
+df$STIM_quadratic[df$stim == "med_stim"] <-  0.66
+df$STIM_quadratic[df$stim == "high_stim"] <-  -0.33
+
+df$stim_name[df$stim == "low_stim"] <- "low"
+df$stim_name[df$stim == "med_stim"] <-  "med"
+df$stim_name[df$stim == "high_stim"] <-  "high"
+
+# cue contrast
+df$cue_con[df$cue == "low_cue"] <- -0.5
+df$cue_con[df$cue == "high_cue"] <- 0.5
+
+# df$cue_name[df$cue == "intercept"] <- "intercept"
+df$cue_name[df$cue == "low_cue"] <- "low"
+df$cue_name[df$cue == "high_cue"] <- "high"
+
+df$stim_ordered <- factor(
+        df$stim_name,
+        levels = c("low", "med", "high")
+    )
+
+df$cue_ordered <- factor(
+        df$cue_name,
+        levels = c("low", "high")
+    )
+
+return(df)
+}
+```
+
+```{r}
+beta <- read.table(file = "/Volumes/spacetop_projects_cue/analysis/physio/glm/factorial/glm-factorial_task-pain_scr.tsv", sep = '\t', header = TRUE)
+```
+
+
+```{r}
+# beta_long <- gather(beta, key = "cue_type", value = "scl_value", intercept, high_stim.high_cue, high_stim.low_cue, med_stim.high_cue, med_stim.low_cue, low_stim.high_cue, low_stim.low_cue)
+# beta_con <- simple_contrasts_singletrial(beta_long)
+
+# data_long <- beta %>%
+#   gather(key = "stim_cue", value = "value") %>%
+#   separate(stim_cue, into = c("stim", "cue"), sep = "\\.")
+beta_long <- beta %>%
+  gather(key = "stim_cue", value = "beta", starts_with("high_stim"), starts_with("med_stim"), starts_with("low_stim")) %>%
+  separate(stim_cue, into = c("stim", "cue"), sep = "\\.")
+beta_con <- simple_contrasts_singletrial(beta_long)
+
+```
+
+```{r}
+model.factorial <- lmer(beta ~ STIM_linear*cue_factor + STIM_quadratic*cue_factor + (1|sub), data = beta_con)
+summary(model.factorial)
+```
+
+```{r}
+
+# ----------------------------------------------------------------------
+#                     summary statistics for plots
+# ----------------------------------------------------------------------
+subject <- "sub"
+model_iv1 <- "stim_ordered"
+model_iv2 <- "cue_ordered"
+dv <- "beta"
+dv_keyword <- "sclbeta"
+taskname <- "pain"
+# model_iv2 <- "cue_ordered"
+analysis_dir <- "/Users/h/Desktop" # TODO
+beta_con$taskname <- taskname
+# ======= NOTE: calculate mean and se ----------------------------------
+SCLstim_subjectwise <- meanSummary(beta_con,
+                                      c(subject, model_iv1, model_iv2), dv)
+SCLstim_groupwise <- summarySEwithin(
+  data = SCLstim_subjectwise,
+  measurevar = "mean_per_sub",
+  withinvars = c(model_iv1, model_iv2),
+  idvar = subject
+)
+SCLstim_groupwise$task <- taskname
+# https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+
+# combined_se_calc_cooksd <-NPSstimcue_groupwise
+# calculate mean and se
+sub_mean <- "mean_per_sub"
+group_mean <- "mean_per_sub_norm_mean"
+se <- "se"
+subject <- "sub"
+ggtitle <- paste(taskname, " - ", dv, "Cooksd removed")
+title <- paste(taskname, " - ", dv)
+xlab <- ""
+ylab <- "ROI average activation (A.U)"
+ylim <- c(-10, 60)
+
+if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+  color <- c("#1B9E77", "#D95F02")
+} else {
+  color <- c("#4575B4", "#D73027")
+} # if keyword starts with
+plot_savefname <- file.path(
+  analysis_dir,
+  paste(
+    "raincloud_task-", taskname, "_rating-", dv_keyword, "_", as.character(Sys.Date()), "_cooksd.png",
+    sep = ""
+  )
+)
+
+# ----------------------------------------------------------------------
+#                            raincloudplots
+# ----------------------------------------------------------------------
+analysis_dir <- "/Users/h/Desktop"
+# combined_se_calc_cooksd <-NPSstimcue_groupwise
+# calculate mean and se
+sub_mean <- "mean_per_sub"
+group_mean <- "mean_per_sub_norm_mean"
+se <- "se"
+subject <- "sub"
+ggtitle <- paste( dv)
+title <- paste( dv)
+xlab <- ""
+ylab <- "SCL beta coefficients (A.U.)"
+
+dv_keyword <- "fdmean"
+if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+  color <- c( "blue",  "red")
+} else {
+  color <- c( "blue", "red")
+} # if keyword starts with
+plot_savefname <- file.path(
+  analysis_dir,
+  paste(
+    "raincloud_qc-", dv_keyword, "_", as.character(Sys.Date()), "_cooksd.png",
+    sep = ""
+  )
+)
+
+# ----------------------------------------------------------------------
+#                            raincloudplots
+# ----------------------------------------------------------------------
+# TODO: 
+# * change the range of the figure
+# * change the x-axis
+# * drop the NA conditions
+# * change theme
+# * adjust the box plots
+
+ylim <- c(-1, 1)
+# taskname = "pain"
+w <- 10; h <- 5
+g <- plot_halfrainclouds_twofactor(
+  SCLstim_subjectwise,
+  SCLstim_groupwise,
+  model_iv1, model_iv2,
+  sub_mean,
+  group_mean,
+  se,
+  subject,
+  ggtitle,
+  title,
+  xlab,
+  ylab,
+  taskname,
+  ylim,
+  w,
+  h,
+  dv_keyword,
+  color,
+  plot_savefname
+)
+g <- g + theme_bw() + theme_classic()
+print(g)
+SCLstim_groupwise$task = taskname
+
+k <- plot_lineplot_twofactor_subsetthick(SCLstim_groupwise,
+                             taskname="pain", 
+                        iv1="stim_ordered",
+                        iv2="cue_ordered",
+                        mean = "mean_per_sub_norm_mean", error = "se",
+                        color = c( "high" = "red",
+                                  "low" = "blue"), 
+                        ggtitle = title, 
+                        xlab = "Cue level", ylab = "SCL activation (A.U.)")
+k <- k + theme(aspect.ratio=.8)
+print(k)
+```
+
+

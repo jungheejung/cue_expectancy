@@ -4,8 +4,8 @@
 #SBATCH --ntasks=4
 #SBATCH --mem-per-cpu=12gb
 #SBATCH --time=01:00:00
-#SBATCH -o ./log/PE_%A_%a.o
-#SBATCH -e ./log/PE_%A_%a.e
+#SBATCH -o ./log/expect_%A_%a.o
+#SBATCH -e ./log/expect_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
 #SBATCH --array=1-133%100

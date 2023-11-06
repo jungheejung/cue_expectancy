@@ -8,6 +8,7 @@ from sklearn.model_selection import KFold, GroupKFold, LeavePGroupsOut, Predefin
 from sklearn.linear_model import LassoCV
 from sklearn.metrics import r2_score, accuracy_score
 from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
 import pandas as pd
 
 ############# subcortical mask
@@ -160,7 +161,7 @@ event = 'stimulus'
 ntrials = 36 # average maps
 
 sub_list = [] #list(np.arange(1,134))
-# sub_list = [77, 84, 11, 31]
+sub_list = [77, 84, 11, 31, 5, 80]
 badruns_fname = '/Users/h/Documents/projects_local/cue_expectancy/scripts/step00_qc/qc03_fmriprep_visualize/bad_runs.json'
 
 
@@ -280,21 +281,47 @@ assert pdf['sub'].tolist() == cdf['sub'].tolist()
 
 # %%
 subjects = pd.factorize(pdf['sub'])[0]#np.repeat(np.arange(N), ntrials*2)
+subjects_cog = pd.factorize(cdf['sub'])[0]
 # assert len(y) == len(subjects) 
 cv = PredefinedSplit(subjects)
 accuracy_cognitive = []
 accuracy_pain = []
+# TODO: retain the subject ides and 
 for train_index, test_index in cv.split(X_pain, y):
-    clf = svm.SVC()
-
+    
+    # TODO: 
+    test_index_cog = np.where(subjects_cog == np.unique(subjects[test_index]))[0]
+    # sklearn.model_selection.GridSearchCV(clf
     # scaling __________________________________________
     scaler = StandardScaler() # TODO: standard scalar. .fit_transform(X_train) -> mean/sd of the transformed data
     X_pain_train = scaler.fit_transform(X_pain[train_index]) # z-score on the samples
     X_pain_test = scaler.transform(X_pain[test_index])
-    X_cog_train = scaler.fit_transform(X_cog[train_index]) # z-score on the samples
-    X_cog_test = scaler.transform(X_cog[test_index])
+    # X_cog_train = scaler.fit_transform(X_cog[train_index]) # z-score on the samples
+    # X_cog_test = scaler.transform(X_cog[test_index])
 
-    # betwee tasks prediction __________________________________________
+    # X_cog_train = scaler.transform(X_pain_train)
+    X_cog_test = scaler.transform(X_cog[test_index])
+    # NOTE: 
+    # 1) inner loop and grid search for hyperparameter C. 
+        # 
+    # 2) PCA in this loop - 80000 features-> 90% of the variance 
+    pca = PCA(n_components=.9)
+    X_pain_train = pca.fit_transform(X_pain[train_index])
+    X_pain_test = pca.transform(X_pain[test_index])
+    X_cog_test = pca.transform(X_cog[test_index])
+    print(f'number of PCs = {X_pain_train.shape[1]}')
+
+    # Cs = [.001, .01, .1, 1.]
+    # exponents = np.array([-3, -2, -1, 0, 1, 2, 3])
+    # Cs = np.exp(exponents)
+    # inner_cv = PredefinedSplit(subjects[train_index])
+    # grid_search = GridSearchCV(LinearSVC(class_weight='balanced'), {'C': Cs}, cv=inner_cv)
+    # grid_search.fit(X_pain_train, y[train_index])
+    # C = grid_search.cv_results_["params"]["alpha"]
+
+    # between tasks prediction __________________________________________
+    # TODO: for inner_train_index, inner_test_index in cv.split(X_pain[train_index], y[train_index]):
+    clf = svm.LinearSVC(class_weight = 'balanced', C = C)    #svm.SVC()
     clf.fit(X_pain_train, y[train_index])
     y_cog = clf.predict(X_cog_test) 
     acc_cog = accuracy_score(y[test_index], y_cog)
@@ -305,6 +332,11 @@ for train_index, test_index in cv.split(X_pain, y):
     acc_pain = accuracy_score(y[test_index], y_pain)
     accuracy_pain.append(acc_pain)
 print(f"cognitive: {accuracy_cognitive}, pain: {accuracy_pain}")
+
+# TODO:
+# mean acc per subject
+# bootstrap. iter, with replacement
+# bottom 2.5% does not overlap with 0.5
 
     # print(f"Fold {i}:")
     # print(f"  Train: index={train_index}")

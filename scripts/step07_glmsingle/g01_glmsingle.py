@@ -63,7 +63,7 @@ ttl_key = 'plateau'
 ses_list = [1,3,4]
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--slurm_id", type=int,
+parser.add_argument("--slurm-id", type=int,
                     help="specify slurm array id")
 parser.add_argument("-r", "--runtype",
                     choices=['pain','vicarious','cognitive','all'], help="specify runtype name (e.g. pain, cognitive, variance)")

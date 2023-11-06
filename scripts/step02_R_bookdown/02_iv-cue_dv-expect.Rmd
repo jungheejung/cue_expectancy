@@ -39,18 +39,18 @@ library(cowplot)
 library(readr)
 library(rmarkdown)
 library(stringr)
-library(ICC)
+# library(ICC)
 library(gghalves)
 ## library(extraoperators)
 ##library(JWileymisc)
 ##library(multilevelTools)
 library(ggpubr)
 library(PupillometryR) # geom_flat_violin
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
+# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
+# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
+# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
-file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+file.sources = list.files(c("/Users/h/Dropbox/projects_local/cue_expectancy/scripts/step02_R/utils"),
                           pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
@@ -63,6 +63,56 @@ print(main_dir)
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
 ```
 
+```{r}
+for (taskname in c("pain", "vicarious", "cognitive")) {
+    model_savefname <- file.path(
+        analysis_dir,
+        paste("lmer_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), ".txt",
+            sep = ""
+        )
+    )
+    iv = "param_stimulus_type"
+    print_lmer_output = TRUE
+    # load data, run model, and exclude outliers
+    data <- load_task_social_df(datadir, taskname, subject_varkey, iv, dv, exclude)
+    
+    
+    
+    data$subject = factor(data$src_subject_id)
+    data$stim_name[data$param_stimulus_type == "high_stim"] <- "high"
+    data$stim_name[data$param_stimulus_type == "med_stim"] <- "med"
+    data$stim_name[data$param_stimulus_type == "low_stim"] <- "low"
+
+    data$stimlin[data$param_stimulus_type == "high_stim"] <- 0.5
+    data$stimlin[data$param_stimulus_type == "med_stim"] <- 0
+    data$stimlin[data$param_stimulus_type == "low_stim"] <- -0.5
+    
+    data$stimquad[data$param_stimulus_type == "high_stim"] <- -0.34
+    data$stimquad[data$param_stimulus_type == "med_stim"] <- 0.66
+    data$stimquad[data$param_stimulus_type == "low_stim"] <- -0.34
+    
+        data$cue_name[data$param_cue_type == "high_cue"] <- "high"
+    data$cue_name[data$param_cue_type == "low_cue"] <- "low"
+    
+            data$cue_con[data$param_cue_type == "high_cue"] <- 0.5
+    data$cue_con[data$param_cue_type == "low_cue"] <- -0.5
+    # DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
+
+    data$stim_ordered <- factor(
+        data$stim_name,
+        levels = c("low", "med", "high")
+    )
+    iv <- "stim_ordered"
+    dv <- "event02_expect_angle"
+    print(taskname)
+    model <- lmer(event02_expect_angle ~ cue_con + (1|src_subject_id), data = data)
+    print(summary(model))
+}
+```
+
+
 ```{r ARCHIVE_originalfunction_forloop, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 for (taskname in c("pain", "vicarious", "cognitive")) {
     model_savefname <- file.path(
@@ -73,11 +123,43 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
             sep = ""
         )
     )
+    iv = "param_stimulus_type"
+    print_lmer_output = TRUE
     # load data, run model, and exclude outliers
     data <- load_task_social_df(datadir, taskname, subject_varkey, iv, dv, exclude)
+    
+    
+    
     data$subject = factor(data$src_subject_id)
+    data$stim_name[data$param_stimulus_type == "high_stim"] <- "high"
+    data$stim_name[data$param_stimulus_type == "med_stim"] <- "med"
+    data$stim_name[data$param_stimulus_type == "low_stim"] <- "low"
+
+    data$stimlin[data$param_stimulus_type == "high_stim"] <- 0.5
+    data$stimlin[data$param_stimulus_type == "med_stim"] <- 0
+    data$stimlin[data$param_stimulus_type == "low_stim"] <- -0.5
+    
+    data$stimquad[data$param_stimulus_type == "high_stim"] <- -0.34
+    data$stimquad[data$param_stimulus_type == "med_stim"] <- 0.66
+    data$stimquad[data$param_stimulus_type == "low_stim"] <- -0.34
+    
+        data$cue_name[data$param_cue_type == "high_cue"] <- "high"
+    data$cue_name[data$param_cue_type == "low_cue"] <- "low"
+    
+            data$cue_con[data$param_cue_type == "high_cue"] <- 0.5
+    data$cue_con[data$param_cue_type == "low_cue"] <- -0.5
+    # DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
+
+    data$stim_ordered <- factor(
+        data$stim_name,
+        levels = c("low", "med", "high")
+    )
+    iv <- "stim_ordered"
+    dv <- "event02_expect_angle"
+    model <- lmer(event02_expect_angle ~ cue_con + (1|src_subject_id), data = data)
+    anova(model)
     cooksd <- lmer_onefactor_cooksd(
-        data, taskname, iv, dv, subject, dv_keyword, model_savefname
+        data, taskname, iv, dv, subject, dv_keyword, model_savefname, print_lmer_output
     )
     influential <- as.numeric(names(cooksd)[
     (cooksd > (4 / as.numeric(length(unique(data$subject)))))])

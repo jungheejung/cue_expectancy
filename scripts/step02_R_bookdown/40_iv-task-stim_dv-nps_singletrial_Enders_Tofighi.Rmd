@@ -35,7 +35,7 @@ library(devtools)
 options(es.use_symbols = TRUE) # get nice symbols when printing! (On Windows, requires R >= 4.2.0)
 library(EMAtools)
 library(emmeans)
-library(equatiomatic)
+# library(equatiomatic)
 library(sjPlot)
 library(sjmisc)
 library(sjlabelled)
@@ -45,7 +45,7 @@ library(raincloudplots)
 # devtools::source_url("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/tutorial_R/summarySE.R")
 
 devtools::source_url("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
-file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+file.sources = list.files(c("/Users/h/Documents/projects_local/cue_expectancy/scripts/step02_R/utils"),
                           pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
@@ -166,9 +166,8 @@ two_factor_lineplot <-
 
 # Step 1: Common parameters
 # step 1: load data
-for (signature_key in c("NPSpos")) {
-     #c("NPS", "NPSpos", "NPSneg", "VPS", #"VPSnooccip", "ThermalPain", "MechPain", "GeneralAversive", "AversiveVisual"
-                      #  "ZhouVPS", "PINES",  "GSR", "GeuterPaincPDM")) {
+for (signature_key in c("NPS", "NPSpos", "NPSneg", "VPS", "VPSnooccip", "ThermalPain", "MechPain", "GeneralAversive", "AversiveVisual", "ZhouVPS", "PINES",  "GSR", "GeuterPaincPDM"))  {
+     #{
   dv_keyword = signature_key
   signature_name = signature_key
   # step 1: common parameters _______
@@ -279,7 +278,11 @@ for (signature_key in c("NPSpos")) {
   if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
     plot_keys$color <- c("#1B9E77", "#D95F02", "#D95F02")
   } else {
-    plot_keys$color <- c("#4575B4", "#FFA500", "#D73027")
+    plot_keys$color <- c(
+                           "pain" = "#941100",
+                           "vicarious" = "#008F51",
+                           "cognitive" = "#011891"
+                         )
   }
   
   # step 5: plot
@@ -290,7 +293,11 @@ for (signature_key in c("NPSpos")) {
   if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
     color <- c("#1B9E77", "#D95F02", "#D95F02")
   } else {
-    color <- c("#4575B4", "#FFA500", "#D73027")
+    color <- c(
+                           "pain" = "#941100",
+                           "vicarious" = "#008F51",
+                           "cognitive" = "#011891"
+                         )
   }
   subject_mean <- "mean_per_sub"
   sub_mean = subject_mean
@@ -336,8 +343,8 @@ for (signature_key in c("NPSpos")) {
   p <- plot_halfrainclouds_twofactor(
     subjectwise,
     groupwise,
-    iv1,
     iv2,
+    iv1,
     subject_mean,
     group_mean,
     se,
@@ -354,7 +361,17 @@ for (signature_key in c("NPSpos")) {
     color,
     plot2_savefname
   )
-p
+print(p)
+
+k <- plot_lineplot_twofactor(groupwise,
+                        iv1 =iv2, iv2 = iv1, 
+                        mean = group_mean, error = "se",
+                        color=color,
+                        ggtitle = title, 
+                        xlab = xlab, ylab = ylab)
+k <- k + theme(aspect.ratio=.8)
+
+print(k)
 }
 ```
 
@@ -440,6 +457,20 @@ df_merge <- merge(pvc, pvc.beh,
   
 ```
 
+```{r}
+# contrast code 1 linear
+df_merge$task_V_gt_C[df_merge$task == "pain"] <-  0
+df_merge$task_V_gt_C[df_merge$task == "vicarious"] <-  0.5
+df_merge$task_V_gt_C[df_merge$task == "cognitive"] <- -0.5
+
+# contrast code 2 quadratic
+df_merge$task_P_gt_VC[df_merge$task == "pain"] <-  0.66
+df_merge$task_P_gt_VC[df_merge$task == "vicarious"] <-  0.34
+df_merge$task_P_gt_VC[df_merge$task == "cognitive"] <-  -0.34
+
+
+```
+
 #### Contrast weight table {.unlisted .unnumbered}
 
 ```{r echo=FALSE}
@@ -451,6 +482,51 @@ kableExtra::kable_styling(
   knitr::kable(
     tab, caption = "Contrast weights", "html"), 
   "striped", position = "left", font_size = 15)
+```
+
+
+### Linear model results (NPS \~ paintask: 2 cue x 3 stimulus_intensity)
+
+```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
+
+model.task_stim <- lmer(NPSpos ~ 
+                          task_P_gt_VC*STIM_linear + task_P_gt_VC* STIM_quadratic + task_V_gt_C*STIM_linear + task_V_gt_C*STIM_quadratic + 
+                          (1|sub), data = df_merge
+                    )
+sjPlot::tab_model(model.task_stim,
+                  title = "Multilevel-modeling: \nlmer(DATA ~ TASK * STIM + (1 | sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+```
+
+```         
+lmer(NPSpos ~ 
+                          CUE_high_gt_low*STIM_linear +CUE_high_gt_low * STIM_quadratic +
+                          (CUE_high_gt_low+STIM|sub), data = data_screen
+                    )
+```
+
+```{r echo=FALSE}
+summary(model.task_stim)
+```
+
+#### Linear model eta-squared {.unlisted .unnumbered}
+
+```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+kableExtra::kable_styling(
+  knitr::kable(
+    eta_squared(model.task_stim, partial = TRUE), # MODIFY
+    "html"), "striped", position = "left", font_size = 12)
+#parameters::model_parameters(model.npscuestim)
+```
+
+#### Linear model Cohen's d: NPS stimulus_intensity d = 1.16, cue d = 0.45 {.unlisted .unnumbered}
+
+```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
+
+kableExtra::kable_styling(
+  knitr::kable(
+    lme.dscore(model.task_stim, df_merge, type = "lme4"),
+    "html"), "striped", position = "left", font_size = 12)
 ```
 
 ## 2. NPS \~ paintask: 2 cue x 3 stimulus_intensity

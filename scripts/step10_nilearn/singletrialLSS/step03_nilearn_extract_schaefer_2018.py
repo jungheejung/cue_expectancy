@@ -16,7 +16,7 @@ for img_filter in img_filters:
     print(img_filter)
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--slurm_id", type=int,
+parser.add_argument("--slurm-id", type=int,
                     help="specify slurm array id")
 parser.add_argument("--session-num", type=int,
                     help="specify session number")

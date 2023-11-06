@@ -212,7 +212,7 @@ def utils_globrunlist(beh_list, key = 'run',stringlist_to_keep = ['ttl'] ):
 
 # 0. argparse ________________________________________________________________________________
 parser = argparse.ArgumentParser()
-parser.add_argument("--slurm_id", type=int,
+parser.add_argument("--slurm-id", type=int,
                     help="specify slurm array id")
 parser.add_argument("--session-num", type=int,
                     help="specify slurm array id")
