@@ -29,13 +29,13 @@ from pathlib import Path
 """
 
 # %% glob data ________________________
-main_dir = '/Volumes/spacetop_projects_social'
+main_dir = '/Volumes/spacetop_projects_cue'
 # main_dir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis'
-local_physiodir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/physio'
+local_physiodir = '/Volumes/spacetop_projects_cue/analysis/physio'
 physio_dir = join(main_dir, 'analysis/physio/')
 # task = 'cognitive'
 epochstart = -1
-epochend = 15
+epochend = 20
 samplingrate = 25
 ttlindex = 2
 date = datetime.now().strftime("%m-%d-%Y")
@@ -79,7 +79,7 @@ for task in [ 'pain', 'cognitive', 'vicarious']:
     # average signal per condition
     M = subset_df.groupby(by=['src_subject_id', 'param_cue_type',
                         'param_stimulus_type']).apply(lambda x: x.mean())
-    M.drop(columns=['src_subject_id'], inplace=True)
+    # M.drop(columns=['src_subject_id'], inplace=True)
     Mr = M.reset_index()
     Mr.to_csv(join(local_physiodir, 'physio01_SCL',
     f'sub-all_condition-mean_runtype-{task}_epochstart-{epochstart}_epochend-{epochend}_samplingrate-{samplingrate}_ttlindex-{ttlindex}_physio-scltimecourse.csv'), index = False)
