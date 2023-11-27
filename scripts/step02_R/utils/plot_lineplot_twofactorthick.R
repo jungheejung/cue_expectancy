@@ -1,11 +1,11 @@
-plot_lineplot_twofactor <- function(data, iv1, iv2, mean, error,
+plot_lineplot_twofactorthick <- function(data, iv1, iv2, mean, error,
                       color, ggtitle, xlab= "Stimulus intensity", ylab = "Rating (degrees)") {
     # iv1 = "levels_ordered"
     # iv2 = "social_ordered"
     # mean = mean_per_sub_norm_mean
     # error = ci
     #subset <- data[which(data$task == taskname), ]
-    line_thickness=1.5
+    line_thickness=3
     g <- ggplot(data = data, aes(
         x = .data[[iv1]],
         y = .data[[mean]],
@@ -27,7 +27,7 @@ plot_lineplot_twofactor <- function(data, iv1, iv2, mean, error,
         scale_color_manual(values = color) +
         theme_classic() +
         theme(legend.position = "none") +
-        theme(text = element_text(size = 20))   +
+        theme(text = element_text(size = 30))   +
         theme(aspect.ratio = .6)
     return(g)
 }
