@@ -52,7 +52,7 @@ library(PupillometryR) # geom_flat_violin
 # source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
 # source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
 # source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
-file.sources = list.files(c("/Users/h/Dropbox/projects_local/cue_expectancy/scripts/step02_R/utils"),
+file.sources = list.files(c("/Users/h/Documents/projects_local/cue_expectancy/scripts/step02_R/utils"),
                           pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
@@ -458,6 +458,17 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
 
 ```
 
+### Nov 17 lmer
+```{r}
+    # stim_con1 <- "stim_con_linear"
+    # stim_con2 <- "stim_con_quad"
+    # iv1 <- "social_cue"
+    # dv <- "event04_actual_angle"
+
+fullmodel <- lmer(event04_actual_angle ~ 1+ social_cue + stim_con_linear + stim_con_quad + social_cue:stim_con_linear + social_cue:stim_con_quad
+     + (1+ social_cue + stim_con_linear + stim_con_quad+ social_cue:stim_con_linear  | src_subject_id), data=data)
+summary(fullmodel)
+```
 
 
 ### model 04 4-2 individual differences in cue effects
@@ -604,70 +615,26 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     print(groupwise_diff$mean_per_sub_mean)
     print(groupwise_diff$se)
     
-# 
-#     # ___ 4) plot ____________________________________________________________________  # nolint
-#     # 4-1. parameters ______________________________________________________________ # nolint
-#     subjectwise <- subjectwise_diff
-#     groupwise <- groupwise_diff
-#     iv <- "mean_per_sub"
-#     subject_mean <- "mean_per_sub"
-#     group_mean <- "mean_per_sub_norm_mean"
-#     p1.se <- "se"
-#     subject <- "subject"
-#     if (any(startsWith(taskname, c("pain", "Pain")))) { # red
-#         color <- c("#B7021E", "#B7021E", "#B7021E")
-#     } else if (any(startsWith(taskname, c("vicarious", "Vicarious")))) { # green
-#         color <- c("#22834A", "#22834A", "#22834A")
-#     } else if (any(startsWith(taskname, c("cognitive", "Cognitive")))) { # blue
-#         color <- c("#0237C9", "#0237C9", "#0237C9")
-#     }
-# 
-#     # 4-2. plot rain cloud plots ____________________________________________________ # nolint
-#     p1.xlab <- ""
-#     p1.ylab <- "Cue effect \n(actual ratings of high > low cue)"
-#     ylim <- c()
-#     p1.ggtitle <- paste(taskname, " - actual judgment (degree)")
-#     p1.title <- paste(taskname, " - actual")
-#     p1.save_fname <- file.path(
-#         analysis_dir,
-#         paste("raincloud_task-", taskname, "_rating-",
-#             dv_keyword, "-cuecontrast_", as.character(Sys.Date()), ".png",
-#             sep = ""
-#         )
-#     )
-#     dv_keyword = "cuecontrast"
-#     ylim = c(-75,75)
-#     g <- plot_halfrainclouds_onefactor(
-#         subjectwise, groupwise, iv, subject_mean, group_mean, p1.se,
-#         subject, p1.ggtitle, p1.title, p1.xlab, p1.ylab, taskname, ylim,
-#         w, h, dv_keyword, color, p1.save_fname
-#     )
-#     g <- g + geom_hline(yintercept = 0, size = 0.5, linetype = "dashed")
-#     print(g)
-#     ggsave(p1.save_fname, plot = g)
-# 
-#     # 4-3.  plot geom range _________________________________________________________ # nolint
-#     p2.se <- "sd" # se, sd, ci
-#     p2.xlab <- "stimulus intensity"
-#     p2.ylab <- "Cue effect \n(actual ratings of high > low cue)"
-#     p2.ggtitle <- paste(taskname, " - cue effect per stimulus intensity", sep = "")
-#     w <- 5
-#     h <- 5
-#     p2.save_fname <- file.path(
-#         analysis_dir,
-#         paste("cueeffect_task-", taskname, "_rating-", dv_keyword, "_",
-#             as.character(Sys.Date()), ".png",
-#             sep = ""
-#         )
-#     )
-#     r <- plot_geompointrange_onefactor(
-#         subjectwise, groupwise, iv,
-#         subject_mean, group_mean, p2.se,
-#         p2.xlab, p2.ylab, color, p2.ggtitle, w, h, p2.save_fname
-#     )
-#     r <- r + geom_hline(yintercept = 0, size = 1, linetype = "dashed")
-#     print(r)
-#     # ggsave(p2.save_fname, plot = r)
+    
+    
+        
+    subjectwise_NDA_high <- meanSummary(wide, c("subject"), "high_cue")
+    subjectwise_NDA_low <- meanSummary(wide, c("subject"), "low_cue")
+    subjectwise_NDA_low<- na.omit(subjectwise_NDA_low)
+    subjectwise_NDA_high<- na.omit(subjectwise_NDA_high)
+    groupwise_NDA_high <- summarySE(
+        data = subjectwise_NDA_high,
+        measurevar = "mean_per_sub" # variable created from above
+    )
+   groupwise_NDA_low <- summarySE(
+        data = subjectwise_NDA_low,
+        measurevar = "mean_per_sub" # variable created from above
+    )
+    
+    print("high vs. low cue")
+    print(c("low", groupwise_NDA_low$mean_per_sub_mean, groupwise_NDA_low$se))
+    print(c("high", groupwise_NDA_high$mean_per_sub_mean, groupwise_NDA_high$se))
+
     
     
 ##########################
@@ -692,10 +659,10 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
 ## common dir for saving plots and model outputs
 analysis_dir <- file.path(
     main_dir, "analysis",
-    "mixedeffect", "model04_iv-cuecontrast_dv-outcome", as.character(Sys.Date()))
+    "mixedeffect", "model04_iv-cuecontrast_dv-expect", as.character(Sys.Date()))
 dir.create(analysis_dir, recursive = TRUE, showWarnings = FALSE)
 
-for (taskname in c("pain")) {
+for (taskname in c("pain", "vicarious", "cognitive")) {
     subject_varkey <- "src_subject_id"
     iv <- "param_cue_type"; iv_keyword <- "cue"
     dv <- "event02_expect_angle"
@@ -758,9 +725,26 @@ for (taskname in c("pain")) {
         # withinvars = c("stim_ordered"), # iv
         # idvar = "subject"
     )
+    
+    subjectwise_NDA_high <- meanSummary(wide, c("subject"), "high_cue")
+    subjectwise_NDA_low <- meanSummary(wide, c("subject"), "low_cue")
+    subjectwise_NDA_low<- na.omit(subjectwise_NDA_low)
+    subjectwise_NDA_high<- na.omit(subjectwise_NDA_high)
+    groupwise_NDA_high <- summarySE(
+        data = subjectwise_NDA_high,
+        measurevar = "mean_per_sub" # variable created from above
+    )
+   groupwise_NDA_low <- summarySE(
+        data = subjectwise_NDA_low,
+        measurevar = "mean_per_sub" # variable created from above
+    )
     print(taskname)
     print(groupwise_diff$mean_per_sub_mean)
     print(groupwise_diff$se)
+    print("high vs. low cue")
+    print(c("low", groupwise_NDA_low$mean_per_sub_mean, groupwise_NDA_low$se))
+    print(c("high", groupwise_NDA_high$mean_per_sub_mean, groupwise_NDA_high$se))
     
+
 }
 ```

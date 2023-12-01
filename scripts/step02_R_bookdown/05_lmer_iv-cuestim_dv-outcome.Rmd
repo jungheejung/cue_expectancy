@@ -1,0 +1,323 @@
+# [beh] outcome_rating ~ cue * stim {#ch05_outcome-cueXstim}
+
+## What is the purpose of this notebook? {.unlisted .unnumbered}
+
+Here, we want to test whether lmer is the equivalent of repeated measures anova
+
+I plot the outcome ratings as a function of cue and stimulus intensity. 
+
+* Main model: `lmer(outcome_rating ~ cue * stim)` 
+* Main question: do outcome ratings differ as a function of cue type and stimulus intensity? 
+* If there is a main effect of cue on outcome ratings, does this cue effect differ depending on task type?
+* Is there an interaction between the two factors?
+* IV: 
+  - cue (high / low)
+  - stim (high / med / low)
+* DV: outcome rating
+
+## load data
+
+```{r load_libraries_4, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+library(psych)
+library(car)
+library(lme4)
+library(lmerTest)
+library(plyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+library(png)
+library(knitr)
+library(TMB)
+library(sjPlot)
+library(ggpubr)
+library(gridExtra)
+library(merTools)
+library(sjstats) #to get ICC
+library(broom)
+library(tidyverse)
+library(GGally)
+library(RCurl)
+library(rstanarm)
+library(reshape)
+library(boot)
+library(afex)
+library(cowplot)
+library(readr)
+library(rmarkdown)
+library(stringr)
+library(ICC)
+library(gghalves)
+
+library(ggpubr)
+library(PupillometryR) # geom_flat_violin
+
+# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
+# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
+# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
+# source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+file.sources = list.files(c("/Users/h/Documents/projects_local/cue_expectancy/scripts/step02_R/utils"),
+                          pattern="*.R", 
+                          full.names=TRUE, 
+                          ignore.case=TRUE)
+sapply(file.sources,source,.GlobalEnv)
+```
+
+```{r parameters_4, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+main_dir = dirname(dirname(getwd()))
+print(main_dir)
+datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
+```
+
+## lmer
+```{r}
+analysis_dir <- file.path(
+    main_dir, "analysis",
+    "mixedeffect", "model04_iv-cuecontrast_dv-outcome", as.character(Sys.Date()))
+dir.create(analysis_dir, recursive = TRUE, showWarnings = FALSE)
+taskname <- "pain"
+
+    subject_varkey <- "src_subject_id"
+    iv <- "param_cue_type"; iv_keyword <- "cue"
+    dv <- "event04_actual_angle"
+    dv_keyword <- "actual"
+    subject <- "subject"
+    xlab <- ""
+    ylab <- "ratings (degree)"
+    exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
+    w <- 10
+    h <- 6
+    model_savefname <- file.path(
+        analysis_dir,
+        paste("lmer_task-", taskname, "_cue_on_rating-", dv_keyword, "_",
+            as.character(Sys.Date()), ".txt",
+            sep = ""
+        )
+    )
+    # ___ 1) load data _______________________________________________________________ # nolint
+    data <- load_task_social_df(datadir, taskname, subject_varkey, iv, dv, exclude)
+    unique(data$src_subject_id)
+    data$subject <- factor(data$src_subject_id)
+
+    
+    w <- 10
+    h <- 6
+
+    # [ CONTRASTS ]  ________________________________________________________________________________ # nolint
+    # contrast code ________________________________________
+    data$stim[data$event03_stimulus_type == "low_stim"] <- -0.5 # social influence task
+    data$stim[data$event03_stimulus_type == "med_stim"] <- 0 # no influence task
+    data$stim[data$event03_stimulus_type == "high_stim"] <- 0.5 # no influence task
+
+    data$stim_factor <- factor(data$event03_stimulus_type)
+
+    # contrast code 1 linear
+    data$stim_con_linear[data$event03_stimulus_type == "low_stim"] <- -0.5
+    data$stim_con_linear[data$event03_stimulus_type == "med_stim"] <- 0
+    data$stim_con_linear[data$event03_stimulus_type == "high_stim"] <- 0.5
+
+    # contrast code 2 quadratic
+    data$stim_con_quad[data$event03_stimulus_type == "low_stim"] <- -0.33
+    data$stim_con_quad[data$event03_stimulus_type == "med_stim"] <- 0.66
+    data$stim_con_quad[data$event03_stimulus_type == "high_stim"] <- -0.33
+
+    # social cude contrast
+    data$social_cue[data$param_cue_type == "low_cue"] <- -0.5 # social influence task
+    data$social_cue[data$param_cue_type == "high_cue"] <- 0.5 # no influence task
+
+
+    stim_con1 <- "stim_con_linear"
+    stim_con2 <- "stim_con_quad"
+    iv1 <- "social_cue"
+    dv <- "event04_actual_angle"
+```
+
+
+```{r}
+fullmodel <- lmer(event04_actual_angle ~ 1+ social_cue + stim_con_linear + stim_con_quad + social_cue:stim_con_linear + social_cue:stim_con_quad
+     + (1+ social_cue + stim_con_linear + stim_con_quad+ social_cue:stim_con_linear  + social_cue:stim_con_quad| src_subject_id), data=data)
+summary(fullmodel)
+```
+
+## repeated measures
+```{r}
+################################################################################
+
+data <- data %>%
+  group_by(src_subject_id) %>%
+  mutate(trial = row_number())
+
+df <- data %>%
+  group_by(src_subject_id,session_id, param_run_num, param_cond_type) %>%
+  mutate(repeat_order = row_number()) %>%
+  ungroup()
+
+# long to wide
+wide.df = df[c("src_subject_id","session_id","param_run_num", "param_cue_type", "param_stimulus_type", "repeat_order","event04_actual_angle" )] %>% 
+   pivot_wider(names_from = c(param_cue_type, param_stimulus_type), values_from = event04_actual_angle) 
+
+################################################################################
+# average within subject
+
+
+wide.ave <- wide.df %>%
+  dplyr::group_by(src_subject_id) %>%
+  dplyr::summarize(
+    across(c(high_cue_high_stim, high_cue_med_stim, high_cue_low_stim, low_cue_high_stim, low_cue_med_stim, low_cue_low_stim), mean, na.rm = TRUE)
+  )
+
+################################################################################
+# contrast coding
+# modeling the average performance (intercept)
+wide.ave$ave = (+1/6) * wide.ave$high_cue_high_stim + 
+  (+1/6) * wide.ave$high_cue_med_stim + 
+  (+1/6) * wide.ave$high_cue_low_stim + 
+  (+1/6) * wide.ave$low_cue_high_stim + 
+  (+1/6) * wide.ave$low_cue_med_stim + 
+  (+1/6) * wide.ave$low_cue_low_stim 
+t.ave = lm(wide.ave$ave ~ 1)
+summary(t.ave)
+
+# model :: cue effect
+wide.ave$cue_effect = (+1/2) * wide.ave$high_cue_high_stim + 
+  (+1/2) * wide.ave$high_cue_med_stim + 
+  (+1/2) * wide.ave$high_cue_low_stim + 
+  (-1/2) * wide.ave$low_cue_high_stim + 
+  (-1/2) * wide.ave$low_cue_med_stim + 
+  (-1/2) * wide.ave$low_cue_low_stim 
+t.cue = lm(wide.ave$cue_effect ~ 1)
+summary(t.cue)
+
+# model :: stim effect
+wide.ave$stim_effect = 
+  (+1/2) * wide.ave$high_cue_high_stim + 
+  (0) * wide.ave$high_cue_med_stim + 
+  (-1/2) * wide.ave$high_cue_low_stim + 
+  (+1/2) * wide.ave$low_cue_high_stim + 
+  (0) * wide.ave$low_cue_med_stim + 
+  (-1/2) * wide.ave$low_cue_low_stim 
+t.stim = lm(wide.ave$stim_effect ~ 1)
+summary(t.stim)
+
+# model :: interaction
+wide.ave$interaction = 
+  (+1/4) * wide.ave$high_cue_high_stim + 
+  (0) * wide.ave$high_cue_med_stim + 
+  (-1/4) * wide.ave$high_cue_low_stim + 
+  (-1/4) * wide.ave$low_cue_high_stim + 
+  (0) * wide.ave$low_cue_med_stim + 
+  (+1/4) * wide.ave$low_cue_low_stim 
+t.int = lm(wide.ave$interaction ~ 1)
+summary(t.int)
+
+
+```
+
+
+## converges with more than 36 observations?
+
+```{r}
+################################################################################
+# filter subject with more than 36 trials
+data
+data <- data %>%
+  group_by(src_subject_id) %>%
+  mutate(trial = row_number())
+
+df_filtered <- data %>%
+  group_by(src_subject_id) %>%
+  filter(n() > 36) %>%
+  ungroup()
+
+
+frequency_df <- df_filtered %>%
+  dplyr::group_by(src_subject_id) %>%
+  dplyr::summarize(frequency = n(), .groups = 'drop')
+
+################################################################################
+# run null model
+# library(performance)
+# model.null <- lmer(event04_actual_angle ~ 1+ social_cue + stim_con_linear + stim_con_quad + social_cue:stim_con_linear + social_cue:stim_con_quad
+#      + (1| src_subject_id), data=df_filtered, REML = TRUE)
+# performance::icc(model.null)
+
+################################################################################
+# model.36 <- lmer(event04_actual_angle ~ 1+ social_cue + stim_con_linear + stim_con_quad + social_cue:stim_con_linear + social_cue:stim_con_quad
+#      + (1+ social_cue + stim_con_linear| src_subject_id), data=df_filtered, REML = TRUE)
+# summary(model.36)
+
+################################################################################
+model.36full <- lmer(event04_actual_angle ~ 1+ social_cue + stim_con_linear + stim_con_quad + social_cue:stim_con_linear + social_cue:stim_con_quad
+     + (1+ social_cue + stim_con_linear + stim_con_quad + social_cue:stim_con_linear + social_cue:stim_con_quad | src_subject_id), data=df_filtered, REML = TRUE)
+summary(model.36full)
+################################################################################
+# deviance
+# anova(model.36, model.36full, refit = FALSE)
+```
+
+```{r}
+# random_intercepts <- getME(model.36full, "Z")
+# random_intercepts
+fixed_effects_matrix <- model.matrix(~ 1+ social_cue + stim_con_linear + stim_con_quad + social_cue:stim_con_linear + social_cue:stim_con_quad, data = df_filtered)
+fixed_effects_matrix
+# heatmap(fixed_effects_matrix, col=heat.colors(256), scale="column")
+# Convert matrix to data frame
+mat_df <- melt(t(fixed_effects_matrix))
+
+ggplot(mat_df, aes(x=Var1, y=Var2, fill=value)) + 
+    geom_tile()
+```
+
+```{r}
+# Compute the covariance matrix
+cov_matrix <- cov(fixed_effects_matrix)
+# Base R image plot
+image(cov_matrix, main = "Covariance Matrix of Fixed Effects")
+
+# Alternatively, use the `heatmap()` function for a more detailed plot
+heatmap(cov_matrix, main = "Covariance Matrix of Fixed Effects")
+library(ggplot2)
+library(reshape2)
+
+# Ensure your matrix has proper row and column names
+rownames(cov_matrix) <- colnames(fixed_effects_matrix)
+colnames(cov_matrix) <- colnames(fixed_effects_matrix)
+
+# Reshape the matrix to long format
+long_cor_matrix <- melt(cov_matrix)
+
+# Plot using ggplot2
+ggplot(long_cor_matrix, aes(Var1, Var2, fill = value)) +
+  geom_tile() +
+  scale_fill_gradient2() +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(x = "Regressors", y = "Regressors", fill = "Correlation", title = "Correlation Matrix of Fixed Effects")
+# corrplot(long_cor_matrix)
+
+# M<-cor(fixed_effects_matrix)
+# corrplot(M, method="circle")
+```
+
+
+```{r}
+library(lme4)
+# For random intercepts
+random_intercepts <- getME(model.36full, "Z")
+# For random slopes
+random_slopes <- getME(model.36full, "Zt")
+dim(random_slopes)
+library(Matrix)
+par(mar = c(5, 4, 4, 2) + 0.1)
+image(random_slopes, ylab = "Rows", xlab = "Columns", main = "Sparse Matrix Plot")
+image(t(random_intercepts), ylab = "Rows", xlab = "Columns", main = "Sparse Matrix Plot")
+
+```
+
+
+
+
+
+
+
+
