@@ -133,8 +133,8 @@ contrast_name = {
     'V_simple_STIM_lowcue_highstim',      'V_simple_STIM_lowcue_medstim', 'V_simple_STIM_lowcue_lowstim',...
     'C_simple_STIM_highcue_highstim',    'C_simple_STIM_highcue_medstim', 'C_simple_STIM_highcue_lowstim',... % cognitive events
     'C_simple_STIM_lowcue_highstim',    'C_simple_STIM_lowcue_medstim', 'C_simple_STIM_lowcue_lowstim',...
-    'P_VC_CUE_STIM_cue_high_gt_low','V_PC_CUE_STIM_cue_high_gt_low','C_PV_CUE_STIM_cue_high_gt_low',...% cue epoch contrasts
-    'P_simple_CUE_STIM_cue_high_gt_low','V_simple_CUE_STIM_cue_high_gt_low','C_simple_CUE_STIM_cue_high_gt_low',...% cue epoch dummy
+    'P_VC_CUE_cue_high_gt_low','V_PC_CUE_cue_high_gt_low','C_PV_CUE_cue_high_gt_low',...% cue epoch contrasts
+    'P_simple_CUE_cue_high_gt_low','V_simple_CUE_STIM_cue_high_gt_low','C_simple_CUE_cue_high_gt_low',...% cue epoch dummy
 
 };
 
