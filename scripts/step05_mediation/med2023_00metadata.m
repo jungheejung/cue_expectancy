@@ -13,8 +13,8 @@
 
 
 
-function sublist = find_sublist_from_dir(nifti_dir)
-    items = dir(nifti_dir);
+function sublist = find_sublist_from_dir(singletrial_dir)
+    items = dir(singletrial_dir);
     sub_dirs = items([items.isdir] & startsWith({items.name}, 'sub-'));
     sublist = {sub_dirs.name}';
 end
@@ -256,15 +256,19 @@ function T = add_fullpath_column(T, baseDir, sub, existingColName, newColName)
 end
 
 % directories _________________
-% nifti_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/analysis/fmri/fsl/multivariate/isolate_nifti';
+% singletrial_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop/social/analysis/fmri/fsl/multivariate/isolate_nifti';
+addpath(genpath('./utils'))
 script_mediation_dir = pwd;
 main_dir = fileparts(fileparts(script_mediation_dir)); % /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
-nifti_dir = fullfile(main_dir, 'analysis','fmri','nilearn','singletrial');
-sublist = find_sublist_from_dir(nifti_dir) % find subdirectories that start with keyword "sub-"
+main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue';
+main_dir = '/Volumes/spacetop_projects_cue'
+singletrial_dir = fullfile(main_dir, 'analysis','fmri','nilearn','singletrial');
+beh_dir = fullfile(main_dir, 'data', 'beh', 'beh03_bids');
+sublist = find_sublist_from_dir(singletrial_dir) % find subdirectories that start with keyword "sub-"
 X = cell(1, length(sublist));
 M = cell(1, length(sublist));
 Y = cell(1, length(sublist));
-eventlist = {'cue', 'stim'}
+eventlist = {'stim'};%{'cue', 'stim'}
 task = 'pain';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % construct dataframes for mediation analysis
@@ -281,12 +285,14 @@ for s = 1:length(sublist)
     %%%% step 07: final step! construct the X, M, Y cells for the mediation analysis
     disp(strcat('starting ', sublist{s}))%strcat('sub-',sprintf('%04d', sublist(s)))))
     
-    singletrial_flist = dir(fullfile(nifti_dir, sublist{s},...
+    singletrial_flist = dir(fullfile(singletrial_dir, sublist{s},...
                         strcat(sublist{s}, '*_runtype-', task, '*_event-',eventlist{e},'*.nii.gz')   ));
+    if ~isempty(singletrial_flist)
     singletrial_fldr = {singletrial_flist.folder}; fname = {singletrial_flist.name};
     singletrial_files = strcat(singletrial_fldr,'/', fname)';
     
     unique_bids = unique_combination_bids(singletrial_files)
+
     beh_df = load_beh_based_on_bids(beh_dir, unique_bids)
     singletrial_basefname = cellfun(@(x) extractAfter(x, max(strfind(x, filesep))), singletrial_files, 'UniformOutput', false);
     merge_beh_nii = merge_on_nifti_beh(singletrial_basefname, beh_df)
@@ -295,23 +301,49 @@ for s = 1:length(sublist)
     stim_contrast_mapper = containers.Map({'low_stim', 'med_stim', 'high_stim'}, [-1, 0, 1]);
     metadf_cue = contrast_coding(metadf_clean, 'cuetype', 'cue_contrast', cue_contrast_mapper);
     metadf_con = contrast_coding(metadf_cue, 'stimtype', 'stim_contrast', stim_contrast_mapper);
-    mediation_df = add_fullpath_column(metadf_con, singletrial_dir, sub, 'singletrial_fname', 'fullpath_fname')
+    mediation_df = add_fullpath_column(metadf_con, singletrial_dir, sublist{s}, 'singletrial_fname', 'fullpath_fname')
     
     X{1,s} = mediation_df.stim_contrast;
     M{1,s} = mediation_df.fullpath_fname;
     Y{1,s} = mediation_df.outcomerating;
+    end
+end
 end
 
+
+% Initialize an empty cell array to store the converted char arrays
+charArrays = cell(size(M));
+
+% Loop through each element in the main cell array
+for i = 1:length(M)
+    % Extract the inner cell array
+    innerCellArray = M{i};
+    
+    % Check if the inner cell array is empty
+    if isempty(innerCellArray)
+        charArrays{i} = [];
+        continue;
+    end
+
+    % Determine the maximum string length in the inner cell array
+    maxLength = max(cellfun(@length, innerCellArray));
+
+    % Pad each string in the inner cell array and convert to char array
+%     charArrays{i} = char(cellfun(@(s) pad(s, maxLength), innerCellArray, 'UniformOutput', false));
+    charArrays{i} = char(innerCellArray);
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % start mediation analysis
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-SETUP.mask = which('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/gray_matter_mask.nii');
+addpath(genpath('/Users/h/Documents/MATLAB/MediationToolbox'));
+addpath(genpath('/Users/h/Documents/MATLAB/CanlabCore'));
+addpath(genpath('/Users/h/Documents/MATLAB/spm12'));
+SETUP.mask = which('/Users/h/Documents/MATLAB/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/gray_matter_mask.nii');
 SETUP.preprocX = 0;
 SETUP.preprocY = 0;
 SETUP.preprocM = 0;
 SETUP.wh_is_mediator = 'M';
-mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc')
+mediation_brain_multilevel(X, Y, charArrays, SETUP, 'nopreproc')
 
 SETUP = mediation_brain_corrected_threshold('fdr');
 
@@ -351,7 +383,7 @@ printhdr('Path a*b: Brain Mediators of Cue Effects on General')
     %     % corresponding nifti text
     %     nifti_fname = strcat('niftifname_', parsef{1}, '_', parsef{2}, '_', event{1}, '.txt');
             
-    %     nifti_fdir = fullfile(nifti_dir, sublist{s} );
+    %     nifti_fdir = fullfile(singletrial_dir, sublist{s} );
     %     fid = fopen(fullfile(nifti_fdir, nifti_fname),'r');
     %     start_row = 1;
     %     nifti_list= textscan(fid, '%s', 'Delimiter', '', 'WhiteSpace', '', 'HeaderLines' ,start_row-1, 'ReturnOnError', false);
