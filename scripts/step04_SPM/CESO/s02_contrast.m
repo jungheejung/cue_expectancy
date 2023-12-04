@@ -25,13 +25,9 @@ cue_con  = [1,0,0,0];
 stim_con = [0,0,1,0];
 motor_con    = [0,1,0,1];
 % NOTE 02 define directories _______________________________________________________
-% motion_dir = fullfile(main_dir, 'data', 'fmri', 'fmri02_motion');
 onset_dir = fullfile(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset02_SPM');
 
 disp( sub );
-% output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_CESO', ...
-% '1stLevel', sub);
-% output_dir = fullfile(input_dir, sub);
 spm_fname = fullfile(input_dir, sub, 'SPM.mat');
 load(spm_fname);
 
@@ -56,6 +52,7 @@ for i = 1:numFiles
 end
 
 sortedT = table(subInfo', sesInfo', runInfo', 'VariableNames', {'sub_num', 'ses_num', 'run_num'});
+
 % find onset files
 onsetlist = dir(fullfile(onset_dir, sub, '*', strcat(sub, '_*_task-cue_*_events.tsv')));
 onsetT = struct2table(onsetlist);
@@ -83,8 +80,8 @@ matlabbatch = cell(1,1);
 runlength = size(A,1);
 numRegressorsPerRun = arrayfun(@(x) length(x.col), SPM.Sess);
 runtype_counts = tabulate(A.runtype);
+
 for run_ind = 1: runlength
-% for run_ind = 1: size(A,1)
    
     sub = strcat('sub-', sprintf('%04d', A.sub_num(run_ind)));
     ses = strcat('ses-', sprintf('%02d', A.ses_num(run_ind)));
