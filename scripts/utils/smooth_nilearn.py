@@ -9,7 +9,7 @@ This code smooths a single trial betamap and unzips it
 """
 # 0. argparse ________________________________________________________________________________
 parser = argparse.ArgumentParser()
-parser.add_argument("--sub", type=int,
+parser.add_argument("--sub", type=str,
                     help="specify slurm array id")
 args = parser.parse_args()
 sub = args.sub # e.g. 1, 2
@@ -39,7 +39,7 @@ for root, dirs, files in os.walk(input_folder):
             
             # Create a new filename with the "smooth-6mm_" prefix
             base_filename = os.path.splitext(filename)[0]
-            new_filename = f'smooth-{int(fwhm)}mm_{filename}'
+            new_filename = f'smooth-{int(fwhm)}mm_{base_filename}'
             print(new_filename)
             
             # Specify the output path

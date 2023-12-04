@@ -8,13 +8,14 @@
 #SBATCH -e ./smooth/smooth_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1-133%10
+#SBATCH --array=1-3
+###133%10
 
 
 CANLABCORE_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore"
 SINGLETRIAL_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial"
-SCRIPT_DIR="$(realpath "${PWD}/..")"
-MAIN_DIR="$(realpath "${SCRIPT_DIR}/..")"
+SCRIPT_DIR="$(realpath "${PWD}")"
+MAIN_DIR="$(realpath "${SCRIPT_DIR}/../..")"
 SAVE_DIR="/dartfs-hpc/scratch/f0042x1/singletrial_smooth"
 mylist=($(find ${SINGLETRIAL_DIR} -maxdepth 1 -mindepth 1 -type d -iname "sub-*"))
 PARTICIPANT_LABEL="$(basename "${mylist[$((SLURM_ARRAY_TASK_ID))]}")"
@@ -24,5 +25,6 @@ echo "* total of ${#mylist[@]} participants in ${SINGLETRIAL_DIR}"
 echo "array id: " ${SLURM_ARRAY_TASK_ID}, "subject id: " ${PARTICIPANT_LABEL}
 # echo ${MAIN_DIR}
 
-conda activate space_env
+conda activate spacetop_env
+
 python ${SCRIPT_DIR}/smooth_nilearn.py --sub ${PARTICIPANT_LABEL}
