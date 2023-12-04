@@ -40,7 +40,11 @@ function merge_beh_nii = merge_on_nifti_beh(singletrial_basefname, beh_df)
     % Loop through each filename in singletrial_basefname
     for i = 1:numel(singletrial_basefname)
         % Update matches where there's a corresponding element in beh_df.singletrial_fname
-        matches = matches | strcmp(singletrial_basefname{i}, beh_df.singletrial_fname);
+        filename = singletrial_basefname{i};
+        % Use regular expression to match both .nii and .nii.gz extensions
+        pattern = ['^' regexprep(filename, '\.nii(\.gz)?$', '\\.(nii|nii\\.gz)')];
+        % Convert the cell array to a logical array and perform logical OR
+        matches = matches | cellfun(@(x) ~isempty(x), regexp(beh_df.singletrial_fname, pattern, 'once'));
     end
 
     % Filter beh_df to retain only rows where there was a match
