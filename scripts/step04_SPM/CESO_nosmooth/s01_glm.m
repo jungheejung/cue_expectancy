@@ -46,7 +46,7 @@ disp(strcat('sub:    ', sub));
 % ----------------------------------------------------------------------------
 % 2-1. find nifti files
 % niilist = dir(fullfile(input_dir, sub, '*/smooth-6mm_*task-cue*_bold.nii'));
-niilist = dir(fullfile(fmriprep_dir, sub, '*/*task-social_bold.nii.gz'));
+niilist = dir(fullfile(fmriprep_dir, sub, '*/func/*task-social_*bold.nii.gz'));
 nT = struct2table(niilist); % convert the struct array to a table
 sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
 
@@ -111,12 +111,14 @@ for run_ind = 1:size(A, 1)
     
     disp(strcat('[ STEP 03 ] gunzip and saving nifti...'));
 
-    preproc_nii = fullfile(fmriprep_dir, sub, ses, ...
+    preproc_nii = fullfile(fmriprep_dir, sub, ses, 'func', ...
         strcat(sub, '_', ses, '_task-social_acq-mb8_', run, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
     
     if ~exist(preproc_nii, 'file')
-        disp(strcat('ABORT [!] ', preproc_nii, 'does not exist'))
-        break
+        gunzip(strcat(preproc_nii ,'.gz'))
+        % end
+        % disp(strcat('ABORT [!] ', preproc_nii, 'does not exist'))
+        % break
     end
     
     disp(strcat('[ STEP 04 ]constructing contrasts...'));
