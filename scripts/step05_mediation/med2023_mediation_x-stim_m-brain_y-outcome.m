@@ -100,6 +100,22 @@ for s = 1:length(sublist)
     combinedTable = innerjoin(npsdf, beh_df, 'Keys', 'singletrial_fname');
 
     singletrial_basefname = cellfun(@(x) extractAfter(x, max(strfind(x, filesep))), singletrial_files, 'UniformOutput', false);
+
+        % Define the prefix
+    prefix = 'smooth-6mm_';
+    
+%     % Add the prefix to each cell
+%     for i = 1:numel(singletrial_basefname)
+%         singletrial_basefname{i} = [prefix, singletrial_basefname{i}];
+%     end
+
+    % Define the prefix
+    prefix = 'smooth-6mm_';
+    
+    % Assuming you have a table named 'yourTable', and you want to modify the 'singletrial_basefname' column
+    combinedTable.singletrial_fname = strcat(prefix, combinedTable.singletrial_fname);
+
+
     merge_beh_nii = merge_on_nifti_beh(singletrial_basefname, combinedTable);
     metadf_clean = remove_missing_behvalues(merge_beh_nii, 'outcomerating');
     cue_contrast_mapper = containers.Map({'low_cue', 'high_cue'}, [-1, 1]);
