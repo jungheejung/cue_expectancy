@@ -18,8 +18,8 @@
 addpath(genpath('./utils'));
 
 % Define the case variable
-case = 'local';  % Change this to 'discovery' as needed
-switch case
+dir_location = 'discovery';  % Change this to 'discovery' as needed
+switch dir_location
     case 'local'
         matlab_moduledir = '/Users/h/Documents/MATLAB';
         main_dir = '/Volumes/spacetop_projects_cue';
@@ -37,6 +37,7 @@ switch case
         graymatter_mask = fullfile(matlab_moduledir, 'CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/gray_matter_mask.nii')
     otherwise
         error('Invalid case specified.');
+
 end
 
 
