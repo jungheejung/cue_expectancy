@@ -88,7 +88,7 @@ for s = 1:length(sublist)
     disp(strcat('starting ', sublist{s}))%strcat('sub-',sprintf('%04d', sublist(s)))))
     
     singletrial_flist = dir(fullfile(singletrial_dir, sublist{s},...
-                        strcat(sublist{s}, '*_runtype-', task, '*_event-',eventlist{e},'*.nii')   ));
+                        strcat('smooth-6mm_',sublist{s}, '*_runtype-', task, '*_event-',eventlist{e},'*.nii')   ));
     if ~isempty(singletrial_flist)
     singletrial_fldr = {singletrial_flist.folder}; fname = {singletrial_flist.name};
     singletrial_files = strcat(singletrial_fldr,'/', fname)';
@@ -120,7 +120,7 @@ end
 [X, Y, M, cov, l2m] = filter_empty_cells(X, Y, M, cov, l2m);
 M = convert_cell2char(M);
 
-fprintf('step 2. X, Y, M fully set up')
+fprintf('step 2. X, Y, M fully set up');
 % Initialize an empty cell array to store the converted char arrays
 % charArrays = cell(size(M));
 % 
