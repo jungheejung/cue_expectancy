@@ -46,10 +46,9 @@ disp(strcat('sub:    ', sub));
 % ----------------------------------------------------------------------------
 % 2-1. find nifti files
 % niilist = dir(fullfile(input_dir, sub, '*/smooth-6mm_*task-cue*_bold.nii'));
-niilist = dir(fullfile(fmriprep_dir, sub, '*/*task-social_bold.nii.gz'));
+niilist = dir(fullfile(fmriprep_dir, sub, '*/func/*task-social_*bold.nii.gz'));
 nT = struct2table(niilist); % convert the struct array to a table
 sortedT = sortrows(nT, 'name'); % sort the table by 'DOB'
-
 sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
 sortedT.ses_num(:) = str2double(extractBetween(sortedT.name, 'ses-', '_'));
 sortedT.run_num(:) = str2double(extractBetween(sortedT.name, 'run-', '_'));
