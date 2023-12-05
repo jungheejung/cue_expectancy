@@ -8,10 +8,10 @@ function [X_filtered, Y_filtered, M_filtered, cov_filtered, l2m_filtered] = filt
     cov_filtered = cell(num_subjects, 1);
     l2m_filtered = [];
 
-    % Loop through subjects and filter out cells with empty arrays
+    % Loop through subjects and filter out cells with empty arrays in Y
     for i = 1:num_subjects
-        % Check if any of the cells contain an empty array
-        if ~isempty(X{i}) && ~isempty(Y{i}) && ~isempty(M{i})
+        % Check if Y is not empty for the current subject
+        if ~isempty(Y{i})
             X_filtered{i} = X{i};
             Y_filtered{i} = Y{i};
             M_filtered{i} = M{i};
