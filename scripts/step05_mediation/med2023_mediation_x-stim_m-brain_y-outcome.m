@@ -18,7 +18,7 @@
 addpath(genpath('./utils'));
 
 % Define the case variable
-case = 'local';  % Change this to 'discovery' as needed
+case = 'discovery'; %'local';  % Change this to 'discovery' as needed
 switch case
     case 'local'
         matlab_moduledir = '/Users/h/Documents/MATLAB';
@@ -62,13 +62,17 @@ Y = cell(1, length(sublist));
 cov = cell(1, length(sublist));
 l2m = zeros(1, length(sublist));
 
-eventlist = {'stim'};%{'cue', 'stim'}
+eventlist = {'stim'}; 
+%{'cue', 'stim'}
+
 task = 'pain';
+fprintf('step 1. parameter setup')
 
 % -------------------------------------------------------------------------
 % construct dataframes for mediation analysis
 % -------------------------------------------------------------------------
 % NPS_fname = '/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv01_signature/rampupdown/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv';
+
 npsdf = readtable(NPS_fname,"FileType","text", 'Delimiter', ',');
 for e = 1:length(eventlist)
 for s = 1:length(sublist)
@@ -114,6 +118,8 @@ end
 
 [X, Y, M, cov, l2m] = filter_empty_cells(X, Y, M, cov, l2m);
 M = convert_cell2char(M);
+
+fprintf('step 2. X, Y, M fully set up')
 % Initialize an empty cell array to store the converted char arrays
 % charArrays = cell(size(M));
 % 
@@ -237,7 +243,7 @@ printhdr('Path a: Cue to Brain Response')
 mediation_brain_results('a', 'thresh', ...
     SETUP.fdr_p_thresh, 'size', 5, ...
     'slices', 'tables', 'names', 'save');
-
+print('Path_a_results.pdf', '-dpdf');
 
 % Results for Path b
 % Generate results for effects of brain responses on pain reports, controlling for stimulus  temperature.
@@ -246,7 +252,7 @@ printhdr('Path b: Brain Response to Actual Rating, Adjusting for Cue')
 mediation_brain_results('b', 'thresh', ...
     SETUP.fdr_p_thresh, 'size', 5, ...
     'slices', 'tables', 'names', 'save');
-
+print('Path_b_results.pdf', '-dpdf');
 % Results for Path a*b
 % Generate results for the mediation effect. Here, we'll return some clusters structures with results to the workspace as output so we can examine them later. (We can also load them from disk).
 printhdr('Path a*b: Brain Mediators of Cue Effects on General')
@@ -254,6 +260,7 @@ printhdr('Path a*b: Brain Mediators of Cue Effects on General')
 [clpos, clneg, clpos_data, clneg_data, clpos_data2, clneg_data2] = mediation_brain_results('ab', 'thresh', ...
     SETUP.fdr_p_thresh, 'size', 5, ...
     'slices', 'tables', 'names', 'save');
+print('Path_ab_results.pdf', '-dpdf');
 % Filter beh_df to retain only rows where there was a match
 
     % for f = 1: length(singletrial_files)
