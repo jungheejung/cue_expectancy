@@ -369,3 +369,33 @@ print('Path_ab_results.pdf', '-dpdf');
 % Subject 109,  48 images.
 % Subject 110,  72 images.
 % Subject 111,  67 images.
+
+% Assuming X and Y are cell arrays containing double arrays
+num_cells_X = numel(X);
+num_cells_Y = numel(Y);
+num_cells_M = numel(M);
+num_cells_cov = numel(cov);
+sizes_X = zeros(num_cells_X, 2); % Matrix to store sizes of X
+sizes_Y = zeros(num_cells_Y, 2); % Matrix to store sizes of Y
+sizes_M = zeros(num_cells_M, 2);
+sizes_cov = zeros(num_cells_cov, 2);
+% Loop through X and Y to get the sizes of the double arrays
+for i = 1:num_cells_X
+    sizes_X(i, :) = size(X{i});
+end
+
+for i = 1:num_cells_Y
+    sizes_Y(i, :) = size(Y{i});
+end
+
+for i = 1:num_cells_M
+    sizes_M(i, :) = size(M{i});
+end
+
+for i = 1:num_cells_cov
+    sizes_cov(i, :) = size(cov{i});
+end
+all(all(sizes_Y(:,1) == sizes_X(:,1)))
+all(all(sizes_Y(:,1) == sizes_M(:,1)))
+all(all(sizes_Y(:,1) == sizes_cov(:,1)))
+
