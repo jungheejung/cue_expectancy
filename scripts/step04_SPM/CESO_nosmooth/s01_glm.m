@@ -582,8 +582,12 @@ disp(strcat('sub:    ', sub));
     
         % Convert to double and save to the specified file
         m_double = table2array(m_clean);
-        dlmwrite(p.Results.save_fname, m_double, 'delimiter', '\t', 'precision', 13);
-        R = dlmread(p.Results.save_fname);
+        % Get the file parts
+        [filePath, fileName, fileExtension] = fileparts(p.Results.save_fname);
+        save_fname_txt = fullfile(filePath, [fileName, '.txt']);
+
+        dlmwrite(save_fname_txt, m_double, 'delimiter', '\t', 'precision', 13);
+        R = dlmread(save_fname_txt);
     
         % Save the processed data in MAT format
         save(p.Results.save_fname, 'R');
