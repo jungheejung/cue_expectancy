@@ -1,0 +1,434 @@
+---
+title: "CCNfigures"
+output: html_document
+date: "2023-08-16"
+---
+
+
+
+```{r load_libraries_5, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
+library(psych)
+library(car)
+# library(lmSupport)
+library(lme4)
+library(lmerTest)
+library(dplyr)
+library(plyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+library(png)
+library(knitr)
+library(TMB)
+library(sjPlot)
+library(ggpubr)
+library(gridExtra)
+library(merTools)
+library(sjstats) #to get ICC
+library(broom)
+library(tidyverse)
+library(GGally)
+library(RCurl)
+library(rstanarm)
+library(reshape)
+library(boot)
+library(afex)
+library(cowplot)
+library(readr)
+library(lavaan)
+library(rmarkdown)
+library(readr)
+library(caTools)
+library(bitops)
+library(stringr)
+library(stats)
+library(ggpubr)
+# library(equatiomatic)
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
+library(lme4)
+library(effectsize)
+library(brms)
+library(devtools)
+library(gghalves)
+library(visibly) # 
+library(plotly) #plot
+library(scico) # plot
+
+# source("https://gist.github.com/benmarwick/2a1bb0133ff568cbe28d/geom_flat_violin.R")
+
+library(r2mlm)
+file.sources = list.files(c("/Users/h/Documents/projects_local/cue_expectancy/scripts/step02_R/utils"),
+                          pattern="*.R", 
+                          full.names=TRUE, 
+                          ignore.case=TRUE)
+sapply(file.sources,source,.GlobalEnv)
+```
+
+## empirical
+```{r}
+# STEP
+# * load csv
+data <- read.csv("/Users/h/Documents/projects_local/cue_expectancy/data/RL/modelfit_jepma_0525/table_pain.csv")
+analysis_dir <- "/Users/h/Documents/projects_local/cue_expectancy/analysis/mixedeffect/CCNfigures"
+data$sub <- data$src_subject_id
+data$ses <- data$session_id
+data$run <- data$param_run_num
+
+data$stim[data$param_stimulus_type == "low_stim"] <-  -0.5 # social influence task
+data$stim[data$param_stimulus_type == "med_stim"] <- 0 # no influence task
+data$stim[data$param_stimulus_type == "high_stim"] <-  0.5 # no influence task
+
+data$STIM <- factor(data$param_stimulus_type)
+
+# contrast code 1 linear
+data$STIM_linear[data$param_stimulus_type == "low_stim"] <- -0.5
+data$STIM_linear[data$param_stimulus_type == "med_stim"] <- 0
+data$STIM_linear[data$param_stimulus_type == "high_stim"] <- 0.5
+
+# contrast code 2 quadratic
+data$STIM_quadratic[data$param_stimulus_type == "low_stim"] <- -0.33
+data$STIM_quadratic[data$param_stimulus_type == "med_stim"] <- 0.66
+data$STIM_quadratic[data$param_stimulus_type == "high_stim"] <- -0.33
+
+# social cue contrast
+data$CUE_high_gt_low[data$param_cue_type == "low_cue"] <-  -0.5 # social influence task
+data$CUE_high_gt_low[data$param_cue_type == "high_cue"] <-  0.5 # no influence task
+
+data$EXPECT <- data$event02_expect_angle
+data$OUTCOME <- data$event04_actual_angle
+stim_con1 <- "STIM_linear"
+stim_con2 <- "STIM_quadratic"
+iv1 <- "CUE_high_gt_low"
+dv <- "OUTCOME"
+dv_keyword <- "outcome"
+subject <- "sub"
+taskname <- "pain"
+
+  model_savefname <- file.path(
+  analysis_dir,
+  paste(
+    "lmer_task-", taskname, "_rating-", dv_keyword, "_", as.character(Sys.Date()), "_cooksd.txt",
+    sep = ""
+  )
+)
+
+
+# * cooks d lmer
+cooksd <- lmer_twofactor_cooksd_fix(
+  data,  taskname,  iv1,  stim_con1,  stim_con2,  dv,  subject = "sub",  dv_keyword,  model_savefname,  'random_intercept',
+  print_lmer_output = TRUE
+)
+influential <- as.numeric(names(cooksd)[(cooksd > (4 / as.numeric(length(unique(
+  data$sub
+)))))])
+if (length(influential) > 0) {
+data_screen <- data[-influential,]
+} else {
+  data_screen <- data
+}
+# * demean ___________
+maindata <- data_screen %>%
+  group_by(src_subject_id) %>%
+  mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
+  mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
+  mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
+  mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
+  mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
+  mutate(demean_expect = event02_expect_angle - avg_expect) 
+  # ungroup() %>%
+
+cmc <- maindata %>%
+mutate(OUTCOME_cmc = avg_outcome - mean(avg_outcome)) %>%
+mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) 
+
+
+maindata$OUTCOME_cmc <- maindata$avg_outcome - mean(maindata$avg_outcome)
+maindata$EXPECT_cmc <- maindata$avg_expect - mean(maindata$avg_expect)
+
+data_p2= maindata %>%
+  arrange(sub ) %>%
+  group_by(sub) %>%
+  mutate(trial_index = row_number())
+data_a3 <- data_p2 %>% 
+  group_by(sub, ses, run) %>% 
+  mutate(trial_index = row_number(run))
+data_a3lag <- 
+    data_a3 %>%
+    group_by(sub, ses, run) %>%
+    mutate(lag.04outcomeangle = dplyr::lag(event04_actual_angle, n = 1, default = NA))
+# data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.04outcomeangle),]
+main.df <- data_a3lag
+
+# %% main lmer
+main.df$EXPECT_demean <- main.df$demean_expect
+main.df$OUTCOME_demean <- main.df$demean_outcome
+model.behexpectdemean <- lmer(OUTCOME_demean ~ 
+                          CUE_high_gt_low*STIM_linear*EXPECT_demean +
+                          CUE_high_gt_low*STIM_quadratic*EXPECT_demean + #EXPECT_cmc + 
+                          (CUE_high_gt_low|sub), data = main.df, REML = FALSE,  control = lmerControl(optimizer ="Nelder_Mead"))  # lag.04outcomeangle +
+summary(model.behexpectdemean)
+# print(model.behexpectdemean, correlation=TRUE)
+# * plot results
+sjPlot::tab_model(model.behexpectdemean,
+                  title = "Multilevel-modeling: \nlmer(OUTCOME_demean ~ CUE * STIM * EXPECT_demean + EXPECT_subjectwisemean +( CUE * STIM | sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+
+# * report stats
+```
+
+
+
+## model fit
+
+```{r}
+# STEP
+# * load csv
+data <- read.csv("/Users/h/Documents/projects_local/cue_expectancy/data/RL/modelfit_jepma_0525/table_pain.csv")
+analysis_dir <- "/Users/h/Documents/projects_local/cue_expectancy/analysis/mixedeffect/CCNfigures"
+data$sub <- data$src_subject_id
+data$ses <- data$session_id
+data$run <- data$param_run_num
+
+data$stim[data$param_stimulus_type == "low_stim"] <-  -0.5 # social influence task
+data$stim[data$param_stimulus_type == "med_stim"] <- 0 # no influence task
+data$stim[data$param_stimulus_type == "high_stim"] <-  0.5 # no influence task
+
+data$STIM <- factor(data$param_stimulus_type)
+
+# contrast code 1 linear
+data$STIM_linear[data$param_stimulus_type == "low_stim"] <- -0.5
+data$STIM_linear[data$param_stimulus_type == "med_stim"] <- 0
+data$STIM_linear[data$param_stimulus_type == "high_stim"] <- 0.5
+
+# contrast code 2 quadratic
+data$STIM_quadratic[data$param_stimulus_type == "low_stim"] <- -0.33
+data$STIM_quadratic[data$param_stimulus_type == "med_stim"] <- 0.66
+data$STIM_quadratic[data$param_stimulus_type == "high_stim"] <- -0.33
+
+# social cue contrast
+data$CUE_high_gt_low[data$param_cue_type == "low_cue"] <-  -0.5 # social influence task
+data$CUE_high_gt_low[data$param_cue_type == "high_cue"] <-  0.5 # no influence task
+
+data$EXPECT <- data$Exp_mdl2
+data$OUTCOME <- data$Pain_mdl2
+stim_con1 <- "STIM_linear"
+stim_con2 <- "STIM_quadratic"
+iv1 <- "CUE_high_gt_low"
+dv <- "OUTCOME"
+dv_keyword <- "outcome_Jepma"
+subject <- "sub"
+taskname <- "pain"
+
+  model_savefname <- file.path(
+  analysis_dir,
+  paste(
+    "lmer_task-", taskname, "_rating-", dv_keyword, "_", as.character(Sys.Date()), "_cooksd.txt",
+    sep = ""
+  )
+)
+
+
+# * cooks d lmer
+cooksd <- lmer_twofactor_cooksd_fix(
+  data,  taskname,  iv1,  stim_con1,  stim_con2,  dv,  subject = "sub",  dv_keyword,  model_savefname,  'random_intercept',
+  print_lmer_output = TRUE
+)
+influential <- as.numeric(names(cooksd)[(cooksd > (4 / as.numeric(length(unique(
+  data$sub
+)))))])
+if (length(influential) > 0) {
+data_screen <- data[-influential,]
+} else {
+  data_screen <- data
+}
+# * demean ___________
+maindata <- data_screen %>%
+  group_by(src_subject_id) %>%
+  mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
+  mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
+  mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
+  mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
+  mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
+  mutate(demean_expect = event02_expect_angle - avg_expect) 
+  # ungroup() %>%
+
+cmc <- maindata %>%
+mutate(OUTCOME_cmc = avg_outcome - mean(avg_outcome)) %>%
+mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) 
+
+maindata$OUTCOME_cmc <- maindata$avg_outcome - mean(maindata$avg_outcome)
+maindata$EXPECT_cmc <- maindata$avg_expect - mean(maindata$avg_expect)
+
+
+data_p2= maindata %>%
+  arrange(sub ) %>%
+  group_by(sub) %>%
+  mutate(trial_index = row_number())
+data_a3 <- data_p2 %>% 
+  group_by(sub, ses, run) %>% 
+  mutate(trial_index = row_number(run))
+data_a3lag <- 
+    data_a3 %>%
+    group_by(sub, ses, run) %>%
+    mutate(lag.04outcomeangle = dplyr::lag(event04_actual_angle, n = 1, default = NA))
+# data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.04outcomeangle),]
+main.df <- data_a3lag
+
+# %% main lmer
+main.df$EXPECT_demean <- main.df$demean_expect; 
+main.df$OUTCOME_demean <- main.df$demean_outcome
+model.behexpectdemean <- lmer(OUTCOME_demean ~ 
+                          CUE_high_gt_low*STIM_linear*EXPECT_demean +
+                          CUE_high_gt_low*STIM_quadratic*EXPECT_demean +
+                          # EXPECT_cmc + # lag.04outcomeangle +
+                          (CUE_high_gt_low|sub), data = main.df, REML = FALSE, control = lmerControl(optimizer ="Nelder_Mead"))
+summary(model.behexpectdemean)
+# * plot results
+sjPlot::tab_model(model.behexpectdemean,
+                  title = "Multilevel-modeling: \nlmer(OUTCOME_demean ~ CUE * STIM * EXPECT_demean + EXPECT_subjectwisemean +( CUE * STIM | sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+
+# * report stats
+```
+
+
+```{r}
+df_lowClowS <- main.df[(main.df$STIM == "low_stim") & (main.df$param_cue_type == "low_cue"), ]
+
+ggplot(
+  df_lowClowS, 
+  aes(
+    x = EXPECT_demean,
+    y = OUTCOME_demean,
+    colour = src_subject_id
+  )
+) + 
+geom_point() + # Add more layers or adjustments as needed
+geom_smooth(method = 'lm', formula= y ~ x, se = FALSE)
+
+df_medClowS <- main.df[(main.df$STIM == "med_stim") & (main.df$param_cue_type == "low_cue"), ]
+
+ggplot(
+  df_medClowS, 
+  aes(
+    x = EXPECT_demean,
+    y = OUTCOME_demean,
+    colour = src_subject_id
+  )
+) + 
+geom_point() + # Add more layers or adjustments as needed
+geom_smooth(method = 'lm', formula= y ~ x, se = FALSE)
+
+
+df_highClowS <- main.df[(main.df$STIM == "high_stim") & (main.df$param_cue_type == "low_cue"), ]
+
+ggplot(
+  df_highClowS, 
+  aes(
+    x = EXPECT_demean,
+    y = OUTCOME_demean,
+    colour = src_subject_id
+  )
+) + 
+geom_point() + # Add more layers or adjustments as needed
+geom_smooth(method = 'lm', formula= y ~ x, se = FALSE)
+
+```
+
+```{r}
+library(lme4)
+lme4::df_highClowS %>%
+  filter(src_subject_id %in% sample(levels(src_subject_id), 10)) %>%
+  ggplot(aes(EXPECT_demean, OUTCOME_demean, group=src_subject_id, color=src_subject_id)) +
+  geom_smooth(method="lm", se=F) +
+  geom_jitter(size=1) +
+  theme_minimal()
+```
+```{r}
+# extract the random effects from the model (intercept and slope)
+ranef(model.behexpectdemean)$sub %>%
+  # implicitly convert them to a dataframe and add a column with the subject number
+  rownames_to_column(var="sub") %>%
+  # plot the intercept and slobe values with geom_abline()
+  ggplot(aes()) +
+  geom_abline(aes(intercept=`(Intercept)`, slope=CUE_high_gt_low, color=sub)) +
+  # add axis label
+  xlab("EXPECT_demean") + ylab("Residual RT") +
+  # set the scale of the plot to something sensible
+  scale_x_continuous(limits=c(0,10), expand=c(0,0)) +
+  scale_y_continuous(limits=c(-100, 100))
+```
+
+```{r}
+
+# https://stackoverflow.com/questions/40297206/overlaying-two-plots-using-ggplot2-in-r
+# https://www.r-bloggers.com/2021/02/using-random-effects-in-gams-with-mgcv/
+cue_high <- main.df[ (main.df$param_cue_type == "high_cue"), ]
+ggplot(cue_high, aes(x = EXPECT, y = OUTCOME,
+                 group = sub, colour = CUE_high_gt_low)) +
+    geom_line() +
+    facet_wrap(~ STIM_linear, ncol = 3)
+cue_low <- main.df[ (main.df$param_cue_type == "low_cue"), ]
+ggplot(cue_low, aes(x = EXPECT, y = OUTCOME,
+                 group = sub, colour = CUE_high_gt_low)) + 
+    geom_line() +
+    facet_wrap(~ STIM_linear, ncol = 3) +
+    geom_line(data = cue_high, color = "red")
+
+
+# group slope 
+
+# ggplot(
+#   df_highClowS, 
+#   aes(
+#     x = EXPECT_demean,
+#     y = OUTCOME_demean,
+#     colour = src_subject_id
+#   )
+# ) + 
+# geom_point() + # Add more layers or adjustments as needed
+# geom_smooth(method = 'lm', formula= y ~ x, se = FALSE)
+
+
+cue_high <- main.df[ (main.df$param_cue_type == "high_cue"), ]
+ggplot(cue_high, aes(x = EXPECT, y = OUTCOME,
+                 group = sub, colour = CUE_high_gt_low)) +
+  geom_line() +
+  geom_smooth(method = 'lm', formula= y ~ x, se = FALSE) +
+
+    facet_wrap(~ STIM_linear, ncol = 3)
+cue_low <- main.df[ (main.df$param_cue_type == "low_cue"), ]
+ggplot(cue_low, aes(x = EXPECT, y = OUTCOME,
+                 group = sub, colour = CUE_high_gt_low)) +
+    geom_line() +
+    facet_wrap(~ STIM_linear, ncol = 3) +
+    geom_line(data = cue_high, color = "red")
+```
+
+```{r}
+cue_high <- main.df[ (main.df$param_cue_type == "high_cue"), ]
+# ggplot(cue_high, aes(x = EXPECT_demean, y = OUTCOME_demean,
+#                  group = sub, colour = CUE_high_gt_low)) +
+#     geom_line() +
+#     facet_wrap(~ STIM_linear, ncol = 3)
+cue_low <- main.df[ (main.df$param_cue_type == "low_cue"), ]
+
+
+ggplot(cue_low, aes(x = EXPECT, y = OUTCOME_demean,
+                 group = sub, colour = CUE_high_gt_low)) +
+    geom_line() +
+    facet_wrap(~ STIM_linear, ncol = 3) +
+    geom_line(data = cue_high, color = "red")
+# 
+# ggplot(cue_low, aes(x = EXPECT, y = OUTCOME_demean,
+#                  group = sub, colour = CUE_high_gt_low)) +
+#     geom_line(data = cue_low, color = "blue") +
+#     geom_smooth(method = 'lm', formula= y ~ x, se = FALSE)
+#     facet_wrap(~ STIM_linear, ncol = 3) +
+#     geom_line(data = cue_high, color = "red")
+```
+
+
+
