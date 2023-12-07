@@ -28,8 +28,14 @@ function T = add_fullpath_column(T, baseDir, sub, existingColName, newColName)
 
     % Loop through each row in T
     for i = 1:height(T)
+        % Get the original filename
+        originalFilename = T.(existingColName){i};
+        
+        % Remove ".nii.gz" extension and replace with ".nii"
+        newFilename = strrep(originalFilename, '.nii.gz', '.nii');
+        
         % Concatenate to form the full path
-        fullpathFnames{i} = fullfile(baseDir, sub, T.(existingColName){i});
+        fullpathFnames{i} = fullfile(baseDir, sub, newFilename);
     end
 
     % Add the full path filenames as a new column in T
