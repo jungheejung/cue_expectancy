@@ -23,20 +23,18 @@ switch dir_location
     case 'local'
         matlab_moduledir = '/Users/h/Documents/MATLAB';
         main_dir = '/Volumes/spacetop_projects_cue';
-        singletrial_dir = '/dartfs-hpc/scratch/f0042x1/singletrial_smooth';
-%         singletrial_dir = fullfile('/Volumes/seagate/cue_singletrials/uncompressed_singletrial');
-        beh_dir = '';
-%         beh_dir = '/Volumes/seagate/cue_singletrials/beh03_bids';
+        singletrial_dir = fullfile('/Volumes/seagate/cue_singletrials/uncompressed_singletrial');
+        beh_dir = '/Volumes/seagate/cue_singletrials/beh03_bids';
         NPS_fname = '/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv01_signature/rampupdown/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv';
         graymatter_mask = '/Users/h/Documents/MATLAB/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/gray_matter_mask.nii';
     case 'discovery'
-        matlab_moduledir = '/dartfs-hpc/rc/lab/C/CANlab/modules';
+        matlab_moduledir = '/dartfs-hpc/rc/lab/C/CANlab/modules'
         main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue';
 %         singletrial_dir = fullfile(main_dir, 'analysis','fmri','nilearn','singletrial');
         singletrial_dir = '/dartfs-hpc/scratch/f0042x1/singletrial_smooth';
         beh_dir = fullfile(main_dir, 'data', 'beh', 'beh03_bids');
         NPS_fname = fullfile(main_dir, 'analysis/fmri/nilearn/deriv01_signature/rampupdown/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv');
-        graymatter_mask = fullfile(matlab_moduledir, 'CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/gray_matter_mask.nii');
+        graymatter_mask = fullfile(matlab_moduledir, 'CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/gray_matter_mask.nii')
     otherwise
         error('Invalid case specified.');
 
@@ -216,7 +214,11 @@ fprintf('Size of M: %s\n', mat2str(size(M)));
 fprintf('Size of cov: %s\n', mat2str(size(cov)));
 fprintf('Size of l2m_centered: %s\n', mat2str(size(l2m_meancentered)));
 
-
+M = M_test;
+X = X_test;
+Y = zscored_Y;
+cov = cov_test;
+l2m_meancentered = l2m_test;
 SETUP.mask = which(graymatter_mask);
 SETUP.preprocX = 0;
 SETUP.preprocY = 0;
@@ -224,8 +226,8 @@ SETUP.preprocM = 0;
 SETUP.wh_is_mediator = 'M';
 % SETUP.data.covs = cov
 % SETUP.data.L2M = l2m_meancentered';
-Y = zscored_Y;
-mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'covs', cov, 'L2M', l2m_meancentered', 'boot', 'bootsamples', 1000);
+
+mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'covs', cov, 'L2M', l2m_meancentered'); %, 'boot', 'bootsamples', 1000);
 mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'covs', cov, 'boot', 'bootsamples', 1000);% 'L2M', l2m_meancentered',
 mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'boot', 'bootsamples', 1000);
 SETUP = mediation_brain_corrected_threshold('fdr');
