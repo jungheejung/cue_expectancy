@@ -23,18 +23,20 @@ switch dir_location
     case 'local'
         matlab_moduledir = '/Users/h/Documents/MATLAB';
         main_dir = '/Volumes/spacetop_projects_cue';
-        singletrial_dir = fullfile('/Volumes/seagate/cue_singletrials/uncompressed_singletrial');
-        beh_dir = '/Volumes/seagate/cue_singletrials/beh03_bids';
+        singletrial_dir = '/dartfs-hpc/scratch/f0042x1/singletrial_smooth';
+%         singletrial_dir = fullfile('/Volumes/seagate/cue_singletrials/uncompressed_singletrial');
+        beh_dir = '';
+%         beh_dir = '/Volumes/seagate/cue_singletrials/beh03_bids';
         NPS_fname = '/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv01_signature/rampupdown/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv';
         graymatter_mask = '/Users/h/Documents/MATLAB/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/gray_matter_mask.nii';
     case 'discovery'
-        matlab_moduledir = '/dartfs-hpc/rc/lab/C/CANlab/modules'
+        matlab_moduledir = '/dartfs-hpc/rc/lab/C/CANlab/modules';
         main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue';
 %         singletrial_dir = fullfile(main_dir, 'analysis','fmri','nilearn','singletrial');
         singletrial_dir = '/dartfs-hpc/scratch/f0042x1/singletrial_smooth';
         beh_dir = fullfile(main_dir, 'data', 'beh', 'beh03_bids');
         NPS_fname = fullfile(main_dir, 'analysis/fmri/nilearn/deriv01_signature/rampupdown/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv');
-        graymatter_mask = fullfile(matlab_moduledir, 'CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/gray_matter_mask.nii')
+        graymatter_mask = fullfile(matlab_moduledir, 'CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/gray_matter_mask.nii');
     otherwise
         error('Invalid case specified.');
 
