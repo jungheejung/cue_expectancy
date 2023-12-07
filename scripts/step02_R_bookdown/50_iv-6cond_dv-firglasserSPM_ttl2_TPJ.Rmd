@@ -1,22 +1,21 @@
 ---
-title: "49_iv-6cond_dv-firglasserSPM_ttl2_rINS"
+title: "51_iv-6cond_dv-firglasserSPM_ttl2_TPJ"
 output: html_document
 date: "2023-08-14"
 ---
 
 
-TODO
-* load tsv
-* concatenate 
-* per time column, calculate mean and variance
-* plot
+
+## load tsv
+## concatenate 
+## per time column, calculate mean and variance
+## plot
 
 ```{r libraries, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(car)
 library(psych)
 library(reshape)
 library(PupillometryR)
-library(plyr)
 library(dplyr)
 library(tidyselect)
 library(tidyr)
@@ -24,12 +23,34 @@ library(stringr)
 library(lmerTest)
 library(gghalves)
 library(ggpubr)
+# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
+# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
+# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 file.sources = list.files(c("/Users/h/Documents/projects_local/cue_expectancy/scripts/step02_R/utils"),
                           pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
+```
+
+## parameters {TODO: ignore}
+```{r}
+
+# parameters
+main_dir <- dirname(dirname(getwd()))
+datadir <- file.path(main_dir, 'analysis/fmri/nilearn/glm/fir')
+analysis_folder  = paste0("model51_iv-6cond_dv-firglasserSPM_ttl2_TPJ")
+analysis_dir <-
+  file.path(main_dir,
+            "analysis",
+            "mixedeffect",
+            analysis_folder,
+            as.character(Sys.Date())) # nolint
+dir.create(analysis_dir,
+           showWarnings = FALSE,
+           recursive = TRUE)
+savedir <- analysis_dir
 ```
 
 ```{r}
@@ -85,108 +106,15 @@ n_points <- 100  # Number of points for interpolation
   }
 ```
 
-
+## epoch: stim, high stim vs low stim
 ```{r}
-plot_timeseries_bar_SANDBOX <-  function(df, iv1, iv2, mean, error, xlab, ylab, ggtitle, color) {
-    
-n_points <- 100  # Number of points for interpolation
-# interpolated_data <- data.frame(
-#   
-#   x = rep(seq(min(df[[iv1]]), max(df[[iv1]]), length.out = n_points), each = n_points),
-#   y = rep(df[[mean]], each = n_points),
-#   ymin = rep(df[[mean]] - df[[error]], each = n_points),
-#   ymax = rep(df[[mean]] + df[[error]], each = n_points)
-# )
-
-## Removing "tr" from the column values
-df[[iv1]] <- as.numeric(sub("tr", "", df[[iv1]]))
-
-    g <- ggplot(
-      data = df,
-      aes(
-        x = .data[[iv1]],
-        y = .data[[mean]],
-        group = factor(.data[[iv2]]),
-        color = factor(.data[[iv2]])
-      ),
-      cex.lab = 1.5,
-      cex.axis = 2,
-      cex.main = 1.5,
-      cex.sub = 1.5
-    ) +
-
-      geom_errorbar(aes(
-        ymin = (.data[[mean]] - .data[[error]]),
-        ymax = (.data[[mean]] + .data[[error]]),
-        fill =  factor(.data[[iv2]])
-      ), width = .1, alpha=0.8) +
-
-      geom_line() +
-      geom_point() +
-      ggtitle(ggtitle) +
-      xlab(xlab) +
-      ylab(ylab) +
-
-      theme_classic() +
-      expand_limits(x = 3.25) +
-
-      scale_color_manual("",
-                         values =  color) +
-            scale_fill_manual("",
-                         values =  color) +
-      theme(
-        aspect.ratio = .6,
-        text = element_text(size = 20),
-        axis.title.x = element_text(size = 24),
-        axis.title.y = element_text(size = 24),
-        legend.position = c(.99, .99),
-        legend.justification = c("right", "top"),
-        legend.box.just = "right",
-        legend.margin = margin(6, 6, 6, 6)
-      ) +
-      theme(legend.key = element_rect(fill = "white", colour = "white")) +
-      theme_bw()
-    
-    return(g)
-  }
-
-```
-
-
-
-## parameters {TODO: ignore}
-```{r}
-
-# parameters
-main_dir <- dirname(dirname(getwd()))
-
-datadir <- file.path(main_dir, 'analysis/fmri/nilearn/glm/fir')
-analysis_folder  = paste0("model52_iv-6cond_dv-firglasserSPM_ttl1")
-analysis_dir <-
-  file.path(main_dir,
-            "analysis",
-            "mixedeffect",
-            analysis_folder,
-            as.character(Sys.Date())) # nolint
-dir.create(analysis_dir,
-           showWarnings = FALSE,
-           recursive = TRUE)
-save_dir <- analysis_dir
-```
-
-
-# taskwise stim effect
-```{r}
-roi_list <- c( 'dACC', 'PHG', 'V1', 'SM', 'MT', 'RSC', 'LOC', 'FFC', 'PIT', 'pSTS', 'AIP', 'premotor') # 'rINS', 'TPJ',
-run_types <- c("pain", "vicarious", "cognitive")
-  plot_list <- list()
-  TR_length <- 42
-for (ROI in roi_list) {
-    
-    datadir = "/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/spm/fir/ttl1par"
-# taskname = 'pain'
+# ------------------------------------------------------------------------------
+#                       epoch stim, high stim vs low stim
+# ------------------------------------------------------------------------------
+datadir = "/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/spm/fir/ttl2par"
+taskname = "pain"
 exclude <- "sub-0001"
-filename <- paste0("sub-*",  "*roi-", ROI, "_tr-42.csv")
+filename <- paste0("sub-*", "*roi-TPJ_tr-42.csv")
   common_path <- Sys.glob(file.path(datadir, "sub-*",  filename
   ))
   filter_path <- common_path[!str_detect(common_path, pattern = exclude)]
@@ -194,156 +122,55 @@ filename <- paste0("sub-*",  "*roi-", ROI, "_tr-42.csv")
 df <- do.call("rbind.fill", lapply(filter_path, FUN = function(files) {
     read.table(files, header = TRUE, sep = ",")
     }))
-
-for (run_type in run_types) {
-  print(run_type)
-  filtered_df <- df[!(df$condition == "rating" | df$condition == "cue" | df$runtype != run_type), ]
-
-  parsed_df <- filtered_df %>%
-    separate(condition, into = c("cue", "stim"), sep = "_", remove = FALSE)
-  # --------------------- subset regions based on ROI ----------------------------
-  df_long <- pivot_longer(parsed_df, cols = starts_with("tr"), names_to = "tr_num", values_to = "tr_value")
-
-  # ----------------------------- clean factor -----------------------------------
-  df_long$tr_ordered <- factor(
-          df_long$tr_num,
-          levels = c(paste0("tr", 1:TR_length))
-      )
-  # df_long$tr_num <- (
-  #         df_long$tr_num,
-  #         levels = c( 1:TR_length)
-  #     )
-  df_long$stim_ordered <- factor(
-          df_long$stim,
-          levels = c("stimH", "stimM", "stimL")
-      )
-
-  # --------------------------- summary statistics -------------------------------
-  subjectwise <- meanSummary(df_long,
-                                        c("sub","tr_ordered", "stim_ordered"), "tr_value")
-  groupwise <- summarySEwithin(
-    data = subjectwise,
-    measurevar = "mean_per_sub",
-    withinvars = c( "stim_ordered", "tr_ordered"),
-    idvar = "sub"
-  )
-  groupwise$task <- run_type
-  # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
-
-  # ... Rest of your data processing code ...
-  
-  # subset <- groupwise[groupwise$runtype == run_type, ]
-  LINEIV1 = "tr_ordered"
-  LINEIV2 = "stim_ordered"
-  MEAN = "mean_per_sub_norm_mean"
-  ERROR = "se"
-  dv_keyword = "actual"
-  sorted_indices <- order(groupwise$tr_ordered)
-  groupwise_sorted <- groupwise[sorted_indices, ]
-  p1 <- plot_timeseries_bar_SANDBOX(groupwise_sorted, 
-                            LINEIV1, LINEIV2, MEAN, ERROR,  
-                            xlab = "TRs", 
-                            ylab = paste0(ROI, " activation (A.U.)"), 
-                            ggtitle = paste0(ROI, ": ",run_type, " (N = ", length(unique(subjectwise$sub)),") time series, Epoch - stimulus"), 
-                            color = c("#5f0f40","#ae2012", "#fcbf49"))
-  time_points <- seq(1, 0.46 * TR_length, 0.46)
-  p1 <- p1 + annotate("rect", xmin = 0, xmax = 20, ymin = min(df[[mean]], na.rm = TRUE)-5, ymax = max(df[[mean]], na.rm = TRUE)+5, fill = "grey", alpha = 0.2)
-  #p1 <- p1 + scale_x_discrete(labels = setNames(time_points, colnames(df_long)[7:(7 + TR_length)])) + theme_classic()
-  
-  plot_list[[run_type]] <- p1 + theme_classic()
-}
-  
-  # --------------------------- plot three tasks -------------------------------
-library(gridExtra)
-plot_list <- lapply(plot_list, function(plot) {
-  plot + theme(plot.margin = margin(5, 5, 5, 5))  # Adjust plot margins if needed
-})
-combined_plot <- ggpubr::ggarrange(
-  plot_list[["pain"]],plot_list[["vicarious"]],plot_list[["cognitive"]],
-                  common.legend = TRUE,legend = "bottom", ncol = 3, nrow = 1, 
-                  widths = c(3, 3, 3), heights = c(.5,.5,.5), align = "v")
-print(combined_plot)
-ggsave(file.path(save_dir, paste0("roi-", ROI,"_epoch-stim_desc-highstimGTlowstim.png")), combined_plot, width = 12, height = 4)
-
-}
-  
 ```
 
 
 ```{r}
-p1 + annotate("rect", xmin = 0, xmax = 10, ymin = min(df[[mean]], na.rm = TRUE)-5, ymax = max(df[[mean]], na.rm = TRUE)+5, fill = "grey", alpha = 0.2)
+# filtered_df <- subset(df, condition != "rating")
+filtered_df <- df[!(df$condition == "rating" | df$condition == "cue"), ]
 
-```
+parsed_df <- filtered_df %>%
+  separate(condition, into = c("cue", "stim"), sep = "_", remove = FALSE)
 
-# sandbox
-```{r}
+TR_length <- 42
+# --------------------- subset regions based on ROI ----------------------------
+df_long <- pivot_longer(parsed_df, cols = starts_with("tr"), names_to = "tr_num", values_to = "tr_value")
 
-  # p1 <- plot_timeseries_bar_SANDBOX(groupwise_sorted, 
-  #                           LINEIV1, LINEIV2, MEAN, ERROR,  
-  #                           xlab = "TRs", 
-  #                           ylab = paste0(ROI, " activation (A.U.)"), 
-  #                           ggtitle = paste0(ROI, ": ",run_type, " (N = ", length(unique(subjectwise$sub)),") time series, Epoch - stimulus"), 
-                            
-  iv1 = "tr_ordered"
-  iv2 = "stim_ordered"
-  mean = "mean_per_sub_norm_mean"
-  error = "se"
-  dv_keyword = "actual"
-  xlab = "TRs"
-  ylab = "A.U."
-  ggtitle = "sandbox"
-  color = c("#5f0f40","#ae2012", "#fcbf49")
-    #   if (is.factor(groupwise_sorted$tr_ordered)) {
-    #     groupwise_sorted$tr_ordered <- as.numeric(as.character(groupwise_sorted$tr_ordered))
-    # }
-    g <- ggplot(
-      data = groupwise_sorted,
-      aes(
-        x = .data[[iv1]],
-        y = .data[[mean]],
-        group = factor(.data[[iv2]]),
-        color = factor(.data[[iv2]])
-      ),
-      cex.lab = 1.5,
-      cex.axis = 2,
-      cex.main = 1.5,
-      cex.sub = 1.5
-    ) +
+# ----------------------------- clean factor -----------------------------------
+df_long$tr_ordered <- factor(
+        df_long$tr_num,
+        levels = c(paste0("tr", 1:TR_length))
+    )
+df_long$stim_ordered <- factor(
+        df_long$stim,
+        levels = c("stimH", "stimM", "stimL")
+    )
 
-      geom_errorbar(aes(
-        ymin = (.data[[mean]] - .data[[error]]),
-        ymax = (.data[[mean]] + .data[[error]]),
-        fill =  factor(.data[[iv2]])
-      ), width = .1, alpha=0.8) +
+# --------------------------- summary statistics -------------------------------
+subjectwise <- meanSummary(df_long,
+                                      c("sub", "tr_ordered", "stim_ordered"), "tr_value")
+groupwise <- summarySEwithin(
+  data = subjectwise,
+  measurevar = "mean_per_sub",
+  withinvars = c("stim_ordered", "tr_ordered"),
+  idvar = "sub"
+)
+groupwise$task <- taskname
+# https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
 
-      geom_line() +
-      geom_point() +
-      ggtitle(ggtitle) +
-      xlab(xlab) +
-      ylab(ylab) +
+# --------------------------------- plot ---------------------------------------
+LINEIV1 = "tr_ordered"
+LINEIV2 = "stim_ordered"
+MEAN = "mean_per_sub_norm_mean"
+ERROR = "se"
+dv_keyword = "actual"
+sorted_indices <- order(groupwise$tr_ordered)
+groupwise_sorted <- groupwise[sorted_indices, ]
+p1 = plot_timeseries_bar(groupwise, 
+               LINEIV1, LINEIV2, MEAN, ERROR,  xlab = "Runs" , ylab= "Epoch: stimulus, High stim vs. Low stim", ggtitle="time_series", color=c("#5f0f40","#ae2012", "#fcbf49"))
+time_points <- seq(1, 0.46 * TR_length, 0.46)
+p1 + scale_x_discrete(labels = setNames(time_points, colnames(df_long)[7:7+TR_length]))+ theme_classic()
 
-      theme_classic() +
-      expand_limits(x = 3.25) +
-
-      scale_color_manual("",
-                         values =  color) +
-            scale_fill_manual("",
-                         values =  color) +
-      theme(
-        aspect.ratio = .6,
-        text = element_text(size = 20),
-        axis.title.x = element_text(size = 24),
-        axis.title.y = element_text(size = 24),
-        legend.position = c(.99, .99),
-        legend.justification = c("right", "top"),
-        legend.box.just = "right",
-        legend.margin = margin(6, 6, 6, 6)
-      ) +
-      theme(legend.key = element_rect(fill = "white", colour = "white")) +
-      theme_bw() +
-      scale_x_continuous(breaks = seq(0, 42, by = 10)) 
-      
-    g
 ```
 
 
@@ -358,44 +185,22 @@ p1 + annotate("rect", xmin = 0, xmax = 10, ymin = min(df[[mean]], na.rm = TRUE)-
 # install.packages("FactoMineR") # Install FactoMineR if you haven't already
 library(ggplot2)
 library(FactoMineR)
-run_types = c("pain")
-for (run_type in run_types) {
-  print(run_type)
-  filtered_df <- df[!(df$condition == "rating" | df$condition == "cue" | df$runtype != run_type), ]
 
-  parsed_df <- filtered_df %>%
-    separate(condition, into = c("cue", "stim"), sep = "_", remove = FALSE)
-  # --------------------- subset regions based on ROI ----------------------------
-  df_long <- pivot_longer(parsed_df, cols = starts_with("tr"), names_to = "tr_num", values_to = "tr_value")
 
-  # ----------------------------- clean factor -----------------------------------
-  df_long$tr_ordered <- factor(
-          df_long$tr_num,
-          levels = c(paste0("tr", 1:TR_length))
-      )
-  df_long$stim_ordered <- factor(
-          df_long$stim,
-          levels = c("stimH", "stimM", "stimL")
-      )
-
-  # --------------------------- summary statistics -------------------------------
-  subjectwise <- meanSummary(df_long,
-                                        c("sub","tr_ordered", "stim_ordered"), "tr_value")
 
 # Assuming your original dataframe is named 'df'
 
 # Convert the dataframe to wide format
 df_wide <- pivot_wider(subjectwise, 
                        id_cols = c("tr_ordered", "stim_ordered"), 
-                       names_from = c("sub"), 
+                       names_from = "sub", 
                        values_from = "mean_per_sub")
 
-# df_wide <- pivot_wider(subjectwise, 
-#                        id_cols = c("sub", "ROIindex","stim_ordered"), 
-#                        names_from = "tr_ordered", 
-#                        values_from = "mean_per_sub")
+df_wide <- pivot_wider(subjectwise, 
+                       id_cols = c("sub", "stim_ordered"), 
+                       names_from = "tr_ordered", 
+                       values_from = "mean_per_sub")
 stim_high.df <- df_wide[df_wide$stim_ordered == "stimH",]
-stim_med.df <- df_wide[df_wide$stim_ordered == "stimM",]
 stim_low.df <- df_wide[df_wide$stim_ordered == "stimL",]
 # selected_columns <- subset(stim_high.df, select = 2:(ncol(stim_high.df) - 1))
 meanhighdf <- data.frame(subset(stim_high.df, select = 3:(ncol(stim_high.df) - 1)))
@@ -407,22 +212,16 @@ plot(high.variance_explained)
 # Access the standard deviations of each principal component
 high.stdev <- high.pca_result$sdev
 
-meanmeddf <- data.frame(subset(stim_med.df, select = 3:(ncol(stim_med.df) - 1)))
-med.pca <- prcomp(meanmeddf)
-med.pca_scores <- as.data.frame(med.pca$x)
-
 meanlowdf <- data.frame(subset(stim_low.df, select = 3:(ncol(stim_low.df) - 1)))
 low.pca <- prcomp(meanlowdf)
 low.pca_scores <- as.data.frame(low.pca$x)
 library(plotly)  # You can use plotly to create an interactive 3D plot
 # plot_ly(high.pca_scores, x = ~PC1, y = ~PC2, z = ~PC3, type = "scatter3d", mode = "markers")
 # plot_ly(low.pca_scores, x = ~PC1, y = ~PC2, z = ~PC3, type = "scatter3d", mode = "markers")
-combined_pca_scores <- rbind(high.pca_scores, med.pca_scores, low.pca_scores)
+combined_pca_scores <- rbind(high.pca_scores, low.pca_scores)
 
 # Add a new column to indicate the stim_ordered category (high_stim or low_stim)
-combined_pca_scores$stim_ordered <- c(rep("high_stim", nrow(high.pca_scores)), 
-                                      rep("med_stim", nrow(med.pca_scores)), 
-                                      rep("low_stim", nrow(low.pca_scores)))
+combined_pca_scores$stim_ordered <- c(rep("high_stim", nrow(high.pca_scores)), rep("low_stim", nrow(low.pca_scores)))
 
 # Create the 3D PCA plot
 plot_ly(combined_pca_scores, x = ~PC1, y = ~PC2, z = ~PC3, type = "scatter3d", mode = "markers",
@@ -432,13 +231,7 @@ plot_ly(combined_pca_scores, x = ~PC1, y = ~PC2, z = ~PC3, type = "scatter3d", m
 # df_ordered <- data_matrix[sorted_indices, ]
 # pca_result <- PCA(data_matrix$mean_per_sub_norm_mean)
 # datapoints <- df$datapoints
-}
 ```
-```{r}
-plot_ly(combined_pca_scores, x = ~PC1, y = ~PC2, z = ~PC3, type = "scatter3d", mode = "markers",
-        color = ~stim_ordered)
-```
-
 
 ### PCA groupwise
 ```{r}
@@ -559,92 +352,111 @@ ggplot(groupwise, aes(x=tr_ordered,y=mean_per_sub_mean)) +
 
 
 
+## epoch: stim, high cue vs low cue
 
-## taskwise cue effect
 ```{r}
-roi_list <- c( 'dACC', 'PHG', 'V1', 'SM', 'MT', 'RSC', 'LOC', 'FFC', 'PIT', 'pSTS', 'AIP', 'premotor')# 'rINS', 'TPJ',
-for (ROI in roi_list) {
-    
-    datadir = "/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/spm/fir/ttl2par"
-# taskname = 'pain'
-exclude <- "sub-0001"
-filename <- paste0("sub-*",  "*roi-", ROI, "_tr-42.csv")
-  common_path <- Sys.glob(file.path(datadir, "sub-*",  filename
-  ))
-  filter_path <- common_path[!str_detect(common_path, pattern = exclude)]
+# filtered_df <- subset(df, condition != "rating")
+filtered_df <- df[!(df$condition == "rating" | df$condition == "cue"), ]
 
-df <- do.call("rbind.fill", lapply(filter_path, FUN = function(files) {
-    read.table(files, header = TRUE, sep = ",")
-    }))
+parsed_df <- filtered_df %>%
+  separate(condition, into = c("cue", "stim"), sep = "_", remove = FALSE)
 
+TR_length <- 42
+# --------------------- subset regions based on ROI ----------------------------
+df_long <- pivot_longer(parsed_df, cols = starts_with("tr"), names_to = "tr_num", values_to = "tr_value")
 
-run_types <- c("pain", "vicarious", "cognitive")
-  plot_list <- list()
-  TR_length <- 42
-for (run_type in run_types) {
-  filtered_df <- df[!(df$condition == "rating" | df$condition == "cue" | df$runtype != run_type), ]
-
-  parsed_df <- filtered_df %>%
-    separate(condition, into = c("cue", "stim"), sep = "_", remove = FALSE)
-  # --------------------- subset regions based on ROI ----------------------------
-  df_long <- pivot_longer(parsed_df, cols = starts_with("tr"), names_to = "tr_num", values_to = "tr_value")
-
-  # ----------------------------- clean factor -----------------------------------
-  df_long$tr_ordered <- factor(
-          df_long$tr_num,
-          levels = c(paste0("tr", 1:TR_length))
-      )
+# ----------------------------- clean factor -----------------------------------
+df_long$tr_ordered <- factor(
+        df_long$tr_num,
+        levels = c(paste0("tr", 1:TR_length))
+    )
 df_long$cue_ordered <- factor(
         df_long$cue,
         levels = c("cueH","cueL")
     )
 
-  # --------------------------- summary statistics -------------------------------
-  subjectwise <- meanSummary(df_long,
-                                        c("sub","tr_ordered", "cue_ordered"), "tr_value")
-  groupwise <- summarySEwithin(
-    data = subjectwise,
-    measurevar = "mean_per_sub",
-    withinvars = c( "cue_ordered", "tr_ordered"),
-    idvar = "sub"
-  )
-  groupwise$task <- run_type
-  # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+# --------------------------- summary statistics -------------------------------
+subjectwise <- meanSummary(df_long,
+                                      c("sub", "tr_ordered", "cue_ordered"), "tr_value")
+groupwise <- summarySEwithin(
+  data = subjectwise,
+  measurevar = "mean_per_sub",
+  withinvars = c("cue_ordered", "tr_ordered"),
+  idvar = "sub"
+)
+groupwise$task <- taskname
+# https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
 
-  # ... Rest of your data processing code ...
-  
-  # subset <- groupwise[groupwise$runtype == run_type, ]
-  LINEIV1 = "tr_ordered"
-  LINEIV2 = "cue_ordered"
-  MEAN = "mean_per_sub_norm_mean"
-  ERROR = "se"
-  dv_keyword = "actual"
-  sorted_indices <- order(groupwise$tr_ordered)
-  groupwise_sorted <- groupwise[sorted_indices, ]
-  p1 <- plot_timeseries_bar(groupwise_sorted, 
-                            LINEIV1, LINEIV2, MEAN, ERROR,  
-                            xlab = "TRs", 
-                            ylab = paste0(ROI, " activation (A.U.)"), 
-                            ggtitle = paste0(run_type, " time series, Epoch - stimulus"), 
-                            color =c("red", "blue"))
-  time_points <- seq(1, 0.46 * TR_length, 0.46)
-  #p1 <- p1 + scale_x_discrete(labels = setNames(time_points, colnames(df_long)[7:(7 + TR_length)])) + theme_classic()
-  
-  plot_list[[run_type]] <- p1 + theme_classic()
-}
-  
-  # --------------------------- plot three tasks -------------------------------
-library(gridExtra)
-plot_list <- lapply(plot_list, function(plot) {
-  plot + theme(plot.margin = margin(5, 5, 5, 5))  # Adjust plot margins if needed
-})
-combined_plot <- ggpubr::ggarrange(plot_list[["pain"]],plot_list[["vicarious"]],plot_list[["cognitive"]],
-                  common.legend = TRUE,legend = "bottom", ncol = 3, nrow = 1, 
-                  widths = c(3, 3, 3), heights = c(.5,.5,.5), align = "v")
-combined_plot
-ggsave(file.path(save_dir, paste0("roi-", ROI, "_epoch-cue_desc-highcueGTlowcue.png")), combined_plot, width = 12, height = 4)
-}
+# --------------------------------- plot ---------------------------------------
+LINEIV1 = "tr_ordered"
+LINEIV2 = "cue_ordered"
+MEAN = "mean_per_sub_norm_mean"
+ERROR = "se"
+dv_keyword = "actual"
+sorted_indices <- order(groupwise$tr_ordered)
+groupwise_sorted <- groupwise[sorted_indices, ]
+p1 = plot_timeseries_bar(groupwise, 
+               LINEIV1, LINEIV2, MEAN, ERROR,  xlab = "Runs" , ylab= "Epoch: stimulus, High cue vs. Low cue", ggtitle="time_series", color=c("red", "blue"))
+time_points <- seq(1, 0.46 * TR_length, 0.46)
+p1 + scale_x_discrete(labels = setNames(time_points, colnames(df_long)[7:7+TR_length]))+ theme_classic()
+
 ```
+
+
+### PCA subjectwise
+```{r}
+# install.packages("ggplot2")    # Install ggplot2 if you haven't already
+# install.packages("FactoMineR") # Install FactoMineR if you haven't already
+library(ggplot2)
+library(FactoMineR)
+
+
+
+# Assuming your original dataframe is named 'df'
+
+# Convert the dataframe to wide format
+df_wide <- pivot_wider(subjectwise, 
+                       id_cols = c("tr_ordered", "cue_ordered"), 
+                       names_from = "sub", 
+                       values_from = "mean_per_sub")
+
+df_wide <- pivot_wider(subjectwise, 
+                       id_cols = c("sub", "cue_ordered"), 
+                       names_from = "tr_ordered", 
+                       values_from = "mean_per_sub")
+cue_high.df <- df_wide[df_wide$cue_ordered == "cueH",]
+stim_low.df <- df_wide[df_wide$cue_ordered == "cueL",]
+# selected_columns <- subset(cue_high.df, select = 2:(ncol(cue_high.df) - 1))
+meanhighdf <- data.frame(subset(cue_high.df, select = 3:(ncol(cue_high.df) - 1)))
+high.pca_result <- prcomp(meanhighdf)
+high.pca_scores <- as.data.frame(high.pca_result$x)
+# Access the proportion of variance explained by each principal component
+high.variance_explained <- high.pca_result$sdev^2 / sum(high.pca_result$sdev^2)
+plot(high.variance_explained)
+# Access the standard deviations of each principal component
+high.stdev <- high.pca_result$sdev
+
+meanlowdf <- data.frame(subset(stim_low.df, select = 3:(ncol(stim_low.df) - 1)))
+low.pca <- prcomp(meanlowdf)
+low.pca_scores <- as.data.frame(low.pca$x)
+library(plotly)  # You can use plotly to create an interactive 3D plot
+# plot_ly(high.pca_scores, x = ~PC1, y = ~PC2, z = ~PC3, type = "scatter3d", mode = "markers")
+# plot_ly(low.pca_scores, x = ~PC1, y = ~PC2, z = ~PC3, type = "scatter3d", mode = "markers")
+combined_pca_scores <- rbind(high.pca_scores, low.pca_scores)
+
+# Add a new column to indicate the stim_ordered category (high_stim or low_stim)
+combined_pca_scores$cum_ordered <- c(rep("high_cue", nrow(high.pca_scores)), rep("low_cue", nrow(low.pca_scores)))
+
+# Create the 3D PCA plot
+plot_ly(combined_pca_scores, x = ~PC1, y = ~PC2, z = ~PC3, type = "scatter3d", mode = "markers",
+        color = ~cum_ordered)
+# data_matrix <- groupwise[groupwise$stim_ordered == "high_stim",c("tr_ordered", "mean_per_sub_norm_mean")]
+# sorted_indices <- order(data_matrix$tr_ordered)
+# df_ordered <- data_matrix[sorted_indices, ]
+# pca_result <- PCA(data_matrix$mean_per_sub_norm_mean)
+# datapoints <- df$datapoints
+```
+
 
 ## epoch: stim, rating
 ```{r eval=FALSE, include=FALSE}
@@ -691,6 +503,9 @@ gg <- gg + theme_classic() +       theme(legend.key = element_rect(fill = "white
 # Print the ggplot
 print(gg)
 
+```
+
+```{r}
 # --------------------------------- plot ---------------------------------------
 LINEIV1 = "tr_ordered"
 # LINEIV2 = "cue_ordered"
@@ -779,98 +594,6 @@ p3L + theme_classic()
 ```
 
 
-
-# taskwise 6 cond effect
-
-```{r}
-# ------------------------------------------------------------------------------
-#                       epoch stim, high cue vs low cue
-# ------------------------------------------------------------------------------
-# --------------------- subset regions based on ROI ----------------------------
-run_types <- c("pain", "vicarious", "cognitive")
-  
-  TR_length <- 42
-for (run_type in run_types) {
-  filtered_df <- df[!(df$condition == "rating" | df$condition == "cue" | df$runtype != run_type), ]
-plot_list <- list()
-
-  parsed_df <- filtered_df %>%
-    separate(condition, into = c("cue", "stim"), sep = "_", remove = FALSE)
-  # --------------------- subset regions based on ROI ----------------------------
-  df_long <- pivot_longer(parsed_df, cols = starts_with("tr"), names_to = "tr_num", values_to = "tr_value")
-
-# ----------------------------- clean factor -----------------------------------
-df_long$tr_ordered <- factor(
-        df_long$tr_num,
-        levels = c(paste0("tr", 1:TR_length))
-    )
-df_long$cue_ordered <- factor(
-        df_long$cue,
-        levels = c("cueH", "cueL")
-    )
-df_long$stim_ordered <- factor(
-        df_long$stim,
-        levels = c("stimH", "stimM", "stimL")
-    )
-
-df_long$sixcond <- factor(
-        df_long$condition,
-        levels = c("cueH_stimH", "cueL_stimH", 
-                   "cueH_stimM", "cueL_stimM",
-                   "cueH_stimL", "cueL_stimL")
-) 
-# --------------------------- summary statistics -------------------------------
-subjectwise <- meanSummary(df_long,
-                                      c("sub", "tr_ordered", "sixcond"), "tr_value")
-groupwise <- summarySEwithin(
-  data = subjectwise,
-  measurevar = "mean_per_sub",
-  withinvars = c("sixcond", "tr_ordered"),
-  idvar = "sub"
-)
-groupwise$task <- taskname
-# https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
-
-# --------------------------------- plot ---------------------------------------
-LINEIV1 = "tr_ordered"
-LINEIV2 = "sixcond"
-MEAN = "mean_per_sub_norm_mean"
-ERROR = "se"
-dv_keyword = "actual"
-sorted_indices <- order(groupwise$tr_ordered)
-groupwise_sorted <- groupwise[sorted_indices, ]
-p3H = plot_timeseries_bar(groupwise, 
-               LINEIV1, LINEIV2, MEAN, ERROR,  xlab = "Runs" , ylab= "Epoch: stimulus, High cue vs. Low cue", ggtitle=paste0("High intensity - Low cue vs. High cue (N = ", unique(groupwise$N), ")" ), color=c("red","#5f0f40","gray", "gray", "gray", "gray"))
-time_points <- seq(1, 0.46 * TR_length, 0.46)
-# p3H + scale_x_discrete(labels = setNames(time_points, colnames(df_long)[7:7+TR_length]))+ theme_classic()
-p3H + theme_classic()
-plot_list[["H"]] <- p3H + theme_classic()
-
-p3M = plot_timeseries_bar(groupwise, 
-               LINEIV1, LINEIV2, MEAN, ERROR,  xlab = "Runs" , ylab= "Epoch: stimulus, High cue vs. Low cue", ggtitle=paste0("Medium intensity - Low cue vs. High cue (N = ", unique(groupwise$N), ")"), color=c("#d6d6d6","#d6d6d6","#bc3908", "#f6aa1c", "gray", "gray"))
-time_points <- seq(1, 0.46 * TR_length, 0.46)
-# p3M + scale_x_discrete(labels = setNames(time_points, colnames(df_long)[7:7+TR_length]))+ theme_classic()
-plot_list[["M"]] <- p3M + theme_classic()
-
-p3L = plot_timeseries_bar(groupwise, 
-               LINEIV1, LINEIV2, MEAN, ERROR,  xlab = "Runs" , ylab= "Epoch: stimulus, High cue vs. Low cue", ggtitle=paste0("Low intensity - Low cue vs. High cue (N = ", unique(groupwise$N), ")"), color=c("gray","gray","gray", "gray", "#2541b2", "#00a6fb"))
-time_points <- seq(1, 0.46 * TR_length, 0.46)
-# p3L + scale_x_discrete(labels = setNames(time_points, colnames(df_long)[7:7+TR_length]))+ theme_classic()
-plot_list[["L"]] <- p3L + theme_classic()
-
-
-  # --------------------------- plot three tasks -------------------------------
-library(gridExtra)
-plot_list <- lapply(plot_list, function(plot) {
-  plot + theme(plot.margin = margin(5, 5, 5, 5))  # Adjust plot margins if needed
-})
-combined_plot <- ggpubr::ggarrange(plot_list[["H"]],plot_list[["M"]],plot_list[["L"]],
-                  common.legend = FALSE,legend = "bottom", ncol = 3, nrow = 1, 
-                  widths = c(3, 3, 3), heights = c(.5,.5,.5), align = "v")
-combined_plot
-ggsave(file.path(save_dir, paste0("taskwise-",run_type, "_epoch-stim_desc-stimcuecomparison.png")), combined_plot, width = 12, height = 4)
-}
-```
 
 
 
