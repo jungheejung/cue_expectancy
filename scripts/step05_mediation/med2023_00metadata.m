@@ -260,6 +260,7 @@ end
 script_mediation_dir = pwd;
 main_dir = fileparts(fileparts(script_mediation_dir)); % /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
 nifti_dir = fullfile(main_dir, 'analysis','fmri','nilearn','singletrial');
+addpath(genpath(fullfile(main_dir, 'scripts', 'step05_mediation', 'utils')));
 sublist = find_sublist_from_dir(nifti_dir) % find subdirectories that start with keyword "sub-"
 X = cell(1, length(sublist));
 M = cell(1, length(sublist));
