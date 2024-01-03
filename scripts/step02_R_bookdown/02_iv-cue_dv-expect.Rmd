@@ -50,7 +50,7 @@ library(PupillometryR) # geom_flat_violin
 # source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
 # source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
-file.sources = list.files(c("/Users/h/Dropbox/projects_local/cue_expectancy/scripts/step02_R/utils"),
+file.sources = list.files(c("/Users/h/Documents/projects_local/cue_expectancy/scripts/step02_R/utils"),
                           pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
@@ -61,10 +61,12 @@ sapply(file.sources,source,.GlobalEnv)
 main_dir = dirname(dirname(getwd()))
 print(main_dir)
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
+analysis_dir = file.path(main_dir, 'analysis', 'mixedeffect')
 ```
 
 ```{r}
 for (taskname in c("pain", "vicarious", "cognitive")) {
+    dv_keyword <- "expect"
     model_savefname <- file.path(
         analysis_dir,
         paste("lmer_task-", taskname,
@@ -73,12 +75,14 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
             sep = ""
         )
     )
-    iv = "param_stimulus_type"
+    iv <- "param_stimulus_type"
+    dv <- "event02_expect_angle"
+    subject_varkey <- "src_subject_id"
+
     print_lmer_output = TRUE
+    exclude <- "sub-0001|sub-0999"
     # load data, run model, and exclude outliers
     data <- load_task_social_df(datadir, taskname, subject_varkey, iv, dv, exclude)
-    
-    
     
     data$subject = factor(data$src_subject_id)
     data$stim_name[data$param_stimulus_type == "high_stim"] <- "high"
@@ -156,6 +160,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     )
     iv <- "stim_ordered"
     dv <- "event02_expect_angle"
+    dv_keyword <- "expect"
     model <- lmer(event02_expect_angle ~ cue_con + (1|src_subject_id), data = data)
     anova(model)
     cooksd <- lmer_onefactor_cooksd(

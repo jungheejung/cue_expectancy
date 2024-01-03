@@ -1,5 +1,5 @@
 
-# [RL] model fit data {#ch22_ccn}
+# [RL] model fit data {#ch22_RL}
 
 * Given that the brain results only includes 80 participants, I'm plotting the behavioral data with identical participants as well
 * behavioral results
@@ -758,22 +758,6 @@ ggsave('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_a
 fig.bsave
 ```
 
-### lmer
-
-```{r}
-NPS.df$EXPECT_demean <- NPS.df$demean_expect; NPS.df$OUTCOME_demean <- NPS.df$demean_outcome
-model.NPSdemean <- lmer(NPSpos ~ 
-                          CUE_high_gt_low*STIM_linear +
-                          CUE_high_gt_low*STIM_quadratic +
-                           # lag.04outcomeangle +
-                          (1 |sub), data = NPS.df
-                    ) 
-# CUE_high_gt_low+STIM+EXPECT_demean
-sjPlot::tab_model(model.NPSdemean,
-                  title = "Multilevel-modeling: \nlmer(OUTCOME ~ CUE * STIM * EXPECT_demean + (1| sub), data = pvc)",
-                  CSS = list(css.table = '+font-size: 12;'))
-```
-
 
 ### NPS demeaned: stim*cue
 ```{r}
@@ -849,6 +833,22 @@ p1 = plot_lineplot_twofactor(DATA,
 
 p1 +   theme(aspect.ratio=.9) + 
   theme(text = element_text(size = 15)) 
+```
+
+### lmer
+
+```{r}
+NPS.df$EXPECT_demean <- NPS.df$demean_expect; NPS.df$OUTCOME_demean <- NPS.df$demean_outcome
+model.NPSdemean <- lmer(NPSpos ~ 
+                          CUE_high_gt_low*STIM_linear +
+                          CUE_high_gt_low*STIM_quadratic +
+                           # lag.04outcomeangle +
+                          (1 |sub), data = NPS.df
+                    ) 
+# CUE_high_gt_low+STIM+EXPECT_demean
+sjPlot::tab_model(model.NPSdemean,
+                  title = "Multilevel-modeling: \nlmer(OUTCOME ~ CUE * STIM * EXPECT_demean + (1| sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
 ```
 
 
@@ -1533,8 +1533,8 @@ plots
 
 ```{r include=FALSE}
 # _________________________ load files _________________________________________
-expect_fname = '/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/data/simulated/0411/table_exp.csv'
-outcome_fname = '/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/data/simulated/0411/table_pain.csv'
+expect_fname = file.path(main_dir, 'data', 'simulated', '0411', 'table_exp.csv')
+outcome_fname = file.path(main_dir, 'data', 'simulated', '0411', 'table_pain.csv')
 expect = read.csv(expect_fname)
 outcome = read.csv(outcome_fname)
 
@@ -1642,7 +1642,7 @@ high <- high + theme(text = element_text(size = 12)) + theme(aspect.ratio=1) +sc
 plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
 plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
 plots
-ggsave('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/analysis/mixedeffect/CCNfigures/figD.png', plots)
+ggsave(file.path(main_dir, 'analysis', 'mixedeffect', 'CCNfigures', 'figD.png'), plots)
 ```
 
 
@@ -1753,7 +1753,8 @@ plots
 ```
 ## save dataframe
 ```{r}
-write.csv(NPS.df,'/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/analysis/mixedeffect/CCNfigures/dataframe.csv')
+write.csv(NPS.df, 
+          file.path(main_dir, 'analysis', 'mixedeffect', 'CCNfigures', 'dataframe.csv'))
 ```
 
 

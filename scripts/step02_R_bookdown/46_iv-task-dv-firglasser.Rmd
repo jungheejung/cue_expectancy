@@ -1,3 +1,5 @@
+# [fMRI] FIR ~ task {#ch46_fir_task}
+
 ---
 title: "45_iv-task_dv-fir.Rmd"
 output: html_document
@@ -34,7 +36,6 @@ sapply(file.sources,source,.GlobalEnv)
 
 ## parameters {TODO: ignore}
 ```{r}
-
 # parameters
 main_dir <- dirname(dirname(getwd()))
 datadir <- file.path(main_dir, 'analysis/fmri/nilearn/glm/fir')
@@ -126,6 +127,7 @@ time_points <- seq(0, 0.46 * 19, 0.46)
 p1 + scale_x_discrete(labels = setNames(time_points, colnames(df)[4:23]))+ theme_classic() 
 p1 + theme_classic()
 ```
+
 ### PCA subjectwise
 ```{r}
 # install.packages("ggplot2")    # Install ggplot2 if you haven't already
@@ -186,8 +188,6 @@ plot_ly(combined_pca_scores, x = ~PC1, y = ~PC2, z = ~PC3, type = "scatter3d", m
 # install.packages("FactoMineR") # Install FactoMineR if you haven't already
 library(ggplot2)
 library(FactoMineR)
-
-
 
 # Assuming your original dataframe is named 'df'
 
@@ -251,7 +251,6 @@ ggplot(combined_pca, aes(x=group_index,y=PC1, group = stim_ordered, colour=stim_
   stat_smooth(method="loess", span=0.25, se=TRUE, aes(color=stim_ordered), alpha=0.3) +
   theme_bw()
 
-
 ```
 
 ### lmer per region
@@ -303,12 +302,12 @@ combined_anova_results <- do.call(rbind, anova_results_list)
 library(ggplot2)
 
 # Create the plot
-# y = "mean_per_sub_mean"z
 ggplot(groupwise, aes(x=tr_ordered,y=mean_per_sub_mean, group = stim_ordered, colour=stim_ordered)) +
   stat_smooth(method="loess", span=0.25, se=TRUE, aes(color=stim_ordered), alpha=0.3) +
   theme_bw()
 
 ```
+
 ```{r}
 # ggplot(data=groupwise, aes(x=tr_ordered, y=mean_per_sub_mean, ymin=se, ymax=se, fill=stim_ordered, linetype=stim_ordered)) + 
 #  geom_line() + 
@@ -321,12 +320,7 @@ ggplot(groupwise, aes(x=tr_ordered,y=mean_per_sub_mean, group = stim_ordered, co
 # Load the ggplot2 library
 # install.packages("ggplot2")
 library(ggplot2)
-# groupwise$x <- as.numeric(groupwise$x)
-# 
-# # Sort the dataframe by the 'x' variable (if it's not already sorted)
-# data <- data[order(data$x), ]
 
-# Create the plot
 # Create the plot with custom span and smoothing method
 ggplot(groupwise, aes(x=tr_ordered,y=mean_per_sub_mean)) +
   geom_line() +                                   # Plot the smooth line for the mean
@@ -378,14 +372,12 @@ highcuedf$cue <- "high_cue"
 ```{r}
 # --------------------- subset regions based on ROI ----------------------------
 
-file_path <- "/Users/h/Documents/projects_local/cue_expectancy/resources/atlas/HCPMMP1_on_MNI152_ICBM2009a_nlin.txt"
+file_path <- file.path(main_dir, "resources/atlas/HCPMMP1_on_MNI152_ICBM2009a_nlin.txt")
 lines <- readLines(file_path)
 
 for (roi in lines) {
-# roi <- "25 L_PSL_ROI"
 subsethighcuedf = highcuedf[highcuedf$roi == roi,]
 subsetlowcuedf = lowcuedf[lowcuedf$roi == roi,]
-# df <- rbind(highdf, lowdf)
 dfcue <- rbind(subsethighcuedf, subsetlowcuedf)
 dfcue_long <- pivot_longer(dfcue, cols = starts_with("tr_"), names_to = "tr_num", values_to = "tr_value")
 
@@ -431,7 +423,7 @@ time_points <- seq(0, 0.46 * 19, 0.46)
 # Modify the x-axis labels using scale_x_discrete()
 p1 + scale_x_discrete(labels = setNames(time_points, colnames(df)[4:23]))+ theme_classic() 
 
-save_dir = "/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/glm/fir/glasser_plot"
+save_dir <- file.path(main_dir, "analysis/fmri/nilearn/glm/fir/glasser_plot")
 roi_without_spaces <- gsub(" ", "", roi)
 ggsave(filename=file.path(save_dir, paste0("fir_glasser-", roi_without_spaces,".png")), plot=p1)
 }
@@ -522,16 +514,7 @@ p3 +  theme_classic()
 library(ggplot2)
 library(FactoMineR)
 
-
-
-# Assuming your original dataframe is named 'df'
-
 # Convert the dataframe to wide format
-# df_wide <- pivot_wider(subjectwise.cue.epochcue, 
-#                        id_cols = c("tr_ordered", "cue_ordered"), 
-#                        names_from = "sub", 
-#                        values_from = "mean_per_sub")
-
 df_wide <- pivot_wider(subjectwise.cue.epochcue, 
                        id_cols = c("sub", "cue_ordered"), 
                        names_from = "tr_ordered", 
@@ -562,21 +545,13 @@ combined.cue.epochcue.pca_scores$cue_ordered <- c(rep("high_stim", nrow(cuehigh.
 # Create the 3D PCA plot
 plot_ly(combined.cue.epochcue.pca_scores, x = ~PC1, y = ~PC2, z = ~PC3, type = "scatter3d", mode = "markers",
         color = ~cue_ordered)
-# data_matrix <- groupwise[groupwise$cue_ordered == "high_stim",c("tr_ordered", "mean_per_sub_norm_mean")]
-# sorted_indices <- order(data_matrix$tr_ordered)
-# df_ordered <- data_matrix[sorted_indices, ]
-# pca_result <- PCA(data_matrix$mean_per_sub_norm_mean)
-# datapoints <- df$datapoints
 ```
 
 ```{r}
-# combined.cue.epochcue.pca_scores
-# average_scores <- colMeans(combined.cue.epochcue.pca_scores)
-
 average_scores_per_condition <- combined.cue.epochcue.pca_scores %>%
   group_by(cue_ordered) %>%
   summarise(across(everything(), mean))
-# pca_plot_data <- data.frame(PC = 1:20, Average_Score = average_scores)
+
 # Combine PC columns into a long format using pivot_longer
 library(tidyr)
 
@@ -584,11 +559,6 @@ pca_data_long <- average_scores_per_condition %>%
   pivot_longer(cols = starts_with("PC"), names_to = "Principal_Component", values_to = "Score")
 
 # Plot all principal components using facets
-# ggplot(pca_data_long, aes(x = Principal_Component, group = cue_ordered, y = Score)) +
-#   geom_point() 
-#   # facet_wrap(~ Principal_Component, scales = "free_y", ncol = 4) +
-#   # labs(x = "Cue Ordered", y = "Principal Component Score", title = "PCA Scores vs. Cue Ordered")
-
 ggplot(pca_data_long, aes(x = Principal_Component, y = Score, color = cue_ordered)) +
   geom_point() +
   labs(x = "Principal Component", y = "Score", title = "PCA Scores vs. Principal Component") +
