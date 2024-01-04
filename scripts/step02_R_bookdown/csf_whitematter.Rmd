@@ -1,3 +1,4 @@
+# [QC] SCL {#ch100_white matter csf}
 ---
 title: "whitematter_csf"
 output: html_document
@@ -8,7 +9,6 @@ date: "2023-07-28"
 library(car)
 library(psych)
 library(reshape)
-library(PupillometryR)
 library(plyr); library(dplyr)
 library(tidyselect)
 library(tidyr)
@@ -16,7 +16,8 @@ library(stringr)
 library(lmerTest)
 library(gghalves)
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
-file.sources = list.files(c("/Users/h/Documents/projects_local/cue_expectancy/scripts/step02_R/utils"),
+main_dir = dirname(dirname(getwd()))
+file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
                           pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
@@ -42,7 +43,7 @@ savedir <- analysis_dir
 
 ## load data
 ```{r}
-df <- read.csv('/Users/h/Documents/projects_local/cue_expectancy/scripts/step10_nilearn/whitematter_csf/whitematter_csf_pain.csv' )
+df <- read.csv(file.path(main_dir, 'scripts/step10_nilearn/whitematter_csf/whitematter_csf_pain.csv' ))
 ```
 
 ```{r}
@@ -68,6 +69,7 @@ title <- paste(taskname, " - outcome")
 subject <- "sub"
 w <- 10
 h <- 6
+dv_keyword <- "whitematter"
 
 data <- myData
 
