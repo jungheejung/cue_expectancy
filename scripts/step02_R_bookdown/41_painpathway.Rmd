@@ -80,6 +80,7 @@ plot_keyword = "stimulusintensity"
 ggtitle_phrase =  "(3 tasks x 3 stimulus intensity)"
 pvc$task = factor(pvc.df$task)
 for (extract_key in c("Thal_VPLM_R","Thal_VPLM_L", "Thal_MD", "dpIns_L", "dpIns_R", "aMCC_MPFC")) {
+analysis_dir <- file.path(main_dir, "data", "hlm")
 PLOT_KEYS <- list(
   iv1 = "task", iv2 = "stim_ordered", dv = extract_key,
   sub = "sub", sub_mean = "mean_per_sub",  group_mean = "mean_per_sub_norm_mean",
@@ -90,7 +91,7 @@ PLOT_KEYS <- list(
   legend_title = paste0(str_to_title(extract_key), " - ", str_to_title(plot_keyword)),
   xlab = "",  ylab = paste(extract_key, " (beta value)"),
   ylim = c(-250, 500), task_name = taskname, w = 10, h = 6,
-  save_fname = '/Users/h/Desktop/TEMP.png',
+  save_fname = file.path(analysis_dir, 'TEMP.png'),
   color =  c("#4575B4", "#FFA500", "#D73027")
 )
 p <- plot_signature_tworaincloud(signature_key = extract_key, plot_keys = PLOT_KEYS, df = pvc.df)
@@ -105,9 +106,11 @@ taskname = "all"
 plot_keyword = "stimulusintensity"
 ggtitle_phrase =  "(2 cue x 3 stimulus intensity)"
 pvc$task = factor(pvc.df$task)
-analysis_dir = '/Users/h/Desktop'
+
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model41_painpathway")
 dv_keyword = 'NPSpos'
 for (extract_key in c("Thal_VPLM_R","Thal_VPLM_L", "Thal_MD", "dpIns_L", "dpIns_R", "aMCC_MPFC")) {
+
 PLOT_KEYS <- list(
     iv1 = "stim_ordered", iv2 = "cue_ordered", dv = extract_key,
     sub = "sub", sub_mean = "mean_per_sub",  group_mean = "mean_per_sub_norm_mean",
@@ -118,7 +121,7 @@ PLOT_KEYS <- list(
     legend_title = paste0(str_to_title(extract_key), " - ", str_to_title(plot_keyword)),
     xlab = "Stimulus intensity",  ylab = paste(extract_key, " (beta value)"),
     ylim = c(-250, 500), task_name = taskname, w = 10, h = 6,
-    save_fname = '/Users/h/Desktop/TEMP.png',
+    save_fname = file.path(analysis_dir, 'TEMP.png'),
     color =  c("#4575B4", "#D73027")
   )
   # [ MODEL ] _________________________________________________ # nolint

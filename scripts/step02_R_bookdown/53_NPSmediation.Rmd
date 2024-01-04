@@ -8,14 +8,15 @@
 library(car)
 library(psych)
 library(reshape)
-
-library(dplyr)
+library(lme4)
+library(plyr); library(dplyr)
+library(ggplot2)
 library(tidyselect)
 library(tidyr)
 library(stringr)
 library(lmerTest)
 library(gghalves)
-library(plyr)
+library(glmmTMB)
 library(ggpubr)
 library(r2mlm)
 library(effectsize)
@@ -96,7 +97,8 @@ NPSsplit$trial <- as.numeric(sub("trial-", "", NPSsplit$trial_char)) + 1
 ##### datawrangle :: remove bad runs
 ```{r}
 library(jsonlite)
-jsonfname <- "/Users/h/Documents/projects_local/cue_expectancy/scripts/bad_runs.json"
+main_dir <- dirname(dirname(getwd()))
+jsonfname <- file.path(main_dir, "scripts/bad_runs.json")
 
 
 bad_runs <- fromJSON(jsonfname, simplifyDataFrame = FALSE)
@@ -165,7 +167,7 @@ merge_df <- inner_join(NPSsplit, p.df, by = c("sub", "ses", "run","cue",
 
 ## load fear of pain
 ```{r}
-fop <- read.csv('/Users/h/Downloads/IndividualizedSpatia_DATA_2023-11-11_1303.csv')
+fop <- read.csv(file.path(main_dir, "data", "questionnaire", "IndividualizedSpatia_DATA_2023-11-11_1303.csv"))
 
 # select rows that start with sub-@
 fop.sub <- fop[grepl("^sub-", fop$record_id), ]
@@ -198,7 +200,7 @@ clean_df$stim[clean_df$stimintensity == "low_stim"] <- -0.5
 clean_df$stim[clean_df$stimintensity == "med_stim"] <- 0
 clean_df$stim[clean_df$stimintensity == "high_stim"] <- 0.5
 
-write.csv(clean_df , '/Users/h/Desktop/cleanmerge_NPS.csv')
+write.csv(clean_df , file.path(main_dir, "data", "hlm", "cleanmerge_NPS.csv"))
 ```
 
 #### datawrangle :: check number of trials
@@ -214,7 +216,7 @@ subjects_to_remove$Var1 <- as.integer(as.character(subjects_to_remove$Var1))
 # Step 2: Remove these subjects from the main data frame
 filtered_main_df <- clean_df %>%
   anti_join(subjects_to_remove, by = c("sub" = "Var1"))
-write.csv(filtered_main_df , '/Users/h/Desktop/cleanmerge_NPS.csv')
+write.csv(clean_df , file.path(main_dir, "data", "hlm", "cleanmerge_NPS.csv"))
 ```
 
 #### datawrangle :: between vs within
@@ -237,7 +239,7 @@ mutate(NPS_demean = NPSpos - avg_NPS) %>%
 mutate(OUTCOME_cmc = avg_outcome - mean(avg_outcome)) %>%
 mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) %>%
 mutate(NPS_cmc = avg_NPS - mean(avg_NPS)) 
-write.csv(p.demean , '/Users/h/Desktop/pain_withinbetween.csv')
+write.csv(clean_df , file.path(main_dir, "data", "hlm", "pain_withinbetween.csv"))
 ```
 
 
@@ -350,11 +352,12 @@ g <- ggplot(data = subjectwise_naomit_2dv,
   )
 g
 ```
-> NPS_demean is the within subject data, removing each subject's mean NPS response. Centering around the person’s mean (also known as centering within clusters = CWC)NPS_cmc is the subject's mean NPS response.
+> NPS_demean is the within subject data, removing each subject's mean NPS response. Centering around the person’s mean (also known as centering within clusters; CWC) NPS_cmc is the subject's mean NPS response.
 > 
 
 ```{r}
-NPS.between_within <- lmer(RATING_outcome~ NPS_demean + NPS_cmc + (1|sub), data = p.demean)
+# NPS.between_within <- lmer(RATING_outcome ~ NPS_demean + NPS_cmc + (1|sub), data = p.demean)
+NPS.between_within <- lmer(RATING_outcome ~ NPS_demean + NPS_cmc + (1|sub), data = p.demean)
 summary(NPS.between_within)
 ```
 
@@ -369,21 +372,18 @@ summary(model.nps)
 
 model.npsmd <- lmer(RATING_outcome ~ NPS_demean + NPS_cmc + EXPECT_demean + EXPECT_cmc + (1|sub), data = p.demean)
 summary(model.npsmd)
-vif(model.npsmd)
+# vif(model.npsmd)
 ```
 
 ```{r}
-# NPSpos 
 iv1 = "NPSpos"
 nbins = 10
-p.demean %>%
-  dplyr::group_by(.data[["sub"]]) %>%
-  select(everything())  %>%
-  mutate(NPS_demean = .data[[iv1]] - mean(.data[[iv1]])) %>%
-  mutate(
-    bin = ggplot2::cut_interval(.data[["NPS_demean"]], n = nbins),
-    NPSlevels = as.numeric(cut_interval(.data[["NPS_demean"]], n = nbins))
-  )
+
+p.demean <- p.demean %>%
+  dplyr::group_by(sub) %>%
+  mutate(NPS_demean = NPSpos - mean(NPSpos)) %>%
+  mutate(bin = ggplot2::cut_interval(as.numeric(NPS_demean), n = nbins)) %>%
+  mutate(NPSlevels = as.numeric(bin))
 
 NPS <- lmer(RATING_outcome~ NPSpos + (NPSlevels|sub), data = p.demean)
 summary(NPS)
@@ -392,7 +392,7 @@ summary(NPS)
 Participants with the most positive expectancy effects on NPS also have the most positive NPS-pain relationships (to verify...).
 ```{r}
 
-model.1 <- lmer(NPSpos ~ RATING_expectation + (RATING_expectation|sub), data = p.demean)
+model.1 <- lme4::lmer(NPSpos ~ RATING_expectation + (RATING_expectation|sub), data = p.demean)
 summary(model.1)
 
 model.2 <- lmer(RATING_outcome ~ NPSpos + (NPSpos|sub), data = p.demean)
@@ -400,9 +400,14 @@ summary(model.2)
 
 fixEffect1 <- as.data.frame(fixef(model.1))
 randEffect1 <- as.data.frame(ranef(model.1))
+RE_expectation <- randEffect1 %>%
+  filter(term == "RATING_expectation")
 fixEffect2 <- as.data.frame(fixef(model.2))
 randEffect2 <- as.data.frame(ranef(model.2))
-modelX <- lm(randEffect1 ~randEffect2)
-summary(modelX)
+RE_NPS <- randEffect2 %>%
+  filter(term == "NPSpos")
+model.NPSexpectation <- lm(RE_NPS$condval ~ RE_expectation$condval)
+model.NPSexpectationvariance <- lm(RE_NPS$condval ~ RE_expectation$condsd)
+summary(model.NPSexpectation)
 ```
 

@@ -270,10 +270,10 @@ plots
 Here, I calculate Orthogonal distance from the 1:1 slope. Based on that, we test whether the absolute ODR distance is equivalent across cues. If a participant equally overestimates for a high cue and underestimates a stimuli for a low cue, their ODR distance should be the same. This is reflected in the subject-level slopes, which are parallel
 
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
-
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model16_outcome")
 pvc$odr_expectoutcome = abs(pvc$demean_expect + pvc$demean_outcome) / sqrt(2)
 cooksd = lmer_onefactor_cooksd(pvc, "pain", iv = "cue_name", dv= "odr_expectoutcome", subject_keyword = "src_subject_id",
-                                  dv_keyword = "distance from 1:1", model_savefname = "/Users/h/Desktop/TEST.txt", print_lmer_output = TRUE) 
+                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TEST.txt"), print_lmer_output = TRUE) 
 ```
 Can you test if the slopes are the same? That might tell us something about whether, expectancies translate into outcomes with the same efficacy across all three tasks. 
 
@@ -281,7 +281,7 @@ Can you test if the slopes are the same? That might tell us something about whet
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 pvc$odr_expectoutcome = abs(pvc$demean_expect + pvc$demean_outcome) / sqrt(2)
 cooksd = lmer_onefactor_cooksd(pvc, "pain", iv = "cue_name", dv= "odr_expectoutcome", subject_keyword = "src_subject_id",
-                                  dv_keyword = "distance from 1:1", model_savefname = "/Users/h/Desktop/TEST.txt", print_lmer_output = TRUE) 
+                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TEST.txt"), print_lmer_output = TRUE) 
 
 subject_keyword = "src_subject_id"
 model_iv1 = "cue_name"
@@ -311,8 +311,8 @@ title = "cue"
         # color_scheme <- c("#4575B4", "#D73027")
         color_scheme <- c("#941100","#5D5C5C")
     }
-
-save_fname = "/Users/h/Desktop/TEST.png"
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model16_outcome")
+save_fname = file.path(analysis_dir, "TEST.png")
 p <- plot_halfrainclouds_onefactor(subjectwise, groupwise, iv,
                                       subjectwise_mean, group_mean, se, subject,
                                       ggtitle, title, xlab, ylab, taskname, ylim,
@@ -439,9 +439,9 @@ vic_plots
 ```
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 pvc$odr_expectoutcome = abs(pvc$demean_expect + pvc$demean_outcome) / sqrt(2)
-
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model16_outcome")
 cooksd <- lmer_onefactor_cooksd(pvc, "pain", iv = "cue_name", dv= "odr_expectoutcome", subject_keyword = "src_subject_id",
-                                  dv_keyword = "distance from 1:1", model_savefname = "/Users/h/Desktop/TEST.txt", print_lmer_output = TRUE) 
+                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TEST.txt"), print_lmer_output = TRUE) 
 
 subject_keyword = "src_subject_id"
 model_iv1 = "cue_name"
@@ -471,8 +471,8 @@ title = "cue"
         # color_scheme <- c("#4575B4", "#D73027")
         color_scheme <- c("#009411","#5D5C5C")
     }
-
-save_fname = "/Users/h/Desktop/TEST.png"
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model16_outcome")
+save_fname = file.path(analysis_dir, "TEST.png")
 p <- plot_halfrainclouds_onefactor(subjectwise, groupwise, iv,
                                       subjectwise_mean, group_mean, se, subject,
                                       ggtitle, title, xlab, ylab, taskname, ylim,
@@ -586,9 +586,9 @@ cog_plots
 
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 pvc$odr_expectoutcome = abs(pvc$demean_expect + pvc$demean_outcome) / sqrt(2)
-
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model16_outcome")
 cooksd = lmer_onefactor_cooksd(pvc, "pain", iv = "cue_name", dv= "odr_expectoutcome", subject_keyword = "src_subject_id",
-                                  dv_keyword = "distance from 1:1", model_savefname = "/Users/h/Desktop/TEST.txt", print_lmer_output = TRUE) 
+                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TEST.txt"), print_lmer_output = TRUE) 
 
 subject_keyword = "src_subject_id"
 model_iv1 = "cue_name"
@@ -618,8 +618,8 @@ title = "cue"
         # color_scheme <- c("#4575B4", "#D73027")
         color_scheme <- c("#110094","#5D5C5C")
     }
-
-save_fname = "/Users/h/Desktop/TEST.png"
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model16_outcome")
+save_fname = file.path(analysis_dir, "TEST.png")
 p <- plot_halfrainclouds_onefactor(subjectwise, groupwise, iv,
                                       subjectwise_mean, group_mean, se, subject,
                                       ggtitle, title, xlab, ylab, taskname, ylim,

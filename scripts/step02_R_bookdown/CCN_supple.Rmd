@@ -1,3 +1,4 @@
+# [CCN] SCL {#ch100_CCNsupplementary}
 ---
 title: "CCNfigures"
 output: html_document
@@ -71,8 +72,8 @@ sapply(file.sources,source,.GlobalEnv)
 ```{r}
 # STEP
 # * load csv
-data <- read.csv("/Users/h/Documents/projects_local/cue_expectancy/data/RL/modelfit_jepma_0525/table_pain.csv")
-analysis_dir <- "/Users/h/Documents/projects_local/cue_expectancy/analysis/mixedeffect/CCNfigures"
+data <- read.csv(file.path(main_dir, "data/RL/modelfit_jepma_0525/table_pain.csv"))
+analysis_dir <- file.path(main_dir, "analysis/mixedeffect/CCNfigures")
 data$sub <- data$src_subject_id
 data$ses <- data$session_id
 data$run <- data$param_run_num
@@ -186,8 +187,8 @@ sjPlot::tab_model(model.behexpectdemean,
 ```{r}
 # STEP
 # * load csv
-data <- read.csv("/Users/h/Documents/projects_local/cue_expectancy/data/RL/modelfit_jepma_0525/table_pain.csv")
-analysis_dir <- "/Users/h/Documents/projects_local/cue_expectancy/analysis/mixedeffect/CCNfigures"
+data <- read.csv(file.path(main_dir, "/data/RL/modelfit_jepma_0525/table_pain.csv"))
+analysis_dir <- file.path(main_dir, "/analysis/mixedeffect/CCNfigures")
 data$sub <- data$src_subject_id
 data$ses <- data$session_id
 data$run <- data$param_run_num
@@ -338,98 +339,98 @@ geom_smooth(method = 'lm', formula= y ~ x, se = FALSE)
 
 ```
 
-```{r}
-library(lme4)
-lme4::df_highClowS %>%
-  filter(src_subject_id %in% sample(levels(src_subject_id), 10)) %>%
-  ggplot(aes(EXPECT_demean, OUTCOME_demean, group=src_subject_id, color=src_subject_id)) +
-  geom_smooth(method="lm", se=F) +
-  geom_jitter(size=1) +
-  theme_minimal()
-```
-```{r}
-# extract the random effects from the model (intercept and slope)
-ranef(model.behexpectdemean)$sub %>%
-  # implicitly convert them to a dataframe and add a column with the subject number
-  rownames_to_column(var="sub") %>%
-  # plot the intercept and slobe values with geom_abline()
-  ggplot(aes()) +
-  geom_abline(aes(intercept=`(Intercept)`, slope=CUE_high_gt_low, color=sub)) +
-  # add axis label
-  xlab("EXPECT_demean") + ylab("Residual RT") +
-  # set the scale of the plot to something sensible
-  scale_x_continuous(limits=c(0,10), expand=c(0,0)) +
-  scale_y_continuous(limits=c(-100, 100))
-```
+<!-- ```{r} -->
+<!-- # library(lme4) -->
+<!-- df_highClowS %>% -->
+<!--   filter(src_subject_id %in% sample(levels(src_subject_id), 10)) %>% -->
+<!--   ggplot(aes(EXPECT_demean, OUTCOME_demean, group=src_subject_id, color=src_subject_id)) + -->
+<!--   geom_smooth(method="lm", se=F) + -->
+<!--   geom_jitter(size=1) + -->
+<!--   theme_minimal() -->
+<!-- ``` -->
+<!-- ```{r} -->
+<!-- # extract the random effects from the model (intercept and slope) -->
+<!-- ranef(model.behexpectdemean)$sub %>% -->
+<!--   # implicitly convert them to a dataframe and add a column with the subject number -->
+<!--   rownames_to_column(var="sub") %>% -->
+<!--   # plot the intercept and slobe values with geom_abline() -->
+<!--   ggplot(aes()) + -->
+<!--   geom_abline(aes(intercept=`(Intercept)`, slope=CUE_high_gt_low, color=sub)) + -->
+<!--   # add axis label -->
+<!--   xlab("EXPECT_demean") + ylab("Residual RT") + -->
+<!--   # set the scale of the plot to something sensible -->
+<!--   scale_x_continuous(limits=c(0,10), expand=c(0,0)) + -->
+<!--   scale_y_continuous(limits=c(-100, 100)) -->
+<!-- ``` -->
 
-```{r}
+<!-- ```{r} -->
 
-# https://stackoverflow.com/questions/40297206/overlaying-two-plots-using-ggplot2-in-r
-# https://www.r-bloggers.com/2021/02/using-random-effects-in-gams-with-mgcv/
-cue_high <- main.df[ (main.df$param_cue_type == "high_cue"), ]
-ggplot(cue_high, aes(x = EXPECT, y = OUTCOME,
-                 group = sub, colour = CUE_high_gt_low)) +
-    geom_line() +
-    facet_wrap(~ STIM_linear, ncol = 3)
-cue_low <- main.df[ (main.df$param_cue_type == "low_cue"), ]
-ggplot(cue_low, aes(x = EXPECT, y = OUTCOME,
-                 group = sub, colour = CUE_high_gt_low)) + 
-    geom_line() +
-    facet_wrap(~ STIM_linear, ncol = 3) +
-    geom_line(data = cue_high, color = "red")
-
-
-# group slope 
-
-# ggplot(
-#   df_highClowS, 
-#   aes(
-#     x = EXPECT_demean,
-#     y = OUTCOME_demean,
-#     colour = src_subject_id
-#   )
-# ) + 
-# geom_point() + # Add more layers or adjustments as needed
-# geom_smooth(method = 'lm', formula= y ~ x, se = FALSE)
+<!-- # https://stackoverflow.com/questions/40297206/overlaying-two-plots-using-ggplot2-in-r -->
+<!-- # https://www.r-bloggers.com/2021/02/using-random-effects-in-gams-with-mgcv/ -->
+<!-- cue_high <- main.df[ (main.df$param_cue_type == "high_cue"), ] -->
+<!-- ggplot(cue_high, aes(x = EXPECT, y = OUTCOME, -->
+<!--                  group = sub, colour = CUE_high_gt_low)) + -->
+<!--     geom_line() + -->
+<!--     facet_wrap(~ STIM_linear, ncol = 3) -->
+<!-- cue_low <- main.df[ (main.df$param_cue_type == "low_cue"), ] -->
+<!-- ggplot(cue_low, aes(x = EXPECT, y = OUTCOME, -->
+<!--                  group = sub, colour = CUE_high_gt_low)) +  -->
+<!--     geom_line() + -->
+<!--     facet_wrap(~ STIM_linear, ncol = 3) + -->
+<!--     geom_line(data = cue_high, color = "red") -->
 
 
-cue_high <- main.df[ (main.df$param_cue_type == "high_cue"), ]
-ggplot(cue_high, aes(x = EXPECT, y = OUTCOME,
-                 group = sub, colour = CUE_high_gt_low)) +
-  geom_line() +
-  geom_smooth(method = 'lm', formula= y ~ x, se = FALSE) +
+<!-- # group slope  -->
 
-    facet_wrap(~ STIM_linear, ncol = 3)
-cue_low <- main.df[ (main.df$param_cue_type == "low_cue"), ]
-ggplot(cue_low, aes(x = EXPECT, y = OUTCOME,
-                 group = sub, colour = CUE_high_gt_low)) +
-    geom_line() +
-    facet_wrap(~ STIM_linear, ncol = 3) +
-    geom_line(data = cue_high, color = "red")
-```
-
-```{r}
-cue_high <- main.df[ (main.df$param_cue_type == "high_cue"), ]
-# ggplot(cue_high, aes(x = EXPECT_demean, y = OUTCOME_demean,
-#                  group = sub, colour = CUE_high_gt_low)) +
-#     geom_line() +
-#     facet_wrap(~ STIM_linear, ncol = 3)
-cue_low <- main.df[ (main.df$param_cue_type == "low_cue"), ]
+<!-- # ggplot( -->
+<!-- #   df_highClowS,  -->
+<!-- #   aes( -->
+<!-- #     x = EXPECT_demean, -->
+<!-- #     y = OUTCOME_demean, -->
+<!-- #     colour = src_subject_id -->
+<!-- #   ) -->
+<!-- # ) +  -->
+<!-- # geom_point() + # Add more layers or adjustments as needed -->
+<!-- # geom_smooth(method = 'lm', formula= y ~ x, se = FALSE) -->
 
 
-ggplot(cue_low, aes(x = EXPECT, y = OUTCOME_demean,
-                 group = sub, colour = CUE_high_gt_low)) +
-    geom_line() +
-    facet_wrap(~ STIM_linear, ncol = 3) +
-    geom_line(data = cue_high, color = "red")
-# 
-# ggplot(cue_low, aes(x = EXPECT, y = OUTCOME_demean,
-#                  group = sub, colour = CUE_high_gt_low)) +
-#     geom_line(data = cue_low, color = "blue") +
-#     geom_smooth(method = 'lm', formula= y ~ x, se = FALSE)
-#     facet_wrap(~ STIM_linear, ncol = 3) +
-#     geom_line(data = cue_high, color = "red")
-```
+<!-- cue_high <- main.df[ (main.df$param_cue_type == "high_cue"), ] -->
+<!-- ggplot(cue_high, aes(x = EXPECT, y = OUTCOME, -->
+<!--                  group = sub, colour = CUE_high_gt_low)) + -->
+<!--   geom_line() + -->
+<!--   geom_smooth(method = 'lm', formula= y ~ x, se = FALSE) + -->
+
+<!--     facet_wrap(~ STIM_linear, ncol = 3) -->
+<!-- cue_low <- main.df[ (main.df$param_cue_type == "low_cue"), ] -->
+<!-- ggplot(cue_low, aes(x = EXPECT, y = OUTCOME, -->
+<!--                  group = sub, colour = CUE_high_gt_low)) + -->
+<!--     geom_line() + -->
+<!--     facet_wrap(~ STIM_linear, ncol = 3) + -->
+<!--     geom_line(data = cue_high, color = "red") -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- cue_high <- main.df[ (main.df$param_cue_type == "high_cue"), ] -->
+<!-- # ggplot(cue_high, aes(x = EXPECT_demean, y = OUTCOME_demean, -->
+<!-- #                  group = sub, colour = CUE_high_gt_low)) + -->
+<!-- #     geom_line() + -->
+<!-- #     facet_wrap(~ STIM_linear, ncol = 3) -->
+<!-- cue_low <- main.df[ (main.df$param_cue_type == "low_cue"), ] -->
+
+
+<!-- ggplot(cue_low, aes(x = EXPECT, y = OUTCOME_demean, -->
+<!--                  group = sub, colour = CUE_high_gt_low)) + -->
+<!--     geom_line() + -->
+<!--     facet_wrap(~ STIM_linear, ncol = 3) + -->
+<!--     geom_line(data = cue_high, color = "red") -->
+<!-- #  -->
+<!-- # ggplot(cue_low, aes(x = EXPECT, y = OUTCOME_demean, -->
+<!-- #                  group = sub, colour = CUE_high_gt_low)) + -->
+<!-- #     geom_line(data = cue_low, color = "blue") + -->
+<!-- #     geom_smooth(method = 'lm', formula= y ~ x, se = FALSE) -->
+<!-- #     facet_wrap(~ STIM_linear, ncol = 3) + -->
+<!-- #     geom_line(data = cue_high, color = "red") -->
+<!-- ``` -->
 
 
 

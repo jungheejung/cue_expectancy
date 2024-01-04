@@ -1,5 +1,5 @@
-
 # [QC] fdmean {#ch98_QCfdmean}
+
 ---
 title: "fdmean"
 output: html_document
@@ -36,8 +36,7 @@ sapply(file.sources,source,.GlobalEnv)
 
 
 ```{r}
-# df <- read.csv("/Users/h/Documents/summer/summer_RA/fdmean_run_type.tsv")
-fdmeandf <- read.table(file = "/Users/h/Documents/summer/summer_RA/fdmean_run_type.tsv", sep = '\t', header = TRUE)
+fdmeandf <- read.table(file = file.path(main_dir, "resources/qcreports/fdmean_run_type.tsv"), sep = '\t', header = TRUE)
 
 ```
 
@@ -83,7 +82,7 @@ groupwise <- summarySEwithin(
 ```
 
 ```{r}
-analysis_dir <- "/Users/h/Desktop"
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model98_fdmean")
 # combined_se_calc_cooksd <-NPSstimcue_groupwise
 # calculate mean and se
 sub_mean <- "mean_per_sub"
@@ -146,11 +145,12 @@ g <- g + theme_bw() + theme_classic()
 print(g)
 
 
-k <- plot_lineplot_twofactor(NPSstimcue_groupwise,
+k <- plot_lineplot_twofactor(groupwise,
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("pain" = "red",
-                                  "non-pain" = "gray"))
+                                  "non-pain" = "gray"),
+                        ggtitle="fdmean pain vs nonpain")
                                   # "med" = "orange",
 
 ```

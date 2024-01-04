@@ -62,11 +62,6 @@ library(gghalves)
 library(plotly) #plot
 library(scico) # plot
 
-# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
-# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
-# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
-# source("https://gist.github.com/benmarwick/2a1bb0133ff568cbe28d/geom_flat_violin.R")
-
 library(r2mlm)
 main_dir <- dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, 'scripts', 'step02_R', 'utils'),
@@ -754,7 +749,7 @@ fig.bsave <- fig.b + theme(aspect.ratio=.9) +
   theme(text = element_text(size = 25)) 
 # theme(axis.text.x=element_text(size=40, angle=0)) +
 # theme(axis.text.y=element_text(size=40, angle=0))
-ggsave('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/analysis/mixedeffect/CCNfigures/figB.png', plot = fig.bsave)
+ggsave(file.path(main_dir, 'analysis/mixedeffect/CCNfigures/figB.png'), plot = fig.bsave)
 fig.bsave
 ```
 
@@ -1145,7 +1140,7 @@ save.sp <- a2 +
       panel.background = element_blank(),
       plot.subtitle = ggtext::element_textbox_simple(size= 11))
 save.sp
-ggsave('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/analysis/mixedeffect/CCNfigures/figA2.png', save.sp)
+ggsave(file.path(main_dir, 'analysis/mixedeffect/CCNfigures/figA2.png'), save.sp)
 
 
 # med <- med + theme(text = element_text(size = 14)) + theme(aspect.ratio=1) 
@@ -1196,7 +1191,7 @@ a1.save <- a1 + theme(text = element_text(size = 20)) +theme(aspect.ratio=1) +
       panel.background = element_blank(),
       plot.subtitle = ggtext::element_textbox_simple(size= 11))
 a1.save
-ggsave('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/analysis/mixedeffect/CCNfigures/figA1.png', p1)
+ggsave(file.path(main_dir, 'analysis/mixedeffect/CCNfigures/figA1.png'), p1)
 
 ```
 ### Fig A1, A2, B
@@ -1216,7 +1211,7 @@ fig.b <- fig.b + theme(text = element_text(size = 14),
 
 fig.ab <- ggpubr::ggarrange(a1.combine, a2.combine, fig.b, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
 plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
-ggsave('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/analysis/mixedeffect/CCNfigures/figAB.png', fig.ab)
+ggsave(file.path(main_dir, 'analysis/mixedeffect/CCNfigures/figAB.png'), fig.ab)
 fig.ab
 ```
 
@@ -1266,13 +1261,13 @@ high <- high + theme(text = element_text(size = 14)) + theme(aspect.ratio=1)
 plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
 plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 50))
 plots
-ggsave('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/analysis/mixedeffect/CCNfigures/figC.png', plots)
+ggsave(file.path(main_dir, 'analysis/mixedeffect/CCNfigures/figC.png'), plots)
 ```
 
 ## Model fit (model)
 load data
 ```{r}
-paindf <- read.csv("/Users/h/Documents/projects_local/cue_expectancy/data/RL/modelfit_jepma_0525/table_pain.csv")
+paindf <- read.csv(file.path(main_dir, "data/RL/modelfit_jepma_0525/table_pain.csv"))
 analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "22_modelfit", as.character(Sys.Date()))
 
 # load data ____________________________________________________________________ # nolint
@@ -1648,7 +1643,6 @@ ggsave(file.path(main_dir, 'analysis', 'mixedeffect', 'CCNfigures', 'figD.png'),
 
 ## congruent incongruent for model fitted results
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-# paindf <- read.csv("/Users/h/Documents/projects_local/cue_expectancy/data/RL/modelfit_jepma_0525/table_pain.csv")
 analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "22_modelfit", as.character(Sys.Date()))
 
 # load data ____________________________________________________________________ # nolint

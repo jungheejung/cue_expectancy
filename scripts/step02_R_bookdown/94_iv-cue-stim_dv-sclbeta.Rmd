@@ -17,7 +17,8 @@ library(lme4)
 library(lmerTest)
 library(gghalves)
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
-file.sources = list.files(c("/Users/h/Documents/projects_local/cue_expectancy/scripts/step02_R/utils"),
+main_dir = dirname(dirname(getwd()))
+file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
                           pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
@@ -102,7 +103,8 @@ dv <- "beta"
 dv_keyword <- "sclbeta"
 taskname <- "pain"
 # model_iv2 <- "cue_ordered"
-analysis_dir <- "/Users/h/Desktop" # TODO
+
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model94_sclbeta")
 beta_con$taskname <- taskname
 # ======= NOTE: calculate mean and se ----------------------------------
 SCLstim_subjectwise <- meanSummary(beta_con,
@@ -144,8 +146,6 @@ plot_savefname <- file.path(
 # ----------------------------------------------------------------------
 #                            raincloudplots
 # ----------------------------------------------------------------------
-analysis_dir <- "/Users/h/Desktop"
-# combined_se_calc_cooksd <-NPSstimcue_groupwise
 # calculate mean and se
 sub_mean <- "mean_per_sub"
 group_mean <- "mean_per_sub_norm_mean"

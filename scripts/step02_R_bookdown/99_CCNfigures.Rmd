@@ -908,7 +908,7 @@ fig.bsave <- fig.b + theme(aspect.ratio=.9) +
   theme(text = element_text(size = 25)) 
 # theme(axis.text.x=element_text(size=40, angle=0)) +
 # theme(axis.text.y=element_text(size=40, angle=0))
-ggsave('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/analysis/mixedeffect/CCNfigures/figB.png', plot = fig.bsave)
+ggsave(file.path(analysis_dir, 'CCNfigures/figB.png'), plot = fig.bsave)
 fig.bsave
 ```
 
@@ -1299,7 +1299,7 @@ save.sp <- a2 +
       panel.background = element_blank(),
       plot.subtitle = ggtext::element_textbox_simple(size= 11))
 save.sp
-ggsave('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/analysis/mixedeffect/CCNfigures/figA2.png', save.sp)
+ggsave(file.path(analysis_dir, 'figA2.png'), save.sp)
 
 
 # med <- med + theme(text = element_text(size = 14)) + theme(aspect.ratio=1) 
@@ -1350,7 +1350,7 @@ a1.save <- a1 + theme(text = element_text(size = 20)) +theme(aspect.ratio=1) +
       panel.background = element_blank(),
       plot.subtitle = ggtext::element_textbox_simple(size= 11))
 a1.save
-ggsave('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/analysis/mixedeffect/CCNfigures/figA1.png', p1)
+ggsave(file.path(analysis_dir, 'figA1.png'), p1)
 
 ```
 ### Fig A1, A2, B
@@ -1370,7 +1370,7 @@ fig.b <- fig.b + theme(text = element_text(size = 14),
 
 fig.ab <- ggpubr::ggarrange(a1.combine, a2.combine, fig.b, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
 plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
-ggsave('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/analysis/mixedeffect/CCNfigures/figAB.png', fig.ab)
+ggsave(file.path(main_dir, 'analysis/mixedeffect/CCNfigures/figAB.png'), fig.ab)
 fig.ab
 ```
 
@@ -1420,14 +1420,14 @@ high <- high + theme(text = element_text(size = 14)) + theme(aspect.ratio=1)
 plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
 plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 50))
 plots
-ggsave('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/analysis/mixedeffect/CCNfigures/figC.png', plots)
+ggsave(file.path(analysis_dir, 'figC.png'), plots)
 ```
 
 ## Simulation
 ```{r include=FALSE}
 # _________________________ load files _________________________________________
-expect_fname = '/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/data/simulated/0411/table_exp.csv'
-outcome_fname = '/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/data/simulated/0411/table_pain.csv'
+expect_fname = file.path(main_dir, 'data/simulated/0411/table_exp.csv')
+outcome_fname = file.path(main_dir, 'data/simulated/0411/table_pain.csv')
 expect = read.csv(expect_fname)
 outcome = read.csv(outcome_fname)
 
@@ -1535,12 +1535,12 @@ high <- high + theme(text = element_text(size = 12)) + theme(aspect.ratio=1) +sc
 plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
 plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
 plots
-ggsave('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/analysis/mixedeffect/CCNfigures/figD.png', plots)
+ggsave(file.path(analysis_dir, 'figD.png'), plots)
 ```
 
 ## save dataframe
 ```{r}
-write.csv(NPS.df,'/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/analysis/mixedeffect/CCNfigures/dataframe.csv')
+write.csv(NPS.df,file.path(main_dir, 'analysis/mixedeffect/CCNfigures/dataframe.csv'))
 ```
 
 
@@ -1549,7 +1549,7 @@ write.csv(NPS.df,'/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_i
 ## Simulation
 ```{r include=FALSE}
 # _________________________ load files _________________________________________
-expect_fname = '/Users/h/Documents/projects_local/cue_expectancy/data/RL/modelfit_jepma_0525/table_pain.csv'
+expect_fname = file.path(main_dir, 'data/RL/modelfit_jepma_0525/table_pain.csv')
 
 # _________________________ expectation rating _________________________________
 expect$sub <- rep(1:250, each = 2)
@@ -1655,7 +1655,7 @@ high <- high + theme(text = element_text(size = 12)) + theme(aspect.ratio=1) +sc
 plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
 plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
 plots
-ggsave('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/analysis/mixedeffect/CCNfigures/figD.png', plots)
+ggsave(file.path(main_dir, 'analysis/mixedeffect/CCNfigures/figD.png'), plots)
 ```
 
 
@@ -1700,7 +1700,7 @@ return(df)
 
 
 
-paindf <- read.csv("/Users/h/Documents/projects_local/cue_expectancy/data/RL/modelfit_jepma_0525/table_pain.csv")
+paindf <- read.csv(file.path(main_dir, "data/RL/modelfit_jepma_0525/table_pain.csv"))
 
 data.2= paindf %>%
   arrange(src_subject_id ) %>%
@@ -1987,7 +1987,7 @@ return(df)
 
 
 
-paindf <- read.csv("/Users/h/Documents/projects_local/cue_expectancy/data/RL/modelfit_jepma_0525/table_pain.csv")
+paindf <- read.csv(file.path(main_dir, "data/RL/modelfit_jepma_0525/table_pain.csv"))
 
 data.2= paindf %>%
   arrange(src_subject_id ) %>%
@@ -2240,7 +2240,7 @@ ggsave(file.path(analysis_dir, "modelfit3_iv-cue-stim-dv-outcome-expect.png"), p
 # * average group wise
 # * plot corresondingly as barplots with each color representing model
 # * make model 2 become model 3
-aicdf <- read.csv("/Users/h/Documents/projects_local/cue_expectancy/data/RL/modelfit_jepma_0525/aic_pain.csv", header = FALSE)
+aicdf <- read.csv(file.path(main_dir, "data/RL/modelfit_jepma_0525/aic_pain.csv"), header = FALSE)
 aicdf$subject <- 1:nrow(aicdf)
 
 long_df <- gather(aicdf, key = "model", value = "AIC", V1:V4)
@@ -2269,7 +2269,7 @@ summary(aic.model)
 ```{r}
 library(dplyr)
 
-aicdf <- read.csv("/Users/h/Documents/projects_local/cue_expectancy/data/RL/modelfit_jepma_0525/aic_pain.csv", header = FALSE)
+aicdf <- read.csv(file.path(main_dir, "data/RL/modelfit_jepma_0525/aic_pain.csv"), header = FALSE)
 aicdf$subject <- 1:nrow(aicdf)
 aicdf.swp <- aicdf %>%
   mutate(

@@ -17,7 +17,6 @@ TODO
 library(car)
 library(psych)
 library(reshape)
-#library(PupillometryR)
 library(plyr)
 library(dplyr)
 library(tidyselect)
@@ -185,9 +184,9 @@ run_types <- c("pain", "vicarious", "cognitive")
   plot_list <- list()
   TR_length <- 42
 for (ROI in roi_list) {
-    
-    datadir = "/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/spm/fir/ttl1par"
-# taskname = 'pain'
+    main_dir = dirname(dirname(getwd()))
+    datadir = file.path(main_dir, "analysis/fmri/spm/fir/ttl1par")
+    taskname = 'pain'
 exclude <- "sub-0001"
 filename <- paste0("sub-*",  "*roi-", ROI, "_tr-42.csv")
   common_path <- Sys.glob(file.path(datadir, "sub-*",  filename
@@ -462,6 +461,7 @@ ggplot(groupwise, aes(x=tr_ordered,y=mean_per_sub_mean, group = stim_ordered, co
   theme_bw()
 
 ```
+
 ```{r}
 # ggplot(data=groupwise, aes(x=tr_ordered, y=mean_per_sub_mean, ymin=se, ymax=se, fill=stim_ordered, linetype=stim_ordered)) + 
 #  geom_line() + 
@@ -498,7 +498,7 @@ ggplot(groupwise, aes(x=tr_ordered,y=mean_per_sub_mean)) +
 roi_list <- c( 'dACC', 'PHG', 'V1', 'SM', 'MT', 'RSC', 'LOC', 'FFC', 'PIT', 'pSTS', 'AIP', 'premotor')# 'rINS', 'TPJ',
 for (ROI in roi_list) {
     
-    datadir = "/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/spm/fir/ttl2par"
+    datadir = file.path(main_dir, "analysis/fmri/spm/fir/ttl2par")
 # taskname = 'pain'
 exclude <- "sub-0001"
 filename <- paste0("sub-*",  "*roi-", ROI, "_tr-42.csv")
