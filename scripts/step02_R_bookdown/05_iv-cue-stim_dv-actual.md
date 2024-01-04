@@ -123,10 +123,56 @@ summary(fullmodel)
 
 
 ### model 04 4-3 scatter plot
+<img src="05_iv-cue-stim_dv-actual_files/figure-html/unnamed-chunk-5-1.png" width="672" />
+
+### model 04 4-4 lineplot
+<img src="05_iv-cue-stim_dv-actual_files/figure-html/unnamed-chunk-6-1.png" width="672" />
 
 
 
+# Clinical trials
+## cue contrast average across intensity
 
+```
+## [1] "pain"
+## [1] 8.203947
+## [1] 0.8871599
+## [1] "high vs. low cue"
+## [1] "low"              "61.6884121864272" "2.860880140792"  
+## [1] "high"             "70.2234946843967" "2.8536531006834" 
+## [1] "vicarious"
+## [1] 7.720706
+## [1] 0.6577406
+## [1] "high vs. low cue"
+## [1] "low"              "22.7785223249363" "1.04380350558471"
+## [1] "high"             "30.6622994878592" "1.20672123592067"
+## [1] "cognitive"
+## [1] 8.019356
+## [1] 0.7038933
+## [1] "high vs. low cue"
+## [1] "low"              "24.308987672219"  "1.19373008209444"
+## [1] "high"             "32.34623546235"   "1.37653031156445"
+```
 
+## cue contrast average across expectation
 
-
+```
+## [1] "pain"
+## [1] 35.05694
+## [1] 1.989724
+## [1] "high vs. low cue"
+## [1] "low"              "44.6580941421071" "3.02430373086043"
+## [1] "high"             "79.4644108331637" "2.85584321656255"
+## [1] "vicarious"
+## [1] 33.28295
+## [1] 1.510541
+## [1] "high vs. low cue"
+## [1] "low"              "14.9627307505184" "1.01092052641097"
+## [1] "high"             "48.2092519133304" "1.55967209655105"
+## [1] "cognitive"
+## [1] 30.7638
+## [1] 1.53046
+## [1] "high vs. low cue"
+## [1] "low"              "18.5956241315907" "1.20836045474955"
+## [1] "high"             "49.3940294143433" "1.73640570707356"
+```
