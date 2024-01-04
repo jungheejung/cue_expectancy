@@ -1,13 +1,14 @@
 
+# [fMRI] singletrial ~ NPS {#ch53_NPS}
 
-# load NPS
+## load NPS
 
 
 ```{r include=FALSE}
 library(car)
 library(psych)
 library(reshape)
-# library(PupillometryR)
+
 library(dplyr)
 library(tidyselect)
 library(tidyr)
@@ -40,14 +41,12 @@ sapply(file.sources,source,.GlobalEnv)
 ```
 
 
-# load beahvarioa
-# load bad json
-# drop based on NPS and bad json
-```{r}
-main_dir = "/Users/h/Documents/projects_local/cue_expectancy"
-```
+### load beahvarioa
+### load bad json
+### drop based on NPS and bad json
 
-## datawrangle :: load NPS
+
+#### datawrangle :: load NPS
 ```{r}
 # load NPS dot product
 NPSdf <- read.csv(file.path(main_dir, 'analysis/fmri/nilearn/deriv01_signature/rampupdown/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv' ))
@@ -94,7 +93,7 @@ NPSsplit$trial <- as.numeric(sub("trial-", "", NPSsplit$trial_char)) + 1
 ```
 
 
-### datawrangle :: remove bad runs
+##### datawrangle :: remove bad runs
 ```{r}
 library(jsonlite)
 jsonfname <- "/Users/h/Documents/projects_local/cue_expectancy/scripts/bad_runs.json"
@@ -126,7 +125,7 @@ clean_merge_df <- NPSsplit %>%
 #   anti_join(NPSsplit, by = c("sub", "ses", "run"))
 
 ```
-# datawrangle :: load beahvarioal
+### datawrangle :: load beahvarioal
 ```{r}
 
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
@@ -155,7 +154,7 @@ names(p.df)[names(p.df) == "event04_actual_angle"] <- "RATING_outcome"
 ```
 
 
-# datawrangle :: merge NPS and behavioral
+### datawrangle :: merge NPS and behavioral
 ```{r}
 library(dplyr)
 # Assuming your dataframe is called df
@@ -186,7 +185,7 @@ fop.comp <- fop.sub[, c("sub", "composite_score")]
 # merge sub and fop total score
 nps.beh.fop <- inner_join(merge_df, fop.comp, by = c("sub"))
 ```
-# merge and save
+### merge and save
 ```{r}
 
 clean_df <- nps.beh.fop[, c("sub", "ses", "run", "NPSpos", "cue",
@@ -202,7 +201,7 @@ clean_df$stim[clean_df$stimintensity == "high_stim"] <- 0.5
 write.csv(clean_df , '/Users/h/Desktop/cleanmerge_NPS.csv')
 ```
 
-## datawrangle :: check number of trials
+#### datawrangle :: check number of trials
 ```{r}
 frequency_per_sub <- table(clean_df$sub)
 frequency_per_sub_df <- as.data.frame(frequency_per_sub)
@@ -218,7 +217,7 @@ filtered_main_df <- clean_df %>%
 write.csv(filtered_main_df , '/Users/h/Desktop/cleanmerge_NPS.csv')
 ```
 
-## datawrangle :: between vs within
+#### datawrangle :: between vs within
 ```{r}
 p.demean <- filtered_main_df %>%
 group_by(sub) %>%
@@ -242,7 +241,7 @@ write.csv(p.demean , '/Users/h/Desktop/pain_withinbetween.csv')
 ```
 
 
-# ggplot NPS and Outcome
+## ggplot NPS and Outcome
 ```{r}
 library(ggplot2)
 
