@@ -85,7 +85,6 @@ for s = 1:length(sublist)
     singletrial_files = strcat(singletrial_fldr,'/', fname)';
     
     unique_bids = unique_combination_bids(singletrial_files);
-
     beh_df = load_beh_based_on_bids(beh_dir, unique_bids);
 
     combinedTable = innerjoin(npsdf, beh_df, 'Keys', 'singletrial_fname');
@@ -114,20 +113,19 @@ end
 end
 
 % if Y has empty rows, remove them from all other
-[X, Y, M, cov, l2m] = filter_empty_cells(X, Y, M, cov, l2m);
-M = convert_cell2char(M);
-
+[X_test, Y_test, M_test, cov_test, l2m_test] = filter_empty_cells(X, Y, M, cov, l2m);
+M = convert_cell2char(M_test);
 % mean center l2m
-mean_values = mean(l2m);
-l2m_meancentered= l2m - mean_values;
+mean_values = mean(l2m_test);
+l2m_meancentered= l2m_test - mean_values;
 
 % ----------------------------
 % z score across participants
 % ----------------------------
 
-num_participants = numel(Y);
+num_participants = numel(Y_test);
 % Aggregate all data into one matrix (assuming each participant's data is a column vector)
-all_data = vertcat(Y{:});
+all_data = vertcat(Y_test{:});
 
 % Compute the mean and standard deviation across all data
 mean_data = mean(all_data); 
@@ -137,7 +135,7 @@ std_data = std(all_data);
 zscored_Y = cell(num_participants, 1);
 
 for i = 1:num_participants
-    participant_data = Y{i}; % Access the data for the current participant
+    participant_data = Y_test{i}; % Access the data for the current participant
     zscored_Y{i} = (participant_data - mean_data) ./ std_data;
 end
 
@@ -214,6 +212,11 @@ fprintf('Size of cov: %s\n', mat2str(size(cov)));
 fprintf('Size of l2m_centered: %s\n', mat2str(size(l2m_meancentered)));
 
 
+M = M_test;
+X = X_test;
+Y = zscored_Y;
+cov = cov_test;
+l2m_meancentered = l2m_test;
 SETUP.mask = which(graymatter_mask);
 SETUP.preprocX = 0;
 SETUP.preprocY = 0;
@@ -364,3 +367,31 @@ print('Path_ab_results.pdf', '-dpdf');
 % Subject 109,  48 images.
 % Subject 110,  72 images.
 % Subject 111,  67 images.
+
+num_cells_X = numel(X_test);
+num_cells_Y = numel(Y_test);
+num_cells_M = numel(M_test);
+num_cells_cov = numel(cov_test);
+sizes_X = zeros(num_cells_X, 2); % Matrix to store sizes of X
+sizes_Y = zeros(num_cells_Y, 2); % Matrix to store sizes of Y
+sizes_M = zeros(num_cells_M, 2);
+sizes_cov = zeros(num_cells_cov, 2);
+% Loop through X and Y to get the sizes of the double arrays
+for i = 1:num_cells_X
+    sizes_X(i, :) = size(X_test{i});
+end
+
+for i = 1:num_cells_Y
+    sizes_Y(i, :) = size(zscored_Y{i});
+end
+
+for i = 1:num_cells_M
+    sizes_M(i, :) = size(M_test{i});
+end
+
+for i = 1:num_cells_cov
+    sizes_cov(i, :) = size(cov_test{i});
+end
+all(all(sizes_Y(:,1) == sizes_X(:,1)))
+all(all(sizes_Y(:,1) == sizes_M(:,1)))
+all(all(sizes_Y(:,1) == sizes_cov(:,1)))

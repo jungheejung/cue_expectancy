@@ -21,7 +21,7 @@ for sub = 1:length(sub_list)
 end
 
 save_dir = '/dartfs-hpc/scratch/f0042x1/spm';
-save_fname = fullfile(save_dir, strcat('s03_checkcontrast_', datetime('now','Format','MM-dd-yyyy'), '.txt'));
+save_fname = fullfile(save_dir, strcat('s03_checkcontrast_', char(datetime('now','Format','MM-dd-yyyy')), '.txt'));
 fid = fopen(save_fname,'w');    % open file for writing (overwrite if necessary)
 fprintf(fid,'%s',flag);          % Write the char array, interpret newline as new line
 fclose(fid);   
