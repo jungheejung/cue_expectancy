@@ -1,4 +1,4 @@
-plot_timeseries_bar <- function(df, iv1, iv2, mean, error, xlab, ylab, ggtitle, color_mapping, y_limits = NULL, show_legend = TRUE, alpha_value = 1) {
+plot_timeseries_bar <- function(df, iv1, iv2, mean, error, xlab, ylab, ggtitle, color_mapping, y_limits = NULL, show_legend = TRUE, alpha_value = 1, geompoint_size = 3) {
   #' Create a Time Series Bar Plot
   #'
   #' This function generates a time series plot using the ggplot2 package in R.
@@ -20,7 +20,7 @@ plot_timeseries_bar <- function(df, iv1, iv2, mean, error, xlab, ylab, ggtitle, 
   #'
   #' @return A ggplot2 object representing the time series bar plot.
   #'
-  #' @details This function creates a time series bar plot with error bars using ggplot2. 
+  #' @details This function creates a time series bar plot with error bars using ggplot2.
   #' It allows for customization of colors, labels, and legend display.
   #'
   #' @examples
@@ -73,26 +73,28 @@ plot_timeseries_bar <- function(df, iv1, iv2, mean, error, xlab, ylab, ggtitle, 
     cex.axis = 2,
     cex.main = 1.5,
     cex.sub = 1.5
+  )
+
+  g <- g + geom_errorbar(
+    aes(
+      ymin = (.data[[mean]] - .data[[error]]),
+      ymax = (.data[[mean]] + .data[[error]])
+    ),
+    width = .1
+   # alpha = ifelse(.data[[iv2]] %in% names(color_mapping)[color_mapping == "gray"], .4, 1)
   ) +
-    geom_errorbar(
-      aes(
-        ymin = (.data[[mean]] - .data[[error]]),
-        ymax = (.data[[mean]] + .data[[error]])
-      ),
-      width = .1
-    ) +
     geom_line()
   g <- g + geom_point(
     data = df %>% filter(.data[[iv2]] %in% names(color_mapping)[color_mapping == "gray"]), # nolint
     aes(color = factor(.data[[iv2]])),
-    size = 1.5, alpha = 0.4
+    size = geompoint_size * .5, alpha = 0.4
   )
 
   # Add points for non-'gray' conditions with no transparency
   g <- g + geom_point(
     data = df %>% filter(!(.data[[iv2]] %in% names(color_mapping)[color_mapping == "gray"])), # nolint
     aes(color = factor(.data[[iv2]])),
-    size = 3, alpha = 1
+    size = geompoint_size, alpha = 1
   )
 
   g <- g +
