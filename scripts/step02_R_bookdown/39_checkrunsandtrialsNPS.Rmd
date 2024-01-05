@@ -12,7 +12,6 @@ https://aosmith.rbind.io/2019/04/15/custom-contrasts-emmeans/#:~:text=Building%2
 library(car)
 library(psych)
 library(reshape)
-library(PupillometryR)
 library(dplyr)
 library(tidyselect)
 library(tidyr)
@@ -27,7 +26,6 @@ library(devtools)
 options(es.use_symbols = TRUE) # get nice symbols when printing! (On Windows, requires R >= 4.2.0)
 library(EMAtools)
 library(emmeans)
-library(equatiomatic)
 library(sjPlot)
 library(sjmisc)
 library(sjlabelled)
@@ -37,7 +35,8 @@ library(raincloudplots)
 # devtools::source_url("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/tutorial_R/summarySE.R")
 
 devtools::source_url("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
-file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+main_dir = dirname(dirname(getwd()))
+file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
                           pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
@@ -246,7 +245,7 @@ for (signature_key in c("NPSpos")) {
   # step 1: common parameters _______
   main_dir <- dirname(dirname(getwd()))
 
-  analysis_folder  = paste0("model35_iv-task-stim_dv-", signature_key)
+  analysis_folder  = paste0("model39_iv-task-stim_dv-", signature_key)
 
   sig_name <-
     Sys.glob(file.path(

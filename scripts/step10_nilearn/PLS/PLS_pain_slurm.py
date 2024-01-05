@@ -359,7 +359,7 @@ joblib.dump(
 # third_coef = nifti_masker.inverse_transform(average_coefficients[2,:])
 
 # first_coef
-# %%
+# %% first coefficient
 # x_weights_first_component = pls_model.x_weights_[:, 0]
 # y_weights_first_component = pls_model.y_weights_[:, 0]
 

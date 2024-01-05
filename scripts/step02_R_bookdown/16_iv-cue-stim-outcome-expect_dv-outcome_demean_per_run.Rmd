@@ -63,7 +63,8 @@ library(sjPlot)
 
 
 library(r2mlm)
-file.sources = list.files(c("/Users/h/Documents/projects_local/cue_expectancy/scripts/step02_R/utils"),
+main_dir = dirname(dirname(getwd()))
+file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
                           pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
@@ -92,7 +93,7 @@ exclude <- "sub-0999|sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0
 data <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
 # data['event03_RT'], data.event03_RT - pandas
-analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model15_iv-cue-stim-N1outcome-expect_dv-outcome", as.character(Sys.Date()))
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model16_iv-cue-stim-N1outcome-expect_dv-outcome", as.character(Sys.Date()))
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 ```
 
@@ -272,7 +273,7 @@ Here, I calculate Orthogonal distance from the 1:1 slope. Based on that, we test
 
 pvc$odr_expectoutcome = abs(pvc$demean_expect + pvc$demean_outcome) / sqrt(2)
 cooksd = lmer_onefactor_cooksd(pvc, "pain", iv = "cue_name", dv= "odr_expectoutcome", subject_keyword = "src_subject_id",
-                                  dv_keyword = "distance from 1:1", model_savefname = "/Users/h/Desktop/TEST.txt", print_lmer_output = TRUE) 
+                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TEST.txt"), print_lmer_output = TRUE) 
 ```
 Can you test if the slopes are the same? That might tell us something about whether, expectancies translate into outcomes with the same efficacy across all three tasks. 
 
@@ -280,7 +281,7 @@ Can you test if the slopes are the same? That might tell us something about whet
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 pvc$odr_expectoutcome = abs(pvc$demean_expect + pvc$demean_outcome) / sqrt(2)
 cooksd = lmer_onefactor_cooksd(pvc, "pain", iv = "cue_name", dv= "odr_expectoutcome", subject_keyword = "src_subject_id",
-                                  dv_keyword = "distance from 1:1", model_savefname = "/Users/h/Desktop/TEST.txt", print_lmer_output = TRUE) 
+                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TEST.txt"), print_lmer_output = TRUE) 
 
 subject_keyword = "src_subject_id"
 model_iv1 = "cue_name"
@@ -311,7 +312,7 @@ title = "cue"
         color_scheme <- c("#941100","#5D5C5C")
     }
 
-save_fname = "/Users/h/Desktop/TEST.png"
+save_fname = file.path(analysis_dir, "TEST.png")
 p <- plot_halfrainclouds_onefactor(subjectwise, groupwise, iv,
                                       subjectwise_mean, group_mean, se, subject,
                                       ggtitle, title, xlab, ylab, taskname, ylim,
@@ -336,7 +337,7 @@ subject <- "subject"
 exclude <- "sub-0999|sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0007|sub-0008|sub-0009|sub-0010|sub-0011"
 data <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
-analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model15_iv-cue-stim-N1outcome-expect_dv-outcome-demean", as.character(Sys.Date()))
+
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
 maindata <- data %>%
@@ -440,7 +441,7 @@ vic_plots
 pvc$odr_expectoutcome = abs(pvc$demean_expect + pvc$demean_outcome) / sqrt(2)
 
 cooksd <- lmer_onefactor_cooksd(pvc, "pain", iv = "cue_name", dv= "odr_expectoutcome", subject_keyword = "src_subject_id",
-                                  dv_keyword = "distance from 1:1", model_savefname = "/Users/h/Desktop/TEST.txt", print_lmer_output = TRUE) 
+                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TEST.txt"), print_lmer_output = TRUE) 
 
 subject_keyword = "src_subject_id"
 model_iv1 = "cue_name"
@@ -471,7 +472,7 @@ title = "cue"
         color_scheme <- c("#009411","#5D5C5C")
     }
 
-save_fname = "/Users/h/Desktop/TEST.png"
+save_fname = file.path(analysis_dir, "TEST.png")
 p <- plot_halfrainclouds_onefactor(subjectwise, groupwise, iv,
                                       subjectwise_mean, group_mean, se, subject,
                                       ggtitle, title, xlab, ylab, taskname, ylim,
@@ -492,7 +493,7 @@ subject <- "subject"
 exclude <- "sub-0999|sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0007|sub-0008|sub-0009|sub-0010|sub-0011"
 data <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
-analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model15_iv-cue-stim-N1outcome-expect_dv-outcome-demean", as.character(Sys.Date()))
+
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
 maindata <- data %>%
@@ -587,7 +588,7 @@ cog_plots
 pvc$odr_expectoutcome = abs(pvc$demean_expect + pvc$demean_outcome) / sqrt(2)
 
 cooksd = lmer_onefactor_cooksd(pvc, "pain", iv = "cue_name", dv= "odr_expectoutcome", subject_keyword = "src_subject_id",
-                                  dv_keyword = "distance from 1:1", model_savefname = "/Users/h/Desktop/TEST.txt", print_lmer_output = TRUE) 
+                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TEST.txt"), print_lmer_output = TRUE) 
 
 subject_keyword = "src_subject_id"
 model_iv1 = "cue_name"
@@ -618,7 +619,7 @@ title = "cue"
         color_scheme <- c("#110094","#5D5C5C")
     }
 
-save_fname = "/Users/h/Desktop/TEST.png"
+save_fname = file.path(analysis_dir, "TEST.png")
 p <- plot_halfrainclouds_onefactor(subjectwise, groupwise, iv,
                                       subjectwise_mean, group_mean, se, subject,
                                       ggtitle, title, xlab, ylab, taskname, ylim,

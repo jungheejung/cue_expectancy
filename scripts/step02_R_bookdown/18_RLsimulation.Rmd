@@ -8,14 +8,9 @@
 library(tidyr)
 library(dplyr)
 library(ggpubr)
-
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
-# source("https://gist.github.com/benmarwick/2a1bb0133ff568cbe28d/geom_flat_violin.R")
-
 library(r2mlm)
-file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+main_dir = dirname(dirname(getwd()))
+file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
                           pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
@@ -100,8 +95,9 @@ xlab, ylab, ggtitle, color_scheme, alpha, fit_lm, lm_method = NULL, identity_lin
 ```
 
 ```{r include=FALSE}
-expect_fname = '/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/data/simulated/0409/table_exp.csv'
-outcome_fname = '/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/data/simulated/0409/table_pain.csv'
+main_dir = dirname(dirname(getwd()))
+expect_fname = file.path(main_dir, 'data/simulated/0409/table_exp.csv')
+outcome_fname = file.path(main_dir, 'data/simulated/0409/table_pain.csv')
 expect = read.csv(expect_fname)
 outcome = read.csv(outcome_fname)
 ```
@@ -312,7 +308,8 @@ high <- high + theme(text = element_text(size = 13)) + theme(aspect.ratio=1) +sc
 plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
 plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
 plots
-ggsave('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/analysis/mixedeffect/CCNfigures/figD.png', plots)
+
+ggsave(file.path(main_dir, 'analysis/mixedeffect/CCNfigures/figD.png'), plots)
 ```
 
 

@@ -1,16 +1,16 @@
----
+# [fMRI] singletrial ~ subcortex {#ch43_singletrial_cerebellum}
+
+
+
 title: "singletrial_cerebellum"
 output: html_document
 date: "2023-07-28"
----
-# [fMRI] singletrial ~ subcortex {#ch42_singletrial_subcortex}
 
-```
-author: "Heejung Jung"
-date: "2023-07-17"
-```
+
+
 TODO: run and load for every participant
 TODO: for loop for roi of interest
+
 ```{r libraries_nps_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(car)
 library(psych)
@@ -22,16 +22,16 @@ library(tidyr)
 library(stringr)
 library(lmerTest)
 library(gghalves)
-# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
-# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
-# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")\
-# /Users/h/Documents/projects_local/cue_expectancy/scripts/step02_R/utils/lmer_twofactor_cooksd_fix.R
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
-file.sources = list.files(c("/Users/h/Documents/projects_local/cue_expectancy/scripts/step02_R/utils"),
+  # step 1: common parameters _______
+main_dir <- dirname(dirname(getwd()))
+file.sources = list.files(file.path(main_dir, 'scripts', 'step02_R', 'utils'),
                           pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
+
+
 ```
 
 ## Function {.unlisted .unnumbered}
@@ -147,7 +147,7 @@ two_factor_lineplot <-
   }
 ```
 
-##TODO: outline
+## TODO: outline
 ```{r}
 taskname <- 'pain'
 # load dataframe
@@ -159,6 +159,7 @@ df <- do.call("rbind", lapply(common_path, FUN = function(files) {
   }))
 
 ```
+
 ```{r}
 df$sub <- sub("^(sub-\\d+).*", "\\1", df$filename)
 df$ses <- sub("^.*(ses-\\d+).*", "\\1", df$filename)
@@ -174,7 +175,7 @@ df$stimintensity <- sub("^.*(stimintensity-\\w+).*", "\\1", df$filename)
 
 # parameters
 main_dir <- dirname(dirname(getwd()))
-analysis_folder  = paste0("model43_iv-cue-stim_dv-cerebellum")
+analysis_folder <- paste0("model43_iv-cue-stim_dv-cerebellum")
 analysis_dir <-
   file.path(main_dir,
             "analysis",
@@ -190,7 +191,6 @@ savedir <- analysis_dir
 
 ```{r}
 pvc <- simple_contrasts_singletrial(df)
-
 ```
 
 ## LMER

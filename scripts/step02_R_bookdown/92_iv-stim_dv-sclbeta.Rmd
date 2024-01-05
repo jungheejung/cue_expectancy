@@ -1,3 +1,4 @@
+# [physio] SCL {#ch92_SCL}
 ---
 title: "92_SCL_beta"
 output: html_document
@@ -5,14 +6,13 @@ date: "2023-07-20"
 ---
 
 ## Outline
-# load data
-# subjectwise, groupwise mean
+### load data
+### subjectwise, groupwise mean
 
 ```{r message=TRUE, warning=TRUE, include=FALSE}
 library(car)
 library(psych)
 library(reshape)
-library(PupillometryR)
 library(plyr); library(dplyr)
 library(tidyselect)
 library(tidyr)
@@ -20,7 +20,8 @@ library(stringr)
 library(lmerTest)
 library(gghalves)
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
-file.sources = list.files(c("/Users/h/Documents/projects_local/cue_expectancy/scripts/step02_R/utils"),
+main_dir = dirname(dirname(getwd()))
+file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
                           pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
@@ -58,7 +59,6 @@ return(df)
 ```
 
 ```{r}
-# df <- read.csv("/Users/h/Documents/summer/summer_RA/fdmean_run_type.tsv")
 beta <- read.table(file = "/Volumes/spacetop_projects_cue/analysis/physio/glm/pmod-stimintensity/glm-pmodintenisy_task-pain_scr.tsv", sep = '\t', header = TRUE)
 
 ```
@@ -77,6 +77,9 @@ beta_con <- simple_contrasts_singletrial(beta_long)
 subject <- "sub"
 model_iv <- "stim_ordered"
 dv <- "scl_value"
+taskname <- "pain"
+dv_keyword <- "SCL"
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model92_iv-stim_dv-sclbeta", as.character(Sys.Date()))
 # model_iv2 <- "cue_ordered"
 
 
@@ -120,7 +123,7 @@ plot_savefname <- file.path(
 # ----------------------------------------------------------------------
 #                            raincloudplots
 # ----------------------------------------------------------------------
-analysis_dir <- "/Users/h/Desktop"
+
 # combined_se_calc_cooksd <-NPSstimcue_groupwise
 # calculate mean and se
 sub_mean <- "mean_per_sub"

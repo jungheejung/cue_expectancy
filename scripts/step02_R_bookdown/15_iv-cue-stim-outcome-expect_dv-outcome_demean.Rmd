@@ -58,59 +58,65 @@ library(plotly) #plot
 library(scico) # plot
 library(emmeans) # v. 1.7.0
 library(magrittr) # v. 2.0.1
-# 
-# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
-# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
-# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
-# source("https://gist.github.com/benmarwick/2a1bb0133ff568cbe28d/geom_flat_violin.R")
 
 library(r2mlm)
-file.sources = list.files(c("/Users/h/Documents/projects_local/cue_expectancy/scripts/step02_R/utils"),
+main_dir = dirname(dirname(getwd()))
+file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
                           pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
+
 ```
 
 load data and combine participant data
 
 ```{r load_data_and_exclude_m1, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
-main_dir = dirname(dirname(getwd()))
-datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
-# parameters _____________________________________ # nolint
+
+# ------------------------------------------------------------------------------
+#                                 parameters
+# ------------------------------------------------------------------------------
+main_dir <- dirname(dirname(getwd()))
+datadir <- file.path(main_dir, 'data', 'beh', 'beh02_preproc')
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model15_iv-cue-stim-N1outcome-expect_dv-outcome", as.character(Sys.Date()))
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 subject_varkey <- "src_subject_id"
 iv <- "param_cue_type"
 dv <- "event03_RT"
 dv_keyword <- "RT"
 xlab <- ""
 taskname <- "pain"
-
 ylab <- "ratings (degree)"
 subject <- "subject"
 exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 
-# load data _____________________________________
-data <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+# ------------------------------------------------------------------------------
+#                                 load data
+# ------------------------------------------------------------------------------
+data <- load_task_social_df(datadir, 
+                            taskname = taskname, 
+                            subject_varkey = subject_varkey, 
+                            iv = iv, 
+                            exclude = exclude)
 data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
-# data['event03_RT'], data.event03_RT - pandas
-analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model15_iv-cue-stim-N1outcome-expect_dv-outcome", as.character(Sys.Date()))
-dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+
 ```
 
 ```{r outcomerating_descriptivestats, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 summary(data[, c("event02_expect_RT", "event04_actual_RT", "event02_expect_angle", "event04_actual_angle")])
 ```
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # data(data, package = 'visibly')
 
 myvars <- names(data) %in% 
   c( "event02_expect_angle", "event02_expect_RT", "event04_actual_angle", "event04_actual_RT", "event01_cue_onset")
 newdata <- data[myvars]
-# numdata  <- unlist(lapply(data, is.numeric), use.names = FALSE) 
 data_naomit <- na.omit(newdata)
 cor_matrix = cor(data_naomit)
 corr_heat(cor_matrix)
 ```
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
 ISIvars <- names(data) %in% 
@@ -124,8 +130,9 @@ corr_heat(ISIcor_matrix)
 
 ```{r function::simple_contrasts_beh, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 simple_contrasts_beh <- function(df) {
-# [ CONTRASTS ]  ________________________________________________________________________________ # nolint
-# contrast code ________________________________________
+# ------------------------------------------------------------------------------
+#                                 contrasts codes
+# ------------------------------------------------------------------------------
 df$stim_factor <- factor(df$param_stimulus_type)
 
 # contrast code 1 linear
@@ -216,29 +223,41 @@ y axis: outcome rating
 x axis: high cue
 
 distance from 1:1 line
+Using ODR, we can test whether different cues lead to different distances from the identity line
 ```{r echo=FALSE, warning=TRUE}
 
 pvc$odr_expectoutcome = abs(pvc$demean_expect + pvc$demean_outcome) / sqrt(2)
 
-cooksd = lmer_onefactor_cooksd(pvc, "pain", iv = "cue_name", dv= "odr_expectoutcome", subject_keyword = "src_subject_id",
-                                  dv_keyword = "distance from 1:1", model_savefname = "/Users/h/Desktop/TEST.txt", print_lmer_output = TRUE) 
+cooksd <- lmer_onefactor_cooksd(pvc, 
+                               taskname = "pain", 
+                               iv = "cue_name", 
+                               dv = "odr_expectoutcome", 
+                               subject_keyword = "src_subject_id",
+                               dv_keyword = "distance from 1:1", 
+                               model_savefname = file.path(analysis_dir, "TEST.txt"), 
+                               print_lmer_output = TRUE) 
 ```
-Can you test if the slopes are the same? That might tell us something about whether, expectancies translate into outcomes with the same efficacy across all three tasks. 
+
+## TODO: Can you test if the slopes are the same? That might tell us something about whether, expectancies translate into outcomes with the same efficacy across all three tasks. 
 
 
 
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 pvc$odr_expectoutcome = abs(pvc$demean_expect + pvc$demean_outcome) / sqrt(2)
+cooksd = lmer_onefactor_cooksd(pvc, 
+                               "pain", 
+                               iv = "cue_name", 
+                               dv= "odr_expectoutcome", 
+                               subject_keyword = "src_subject_id",
+                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TEST.txt"), print_lmer_output = TRUE) 
 
-cooksd = lmer_onefactor_cooksd(pvc, "pain", iv = "cue_name", dv= "odr_expectoutcome", subject_keyword = "src_subject_id",
-                                  dv_keyword = "distance from 1:1", model_savefname = "/Users/h/Desktop/TEST.txt", print_lmer_output = TRUE) 
+subject_keyword <- "src_subject_id"
+model_iv1 <- "cue_name"
+dv <- "odr_expectoutcome"
+groupwise_measurevar <- "mean_per_sub"
 
-subject_keyword = "src_subject_id"
-model_iv1 = "cue_name"
-dv = "odr_expectoutcome"
-groupwise_measurevar = "mean_per_sub"
-
-iv <- "cue_name"; iv_keyword <- "cue"; dv <- "odr_expectoutcome"; dv_keyword <- "odr_expectoutcome"
+iv <- "cue_name"; iv_keyword <- "cue"; 
+dv <- "odr_expectoutcome"; dv_keyword <- "odr_expectoutcome"
 xlab <- ""; ylim = c(-90,90); ylab <- "Distance from 1:1 baseline"
 subject <- "src_subject_id"
 exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
@@ -261,8 +280,7 @@ title = "cue"
         # color_scheme <- c("#4575B4", "#D73027")
         color_scheme <- c("#941100","#5D5C5C")
     }
-
-save_fname = "/Users/h/Desktop/TEST.png"
+save_fname = file.path(analysis_dir, "TESTpain.png")
 p <- plot_halfrainclouds_onefactor(subjectwise, groupwise, iv,
                                       subjectwise_mean, group_mean, se, subject,
                                       ggtitle, title, xlab, ylab, taskname, ylim,
@@ -293,6 +311,7 @@ total <-
   )
 total
 ```
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 df_dropna <- pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
 df_low = df_dropna[df_dropna$param_stimulus_type == "low_stim", ]
@@ -349,7 +368,7 @@ data = data.frame()
 exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 data <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
-analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model15_iv-cue-stim-N1outcome-expect_dv-outcome-demean", as.character(Sys.Date()))
+
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
 maindata <- data %>%
@@ -455,7 +474,7 @@ vic_plots
 pvc$odr_expectoutcome = abs(pvc$demean_expect + pvc$demean_outcome) / sqrt(2)
 
 cooksd <- lmer_onefactor_cooksd(pvc, "pain", iv = "cue_name", dv= "odr_expectoutcome", subject_keyword = "src_subject_id",
-                                  dv_keyword = "distance from 1:1", model_savefname = "/Users/h/Desktop/TEST.txt", print_lmer_output = TRUE) 
+                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TEST.txt"), print_lmer_output = TRUE) 
 
 subject_keyword = "src_subject_id"
 model_iv1 = "cue_name"
@@ -486,7 +505,7 @@ title = "cue"
         color_scheme <- c("#009411","#5D5C5C")
     }
 
-save_fname = "/Users/h/Desktop/TEST.png"
+save_fname = file.path(analysis_dir, "TESTvicarious.png")
 p <- plot_halfrainclouds_onefactor(subjectwise, groupwise, iv,
                                       subjectwise_mean, group_mean, se, subject,
                                       ggtitle, title, xlab, ylab, taskname, ylim,
@@ -508,7 +527,7 @@ exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 data = data.frame()
 data <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
-analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model15_iv-cue-stim-N1outcome-expect_dv-outcome-demean", as.character(Sys.Date()))
+
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
 maindata <- data %>%
@@ -623,9 +642,8 @@ vic_plots
 
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 pvc$odr_expectoutcome = abs(pvc$demean_expect + pvc$demean_outcome) / sqrt(2)
-
 cooksd = lmer_onefactor_cooksd(pvc, "pain", iv = "cue_name", dv= "odr_expectoutcome", subject_keyword = "src_subject_id",
-                                  dv_keyword = "distance from 1:1", model_savefname = "/Users/h/Desktop/TEST.txt", print_lmer_output = TRUE) 
+                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TESTcog.txt"), print_lmer_output = TRUE) 
 
 subject_keyword = "src_subject_id"
 model_iv1 = "cue_name"
@@ -656,7 +674,7 @@ title = "cue"
         color_scheme <- c("#110094","#5D5C5C")
     }
 
-save_fname = "/Users/h/Desktop/TEST.png"
+save_fname = file.path(analysis_dir, "TESTcog.png")
 p <- plot_halfrainclouds_onefactor(subjectwise, groupwise, iv,
                                       subjectwise_mean, group_mean, se, subject,
                                       ggtitle, title, xlab, ylab, taskname, ylim,
@@ -761,6 +779,59 @@ library(emmeans)
 ## Alireza congruent incongruent (PE)
 * categorize based on congruent, incongruent
 * split dataframe
+
+```{r}
+# %% -------------------------------------------------------------------------
+#  load pain data
+# ----------------------------------------------------------------------------
+
+main_dir = dirname(dirname(getwd()))
+datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
+subject_varkey <- "src_subject_id"
+iv <- "param_cue_type"
+xlab <- ""
+taskname <- "pain"
+ylab <- "ratings (degree)"
+subject <- "subject"
+exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
+data = data.frame()
+data <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
+
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+
+maindata <- data %>%
+group_by(src_subject_id) %>%
+mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
+mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
+mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
+mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
+mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
+mutate(demean_expect = event02_expect_angle - avg_expect)
+
+# %% -------------------------------------------------------------------------
+#  0. argparse
+# ----------------------------------------------------------------------------
+
+data_p2= maindata %>%
+  arrange(src_subject_id ) %>%
+  group_by(src_subject_id) %>%
+  mutate(trial_index = row_number())
+data_a3 <- data_p2 %>% 
+  group_by(src_subject_id, session_id, param_run_num) %>% 
+  mutate(trial_index = row_number(param_run_num))
+
+data_a3lag <- 
+    data_a3 %>%
+    group_by(src_subject_id, session_id, param_run_num) %>%
+    mutate(lag.demean_outcome = dplyr::lag(demean_outcome, n = 1, default = NA))
+data_a3lag <- data_a3lag %>%
+  mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) 
+data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.demean_outcome),]
+
+df <- data_a3lag_omit
+pvc <- simple_contrasts_beh(df)
+```
 
 ### archive this cell
 ```{r}
@@ -937,7 +1008,7 @@ plots
 ### archive this cell
 ```{r}
 
-previous_congruency <- is_congruent(param_cue_type[previous_index], param_stimulus_type[previous_index])
+# previous_congruency <- is_congruent(param_cue_type[previous_index], param_stimulus_type[previous_index])
 
 is_congruent <- function(cue, stim) {
   if (cue == "low_cue" && stim == "low_stim") {

@@ -43,7 +43,6 @@ library(bitops)
 library(stringr)
 library(stats)
 library(ggpubr)
-library(equatiomatic)
 library(sjPlot)
 library(sjmisc)
 library(sjlabelled)
@@ -54,14 +53,11 @@ library(devtools)
 library(visibly) # 
 library(plotly) #plot
 library(scico) # plot
-
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
 # source("https://gist.github.com/benmarwick/2a1bb0133ff568cbe28d/geom_flat_violin.R")
 
 library(r2mlm)
-file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+main_dir = dirname(dirname(getwd()))
+file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
                           pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
@@ -85,7 +81,8 @@ subject <- "subject"
 exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 
 # load data _____________________________________
-data <- read.csv('/Users/h/Dropbox/projects_dropbox/social_influence_analysis/data/simulated/model_ver04_0508/table_pain_new.csv')
+main_dir = dirname(dirname(getwd()))
+data <- read.csv(file.path(main_dir, 'data/simulated/model_ver04_0508/table_pain_new.csv'))
 analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model19_RLsimulationplot", as.character(Sys.Date()))
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 ```
@@ -337,7 +334,8 @@ plots_title
 
 ### model fits from model 2. expectation ratings (Jepma model)
 ```{r}
-data <- read.csv('/Users/h/Dropbox/projects_dropbox/social_influence_analysis/data/simulated/model_ver04_0508/table_pain_new.csv')
+main_dir = dirname(dirname(getwd()))
+data <- read.csv(file.path(main_dir, 'data/simulated/model_ver04_0508/table_pain_new.csv'))
 subjectwise_2dv <- meanSummary_2dv(data, c("src_subject_id"), 
                                    "event02_expect_angle", "Exp_mdl2" )
 ggplot(data = subjectwise_2dv, 
@@ -570,7 +568,7 @@ summary(model.25)
 ```
 
 ```{r}
-PEdf <- read.csv('/Users/h/Dropbox (Dartmouth College)/projects_dropbox/social_influence_analysis/data/RL/modelfit_jepma_0525/table_pain.csv')
+PEdf <- read.csv(file.path(main_dir, 'data/RL/modelfit_jepma_0525/table_pain.csv'))
 NPS <- data.frame(read.csv(file.path(main_dir, 'data/NPS_curated.csv')))
 
 PEdf <- PEdf %>%

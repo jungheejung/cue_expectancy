@@ -128,15 +128,16 @@ library(brms)
 ##library(JWileymisc)
 ##library(multilevelTools)
 # library(PupillometryR)
-source('http://psych.colorado.edu/~jclab/R/mcSummaryLm.R')
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
-source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+# source('http://psych.colorado.edu/~jclab/R/mcSummaryLm.R')
+# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
+# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
+# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
+# source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 
 library(r2mlm)
-file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
-                          pattern="*.R", 
+main_dir = dirname(dirname(getwd()))
+file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
+                         pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
@@ -211,7 +212,8 @@ analysis_dir
 
 ```{r}
 # parameters _____________________________________ # nolint
-tonic = read.csv("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/physio/physio01_SCL/sub-all_ses-all_run-all_runtype-pain_epochstart--1_epochend-15_samplingrate-25_ttlindex-2_physio-scltimecourse.csv")
+main_dir = dirname(dirname(getwd()))
+tonic = read.csv(file.path(main_dir, "analysis/physio/physio01_SCL/sub-all_ses-all_run-all_runtype-pain_epochstart--1_epochend-15_samplingrate-25_ttlindex-2_physio-scltimecourse.csv"))
 ```
 
 This is the data that we will use

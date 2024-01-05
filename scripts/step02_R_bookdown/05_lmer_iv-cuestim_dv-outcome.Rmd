@@ -1,10 +1,16 @@
-# [beh] outcome_rating ~ cue * stim {#ch05_outcome-cueXstim}
+# lmer outcome_rating ~ cue * stim {#ch05_outcome-cueXstim}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
+---
+site: bookdown::bookdown_site
+output: 
+  bookdown::gitbook: default
+---
+
 Here, we want to test whether lmer is the equivalent of repeated measures anova
 
-I plot the outcome ratings as a function of cue and stimulus intensity. 
+I test the outcome ratings as a function of cue and stimulus intensity. 
 
 * Main model: `lmer(outcome_rating ~ cue * stim)` 
 * Main question: do outcome ratings differ as a function of cue type and stimulus intensity? 
@@ -48,15 +54,9 @@ library(rmarkdown)
 library(stringr)
 library(ICC)
 library(gghalves)
-
 library(ggpubr)
-library(PupillometryR) # geom_flat_violin
-
-# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
-# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
-# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
-# source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
-file.sources = list.files(c("/Users/h/Documents/projects_local/cue_expectancy/scripts/step02_R/utils"),
+main_dir = dirname(dirname(getwd()))
+file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
                           pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
@@ -73,7 +73,7 @@ datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
 ```{r}
 analysis_dir <- file.path(
     main_dir, "analysis",
-    "mixedeffect", "model04_iv-cuecontrast_dv-outcome", as.character(Sys.Date()))
+    "mixedeffect", "model05_iv-cuecontrast_dv-outcome", as.character(Sys.Date()))
 dir.create(analysis_dir, recursive = TRUE, showWarnings = FALSE)
 taskname <- "pain"
 
@@ -132,12 +132,30 @@ taskname <- "pain"
     dv <- "event04_actual_angle"
 ```
 
-
+## full random slopes
+Matrix is singular. model estimation is bound to be overfitted and inaccurate
 ```{r}
-fullmodel <- lmer(event04_actual_angle ~ 1+ social_cue + stim_con_linear + stim_con_quad + social_cue:stim_con_linear + social_cue:stim_con_quad
-     + (1+ social_cue + stim_con_linear + stim_con_quad+ social_cue:stim_con_linear  + social_cue:stim_con_quad| src_subject_id), data=data)
+fullmodel <- lmer(event04_actual_angle ~ 1+ social_cue*stim_con_linear + social_cue*stim_con_quad +
+     + (1+ social_cue*stim_con_linear + social_cue*stim_con_quad| src_subject_id), data=data)
 summary(fullmodel)
 ```
+
+## remove interaction randomslopes
+Matrix is still singular, potentially due to the correlated random effects
+```{r}
+model.noint <- lmer(event04_actual_angle ~ 1+ social_cue*stim_con_linear + social_cue*stim_con_quad +
+     + (1+ social_cue + stim_con_linear + stim_con_quad| src_subject_id), data=data)
+summary(model.noint)
+```
+
+## remove correlated random slope
+After removal of the correlated random slope: intercept and stim_con_quad, the matrix is no longer singular.
+```{r}
+model.noint <- lmer(event04_actual_angle ~ 1+ social_cue*stim_con_linear + social_cue*stim_con_quad +
+     + (1+ social_cue + stim_con_linear | src_subject_id), data=data)
+summary(model.noint)
+```
+
 
 ## repeated measures
 ```{r}
@@ -255,64 +273,64 @@ summary(model.36full)
 # anova(model.36, model.36full, refit = FALSE)
 ```
 
-```{r}
-# random_intercepts <- getME(model.36full, "Z")
-# random_intercepts
-fixed_effects_matrix <- model.matrix(~ 1+ social_cue + stim_con_linear + stim_con_quad + social_cue:stim_con_linear + social_cue:stim_con_quad, data = df_filtered)
-fixed_effects_matrix
-# heatmap(fixed_effects_matrix, col=heat.colors(256), scale="column")
-# Convert matrix to data frame
-mat_df <- melt(t(fixed_effects_matrix))
+<!-- ```{r} -->
+<!-- random_intercepts <- getME(model.36full, "Z") -->
+<!-- # random_intercepts -->
+<!-- fixed_effects_matrix <- model.matrix(~ 1+ social_cue + stim_con_linear + stim_con_quad + social_cue:stim_con_linear + social_cue:stim_con_quad, data = df_filtered) -->
+<!-- fixed_effects_matrix -->
+<!-- # heatmap(fixed_effects_matrix, col=heat.colors(256), scale="column") -->
+<!-- # Convert matrix to data frame -->
+<!-- mat_df <- melt(t(fixed_effects_matrix)) -->
 
-ggplot(mat_df, aes(x=Var1, y=Var2, fill=value)) + 
-    geom_tile()
-```
+<!-- ggplot(mat_df, aes(x=Var1, y=Var2, fill=value)) +  -->
+<!--     geom_tile() -->
+<!-- ``` -->
 
-```{r}
-# Compute the covariance matrix
-cov_matrix <- cov(fixed_effects_matrix)
-# Base R image plot
-image(cov_matrix, main = "Covariance Matrix of Fixed Effects")
+<!-- ```{r} -->
+<!-- # Compute the covariance matrix -->
+<!-- cov_matrix <- cov(fixed_effects_matrix) -->
+<!-- # Base R image plot -->
+<!-- image(cov_matrix, main = "Covariance Matrix of Fixed Effects") -->
 
-# Alternatively, use the `heatmap()` function for a more detailed plot
-heatmap(cov_matrix, main = "Covariance Matrix of Fixed Effects")
-library(ggplot2)
-library(reshape2)
+<!-- # Alternatively, use the `heatmap()` function for a more detailed plot -->
+<!-- heatmap(cov_matrix, main = "Covariance Matrix of Fixed Effects") -->
+<!-- library(ggplot2) -->
+<!-- library(reshape2) -->
 
-# Ensure your matrix has proper row and column names
-rownames(cov_matrix) <- colnames(fixed_effects_matrix)
-colnames(cov_matrix) <- colnames(fixed_effects_matrix)
+<!-- # Ensure your matrix has proper row and column names -->
+<!-- rownames(cov_matrix) <- colnames(fixed_effects_matrix) -->
+<!-- colnames(cov_matrix) <- colnames(fixed_effects_matrix) -->
 
-# Reshape the matrix to long format
-long_cor_matrix <- melt(cov_matrix)
+<!-- # Reshape the matrix to long format -->
+<!-- long_cor_matrix <- melt(cov_matrix) -->
 
-# Plot using ggplot2
-ggplot(long_cor_matrix, aes(Var1, Var2, fill = value)) +
-  geom_tile() +
-  scale_fill_gradient2() +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  labs(x = "Regressors", y = "Regressors", fill = "Correlation", title = "Correlation Matrix of Fixed Effects")
-# corrplot(long_cor_matrix)
+<!-- # Plot using ggplot2 -->
+<!-- ggplot(long_cor_matrix, aes(Var1, Var2, fill = value)) + -->
+<!--   geom_tile() + -->
+<!--   scale_fill_gradient2() + -->
+<!--   theme_minimal() + -->
+<!--   theme(axis.text.x = element_text(angle = 45, hjust = 1)) + -->
+<!--   labs(x = "Regressors", y = "Regressors", fill = "Correlation", title = "Correlation Matrix of Fixed Effects") -->
+<!-- # corrplot(long_cor_matrix) -->
 
-# M<-cor(fixed_effects_matrix)
-# corrplot(M, method="circle")
-```
+<!-- # M<-cor(fixed_effects_matrix) -->
+<!-- # corrplot(M, method="circle") -->
+<!-- ``` -->
 
 
-```{r}
-library(lme4)
-# For random intercepts
-random_intercepts <- getME(model.36full, "Z")
-# For random slopes
-random_slopes <- getME(model.36full, "Zt")
-dim(random_slopes)
-library(Matrix)
-par(mar = c(5, 4, 4, 2) + 0.1)
-image(random_slopes, ylab = "Rows", xlab = "Columns", main = "Sparse Matrix Plot")
-image(t(random_intercepts), ylab = "Rows", xlab = "Columns", main = "Sparse Matrix Plot")
+<!-- ```{r} -->
+<!-- library(lme4) -->
+<!-- # For random intercepts -->
+<!-- random_intercepts <- getME(model.36full, "Z") -->
+<!-- # For random slopes -->
+<!-- random_slopes <- getME(model.36full, "Zt") -->
+<!-- dim(random_slopes) -->
+<!-- library(Matrix) -->
+<!-- par(mar = c(5, 4, 4, 2) + 0.1) -->
+<!-- image(random_slopes, ylab = "Rows", xlab = "Columns", main = "Sparse Matrix Plot") -->
+<!-- image(t(random_intercepts), ylab = "Rows", xlab = "Columns", main = "Sparse Matrix Plot") -->
 
-```
+<!-- ``` -->
 
 
 

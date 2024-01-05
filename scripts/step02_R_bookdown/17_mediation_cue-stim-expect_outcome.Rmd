@@ -62,13 +62,10 @@ library(scico) # plot
 library(emmeans) # v. 1.7.0
 library(magrittr) # v. 2.0.1
 
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summarySE.R")
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulateData.R")
-# source("https://gist.github.com/benmarwick/2a1bb0133ff568cbe28d/geom_flat_violin.R")
 
 library(r2mlm)
-file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
+main_dir = dirname(dirname(getwd()))
+file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
                           pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
@@ -96,7 +93,7 @@ exclude <- "sub-0999|sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0
 data <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
 # data['event03_RT'], data.event03_RT - pandas
-analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model15_iv-cue-stim-N1outcome-expect_dv-outcome", as.character(Sys.Date()))
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model17_iv-cue-stim-N1outcome-expect_dv-outcome", as.character(Sys.Date()))
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 ```
 

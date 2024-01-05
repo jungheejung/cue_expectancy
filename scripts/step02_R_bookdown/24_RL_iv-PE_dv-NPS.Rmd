@@ -1,0 +1,177 @@
+# PE and NPS {#ch24_RL_PE_NPS}
+---
+title: "24_RL_iv-PE_dv-NPS"
+output: html_document
+date: "2023-11-05"
+---
+
+## What is the purpose of this notebook? {.unlisted .unnumbered}
+Here, I investigate the relationship between prediction errors and NPS extracted values.
+The question we ask is, whether the cue-expectancy effects of NPS are driven by prediction errors. 
+
+```{r include=FALSE}
+library(car)
+library(psych)
+library(reshape)
+library(dplyr)
+library(tidyselect)
+library(tidyr)
+library(stringr)
+library(lmerTest)
+library(gghalves)
+library(plyr)
+library(ggpubr)
+library(r2mlm)
+library(effectsize)
+library(devtools)
+options(es.use_symbols = TRUE) # get nice symbols when printing! (On Windows, requires R >= 4.2.0)
+library(EMAtools)
+library(emmeans)
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
+library(DT)
+library(raincloudplots)
+devtools::source_url("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+library(r2mlm)
+main_dir <- dirname(dirname(getwd()))
+file.sources = list.files(file.path(main_dir, 'scripts', 'step02_R', 'utils'),
+                          pattern="*.R", 
+                          full.names=TRUE, 
+                          ignore.case=TRUE)
+sapply(file.sources,source,.GlobalEnv)
+
+```
+
+
+
+```{r}
+
+# load NPS dot product
+NPSdf <- read.csv(file.path(main_dir, 'analysis/fmri/nilearn/deriv01_signature/rampupdown/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv' ))
+
+# load RL data
+RLdf <- read.csv(file.path(main_dir, "/data/RL/modelfit_jepma_0525/table_pain.csv"))
+# grab intersection of data using the sub column
+```
+
+some data wrangling: split filenames into columns. This will serve as metadata. NPSsplit
+We'll use this to merge NPSsplit and RLdf
+
+```{r}
+NPSsplit <- NPSdf %>%
+  # Extract the components from the filename column
+  extract(col = singletrial_fname, into = c("sub", "ses", "run", "runtype", "event", "trial", "cuetype", "stimintensity"),
+          regex = "(sub-\\w+)_+(ses-\\w+)_+(run-\\w+)_+(runtype-\\w+)_+(event-\\w+)_+(trial-\\w+)_+(cuetype-\\w+)_+(stimintensity-\\w+).nii.gz") %>%
+  # Extract numbers and keywords as specified
+  mutate(
+    src_subject_id = as.integer(str_extract(sub, "\\d+")),
+    session_id = as.integer(str_extract(ses, "\\d+")),
+    param_run_num = as.integer(str_extract(run, "\\d+")),
+    trial_index_runwise = as.integer(str_extract(trial, "\\d+")) + 1,
+    param_cue_type = case_when(
+      str_detect(cuetype, "low") ~ "low_cue",
+      str_detect(cuetype, "high") ~ "high_cue"
+    ), 
+    param_task_name = str_replace(runtype, "runtype-", ""), 
+    param_stimulus_type = case_when(
+      stimintensity == "stimintensity-low" ~ "low_stim",
+      stimintensity == "stimintensity-med" ~ "med_stim",
+      stimintensity == "stimintensity-high" ~ "high_stim",
+      TRUE ~ stimintensity  # Retain original value if neither "low" nor "high"
+    )
+  ) %>%
+  
+  # Select and rename the necessary columns
+  select(
+    src_subject_id,
+    session_id,
+    param_run_num,
+    param_task_name,
+    event,
+    trial_index_runwise,
+    param_cue_type,
+    param_stimulus_type,
+    NPSpos
+  )
+    # stimintensity
+```
+
+merge the two dataframes
+```{r}
+
+merge_df <- inner_join(NPSsplit, RLdf, by = c("src_subject_id",
+    "session_id",
+    "param_run_num",
+    "param_task_name","param_cue_type", "param_stimulus_type", "trial_index_runwise"))
+
+# result_df will contain rows that have matching values in columns A, B, and C in both df1 and df2.
+
+```
+
+## scatter plot
+```{r}
+merge_df$sub <- factor(merge_df$src_subject_id)
+model.NPSRL = lmer(NPSpos ~ PE_mdl3 + (PE_mdl3 | sub) + (1|session_id), data = merge_df)
+summary(model.NPSRL)
+```
+
+structure: sub, NPS, PE
+subjectwise correlations
+```{r}
+
+ggplot(merge_df, aes(y = NPSpos, 
+                       x = PE_mdl2, 
+                       colour = src_subject_id), size = .3, color = 'gray') + 
+  geom_point(size = .1) + 
+  geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .3) +
+  theme_bw()
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(broom)
+
+# Assuming you have a dataframe `df` with the variables `subject`, `trial`, `NPS`, `PE`
+
+# Calculate the coefficients for each participant
+df <- merge_df
+df$subject <- df$src_subject_id
+df$NPS <- df$NPSpos
+df$PE <- df$PE_mdl2
+
+coefficients <- df %>%
+  group_by(subject) %>%
+  do(tidy(lm(PE ~ NPS, data = .)))
+
+# Extract slopes and intercepts
+slopes_intercepts <- coefficients %>%
+  filter(term == "NPS") %>%
+  select(subject, slope = estimate)
+
+intercepts <- coefficients %>%
+  filter(term == "(Intercept)") %>%
+  select(subject, intercept = estimate)
+
+# Merge slopes and intercepts
+subject_lines <- full_join(slopes_intercepts, intercepts, by = "subject")
+
+# Calculate the average slope and intercept for the group
+avg_slope <- mean(subject_lines$slope)
+avg_intercept <- mean(subject_lines$intercept)
+
+# Plot
+ggplot(df, aes(x = NPS, y = PE)) +
+  geom_point(alpha = 0.4) +  # Plot the raw data points
+  geom_abline(data = subject_lines, aes(slope = slope, intercept = intercept, color = as.factor(subject)), size = 1) +
+  geom_abline(slope = avg_slope, intercept = avg_intercept, color = "black", size = 1.5, linetype = "dashed") +
+  labs(color = "Subject") +
+  theme_minimal() +
+  theme(legend.position = "none")  # Remove legend if not needed
+
+```
+
+
+## re-run brain results from `XX.md`
+## re-run behavioral results from `XX.Rmd`

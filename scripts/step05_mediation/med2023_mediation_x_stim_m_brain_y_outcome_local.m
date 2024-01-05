@@ -214,7 +214,11 @@ fprintf('Size of M: %s\n', mat2str(size(M)));
 fprintf('Size of cov: %s\n', mat2str(size(cov)));
 fprintf('Size of l2m_centered: %s\n', mat2str(size(l2m_meancentered)));
 
-
+M = M_test;
+X = X_test;
+Y = zscored_Y;
+cov = cov_test;
+l2m_meancentered = l2m_test;
 SETUP.mask = which(graymatter_mask);
 SETUP.preprocX = 0;
 SETUP.preprocY = 0;
@@ -222,8 +226,8 @@ SETUP.preprocM = 0;
 SETUP.wh_is_mediator = 'M';
 % SETUP.data.covs = cov
 % SETUP.data.L2M = l2m_meancentered';
-Y = zscored_Y;
-mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'covs', cov, 'L2M', l2m_meancentered', 'boot', 'bootsamples', 1000);
+
+mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'covs', cov, 'L2M', l2m_meancentered'); %, 'boot', 'bootsamples', 1000);
 mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'covs', cov, 'boot', 'bootsamples', 1000);% 'L2M', l2m_meancentered',
 mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'boot', 'bootsamples', 1000);
 SETUP = mediation_brain_corrected_threshold('fdr');

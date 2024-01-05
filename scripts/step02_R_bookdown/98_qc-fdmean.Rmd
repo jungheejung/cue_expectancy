@@ -1,14 +1,15 @@
+# [QC] fdmean {#ch98_QCfdmean}
+
 ---
 title: "fdmean"
 output: html_document
 date: "2023-07-18"
 ---
 
-```{r}
+```{r warning=FALSE, include=FALSE}
 library(car)
 library(psych)
 library(reshape)
-library(PupillometryR)
 library(plyr); library(dplyr)
 library(tidyselect)
 library(tidyr)
@@ -16,7 +17,8 @@ library(stringr)
 library(lmerTest)
 library(gghalves)
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
-file.sources = list.files(c("/Users/h/Documents/projects_local/cue_expectancy/scripts/step02_R/utils"),
+main_dir = dirname(dirname(getwd()))
+file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
                           pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
@@ -34,30 +36,33 @@ sapply(file.sources,source,.GlobalEnv)
 
 
 ```{r}
-# df <- read.csv("/Users/h/Documents/summer/summer_RA/fdmean_run_type.tsv")
-fdmeandf <- read.table(file = "/Users/h/Documents/summer/summer_RA/fdmean_run_type.tsv", sep = '\t', header = TRUE)
+# ------------------------------------------------------------------------------
+#                          load in the dataframe
+# ------------------------------------------------------------------------------
+fdmeandf <- read.table(file = file.path(main_dir, "resources/qcreports/fdmean_run_type.tsv"), sep = '\t', header = TRUE)
 
-```
 
-```{r}
-# contrast code 1 linear
-
+# ------------------------------------------------------------------------------
+#                  create contrasts for pain vs non-pain runs
+# ------------------------------------------------------------------------------
 fdmeandf$PAIN_NOPAIN[fdmeandf$run_type == "pain"] <- 0.5
 fdmeandf$PAIN_NOPAIN[fdmeandf$run_type == "vicarious"] <- -0.5
 fdmeandf$PAIN_NOPAIN[fdmeandf$run_type == "cognitive"] <- -0.5
 df <- fdmeandf %>% drop_na(PAIN_NOPAIN)
-```
 
-```{r}
+
+# ------------------------------------------------------------------------------
+#                            linear model
+# ------------------------------------------------------------------------------
 df$sub_factor <- factor(df$sub)
 model.fdmean <- lmer(fd_mean ~ PAIN_NOPAIN + (1|sub_factor), data=df)
-```
-
-```{r}
 summary(model.fdmean)
 ```
 
 ```{r}
+# ------------------------------------------------------------------------------
+#                  plot :: generate summary stats for each subject
+# ------------------------------------------------------------------------------
 df$run_name[df$run_type == "pain"] <- "pain"
 df$run_name[df$run_type == "vicarious"] <- "non-pain"
 df$run_name[df$run_type == "cognitive"] <- "non-pain"
@@ -78,10 +83,9 @@ groupwise <- summarySEwithin(
   withinvars = c(model_iv),
   idvar = subject
 )
-```
 
 ```{r}
-analysis_dir <- "/Users/h/Desktop"
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model98_fdmean", as.character(Sys.Date()))
 # combined_se_calc_cooksd <-NPSstimcue_groupwise
 # calculate mean and se
 sub_mean <- "mean_per_sub"
@@ -144,11 +148,12 @@ g <- g + theme_bw() + theme_classic()
 print(g)
 
 
-k <- plot_lineplot_twofactor(NPSstimcue_groupwise,
+k <- plot_lineplot_twofactor(groupwise,
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("pain" = "red",
-                                  "non-pain" = "gray"))
+                                  "non-pain" = "gray"),
+                        ggtitle="fdmean pain vs nonpain")
                                   # "med" = "orange",
 
 ```
