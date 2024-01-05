@@ -6,7 +6,7 @@ output: html_document
 date: "2023-07-18"
 ---
 
-```{r}
+```{r warning=FALSE, include=FALSE}
 library(car)
 library(psych)
 library(reshape)
@@ -36,29 +36,33 @@ sapply(file.sources,source,.GlobalEnv)
 
 
 ```{r}
+# ------------------------------------------------------------------------------
+#                          load in the dataframe
+# ------------------------------------------------------------------------------
 fdmeandf <- read.table(file = file.path(main_dir, "resources/qcreports/fdmean_run_type.tsv"), sep = '\t', header = TRUE)
 
-```
 
-```{r}
-# contrast code 1 linear
-
+# ------------------------------------------------------------------------------
+#                  create contrasts for pain vs non-pain runs
+# ------------------------------------------------------------------------------
 fdmeandf$PAIN_NOPAIN[fdmeandf$run_type == "pain"] <- 0.5
 fdmeandf$PAIN_NOPAIN[fdmeandf$run_type == "vicarious"] <- -0.5
 fdmeandf$PAIN_NOPAIN[fdmeandf$run_type == "cognitive"] <- -0.5
 df <- fdmeandf %>% drop_na(PAIN_NOPAIN)
-```
 
-```{r}
+
+# ------------------------------------------------------------------------------
+#                            linear model
+# ------------------------------------------------------------------------------
 df$sub_factor <- factor(df$sub)
 model.fdmean <- lmer(fd_mean ~ PAIN_NOPAIN + (1|sub_factor), data=df)
-```
-
-```{r}
 summary(model.fdmean)
 ```
 
 ```{r}
+# ------------------------------------------------------------------------------
+#                  plot :: generate summary stats for each subject
+# ------------------------------------------------------------------------------
 df$run_name[df$run_type == "pain"] <- "pain"
 df$run_name[df$run_type == "vicarious"] <- "non-pain"
 df$run_name[df$run_type == "cognitive"] <- "non-pain"
@@ -79,7 +83,6 @@ groupwise <- summarySEwithin(
   withinvars = c(model_iv),
   idvar = subject
 )
-```
 
 ```{r}
 analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model98_fdmean", as.character(Sys.Date()))
