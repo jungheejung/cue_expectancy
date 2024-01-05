@@ -41,14 +41,15 @@ library(ICC)
 ##library(JWileymisc)
 ##library(multilevelTools)
 library(ggpubr)
-library(PupillometryR) # geom_flat_violin
-source('http://psych.colorado.edu/~jclab/R/mcSummaryLm.R')
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
-source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
+
+# source('http://psych.colorado.edu/~jclab/R/mcSummaryLm.R')
+# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/R_rainclouds.R")
+# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/summaryse.R")
+# source("/Users/h/Documents/projects_local/RainCloudPlots/tutorial_R/simulatedata.R")
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
-file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
-                          pattern="*.R", 
+main_dir = dirname(dirname(getwd()))
+file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
+                         pattern="*.R", 
                           full.names=TRUE, 
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
@@ -56,9 +57,10 @@ sapply(file.sources,source,.GlobalEnv)
 
 ## NPS load csv file
 ```{r}
-c = read.csv("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-NPS_task-cognitive_metadata.csv")
-v = read.csv("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-NPS_task-vicarious_metadata.csv")
-p = read.csv("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-NPS_task-pain_metadata.csv")
+main_dir = dirname(dirname(getwd()))
+c = read.csv(file.path(main_dir, "analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-NPS_task-cognitive_metadata.csv"))
+v = read.csv(file.path(main_dir, "analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-NPS_task-vicarious_metadata.csv"))
+p = read.csv(file.path(main_dir, "analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-NPS_task-pain_metadata.csv"))
 ```
 
 ## NPS run 2 factor model (task x cue)
@@ -87,7 +89,7 @@ taskname <- "all tasks"
 exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 w <- 10
 h <- 6
-main_dir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis'
+main_dir = dirname(dirname(getwd()))
 analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "extract_biomarker", "glm_single_cue-effect", as.character(Sys.Date()))
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
@@ -163,7 +165,7 @@ taskname <- "all tasks"
 exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 w <- 10
 h <- 6
-main_dir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect'
+main_dir = dirname(dirname(getwd()))
 analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "extract_biomarker", "glm_single_stim-effect", as.character(Sys.Date()))
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
@@ -218,9 +220,10 @@ dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
 ## VPS load csv file
 ```{r}
-c = read.csv("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-VPS_task-cognitive_metadata.csv")
-v = read.csv("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-VPS_task-vicarious_metadata.csv")
-p = read.csv("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-VPS_task-pain_metadata.csv")
+main_dir = dirname(dirname(getwd()))
+c = read.csv(file.path(main_dir, "analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-VPS_task-cognitive_metadata.csv"))
+v = read.csv(file.path(main_dir, "analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-VPS_task-vicarious_metadata.csv"))
+p = read.csv(file.path(main_dir, "analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-VPS_task-pain_metadata.csv"))
 ```
 
 ## VPS run 2 factor model (task x cue)
@@ -249,7 +252,7 @@ taskname <- "all tasks"
 exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 w <- 10
 h <- 6
-main_dir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis'
+main_dir = dirname(dirname(getwd()))
 analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "extract_biomarker", "glm_single_cue-effect", as.character(Sys.Date()))
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
@@ -325,7 +328,7 @@ taskname <- "all tasks"
 exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 w <- 10
 h <- 6
-main_dir = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect'
+main_dir = dirname(dirname(getwd()))
 analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "extract_biomarker", "glm_single_stim-effect", as.character(Sys.Date()))
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
