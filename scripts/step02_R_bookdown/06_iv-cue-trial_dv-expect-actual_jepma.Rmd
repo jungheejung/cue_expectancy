@@ -1204,13 +1204,14 @@ g <- ggplot(
   xlab("No. of trials") +
   ylab("Outcome Rating") +
   labs(title = paste0(taskname, " (N = ", length(unique(data_p2_long$src_subject_id)), ")"))+
-  ylim(0,120) +
+  # ylim(0,120) +
   theme_classic2() +
 theme(aspect.ratio = .7) +
-        theme(    axis.text.x = element_text(size = 15),
-    axis.text.y = element_text(size = 15),
-    axis.title.x = element_text(size = 20),
-    axis.title.y = element_text(size = 20))
+        theme(    axis.text.x = element_text(size = 20),
+    axis.text.y = element_text(size = 20),
+    axis.title.x = element_text(size = 25),
+    axis.title.y = element_text(size = 25),
+    axis.title = element_text(size = 40))
 g
 ```
 
@@ -1536,6 +1537,15 @@ count_trial <- df_clean %>% count("src_subject_id")
 
 # Subset the data frame to include only the listed IDs
 
+model_cuetrial <- lmer(event04_actual_angle ~ trial_index*param_cue_type + (param_cue_type|src_subject_id), data = df_clean)
+summary(model_cuetrial)
+anova(model_cuetrial)
+random_slopes <- ranef(model_cuetrial)$src_subject_id$param_cue_typelow_cue
+group_ids <- c(rownames(ranef(model_cuetrial)$src_subject_id))
+df <- data.frame(sub = group_ids, cue_randomslope = random_slopes)
+write.csv(df, file.path(main_dir,"data","RL", "cue_trial_ranef_pain.csv"), row.names = FALSE)
+
+
 data_p2_long = df_clean %>% 
   pivot_longer(cols = c( 'event02_expect_angle'),
                names_to = "rating_type", 
@@ -1678,6 +1688,15 @@ data_p2= data %>%
 
 df_clean <- data_p2[complete.cases(data_p2$event02_expect_angle), ]
 
+# random slopes
+model_cuetrial <- lmer(event04_actual_angle ~ trial_index*param_cue_type + (param_cue_type|src_subject_id), data = df_clean)
+summary(model_cuetrial)
+anova(model_cuetrial)
+random_slopes <- ranef(model_cuetrial)$src_subject_id$param_cue_typelow_cue
+group_ids <- c(rownames(ranef(model_cuetrial)$src_subject_id))
+df <- data.frame(sub = group_ids, cue_randomslope = random_slopes)
+write.csv(df, file.path(main_dir,"data","RL", "cue_trial_ranef_vicarious.csv"), row.names = FALSE)
+# random slopes
 count_trial <- df_clean %>% count("src_subject_id") 
 # included_ids <- count_trial[(count_trial$freq > 60) & (count_trial$freq < 73),]$src_subject_id
 
@@ -1822,6 +1841,16 @@ data_p2= data %>%
 
 df_clean <- data_p2[complete.cases(data_p2$event02_expect_angle), ]
 
+# random slopes
+model_cuetrial <- lmer(event04_actual_angle ~ trial_index*param_cue_type + (param_cue_type|src_subject_id), data = df_clean)
+summary(model_cuetrial)
+anova(model_cuetrial)
+random_slopes <- ranef(model_cuetrial)$src_subject_id$param_cue_typelow_cue
+group_ids <- c(rownames(ranef(model_cuetrial)$src_subject_id))
+df <- data.frame(sub = group_ids, cue_randomslope = random_slopes)
+write.csv(df, file.path(main_dir,"data","RL", "cue_trial_ranef_cognitive.csv"), row.names = FALSE)
+
+# random slopes
 count_trial <- df_clean %>% count("src_subject_id") 
 # included_ids <- count_trial[(count_trial$freq > 60) & (count_trial$freq < 73),]$src_subject_id
 
@@ -1939,6 +1968,30 @@ theme(aspect.ratio = .7) +
     axis.title.y = element_text(size = 20))
 g
 ```
+
+
+## lmer
+```{r echo=FALSE}
+model_cuetrial <- lmer(event04_actual_angle ~ trial_index*param_cue_type + (param_cue_type|src_subject_id), data = df_clean)
+summary(model_cuetrial)
+anova(model_cuetrial)
+random_slopes <- ranef(model_cuetrial)$src_subject_id$param_cue_typelow_cue
+group_ids <- c(rownames(ranef(model_cuetrial)$src_subject_id))
+df <- data.frame(sub = group_ids, cue_randomslope = random_slopes)
+write.csv(df, file.path(main_dir,"data","RL", "cue_trial_ranef_{taskname}.csv"), row.names = FALSE)
+```
+
+### lmer histogram
+```{r}
+hist(random_slopes)
+```
+```{r}
+df <- data.frame(sub = group_ids, cue_randomslope = random_slopes)
+write.csv(df, file.path(main_dir,"data","RL", "cue_trial_ranef_{taskname}.csv"), row.names = FALSE)
+# TODO: create a json file that also keeps track of which participants are include hree, using what model
+# comment
+```
+
 
 ## Do current expectation ratings predict outcome ratings?
 ### Additional analyse 01/18/2023 {.unlisted .unnumbered}
