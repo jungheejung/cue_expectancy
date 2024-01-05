@@ -780,6 +780,59 @@ library(emmeans)
 * categorize based on congruent, incongruent
 * split dataframe
 
+```{r}
+# %% -------------------------------------------------------------------------
+#  load pain data
+# ----------------------------------------------------------------------------
+
+main_dir = dirname(dirname(getwd()))
+datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
+subject_varkey <- "src_subject_id"
+iv <- "param_cue_type"
+xlab <- ""
+taskname <- "pain"
+ylab <- "ratings (degree)"
+subject <- "subject"
+exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
+data = data.frame()
+data <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
+
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+
+maindata <- data %>%
+group_by(src_subject_id) %>%
+mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
+mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
+mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
+mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
+mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
+mutate(demean_expect = event02_expect_angle - avg_expect)
+
+# %% -------------------------------------------------------------------------
+#  0. argparse
+# ----------------------------------------------------------------------------
+
+data_p2= maindata %>%
+  arrange(src_subject_id ) %>%
+  group_by(src_subject_id) %>%
+  mutate(trial_index = row_number())
+data_a3 <- data_p2 %>% 
+  group_by(src_subject_id, session_id, param_run_num) %>% 
+  mutate(trial_index = row_number(param_run_num))
+
+data_a3lag <- 
+    data_a3 %>%
+    group_by(src_subject_id, session_id, param_run_num) %>%
+    mutate(lag.demean_outcome = dplyr::lag(demean_outcome, n = 1, default = NA))
+data_a3lag <- data_a3lag %>%
+  mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) 
+data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.demean_outcome),]
+
+df <- data_a3lag_omit
+pvc <- simple_contrasts_beh(df)
+```
+
 ### archive this cell
 ```{r}
 
@@ -955,7 +1008,7 @@ plots
 ### archive this cell
 ```{r}
 
-previous_congruency <- is_congruent(param_cue_type[previous_index], param_stimulus_type[previous_index])
+# previous_congruency <- is_congruent(param_cue_type[previous_index], param_stimulus_type[previous_index])
 
 is_congruent <- function(cue, stim) {
   if (cue == "low_cue" && stim == "low_stim") {
