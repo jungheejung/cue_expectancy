@@ -151,7 +151,7 @@ Plot pain outcome rating as a function of expectation rating and cue {.unlisted 
 # parameters ___________________________________________________________________ # nolint
 main_dir = dirname(dirname(getwd()))
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
-analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "21_modelfit", as.character(Sys.Date()))
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "22_modelfit", as.character(Sys.Date()))
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 subject_varkey <- "src_subject_id"; iv <- "param_cue_type"; dv <- "event03_RT"; dv_keyword <- "RT"
 xlab <- ""; taskname <- "pain"; ylab <- "ratings (degree)";subject <- "subject"
@@ -475,9 +475,7 @@ for (signature_key in c("NPSpos")) {
       paste0("signature-",signature_key,"_sub-all_runtype-pvc_event-stimulus.tsv")
     )) # nolint
   print(sig_name)
-  analysis_dir <-
-    file.path(main_dir, "analysis", "mixedeffect", analysis_folder, as.character(Sys.Date())) # nolint
-  dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+
   savedir <- analysis_dir
   
   # step 2: load data __________________________________________________________
@@ -1268,7 +1266,6 @@ ggsave(file.path(main_dir, 'analysis/mixedeffect/CCNfigures/figC.png'), plots)
 load data
 ```{r}
 paindf <- read.csv(file.path(main_dir, "data/RL/modelfit_jepma_0525/table_pain.csv"))
-analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "22_modelfit", as.character(Sys.Date()))
 
 # load data ____________________________________________________________________ # nolint
 # df <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
@@ -1643,7 +1640,6 @@ ggsave(file.path(main_dir, 'analysis', 'mixedeffect', 'CCNfigures', 'figD.png'),
 
 ## congruent incongruent for model fitted results
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "22_modelfit", as.character(Sys.Date()))
 
 # load data ____________________________________________________________________ # nolint
 # df <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)

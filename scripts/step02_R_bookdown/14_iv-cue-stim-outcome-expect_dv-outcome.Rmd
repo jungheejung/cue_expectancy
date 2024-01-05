@@ -358,8 +358,6 @@ Note: Warning: Removed 1 rows containing non-finite values (`stat_half_ydensity(
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 iv1 = "event02_expect_angle"; iv2 = "event04_actual_angle"
 pvc$odr_expectoutcome = abs(pvc$event02_expect_angle + pvc$event04_actual_angle) / sqrt(2)
-
-analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model14_outcome")
 cooksd <- lmer_onefactor_cooksd(pvc, "pain", iv = "cue_name", dv= "odr_expectoutcome", subject_keyword = "src_subject_id",
                                   dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TEST.txt"), print_lmer_output = TRUE) 
 ```
@@ -415,7 +413,7 @@ subject <- "subject"
 exclude <- "sub-0999|sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0007|sub-0008|sub-0009|sub-0010|sub-0011"
 data <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
-analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model15_iv-cue-stim-N1outcome-expect_dv-outcome-demean", as.character(Sys.Date()))
+
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
 maindata <- data %>%
@@ -583,7 +581,7 @@ subject <- "subject"
 exclude <- "sub-0999|sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0007|sub-0008|sub-0009|sub-0010|sub-0011"
 data <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
-analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model15_iv-cue-stim-N1outcome-expect_dv-outcome-demean", as.character(Sys.Date()))
+
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
 maindata <- data %>%
