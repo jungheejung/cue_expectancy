@@ -562,10 +562,6 @@ ggplot(data = merged_NPS,
 ## correlation bettween NPS and PE
 
 ### test similarity between NPS positive values and PE (11/06/2023)
-```{r}
-model.25 <- lmer(merged_NPSpe$NPSpos ~ merged_NPSpe$PE_mdl2 + (1|sub), data = merged_NPSpe)
-summary(model.25)
-```
 
 ```{r}
 PEdf <- read.csv(file.path(main_dir, 'data/RL/modelfit_jepma_0525/table_pain.csv'))
@@ -607,6 +603,12 @@ ggplot(data = subjectwise_2dv,
     axis.title.y = element_text(size = 20)
       
   )
+```
+
+
+```{r}
+model.25 <- lmer(merged_NPSpe$NPSpos ~ merged_NPSpe$PE_mdl2 + (1|sub), data = merged_NPSpe)
+summary(model.25)
 ```
 
 ### test relationship between PE and cue type and stimintensity (06/16/2023)
