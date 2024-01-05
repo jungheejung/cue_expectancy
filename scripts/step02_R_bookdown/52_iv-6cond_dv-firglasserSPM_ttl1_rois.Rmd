@@ -1072,12 +1072,28 @@ for (run_type in run_types) {
   # Add the combined plot for this run type to the list for the current ROI
     plot_list_per_roi[[run_type]] <- combined_plot_per_run
 
+
 } # end of run loop
     
-    
-    
+  # add legend  
+    legend_data <- data.frame(
+      sixcond = factor(
+        c("cueH_stimH", "cueL_stimH", "cueH_stimM", "cueL_stimM", "cueH_stimL", "cueL_stimL")
+      ),
+      color = c("red", "#5f0f40", "#bc3908", "#f6aa1c", "#2541b2", "#00a6fb"),
+      stringsAsFactors = FALSE
+    )
+  plot_list_per_roi[[length(all_plots_for_roi) + 1]] <- legend_plot
+  plot_n_rows <- length(run_types) + 1
   # Combine the plots for all run types within the current ROI into a single row
-  roi_combined_plot <- ggpubr::ggarrange(plotlist = plot_list_per_roi, ncol = 1, nrow = length(run_types), align = "v")
+  roi_combined_plot <-
+    ggpubr::ggarrange(
+      plotlist = plot_list_per_roi,
+      ncol = 1,
+      nrow = plot_n_rows,
+      align = "v",
+      heights = c(rep(1, length(run_types)), 0.2)
+    )
 
   # Add the combined plot for this ROI to the overall plot list
   all_plots[[roi]] <- roi_combined_plot    
@@ -1207,13 +1223,13 @@ for (roi in c("dACC", "PHG")) {
     plot + theme(plot.margin = margin(5, 5, 5, 5)) # Adjust plot margins if needed
   })
   combined_plot_per_run <- ggpubr::ggarrange(plot_list[["H"]], plot_list[["M"]], plot_list[["L"]],
-    common.legend = TRUE, legend = "bottom", ncol = 3, nrow = 1,
+    common.legend = FALSE, legend = "bottom", ncol = 3, nrow = 1,
     widths = c(3, 3, 3), heights = c(.5, .5, .5), align = "v"
   )
   
   # Add the combined plot for this run type to the list for the current ROI
     plot_list_per_roi[[run_type]] <- combined_plot_per_run
-
+    
 # } # end of run loop
     
     
