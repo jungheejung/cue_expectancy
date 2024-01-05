@@ -937,37 +937,11 @@ for (roi in c("dACC", "PHG")) {
       "cueL_stimL" = "#00a6fb"
     )
 
-    AXIS_FONTSIZE_BASE <- 10
-    COMMONAXIS_FONTSIZE_BASE <- 15
-    TITLE_FONTSIZE_BASE <- 20
+    AXIS_FONTSIZE <- 10
+    COMMONAXIS_FONTSIZEE <- 15
+    TITLE_FONTSIZE <- 20
     figure_width <- 10  # Adjust this to your actual figure width
     figure_height <- 10  # Adjust this to your actual figure height
-    # scaling_factor <- min(figure_width, figure_height) / AXIS_FONTSIZE_BASE
-    # # Set the text size based on the calculated proportion
-    # AXIS_FONTSIZE <- AXIS_FONTSIZE_BASE * scaling_factor
-    # COMMONAXIS_FONTSIZE <- COMMONAXIS_FONTSIZE_BASE * scaling_factor
-    # TITLE_FONTSIZE <- TITLE_FONTSIZE_BASE * scaling_factor
-    # 
-    # font_size_base_dict <- list(
-    #   AXIS_FONTSIZE_BASE = 10,
-    #   COMMONAXIS_FONTSIZE_BASE = 15,
-    #    TITLE_FONTSIZE_BASE = 20
-    #  )
-    #  # 
-    #  #    font_size_base_dict <- list(
-    #  #  AXIS_FONTSIZE_BASE = 20,
-    #  #  COMMONAXIS_FONTSIZE_BASE = 15,
-    #  #   TITLE_FONTSIZE_BASE = 25
-    #  # )
-    #  # Calculate the font sizes using the function
-    #  font_sizes <- calculate_font_sizes(font_size_base_dict, figure_width, figure_height)
-    # 
-    #  # Access the font sizes as needed
-    #  AXIS_FONTSIZE <- font_sizes$AXIS_FONTSIZE_BASE
-    #  COMMONAXIS_FONTSIZE <- font_sizes$COMMONAXIS_FONTSIZE_BASE
-    #  TITLE_FONTSIZE <- font_sizes$TITLE_FONTSIZE_BASE
-    # 
-    
     GEOMPOINT_SIZE <- calculate_point_size(figure_width, figure_height)
 
     # ----------------------------------------------------------------------------
@@ -1067,9 +1041,6 @@ for (roi in c("dACC", "PHG")) {
     # ----------------------------------------------------------------------------
     
     library(gridExtra)
-    # plot_list <- lapply(plot_list, function(plot) {
-    #   plot + theme(plot.margin = margin(5, 5, 5, 5)) # Adjust plot margins if needed
-    # })
     plot_list <- lapply(plot_list, function(plot) {
       plot +
         theme(
@@ -1099,7 +1070,7 @@ for (roi in c("dACC", "PHG")) {
     
     
   } # end of run loop
-  #all_plots_for_roi <- plot_list_per_roi
+
   # ----------------------------------------------------------------------------
   #                  add commom legend
   # ----------------------------------------------------------------------------
@@ -1169,12 +1140,11 @@ for (roi in c("dACC", "PHG")) {
     ))  # title parameter
   )
   grid.draw(final_plot)
-  #all_plots[[roi]] <- final_plot
+
   
   # ----------------------------------------------------------------------------
-  #                 combine plots per roi
+  #                 save all plots
   # ----------------------------------------------------------------------------
-  # Add the combined plot for this ROI to the overall plot list
   ggsave(file.path(
     save_dir,
     paste0("roi-",
