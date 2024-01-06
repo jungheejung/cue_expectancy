@@ -19,9 +19,9 @@ editor_options:
 This Rmarkdown tests the cue effect (high vs. low) on Reaction time and performance in the cognitive, mental-rotation tasks. We also test for stimulus intensity effects.
 """
 
-## Overview model 05 iv-cue dv-RT summary
+## Overview model 08 iv-cue dv-RT summary
 * left = diff, right = same
-* model 1: Does RT differ as a function of cue type and stimulut intensity?
+* model 1: Does RT differ as a function of cue type and stimulus intensity?
 * model 1-1: Does RT differ as a function of cue, ONLY for the correct trials?
 * model 1-2: Does RT differ as a function of cue, ONLY for the incorrect trials?
 * model 2: would log-transforming help? Do we see a cue effect on the log-transformmed RTs?
@@ -112,11 +112,17 @@ data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus
 ### 2) plot RT distribution per participant  {.unlisted .unnumbered}
 - the purpose is to identify whether RTs are distributed from 0-5 sec or not
 - From this, we can also identify the quality of the data and determine if we need to scrub or remove participants. 
-```{r plot_RT_distribution, echo=TRUE}
-ggplot(data,aes(x=event03_RT, group = subject)) +
-  geom_histogram(color="darkblue", fill="lightblue", binwidth=0.25, bins = 20) + 
-  facet_wrap(~subject, ncol = 10) + 
-  theme(axis.text=element_text(size=5),text=element_text(size=6))
+```{r plot_RT_distribution, echo=TRUE, fig.width = 10, fig.height=12}
+ggplot(data, aes(x = event03_RT, group = subject)) +
+  geom_histogram(
+    color = "darkblue",
+    fill = "lightblue",
+    binwidth = 0.25,
+    bins = 20
+  ) +
+  facet_wrap( ~ subject, ncol = 10) +
+  theme(axis.text = element_text(size = 7), text = element_text(size = 12)) +
+  xlab("Reaction time for mental rotation task")
 ```
 
 * Some participants may not have responded within time limit.
@@ -153,7 +159,21 @@ data$event03_response_samediff <- mapvalues(data$event03_stimulusC_response,
 data$event03_correct <- ifelse(data$event03_C_stim_match == data$event03_response_samediff, 1, ifelse(data$event03_C_stim_match != data$event03_response_samediff, 0, "NA"))
 ```
 
-## model 1: 
+```{r, fig.width = 10, fig.height=12}
+ggplot(data, aes(x = event03_RT, group = subject)) +
+  geom_histogram(
+    color = "darkblue",
+    fill = "lightblue",
+    binwidth = 0.25,
+    bins = 20
+  ) +
+  facet_wrap( ~ subject, ncol = 10) +
+  theme(axis.text = element_text(size = 7), text = element_text(size = 12)) +
+  xlab("Reaction time for mental rotation task")
+```
+
+
+## model 1: Does RT differ as a function of cue type and stimulus intensity?
 * IV: cue (high vs. low)
 * DV: RT of the incorrect trials
 * contrast code two factors -- stimulus intensity and cue type
@@ -184,7 +204,9 @@ data$subject = factor(data$src_subject_id)
 
 ```{r echo=FALSE}
 
-# parameters ___________________________________________________________________
+# ------------------------------------------------------------------------------
+#                 task parameters
+# ------------------------------------------------------------------------------
 subject_varkey <- "src_subject_id"
 iv <- "param_cue_type"
 stim_con1 = "stim_con_linear"
@@ -210,7 +232,9 @@ model_savefname <- file.path(
 data_clean = data[!is.na(data$event03_RT),]
 data_clean$subject = factor(data_clean$src_subject_id)
 
-# lmer model ___________________________________________________________________
+# ------------------------------------------------------------------------------
+#                 lmer modeling
+# ------------------------------------------------------------------------------
 cooksd <- lmer_twofactor_cooksd_fix(data = data_clean,
                                      taskname = "cognitive",
                                      iv = "cue_factor",
@@ -238,7 +262,10 @@ data_clean$stim_ordered <- factor(data_clean$stim_name, levels=c("low", "med", "
 data_clean$cue_ordered <- factor(data_clean$cue_name, levels=c("low cue", "high cue"))
 model_iv1 = "stim_ordered";model_iv2 = "cue_ordered"
 
-# summary statistics for plots _________________________________________________
+
+# ------------------------------------------------------------------------------
+#                 summary statistics
+# ------------------------------------------------------------------------------
 subjectwise <- meanSummary(data_clean, c(subject, model_iv1, model_iv2), dv)
 groupwise <- summarySEwithin(
         data = subjectwise,
@@ -247,6 +274,10 @@ groupwise <- summarySEwithin(
         idvar = "subject"
     )
 
+
+# ------------------------------------------------------------------------------
+#                 plot parameters
+# ------------------------------------------------------------------------------
 subjectwise_mean <- "mean_per_sub";    group_mean <- "mean_per_sub_norm_mean"
 se <- "se";    subject <- "subject"
 ggtitle <- paste(taskname, " - Reaction Time (s)");    title <- paste(taskname, " - RT")
@@ -272,6 +303,10 @@ plot_halfrainclouds_twofactor(
         w, h, dv_keyword, color, plot_savefname
     )
 
+
+# ------------------------------------------------------------------------------
+#                 random effects
+# ------------------------------------------------------------------------------
 # save random effects for individual difference analysis _______________________
 randEffect$newcoef <- mapvalues(randEffect$term,
     from = c("(Intercept)"),
@@ -308,15 +343,59 @@ rand_savefname <- file.path(
 )
 write.csv(new_total, rand_savefname, row.names = FALSE)
 ```
+```
+[1] "model:  Rt  ratings -  cognitive"
+event03_RT ~ cue_factor * stim_con_linear + cue_factor * stim_con_quad + 
+    (1 | subject)
+<environment: 0x7f8725548c80>
+Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
+Formula: as.formula(model_string)
+   Data: data
 
+REML criterion at convergence: 14116
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-4.7775 -0.7079 -0.0816  0.6722  3.3218 
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ subject  (Intercept) 0.1654   0.4066  
+ Residual             0.5433   0.7371  
+Number of obs: 6189, groups:  subject, 105
+
+Fixed effects:
+                                    Estimate Std. Error         df t value Pr(>|t|)    
+(Intercept)                          3.16931    0.04202  115.33041  75.430  < 2e-16 ***
+cue_factorlow_cue                   -0.02908    0.01875 6080.59279  -1.551   0.1210    
+stim_con_linear                      0.19877    0.03240 6080.29673   6.134  9.1e-10 ***
+stim_con_quad                        0.05344    0.02842 6080.64300   1.880   0.0602 .  
+cue_factorlow_cue:stim_con_linear    0.07954    0.04587 6080.29621   1.734   0.0829 .  
+cue_factorlow_cue:stim_con_quad     -0.03609    0.04025 6080.52154  -0.897   0.3700    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Correlation of Fixed Effects:
+                    (Intr) c_fct_ stm_cn_l stm_cn_q c_fctrlw_c:stm_cn_l
+cu_fctrlw_c         -0.223                                             
+stim_cn_lnr          0.005 -0.012                                      
+stim_con_qd          0.001 -0.002 -0.012                               
+c_fctrlw_c:stm_cn_l -0.004  0.020 -0.706    0.008                      
+c_fctrlw_c:stm_cn_q -0.001  0.004  0.008   -0.706   -0.014             
+event03_RT ~ cue_factor * stim_con_linear + cue_factor * stim_con_quad + 
+    (1 | subject)
+<environment: 0x7f8725548c80>
+
+```
 ```{block2, type='rmdnote'}
 Model 1 Interim summary
-* Research question: Does RT differ as a function of high vs. low cue?
-* Conclusion: No. RT does not differ as a function of cue
+* Research question: Does RT differ as a function of high vs. low cue across stimulus intensity?
+* Conclusion: linear effect of intensity is significant. 
 * Next step: It's interesting that there is no cue effect on RT, while the cue effect on ratings are robust. We see if this effect is potentially present in only certain type of trials, namely the correct vs. incorrect trials of the mental rotation task
 ```
 
-## model 1-1
+
+## model 1-1: Does RT differ as a function of cue, ONLY for the correct trials?
 * IV: 
     * cue (high vs. low)
     * stimulus intensity (high vs. medium vs. low)
@@ -347,21 +426,6 @@ model_savefname <- file.path(
 data_clean = data[!is.na(data$event03_correct),]
 data_c = data[data_clean$event03_correct == 1,]
 data_c$subject = factor(data_c$src_subject_id)
-
-# lmer model ___________________________________________________________________
-# cooksd <- lmer_twofactor_cooksd_fix(data = data_clean,
-#                                      taskname = "cognitive",
-#                                      iv = "cue",
-#                                      stim_con1 = "stim_con_linear",
-#                                      stim_con2 = "stim_con_quad",
-#                                      dv = "event03_RT",
-#                                      subject = "src_subject_id",
-#                                      dv_keyword = "RT",
-#                                      model_savefname = model_savefname,
-#                                      effects = "random_intercept")
-# influential <- as.numeric(names(cooksd)[
-#     (cooksd > (4 / as.numeric(length(unique(data_c$subject)))))])
-# data_screen <- data_c[-influential, ]
 
 
 # lmer model ___________________________________________________________________
@@ -410,42 +474,6 @@ plot_halfrainclouds_onefactor(
         w, h, dv_keyword, color, plot_savefname
     )
 
-# save random effects for individual difference analysis _______________________
-randEffect$newcoef <- mapvalues(randEffect$term,
-    from = c("(Intercept)"),
-    to = c("rand_intercept")
-)
-rand_subset <- subset(randEffect, select = -c(grpvar, term, condsd))
-wide_rand <- spread(rand_subset, key = newcoef, value = condval)
-
-wide_fix <- do.call(
-    "rbind",
-    replicate(nrow(wide_rand),
-        as.data.frame(t(as.matrix(fixEffect))),
-        simplify = FALSE
-    )
-)
-
-rownames(wide_fix) <- NULL
-new_wide_fix <- dplyr::rename(wide_fix,
-    fix_intercept = `(Intercept)`,
-    fix_cue = `cue_factorlow_cue`,
-)
-
-total <- cbind(wide_rand, new_wide_fix)
-total$task <- taskname
-new_total <- total %>% dplyr::select(task, everything())
-new_total <- dplyr::rename(total, subj = grp)
-
-rand_savefname <- file.path(
-    analysis_dir,
-    paste("randeffect_task-", taskname, 
-          "_iv-", iv_keyword,"_dv-", dv_keyword,
-        "_", as.character(Sys.Date()), "_outlier-cooksd.csv",
-        sep = ""
-    )
-)
-write.csv(new_total, rand_savefname, row.names = FALSE)
 ```
 
 ```{block2, type='rmdnote'}
@@ -456,7 +484,8 @@ Model 1-1 Interim summary (correct trials)
 * Next step: Is there a cue effect on RT, only for the incorrect trials? Perhaps the cue had an effect on one's expectation, and the mismatch of thee cues led to incorrect performance, reflected in the RTs
 ```
 
-## model 1-2: 
+## model 1-2: Does RT differ as a function of cue, ONLY for the incorrect trials?
+
 * IV: cue (high vs. low)
 * DV: RT of the incorrect trials
 * Subsetting trials (identical to model 1, except for subsetting incorrect trials)
@@ -529,42 +558,6 @@ plot_halfrainclouds_onefactor(
         ggtitle, title, xlab, ylab, task_name, ylim,
         w, h, dv_keyword, color, plot_savefname
     )
-
-# save random effects for individual difference analysis _______________________
-randEffect$newcoef <- mapvalues(randEffect$term,
-    from = c("(Intercept)"),
-    to = c("rand_intercept")
-)
-
-rand_subset <- subset(randEffect, select = -c(grpvar, term, condsd))
-wide_rand <- spread(rand_subset, key = newcoef, value = condval)
-
-wide_fix <- do.call(
-    "rbind",
-    replicate(nrow(wide_rand),
-        as.data.frame(t(as.matrix(fixEffect))),
-        simplify = FALSE
-    )
-)
-rownames(wide_fix) <- NULL
-new_wide_fix <- dplyr::rename(wide_fix,
-    fix_intercept = `(Intercept)`,
-    fix_cue = `cue_factorlow_cue`,
-)
-
-total <- cbind(wide_rand, new_wide_fix)
-total$task <- taskname
-new_total <- total %>% dplyr::select(task, everything())
-new_total <- dplyr::rename(total, subj = grp)
-
-rand_savefname <- file.path(
-    analysis_dir,
-    paste("randeffect_task-", taskname, "_iv-", iv_keyword,"_dv-", dv_keyword,
-            "_",as.character(Sys.Date()), "_outlier-cooksd.csv",
-        sep = ""
-    )
-)
-write.csv(new_total, rand_savefname, row.names = FALSE)
 ```
 
 ```{block2, type='rmdnote'}
@@ -574,7 +567,8 @@ Model 1-2 Interim summary (incorrect trials)
 * Next step: Reaction times are data points that are non-normal; mostly a skewed distribution. In order to deal with this skewness, we log-transform the data and investigate the same question, whether the cues have a signficant effect on reaction times. 
 ```
 
-## model 2: Log transformation
+## model 2: Log transformation - Do we see a cue effect on the log-transformmed RTs?
+
 * IV: cue (high vs. low)
 * DV: log-transformmed RT
 
@@ -691,7 +685,7 @@ write.csv(new_total, rand_savefname, row.names = FALSE)
 
 ```{block2, type='rmdnote'}
 * Research question: Does log transformming help? After log-transformming RT, does RT differ as a function of high vs. low cue? 
-* conclusion 2: No, log transformmed or not, there is no significant cue effect on RT
+* Conclusion 2: No, log transformmed or not, there is no significant cue effect on RT
 ```
 
 ## Conclusion across model 1 and 2
