@@ -54,10 +54,10 @@ library(sjmisc)
 library(sjlabelled)
 library(lme4)
 library(effectsize)
-library(brms)
+# library(brms)
 library(devtools)
 library(gghalves)
-library(visibly) # 
+#library(visibly) # 
 library(plotly) #plot
 library(scico) # plot
 
@@ -74,8 +74,9 @@ sapply(file.sources,source,.GlobalEnv)
 
 ```{r function::simple_contrasts_beh, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 simple_contrasts_beh <- function(df) {
-# [ CONTRASTS ]  ________________________________________________________________________________ # nolint
-# contrast code ________________________________________
+# ------------------------------------------------------------------------------
+#                 combine plots per roi
+# ------------------------------------------------------------------------------
 df$stim_factor <- factor(df$param_stimulus_type)
 
 # contrast code 1 linear
@@ -110,8 +111,7 @@ return(df)
 
 ```{r function::simple_contrasts_singletrial, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 simple_contrasts_singletrial <- function(df) {
-# [ CONTRASTS ]  ________________________________________________________________________________ # nolint
-# contrast code ________________________________________
+
 df$STIM <- factor(df$stim)
 
 # contrast code 1 linear
@@ -148,7 +148,9 @@ return(df)
 Plot pain outcome rating as a function of expectation rating and cue {.unlisted .unnumbered}
 
 ```{r load_data_and_exclude_m1, echo=FALSE, message=FALSE, warning=FALSE}
-# parameters ___________________________________________________________________ # nolint
+# ------------------------------------------------------------------------------
+#                 parameters
+# ------------------------------------------------------------------------------
 main_dir = dirname(dirname(getwd()))
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
 analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "CCNfigures", as.character(Sys.Date()))
@@ -160,7 +162,9 @@ exclude <- "sub-0001"
 #"sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0007|sub-0008|sub-0013|sub-0016|sub-0017|sub-0019|sub-0020|sub-0021|sub-0025|sub-0075|sub-0009|sub-0117|sub-0119|sub-0081|sub-0060"
 
 
-# load data ____________________________________________________________________ # nolint
+# ------------------------------------------------------------------------------
+#                 load data
+# ------------------------------------------------------------------------------
 df <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 data.2= df %>%
   arrange(src_subject_id ) %>%
@@ -176,36 +180,43 @@ subset_N <- df_with_trial_number %>%
 data <- df %>%
 semi_join(subset_N, by = "src_subject_id")
 
-# demean ratings _______________________________________________________________ # nolint
+# ------------------------------------------------------------------------------
+#                 data formatting: center ratings, count trials
+# ------------------------------------------------------------------------------
 maindata <- data %>%
 group_by(src_subject_id) %>%
 mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
 mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
 mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
-mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
+mutate(demean_OUTCOME = event04_actual_angle - avg_outcome) %>%
 mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
-mutate(demean_expect = event02_expect_angle - avg_expect)
+mutate(demean_EXPECT = event02_expect_angle - avg_expect)
 
-
+cmc <- maindata %>%
+mutate(OUTCOME_cmc = avg_outcome - mean(avg_outcome)) %>%
+mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) 
 
 # count trial index and shift __________________________________________________ # nolint
-data_p2= maindata %>%
-  arrange(src_subject_id ) %>%
+data_p2 <- cmc %>%
+  arrange(src_subject_id) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number())
-data_a3 <- data_p2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_a3 <- data_p2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num))
-data_a3lag <- 
-    data_a3 %>%
-    group_by(src_subject_id, session_id, param_run_num) %>%
-    mutate(lag.04outcomeangle = dplyr::lag(event04_actual_angle, n = 1, default = NA))
-# data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.04outcomeangle),]
+data_a3lag <-
+  data_a3 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
+  mutate(lag.04outcomeangle = dplyr::lag(event04_actual_angle, n = 1, default = NA))
+data_a3lag_omit <-
+  data_a3lag[complete.cases(data_a3lag$lag.04outcomeangle), ]
 df <- data_a3lag_omit
 # data_a3lag
 pvc <- simple_contrasts_beh(df)
 
-# summarize dataframe __________________________________________________________ # nolint
+# ------------------------------------------------------------------------------
+#                summary statistics
+# ------------------------------------------------------------------------------
 iv1 = "event02_expect_angle"; iv2 = "event04_actual_angle"
 df_dropna <- pvc[!is.na(pvc[, iv1]) & !is.na(pvc[, iv2]), ]
 subjectwise_2dv = meanSummary_2dv(df_dropna,
@@ -214,7 +225,9 @@ subjectwise_2dv = meanSummary_2dv(df_dropna,
 subjectwise_naomit_2dv <- na.omit(subjectwise_2dv)
 subjectwise_naomit_2dv$param_cue_type <- as.factor(subjectwise_naomit_2dv$param_cue_type)
 
-# plot _________________________________________________________________________ # nolint
+# ------------------------------------------------------------------------------
+#                 plot
+# ------------------------------------------------------------------------------
 sp <- plot_twovariable(
   df = pvc, 
   iv1 = "event02_expect_angle", iv2 = "event04_actual_angle",
@@ -239,22 +252,12 @@ sp +
 ## behavioral demeaned (both)
 
 ```{r echo=FALSE}
-# maindata <- pvc %>%
-# group_by(src_subject_id, session_id, param_run_num) %>%
-# mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
-# mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
-# mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
-# mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
-# mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
-# mutate(demean_expect = event02_expect_angle - avg_expect)
-
-
 sp <- plot_twovariable(
   df = maindata, 
-  iv1 = "demean_expect", iv2 = "demean_outcome",
+  iv1 = "demean_EXPECT", iv2 = "demean_OUTCOME",
   group = "param_cue_type", subject ="src_subject_id", 
   xmin=-50, xmax=50, ymin=-25,ymax=25,
-  xlab = "Expectation rating\n(subjectwise-demeaned)", ylab = "Outcome rating\n(subjectwise-demeaned)", 
+  xlab = "Expectation rating\n(subjectwise-centered)", ylab = "Outcome rating\n(subjectwise-centered)", 
   ggtitle="", color_scheme = c("high_cue" ="#941100","low_cue" =  "#5D5C5C"), 
   alpha = .9, fit_lm = TRUE, lm_method = "lm", identity_line=TRUE, size=NULL)
 
@@ -267,22 +270,12 @@ sp +
       plot.subtitle = ggtext::element_textbox_simple(size= 11))
 
 ```
-## behavioral only expectaiton deman
+## behavioral only expectation deman
 
 ```{r}
-# maindata <- pvc %>%
-# group_by(src_subject_id, session_id, param_run_num) %>%
-# mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
-# mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
-# mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
-# mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
-# mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
-# mutate(demean_expect = event02_expect_angle - avg_expect)
-
-
 sp <- plot_twovariable(
   df = maindata, 
-  iv1 = "demean_expect", iv2 = "event04_actual_angle",
+  iv1 = "demean_EXPECT", iv2 = "event04_actual_angle",
   group = "param_cue_type", subject ="src_subject_id", 
   xmin=-50, xmax=50, ymin=0,ymax=180,
   xlab = "Expectation rating\n(subjectwise-demeaned)", ylab = "Outcome rating", 
@@ -302,7 +295,9 @@ sp +
 ## behavioral :: line plot cue * stim (outcome demena)
 ### model 04 4-4 lineplot (demean)
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-#  [ PLOT ] calculate mean and se  _________________________
+# ------------------------------------------------------------------------------
+#                organize factors and list plot paramters
+# ------------------------------------------------------------------------------
 pvc <-simple_contrasts_beh(maindata)
 pvc$stim[pvc$stim_ordered == "low_stim"] <-  "low"
 pvc$stim[pvc$stim_ordered == "med_stim"] <-  "med"
@@ -312,15 +307,19 @@ pvc$stim_ordered <- factor(
         levels = c("low", "med", "high")
     )
 
-LINEIV1 = "stim_ordered"
-LINEIV2 = "cue_ordered"
-MEAN = "mean_per_sub_norm_mean"
-ERROR = "ci"
-dv_keyword = "actual"
-model_iv1 = "stim_ordered"
-model_iv2 = "cue_ordered"
-dv = "demean_outcome"
+LINEIV1 <- "stim_ordered"
+LINEIV2 <- "cue_ordered"
+MEAN <- "mean_per_sub_norm_mean"
+ERROR <- "ci"
+dv_keyword <- "outcome"
+model_iv1 <- "stim_ordered"
+model_iv2 <- "cue_ordered"
+dv <- "demean_OUTCOME"
 taskname <- "pain"
+
+# ------------------------------------------------------------------------------
+#                summary statistics for cue and stim factor
+# ------------------------------------------------------------------------------
 stimcue_subjectwise <- meanSummary(pvc,
                                       c(subject, model_iv1, model_iv2), dv)
 df_dropna <- stimcue_subjectwise[!is.na(stimcue_subjectwise[, "mean_per_sub"]), ]
@@ -333,11 +332,7 @@ stimcue_groupwise <- summarySEwithin(
 stimcue_groupwise$task <- taskname
 DATA = as.data.frame(stimcue_groupwise)
 color = c("#5D5C5C", "#941100")
-LINEIV1 = "stim_ordered"
-LINEIV2 = "cue_ordered"
-MEAN = "mean_per_sub_norm_mean"
-ERROR = "ci"
-dv_keyword = "actual"
+
 p1 = plot_lineplot_twofactor_subsetthick(DATA, task = "pain",
                LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'pain' , ylab = "outcome rating")
 p1 <- p1 + theme(text = element_text(size = 35), plot.subtitle = ggtext::element_textbox_simple(size= 25)) +theme(aspect.ratio=1) +
@@ -352,7 +347,162 @@ p1 <- p1 + theme(text = element_text(size = 35), plot.subtitle = ggtext::element
 ggsave(file.path(analysis_dir, "beh_iv-cue-stim-dv-outcome.png"), plot = p1, bg = "transparent", device = "png")
 ```
 
-## behavioral :: line plots cue * stim * intensity (demean outcome)
+
+## behavioral :: line plots cue * stim * expect (demean outcome)
+Here, I plot the demeaned-outcome rating as a function of cue, stimulus intensity, and expectation interaction. 
+
+```{r, fig.height=10}
+# Function to create individual plots
+create_individual_plot <- function(data, iv1, iv2, intensity, xlab, ylab, ggtitle, color_scheme, size = 2, subtitle_size, text_size) {
+  plot <- plot_twovariable(
+    data, iv1 = iv1, iv2 = iv2,
+    group = "cuetype", subject = "sub",
+    xmin = -50, xmax = 50, ymin = -50, ymax = 50,
+    xlab = xlab, ylab = ylab,
+    ggtitle = ggtitle,
+    color_scheme = color_scheme,
+    alpha = 0.6, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE, size = size, 
+    subtitle_size=subtitle_size, text_size=text_size
+  )
+  plot_trans <- plot + theme(
+    panel.background = element_rect(fill = 'transparent'),
+    plot.background = element_rect(fill = 'transparent', color = NA),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    #legend.background = element_rect(fill = 'transparent'),
+    #legend.box.background = element_rect(fill = 'transparent')
+    legend.position = "none",
+    
+    axis.title.y = element_blank(),          # Remove y-axis title
+    axis.title.x = element_blank(),
+    plot.margin = margin(5, 5, 5, 5)
+  )
+  return(plot_trans)
+}
+
+
+create_legend <- function() {
+  legend_data <- data.frame(
+    sixcond = factor(
+      c(
+        "High cue",
+        "Low cue"
+      )
+    ),
+    color = c("red", "#5D5C5C"),
+    stringsAsFactors = FALSE
+  )
+  legend_plot <- ggplot(legend_data, aes(x = sixcond, y = 1, color = sixcond)) +
+    geom_point() +
+    scale_color_manual(values = legend_data$color) +
+    theme_void() +
+    theme(legend.position = "bottom") +
+    guides(color = guide_legend(title = "Condition"))
+  return(ggplotGrob(legend_plot)$grobs[[which(sapply(ggplotGrob(legend_plot)$grobs, function(x) x$name) == "guide-box")]])
+}
+```
+
+
+```{r, fig.height=4, fig.width=10}
+# Main data preprocessing
+# ----------------------------------------------------------------------------
+#                  plot paramters
+# ----------------------------------------------------------------------------
+iv1 <- "demean_EXPECT"
+iv2 <- "demean_OUTCOME"
+XAXIS_TEXT <- "Expectation rating\n(subjectwise centered)"
+YAXIS_TEXT <- "Outcome rating\n(subjectwise centered)"
+TEXT_FONTSIZE <- 12
+LABEL_FONTSIZE <- 15
+TITLE_FONTSIZE <- 15
+
+# ----------------------------------------------------------------------------
+#                  format dataframe
+# ----------------------------------------------------------------------------
+maindata.df <- simple_contrasts_beh(maindata)
+pvc.df <- maindata.df %>%
+  mutate(
+    cuetype = case_when(cue_ordered == "low" ~ "low",
+                        cue_ordered == "high" ~ "high"),
+    stimintensity = case_when(
+      stim_ordered == "high_stim" ~ "high",
+      stim_ordered == "med_stim" ~ "med",
+      stim_ordered == "low_stim" ~ "low"
+    )
+  )
+pvc.df$sub <- pvc.df$src_subject_id
+df_dropna <-
+  pvc.df[!is.na(pvc.df$demean_EXPECT) &
+           !is.na(pvc.df$demean_OUTCOME),]
+
+# Create individual plots
+df_intensity <- list(low = df_dropna[df_dropna$stimintensity == "low",],
+                     med = df_dropna[df_dropna$stimintensity == "med",],
+                     high = df_dropna[df_dropna$stimintensity == "high",])
+
+intensities <- c("low", "med", "high")
+color_mapping <- list(
+  "high" = c("high" = "#941100", "low" = "#5D5C5C"),
+  "med" = c("high" = "#DB6000", "low" = "#5D5C5C"),
+  "low" = c("high" = "#FF8800", "low" = "#5D5C5C")
+)
+
+# ----------------------------------------------------------------------------
+#                  plot
+# ----------------------------------------------------------------------------
+plots <- lapply(intensities, function(intensity) {
+  create_individual_plot(
+    df_intensity[[intensity]],
+    iv1 = "demean_EXPECT",
+    iv2 = "demean_OUTCOME",
+    xlab = ifelse(intensity == "low", " ", "Expectation rating"),
+    ylab = ifelse(intensity == "high", " ", "Outcome rating"),
+    ggtitle = paste(tools::toTitleCase(intensity), "intensity"),
+    color_scheme = color_mapping[[intensity]], 
+    subtitle_size = TITLE_FONTSIZE,
+    text_size = TEXT_FONTSIZE
+  )
+})
+combined_plots <- do.call(grid.arrange, c(plots, ncol = 3))
+
+# ----------------------------------------------------------------------------
+#                  create common axis label
+# ----------------------------------------------------------------------------
+y_axis_label <-
+  textGrob(YAXIS_TEXT,
+           rot = 90,
+           gp = gpar(fontsize = LABEL_FONTSIZE))
+x_axis_label <-
+  textGrob(XAXIS_TEXT,
+           rot = 0,
+           gp = gpar(fontsize = LABEL_FONTSIZE))
+num_rows <- length(combined_plots) + 1  # +1 for the legend
+
+legend_grob <- create_legend()
+heights <- c(rep(1, length(run_types)), 2)
+# ----------------------------------------------------------------------------
+#                  combined plots across 3 intensities
+# ----------------------------------------------------------------------------
+x_combined_plot <- grid.arrange(combined_plots, x_axis_label, nrow = 2, heights = c(1, .1))
+roi_combined_plot <- grid.arrange(y_axis_label, x_combined_plot, ncol = 2, widths = c(1, 10))
+final_plot <- grid.arrange(roi_combined_plot,
+    #x_axis_label,
+    legend_grob,
+    ncol = 1,
+    nrow = 2,
+    heights = unit.c(unit(8, "null"), unit(1, "null")),
+    top = textGrob(
+    sprintf("Outcome rating as a function of cue x stim x expectation"),
+    gp = gpar(fontsize = TITLE_FONTSIZE, fontface = "bold")
+  ) 
+    )
+grid.draw(final_plot)
+
+
+################################# sandbox
+
+```
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # 
 # # Color: low FF8800, med DB6000, high 941100
@@ -371,11 +521,11 @@ pvc.df <- maindata.df %>%
     )
     )
 pvc.df$sub = pvc.df$src_subject_id
-df_dropna <- pvc.df[!is.na(pvc.df$demean_expect) & !is.na(pvc.df$demean_outcome),]
+df_dropna <- pvc.df[!is.na(pvc.df$demean_EXPECT) & !is.na(pvc.df$demean_OUTCOME),]
 df_low = df_dropna[df_dropna$stimintensity == "low", ]
 low <-
   plot_twovariable(
-    df_low, iv1 = "demean_expect", iv2 = "demean_outcome",
+    df_low, iv1 = "demean_EXPECT", iv2 = "demean_OUTCOME",
     group = "cuetype", subject = "sub",
     xmin=-50, xmax=50, ymin=-50, ymax=50,
     xlab = " ", ylab = "Outcome rating",
@@ -388,7 +538,7 @@ low <-
 df_med = df_dropna[df_dropna$stimintensity == "med", ]
 med <-
   plot_twovariable(
-    df_med, iv1 = "demean_expect", iv2 = "demean_outcome",
+    df_med, iv1 = "demean_EXPECT", iv2 = "demean_OUTCOME",
     group = "cuetype", subject = "sub",
     xmin=-50, xmax=50, ymin=-50, ymax=50,
     xlab = "Expectation rating", ylab = " ",
@@ -400,7 +550,7 @@ med <-
 df_high = df_dropna[df_dropna$stimintensity == "high", ]
 high <-
   plot_twovariable(
-    df_high, iv1 = "demean_expect", iv2 = "demean_outcome",
+    df_high, iv1 = "demean_EXPECT", iv2 = "demean_OUTCOME",
     group = "cuetype", subject = "sub",
     xmin=-50, xmax=50, ymin=-50, ymax=50,
     xlab = "", ylab = " ",
@@ -460,11 +610,11 @@ pvc.df <- maindata.df %>%
     )
     )
 pvc.df$sub = pvc.df$src_subject_id
-df_dropna <- pvc.df[!is.na(pvc.df$demean_expect) & !is.na(pvc.df$demean_outcome),]
+df_dropna <- pvc.df[!is.na(pvc.df$demean_EXPECT) & !is.na(pvc.df$demean_OUTCOME),]
 df_low = df_dropna[df_dropna$stimintensity == "low", ]
 low <-
   plot_twovariable(
-    df_low, iv1 = "demean_expect", iv2 = "event04_actual_angle",
+    df_low, iv1 = "demean_EXPECT", iv2 = "event04_actual_angle",
     group = "cuetype", subject = "sub",
     xmin=-50, xmax=50, ymin=-0, ymax=180,
     xlab = " ", ylab = "Outcome rating",
@@ -477,7 +627,7 @@ low <-
 df_med = df_dropna[df_dropna$stimintensity == "med", ]
 med <-
   plot_twovariable(
-    df_med, iv1 = "demean_expect", iv2 = "event04_actual_angle",
+    df_med, iv1 = "demean_EXPECT", iv2 = "event04_actual_angle",
     group = "cuetype", subject = "sub",
     xmin=-50, xmax=50, ymin=-0, ymax=180,
     xlab = "Expectation rating (Demean)", ylab = " ",
@@ -489,7 +639,7 @@ med <-
 df_high = df_dropna[df_dropna$stimintensity == "high", ]
 high <-
   plot_twovariable(
-    df_high, iv1 = "demean_expect", iv2 = "event04_actual_angle",
+    df_high, iv1 = "demean_EXPECT", iv2 = "event04_actual_angle",
     group = "cuetype", subject = "sub",
     xmin=-50, xmax=50, ymin=-0, ymax=180,
     xlab = "", ylab = " ",
@@ -550,11 +700,11 @@ pvc.df <- maindata.df %>%
     )
     )
 pvc.df$sub = pvc.df$src_subject_id
-df_dropna <- pvc.df[!is.na(pvc.df$demean_expect) & !is.na(pvc.df$event04_actual_angle),]
+df_dropna <- pvc.df[!is.na(pvc.df$demean_EXPECT) & !is.na(pvc.df$event04_actual_angle),]
 df_low = df_dropna[df_dropna$stimintensity == "low", ]
 low <-
   plot_twovariable(
-    df_low, iv1 = "demean_expect", iv2 = "event04_actual_angle",
+    df_low, iv1 = "demean_EXPECT", iv2 = "event04_actual_angle",
     group = "cuetype", subject = "sub",
     xmin=-50, xmax=50, ymin=0, ymax=180,
     xlab = "expectation rating\n(subjectwise mean-centered)", ylab = "Outcome rating",
@@ -567,7 +717,7 @@ low <-
 df_med = df_dropna[df_dropna$stimintensity == "med", ]
 med <-
   plot_twovariable(
-    df_med, iv1 = "demean_expect", iv2 = "event04_actual_angle",
+    df_med, iv1 = "demean_EXPECT", iv2 = "event04_actual_angle",
     group = "cuetype", subject = "sub",
    xmin=-50, xmax=50, ymin=0, ymax=180,
     xlab = "expectation rating\n(subjectwise mean-centered)", ylab = "Outcome rating",
@@ -579,7 +729,7 @@ med <-
 df_high = df_dropna[df_dropna$stimintensity == "high", ]
 high <-
   plot_twovariable(
-    df_high, iv1 = "demean_expect", iv2 = "event04_actual_angle",
+    df_high, iv1 = "demean_EXPECT", iv2 = "event04_actual_angle",
     group = "cuetype", subject = "sub",
     xmin=-50, xmax=50, ymin=0, ymax=180,
     xlab = "expectation rating\n(subjectwise mean-centered)", ylab = "Outcome rating",
@@ -908,25 +1058,11 @@ fig.bsave <- fig.b + theme(aspect.ratio=.9) +
   theme(text = element_text(size = 25)) 
 # theme(axis.text.x=element_text(size=40, angle=0)) +
 # theme(axis.text.y=element_text(size=40, angle=0))
-ggsave(file.path(analysis_dir, 'CCNfigures/figB.png'), plot = fig.bsave)
+ggsave(file.path(analysis_dir, 'figB.png'), plot = fig.bsave)
 fig.bsave
 ```
 
-### lmer
 
-```{r}
-NPS.df$EXPECT_demean <- NPS.df$demean_expect; NPS.df$OUTCOME_demean <- NPS.df$demean_outcome
-model.NPSdemean <- lmer(NPSpos ~ 
-                          CUE_high_gt_low*STIM_linear +
-                          CUE_high_gt_low*STIM_quadratic +
-                           # lag.04outcomeangle +
-                          (1 |sub), data = NPS.df
-                    ) 
-# CUE_high_gt_low+STIM+EXPECT_demean
-sjPlot::tab_model(model.NPSdemean,
-                  title = "Multilevel-modeling: \nlmer(OUTCOME ~ CUE * STIM * EXPECT_demean + (1| sub), data = pvc)",
-                  CSS = list(css.table = '+font-size: 12;'))
-```
 
 
 ### NPS demeaned: stim*cue
@@ -937,9 +1073,9 @@ NPSmaindata <- data_screen %>%
   mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
   mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
   mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
-  mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
+  mutate(demean_OUTCOME = event04_actual_angle - avg_outcome) %>%
   mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
-  mutate(demean_expect = event02_expect_angle - avg_expect) 
+  mutate(demean_EXPECT = event02_expect_angle - avg_expect) 
   # ungroup() %>%
 
 NPS.df <- NPSmaindata %>%
@@ -1005,17 +1141,31 @@ p1 +   theme(aspect.ratio=.9) +
   theme(text = element_text(size = 15)) 
 ```
 
+### lmer
 
+```{r}
+NPS.df$EXPECT_demean <- NPS.df$demean_EXPECT; NPS.df$OUTCOME_demean <- NPS.df$demean_OUTCOME
+model.NPSdemean <- lmer(NPSpos ~ 
+                          CUE_high_gt_low*STIM_linear +
+                          CUE_high_gt_low*STIM_quadratic +
+                           # lag.04outcomeangle +
+                          (1 |sub), data = NPS.df
+                    ) 
+# CUE_high_gt_low+STIM+EXPECT_demean
+sjPlot::tab_model(model.NPSdemean,
+                  title = "Multilevel-modeling: \nlmer(OUTCOME ~ CUE * STIM * EXPECT_demean + (1| sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+```
 
 ### NPS: cue * expect (expect demean)
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # df_dropna <-
-  # NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$NPSpos),]
-NPS_dropna <- NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$demean_NPS) & (NPS.df$ses == "ses-01" | NPS.df$ses == "ses-03"),]
+  # NPS.df[!is.na(NPS.df$demean_EXPECT) & !is.na(NPS.df$NPSpos),]
+NPS_dropna <- NPS.df[!is.na(NPS.df$demean_EXPECT) & !is.na(NPS.df$demean_NPS) & (NPS.df$ses == "ses-01" | NPS.df$ses == "ses-03"),]
 total <-
   plot_twovariable(
     NPS_dropna,
-    iv1 = "demean_expect",
+    iv1 = "demean_EXPECT",
     iv2 = "NPSpos",
     group = "cuetype",
     subject = "sub",
@@ -1033,12 +1183,12 @@ total +   theme(aspect.ratio=.9) +
 ### NPS: cue * expect (both demean)
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # df_dropna <-
-  # NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$demean_NPS),]
-NPS_dropna <- NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$demean_NPS) & (NPS.df$ses == "ses-01" | NPS.df$ses == "ses-03"),]
+  # NPS.df[!is.na(NPS.df$demean_EXPECT) & !is.na(NPS.df$demean_NPS),]
+NPS_dropna <- NPS.df[!is.na(NPS.df$demean_EXPECT) & !is.na(NPS.df$demean_NPS) & (NPS.df$ses == "ses-01" | NPS.df$ses == "ses-03"),]
 total <-
   plot_twovariable(
     NPS_dropna,
-    iv1 = "demean_expect",
+    iv1 = "demean_EXPECT",
     iv2 = "demean_NPS",
     group = "cuetype",
     subject = "sub",
@@ -1056,16 +1206,16 @@ total+   theme(aspect.ratio=.9) +
 ### NPS: stim * cue * expect
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
-# NPS_dropna <- maindata[!is.na(maindata$demean_expect) & !is.na(maindata$demean_NPS) & (maindata$ses == "ses-01") | (maindata$ses == "ses-03"),]
+# NPS_dropna <- maindata[!is.na(maindata$demean_EXPECT) & !is.na(maindata$demean_NPS) & (maindata$ses == "ses-01") | (maindata$ses == "ses-03"),]
 # event02_expect_angle
 # _________________________ figure parameters __________________________________
-iv1 = "demean_expect"; iv2 = "NPSpos";group = "cuetype"; subject = "sub";
+iv1 = "demean_EXPECT"; iv2 = "NPSpos";group = "cuetype"; subject = "sub";
 xmin = -60; xmax = 80; ymin = -15; ymax = 35;
 xlab = "expectation rating\n(subjectwise mean-centered)"; ylab = "NPSpos\n(dot product)";
 alpha = .6; fit_lm = TRUE; lm_method = "lm";identity_line = FALSE; size =  NULL
 ############## ############## ############## 
 
-NPS_dropna <-  NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$demean_NPS) & (NPS.df$ses == "ses-01") | (NPS.df$ses == "ses-03"),]
+NPS_dropna <-  NPS.df[!is.na(NPS.df$demean_EXPECT) & !is.na(NPS.df$demean_NPS) & (NPS.df$ses == "ses-01") | (NPS.df$ses == "ses-03"),]
 
 # NPS_dropna <- NPS.df
 df_low = NPS_dropna[NPS_dropna$stimintensity == "low", ]
@@ -1110,16 +1260,16 @@ plots
 
 # Color: low FF8800, med DB6000, high 941100
  # & (NPS.df$ses == "ses-01" | NPS.df$ses == "ses-03")
-# NPS_dropna <- NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$demean_NPS),]
+# NPS_dropna <- NPS.df[!is.na(NPS.df$demean_EXPECT) & !is.na(NPS.df$demean_NPS),]
 
 # ---------------------------- figure parameters -------------------------------
-iv1 = "demean_expect"; iv2 = "demean_NPS";group = "cuetype"; subject = "sub";
+iv1 = "demean_EXPECT"; iv2 = "demean_NPS";group = "cuetype"; subject = "sub";
 xmin = -60; xmax = 80; ymin = -15; ymax = 25;
 xlab = "expectation rating\n(subjectwise mean-centered)"; ylab = "NPSpos\n(dot product)";
 alpha = .6; fit_lm = TRUE; lm_method = "lm";identity_line = FALSE; size =  NULL
 # ------------------------------------------------------------------------------
 
-NPS_dropna <- NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$demean_NPS) & (NPS.df$ses == "ses-01" | NPS.df$ses == "ses-03"),]
+NPS_dropna <- NPS.df[!is.na(NPS.df$demean_EXPECT) & !is.na(NPS.df$demean_NPS) & (NPS.df$ses == "ses-01" | NPS.df$ses == "ses-03"),]
 df_low = NPS_dropna[NPS_dropna$stimintensity == "low", ]
 low <-
   plot_twovariable(
@@ -1164,14 +1314,14 @@ plots
 # mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
 # mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
 # mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
-# mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
+# mutate(demean_OUTCOME = event04_actual_angle - avg_outcome) %>%
 # mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
-# mutate(demean_expect = event02_expect_angle - avg_expect)
+# mutate(demean_EXPECT = event02_expect_angle - avg_expect)
 
-NPS_dropna <- NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$demean_NPS) & (NPS.df$ses == "ses-01" | NPS.df$ses == "ses-03"),]
+NPS_dropna <- NPS.df[!is.na(NPS.df$demean_EXPECT) & !is.na(NPS.df$demean_NPS) & (NPS.df$ses == "ses-01" | NPS.df$ses == "ses-03"),]
 sp <- plot_twovariable(
   df = NPS_dropna, 
-  iv1 = "demean_expect", iv2 = "demean_NPS",
+  iv1 = "demean_EXPECT", iv2 = "demean_NPS",
   group = "cuetype", subject ="sub", 
   xmin=-50, xmax=50, ymin=-10,ymax=10,
   xlab = "Expectation rating\n(subjectwise-demeaned)", ylab = "NPSpos\n(subjectwise-demeaned)", 
@@ -1196,15 +1346,15 @@ sp +
 # mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
 # mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
 # mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
-# mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
+# mutate(demean_OUTCOME = event04_actual_angle - avg_outcome) %>%
 # mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
-# mutate(demean_expect = event02_expect_angle - avg_expect)
+# mutate(demean_EXPECT = event02_expect_angle - avg_expect)
 
-# NPS_dropna <- NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$NPSpos) ,]
-NPS_dropna <- NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$demean_NPS) & (NPS.df$ses == "ses-01" | NPS.df$ses == "ses-03"),]
+# NPS_dropna <- NPS.df[!is.na(NPS.df$demean_EXPECT) & !is.na(NPS.df$NPSpos) ,]
+NPS_dropna <- NPS.df[!is.na(NPS.df$demean_EXPECT) & !is.na(NPS.df$demean_NPS) & (NPS.df$ses == "ses-01" | NPS.df$ses == "ses-03"),]
 sp <- plot_twovariable(
   df = NPS_dropna, 
-  iv1 = "demean_expect", iv2 = "NPSpos",
+  iv1 = "demean_EXPECT", iv2 = "NPSpos",
   group = "cuetype", subject ="sub", 
   xmin=-50, xmax=50, ymin=-10,ymax=25,
   xlab = "Expectation rating\n(subjectwise-demeaned)", ylab = "NPSpos", 
@@ -1227,7 +1377,7 @@ sp +
 ## Behavioral data
 ### lmer
 ```{r}
-NPS.df$EXPECT_demean <- NPS.df$demean_expect; NPS.df$OUTCOME_demean <- NPS.df$demean_outcome
+NPS.df$EXPECT_demean <- NPS.df$demean_EXPECT; NPS.df$OUTCOME_demean <- NPS.df$demean_OUTCOME
 model.behexpectdemean <- lmer(event04_actual_angle ~ 
                           CUE_high_gt_low*STIM_linear*EXPECT_demean +
                           CUE_high_gt_low*STIM_quadratic*EXPECT_demean +
@@ -1241,7 +1391,7 @@ sjPlot::tab_model(model.behexpectdemean,
 ```
 
 ```{r}
-# NPS.df$EXPECT_demean <- NPS.df$demean_expect; NPS.df$OUTCOME_demean <- NPS.df$demean_outcome
+# NPS.df$EXPECT_demean <- NPS.df$demean_EXPECT; NPS.df$OUTCOME_demean <- NPS.df$demean_OUTCOME
 model.fig1<- lmer(OUTCOME_demean ~ 
                           CUE_high_gt_low*EXPECT_demean +
                           
@@ -1254,7 +1404,7 @@ sjPlot::tab_model(model.fig1,
 ```
 
 ```{r}
-# NPS.df$EXPECT_demean <- NPS.df$demean_expect; NPS.df$OUTCOME_demean <- NPS.df$demean_outcome
+# NPS.df$EXPECT_demean <- NPS.df$demean_EXPECT; NPS.df$OUTCOME_demean <- NPS.df$demean_OUTCOME
 model.behoutcome<- lmer(event04_actual_angle ~ 
                           CUE_high_gt_low*STIM_linear +
                           CUE_high_gt_low*STIM_quadratic +
@@ -1275,15 +1425,15 @@ sjPlot::tab_model(model.behoutcome,
 # mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
 # mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
 # mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
-# mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
+# mutate(demean_OUTCOME = event04_actual_angle - avg_outcome) %>%
 # mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
-# mutate(demean_expect = event02_expect_angle - avg_expect)
+# mutate(demean_EXPECT = event02_expect_angle - avg_expect)
 
-beh_dropna <- NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$demean_outcome) ,]
+beh_dropna <- NPS.df[!is.na(NPS.df$demean_EXPECT) & !is.na(NPS.df$demean_OUTCOME) ,]
 
 a2 <- plot_twovariable(
   df = beh_dropna, 
-  iv1 = "demean_expect", iv2 = "demean_outcome",
+  iv1 = "demean_EXPECT", iv2 = "demean_OUTCOME",
   group = "cuetype", subject ="sub", 
   xmin=-50, xmax=50, ymin=-25,ymax=25,
   xlab = "Expectation rating", ylab = " ", 
@@ -1313,7 +1463,7 @@ ggsave(file.path(analysis_dir, 'figA2.png'), save.sp)
 ### Fig A1: behavioral lineplots
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 #  [ PLOT ] calculate mean and se  _________________________
-beh_dropna <- NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$demean_outcome) ,]
+beh_dropna <- NPS.df[!is.na(NPS.df$demean_EXPECT) & !is.na(NPS.df$demean_OUTCOME) ,]
 
 # pvc <-simple_contrasts_beh(maindata)
 LINEIV1 = "stim_ordered"
@@ -1323,7 +1473,7 @@ ERROR = "ci"
 dv_keyword = "actual"
 model_iv1 = "stim_ordered"
 model_iv2 = "cue_ordered"
-dv = "demean_outcome"
+dv = "demean_OUTCOME"
 taskname <- "pain"
 stimcue_subjectwise <- meanSummary(NPS.df,
                                       c(subject, model_iv1, model_iv2), dv)
@@ -1379,13 +1529,13 @@ fig.ab
 ### Fig C: behavioral cue * stim * expect
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # ---------------------------- figure parameters -------------------------------
-iv1 = "demean_expect"; iv2 = "demean_outcome"; group = "cuetype"; subject = "sub";
+iv1 = "demean_EXPECT"; iv2 = "demean_OUTCOME"; group = "cuetype"; subject = "sub";
 xmin = -50; xmax = 50; ymin = -50; ymax = 50;
 xlab = "Expectation rating"; ylab = "Outcome rating";
 alpha = .6; fit_lm = TRUE; lm_method = "lm";identity_line = FALSE; size =  NULL
 # ------------------------------------------------------------------------------
 
-df_dropna <- NPS.df[!is.na(NPS.df$demean_expect) & !is.na(NPS.df$demean_outcome),]
+df_dropna <- NPS.df[!is.na(NPS.df$demean_EXPECT) & !is.na(NPS.df$demean_OUTCOME),]
 df_low = df_dropna[df_dropna$stimintensity == "low", ]
 low <-
   plot_twovariable(
@@ -1540,7 +1690,7 @@ ggsave(file.path(analysis_dir, 'figD.png'), plots)
 
 ## save dataframe
 ```{r}
-write.csv(NPS.df,file.path(main_dir, 'analysis/mixedeffect/CCNfigures/dataframe.csv'))
+write.csv(NPS.df,file.path(analysis_dir, 'dataframe.csv'))
 ```
 
 
@@ -1717,9 +1867,9 @@ group_by(src_subject_id) %>%
 mutate(Pain_mdl2 = as.numeric(Pain_mdl2)) %>%
 mutate(Exp_mdl2 = as.numeric(Exp_mdl2)) %>%
 mutate(avg_outcome = mean(Pain_mdl2, na.rm = TRUE)) %>%
-mutate(demean_outcome = Pain_mdl2 - avg_outcome) %>%
+mutate(demean_OUTCOME = Pain_mdl2 - avg_outcome) %>%
 mutate(avg_expect = mean(Exp_mdl2, na.rm = TRUE)) %>%
-mutate(demean_expect = Exp_mdl2 - avg_expect)
+mutate(demean_EXPECT = Exp_mdl2 - avg_expect)
 
 # count trial index and shift __________________________________________________ # nolint
 data_p2= maindata %>%
@@ -1772,7 +1922,7 @@ sp +
 
 sp <- plot_twovariable(
   df = pvc, 
-  iv1 = "demean_expect", iv2 = "demean_outcome",
+  iv1 = "demean_EXPECT", iv2 = "demean_OUTCOME",
   group = "param_cue_type", subject ="src_subject_id", 
   xmin=-50, xmax=50, ymin=-25,ymax=25,
   xlab = "Expectation rating\n(subjectwise-demeaned)", ylab = "Outcome rating\n(subjectwise-demeaned)", 
@@ -1810,11 +1960,11 @@ pvc.df <- maindata.df %>%
     )
     )
 pvc.df$sub = pvc.df$src_subject_id
-df_dropna <- pvc.df[!is.na(pvc.df$demean_expect) & !is.na(pvc.df$demean_outcome),]
+df_dropna <- pvc.df[!is.na(pvc.df$demean_EXPECT) & !is.na(pvc.df$demean_OUTCOME),]
 df_low = df_dropna[df_dropna$stimintensity == "low", ]
 low <-
   plot_twovariable(
-    df_low, iv1 = "demean_expect", iv2 = "demean_outcome",
+    df_low, iv1 = "demean_EXPECT", iv2 = "demean_OUTCOME",
     group = "cuetype", subject = "sub",
     xmin=-50, xmax=50, ymin=-50, ymax=50,
     xlab = "expectation rating\n(subjectwise mean-centered)", ylab = "Outcome rating",
@@ -1827,7 +1977,7 @@ low <-
 df_med = df_dropna[df_dropna$stimintensity == "med", ]
 med <-
   plot_twovariable(
-    df_med, iv1 = "demean_expect", iv2 = "demean_outcome",
+    df_med, iv1 = "demean_EXPECT", iv2 = "demean_OUTCOME",
     group = "cuetype", subject = "sub",
     xmin=-50, xmax=50, ymin=-50, ymax=50,
     xlab = "expectation rating\n(subjectwise mean-centered)", ylab = "Outcome rating",
@@ -1839,7 +1989,7 @@ med <-
 df_high = df_dropna[df_dropna$stimintensity == "high", ]
 high <-
   plot_twovariable(
-    df_high, iv1 = "demean_expect", iv2 = "demean_outcome",
+    df_high, iv1 = "demean_EXPECT", iv2 = "demean_OUTCOME",
     group = "cuetype", subject = "sub",
     xmin=-50, xmax=50, ymin=-50, ymax=50,
     xlab = "expectation rating\n(subjectwise mean-centered)", ylab = "Outcome rating",
@@ -1874,11 +2024,11 @@ pvc.df <- maindata.df %>%
     )
     )
 pvc.df$sub = pvc.df$src_subject_id
-df_dropna <- pvc.df[!is.na(pvc.df$demean_expect) & !is.na(pvc.df$demean_outcome),]
+df_dropna <- pvc.df[!is.na(pvc.df$demean_EXPECT) & !is.na(pvc.df$demean_OUTCOME),]
 df_low = df_dropna[df_dropna$stimintensity == "low", ]
 low <-
   plot_twovariable(
-    df_low, iv1 = "demean_expect", iv2 = "demean_outcome",
+    df_low, iv1 = "demean_EXPECT", iv2 = "demean_OUTCOME",
     group = "cuetype", subject = "sub",
     xmin=-50, xmax=50, ymin=-50, ymax=50,
     xlab = " ", ylab = "Outcome rating",
@@ -1898,7 +2048,7 @@ low <-
 df_med = df_dropna[df_dropna$stimintensity == "med", ]
 med <-
   plot_twovariable(
-    df_med, iv1 = "demean_expect", iv2 = "demean_outcome",
+    df_med, iv1 = "demean_EXPECT", iv2 = "demean_OUTCOME",
     group = "cuetype", subject = "sub",
     xmin=-50, xmax=50, ymin=-50, ymax=50,
     xlab = "Expectation rating", ylab = " ",
@@ -1917,7 +2067,7 @@ med <-
 df_high = df_dropna[df_dropna$stimintensity == "high", ]
 high <-
   plot_twovariable(
-    df_high, iv1 = "demean_expect", iv2 = "demean_outcome",
+    df_high, iv1 = "demean_EXPECT", iv2 = "demean_OUTCOME",
     group = "cuetype", subject = "sub",
     xmin=-50, xmax=50, ymin=-50, ymax=50,
     xlab = " ", ylab = " ",
@@ -2004,9 +2154,9 @@ group_by(src_subject_id) %>%
 mutate(Pain_mdl3 = as.numeric(Pain_mdl3)) %>%
 mutate(Exp_mdl3 = as.numeric(Exp_mdl3)) %>%
 mutate(avg_outcome = mean(Pain_mdl3, na.rm = TRUE)) %>%
-mutate(demean_outcome = Pain_mdl3 - avg_outcome) %>%
+mutate(demean_OUTCOME = Pain_mdl3 - avg_outcome) %>%
 mutate(avg_expect = mean(Exp_mdl3, na.rm = TRUE)) %>%
-mutate(demean_expect = Exp_mdl3 - avg_expect)
+mutate(demean_EXPECT = Exp_mdl3 - avg_expect)
 
 # count trial index and shift __________________________________________________ # nolint
 data_p2= maindata %>%
@@ -2059,7 +2209,7 @@ sp +
 
 sp <- plot_twovariable(
   df = pvc, 
-  iv1 = "demean_expect", iv2 = "demean_outcome",
+  iv1 = "demean_EXPECT", iv2 = "demean_OUTCOME",
   group = "param_cue_type", subject ="src_subject_id", 
   xmin=-50, xmax=50, ymin=-25,ymax=25,
   xlab = "Expectation rating\n(subjectwise-demeaned)", ylab = "Outcome rating\n(subjectwise-demeaned)", 
@@ -2097,11 +2247,11 @@ pvc.df <- maindata.df %>%
     )
     )
 pvc.df$sub = pvc.df$src_subject_id
-df_dropna <- pvc.df[!is.na(pvc.df$demean_expect) & !is.na(pvc.df$demean_outcome),]
+df_dropna <- pvc.df[!is.na(pvc.df$demean_EXPECT) & !is.na(pvc.df$demean_OUTCOME),]
 df_low = df_dropna[df_dropna$stimintensity == "low", ]
 low <-
   plot_twovariable(
-    df_low, iv1 = "demean_expect", iv2 = "demean_outcome",
+    df_low, iv1 = "demean_EXPECT", iv2 = "demean_OUTCOME",
     group = "cuetype", subject = "sub",
     xmin=-50, xmax=50, ymin=-50, ymax=50,
     xlab = "expectation rating\n(subjectwise mean-centered)", ylab = "Outcome rating",
@@ -2114,7 +2264,7 @@ low <-
 df_med = df_dropna[df_dropna$stimintensity == "med", ]
 med <-
   plot_twovariable(
-    df_med, iv1 = "demean_expect", iv2 = "demean_outcome",
+    df_med, iv1 = "demean_EXPECT", iv2 = "demean_OUTCOME",
     group = "cuetype", subject = "sub",
     xmin=-50, xmax=50, ymin=-50, ymax=50,
     xlab = "expectation rating\n(subjectwise mean-centered)", ylab = "Outcome rating",
@@ -2126,7 +2276,7 @@ med <-
 df_high = df_dropna[df_dropna$stimintensity == "high", ]
 high <-
   plot_twovariable(
-    df_high, iv1 = "demean_expect", iv2 = "demean_outcome",
+    df_high, iv1 = "demean_EXPECT", iv2 = "demean_OUTCOME",
     group = "cuetype", subject = "sub",
     xmin=-50, xmax=50, ymin=-50, ymax=50,
     xlab = "expectation rating\n(subjectwise mean-centered)", ylab = "Outcome rating",
@@ -2161,11 +2311,11 @@ pvc.df <- maindata.df %>%
     )
     )
 pvc.df$sub = pvc.df$src_subject_id
-df_dropna <- pvc.df[!is.na(pvc.df$demean_expect) & !is.na(pvc.df$demean_outcome),]
+df_dropna <- pvc.df[!is.na(pvc.df$demean_EXPECT) & !is.na(pvc.df$demean_OUTCOME),]
 df_low = df_dropna[df_dropna$stimintensity == "low", ]
 low <-
   plot_twovariable(
-    df_low, iv1 = "demean_expect", iv2 = "outcome",
+    df_low, iv1 = "demean_EXPECT", iv2 = "demean_OUTCOME",
     group = "cuetype", subject = "sub",
     xmin=-50, xmax=50, ymin=-50, ymax=50,
     xlab = " ", ylab = "Outcome rating",
@@ -2185,7 +2335,7 @@ low <-
 df_med = df_dropna[df_dropna$stimintensity == "med", ]
 med <-
   plot_twovariable(
-    df_med, iv1 = "demean_expect", iv2 = "demean_outcome",
+    df_med, iv1 = "demean_EXPECT", iv2 = "demean_OUTCOME",
     group = "cuetype", subject = "sub",
     xmin=-50, xmax=50, ymin=-50, ymax=50,
     xlab = "Expectation rating", ylab = " ",
@@ -2204,7 +2354,7 @@ med <-
 df_high = df_dropna[df_dropna$stimintensity == "high", ]
 high <-
   plot_twovariable(
-    df_high, iv1 = "demean_expect", iv2 = "demean_outcome",
+    df_high, iv1 = "demean_EXPECT", iv2 = "demean_OUTCOME",
     group = "cuetype", subject = "sub",
     xmin=-50, xmax=50, ymin=-50, ymax=50,
     xlab = " ", ylab = " ",

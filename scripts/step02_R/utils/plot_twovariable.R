@@ -1,6 +1,6 @@
 # summarize dataframe __________________________________________________________
 plot_twovariable <- function(df, iv1, iv2, group, subject, xmin, xmax, ymin,ymax,
-xlab, ylab, ggtitle, color_scheme, alpha, fit_lm, lm_method = NULL, identity_line=TRUE, size=NULL) {
+xlab, ylab, ggtitle, color_scheme, alpha, fit_lm, lm_method = NULL, identity_line=TRUE, size=NULL, subtitle_size=20, text_size=15) {
     # x: iv1 e.g. expect rating
     # y: iv2 e.g. outcome rating
     # group: param_cue_type
@@ -46,8 +46,8 @@ xlab, ylab, ggtitle, color_scheme, alpha, fit_lm, lm_method = NULL, identity_lin
         theme(
             axis.line = element_line(colour = "grey50"),
             panel.background = element_blank(),
-            plot.subtitle = ggtext::element_textbox_simple(size = 20),
-            text = element_text(size = 15)
+            plot.subtitle = ggtext::element_textbox_simple(size = subtitle_size),
+            text = element_text(size = text_size)
         )
 
 
