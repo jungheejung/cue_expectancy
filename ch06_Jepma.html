@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Chapter 7 expect-actual ~ cue * trial | 52_ROI TTL1</title>
+  <meta name="description" content="This is a logbook of all the mixed model analyses in one setting." />
+  <meta name="generator" content="bookdown 0.37 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Chapter 7 expect-actual ~ cue * trial | 52_ROI TTL1" />
+  <meta property="og:type" content="book" />
+  
+  <meta property="og:description" content="This is a logbook of all the mixed model analyses in one setting." />
+  <meta name="github-repo" content="rstudio/bookdown-demo" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 7 expect-actual ~ cue * trial | 52_ROI TTL1" />
+  
+  <meta name="twitter:description" content="This is a logbook of all the mixed model analyses in one setting." />
+  
+
+<meta name="author" content="Heejung Jung" />
+
+
+<meta name="date" content="2023-08-14" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="clinical-trials.html"/>
+<link rel="next" href="ch15_demean_per_sub.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<link href="libs/codefolding-lua-1.1/codefolding-lua.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+<script src="libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+<script src="libs/plotly-binding-4.10.3/plotly.js"></script>
+<script src="libs/typedarray-0.1/typedarray.min.js"></script>
+<link href="libs/crosstalk-1.2.1/css/crosstalk.min.css" rel="stylesheet" />
+<script src="libs/crosstalk-1.2.1/js/crosstalk.min.js"></script>
+<link href="libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet" />
+<script src="libs/plotly-main-2.11.1/plotly-latest.min.js"></script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+  
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> About</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#usage"><i class="fa fa-check"></i><b>1.1</b> Usage</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="ch2_expect.html"><a href="ch2_expect.html"><i class="fa fa-check"></i><b>2</b> [beh] expectation ~ cue</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="ch2_expect.html"><a href="ch2_expect.html#pain"><i class="fa fa-check"></i><b>2.1</b> Pain</a></li>
+<li class="chapter" data-level="2.2" data-path="ch2_expect.html"><a href="ch2_expect.html#vicarious"><i class="fa fa-check"></i><b>2.2</b> Vicarious</a></li>
+<li class="chapter" data-level="2.3" data-path="ch2_expect.html"><a href="ch2_expect.html#cognitive"><i class="fa fa-check"></i><b>2.3</b> Cognitive</a></li>
+<li class="chapter" data-level="2.4" data-path="ch2_expect.html"><a href="ch2_expect.html#individual-difference-analysis"><i class="fa fa-check"></i><b>2.4</b> Individual difference analysis</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="ch03_cue.html"><a href="ch03_cue.html"><i class="fa fa-check"></i><b>3</b> [beh] outcome ~ cue</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="ch03_cue.html"><a href="ch03_cue.html#pain-1"><i class="fa fa-check"></i><b>3.1</b> Pain</a></li>
+<li class="chapter" data-level="3.2" data-path="ch03_cue.html"><a href="ch03_cue.html#vicarious-1"><i class="fa fa-check"></i><b>3.2</b> Vicarious</a></li>
+<li class="chapter" data-level="3.3" data-path="ch03_cue.html"><a href="ch03_cue.html#cognitive-1"><i class="fa fa-check"></i><b>3.3</b> Cognitive</a></li>
+<li class="chapter" data-level="3.4" data-path="ch03_cue.html"><a href="ch03_cue.html#individual-differences-analysis-random-cue-effects"><i class="fa fa-check"></i><b>3.4</b> Individual differences analysis: random cue effects</a></li>
+<li class="chapter" data-level="3.5" data-path="ch03_cue.html"><a href="ch03_cue.html#individual-differences-analysis-2-random-intercept-random-slopes-of-cue-effect"><i class="fa fa-check"></i><b>3.5</b> Individual differences analysis 2: random intercept + random slopes of cue effect</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html"><i class="fa fa-check"></i><b>4</b> [beh] outcome ~ stimulus_intensity</a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#pain-2"><i class="fa fa-check"></i><b>4.1</b> Pain</a></li>
+<li class="chapter" data-level="4.2" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#vicarious-2"><i class="fa fa-check"></i><b>4.2</b> Vicarious</a></li>
+<li class="chapter" data-level="4.3" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#cognitive-2"><i class="fa fa-check"></i><b>4.3</b> Cognitive</a></li>
+<li class="chapter" data-level="4.4" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#for-loop"><i class="fa fa-check"></i><b>4.4</b> for loop</a></li>
+<li class="chapter" data-level="4.5" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#lineplot"><i class="fa fa-check"></i><b>4.5</b> Lineplot</a></li>
+<li class="chapter" data-level="4.6" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#individual-differences-in-outcome-rating-cue-effect"><i class="fa fa-check"></i><b>4.6</b> individual differences in outcome rating cue effect</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html"><i class="fa fa-check"></i><b>5</b> [beh] outcome_rating ~ cue * stim</a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-03-iv-cuecontrast-dv-outcome"><i class="fa fa-check"></i><b>5.1</b> model 03 iv-cuecontrast dv-outcome</a>
+<ul>
+<li class="chapter" data-level="5.1.1" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-03-3-2.-individual-difference"><i class="fa fa-check"></i><b>5.1.1</b> model 03 3-2. individual difference</a></li>
+<li class="chapter" data-level="5.1.2" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-iv-cue-stim-dv-outcome"><i class="fa fa-check"></i><b>5.1.2</b> model 04 iv-cue-stim dv-outcome</a></li>
+<li class="chapter" data-level="5.1.3" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#nov-17-lmer"><i class="fa fa-check"></i><b>5.1.3</b> Nov 17 lmer</a></li>
+<li class="chapter" data-level="5.1.4" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-2-individual-differences-in-cue-effects"><i class="fa fa-check"></i><b>5.1.4</b> model 04 4-2 individual differences in cue effects</a></li>
+<li class="chapter" data-level="5.1.5" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-3-scatter-plot"><i class="fa fa-check"></i><b>5.1.5</b> model 04 4-3 scatter plot</a></li>
+<li class="chapter" data-level="5.1.6" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-4-lineplot"><i class="fa fa-check"></i><b>5.1.6</b> model 04 4-4 lineplot</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="clinical-trials.html"><a href="clinical-trials.html"><i class="fa fa-check"></i><b>6</b> Clinical trials</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="clinical-trials.html"><a href="clinical-trials.html#cue-contrast-average-across-intensity"><i class="fa fa-check"></i><b>6.1</b> cue contrast average across intensity</a></li>
+<li class="chapter" data-level="6.2" data-path="clinical-trials.html"><a href="clinical-trials.html#cue-contrast-average-across-expectation"><i class="fa fa-check"></i><b>6.2</b> cue contrast average across expectation</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html"><i class="fa fa-check"></i><b>7</b> expect-actual ~ cue * trial</a>
+<ul>
+<li class="chapter" data-level="7.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#overview"><i class="fa fa-check"></i><b>7.1</b> Overview</a></li>
+<li class="chapter" data-level="7.2" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#plot-1---one-run-average-across-participants"><i class="fa fa-check"></i><b>7.2</b> plot 1 - one run, average across participants</a></li>
+<li class="chapter" data-level="7.3" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#plot-2---average-across-participant-but-spread-all-6-runs-in-one-x-axis"><i class="fa fa-check"></i><b>7.3</b> plot 2 - average across participant, but spread all 6 runs in one x axis</a></li>
+<li class="chapter" data-level="7.4" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#vicarious-3"><i class="fa fa-check"></i><b>7.4</b> vicarious</a></li>
+<li class="chapter" data-level="7.5" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#cognitive-3"><i class="fa fa-check"></i><b>7.5</b> cognitive</a></li>
+<li class="chapter" data-level="7.6" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#within-subject-vicarious"><i class="fa fa-check"></i><b>7.6</b> within subject vicarious</a></li>
+<li class="chapter" data-level="7.7" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#tor-request-only-outcome-ratings.-3-tasks"><i class="fa fa-check"></i><b>7.7</b> Tor request – only outcome ratings. 3 tasks</a>
+<ul>
+<li class="chapter" data-level="7.7.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#pain-3"><i class="fa fa-check"></i><b>7.7.1</b> pain</a></li>
+<li class="chapter" data-level="7.7.2" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#vicarious-4"><i class="fa fa-check"></i><b>7.7.2</b> vicarious</a></li>
+<li class="chapter" data-level="7.7.3" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#cognitive-4"><i class="fa fa-check"></i><b>7.7.3</b> cognitive</a></li>
+</ul></li>
+<li class="chapter" data-level="7.8" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#tor-request-only-expect-ratings.-3-tasks"><i class="fa fa-check"></i><b>7.8</b> Tor request – only expect ratings. 3 tasks</a>
+<ul>
+<li class="chapter" data-level="7.8.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#pain-4"><i class="fa fa-check"></i><b>7.8.1</b> pain</a></li>
+<li class="chapter" data-level="7.8.2" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#vicarious-5"><i class="fa fa-check"></i><b>7.8.2</b> vicarious</a></li>
+<li class="chapter" data-level="7.8.3" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#cognitive-5"><i class="fa fa-check"></i><b>7.8.3</b> cognitive</a></li>
+</ul></li>
+<li class="chapter" data-level="7.9" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#lmer"><i class="fa fa-check"></i><b>7.9</b> lmer</a>
+<ul>
+<li class="chapter" data-level="7.9.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#lmer-histogram"><i class="fa fa-check"></i><b>7.9.1</b> lmer histogram</a></li>
+</ul></li>
+<li class="chapter" data-level="7.10" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#do-current-expectation-ratings-predict-outcome-ratings"><i class="fa fa-check"></i><b>7.10</b> Do current expectation ratings predict outcome ratings?</a></li>
+<li class="chapter" data-level="7.11" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#additional-analysis"><i class="fa fa-check"></i><b>7.11</b> Additional analysis</a></li>
+</ul></li>
+<li class="chapter" data-level="8" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html"><i class="fa fa-check"></i><b>8</b> [ beh ] outcome_demean ~ cue * stim * expectrating * n-1outcomerating</a>
+<ul>
+<li class="chapter" data-level="8.1" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#linear-model-0508"><i class="fa fa-check"></i><b>8.1</b> linear model 0508</a></li>
+<li class="chapter" data-level="8.2" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#linear-model"><i class="fa fa-check"></i><b>8.2</b> linear model</a></li>
+<li class="chapter" data-level="8.3" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#q.-are-those-overestimating-for-high-cues-also-underestimators-for-low-cues"><i class="fa fa-check"></i><b>8.3</b> Q. Are those overestimating for high cues also underestimators for low cues?</a></li>
+<li class="chapter" data-level="8.4" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#todo-can-you-test-if-the-slopes-are-the-same-that-might-tell-us-something-about-whether-expectancies-translate-into-outcomes-with-the-same-efficacy-across-all-three-tasks."><i class="fa fa-check"></i><b>8.4</b> TODO: Can you test if the slopes are the same? That might tell us something about whether, expectancies translate into outcomes with the same efficacy across all three tasks.</a></li>
+<li class="chapter" data-level="8.5" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#pain-run-collapsed-across-stimulus-intensity"><i class="fa fa-check"></i><b>8.5</b> pain run, collapsed across stimulus intensity</a></li>
+<li class="chapter" data-level="8.6" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#vicarious-6"><i class="fa fa-check"></i><b>8.6</b> vicarious</a></li>
+<li class="chapter" data-level="8.7" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#cognitive-6"><i class="fa fa-check"></i><b>8.7</b> cognitive</a></li>
+<li class="chapter" data-level="8.8" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#linear-model-0508-1"><i class="fa fa-check"></i><b>8.8</b> linear model 0508</a></li>
+<li class="chapter" data-level="8.9" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#across-tasks-pvc-is-the-slope-for-highvslow-cue-the-sametor-question"><i class="fa fa-check"></i><b>8.9</b> across tasks (PVC), is the slope for (highvslow cue) the same?Tor question</a></li>
+<li class="chapter" data-level="8.10" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#alireza-congruent-incongruent-pe"><i class="fa fa-check"></i><b>8.10</b> Alireza congruent incongruent (PE)</a>
+<ul>
+<li class="chapter" data-level="8.10.1" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#archive-this-cell"><i class="fa fa-check"></i><b>8.10.1</b> archive this cell</a></li>
+</ul></li>
+<li class="chapter" data-level="8.11" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#alireza-congruent-incongruent-incorrect"><i class="fa fa-check"></i><b>8.11</b> Alireza congruent incongruent (incorrect)</a>
+<ul>
+<li class="chapter" data-level="8.11.1" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#archive-this-cell-1"><i class="fa fa-check"></i><b>8.11.1</b> archive this cell</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="ch17_mediation.html"><a href="ch17_mediation.html"><i class="fa fa-check"></i><b>9</b> [beh] Mediation outcome ~ cue * stim * expectrating * n-1outcomerating</a>
+<ul>
+<li class="chapter" data-level="9.1" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation"><i class="fa fa-check"></i><b>9.1</b> mediation</a></li>
+<li class="chapter" data-level="9.2" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation-2"><i class="fa fa-check"></i><b>9.2</b> mediation 2</a></li>
+<li class="chapter" data-level="9.3" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation-3-test-same-model-using-mediation-from-mbess"><i class="fa fa-check"></i><b>9.3</b> mediation 3: Test same model using mediation() from MBESS</a></li>
+<li class="chapter" data-level="9.4" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation-4-test-library-mediation"><i class="fa fa-check"></i><b>9.4</b> mediation 4: Test library mediation</a></li>
+</ul></li>
+<li class="chapter" data-level="10" data-path="ch18_simulation.html"><a href="ch18_simulation.html"><i class="fa fa-check"></i><b>10</b> [beh] RL simulation</a>
+<ul>
+<li class="chapter" data-level="10.1" data-path="ch18_simulation.html"><a href="ch18_simulation.html#function"><i class="fa fa-check"></i><b>10.1</b> function</a></li>
+</ul></li>
+<li class="chapter" data-level="11" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html"><i class="fa fa-check"></i><b>11</b> [beh] RL simulation Aryan</a>
+<ul>
+<li class="chapter" data-level="11.1" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-expectation-and-outcome-rating-using-model-4-simulations-jepma"><i class="fa fa-check"></i><b>11.1</b> Plot the relationship between expectation and outcome rating using model 4 simulations (Jepma)</a></li>
+<li class="chapter" data-level="11.2" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-expectation-and-outcome-rating-using-model-2-simulations-jepma"><i class="fa fa-check"></i><b>11.2</b> Plot the relationship between expectation and outcome rating using model 2 simulations (Jepma)</a>
+<ul>
+<li class="chapter" data-level="11.2.1" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#model-fits-from-model-2.-expectation-ratings-jepma-model"><i class="fa fa-check"></i><b>11.2.1</b> model fits from model 2. expectation ratings (Jepma model)</a></li>
+<li class="chapter" data-level="11.2.2" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#model-fits-from-model-2.-outcome-ratings-jepma-model"><i class="fa fa-check"></i><b>11.2.2</b> model fits from model 2. outcome ratings (Jepma model)</a></li>
+</ul></li>
+<li class="chapter" data-level="11.3" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#correlation-betweeen-alpha_incongruent-and-cue-trial-slope-randome-effects-of-cue"><i class="fa fa-check"></i><b>11.3</b> correlation betweeen alpha_incongruent and cue trial slope (randome effects of cue)</a></li>
+<li class="chapter" data-level="11.4" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#correlation-betweeen-alpha_incongruent-and-nps"><i class="fa fa-check"></i><b>11.4</b> correlation betweeen alpha_incongruent and NPS</a></li>
+<li class="chapter" data-level="11.5" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#correlation-bettween-nps-and-pe"><i class="fa fa-check"></i><b>11.5</b> correlation bettween NPS and PE</a>
+<ul>
+<li class="chapter" data-level="11.5.1" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#test-similarity-between-nps-positive-values-and-pe-11062023"><i class="fa fa-check"></i><b>11.5.1</b> test similarity between NPS positive values and PE (11/06/2023)</a></li>
+<li class="chapter" data-level="11.5.2" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#test-relationship-between-pe-and-cue-type-and-stimintensity-06162023"><i class="fa fa-check"></i><b>11.5.2</b> test relationship between PE and cue type and stimintensity (06/16/2023)</a></li>
+<li class="chapter" data-level="11.5.3" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-pe-and-nps-as-a-function-of-cue"><i class="fa fa-check"></i><b>11.5.3</b> plot the relationship between PE and NPS as a function of cue</a></li>
+<li class="chapter" data-level="11.5.4" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-pe-and-nps-as-a-function-of-cue-and-stimulus-intensity"><i class="fa fa-check"></i><b>11.5.4</b> plot the relationship between PE and NPS as a function of cue and stimulus intensity</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="12" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html"><i class="fa fa-check"></i><b>12</b> [model] NPSsimulation</a>
+<ul>
+<li class="chapter" data-level="12.0.1" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#function-1"><i class="fa fa-check"></i><b>12.0.1</b> Function</a></li>
+<li class="chapter" data-level="12.0.2" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#nps-data"><i class="fa fa-check"></i><b>12.0.2</b> NPS data</a></li>
+<li class="chapter" data-level="12.0.3" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#behavioral-data"><i class="fa fa-check"></i><b>12.0.3</b> behavioral data</a></li>
+<li class="chapter" data-level="12.0.4" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#get-pain-relationship-controlling-for-cue-cuetype-expect"><i class="fa fa-check"></i><b>12.0.4</b> get pain relationship, controlling for cue, cuetype, expect</a></li>
+<li class="chapter" data-level="12.1" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#simulation"><i class="fa fa-check"></i><b>12.1</b> simulation **</a></li>
+</ul></li>
+<li class="chapter" data-level="13" data-path="ch51_fir_glasserTPJttl2.html"><a href="ch51_fir_glasserTPJttl2.html"><i class="fa fa-check"></i><b>13</b> [fMRI] FIR ~ task</a>
+<ul>
+<li class="chapter" data-level="13.1" data-path="ch51_fir_glasserTPJttl2.html"><a href="ch51_fir_glasserTPJttl2.html#parameters-todo-ignore"><i class="fa fa-check"></i><b>13.1</b> parameters {TODO: ignore}</a></li>
+</ul></li>
+<li class="chapter" data-level="14" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html"><i class="fa fa-check"></i><b>14</b> taskwise stim effect</a>
+<ul>
+<li class="chapter" data-level="14.0.1" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#pca-subjectwise"><i class="fa fa-check"></i><b>14.0.1</b> PCA subjectwise</a></li>
+<li class="chapter" data-level="14.0.2" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#pca-groupwise"><i class="fa fa-check"></i><b>14.0.2</b> PCA groupwise</a></li>
+<li class="chapter" data-level="14.1" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#dep-epoch-stim-high-cue-vs-low-cue"><i class="fa fa-check"></i><b>14.1</b> DEP: epoch: stim, high cue vs low cue</a></li>
+<li class="chapter" data-level="14.2" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#taskwise-cue-effect"><i class="fa fa-check"></i><b>14.2</b> taskwise cue effect</a></li>
+<li class="chapter" data-level="14.3" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#epoch-stim-rating"><i class="fa fa-check"></i><b>14.3</b> epoch: stim, rating</a></li>
+<li class="chapter" data-level="14.4" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#epoch-6-cond"><i class="fa fa-check"></i><b>14.4</b> epoch: 6 cond</a></li>
+</ul></li>
+<li class="chapter" data-level="15" data-path="taskwise-6-cond-effect.html"><a href="taskwise-6-cond-effect.html"><i class="fa fa-check"></i><b>15</b> taskwise 6 cond effect</a></li>
+<li class="chapter" data-level="16" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html"><i class="fa fa-check"></i><b>16</b> [fMRI] FIR ~ task TTL1</a>
+<ul>
+<li class="chapter" data-level="16.1" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#references"><i class="fa fa-check"></i><b>16.1</b> references</a></li>
+<li class="chapter" data-level="16.2" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#taskwise-stim-effect-1"><i class="fa fa-check"></i><b>16.2</b> taskwise stim effect</a>
+<ul>
+<li class="chapter" data-level="16.2.1" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#pca-subjectwise-1"><i class="fa fa-check"></i><b>16.2.1</b> PCA subjectwise</a></li>
+<li class="chapter" data-level="16.2.2" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#pca-groupwise-1"><i class="fa fa-check"></i><b>16.2.2</b> PCA groupwise</a></li>
+</ul></li>
+<li class="chapter" data-level="16.3" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#taskwise-cue-effect-1"><i class="fa fa-check"></i><b>16.3</b> taskwise cue effect</a>
+<ul>
+<li class="chapter" data-level="16.3.1" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#epoch-stim-rating-1"><i class="fa fa-check"></i><b>16.3.1</b> epoch: stim, rating</a></li>
+</ul></li>
+<li class="chapter" data-level="16.4" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#main-sandbox-6-condition-in-three-panels.-per-task.-per-roi"><i class="fa fa-check"></i><b>16.4</b> MAIN SANDBOX: 6 condition in three panels. per task. per ROI</a></li>
+</ul></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">52_ROI TTL1</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="ch06_Jepma" class="section level1 hasAnchor" number="7">
+<h1><span class="header-section-number">Chapter 7</span> expect-actual ~ cue * trial<a href="ch06_Jepma.html#ch06_Jepma" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<div id="overview" class="section level2 hasAnchor" number="7.1">
+<h2><span class="header-section-number">7.1</span> Overview<a href="ch06_Jepma.html#overview" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>The purpose of this markdown is to benchmark the plots from Jepma et al. (2018).
+Here, we plot the expectancy ratings and the actual ratings, with the high and low cues – in one panel.</p>
+<div id="some-thoughts-todos" class="section level3 unlisted unnumbered hasAnchor">
+<h3>Some thoughts, TODOs<a href="ch06_Jepma.html#some-thoughts-todos" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<ul>
+<li>plot 2. some runs were repeated or omitted for the subjects that have more than 72 trials. I need to identify that list and work on the behavioral data.</li>
+<li>I need to check whether the counterbalancing was done correctly.</li>
+</ul>
+<p>load data and combine participant data</p>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="ch06_Jepma.html#cb31-1" aria-hidden="true" tabindex="-1"></a>main_dir <span class="ot">=</span> <span class="fu">dirname</span>(<span class="fu">dirname</span>(<span class="fu">getwd</span>()))</span>
+<span id="cb31-2"><a href="ch06_Jepma.html#cb31-2" aria-hidden="true" tabindex="-1"></a>datadir <span class="ot">=</span> <span class="fu">file.path</span>(main_dir, <span class="st">&#39;data&#39;</span>, <span class="st">&#39;beh&#39;</span>, <span class="st">&#39;beh02_preproc&#39;</span>)</span>
+<span id="cb31-3"><a href="ch06_Jepma.html#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="co"># parameters _____________________________________ # nolint</span></span>
+<span id="cb31-4"><a href="ch06_Jepma.html#cb31-4" aria-hidden="true" tabindex="-1"></a>subject_varkey <span class="ot">&lt;-</span> <span class="st">&quot;src_subject_id&quot;</span></span>
+<span id="cb31-5"><a href="ch06_Jepma.html#cb31-5" aria-hidden="true" tabindex="-1"></a>iv <span class="ot">&lt;-</span> <span class="st">&quot;param_cue_type&quot;</span></span>
+<span id="cb31-6"><a href="ch06_Jepma.html#cb31-6" aria-hidden="true" tabindex="-1"></a>dv <span class="ot">&lt;-</span> <span class="st">&quot;event03_RT&quot;</span></span>
+<span id="cb31-7"><a href="ch06_Jepma.html#cb31-7" aria-hidden="true" tabindex="-1"></a>dv_keyword <span class="ot">&lt;-</span> <span class="st">&quot;RT&quot;</span></span>
+<span id="cb31-8"><a href="ch06_Jepma.html#cb31-8" aria-hidden="true" tabindex="-1"></a>xlab <span class="ot">&lt;-</span> <span class="st">&quot;&quot;</span></span>
+<span id="cb31-9"><a href="ch06_Jepma.html#cb31-9" aria-hidden="true" tabindex="-1"></a>taskname <span class="ot">&lt;-</span> <span class="st">&quot;pain&quot;</span></span>
+<span id="cb31-10"><a href="ch06_Jepma.html#cb31-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-11"><a href="ch06_Jepma.html#cb31-11" aria-hidden="true" tabindex="-1"></a>ylab <span class="ot">&lt;-</span> <span class="st">&quot;ratings (degree)&quot;</span></span>
+<span id="cb31-12"><a href="ch06_Jepma.html#cb31-12" aria-hidden="true" tabindex="-1"></a>subject <span class="ot">&lt;-</span> <span class="st">&quot;subject&quot;</span></span>
+<span id="cb31-13"><a href="ch06_Jepma.html#cb31-13" aria-hidden="true" tabindex="-1"></a>exclude <span class="ot">&lt;-</span> <span class="st">&quot;sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999&quot;</span> <span class="co">#/ &quot;sub-0999|sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0007|sub-0008|sub-0009|sub-0010|sub-0011&quot;</span></span>
+<span id="cb31-14"><a href="ch06_Jepma.html#cb31-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-15"><a href="ch06_Jepma.html#cb31-15" aria-hidden="true" tabindex="-1"></a><span class="co"># load data _____________________________________</span></span>
+<span id="cb31-16"><a href="ch06_Jepma.html#cb31-16" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">load_task_social_df</span>(datadir, <span class="at">taskname =</span> taskname, <span class="at">subject_varkey =</span> subject_varkey, <span class="at">iv =</span> iv, <span class="at">exclude =</span> exclude)</span>
+<span id="cb31-17"><a href="ch06_Jepma.html#cb31-17" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>event03_RT <span class="ot">&lt;-</span> data<span class="sc">$</span>event03_stimulusC_reseponseonset <span class="sc">-</span> data<span class="sc">$</span>event03_stimulus_displayonset</span>
+<span id="cb31-18"><a href="ch06_Jepma.html#cb31-18" aria-hidden="true" tabindex="-1"></a><span class="co"># data[&#39;event03_RT&#39;], data.event03_RT - pandas</span></span>
+<span id="cb31-19"><a href="ch06_Jepma.html#cb31-19" aria-hidden="true" tabindex="-1"></a>analysis_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(main_dir, <span class="st">&quot;analysis&quot;</span>, <span class="st">&quot;mixedeffect&quot;</span>, <span class="st">&quot;model06_iv-cue-trial_dv-expect-actual&quot;</span>, <span class="fu">as.character</span>(<span class="fu">Sys.Date</span>()))</span>
+<span id="cb31-20"><a href="ch06_Jepma.html#cb31-20" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(analysis_dir, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>, <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+</details>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="ch06_Jepma.html#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(data)</span></code></pre></div>
+</details>
+<pre><code>##  src_subject_id     session_id    param_task_name    param_run_num   
+##  Min.   :  2.00   Min.   :1.000   Length:6492        Min.   :-2.000  
+##  1st Qu.: 37.00   1st Qu.:1.000   Class :character   1st Qu.: 2.000  
+##  Median : 73.00   Median :3.000   Mode  :character   Median : 3.000  
+##  Mean   : 69.86   Mean   :2.595                      Mean   : 3.462  
+##  3rd Qu.:101.00   3rd Qu.:4.000                      3rd Qu.: 5.000  
+##  Max.   :133.00   Max.   :4.000                      Max.   : 6.000  
+##                                                                      
+##  param_counterbalance_ver param_counterbalance_block_num param_cue_type    
+##  Min.   :1.000            Min.   :1.000                  Length:6492       
+##  1st Qu.:2.000            1st Qu.:1.000                  Class :character  
+##  Median :3.000            Median :2.000                  Mode  :character  
+##  Mean   :3.157            Mean   :1.503                                    
+##  3rd Qu.:4.000            3rd Qu.:2.000                                    
+##  Max.   :5.000            Max.   :2.000                                    
+##                                                                            
+##  param_stimulus_type param_cond_type param_trigger_onset param_start_biopac 
+##  Length:6492         Min.   :1.0     Min.   :1.615e+09   Min.   :1.615e+09  
+##  Class :character    1st Qu.:2.0     1st Qu.:1.627e+09   1st Qu.:1.627e+09  
+##  Mode  :character    Median :3.5     Median :1.632e+09   Median :1.632e+09  
+##                      Mean   :3.5     Mean   :1.634e+09   Mean   :1.634e+09  
+##                      3rd Qu.:5.0     3rd Qu.:1.644e+09   3rd Qu.:1.644e+09  
+##                      Max.   :6.0     Max.   :1.657e+09   Max.   :1.657e+09  
+##                                                                             
+##    ITI_onset           ITI_biopac         ITI_duration      event01_cue_onset  
+##  Min.   :1.615e+09   Min.   :1.615e+09   Min.   : 0.00281   Min.   :1.615e+09  
+##  1st Qu.:1.627e+09   1st Qu.:1.627e+09   1st Qu.: 1.56340   1st Qu.:1.627e+09  
+##  Median :1.632e+09   Median :1.632e+09   Median : 3.26975   Median :1.632e+09  
+##  Mean   :1.634e+09   Mean   :1.634e+09   Mean   : 4.44243   Mean   :1.634e+09  
+##  3rd Qu.:1.644e+09   3rd Qu.:1.644e+09   3rd Qu.: 6.65337   3rd Qu.:1.644e+09  
+##  Max.   :1.657e+09   Max.   :1.657e+09   Max.   :17.07488   Max.   :1.657e+09  
+##                                                                                
+##  event01_cue_biopac  event01_cue_type   event01_cue_filename
+##  Min.   :1.615e+09   Length:6492        Length:6492         
+##  1st Qu.:1.627e+09   Class :character   Class :character    
+##  Median :1.632e+09   Mode  :character   Mode  :character    
+##  Mean   :1.634e+09                                          
+##  3rd Qu.:1.644e+09                                          
+##  Max.   :1.657e+09                                          
+##                                                             
+##   ISI01_onset         ISI01_biopac       ISI01_duration   
+##  Min.   :1.615e+09   Min.   :1.615e+09   Min.   :0.00396  
+##  1st Qu.:1.627e+09   1st Qu.:1.627e+09   1st Qu.:0.99133  
+##  Median :1.632e+09   Median :1.632e+09   Median :1.39215  
+##  Mean   :1.634e+09   Mean   :1.634e+09   Mean   :1.47844  
+##  3rd Qu.:1.644e+09   3rd Qu.:1.644e+09   3rd Qu.:1.98314  
+##  Max.   :1.657e+09   Max.   :1.657e+09   Max.   :2.89685  
+##                                                           
+##  event02_expect_displayonset event02_expect_biopac event02_expect_responseonset
+##  Min.   :1.615e+09           Min.   :1.615e+09     Min.   :1.615e+09           
+##  1st Qu.:1.627e+09           1st Qu.:1.627e+09     1st Qu.:1.627e+09           
+##  Median :1.632e+09           Median :1.632e+09     Median :1.632e+09           
+##  Mean   :1.634e+09           Mean   :1.634e+09     Mean   :1.634e+09           
+##  3rd Qu.:1.644e+09           3rd Qu.:1.644e+09     3rd Qu.:1.643e+09           
+##  Max.   :1.657e+09           Max.   :1.657e+09     Max.   :1.657e+09           
+##                                                    NA&#39;s   :661                 
+##  event02_expect_RT event02_expect_angle event02_expect_angle_label
+##  Min.   :0.6504    Min.   :  0.00       Length:6492               
+##  1st Qu.:1.6341    1st Qu.: 30.18       Class :character          
+##  Median :2.0517    Median : 58.56       Mode  :character          
+##  Mean   :2.1397    Mean   : 62.94                                 
+##  3rd Qu.:2.5678    3rd Qu.: 90.00                                 
+##  Max.   :3.9912    Max.   :180.00                                 
+##  NA&#39;s   :661       NA&#39;s   :661                                    
+##   ISI02_onset         ISI02_biopac       ISI02_duration   
+##  Min.   :1.615e+09   Min.   :1.615e+09   Min.   : 0.1422  
+##  1st Qu.:1.627e+09   1st Qu.:1.627e+09   1st Qu.: 1.8599  
+##  Median :1.632e+09   Median :1.632e+09   Median : 4.3664  
+##  Mean   :1.634e+09   Mean   :1.634e+09   Mean   : 4.4542  
+##  3rd Qu.:1.644e+09   3rd Qu.:1.644e+09   3rd Qu.: 6.2697  
+##  Max.   :1.657e+09   Max.   :1.657e+09   Max.   :20.0723  
+##                                                           
+##  event03_stimulus_type event03_stimulus_displayonset event03_stimulus_biopac
+##  Length:6492           Min.   :1.615e+09             Min.   :1.615e+09      
+##  Class :character      1st Qu.:1.627e+09             1st Qu.:1.627e+09      
+##  Mode  :character      Median :1.632e+09             Median :1.632e+09      
+##                        Mean   :1.634e+09             Mean   :1.634e+09      
+##                        3rd Qu.:1.644e+09             3rd Qu.:1.644e+09      
+##                        Max.   :1.657e+09             Max.   :1.657e+09      
+##                                                                             
+##  event03_stimulus_C_stim_match event03_stimulusC_response
+##  Mode:logical                  Min.   :0                 
+##  NA&#39;s:6492                     1st Qu.:0                 
+##                                Median :0                 
+##                                Mean   :0                 
+##                                3rd Qu.:0                 
+##                                Max.   :0                 
+##                                                          
+##  event03_stimulusC_responsekeyname event03_stimulusC_reseponseonset
+##  Mode:logical                      Min.   :0                       
+##  NA&#39;s:6492                         1st Qu.:0                       
+##                                    Median :0                       
+##                                    Mean   :0                       
+##                                    3rd Qu.:0                       
+##                                    Max.   :0                       
+##                                                                    
+##  event03_stimulusC_RT  ISI03_onset         ISI03_biopac       ISI03_duration   
+##  Min.   :0            Min.   :1.615e+09   Min.   :1.615e+09   Min.   : 0.4788  
+##  1st Qu.:0            1st Qu.:1.627e+09   1st Qu.:1.627e+09   1st Qu.: 2.3846  
+##  Median :0            Median :1.632e+09   Median :1.632e+09   Median : 4.0370  
+##  Mean   :0            Mean   :1.634e+09   Mean   :1.634e+09   Mean   : 4.4870  
+##  3rd Qu.:0            3rd Qu.:1.644e+09   3rd Qu.:1.644e+09   3rd Qu.: 5.8864  
+##  Max.   :0            Max.   :1.657e+09   Max.   :1.657e+09   Max.   :17.6951  
+##                                                                                
+##  event04_actual_displayonset event04_actual_biopac event04_actual_responseonset
+##  Min.   :1.615e+09           Min.   :1.615e+09     Min.   :1.615e+09           
+##  1st Qu.:1.627e+09           1st Qu.:1.627e+09     1st Qu.:1.627e+09           
+##  Median :1.632e+09           Median :1.632e+09     Median :1.631e+09           
+##  Mean   :1.634e+09           Mean   :1.634e+09     Mean   :1.634e+09           
+##  3rd Qu.:1.644e+09           3rd Qu.:1.644e+09     3rd Qu.:1.643e+09           
+##  Max.   :1.657e+09           Max.   :1.657e+09     Max.   :1.657e+09           
+##                                                    NA&#39;s   :638                 
+##  event04_actual_RT event04_actual_angle event04_actual_angle_label
+##  Min.   :0.0168    Min.   :  0.00       Length:6492               
+##  1st Qu.:1.9197    1st Qu.: 38.80       Class :character          
+##  Median :2.3510    Median : 60.77       Mode  :character          
+##  Mean   :2.4005    Mean   : 66.33                                 
+##  3rd Qu.:2.8512    3rd Qu.: 88.38                                 
+##  Max.   :3.9930    Max.   :180.00                                 
+##  NA&#39;s   :638       NA&#39;s   :641                                    
+##  param_end_instruct_onset param_end_biopac    param_experiment_duration
+##  Min.   :1.615e+09        Min.   :1.615e+09   Min.   :398.1            
+##  1st Qu.:1.627e+09        1st Qu.:1.627e+09   1st Qu.:398.6            
+##  Median :1.632e+09        Median :1.632e+09   Median :398.8            
+##  Mean   :1.634e+09        Mean   :1.634e+09   Mean   :398.8            
+##  3rd Qu.:1.644e+09        3rd Qu.:1.644e+09   3rd Qu.:399.0            
+##  Max.   :1.657e+09        Max.   :1.657e+09   Max.   :399.5            
+##                                                                        
+##  event03_stimulus_P_trigger event03_stimulus_P_delay_between_medoc
+##  Length:6492                Min.   :0                             
+##  Class :character           1st Qu.:0                             
+##  Mode  :character           Median :0                             
+##                             Mean   :0                             
+##                             3rd Qu.:0                             
+##                             Max.   :0                             
+##                                                                   
+##  event03_stimulus_V_patientid event03_stimulus_V_filename
+##  Mode:logical                 Mode:logical               
+##  NA&#39;s:6492                    NA&#39;s:6492                  
+##                                                          
+##                                                          
+##                                                          
+##                                                          
+##                                                          
+##  event03_stimulus_C_stim_num event03_stimulus_C_stim_filename
+##  Min.   :0                   Mode:logical                    
+##  1st Qu.:0                   NA&#39;s:6492                       
+##  Median :0                                                   
+##  Mean   :0                                                   
+##  3rd Qu.:0                                                   
+##  Max.   :0                                                   
+##                                                              
+##  delay_between_medoc    subject       event03_RT        
+##  Min.   :0.01409     98     :  96   Min.   :-1.657e+09  
+##  1st Qu.:0.03728     6      :  72   1st Qu.:-1.644e+09  
+##  Median :0.04537     9      :  72   Median :-1.632e+09  
+##  Mean   :0.04818     10     :  72   Mean   :-1.634e+09  
+##  3rd Qu.:0.05712     18     :  72   3rd Qu.:-1.627e+09  
+##  Max.   :2.03502     29     :  72   Max.   :-1.615e+09  
+##                      (Other):6036</code></pre>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="ch06_Jepma.html#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># data(data, package = &#39;visibly&#39;)</span></span>
+<span id="cb34-2"><a href="ch06_Jepma.html#cb34-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-3"><a href="ch06_Jepma.html#cb34-3" aria-hidden="true" tabindex="-1"></a>myvars <span class="ot">&lt;-</span> <span class="fu">names</span>(data) <span class="sc">%in%</span> </span>
+<span id="cb34-4"><a href="ch06_Jepma.html#cb34-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>( <span class="st">&quot;event02_expect_angle&quot;</span>, <span class="st">&quot;event02_expect_RT&quot;</span>, <span class="st">&quot;event04_actual_angle&quot;</span>, <span class="st">&quot;event04_actual_RT&quot;</span>, <span class="st">&quot;event01_cue_onset&quot;</span>)</span>
+<span id="cb34-5"><a href="ch06_Jepma.html#cb34-5" aria-hidden="true" tabindex="-1"></a>newdata <span class="ot">&lt;-</span> data[myvars]</span>
+<span id="cb34-6"><a href="ch06_Jepma.html#cb34-6" aria-hidden="true" tabindex="-1"></a><span class="co"># numdata  &lt;- unlist(lapply(data, is.numeric), use.names = FALSE) </span></span>
+<span id="cb34-7"><a href="ch06_Jepma.html#cb34-7" aria-hidden="true" tabindex="-1"></a>data_naomit <span class="ot">&lt;-</span> <span class="fu">na.omit</span>(newdata)</span>
+<span id="cb34-8"><a href="ch06_Jepma.html#cb34-8" aria-hidden="true" tabindex="-1"></a>cor_matrix <span class="ot">=</span> <span class="fu">cor</span>(data_naomit)</span>
+<span id="cb34-9"><a href="ch06_Jepma.html#cb34-9" aria-hidden="true" tabindex="-1"></a><span class="fu">corr_heat</span>(cor_matrix)</span></code></pre></div>
+</details>
+<pre><code>## No FA options specified, using psych package defaults.</code></pre>
+<pre><code>## Warning in fac(r = r, nfactors = nfactors, n.obs = n.obs, rotate = rotate, : I
+## am sorry, to do these rotations requires the GPArotation package to be
+## installed</code></pre>
+<div class="plotly html-widget html-fill-item" id="htmlwidget-4cddf7be16f02adb8f7a" style="width:672px;height:480px;"></div>
+<script type="application/json" data-for="htmlwidget-4cddf7be16f02adb8f7a">{"x":{"visdat":{"26244a6c7a3c":["function () ","plotlyVisDat"]},"cur_data":"26244a6c7a3c","attrs":{"26244a6c7a3c":{"z":{},"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"heatmap","colors":["#590007","#590007","#5B0107","#5C0108","#5D0207","#5D0207","#5E0308","#5F0308","#600407","#610507","#620606","#620606","#630707","#640807","#650906","#660906","#670A07","#670B07","#680C06","#690C06","#6A0D06","#6B0D06","#6C0E07","#6C0F07","#6D1006","#6E1006","#6F1107","#701207","#711306","#721306","#731405","#731405","#741506","#751606","#761705","#771705","#781806","#791906","#7A1A05","#7B1A06","#7C1B06","#7D1C06","#7E1D05","#7E1D06","#7F1E06","#801E06","#822006","#832106","#842105","#852206","#862206","#872406","#882506","#892606","#8A2605","#8B2706","#8C2806","#8D2905","#8E2A05","#8F2B06","#902C06","#912D05","#932E05","#942F06","#953006","#963107","#973206","#983307","#993407","#9A3508","#9B3608","#9C3709","#9E3809","#9F390A","#A03B0A","#A13C0B","#A23D0C","#A33E0D","#A43F0E","#A5410F","#A6420F","#A74310","#A84411","#A94612","#AA4713","#AB4914","#AC4915","#AE4A16","#AE4B17","#AF4D19","#AF4E1A","#B1501C","#B2511D","#B2521E","#B3531F","#B4531F","#B55521","#B55622","#B65824","#B65925","#B75A26","#B75B27","#B85C28","#B95D29","#BA5E2A","#BA5F2C","#BB602D","#BB612E","#BC622F","#BC6330","#BD6431","#BD6432","#BE6533","#BD6635","#BE6736","#BE6837","#BF6938","#BF6A39","#C06B3A","#C06C3B","#C16D3C","#C16D3E","#C26E3F","#C16F40","#C27041","#C27142","#C37243","#C37344","#C47446","#C47447","#C57548","#C57649","#C6774A","#C5784B","#C67A4D","#C67A4E","#C77B50","#C87C51","#C87C51","#C97E53","#C87F54","#C98056","#C98157","#CA8258","#CA8259","#CB835A","#CB845B","#CC855D","#CB865E","#CC875F","#CC8860","#CD8961","#CD8A63","#CE8B64","#CE8B65","#CF8C66","#CE8D67","#CF8E68","#CF8F6A","#D0906B","#D0916C","#D1926D","#D1936F","#D29470","#D29471","#D39572","#D29673","#D39775","#D39876","#D49977","#D49A78","#D59B7A","#D59C7B","#D69D7C","#D59E7D","#D69F7F","#D69F80","#D7A081","#D7A182","#D8A284","#D8A385","#D9A486","#DAA688","#DAA789","#DBA88B","#DAA98C","#DBAA8D","#DBAB8E","#DCAC90","#DCAD91","#DDAE93","#DDAF94","#DEB095","#DEB196","#DFB298","#DEB399","#DFB49A","#DFB59B","#E0B69D","#E0B79F","#E1B8A0","#E1B9A1","#E2BAA2","#E2BBA4","#E3BCA5","#E3BDA7","#E4BEA8","#E3BEA9","#E4BFAA","#E4C0AC","#E5C1AE","#E5C3AF","#E6C4B0","#E6C5B1","#E7C6B2","#E7C7B4","#E8C8B6","#E8C9B7","#E9CAB8","#E8CBB9","#E9CCBB","#E9CDBC","#EACEBE","#EACFBF","#EBD0C1","#EBD0C2","#EBD1C3","#EBD3C5","#ECD4C6","#EDD5C8","#ECD6C9","#EDD7CB","#EDD8CC","#EED9CD","#EEDACE","#EDDBD0","#EDDCD1","#EEDDD3","#EEDDD4","#EEDED5","#EEDFD6","#EDE0D8","#EDE0D9","#EEE1DA","#EEE2DB","#EDE3DC","#EDE3DD","#ECE4DE","#ECE4DF","#EBE5E0","#EBE5E1","#EAE6E2","#EAE5E3","#E9E6E4","#E8E6E4","#E7E7E5","#E7E7E6","#E6E6E7","#E5E6E7","#E3E7E7","#E2E7E7","#E1E6E8","#E0E6E8","#DFE5E9","#DEE6E9","#DCE5E8","#DBE5E8","#D9E4E9","#D8E4E9","#D6E3E8","#D5E3E8","#D3E2E9","#D2E1E9","#D0E0E8","#CEDFE7","#CDDFE7","#CBDEE7","#CADDE7","#C8DCE6","#C7DBE6","#C5DAE5","#C4DAE5","#C2D9E4","#C1D8E4","#BFD7E3","#BED6E3","#BCD5E2","#BBD5E2","#B9D4E1","#B7D3E1","#B5D2E0","#B3D1DF","#B2D0DE","#B0CFDE","#AFCEDD","#ADCDDD","#ACCCDC","#AACBDC","#A9CADB","#A7C9DA","#A5C8D9","#A3C7D9","#A1C6D8","#A0C5D8","#9EC4D7","#9DC4D6","#9BC3D5","#9AC2D5","#98C1D4","#97C0D4","#95BFD3","#94BED2","#92BDD1","#90BCD1","#8EBBD0","#8DBAD0","#8BB9CF","#8AB8CE","#88B6CD","#86B5CC","#85B4CC","#83B3CB","#81B2CA","#7FB1C9","#7EB0C9","#7CAFC8","#7BAEC8","#79ADC7","#78ACC6","#76ABC5","#75AAC5","#73A9C4","#72A8C4","#70A7C3","#6EA6C2","#6CA5C1","#6AA4C1","#69A3C0","#67A2C0","#66A1BF","#64A0BE","#639FBD","#619EBD","#5F9DBC","#5D9CBB","#5B9BBA","#5A9ABA","#5999B9","#5798B9","#5597B8","#5496B7","#5295B6","#5194B6","#4F93B5","#4E92B4","#4C91B3","#4B90B3","#498EB2","#488DB2","#468BB1","#458BB0","#438AAF","#4289AF","#4087AE","#3E86AC","#3D85AC","#3B84AB","#3A83AB","#3882AA","#3781A9","#3580A8","#347FA8","#327EA7","#317DA6","#2F7CA5","#2E7BA5","#2C7AA4","#2B79A4","#2A78A3","#2977A2","#2776A1","#2575A1","#2474A0","#2373A0","#22729F","#20719E","#1F709D","#1E6F9D","#1D6E9C","#1C6D9C","#1B6C9B","#196B9A","#186A99","#176999","#166898","#156798","#146697","#136697","#126596","#116496","#106395","#106294","#0F6193","#0E6093","#0C5E92","#0C5E92","#0B5D91","#0B5D91","#0A5C90","#085A8F","#08598F","#07588E","#07578D","#06568C","#06568C","#05558B","#06548B","#05538A","#05528A","#045189","#055189","#045088","#044F88","#034E87","#034D87","#044C86","#044C86","#034B85","#034A85","#024984","#024984","#034883","#034783","#024682","#024582","#024481","#024481","#034380","#034280","#02417F","#02417F","#03407E","#033F7E","#023E7D","#023E7D","#033D7C","#033C7C","#023B7B","#023A7B","#01397A","#01397A","#023879","#023779","#013678","#013577","#023477","#013376","#013376","#023275","#023175","#013074","#013074","#022F73","#022E73","#012D72","#012D72","#022C71","#022B71","#012A70","#012A70","#02296F","#02286F","#01276E","#01276E","#02266D","#02256D","#02246C","#02236C","#01226B","#01226B","#02216A","#02206A","#011F69","#021F69","#011E68","#011D68","#021C67","#021C67","#011B66","#011A66","#001965","#001865","#011764","#011764","#001663","#001563","#011462","#011462","#001361","#001260"],"inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"scene":{"zaxis":{"title":"cormat"}},"xaxis":{"domain":[0,1],"automargin":true,"tickmode":"array","tickvals":[0,1,2,3,4],"ticktext":["event04_actual_angle","event02_expect_angle","event01_cue_onset","event04_actual_RT","event02_expect_RT"],"gridcolor":"transparent","zerolinecolor":"transparent","title":"","zeroline":false,"showgrid":false},"yaxis":{"domain":[0,1],"automargin":true,"tickmode":"array","tickvals":[0,1,2,3,4],"ticktext":["event04_actual_angle","event02_expect_angle","event01_cue_onset","event04_actual_RT","event02_expect_RT"],"gridcolor":"transparent","zerolinecolor":"transparent","title":"","autorange":"reversed","zeroline":false,"showgrid":false},"hovermode":"closest","showlegend":false,"legend":{"yanchor":"top","y":0.5},"plot_bgcolor":"transparent","paper_bgcolor":"transparent"},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false,"displayModeBar":false},"data":[{"colorbar":{"title":"cormat","ticklen":2,"len":0.5,"lenmode":"fraction","y":1,"yanchor":"top"},"colorscale":[["0","rgba(89,0,7,1)"],["0.0416666666666667","rgba(107,13,6,1)"],["0.0833333333333333","rgba(126,29,5,1)"],["0.125","rgba(147,46,5,1)"],["0.166666666666667","rgba(169,70,18,1)"],["0.208333333333333","rgba(186,94,42,1)"],["0.25","rgba(194,113,66,1)"],["0.291666666666667","rgba(203,132,91,1)"],["0.333333333333333","rgba(210,150,116,1)"],["0.375","rgba(219,171,142,1)"],["0.416666666666667","rgba(228,191,170,1)"],["0.458333333333333","rgba(237,213,199,1)"],["0.5","rgba(235,229,225,1)"],["0.541666666666667","rgba(212,227,232,1)"],["0.583333333333333","rgba(179,209,223,1)"],["0.625","rgba(146,189,209,1)"],["0.666666666666667","rgba(113,167,195,1)"],["0.708333333333333","rgba(79,147,181,1)"],["0.75","rgba(47,124,165,1)"],["0.791666666666667","rgba(21,103,152,1)"],["0.833333333333333","rgba(6,84,139,1)"],["0.875","rgba(3,67,128,1)"],["0.916666666666667","rgba(1,51,118,1)"],["0.958333333333333","rgba(1,34,107,1)"],["1","rgba(0,18,96,1)"]],"showscale":true,"z":[[1,0.64286812027634033,-0.14504336112570634,-0.16347972254149309,-0.060141478448381316],[0.64286812027634033,1,-0.12246175653222982,-0.13459621502938438,-0.067315155713631405],[-0.14504336112570634,-0.12246175653222982,1,0.080517199615948179,0.056113525117006839],[-0.16347972254149309,-0.13459621502938438,0.080517199615948179,1,0.27736553205011194],[-0.060141478448381316,-0.067315155713631405,0.056113525117006839,0.27736553205011194,1]],"type":"heatmap","xaxis":"x","yaxis":"y","frame":null,"zmin":-1,"zmax":1}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="ch06_Jepma.html#cb37-1" aria-hidden="true" tabindex="-1"></a>ISIvars <span class="ot">&lt;-</span> <span class="fu">names</span>(data) <span class="sc">%in%</span> </span>
+<span id="cb37-2"><a href="ch06_Jepma.html#cb37-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>( <span class="st">&quot;ISI01_duration&quot;</span>, <span class="st">&quot;ISI02_duration&quot;</span>, <span class="st">&quot;ISI03_duration&quot;</span>)</span>
+<span id="cb37-3"><a href="ch06_Jepma.html#cb37-3" aria-hidden="true" tabindex="-1"></a>ISIdata <span class="ot">&lt;-</span> data[ISIvars]</span>
+<span id="cb37-4"><a href="ch06_Jepma.html#cb37-4" aria-hidden="true" tabindex="-1"></a><span class="co"># numdata  &lt;- unlist(lapply(data, is.numeric), use.names = FALSE) </span></span>
+<span id="cb37-5"><a href="ch06_Jepma.html#cb37-5" aria-hidden="true" tabindex="-1"></a>ISIdata_naomit <span class="ot">&lt;-</span> <span class="fu">na.omit</span>(ISIdata)</span>
+<span id="cb37-6"><a href="ch06_Jepma.html#cb37-6" aria-hidden="true" tabindex="-1"></a>ISIcor_matrix <span class="ot">=</span> <span class="fu">cor</span>(ISIdata_naomit)</span>
+<span id="cb37-7"><a href="ch06_Jepma.html#cb37-7" aria-hidden="true" tabindex="-1"></a><span class="fu">corr_heat</span>(ISIcor_matrix)</span></code></pre></div>
+</details>
+<pre><code>## No FA options specified, using psych package defaults.</code></pre>
+<div class="plotly html-widget html-fill-item" id="htmlwidget-16b428bbdd27ad77f67c" style="width:672px;height:480px;"></div>
+<script type="application/json" data-for="htmlwidget-16b428bbdd27ad77f67c">{"x":{"visdat":{"26241bc2c965":["function () ","plotlyVisDat"]},"cur_data":"26241bc2c965","attrs":{"26241bc2c965":{"z":{},"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"heatmap","colors":["#590007","#590007","#5B0107","#5C0108","#5D0207","#5D0207","#5E0308","#5F0308","#600407","#610507","#620606","#620606","#630707","#640807","#650906","#660906","#670A07","#670B07","#680C06","#690C06","#6A0D06","#6B0D06","#6C0E07","#6C0F07","#6D1006","#6E1006","#6F1107","#701207","#711306","#721306","#731405","#731405","#741506","#751606","#761705","#771705","#781806","#791906","#7A1A05","#7B1A06","#7C1B06","#7D1C06","#7E1D05","#7E1D06","#7F1E06","#801E06","#822006","#832106","#842105","#852206","#862206","#872406","#882506","#892606","#8A2605","#8B2706","#8C2806","#8D2905","#8E2A05","#8F2B06","#902C06","#912D05","#932E05","#942F06","#953006","#963107","#973206","#983307","#993407","#9A3508","#9B3608","#9C3709","#9E3809","#9F390A","#A03B0A","#A13C0B","#A23D0C","#A33E0D","#A43F0E","#A5410F","#A6420F","#A74310","#A84411","#A94612","#AA4713","#AB4914","#AC4915","#AE4A16","#AE4B17","#AF4D19","#AF4E1A","#B1501C","#B2511D","#B2521E","#B3531F","#B4531F","#B55521","#B55622","#B65824","#B65925","#B75A26","#B75B27","#B85C28","#B95D29","#BA5E2A","#BA5F2C","#BB602D","#BB612E","#BC622F","#BC6330","#BD6431","#BD6432","#BE6533","#BD6635","#BE6736","#BE6837","#BF6938","#BF6A39","#C06B3A","#C06C3B","#C16D3C","#C16D3E","#C26E3F","#C16F40","#C27041","#C27142","#C37243","#C37344","#C47446","#C47447","#C57548","#C57649","#C6774A","#C5784B","#C67A4D","#C67A4E","#C77B50","#C87C51","#C87C51","#C97E53","#C87F54","#C98056","#C98157","#CA8258","#CA8259","#CB835A","#CB845B","#CC855D","#CB865E","#CC875F","#CC8860","#CD8961","#CD8A63","#CE8B64","#CE8B65","#CF8C66","#CE8D67","#CF8E68","#CF8F6A","#D0906B","#D0916C","#D1926D","#D1936F","#D29470","#D29471","#D39572","#D29673","#D39775","#D39876","#D49977","#D49A78","#D59B7A","#D59C7B","#D69D7C","#D59E7D","#D69F7F","#D69F80","#D7A081","#D7A182","#D8A284","#D8A385","#D9A486","#DAA688","#DAA789","#DBA88B","#DAA98C","#DBAA8D","#DBAB8E","#DCAC90","#DCAD91","#DDAE93","#DDAF94","#DEB095","#DEB196","#DFB298","#DEB399","#DFB49A","#DFB59B","#E0B69D","#E0B79F","#E1B8A0","#E1B9A1","#E2BAA2","#E2BBA4","#E3BCA5","#E3BDA7","#E4BEA8","#E3BEA9","#E4BFAA","#E4C0AC","#E5C1AE","#E5C3AF","#E6C4B0","#E6C5B1","#E7C6B2","#E7C7B4","#E8C8B6","#E8C9B7","#E9CAB8","#E8CBB9","#E9CCBB","#E9CDBC","#EACEBE","#EACFBF","#EBD0C1","#EBD0C2","#EBD1C3","#EBD3C5","#ECD4C6","#EDD5C8","#ECD6C9","#EDD7CB","#EDD8CC","#EED9CD","#EEDACE","#EDDBD0","#EDDCD1","#EEDDD3","#EEDDD4","#EEDED5","#EEDFD6","#EDE0D8","#EDE0D9","#EEE1DA","#EEE2DB","#EDE3DC","#EDE3DD","#ECE4DE","#ECE4DF","#EBE5E0","#EBE5E1","#EAE6E2","#EAE5E3","#E9E6E4","#E8E6E4","#E7E7E5","#E7E7E6","#E6E6E7","#E5E6E7","#E3E7E7","#E2E7E7","#E1E6E8","#E0E6E8","#DFE5E9","#DEE6E9","#DCE5E8","#DBE5E8","#D9E4E9","#D8E4E9","#D6E3E8","#D5E3E8","#D3E2E9","#D2E1E9","#D0E0E8","#CEDFE7","#CDDFE7","#CBDEE7","#CADDE7","#C8DCE6","#C7DBE6","#C5DAE5","#C4DAE5","#C2D9E4","#C1D8E4","#BFD7E3","#BED6E3","#BCD5E2","#BBD5E2","#B9D4E1","#B7D3E1","#B5D2E0","#B3D1DF","#B2D0DE","#B0CFDE","#AFCEDD","#ADCDDD","#ACCCDC","#AACBDC","#A9CADB","#A7C9DA","#A5C8D9","#A3C7D9","#A1C6D8","#A0C5D8","#9EC4D7","#9DC4D6","#9BC3D5","#9AC2D5","#98C1D4","#97C0D4","#95BFD3","#94BED2","#92BDD1","#90BCD1","#8EBBD0","#8DBAD0","#8BB9CF","#8AB8CE","#88B6CD","#86B5CC","#85B4CC","#83B3CB","#81B2CA","#7FB1C9","#7EB0C9","#7CAFC8","#7BAEC8","#79ADC7","#78ACC6","#76ABC5","#75AAC5","#73A9C4","#72A8C4","#70A7C3","#6EA6C2","#6CA5C1","#6AA4C1","#69A3C0","#67A2C0","#66A1BF","#64A0BE","#639FBD","#619EBD","#5F9DBC","#5D9CBB","#5B9BBA","#5A9ABA","#5999B9","#5798B9","#5597B8","#5496B7","#5295B6","#5194B6","#4F93B5","#4E92B4","#4C91B3","#4B90B3","#498EB2","#488DB2","#468BB1","#458BB0","#438AAF","#4289AF","#4087AE","#3E86AC","#3D85AC","#3B84AB","#3A83AB","#3882AA","#3781A9","#3580A8","#347FA8","#327EA7","#317DA6","#2F7CA5","#2E7BA5","#2C7AA4","#2B79A4","#2A78A3","#2977A2","#2776A1","#2575A1","#2474A0","#2373A0","#22729F","#20719E","#1F709D","#1E6F9D","#1D6E9C","#1C6D9C","#1B6C9B","#196B9A","#186A99","#176999","#166898","#156798","#146697","#136697","#126596","#116496","#106395","#106294","#0F6193","#0E6093","#0C5E92","#0C5E92","#0B5D91","#0B5D91","#0A5C90","#085A8F","#08598F","#07588E","#07578D","#06568C","#06568C","#05558B","#06548B","#05538A","#05528A","#045189","#055189","#045088","#044F88","#034E87","#034D87","#044C86","#044C86","#034B85","#034A85","#024984","#024984","#034883","#034783","#024682","#024582","#024481","#024481","#034380","#034280","#02417F","#02417F","#03407E","#033F7E","#023E7D","#023E7D","#033D7C","#033C7C","#023B7B","#023A7B","#01397A","#01397A","#023879","#023779","#013678","#013577","#023477","#013376","#013376","#023275","#023175","#013074","#013074","#022F73","#022E73","#012D72","#012D72","#022C71","#022B71","#012A70","#012A70","#02296F","#02286F","#01276E","#01276E","#02266D","#02256D","#02246C","#02236C","#01226B","#01226B","#02216A","#02206A","#011F69","#021F69","#011E68","#011D68","#021C67","#021C67","#011B66","#011A66","#001965","#001865","#011764","#011764","#001663","#001563","#011462","#011462","#001361","#001260"],"inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"scene":{"zaxis":{"title":"cormat"}},"xaxis":{"domain":[0,1],"automargin":true,"tickmode":"array","tickvals":[0,1,2],"ticktext":["ISI02_duration","ISI01_duration","ISI03_duration"],"gridcolor":"transparent","zerolinecolor":"transparent","title":"","zeroline":false,"showgrid":false},"yaxis":{"domain":[0,1],"automargin":true,"tickmode":"array","tickvals":[0,1,2],"ticktext":["ISI02_duration","ISI01_duration","ISI03_duration"],"gridcolor":"transparent","zerolinecolor":"transparent","title":"","autorange":"reversed","zeroline":false,"showgrid":false},"hovermode":"closest","showlegend":false,"legend":{"yanchor":"top","y":0.5},"plot_bgcolor":"transparent","paper_bgcolor":"transparent"},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false,"displayModeBar":false},"data":[{"colorbar":{"title":"cormat","ticklen":2,"len":0.5,"lenmode":"fraction","y":1,"yanchor":"top"},"colorscale":[["0","rgba(89,0,7,1)"],["0.0416666666666667","rgba(107,13,6,1)"],["0.0833333333333333","rgba(126,29,5,1)"],["0.125","rgba(147,46,5,1)"],["0.166666666666667","rgba(169,70,18,1)"],["0.208333333333333","rgba(186,94,42,1)"],["0.25","rgba(194,113,66,1)"],["0.291666666666667","rgba(203,132,91,1)"],["0.333333333333333","rgba(210,150,116,1)"],["0.375","rgba(219,171,142,1)"],["0.416666666666667","rgba(228,191,170,1)"],["0.458333333333333","rgba(237,213,199,1)"],["0.5","rgba(235,229,225,1)"],["0.541666666666667","rgba(212,227,232,1)"],["0.583333333333333","rgba(179,209,223,1)"],["0.625","rgba(146,189,209,1)"],["0.666666666666667","rgba(113,167,195,1)"],["0.708333333333333","rgba(79,147,181,1)"],["0.75","rgba(47,124,165,1)"],["0.791666666666667","rgba(21,103,152,1)"],["0.833333333333333","rgba(6,84,139,1)"],["0.875","rgba(3,67,128,1)"],["0.916666666666667","rgba(1,51,118,1)"],["0.958333333333333","rgba(1,34,107,1)"],["1","rgba(0,18,96,1)"]],"showscale":true,"z":[[1,0.1049823877106395,0.06860303616842478],[0.1049823877106395,1,-0.055944339777556466],[0.06860303616842478,-0.055944339777556466,1]],"type":"heatmap","xaxis":"x","yaxis":"y","frame":null,"zmin":-1,"zmax":1}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="ch06_Jepma.html#cb39-1" aria-hidden="true" tabindex="-1"></a>car<span class="sc">::</span><span class="fu">vif</span>(<span class="fu">lm</span>(event04_actual_angle <span class="sc">~</span>  event02_expect_angle <span class="sc">+</span> event02_expect_RT <span class="sc">+</span> event04_actual_RT, <span class="at">dat =</span> data_naomit))</span></code></pre></div>
+</details>
+<pre><code>## event02_expect_angle    event02_expect_RT    event04_actual_RT 
+##             1.019462             1.084419             1.099422</code></pre>
+</div>
+</div>
+<div id="plot-1---one-run-average-across-participants" class="section level2 hasAnchor" number="7.2">
+<h2><span class="header-section-number">7.2</span> plot 1 - one run, average across participants<a href="ch06_Jepma.html#plot-1---one-run-average-across-participants" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="ch06_Jepma.html#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co"># subject # run # param_cue # param_stim # rating_type # rating_value</span></span>
+<span id="cb41-2"><a href="ch06_Jepma.html#cb41-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-3"><a href="ch06_Jepma.html#cb41-3" aria-hidden="true" tabindex="-1"></a>data_trial<span class="ot">=</span> data <span class="sc">%&gt;%</span></span>
+<span id="cb41-4"><a href="ch06_Jepma.html#cb41-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(src_subject_id, session_id, param_run_num) <span class="sc">%&gt;%</span></span>
+<span id="cb41-5"><a href="ch06_Jepma.html#cb41-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(src_subject_id) <span class="sc">%&gt;%</span></span>
+<span id="cb41-6"><a href="ch06_Jepma.html#cb41-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">trial_index =</span> <span class="fu">rep_len</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">12</span>, <span class="at">length.out =</span> <span class="fu">n</span>()))</span></code></pre></div>
+</details>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="ch06_Jepma.html#cb42-1" aria-hidden="true" tabindex="-1"></a>data_long <span class="ot">=</span> data_trial <span class="sc">%&gt;%</span> </span>
+<span id="cb42-2"><a href="ch06_Jepma.html#cb42-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(<span class="st">&#39;event02_expect_angle&#39;</span>, <span class="st">&#39;event04_actual_angle&#39;</span>),</span>
+<span id="cb42-3"><a href="ch06_Jepma.html#cb42-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">&quot;rating_type&quot;</span>, </span>
+<span id="cb42-4"><a href="ch06_Jepma.html#cb42-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">&quot;rating_value&quot;</span>)</span></code></pre></div>
+</details>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="ch06_Jepma.html#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># # PLOT</span></span>
+<span id="cb43-2"><a href="ch06_Jepma.html#cb43-2" aria-hidden="true" tabindex="-1"></a>    data_long<span class="sc">$</span>cue_name[data_long<span class="sc">$</span>param_cue_type <span class="sc">==</span> <span class="st">&quot;high_cue&quot;</span>] <span class="ot">&lt;-</span> <span class="st">&quot;high cue&quot;</span></span></code></pre></div>
+</details>
+<pre><code>## Warning: Unknown or uninitialised column: `cue_name`.</code></pre>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="ch06_Jepma.html#cb45-1" aria-hidden="true" tabindex="-1"></a>    data_long<span class="sc">$</span>cue_name[data_long<span class="sc">$</span>param_cue_type <span class="sc">==</span> <span class="st">&quot;low_cue&quot;</span>] <span class="ot">&lt;-</span> <span class="st">&quot;low cue&quot;</span></span>
+<span id="cb45-2"><a href="ch06_Jepma.html#cb45-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-3"><a href="ch06_Jepma.html#cb45-3" aria-hidden="true" tabindex="-1"></a>    data_long<span class="sc">$</span>stim_name[data_long<span class="sc">$</span>param_stimulus_type <span class="sc">==</span> <span class="st">&quot;high_stim&quot;</span>] <span class="ot">&lt;-</span> <span class="st">&quot;high&quot;</span></span></code></pre></div>
+</details>
+<pre><code>## Warning: Unknown or uninitialised column: `stim_name`.</code></pre>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="ch06_Jepma.html#cb47-1" aria-hidden="true" tabindex="-1"></a>    data_long<span class="sc">$</span>stim_name[data_long<span class="sc">$</span>param_stimulus_type <span class="sc">==</span> <span class="st">&quot;med_stim&quot;</span>] <span class="ot">&lt;-</span> <span class="st">&quot;med&quot;</span></span>
+<span id="cb47-2"><a href="ch06_Jepma.html#cb47-2" aria-hidden="true" tabindex="-1"></a>    data_long<span class="sc">$</span>stim_name[data_long<span class="sc">$</span>param_stimulus_type <span class="sc">==</span> <span class="st">&quot;low_stim&quot;</span>] <span class="ot">&lt;-</span> <span class="st">&quot;low&quot;</span></span>
+<span id="cb47-3"><a href="ch06_Jepma.html#cb47-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-4"><a href="ch06_Jepma.html#cb47-4" aria-hidden="true" tabindex="-1"></a>    data_long<span class="sc">$</span>stim_ordered <span class="ot">&lt;-</span> <span class="fu">factor</span>(</span>
+<span id="cb47-5"><a href="ch06_Jepma.html#cb47-5" aria-hidden="true" tabindex="-1"></a>        data_long<span class="sc">$</span>stim_name,</span>
+<span id="cb47-6"><a href="ch06_Jepma.html#cb47-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;low&quot;</span>, <span class="st">&quot;med&quot;</span>, <span class="st">&quot;high&quot;</span>)</span>
+<span id="cb47-7"><a href="ch06_Jepma.html#cb47-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb47-8"><a href="ch06_Jepma.html#cb47-8" aria-hidden="true" tabindex="-1"></a>    data_long<span class="sc">$</span>cue_ordered <span class="ot">&lt;-</span> <span class="fu">factor</span>(</span>
+<span id="cb47-9"><a href="ch06_Jepma.html#cb47-9" aria-hidden="true" tabindex="-1"></a>        data_long<span class="sc">$</span>cue_name,</span>
+<span id="cb47-10"><a href="ch06_Jepma.html#cb47-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;low cue&quot;</span>, <span class="st">&quot;high cue&quot;</span>)</span>
+<span id="cb47-11"><a href="ch06_Jepma.html#cb47-11" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb47-12"><a href="ch06_Jepma.html#cb47-12" aria-hidden="true" tabindex="-1"></a>    subject <span class="ot">&lt;-</span> <span class="st">&quot;src_subject_id&quot;</span></span>
+<span id="cb47-13"><a href="ch06_Jepma.html#cb47-13" aria-hidden="true" tabindex="-1"></a>    model_iv1 <span class="ot">&lt;-</span> <span class="st">&quot;stim_ordered&quot;</span></span>
+<span id="cb47-14"><a href="ch06_Jepma.html#cb47-14" aria-hidden="true" tabindex="-1"></a>    model_iv2 <span class="ot">&lt;-</span> <span class="st">&quot;cue_ordered&quot;</span></span>
+<span id="cb47-15"><a href="ch06_Jepma.html#cb47-15" aria-hidden="true" tabindex="-1"></a>    rating <span class="ot">&lt;-</span> <span class="st">&quot;rating_type&quot;</span></span>
+<span id="cb47-16"><a href="ch06_Jepma.html#cb47-16" aria-hidden="true" tabindex="-1"></a>    dv <span class="ot">&lt;-</span> <span class="st">&quot;rating_value&quot;</span></span>
+<span id="cb47-17"><a href="ch06_Jepma.html#cb47-17" aria-hidden="true" tabindex="-1"></a>    trialorder_subjectwise <span class="ot">&lt;-</span> <span class="fu">meanSummary</span>(</span>
+<span id="cb47-18"><a href="ch06_Jepma.html#cb47-18" aria-hidden="true" tabindex="-1"></a>        data_long,</span>
+<span id="cb47-19"><a href="ch06_Jepma.html#cb47-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(subject, model_iv2, rating, <span class="st">&quot;trial_index&quot;</span>), dv</span>
+<span id="cb47-20"><a href="ch06_Jepma.html#cb47-20" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb47-21"><a href="ch06_Jepma.html#cb47-21" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb47-22"><a href="ch06_Jepma.html#cb47-22" aria-hidden="true" tabindex="-1"></a>    subjectwise_naomit <span class="ot">&lt;-</span> <span class="fu">na.omit</span>(trialorder_subjectwise)</span>
+<span id="cb47-23"><a href="ch06_Jepma.html#cb47-23" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb47-24"><a href="ch06_Jepma.html#cb47-24" aria-hidden="true" tabindex="-1"></a>    trialorder_groupwise <span class="ot">&lt;-</span> <span class="fu">summarySEwithin</span>(</span>
+<span id="cb47-25"><a href="ch06_Jepma.html#cb47-25" aria-hidden="true" tabindex="-1"></a>        <span class="at">data =</span> subjectwise_naomit,</span>
+<span id="cb47-26"><a href="ch06_Jepma.html#cb47-26" aria-hidden="true" tabindex="-1"></a>        <span class="at">measurevar =</span> <span class="st">&quot;mean_per_sub&quot;</span>,</span>
+<span id="cb47-27"><a href="ch06_Jepma.html#cb47-27" aria-hidden="true" tabindex="-1"></a>        <span class="at">withinvars =</span> <span class="fu">c</span>(<span class="st">&quot;cue_ordered&quot;</span>, <span class="st">&quot;rating_type&quot;</span>,  <span class="st">&quot;trial_index&quot;</span>), <span class="at">idvar =</span> subject</span>
+<span id="cb47-28"><a href="ch06_Jepma.html#cb47-28" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div>
+</details>
+<pre><code>## 
+## Attaching package: &#39;raincloudplots&#39;</code></pre>
+<pre><code>## The following object is masked _by_ &#39;.GlobalEnv&#39;:
+## 
+##     GeomFlatViolin</code></pre>
+<pre><code>## Automatically converting the following non-factors to factors: rating_type, trial_index</code></pre>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="ch06_Jepma.html#cb51-1" aria-hidden="true" tabindex="-1"></a>trialorder_subjectwise<span class="sc">$</span>rating_type_key <span class="ot">&lt;-</span> <span class="fu">mapvalues</span>(trialorder_subjectwise<span class="sc">$</span>rating_type,</span>
+<span id="cb51-2"><a href="ch06_Jepma.html#cb51-2" aria-hidden="true" tabindex="-1"></a>                                                <span class="at">from =</span> <span class="fu">c</span>(<span class="st">&quot;event02_expect_angle&quot;</span>, <span class="st">&quot;event04_actual_angle&quot;</span>),</span>
+<span id="cb51-3"><a href="ch06_Jepma.html#cb51-3" aria-hidden="true" tabindex="-1"></a>                                                <span class="at">to =</span> <span class="fu">c</span>(<span class="st">&quot;expect&quot;</span>, <span class="st">&quot;actual&quot;</span>))</span>
+<span id="cb51-4"><a href="ch06_Jepma.html#cb51-4" aria-hidden="true" tabindex="-1"></a>trialorder_groupwise<span class="sc">$</span>rating_type_key <span class="ot">&lt;-</span> <span class="fu">mapvalues</span>(trialorder_groupwise<span class="sc">$</span>rating_type,</span>
+<span id="cb51-5"><a href="ch06_Jepma.html#cb51-5" aria-hidden="true" tabindex="-1"></a>                                                <span class="at">from =</span> <span class="fu">c</span>(<span class="st">&quot;event02_expect_angle&quot;</span>, <span class="st">&quot;event04_actual_angle&quot;</span>),</span>
+<span id="cb51-6"><a href="ch06_Jepma.html#cb51-6" aria-hidden="true" tabindex="-1"></a>                                                <span class="at">to =</span> <span class="fu">c</span>(<span class="st">&quot;expect&quot;</span>, <span class="st">&quot;actual&quot;</span>))</span>
+<span id="cb51-7"><a href="ch06_Jepma.html#cb51-7" aria-hidden="true" tabindex="-1"></a>actual_trialorder_groupwise <span class="ot">&lt;-</span> trialorder_groupwise[<span class="fu">which</span>(trialorder_groupwise<span class="sc">$</span>rating_type_key <span class="sc">==</span> <span class="st">&quot;actual&quot;</span>),]</span>
+<span id="cb51-8"><a href="ch06_Jepma.html#cb51-8" aria-hidden="true" tabindex="-1"></a>expect_trialorder_groupwise <span class="ot">&lt;-</span>trialorder_groupwise[<span class="fu">which</span>(trialorder_groupwise<span class="sc">$</span>rating_type_key <span class="sc">==</span> <span class="st">&quot;expect&quot;</span>),]</span>
+<span id="cb51-9"><a href="ch06_Jepma.html#cb51-9" aria-hidden="true" tabindex="-1"></a>actual_trialorder_subjectwise <span class="ot">&lt;-</span> trialorder_subjectwise[<span class="fu">which</span>(trialorder_subjectwise<span class="sc">$</span>rating_type_key <span class="sc">==</span> <span class="st">&quot;actual&quot;</span>),]</span>
+<span id="cb51-10"><a href="ch06_Jepma.html#cb51-10" aria-hidden="true" tabindex="-1"></a>expect_trialorder_subjectwise <span class="ot">&lt;-</span>trialorder_subjectwise[<span class="fu">which</span>(trialorder_subjectwise<span class="sc">$</span>rating_type_key <span class="sc">==</span> <span class="st">&quot;expect&quot;</span>),]</span></code></pre></div>
+</details>
+<p>ggplot</p>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb52"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb52-1"><a href="ch06_Jepma.html#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="co"># * dataset: trialorder_groupwise</span></span>
+<span id="cb52-2"><a href="ch06_Jepma.html#cb52-2" aria-hidden="true" tabindex="-1"></a><span class="co"># * x-axis: trial_index (sorted)</span></span>
+<span id="cb52-3"><a href="ch06_Jepma.html#cb52-3" aria-hidden="true" tabindex="-1"></a><span class="co"># * y-axis: rating</span></span>
+<span id="cb52-4"><a href="ch06_Jepma.html#cb52-4" aria-hidden="true" tabindex="-1"></a><span class="co"># * group: cue_ordered, rating_type</span></span>
+<span id="cb52-5"><a href="ch06_Jepma.html#cb52-5" aria-hidden="true" tabindex="-1"></a><span class="co"># * DV: mean_per_sub_norm_mean</span></span>
+<span id="cb52-6"><a href="ch06_Jepma.html#cb52-6" aria-hidden="true" tabindex="-1"></a><span class="co"># * error bar: se</span></span>
+<span id="cb52-7"><a href="ch06_Jepma.html#cb52-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-8"><a href="ch06_Jepma.html#cb52-8" aria-hidden="true" tabindex="-1"></a>iv1 <span class="ot">=</span> <span class="st">&quot;trial_index&quot;</span></span>
+<span id="cb52-9"><a href="ch06_Jepma.html#cb52-9" aria-hidden="true" tabindex="-1"></a>iv2 <span class="ot">=</span> <span class="st">&quot;cue_ordered&quot;</span></span>
+<span id="cb52-10"><a href="ch06_Jepma.html#cb52-10" aria-hidden="true" tabindex="-1"></a>data <span class="ot">=</span> </span>
+<span id="cb52-11"><a href="ch06_Jepma.html#cb52-11" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(</span>
+<span id="cb52-12"><a href="ch06_Jepma.html#cb52-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> trialorder_groupwise,</span>
+<span id="cb52-13"><a href="ch06_Jepma.html#cb52-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> trial_index,</span>
+<span id="cb52-14"><a href="ch06_Jepma.html#cb52-14" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> mean_per_sub_norm_mean, </span>
+<span id="cb52-15"><a href="ch06_Jepma.html#cb52-15" aria-hidden="true" tabindex="-1"></a>      <span class="at">color =</span> cue_ordered,</span>
+<span id="cb52-16"><a href="ch06_Jepma.html#cb52-16" aria-hidden="true" tabindex="-1"></a>      <span class="at">group =</span> rating_type_key</span>
+<span id="cb52-17"><a href="ch06_Jepma.html#cb52-17" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb52-18"><a href="ch06_Jepma.html#cb52-18" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb52-19"><a href="ch06_Jepma.html#cb52-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(</span>
+<span id="cb52-20"><a href="ch06_Jepma.html#cb52-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> trialorder_groupwise,</span>
+<span id="cb52-21"><a href="ch06_Jepma.html#cb52-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(</span>
+<span id="cb52-22"><a href="ch06_Jepma.html#cb52-22" aria-hidden="true" tabindex="-1"></a>      <span class="at">shape =</span> <span class="fu">as.character</span>(rating_type_key),</span>
+<span id="cb52-23"><a href="ch06_Jepma.html#cb52-23" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span>trial_index,</span>
+<span id="cb52-24"><a href="ch06_Jepma.html#cb52-24" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> mean_per_sub_norm_mean,</span>
+<span id="cb52-25"><a href="ch06_Jepma.html#cb52-25" aria-hidden="true" tabindex="-1"></a>      <span class="at">group =</span> rating_type_key,</span>
+<span id="cb52-26"><a href="ch06_Jepma.html#cb52-26" aria-hidden="true" tabindex="-1"></a>      <span class="co">#color = cue_ordered</span></span>
+<span id="cb52-27"><a href="ch06_Jepma.html#cb52-27" aria-hidden="true" tabindex="-1"></a>      ),</span>
+<span id="cb52-28"><a href="ch06_Jepma.html#cb52-28" aria-hidden="true" tabindex="-1"></a>    <span class="co">#position = position_jitter(width = .05),</span></span>
+<span id="cb52-29"><a href="ch06_Jepma.html#cb52-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="dv">3</span></span>
+<span id="cb52-30"><a href="ch06_Jepma.html#cb52-30" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb52-31"><a href="ch06_Jepma.html#cb52-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_shape_manual</span>(<span class="at">values=</span><span class="fu">c</span>(<span class="dv">16</span>, <span class="dv">21</span>))<span class="sc">+</span></span>
+<span id="cb52-32"><a href="ch06_Jepma.html#cb52-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-33"><a href="ch06_Jepma.html#cb52-33" aria-hidden="true" tabindex="-1"></a>  <span class="co"># geom_point(</span></span>
+<span id="cb52-34"><a href="ch06_Jepma.html#cb52-34" aria-hidden="true" tabindex="-1"></a>  <span class="co">#   data = trialorder_subjectwise,</span></span>
+<span id="cb52-35"><a href="ch06_Jepma.html#cb52-35" aria-hidden="true" tabindex="-1"></a>  <span class="co">#   aes(</span></span>
+<span id="cb52-36"><a href="ch06_Jepma.html#cb52-36" aria-hidden="true" tabindex="-1"></a>  <span class="co">#     x = as.numeric(trial_index) - .15,</span></span>
+<span id="cb52-37"><a href="ch06_Jepma.html#cb52-37" aria-hidden="true" tabindex="-1"></a>  <span class="co">#     y = mean_per_sub,</span></span>
+<span id="cb52-38"><a href="ch06_Jepma.html#cb52-38" aria-hidden="true" tabindex="-1"></a>  <span class="co">#     color = cue_ordered</span></span>
+<span id="cb52-39"><a href="ch06_Jepma.html#cb52-39" aria-hidden="true" tabindex="-1"></a>  <span class="co">#     ),</span></span>
+<span id="cb52-40"><a href="ch06_Jepma.html#cb52-40" aria-hidden="true" tabindex="-1"></a>  <span class="co">#   position = position_jitter(width = .05),</span></span>
+<span id="cb52-41"><a href="ch06_Jepma.html#cb52-41" aria-hidden="true" tabindex="-1"></a>  <span class="co">#   size = 1, alpha = 0.8, shape = 20</span></span>
+<span id="cb52-42"><a href="ch06_Jepma.html#cb52-42" aria-hidden="true" tabindex="-1"></a>  <span class="co">#   ) +</span></span>
+<span id="cb52-43"><a href="ch06_Jepma.html#cb52-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_errorbar</span>(</span>
+<span id="cb52-44"><a href="ch06_Jepma.html#cb52-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> trialorder_groupwise,</span>
+<span id="cb52-45"><a href="ch06_Jepma.html#cb52-45" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(</span>
+<span id="cb52-46"><a href="ch06_Jepma.html#cb52-46" aria-hidden="true" tabindex="-1"></a>      <span class="at">x =</span> <span class="fu">as.numeric</span>(trial_index),</span>
+<span id="cb52-47"><a href="ch06_Jepma.html#cb52-47" aria-hidden="true" tabindex="-1"></a>      <span class="at">y =</span> mean_per_sub_norm_mean,</span>
+<span id="cb52-48"><a href="ch06_Jepma.html#cb52-48" aria-hidden="true" tabindex="-1"></a>      <span class="at">group =</span> rating_type_key,</span>
+<span id="cb52-49"><a href="ch06_Jepma.html#cb52-49" aria-hidden="true" tabindex="-1"></a>      <span class="at">colour =</span> cue_ordered,</span>
+<span id="cb52-50"><a href="ch06_Jepma.html#cb52-50" aria-hidden="true" tabindex="-1"></a>      <span class="at">ymin =</span> mean_per_sub_norm_mean <span class="sc">-</span> se,</span>
+<span id="cb52-51"><a href="ch06_Jepma.html#cb52-51" aria-hidden="true" tabindex="-1"></a>      <span class="at">ymax =</span> mean_per_sub_norm_mean <span class="sc">+</span> se</span>
+<span id="cb52-52"><a href="ch06_Jepma.html#cb52-52" aria-hidden="true" tabindex="-1"></a>      ), <span class="at">width =</span> .<span class="dv">01</span>, <span class="at">size =</span> <span class="fl">0.5</span></span>
+<span id="cb52-53"><a href="ch06_Jepma.html#cb52-53" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb52-54"><a href="ch06_Jepma.html#cb52-54" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;high cue&quot;</span> <span class="ot">=</span> <span class="st">&quot;red&quot;</span>, </span>
+<span id="cb52-55"><a href="ch06_Jepma.html#cb52-55" aria-hidden="true" tabindex="-1"></a>                                <span class="st">&quot;low cue&quot;</span> <span class="ot">=</span> <span class="st">&quot;blue&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb52-56"><a href="ch06_Jepma.html#cb52-56" aria-hidden="true" tabindex="-1"></a>    <span class="fu">xlab</span>(<span class="st">&quot;no. of trials&quot;</span>) <span class="sc">+</span></span>
+<span id="cb52-57"><a href="ch06_Jepma.html#cb52-57" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">&quot;rating&quot;</span>) <span class="sc">+</span></span>
+<span id="cb52-58"><a href="ch06_Jepma.html#cb52-58" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="dv">0</span>,<span class="dv">100</span>) <span class="sc">+</span></span>
+<span id="cb52-59"><a href="ch06_Jepma.html#cb52-59" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb52-60"><a href="ch06_Jepma.html#cb52-60" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(    <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>),</span>
+<span id="cb52-61"><a href="ch06_Jepma.html#cb52-61" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>),</span>
+<span id="cb52-62"><a href="ch06_Jepma.html#cb52-62" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">15</span>),</span>
+<span id="cb52-63"><a href="ch06_Jepma.html#cb52-63" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">15</span>))</span></code></pre></div>
+</details>
+<pre><code>## Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+## ℹ Please use `linewidth` instead.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.</code></pre>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb54-1"><a href="ch06_Jepma.html#cb54-1" aria-hidden="true" tabindex="-1"></a>g </span></code></pre></div>
+</details>
+<p><img src="06_iv-cue-trial_dv-expect-actual_jepma_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+</div>
+<div id="plot-2---average-across-participant-but-spread-all-6-runs-in-one-x-axis" class="section level2 hasAnchor" number="7.3">
+<h2><span class="header-section-number">7.3</span> plot 2 - average across participant, but spread all 6 runs in one x axis<a href="ch06_Jepma.html#plot-2---average-across-participant-but-spread-all-6-runs-in-one-x-axis" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>load data and combine participant data</p>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb55"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb55-1"><a href="ch06_Jepma.html#cb55-1" aria-hidden="true" tabindex="-1"></a>main_dir <span class="ot">=</span> <span class="fu">dirname</span>(<span class="fu">dirname</span>(<span class="fu">getwd</span>()))</span>
+<span id="cb55-2"><a href="ch06_Jepma.html#cb55-2" aria-hidden="true" tabindex="-1"></a>datadir <span class="ot">=</span> <span class="fu">file.path</span>(main_dir, <span class="st">&#39;data&#39;</span>, <span class="st">&#39;beh&#39;</span>, <span class="st">&#39;beh02_preproc&#39;</span>)</span>
+<span id="cb55-3"><a href="ch06_Jepma.html#cb55-3" aria-hidden="true" tabindex="-1"></a><span class="co"># parameters _____________________________________ # nolint</span></span>
+<span id="cb55-4"><a href="ch06_Jepma.html#cb55-4" aria-hidden="true" tabindex="-1"></a>subject_varkey <span class="ot">&lt;-</span> <span class="st">&quot;src_subject_id&quot;</span></span>
+<span id="cb55-5"><a href="ch06_Jepma.html#cb55-5" aria-hidden="true" tabindex="-1"></a>iv <span class="ot">&lt;-</span> <span class="st">&quot;param_cue_type&quot;</span></span>
+<span id="cb55-6"><a href="ch06_Jepma.html#cb55-6" aria-hidden="true" tabindex="-1"></a>dv <span class="ot">&lt;-</span> <span class="st">&quot;event03_RT&quot;</span></span>
+<span id="cb55-7"><a href="ch06_Jepma.html#cb55-7" aria-hidden="true" tabindex="-1"></a>dv_keyword <span class="ot">&lt;-</span> <span class="st">&quot;RT&quot;</span></span>
+<span id="cb55-8"><a href="ch06_Jepma.html#cb55-8" aria-hidden="true" tabindex="-1"></a>xlab <span class="ot">&lt;-</span> <span class="st">&quot;&quot;</span></span>
+<span id="cb55-9"><a href="ch06_Jepma.html#cb55-9" aria-hidden="true" tabindex="-1"></a>taskname <span class="ot">&lt;-</span> <span class="st">&quot;pain&quot;</span></span>
+<span id="cb55-10"><a href="ch06_Jepma.html#cb55-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-11"><a href="ch06_Jepma.html#cb55-11" aria-hidden="true" tabindex="-1"></a>ylab <span class="ot">&lt;-</span> <span class="st">&quot;ratings (degree)&quot;</span></span>
+<span id="cb55-12"><a href="ch06_Jepma.html#cb55-12" aria-hidden="true" tabindex="-1"></a>subject <span class="ot">&lt;-</span> <span class="st">&quot;subject&quot;</span></span>
+<span id="cb55-13"><a href="ch06_Jepma.html#cb55-13" aria-hidden="true" tabindex="-1"></a>exclude <span class="ot">&lt;-</span> <span class="st">&quot;sub-0999|sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0007|sub-0008|sub-0009|sub-0010|sub-0011&quot;</span></span>
+<span id="cb55-14"><a href="ch06_Jepma.html#cb55-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-15"><a href="ch06_Jepma.html#cb55-15" aria-hidden="true" tabindex="-1"></a><span class="co"># load data _____________________________________</span></span>
+<span id="cb55-16"><a href="ch06_Jepma.html#cb55-16" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">load_task_social_df</span>(datadir, <span class="at">taskname =</span> taskname, <span class="at">subject_varkey =</span> subject_varkey, <span class="at">iv =</span> iv, <span class="at">exclude =</span> exclude)</span></code></pre></div>
+</details>
+<div id="p2-check-number-of-trials-per-participant" class="section level3 unlisted unnumbered hasAnchor">
+<h3>p2 :: check number of trials per participant<a href="ch06_Jepma.html#p2-check-number-of-trials-per-participant" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb56"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb56-1"><a href="ch06_Jepma.html#cb56-1" aria-hidden="true" tabindex="-1"></a>data_p2<span class="ot">=</span> data <span class="sc">%&gt;%</span></span>
+<span id="cb56-2"><a href="ch06_Jepma.html#cb56-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(src_subject_id ) <span class="sc">%&gt;%</span></span>
+<span id="cb56-3"><a href="ch06_Jepma.html#cb56-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(src_subject_id) <span class="sc">%&gt;%</span></span>
+<span id="cb56-4"><a href="ch06_Jepma.html#cb56-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">trial_index =</span> <span class="fu">row_number</span>())</span>
+<span id="cb56-5"><a href="ch06_Jepma.html#cb56-5" aria-hidden="true" tabindex="-1"></a><span class="co"># df_clean &lt;- data_p2[complete.cases(data_p2$event02_expect_angle), ]</span></span>
+<span id="cb56-6"><a href="ch06_Jepma.html#cb56-6" aria-hidden="true" tabindex="-1"></a>df_clean <span class="ot">&lt;-</span> data_p2[<span class="fu">complete.cases</span>(data_p2<span class="sc">$</span>event04_actual_angle), ]</span></code></pre></div>
+</details>
+<div id="check-if-every-participant-has-maximum-of-72-trials.-anything-beyond-that-is-erroneous" class="section level4 hasAnchor" number="7.3.0.1">
+<h4><span class="header-section-number">7.3.0.1</span> check if every participant has maximum of 72 trials. Anything beyond that is erroneous<a href="ch06_Jepma.html#check-if-every-participant-has-maximum-of-72-trials.-anything-beyond-that-is-erroneous" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb57"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb57-1"><a href="ch06_Jepma.html#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Assuming participant IDs are in a column named &quot;participant_id&quot;</span></span>
+<span id="cb57-2"><a href="ch06_Jepma.html#cb57-2" aria-hidden="true" tabindex="-1"></a><span class="co"># and row numbers are in a column named &quot;row_number&quot;</span></span>
+<span id="cb57-3"><a href="ch06_Jepma.html#cb57-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Replace &quot;your_data&quot; with the name of your dataset</span></span>
+<span id="cb57-4"><a href="ch06_Jepma.html#cb57-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-5"><a href="ch06_Jepma.html#cb57-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate the maximum row number for each participant</span></span>
+<span id="cb57-6"><a href="ch06_Jepma.html#cb57-6" aria-hidden="true" tabindex="-1"></a>max_rows <span class="ot">&lt;-</span> <span class="fu">aggregate</span>(trial_index <span class="sc">~</span> src_subject_id, data_p2, max)</span>
+<span id="cb57-7"><a href="ch06_Jepma.html#cb57-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-8"><a href="ch06_Jepma.html#cb57-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Check if any participant&#39;s maximum row number is not 72</span></span>
+<span id="cb57-9"><a href="ch06_Jepma.html#cb57-9" aria-hidden="true" tabindex="-1"></a>max_rows[max_rows<span class="sc">$</span>trial_index <span class="sc">&gt;</span> <span class="dv">72</span>,]<span class="sc">$</span>src_subject_id</span></code></pre></div>
+</details>
+<pre><code>## [1] 98</code></pre>
+</div>
+</div>
+<div id="p2-identify-erroneous-participant" class="section level3 unlisted unnumbered hasAnchor">
+<h3>p2 :: identify erroneous participant<a href="ch06_Jepma.html#p2-identify-erroneous-participant" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb59"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb59-1"><a href="ch06_Jepma.html#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="co"># participants who have more than 72 trials will be flagged</span></span>
+<span id="cb59-2"><a href="ch06_Jepma.html#cb59-2" aria-hidden="true" tabindex="-1"></a><span class="co"># excluded for now</span></span>
+<span id="cb59-3"><a href="ch06_Jepma.html#cb59-3" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: resolve subject 98</span></span>
+<span id="cb59-4"><a href="ch06_Jepma.html#cb59-4" aria-hidden="true" tabindex="-1"></a>count_trial <span class="ot">&lt;-</span> df_clean <span class="sc">%&gt;%</span> <span class="fu">count</span>(<span class="st">&quot;src_subject_id&quot;</span>) </span>
+<span id="cb59-5"><a href="ch06_Jepma.html#cb59-5" aria-hidden="true" tabindex="-1"></a>count_trial[count_trial<span class="sc">$</span>freq <span class="sc">&gt;</span> <span class="dv">72</span>,]</span></code></pre></div>
+</details>
+<pre><code>## [1] src_subject_id freq          
+## &lt;0 rows&gt; (or 0-length row.names)</code></pre>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb61"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb61-1"><a href="ch06_Jepma.html#cb61-1" aria-hidden="true" tabindex="-1"></a>count_trial[count_trial<span class="sc">$</span>freq <span class="sc">&gt;</span> <span class="dv">60</span>,]<span class="sc">$</span>src_subject_id</span></code></pre></div>
+</details>
+<pre><code>##  [1]  18  29  31  33  34  36  37  38  39  43  44  46  50  51  52  53  55  57  58
+## [20]  60  61  62  65  73  74  78  80  86  87  88  90  91  93  94  95  99 100 101
+## [39] 105 106 109 111 115 116 122 124 126 127 128 130 132 133</code></pre>
+</div>
+<div id="p2-convert-to-long-form" class="section level3 unlisted unnumbered hasAnchor">
+<h3>p2 :: convert to long form<a href="ch06_Jepma.html#p2-convert-to-long-form" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb63"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb63-1"><a href="ch06_Jepma.html#cb63-1" aria-hidden="true" tabindex="-1"></a>df_clean <span class="ot">&lt;-</span> df_clean[df_clean<span class="sc">$</span>src_subject_id <span class="sc">!=</span> <span class="dv">98</span>, ]</span>
+<span id="cb63-2"><a href="ch06_Jepma.html#cb63-2" aria-hidden="true" tabindex="-1"></a>data_p2_long <span class="ot">=</span> df_clean <span class="sc">%&gt;%</span> </span>
+<span id="cb63-3"><a href="ch06_Jepma.html#cb63-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(<span class="st">&#39;event02_expect_angle&#39;</span>, <span class="st">&#39;event04_actual_angle&#39;</span>),</span>
+<span id="cb63-4"><a href="ch06_Jepma.html#cb63-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">&quot;rating_type&quot;</span>, </span>
+<span id="cb63-5"><a href="ch06_Jepma.html#cb63-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">&quot;rating_value&quot;</span>)</span></code></pre></div>
+</details>
+</div>
+<div id="p2-plot-data" class="section level3 unlisted unnumbered hasAnchor">
+<h3>p2 :: plot data<a href="ch06_Jepma.html#p2-plot-data" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>I’m plotting all of the trials per participant. In this case, there is no trialwise variability, because we’re plotting all 72 trials.
+Averaging across participants will be the only source of variability, reflected in the error bars</p>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb64"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb64-1"><a href="ch06_Jepma.html#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="co"># PLOT</span></span>
+<span id="cb64-2"><a href="ch06_Jepma.html#cb64-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># I&#39;m plotting</span></span>
+<span id="cb64-3"><a href="ch06_Jepma.html#cb64-3" aria-hidden="true" tabindex="-1"></a>    data_p2_long<span class="sc">$</span>cue_name[data_p2_long<span class="sc">$</span>param_cue_type <span class="sc">==</span> <span class="st">&quot;high_cue&quot;</span>] <span class="ot">&lt;-</span> <span class="st">&quot;high cue&quot;</span></span></code></pre></div>
+</details>
+<pre><code>## Warning: Unknown or uninitialised column: `cue_name`.</code></pre>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb66"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb66-1"><a href="ch06_Jepma.html#cb66-1" aria-hidden="true" tabindex="-1"></a>    data_p2_long<span class="sc">$</span>cue_name[data_p2_long<span class="sc">$</span>param_cue_type <span class="sc">==</span> <span class="st">&quot;low_cue&quot;</span>] <span class="ot">&lt;-</span> <span class="st">&quot;low cue&quot;</span></span>
+<span id="cb66-2"><a href="ch06_Jepma.html#cb66-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb66-3"><a href="ch06_Jepma.html#cb66-3" aria-hidden="true" tabindex="-1"></a>    data_p2_long<span class="sc">$</span>stim_name[data_p2_long<span class="sc">$</span>param_stimulus_type <span class="sc">==</span> <span class="st">&quot;high_stim&quot;</span>] <span class="ot">&lt;-</span> <span class="st">&quot;high&quot;</span></span></code></pre></div>
+</details>
+<pre><code>## Warning: Unknown or uninitialised column: `stim_name`.</code></pre>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb68"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb68-1"><a href="ch06_Jepma.html#cb68-1" aria-hidden="true" tabindex="-1"></a>    data_p2_long<span class="sc">$</span>stim_name[data_p2_long<span class="sc">$</span>param_stimulus_type <span class="sc">==</span> <span class="st">&quot;med_stim&quot;</span>] <span class="ot">&lt;-</span> <span class="st">&quot;med&quot;</span></span>
+<span id="cb68-2"><a href="ch06_Jepma.html#cb68-2" aria-hidden="true" tabindex="-1"></a>    data_p2_long<span class="sc">$</span>stim_name[data_p2_long<span class="sc">$</span>param_stimulus_type <span class="sc">==</span> <span class="st">&quot;low_stim&quot;</span>] <span class="ot">&lt;-</span> <span class="st">&quot;low&quot;</span></span>
+<span id="cb68-3"><a href="ch06_Jepma.html#cb68-3" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb68-4"><a href="ch06_Jepma.html#cb68-4" aria-hidden="true" tabindex="-1"></a>    data_p2_long<span class="sc">$</span>stim_ordered <span class="ot">&lt;-</span> <span class="fu">factor</span>(</span>
+<span id="cb68-5"><a href="ch06_Jepma.html#cb68-5" aria-hidden="true" tabindex="-1"></a>        data_p2_long<span class="sc">$</span>stim_name,</span>
+<span id="cb68-6"><a href="ch06_Jepma.html#cb68-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;low&quot;</span>, <span class="st">&quot;med&quot;</span>, <span class="st">&quot;high&quot;</span>)</span>
+<span id="cb68-7"><a href="ch06_Jepma.html#cb68-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb68-8"><a href="ch06_Jepma.html#cb68-8" aria-hidden="true" tabindex="-1"></a>    data_p2_long<span class="sc">$</span>cue_ordered <span class="ot">&lt;-</span> <span class="fu">factor</span>(</span>
+<span id="cb68-9"><a href="ch06_Jepma.html#cb68-9" aria-hidden="true" tabindex="-1"></a>        data_p2_long<span class="sc">$</span>cue_name,</span>
+<span id="cb68-10"><a href="ch06_Jepma.html#cb68-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;low cue&quot;</span>, <span class="st">&quot;high cue&quot;</span>)</span>
+<span id="cb68-11"><a href="ch06_Jepma.html#cb68-11" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb68-12"><a href="ch06_Jepma.html#cb68-12" aria-hidden="true" tabindex="-1"></a>    model_iv1 <span class="ot">&lt;-</span> <span class="st">&quot;stim_ordered&quot;</span></span>
+<span id="cb68-13"><a href="ch06_Jepma.html#cb68-13" aria-hidden="true" tabindex="-1"></a>    model_iv2 <span class="ot">&lt;-</span> <span class="st">&quot;cue_ordered&quot;</span></span>
+<span id="cb68-14"><a href="ch06_Jepma.html#cb68-14" aria-hidden="true" tabindex="-1"></a>    rating <span class="ot">&lt;-</span> <span class="st">&quot;rating_type&quot;</span></span>
+<span id="cb68-15"><a href="ch06_Jepma.html#cb68-15" aria-hidden="true" tabindex="-1"></a>    dv <span class="ot">&lt;-</span> <span class="st">&quot;rating_value&quot;</span></span>
+<span id="cb68-16"><a href="ch06_Jepma.html#cb68-16" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb68-17"><a href="ch06_Jepma.html#cb68-17" aria-hidden="true" tabindex="-1"></a>    trialorder_subjectwise_p2 <span class="ot">&lt;-</span> <span class="fu">meanSummary</span>(</span>
+<span id="cb68-18"><a href="ch06_Jepma.html#cb68-18" aria-hidden="true" tabindex="-1"></a>        data_p2_long,</span>
+<span id="cb68-19"><a href="ch06_Jepma.html#cb68-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>( model_iv2, rating, <span class="st">&quot;trial_index&quot;</span>), dv</span>
+<span id="cb68-20"><a href="ch06_Jepma.html#cb68-20" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb68-21"><a href="ch06_Jepma.html#cb68-21" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb68-22"><a href="ch06_Jepma.html#cb68-22" aria-hidden="true" tabindex="-1"></a>    subjectwise_naomit_p2 <span class="ot">&lt;-</span> <span class="fu">na.omit</span>(trialorder_subjectwise_p2)</span>
+<span id="cb68-23"><a href="ch06_Jepma.html#cb68-23" aria-hidden="true" tabindex="-1"></a>    trialorder_groupwise_p2 <span class="ot">&lt;-</span> <span class="fu">summarySEwithin</span>(</span>
+<span id="cb68-24"><a href="ch06_Jepma.html#cb68-24" aria-hidden="true" tabindex="-1"></a>        <span class="at">data =</span> subjectwise_naomit_p2, </span>
+<span id="cb68-25"><a href="ch06_Jepma.html#cb68-25" aria-hidden="true" tabindex="-1"></a>        <span class="at">measurevar =</span> <span class="st">&quot;mean_per_sub&quot;</span>,</span>
+<span id="cb68-26"><a href="ch06_Jepma.html#cb68-26" aria-hidden="true" tabindex="-1"></a>        <span class="at">withinvars =</span> <span class="fu">c</span>(<span class="st">&quot;cue_ordered&quot;</span>, <span class="st">&quot;rating_type&quot;</span>, <span class="st">&quot;trial_index&quot;</span>), <span class="at">idvar =</span> subject</span>
+<span id="cb68-27"><a href="ch06_Jepma.html#cb68-27" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div>
+</details>
+<pre><code>## Automatically converting the following non-factors to factors: rating_type, trial_index</code></pre>
+<pre><code>## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced</code></pre>
+<pre><code>## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced</code></pre>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb72"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb72-1"><a href="ch06_Jepma.html#cb72-1" aria-hidden="true" tabindex="-1"></a>trialorder_groupwise_p2<span class="sc">$</span>rating_type_key <span class="ot">&lt;-</span> <span class="fu">mapvalues</span>(trialorder_groupwise_p2<span class="sc">$</span>rating_type,</span>
+<span id="cb72-2"><a href="ch06_Jepma.html#cb72-2" aria-hidden="true" tabindex="-1"></a>                                                <span class="at">from =</span> <span class="fu">c</span>(<span class="st">&quot;event02_expect_angle&quot;</span>, <span class="st">&quot;event04_actual_angle&quot;</span>),</span>
+<span id="cb72-3"><a href="ch06_Jepma.html#cb72-3" aria-hidden="true" tabindex="-1"></a>                                                <span class="at">to =</span> <span class="fu">c</span>(<span class="st">&quot;expect&quot;</span>, <span class="st">&quot;actual&quot;</span>))</span></code></pre></div>
+</details>
+<p>ggplot</p>
+<p><img src="06_iv-cue-trial_dv-expect-actual_jepma_files/figure-html/unnamed-chunk-11-1.png" width="672" />
+## plot data version 2</p>
+<pre><code>## Warning: Removed 1 rows containing missing values (`geom_point()`).</code></pre>
+<p><img src="06_iv-cue-trial_dv-expect-actual_jepma_files/figure-html/unnamed-chunk-12-1.png" width="672" />
+## subset of participants</p>
+<pre><code>## # A tibble: 5,851 × 60
+## # Groups:   src_subject_id [110]
+##    src_subject_id session_id param_task_name param_run_num
+##             &lt;int&gt;      &lt;int&gt; &lt;chr&gt;                   &lt;int&gt;
+##  1              2          1 pain                        1
+##  2              2          1 pain                        1
+##  3              2          1 pain                        1
+##  4              2          1 pain                        1
+##  5              2          1 pain                        1
+##  6              2          1 pain                        1
+##  7              2          1 pain                        1
+##  8              2          1 pain                        1
+##  9              2          1 pain                        1
+## 10              2          1 pain                        1
+## # ℹ 5,841 more rows
+## # ℹ 56 more variables: param_counterbalance_ver &lt;int&gt;,
+## #   param_counterbalance_block_num &lt;int&gt;, param_cue_type &lt;chr&gt;,
+## #   param_stimulus_type &lt;chr&gt;, param_cond_type &lt;int&gt;,
+## #   param_trigger_onset &lt;dbl&gt;, param_start_biopac &lt;dbl&gt;, ITI_onset &lt;dbl&gt;,
+## #   ITI_biopac &lt;dbl&gt;, ITI_duration &lt;dbl&gt;, event01_cue_onset &lt;dbl&gt;,
+## #   event01_cue_biopac &lt;dbl&gt;, event01_cue_type &lt;chr&gt;, …</code></pre>
+<pre><code>## Warning: Unknown or uninitialised column: `cue_name`.</code></pre>
+<pre><code>## Warning: Unknown or uninitialised column: `stim_name`.</code></pre>
+<pre><code>## Automatically converting the following non-factors to factors: rating_type, trial_index</code></pre>
+<pre><code>## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced</code></pre>
+<pre><code>## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced</code></pre>
+<pre><code>## Warning: Removed 1 rows containing missing values (`geom_point()`).</code></pre>
+<p><img src="06_iv-cue-trial_dv-expect-actual_jepma_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+</div>
+</div>
+<div id="vicarious-3" class="section level2 hasAnchor" number="7.4">
+<h2><span class="header-section-number">7.4</span> vicarious<a href="ch06_Jepma.html#vicarious-3" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<pre><code>## # A tibble: 5,851 × 60
+## # Groups:   src_subject_id [110]
+##    src_subject_id session_id param_task_name param_run_num
+##             &lt;int&gt;      &lt;int&gt; &lt;chr&gt;                   &lt;int&gt;
+##  1              2          1 pain                        1
+##  2              2          1 pain                        1
+##  3              2          1 pain                        1
+##  4              2          1 pain                        1
+##  5              2          1 pain                        1
+##  6              2          1 pain                        1
+##  7              2          1 pain                        1
+##  8              2          1 pain                        1
+##  9              2          1 pain                        1
+## 10              2          1 pain                        1
+## # ℹ 5,841 more rows
+## # ℹ 56 more variables: param_counterbalance_ver &lt;int&gt;,
+## #   param_counterbalance_block_num &lt;int&gt;, param_cue_type &lt;chr&gt;,
+## #   param_stimulus_type &lt;chr&gt;, param_cond_type &lt;int&gt;,
+## #   param_trigger_onset &lt;dbl&gt;, param_start_biopac &lt;dbl&gt;, ITI_onset &lt;dbl&gt;,
+## #   ITI_biopac &lt;dbl&gt;, ITI_duration &lt;dbl&gt;, event01_cue_onset &lt;dbl&gt;,
+## #   event01_cue_biopac &lt;dbl&gt;, event01_cue_type &lt;chr&gt;, …</code></pre>
+<pre><code>## Warning: Unknown or uninitialised column: `cue_name`.</code></pre>
+<pre><code>## Warning: Unknown or uninitialised column: `stim_name`.</code></pre>
+<pre><code>## Automatically converting the following non-factors to factors: rating_type, trial_index</code></pre>
+<pre><code>## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced</code></pre>
+<pre><code>## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced</code></pre>
+<pre><code>## Warning: Removed 1 rows containing missing values (`geom_point()`).</code></pre>
+<p><img src="06_iv-cue-trial_dv-expect-actual_jepma_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+</div>
+<div id="cognitive-3" class="section level2 hasAnchor" number="7.5">
+<h2><span class="header-section-number">7.5</span> cognitive<a href="ch06_Jepma.html#cognitive-3" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<pre><code>## # A tibble: 5,851 × 60
+## # Groups:   src_subject_id [110]
+##    src_subject_id session_id param_task_name param_run_num
+##             &lt;int&gt;      &lt;int&gt; &lt;chr&gt;                   &lt;int&gt;
+##  1              2          1 pain                        1
+##  2              2          1 pain                        1
+##  3              2          1 pain                        1
+##  4              2          1 pain                        1
+##  5              2          1 pain                        1
+##  6              2          1 pain                        1
+##  7              2          1 pain                        1
+##  8              2          1 pain                        1
+##  9              2          1 pain                        1
+## 10              2          1 pain                        1
+## # ℹ 5,841 more rows
+## # ℹ 56 more variables: param_counterbalance_ver &lt;int&gt;,
+## #   param_counterbalance_block_num &lt;int&gt;, param_cue_type &lt;chr&gt;,
+## #   param_stimulus_type &lt;chr&gt;, param_cond_type &lt;int&gt;,
+## #   param_trigger_onset &lt;dbl&gt;, param_start_biopac &lt;dbl&gt;, ITI_onset &lt;dbl&gt;,
+## #   ITI_biopac &lt;dbl&gt;, ITI_duration &lt;dbl&gt;, event01_cue_onset &lt;dbl&gt;,
+## #   event01_cue_biopac &lt;dbl&gt;, event01_cue_type &lt;chr&gt;, …</code></pre>
+<pre><code>## Warning: Unknown or uninitialised column: `cue_name`.</code></pre>
+<pre><code>## Warning: Unknown or uninitialised column: `stim_name`.</code></pre>
+<pre><code>## Automatically converting the following non-factors to factors: rating_type, trial_index</code></pre>
+<pre><code>## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced</code></pre>
+<pre><code>## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced</code></pre>
+<pre><code>## Warning: Removed 1 rows containing missing values (`geom_point()`).</code></pre>
+<p><img src="06_iv-cue-trial_dv-expect-actual_jepma_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+</div>
+<div id="within-subject-vicarious" class="section level2 hasAnchor" number="7.6">
+<h2><span class="header-section-number">7.6</span> within subject vicarious<a href="ch06_Jepma.html#within-subject-vicarious" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<pre><code>## Warning: Unknown or uninitialised column: `cue_name`.</code></pre>
+<pre><code>## Warning: Unknown or uninitialised column: `stim_name`.</code></pre>
+<pre><code>## Automatically converting the following non-factors to factors: trial_index, rating_type</code></pre>
+<pre><code>## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced</code></pre>
+<pre><code>## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced</code></pre>
+<pre><code>## Warning in geom_point(data = trialorder_groupwise_p2, aes(shape =
+## as.character(rating_type), : Ignoring unknown aesthetics: linetype</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="06_iv-cue-trial_dv-expect-actual_jepma_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+</div>
+<div id="tor-request-only-outcome-ratings.-3-tasks" class="section level2 hasAnchor" number="7.7">
+<h2><span class="header-section-number">7.7</span> Tor request – only outcome ratings. 3 tasks<a href="ch06_Jepma.html#tor-request-only-outcome-ratings.-3-tasks" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="pain-3" class="section level3 hasAnchor" number="7.7.1">
+<h3><span class="header-section-number">7.7.1</span> pain<a href="ch06_Jepma.html#pain-3" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<pre><code>## Warning: Unknown or uninitialised column: `cue_name`.</code></pre>
+<pre><code>## Warning: Unknown or uninitialised column: `stim_name`.</code></pre>
+<pre><code>## Automatically converting the following non-factors to factors: trial_index</code></pre>
+<pre><code>## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced</code></pre>
+<pre><code>## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="06_iv-cue-trial_dv-expect-actual_jepma_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+</div>
+<div id="vicarious-4" class="section level3 hasAnchor" number="7.7.2">
+<h3><span class="header-section-number">7.7.2</span> vicarious<a href="ch06_Jepma.html#vicarious-4" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<pre><code>## Warning: Unknown or uninitialised column: `cue_name`.</code></pre>
+<pre><code>## Warning: Unknown or uninitialised column: `stim_name`.</code></pre>
+<pre><code>## Automatically converting the following non-factors to factors: trial_index</code></pre>
+<pre><code>## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced</code></pre>
+<pre><code>## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="06_iv-cue-trial_dv-expect-actual_jepma_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+</div>
+<div id="cognitive-4" class="section level3 hasAnchor" number="7.7.3">
+<h3><span class="header-section-number">7.7.3</span> cognitive<a href="ch06_Jepma.html#cognitive-4" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<pre><code>## Warning: Unknown or uninitialised column: `cue_name`.</code></pre>
+<pre><code>## Warning: Unknown or uninitialised column: `stim_name`.</code></pre>
+<pre><code>## Automatically converting the following non-factors to factors: trial_index</code></pre>
+<pre><code>## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced</code></pre>
+<pre><code>## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="06_iv-cue-trial_dv-expect-actual_jepma_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+</div>
+</div>
+<div id="tor-request-only-expect-ratings.-3-tasks" class="section level2 hasAnchor" number="7.8">
+<h2><span class="header-section-number">7.8</span> Tor request – only expect ratings. 3 tasks<a href="ch06_Jepma.html#tor-request-only-expect-ratings.-3-tasks" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="pain-4" class="section level3 hasAnchor" number="7.8.1">
+<h3><span class="header-section-number">7.8.1</span> pain<a href="ch06_Jepma.html#pain-4" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<pre><code>## Linear mixed model fit by REML. t-tests use Satterthwaite&#39;s method [
+## lmerModLmerTest]
+## Formula: 
+## event04_actual_angle ~ trial_index * param_cue_type + (param_cue_type |  
+##     src_subject_id)
+##    Data: df_clean
+## 
+## REML criterion at convergence: 51815.3
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -4.1391 -0.6157  0.0088  0.6196  4.0913 
+## 
+## Random effects:
+##  Groups         Name                  Variance Std.Dev. Corr 
+##  src_subject_id (Intercept)           860.95   29.342        
+##                 param_cue_typelow_cue  41.77    6.463   -0.11
+##  Residual                             582.58   24.137        
+## Number of obs: 5571, groups:  src_subject_id, 110
+## 
+## Fixed effects:
+##                                     Estimate Std. Error         df t value
+## (Intercept)                         74.58379    2.94621  125.10816  25.315
+## trial_index                         -0.14818    0.02397 5358.25599  -6.183
+## param_cue_typelow_cue              -10.07630    1.42124  568.67767  -7.090
+## trial_index:param_cue_typelow_cue    0.05386    0.03307 4679.39277   1.629
+##                                   Pr(&gt;|t|)    
+## (Intercept)                        &lt; 2e-16 ***
+## trial_index                       6.76e-10 ***
+## param_cue_typelow_cue             4.00e-12 ***
+## trial_index:param_cue_typelow_cue    0.103    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Correlation of Fixed Effects:
+##             (Intr) trl_nd prm___
+## trial_index -0.258              
+## prm_c_typl_ -0.241  0.524       
+## trl_ndx:___  0.184 -0.688 -0.765</code></pre>
+<pre><code>## Type III Analysis of Variance Table with Satterthwaite&#39;s method
+##                             Sum Sq Mean Sq NumDF  DenDF F value    Pr(&gt;F)    
+## trial_index                28321.1 28321.1     1 5407.0 48.6134 3.490e-12 ***
+## param_cue_type             29283.6 29283.6     1  568.7 50.2655 3.999e-12 ***
+## trial_index:param_cue_type  1545.4  1545.4     1 4679.4  2.6527    0.1034    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre><code>## Warning: Unknown or uninitialised column: `cue_name`.</code></pre>
+<pre><code>## Warning: Unknown or uninitialised column: `stim_name`.</code></pre>
+<pre><code>## Automatically converting the following non-factors to factors: trial_index</code></pre>
+<pre><code>## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced</code></pre>
+<pre><code>## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="06_iv-cue-trial_dv-expect-actual_jepma_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+</div>
+<div id="vicarious-5" class="section level3 hasAnchor" number="7.8.2">
+<h3><span class="header-section-number">7.8.2</span> vicarious<a href="ch06_Jepma.html#vicarious-5" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<pre><code>## Linear mixed model fit by REML. t-tests use Satterthwaite&#39;s method [
+## lmerModLmerTest]
+## Formula: 
+## event04_actual_angle ~ trial_index * param_cue_type + (param_cue_type |  
+##     src_subject_id)
+##    Data: df_clean
+## 
+## REML criterion at convergence: 54872.6
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -2.8647 -0.6683 -0.2164  0.4658  5.5008 
+## 
+## Random effects:
+##  Groups         Name                  Variance Std.Dev. Corr 
+##  src_subject_id (Intercept)           132.485  11.510        
+##                 param_cue_typelow_cue   4.966   2.229   -0.89
+##  Residual                             578.849  24.059        
+## Number of obs: 5936, groups:  src_subject_id, 110
+## 
+## Fixed effects:
+##                                     Estimate Std. Error         df t value
+## (Intercept)                         26.04180    1.42259  222.10012  18.306
+## trial_index                          0.14033    0.02205 5791.42518   6.363
+## param_cue_typelow_cue              -10.93655    1.27427 1283.22709  -8.583
+## trial_index:param_cue_typelow_cue    0.08509    0.03037 5513.06146   2.802
+##                                   Pr(&gt;|t|)    
+## (Intercept)                        &lt; 2e-16 ***
+## trial_index                       2.13e-10 ***
+## param_cue_typelow_cue              &lt; 2e-16 ***
+## trial_index:param_cue_typelow_cue  0.00509 ** 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Correlation of Fixed Effects:
+##             (Intr) trl_nd prm___
+## trial_index -0.543              
+## prm_c_typl_ -0.556  0.594       
+## trl_ndx:___  0.387 -0.697 -0.854</code></pre>
+<pre><code>## Type III Analysis of Variance Table with Satterthwaite&#39;s method
+##                            Sum Sq Mean Sq NumDF  DenDF  F value    Pr(&gt;F)    
+## trial_index                 77430   77430     1 5869.4 133.7658 &lt; 2.2e-16 ***
+## param_cue_type              42638   42638     1 1283.2  73.6606 &lt; 2.2e-16 ***
+## trial_index:param_cue_type   4546    4546     1 5513.1   7.8532  0.005091 ** 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre><code>## Warning: Unknown or uninitialised column: `cue_name`.</code></pre>
+<pre><code>## Warning: Unknown or uninitialised column: `stim_name`.</code></pre>
+<pre><code>## Automatically converting the following non-factors to factors: trial_index</code></pre>
+<pre><code>## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced</code></pre>
+<pre><code>## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="06_iv-cue-trial_dv-expect-actual_jepma_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
+</div>
+<div id="cognitive-5" class="section level3 hasAnchor" number="7.8.3">
+<h3><span class="header-section-number">7.8.3</span> cognitive<a href="ch06_Jepma.html#cognitive-5" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<pre><code>## Linear mixed model fit by REML. t-tests use Satterthwaite&#39;s method [
+## lmerModLmerTest]
+## Formula: 
+## event04_actual_angle ~ trial_index * param_cue_type + (param_cue_type |  
+##     src_subject_id)
+##    Data: df_clean
+## 
+## REML criterion at convergence: 52049.3
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -4.1640 -0.6201 -0.1508  0.4678  6.3870 
+## 
+## Random effects:
+##  Groups         Name                  Variance Std.Dev. Corr 
+##  src_subject_id (Intercept)           197.53   14.054        
+##                 param_cue_typelow_cue  26.61    5.158   -0.54
+##  Residual                             369.48   19.222        
+## Number of obs: 5901, groups:  src_subject_id, 110
+## 
+## Fixed effects:
+##                                     Estimate Std. Error         df t value
+## (Intercept)                         34.74794    1.52822  156.81597  22.737
+## trial_index                         -0.06251    0.01795 5781.38971  -3.482
+## param_cue_typelow_cue              -10.41305    1.13179  632.34807  -9.201
+## trial_index:param_cue_typelow_cue    0.06544    0.02468 5538.06618   2.651
+##                                   Pr(&gt;|t|)    
+## (Intercept)                        &lt; 2e-16 ***
+## trial_index                       0.000502 ***
+## param_cue_typelow_cue              &lt; 2e-16 ***
+## trial_index:param_cue_typelow_cue 0.008037 ** 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Correlation of Fixed Effects:
+##             (Intr) trl_nd prm___
+## trial_index -0.411              
+## prm_c_typl_ -0.514  0.547       
+## trl_ndx:___  0.296 -0.705 -0.776</code></pre>
+<pre><code>## Type III Analysis of Variance Table with Satterthwaite&#39;s method
+##                             Sum Sq Mean Sq NumDF  DenDF F value    Pr(&gt;F)    
+## trial_index                 2020.5  2020.5     1 5783.0  5.4686  0.019395 *  
+## param_cue_type             31276.3 31276.3     1  632.3 84.6500 &lt; 2.2e-16 ***
+## trial_index:param_cue_type  2597.6  2597.6     1 5538.1  7.0304  0.008037 ** 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre><code>## Warning: Unknown or uninitialised column: `cue_name`.</code></pre>
+<pre><code>## Warning: Unknown or uninitialised column: `stim_name`.</code></pre>
+<pre><code>## Automatically converting the following non-factors to factors: trial_index</code></pre>
+<pre><code>## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced</code></pre>
+<pre><code>## Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="06_iv-cue-trial_dv-expect-actual_jepma_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+</div>
+</div>
+<div id="lmer" class="section level2 hasAnchor" number="7.9">
+<h2><span class="header-section-number">7.9</span> lmer<a href="ch06_Jepma.html#lmer" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<pre><code>## Linear mixed model fit by REML. t-tests use Satterthwaite&#39;s method [
+## lmerModLmerTest]
+## Formula: 
+## event04_actual_angle ~ trial_index * param_cue_type + (param_cue_type |  
+##     src_subject_id)
+##    Data: df_clean
+## 
+## REML criterion at convergence: 52049.3
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -4.1640 -0.6201 -0.1508  0.4678  6.3870 
+## 
+## Random effects:
+##  Groups         Name                  Variance Std.Dev. Corr 
+##  src_subject_id (Intercept)           197.53   14.054        
+##                 param_cue_typelow_cue  26.61    5.158   -0.54
+##  Residual                             369.48   19.222        
+## Number of obs: 5901, groups:  src_subject_id, 110
+## 
+## Fixed effects:
+##                                     Estimate Std. Error         df t value
+## (Intercept)                         34.74794    1.52822  156.81597  22.737
+## trial_index                         -0.06251    0.01795 5781.38971  -3.482
+## param_cue_typelow_cue              -10.41305    1.13179  632.34807  -9.201
+## trial_index:param_cue_typelow_cue    0.06544    0.02468 5538.06618   2.651
+##                                   Pr(&gt;|t|)    
+## (Intercept)                        &lt; 2e-16 ***
+## trial_index                       0.000502 ***
+## param_cue_typelow_cue              &lt; 2e-16 ***
+## trial_index:param_cue_typelow_cue 0.008037 ** 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Correlation of Fixed Effects:
+##             (Intr) trl_nd prm___
+## trial_index -0.411              
+## prm_c_typl_ -0.514  0.547       
+## trl_ndx:___  0.296 -0.705 -0.776</code></pre>
+<pre><code>## Type III Analysis of Variance Table with Satterthwaite&#39;s method
+##                             Sum Sq Mean Sq NumDF  DenDF F value    Pr(&gt;F)    
+## trial_index                 2020.5  2020.5     1 5783.0  5.4686  0.019395 *  
+## param_cue_type             31276.3 31276.3     1  632.3 84.6500 &lt; 2.2e-16 ***
+## trial_index:param_cue_type  2597.6  2597.6     1 5538.1  7.0304  0.008037 ** 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<div id="lmer-histogram" class="section level3 hasAnchor" number="7.9.1">
+<h3><span class="header-section-number">7.9.1</span> lmer histogram<a href="ch06_Jepma.html#lmer-histogram" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb146"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb146-1"><a href="ch06_Jepma.html#cb146-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(random_slopes)</span></code></pre></div>
+</details>
+<p><img src="06_iv-cue-trial_dv-expect-actual_jepma_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb147"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb147-1"><a href="ch06_Jepma.html#cb147-1" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">sub =</span> group_ids, <span class="at">cue_randomslope =</span> random_slopes)</span>
+<span id="cb147-2"><a href="ch06_Jepma.html#cb147-2" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(df, <span class="fu">file.path</span>(main_dir,<span class="st">&quot;data&quot;</span>,<span class="st">&quot;RL&quot;</span>, <span class="st">&quot;cue_trial_ranef_{taskname}.csv&quot;</span>), <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb147-3"><a href="ch06_Jepma.html#cb147-3" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">: create a json file that also keeps track of which participants are include hree, using what model</span></span>
+<span id="cb147-4"><a href="ch06_Jepma.html#cb147-4" aria-hidden="true" tabindex="-1"></a><span class="co"># comment</span></span></code></pre></div>
+</details>
+</div>
+</div>
+<div id="do-current-expectation-ratings-predict-outcome-ratings" class="section level2 hasAnchor" number="7.10">
+<h2><span class="header-section-number">7.10</span> Do current expectation ratings predict outcome ratings?<a href="ch06_Jepma.html#do-current-expectation-ratings-predict-outcome-ratings" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="additional-analyse-01182023" class="section level3 unlisted unnumbered hasAnchor">
+<h3>Additional analyse 01/18/2023<a href="ch06_Jepma.html#additional-analyse-01182023" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<ul>
+<li>see if current expectation ratings predict outcome ratings</li>
+<li>see if prior stimulus experience (N-1) predicts current expectation ratings</li>
+<li>see if current expectation ratings are explained as a function of prior outcome rating and current expectation rating</li>
+</ul>
+<p>when loading the dataset, I need to add in trial index per dataframe.
+Then, for the shift the rating?</p>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb148"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb148-1"><a href="ch06_Jepma.html#cb148-1" aria-hidden="true" tabindex="-1"></a>data_a3 <span class="ot">&lt;-</span> data_p2 <span class="sc">%&gt;%</span> </span>
+<span id="cb148-2"><a href="ch06_Jepma.html#cb148-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(src_subject_id, session_id, param_run_num) <span class="sc">%&gt;%</span> </span>
+<span id="cb148-3"><a href="ch06_Jepma.html#cb148-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">trial_index =</span> <span class="fu">row_number</span>(param_run_num))</span>
+<span id="cb148-4"><a href="ch06_Jepma.html#cb148-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb148-5"><a href="ch06_Jepma.html#cb148-5" aria-hidden="true" tabindex="-1"></a>data_a3lag <span class="ot">&lt;-</span> </span>
+<span id="cb148-6"><a href="ch06_Jepma.html#cb148-6" aria-hidden="true" tabindex="-1"></a>    data_a3 <span class="sc">%&gt;%</span></span>
+<span id="cb148-7"><a href="ch06_Jepma.html#cb148-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(src_subject_id, session_id, param_run_num) <span class="sc">%&gt;%</span></span>
+<span id="cb148-8"><a href="ch06_Jepma.html#cb148-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">lag.04outcomeangle =</span> dplyr<span class="sc">::</span><span class="fu">lag</span>(event04_actual_angle, <span class="at">n =</span> <span class="dv">1</span>, <span class="at">default =</span> <span class="cn">NA</span>))</span>
+<span id="cb148-9"><a href="ch06_Jepma.html#cb148-9" aria-hidden="true" tabindex="-1"></a>data_a3lag_omit <span class="ot">&lt;-</span> data_a3lag[<span class="fu">complete.cases</span>(data_a3lag<span class="sc">$</span>lag<span class="fl">.04</span>outcomeangle),]</span></code></pre></div>
+</details>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb149"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb149-1"><a href="ch06_Jepma.html#cb149-1" aria-hidden="true" tabindex="-1"></a>    trialorder_subjectwise_lagoutcome <span class="ot">&lt;-</span> <span class="fu">meanSummary</span>(</span>
+<span id="cb149-2"><a href="ch06_Jepma.html#cb149-2" aria-hidden="true" tabindex="-1"></a>        data_a3lag_omit,</span>
+<span id="cb149-3"><a href="ch06_Jepma.html#cb149-3" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(<span class="st">&quot;src_subject_id&quot;</span>, <span class="st">&quot;session_id&quot;</span>, <span class="st">&quot;param_run_num&quot;</span>), <span class="st">&quot;lag.04outcomeangle&quot;</span> )</span>
+<span id="cb149-4"><a href="ch06_Jepma.html#cb149-4" aria-hidden="true" tabindex="-1"></a>    trialorder_subjectwise_lagoutcome <span class="ot">&lt;-</span> <span class="fu">meanSummary</span>(</span>
+<span id="cb149-5"><a href="ch06_Jepma.html#cb149-5" aria-hidden="true" tabindex="-1"></a>        data_a3lag_omit,</span>
+<span id="cb149-6"><a href="ch06_Jepma.html#cb149-6" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(<span class="st">&quot;src_subject_id&quot;</span>, <span class="st">&quot;session_id&quot;</span>, <span class="st">&quot;param_run_num&quot;</span>), <span class="st">&quot;lag.04outcomeangle&quot;</span> )</span>
+<span id="cb149-7"><a href="ch06_Jepma.html#cb149-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb149-8"><a href="ch06_Jepma.html#cb149-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># subjectwise_naomit &lt;- na.omit(trialorder_subjectwise)</span></span>
+<span id="cb149-9"><a href="ch06_Jepma.html#cb149-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># trialorder_groupwise &lt;- summarySEwithin(</span></span>
+<span id="cb149-10"><a href="ch06_Jepma.html#cb149-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">#     data = subjectwise_naomit,</span></span>
+<span id="cb149-11"><a href="ch06_Jepma.html#cb149-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">#     measurevar = &quot;mean_per_sub&quot;,</span></span>
+<span id="cb149-12"><a href="ch06_Jepma.html#cb149-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">#     withinvars = c(&quot;cue_ordered&quot;, &quot;rating_type&quot;,  &quot;trial_index&quot;), idvar = subject</span></span>
+<span id="cb149-13"><a href="ch06_Jepma.html#cb149-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># )</span></span></code></pre></div>
+</details>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb150"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb150-1"><a href="ch06_Jepma.html#cb150-1" aria-hidden="true" tabindex="-1"></a>model.lagoutcome <span class="ot">=</span> <span class="fu">lmer</span>(event02_expect_angle <span class="sc">~</span> lag<span class="fl">.04</span>outcomeangle <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> src_subject_id) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>session_id) , <span class="at">data =</span> data_a3lag_omit)</span>
+<span id="cb150-2"><a href="ch06_Jepma.html#cb150-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model.lagoutcome)</span></code></pre></div>
+</details>
+<pre><code>## Linear mixed model fit by REML. t-tests use Satterthwaite&#39;s method [
+## lmerModLmerTest]
+## Formula: event02_expect_angle ~ lag.04outcomeangle + (1 | src_subject_id) +  
+##     (1 | session_id)
+##    Data: data_a3lag_omit
+## 
+## REML criterion at convergence: 49728.1
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -2.8551 -0.7402 -0.1322  0.6351  6.3909 
+## 
+## Random effects:
+##  Groups         Name        Variance Std.Dev.
+##  src_subject_id (Intercept) 121.4858 11.0221 
+##  session_id     (Intercept)   0.2696  0.5192 
+##  Residual                   531.1376 23.0464 
+## Number of obs: 5427, groups:  src_subject_id, 110; session_id, 3
+## 
+## Fixed effects:
+##                     Estimate Std. Error        df t value Pr(&gt;|t|)    
+## (Intercept)        2.873e+01  1.230e+00 6.852e+01   23.36   &lt;2e-16 ***
+## lag.04outcomeangle 1.780e-01  1.562e-02 5.374e+03   11.40   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Correlation of Fixed Effects:
+##             (Intr)
+## lg.04tcmngl -0.365</code></pre>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb152"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb152-1"><a href="ch06_Jepma.html#cb152-1" aria-hidden="true" tabindex="-1"></a>meanSummary_2dv <span class="ot">&lt;-</span> <span class="cf">function</span>(DATA, GROUP, DV1, DV2) {</span>
+<span id="cb152-2"><a href="ch06_Jepma.html#cb152-2" aria-hidden="true" tabindex="-1"></a>    z <span class="ot">&lt;-</span> <span class="fu">ddply</span>(DATA, GROUP, <span class="at">.fun =</span> <span class="cf">function</span>(xx) {</span>
+<span id="cb152-3"><a href="ch06_Jepma.html#cb152-3" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(</span>
+<span id="cb152-4"><a href="ch06_Jepma.html#cb152-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">DV1_mean_per_sub =</span> <span class="fu">mean</span>(xx[, DV1], <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb152-5"><a href="ch06_Jepma.html#cb152-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">DV1_sd =</span> <span class="fu">sd</span>(xx[, DV1], <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb152-6"><a href="ch06_Jepma.html#cb152-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">DV2_mean_per_sub =</span> <span class="fu">mean</span>(xx[, DV2], <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb152-7"><a href="ch06_Jepma.html#cb152-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">DV2_sd =</span> <span class="fu">sd</span>(xx[, DV1], <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb152-8"><a href="ch06_Jepma.html#cb152-8" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb152-9"><a href="ch06_Jepma.html#cb152-9" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb152-10"><a href="ch06_Jepma.html#cb152-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(z)</span>
+<span id="cb152-11"><a href="ch06_Jepma.html#cb152-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+</details>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb153"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb153-1"><a href="ch06_Jepma.html#cb153-1" aria-hidden="true" tabindex="-1"></a>subjectwise_2dv <span class="ot">=</span> <span class="fu">meanSummary_2dv</span>(data_a3lag_omit,</span>
+<span id="cb153-2"><a href="ch06_Jepma.html#cb153-2" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(<span class="st">&quot;src_subject_id&quot;</span>, <span class="st">&quot;trial_index&quot;</span>), </span>
+<span id="cb153-3"><a href="ch06_Jepma.html#cb153-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;lag.04outcomeangle&quot;</span>, <span class="st">&quot;event02_expect_angle&quot;</span>)</span></code></pre></div>
+</details>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb154"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb154-1"><a href="ch06_Jepma.html#cb154-1" aria-hidden="true" tabindex="-1"></a>subjectwise_naomit_2dv <span class="ot">&lt;-</span> <span class="fu">na.omit</span>(subjectwise_2dv)</span></code></pre></div>
+</details>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb155"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb155-1"><a href="ch06_Jepma.html#cb155-1" aria-hidden="true" tabindex="-1"></a>sp <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="at">data=</span>subjectwise_naomit_2dv, </span>
+<span id="cb155-2"><a href="ch06_Jepma.html#cb155-2" aria-hidden="true" tabindex="-1"></a>             <span class="fu">aes</span>(<span class="at">x=</span>DV1_mean_per_sub, <span class="at">y=</span>DV2_mean_per_sub)) <span class="sc">+</span> </span>
+<span id="cb155-3"><a href="ch06_Jepma.html#cb155-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb155-4"><a href="ch06_Jepma.html#cb155-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">slope =</span> <span class="dv">1</span>, <span class="at">color=</span><span class="st">&quot;green&quot;</span>, </span>
+<span id="cb155-5"><a href="ch06_Jepma.html#cb155-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">linetype=</span><span class="st">&quot;dashed&quot;</span>, <span class="at">size=</span><span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb155-6"><a href="ch06_Jepma.html#cb155-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">aspect.ratio=</span><span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb155-7"><a href="ch06_Jepma.html#cb155-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">&quot;n-1 outcome rating&quot;</span>) <span class="sc">+</span></span>
+<span id="cb155-8"><a href="ch06_Jepma.html#cb155-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">&quot;n expectation rating&quot;</span>)</span>
+<span id="cb155-9"><a href="ch06_Jepma.html#cb155-9" aria-hidden="true" tabindex="-1"></a>sp</span></code></pre></div>
+</details>
+<p><img src="06_iv-cue-trial_dv-expect-actual_jepma_files/figure-html/unnamed-chunk-32-1.png" width="672" /></p>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb156"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb156-1"><a href="ch06_Jepma.html#cb156-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot(subjectwise_naomit_2dv$DV1_mean_per_sub, subjectwise_naomit_2dv$DV2_mean_per_sub) + lines(x = c(0,200), y = c(0,200))</span></span></code></pre></div>
+</details>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb157"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb157-1"><a href="ch06_Jepma.html#cb157-1" aria-hidden="true" tabindex="-1"></a>    trialorder_groupwise <span class="ot">&lt;-</span> <span class="fu">summarySEwithin</span>(</span>
+<span id="cb157-2"><a href="ch06_Jepma.html#cb157-2" aria-hidden="true" tabindex="-1"></a>        <span class="at">data =</span> subjectwise_naomit_2dv,</span>
+<span id="cb157-3"><a href="ch06_Jepma.html#cb157-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">measurevar =</span> <span class="st">&quot;DV1_mean_per_sub&quot;</span>,</span>
+<span id="cb157-4"><a href="ch06_Jepma.html#cb157-4" aria-hidden="true" tabindex="-1"></a>        <span class="co"># betweenvars = &quot;src_subject_id&quot;,</span></span>
+<span id="cb157-5"><a href="ch06_Jepma.html#cb157-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">withinvars =</span> <span class="fu">factor</span>( <span class="st">&quot;trial_index&quot;</span>),</span>
+<span id="cb157-6"><a href="ch06_Jepma.html#cb157-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">idvar =</span> <span class="st">&quot;src_subject_id&quot;</span></span>
+<span id="cb157-7"><a href="ch06_Jepma.html#cb157-7" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div>
+</details>
+<pre><code>## Automatically converting the following non-factors to factors: src_subject_id</code></pre>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb159"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb159-1"><a href="ch06_Jepma.html#cb159-1" aria-hidden="true" tabindex="-1"></a>    trialorder_groupwise <span class="ot">&lt;-</span> <span class="fu">summarySEwithin</span>(</span>
+<span id="cb159-2"><a href="ch06_Jepma.html#cb159-2" aria-hidden="true" tabindex="-1"></a>        <span class="at">data =</span> <span class="fu">subset</span>(subjectwise_naomit_2dv, <span class="at">select =</span> <span class="sc">-</span><span class="fu">c</span>(src_subject_id)),</span>
+<span id="cb159-3"><a href="ch06_Jepma.html#cb159-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">measurevar =</span> <span class="st">&quot;DV1_mean_per_sub&quot;</span>,</span>
+<span id="cb159-4"><a href="ch06_Jepma.html#cb159-4" aria-hidden="true" tabindex="-1"></a>        <span class="co"># betweenvars = &quot;src_subject_id&quot;,</span></span>
+<span id="cb159-5"><a href="ch06_Jepma.html#cb159-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">withinvars =</span> <span class="fu">as.factor</span>( <span class="st">&quot;trial_index&quot;</span>)</span>
+<span id="cb159-6"><a href="ch06_Jepma.html#cb159-6" aria-hidden="true" tabindex="-1"></a>         <span class="co">#idvar = &quot;trial_index&quot;</span></span>
+<span id="cb159-7"><a href="ch06_Jepma.html#cb159-7" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div>
+</details>
+<pre><code>## Automatically converting the following non-factors to factors: trial_index</code></pre>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb161"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb161-1"><a href="ch06_Jepma.html#cb161-1" aria-hidden="true" tabindex="-1"></a>data_a3lag_omit<span class="sc">$</span>src_subject_id <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(data_a3lag_omit<span class="sc">$</span>src_subject_id)</span>
+<span id="cb161-2"><a href="ch06_Jepma.html#cb161-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb161-3"><a href="ch06_Jepma.html#cb161-3" aria-hidden="true" tabindex="-1"></a>lag.raw <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>lag<span class="fl">.04</span>outcomeangle, <span class="at">y=</span>event02_expect_angle), <span class="at">data=</span>data_a3lag_omit) <span class="sc">+</span></span>
+<span id="cb161-4"><a href="ch06_Jepma.html#cb161-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method=</span><span class="st">&#39;lm&#39;</span>, <span class="at">se=</span>F, <span class="at">size=</span><span class="fl">0.75</span>) <span class="sc">+</span></span>
+<span id="cb161-5"><a href="ch06_Jepma.html#cb161-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size=</span><span class="fl">0.1</span>) <span class="sc">+</span> </span>
+<span id="cb161-6"><a href="ch06_Jepma.html#cb161-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_abline</span>(<span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">slope =</span> <span class="dv">1</span>, <span class="at">color=</span><span class="st">&quot;green&quot;</span>, </span>
+<span id="cb161-7"><a href="ch06_Jepma.html#cb161-7" aria-hidden="true" tabindex="-1"></a>                 <span class="at">linetype=</span><span class="st">&quot;dashed&quot;</span>, <span class="at">size=</span><span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb161-8"><a href="ch06_Jepma.html#cb161-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>src_subject_id) <span class="sc">+</span> </span>
+<span id="cb161-9"><a href="ch06_Jepma.html#cb161-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position=</span><span class="st">&#39;none&#39;</span>) <span class="sc">+</span> </span>
+<span id="cb161-10"><a href="ch06_Jepma.html#cb161-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="dv">0</span>,<span class="dv">180</span>) <span class="sc">+</span> <span class="fu">ylim</span>(<span class="dv">0</span>,<span class="dv">180</span>) <span class="sc">+</span></span>
+<span id="cb161-11"><a href="ch06_Jepma.html#cb161-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">&quot;raw data from each participant: n-1 lagged outcome angle&quot;</span>) <span class="sc">+</span> </span>
+<span id="cb161-12"><a href="ch06_Jepma.html#cb161-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">&quot;n current expectation rating&quot;</span>)</span>
+<span id="cb161-13"><a href="ch06_Jepma.html#cb161-13" aria-hidden="true" tabindex="-1"></a>lag.raw <span class="sc">+</span></span>
+<span id="cb161-14"><a href="ch06_Jepma.html#cb161-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste</span>(taskname, <span class="st">&quot;- Is there a linear relationship between current expectation ratings and the previous outcome ratings?&quot;</span>),</span>
+<span id="cb161-15"><a href="ch06_Jepma.html#cb161-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">&quot;Plotting the raw data - with all of the datapoints ignoring run differences&quot;</span>, </span>
+<span id="cb161-16"><a href="ch06_Jepma.html#cb161-16" aria-hidden="true" tabindex="-1"></a>       <span class="at">caption =</span> <span class="st">&quot;Blue = fitted linear slope per participant; Green: 1:1 slope&quot;</span>)</span></code></pre></div>
+</details>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<pre><code>## Warning: Removed 276 rows containing non-finite values (`stat_smooth()`).</code></pre>
+<pre><code>## Warning: Removed 276 rows containing missing values (`geom_point()`).</code></pre>
+<p><img src="06_iv-cue-trial_dv-expect-actual_jepma_files/figure-html/unnamed-chunk-35-1.png" width="672" /></p>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb165"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb165-1"><a href="ch06_Jepma.html#cb165-1" aria-hidden="true" tabindex="-1"></a>subjectwise_naomit_2dv<span class="sc">$</span>src_subject_id <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(subjectwise_naomit_2dv<span class="sc">$</span>src_subject_id)</span>
+<span id="cb165-2"><a href="ch06_Jepma.html#cb165-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb165-3"><a href="ch06_Jepma.html#cb165-3" aria-hidden="true" tabindex="-1"></a>lag.avg <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>DV1_mean_per_sub, <span class="at">y=</span>DV2_mean_per_sub), <span class="at">data=</span>subjectwise_naomit_2dv) <span class="sc">+</span></span>
+<span id="cb165-4"><a href="ch06_Jepma.html#cb165-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method=</span><span class="st">&#39;lm&#39;</span>, <span class="at">se=</span>F, <span class="at">size=</span><span class="fl">0.75</span>) <span class="sc">+</span></span>
+<span id="cb165-5"><a href="ch06_Jepma.html#cb165-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size=</span><span class="fl">0.1</span>) <span class="sc">+</span> </span>
+<span id="cb165-6"><a href="ch06_Jepma.html#cb165-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_abline</span>(<span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">slope =</span> <span class="dv">1</span>, <span class="at">color=</span><span class="st">&quot;green&quot;</span>, </span>
+<span id="cb165-7"><a href="ch06_Jepma.html#cb165-7" aria-hidden="true" tabindex="-1"></a>                 <span class="at">linetype=</span><span class="st">&quot;dashed&quot;</span>, <span class="at">size=</span><span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb165-8"><a href="ch06_Jepma.html#cb165-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>src_subject_id) <span class="sc">+</span> </span>
+<span id="cb165-9"><a href="ch06_Jepma.html#cb165-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position=</span><span class="st">&#39;none&#39;</span>) <span class="sc">+</span> </span>
+<span id="cb165-10"><a href="ch06_Jepma.html#cb165-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="dv">0</span>,<span class="dv">180</span>) <span class="sc">+</span> <span class="fu">ylim</span>(<span class="dv">0</span>,<span class="dv">180</span>) <span class="sc">+</span></span>
+<span id="cb165-11"><a href="ch06_Jepma.html#cb165-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">&quot;raw data from each participant: n-1 lagged outcome angle&quot;</span>) <span class="sc">+</span> </span>
+<span id="cb165-12"><a href="ch06_Jepma.html#cb165-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">&quot;n current expectation rating&quot;</span>) </span>
+<span id="cb165-13"><a href="ch06_Jepma.html#cb165-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb165-14"><a href="ch06_Jepma.html#cb165-14" aria-hidden="true" tabindex="-1"></a>lag.avg <span class="sc">+</span></span>
+<span id="cb165-15"><a href="ch06_Jepma.html#cb165-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste</span>(taskname, <span class="st">&quot;- Is there a linear relationship between current expectation ratings and the previous outcome ratings?&quot;</span>),</span>
+<span id="cb165-16"><a href="ch06_Jepma.html#cb165-16" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">&quot;Observation notes: 1) The relationship is more of an attenuated one, where the higher outcome ratings lead to a slightly lower expectation rating, and a low outcome leads to a higher expectation rating, when considering a 1:1 relationship. This pattern could be explained by regression to the mean type mechanism, where participants are accounting for the fact that their previous experience was extreme on either ends and that this current trial will be under/over estimated. It probably will make sense to also see the relationship between current expectation ratings influencing current outcome ratings. &quot;</span>, </span>
+<span id="cb165-17"><a href="ch06_Jepma.html#cb165-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">caption =</span> <span class="st">&quot;Blue = fitted linear slope per participant; Green: 1:1 slope&quot;</span>)</span></code></pre></div>
+</details>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="06_iv-cue-trial_dv-expect-actual_jepma_files/figure-html/unnamed-chunk-36-1.png" width="672" /></p>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb167"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb167-1"><a href="ch06_Jepma.html#cb167-1" aria-hidden="true" tabindex="-1"></a><span class="co"># https://gist.github.com/even4void/5074855</span></span></code></pre></div>
+</details>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb168"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb168-1"><a href="ch06_Jepma.html#cb168-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(data_a3lag_omit, <span class="fu">aes</span>(<span class="at">y =</span> event02_expect_angle, </span>
+<span id="cb168-2"><a href="ch06_Jepma.html#cb168-2" aria-hidden="true" tabindex="-1"></a>                       <span class="at">x =</span> lag<span class="fl">.04</span>outcomeangle, </span>
+<span id="cb168-3"><a href="ch06_Jepma.html#cb168-3" aria-hidden="true" tabindex="-1"></a>                       <span class="at">colour =</span> subject), <span class="at">size =</span> .<span class="dv">3</span>, <span class="at">color =</span> <span class="st">&#39;gray&#39;</span>) <span class="sc">+</span> </span>
+<span id="cb168-4"><a href="ch06_Jepma.html#cb168-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> .<span class="dv">1</span>) <span class="sc">+</span> </span>
+<span id="cb168-5"><a href="ch06_Jepma.html#cb168-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">&#39;lm&#39;</span>, <span class="at">formula=</span> y <span class="sc">~</span> x, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">size =</span> .<span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb168-6"><a href="ch06_Jepma.html#cb168-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span></code></pre></div>
+</details>
+<pre><code>## Warning: Removed 276 rows containing non-finite values (`stat_smooth()`).</code></pre>
+<pre><code>## Warning: Removed 276 rows containing missing values (`geom_point()`).</code></pre>
+<p><img src="06_iv-cue-trial_dv-expect-actual_jepma_files/figure-html/unnamed-chunk-38-1.png" width="672" /></p>
+</div>
+</div>
+<div id="additional-analysis" class="section level2 hasAnchor" number="7.11">
+<h2><span class="header-section-number">7.11</span> Additional analysis<a href="ch06_Jepma.html#additional-analysis" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>01/23/2023</p>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb171"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb171-1"><a href="ch06_Jepma.html#cb171-1" aria-hidden="true" tabindex="-1"></a>model.lag_cue <span class="ot">=</span> <span class="fu">lmer</span>(event02_expect_angle <span class="sc">~</span> lag<span class="fl">.04</span>outcomeangle<span class="sc">*</span>param_cue_type <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> src_subject_id) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>session_id) , <span class="at">data =</span> data_a3lag_omit)</span>
+<span id="cb171-2"><a href="ch06_Jepma.html#cb171-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model.lag_cue)</span></code></pre></div>
+</details>
+<pre><code>## Linear mixed model fit by REML. t-tests use Satterthwaite&#39;s method [
+## lmerModLmerTest]
+## Formula: event02_expect_angle ~ lag.04outcomeangle * param_cue_type +  
+##     (1 | src_subject_id) + (1 | session_id)
+##    Data: data_a3lag_omit
+## 
+## REML criterion at convergence: 46175.7
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -4.3458 -0.6383 -0.0833  0.5246  9.8300 
+## 
+## Random effects:
+##  Groups         Name        Variance  Std.Dev.
+##  src_subject_id (Intercept) 128.73691 11.3462 
+##  session_id     (Intercept)   0.03408  0.1846 
+##  Residual                   272.07427 16.4947 
+## Number of obs: 5427, groups:  src_subject_id, 110; session_id, 3
+## 
+## Fixed effects:
+##                                            Estimate Std. Error         df
+## (Intercept)                                42.76857    1.21398  129.42606
+## lag.04outcomeangle                          0.23730    0.01465 5394.92176
+## param_cue_typelow_cue                     -27.33964    0.71898 5316.67781
+## lag.04outcomeangle:param_cue_typelow_cue   -0.15072    0.01922 5309.65154
+##                                          t value Pr(&gt;|t|)    
+## (Intercept)                               35.230  &lt; 2e-16 ***
+## lag.04outcomeangle                        16.197  &lt; 2e-16 ***
+## param_cue_typelow_cue                    -38.026  &lt; 2e-16 ***
+## lag.04outcomeangle:param_cue_typelow_cue  -7.842  5.3e-15 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Correlation of Fixed Effects:
+##             (Intr) lg.04t prm___
+## lg.04tcmngl -0.350              
+## prm_c_typl_ -0.293  0.500       
+## lg.04tc:___  0.227 -0.639 -0.781</code></pre>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb173"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb173-1"><a href="ch06_Jepma.html#cb173-1" aria-hidden="true" tabindex="-1"></a>meanSummary_2dv <span class="ot">&lt;-</span> <span class="cf">function</span>(DATA, GROUP, DV1, DV2) {</span>
+<span id="cb173-2"><a href="ch06_Jepma.html#cb173-2" aria-hidden="true" tabindex="-1"></a>    z <span class="ot">&lt;-</span> <span class="fu">ddply</span>(DATA, GROUP, <span class="at">.fun =</span> <span class="cf">function</span>(xx) {</span>
+<span id="cb173-3"><a href="ch06_Jepma.html#cb173-3" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(</span>
+<span id="cb173-4"><a href="ch06_Jepma.html#cb173-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">DV1_mean_per_sub =</span> <span class="fu">mean</span>(xx[, DV1], <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb173-5"><a href="ch06_Jepma.html#cb173-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">DV1_sd =</span> <span class="fu">sd</span>(xx[, DV1], <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb173-6"><a href="ch06_Jepma.html#cb173-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">DV2_mean_per_sub =</span> <span class="fu">mean</span>(xx[, DV2], <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb173-7"><a href="ch06_Jepma.html#cb173-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">DV2_sd =</span> <span class="fu">sd</span>(xx[, DV1], <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb173-8"><a href="ch06_Jepma.html#cb173-8" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb173-9"><a href="ch06_Jepma.html#cb173-9" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb173-10"><a href="ch06_Jepma.html#cb173-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(z)</span>
+<span id="cb173-11"><a href="ch06_Jepma.html#cb173-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+</details>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb174"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb174-1"><a href="ch06_Jepma.html#cb174-1" aria-hidden="true" tabindex="-1"></a>subjectwise_cuetype <span class="ot">=</span> <span class="fu">meanSummary_2dv</span>(data_a3lag_omit,</span>
+<span id="cb174-2"><a href="ch06_Jepma.html#cb174-2" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(<span class="st">&quot;src_subject_id&quot;</span>, <span class="st">&quot;trial_index&quot;</span>, <span class="st">&quot;param_cue_type&quot;</span>), </span>
+<span id="cb174-3"><a href="ch06_Jepma.html#cb174-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;lag.04outcomeangle&quot;</span>, <span class="st">&quot;event02_expect_angle&quot;</span>)</span></code></pre></div>
+</details>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb175"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb175-1"><a href="ch06_Jepma.html#cb175-1" aria-hidden="true" tabindex="-1"></a><span class="co"># subjectwise_cuetype_2dv &lt;- na.omit(subjectwise_cuetype)</span></span></code></pre></div>
+</details>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb176"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb176-1"><a href="ch06_Jepma.html#cb176-1" aria-hidden="true" tabindex="-1"></a>subjectwise_cuetype<span class="sc">$</span>param_cue_type <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(subjectwise_cuetype<span class="sc">$</span>param_cue_type)</span>
+<span id="cb176-2"><a href="ch06_Jepma.html#cb176-2" aria-hidden="true" tabindex="-1"></a>sp <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="at">data=</span>subjectwise_cuetype, </span>
+<span id="cb176-3"><a href="ch06_Jepma.html#cb176-3" aria-hidden="true" tabindex="-1"></a>             <span class="fu">aes</span>(<span class="at">x=</span>DV1_mean_per_sub, <span class="at">y=</span>DV2_mean_per_sub,</span>
+<span id="cb176-4"><a href="ch06_Jepma.html#cb176-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">color =</span> param_cue_type)) <span class="sc">+</span> </span>
+<span id="cb176-5"><a href="ch06_Jepma.html#cb176-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb176-6"><a href="ch06_Jepma.html#cb176-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">slope =</span> <span class="dv">1</span>, <span class="at">color=</span><span class="st">&quot;green&quot;</span>, </span>
+<span id="cb176-7"><a href="ch06_Jepma.html#cb176-7" aria-hidden="true" tabindex="-1"></a>                 <span class="at">linetype=</span><span class="st">&quot;dashed&quot;</span>, <span class="at">size=</span><span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb176-8"><a href="ch06_Jepma.html#cb176-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">&#39;lm&#39;</span>) <span class="sc">+</span></span>
+<span id="cb176-9"><a href="ch06_Jepma.html#cb176-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">aspect.ratio=</span><span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb176-10"><a href="ch06_Jepma.html#cb176-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">&quot;n-1 outcome rating&quot;</span>) <span class="sc">+</span></span>
+<span id="cb176-11"><a href="ch06_Jepma.html#cb176-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">&quot;n expectation rating&quot;</span>)</span>
+<span id="cb176-12"><a href="ch06_Jepma.html#cb176-12" aria-hidden="true" tabindex="-1"></a>sp <span class="sc">+</span></span>
+<span id="cb176-13"><a href="ch06_Jepma.html#cb176-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste</span>(taskname, <span class="st">&quot;- Does the linear relationship between current expectation ratings and the previous outcome ratings differ as a function of cue?&quot;</span>),</span>
+<span id="cb176-14"><a href="ch06_Jepma.html#cb176-14" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">&quot;Plotting the raw data - with all of the datapoints averaged across runs per 12 trials&quot;</span>, </span>
+<span id="cb176-15"><a href="ch06_Jepma.html#cb176-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">caption =</span> <span class="st">&quot;high cue vs low cue. The slope is significant, theree is not interaction; Green: 1:1 slope&quot;</span>)</span></code></pre></div>
+</details>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<pre><code>## Warning: Removed 49 rows containing non-finite values (`stat_smooth()`).</code></pre>
+<pre><code>## Warning: Removed 49 rows containing missing values (`geom_point()`).</code></pre>
+<p><img src="06_iv-cue-trial_dv-expect-actual_jepma_files/figure-html/unnamed-chunk-43-1.png" width="672" /></p>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb180"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb180-1"><a href="ch06_Jepma.html#cb180-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot(subjectwise_naomit_2dv$DV1_mean_per_sub, subjectwise_naomit_2dv$DV2_mean_per_sub) + lines(x = c(0,200), y = c(0,200))</span></span></code></pre></div>
+</details>
+
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="clinical-trials.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="ch15_demean_per_sub.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": true,
+"facebook": false,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": null,
+"history": {
+"link": "https://github.com/jungheejung/cue_expectancy/commits/main/06_iv-cue-trial_dv-expect-actual_jepma.Rmd",
+"text": "Chapter edit history"
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"search": {
+"engine": "lunr",
+"options": null
+},
+"toc": {
+"collapse": "subsection",
+"scroll_highlight": true
+},
+"toolbar": {
+"position": "fixed"
+},
+"info": true
+});
+});
+</script>
+
+</body>
+
+</html>

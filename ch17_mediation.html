@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Chapter 9 [beh] Mediation outcome ~ cue * stim * expectrating * n-1outcomerating | 52_ROI TTL1</title>
+  <meta name="description" content="This is a logbook of all the mixed model analyses in one setting." />
+  <meta name="generator" content="bookdown 0.37 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Chapter 9 [beh] Mediation outcome ~ cue * stim * expectrating * n-1outcomerating | 52_ROI TTL1" />
+  <meta property="og:type" content="book" />
+  
+  <meta property="og:description" content="This is a logbook of all the mixed model analyses in one setting." />
+  <meta name="github-repo" content="rstudio/bookdown-demo" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 9 [beh] Mediation outcome ~ cue * stim * expectrating * n-1outcomerating | 52_ROI TTL1" />
+  
+  <meta name="twitter:description" content="This is a logbook of all the mixed model analyses in one setting." />
+  
+
+<meta name="author" content="Heejung Jung" />
+
+
+<meta name="date" content="2023-08-14" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="ch15_demean_per_sub.html"/>
+<link rel="next" href="ch18_simulation.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<link href="libs/codefolding-lua-1.1/codefolding-lua.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+<script src="libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+<script src="libs/plotly-binding-4.10.3/plotly.js"></script>
+<script src="libs/typedarray-0.1/typedarray.min.js"></script>
+<link href="libs/crosstalk-1.2.1/css/crosstalk.min.css" rel="stylesheet" />
+<script src="libs/crosstalk-1.2.1/js/crosstalk.min.js"></script>
+<link href="libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet" />
+<script src="libs/plotly-main-2.11.1/plotly-latest.min.js"></script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+  
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> About</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#usage"><i class="fa fa-check"></i><b>1.1</b> Usage</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="ch2_expect.html"><a href="ch2_expect.html"><i class="fa fa-check"></i><b>2</b> [beh] expectation ~ cue</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="ch2_expect.html"><a href="ch2_expect.html#pain"><i class="fa fa-check"></i><b>2.1</b> Pain</a></li>
+<li class="chapter" data-level="2.2" data-path="ch2_expect.html"><a href="ch2_expect.html#vicarious"><i class="fa fa-check"></i><b>2.2</b> Vicarious</a></li>
+<li class="chapter" data-level="2.3" data-path="ch2_expect.html"><a href="ch2_expect.html#cognitive"><i class="fa fa-check"></i><b>2.3</b> Cognitive</a></li>
+<li class="chapter" data-level="2.4" data-path="ch2_expect.html"><a href="ch2_expect.html#individual-difference-analysis"><i class="fa fa-check"></i><b>2.4</b> Individual difference analysis</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="ch03_cue.html"><a href="ch03_cue.html"><i class="fa fa-check"></i><b>3</b> [beh] outcome ~ cue</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="ch03_cue.html"><a href="ch03_cue.html#pain-1"><i class="fa fa-check"></i><b>3.1</b> Pain</a></li>
+<li class="chapter" data-level="3.2" data-path="ch03_cue.html"><a href="ch03_cue.html#vicarious-1"><i class="fa fa-check"></i><b>3.2</b> Vicarious</a></li>
+<li class="chapter" data-level="3.3" data-path="ch03_cue.html"><a href="ch03_cue.html#cognitive-1"><i class="fa fa-check"></i><b>3.3</b> Cognitive</a></li>
+<li class="chapter" data-level="3.4" data-path="ch03_cue.html"><a href="ch03_cue.html#individual-differences-analysis-random-cue-effects"><i class="fa fa-check"></i><b>3.4</b> Individual differences analysis: random cue effects</a></li>
+<li class="chapter" data-level="3.5" data-path="ch03_cue.html"><a href="ch03_cue.html#individual-differences-analysis-2-random-intercept-random-slopes-of-cue-effect"><i class="fa fa-check"></i><b>3.5</b> Individual differences analysis 2: random intercept + random slopes of cue effect</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html"><i class="fa fa-check"></i><b>4</b> [beh] outcome ~ stimulus_intensity</a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#pain-2"><i class="fa fa-check"></i><b>4.1</b> Pain</a></li>
+<li class="chapter" data-level="4.2" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#vicarious-2"><i class="fa fa-check"></i><b>4.2</b> Vicarious</a></li>
+<li class="chapter" data-level="4.3" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#cognitive-2"><i class="fa fa-check"></i><b>4.3</b> Cognitive</a></li>
+<li class="chapter" data-level="4.4" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#for-loop"><i class="fa fa-check"></i><b>4.4</b> for loop</a></li>
+<li class="chapter" data-level="4.5" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#lineplot"><i class="fa fa-check"></i><b>4.5</b> Lineplot</a></li>
+<li class="chapter" data-level="4.6" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#individual-differences-in-outcome-rating-cue-effect"><i class="fa fa-check"></i><b>4.6</b> individual differences in outcome rating cue effect</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html"><i class="fa fa-check"></i><b>5</b> [beh] outcome_rating ~ cue * stim</a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-03-iv-cuecontrast-dv-outcome"><i class="fa fa-check"></i><b>5.1</b> model 03 iv-cuecontrast dv-outcome</a>
+<ul>
+<li class="chapter" data-level="5.1.1" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-03-3-2.-individual-difference"><i class="fa fa-check"></i><b>5.1.1</b> model 03 3-2. individual difference</a></li>
+<li class="chapter" data-level="5.1.2" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-iv-cue-stim-dv-outcome"><i class="fa fa-check"></i><b>5.1.2</b> model 04 iv-cue-stim dv-outcome</a></li>
+<li class="chapter" data-level="5.1.3" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#nov-17-lmer"><i class="fa fa-check"></i><b>5.1.3</b> Nov 17 lmer</a></li>
+<li class="chapter" data-level="5.1.4" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-2-individual-differences-in-cue-effects"><i class="fa fa-check"></i><b>5.1.4</b> model 04 4-2 individual differences in cue effects</a></li>
+<li class="chapter" data-level="5.1.5" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-3-scatter-plot"><i class="fa fa-check"></i><b>5.1.5</b> model 04 4-3 scatter plot</a></li>
+<li class="chapter" data-level="5.1.6" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-4-lineplot"><i class="fa fa-check"></i><b>5.1.6</b> model 04 4-4 lineplot</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="clinical-trials.html"><a href="clinical-trials.html"><i class="fa fa-check"></i><b>6</b> Clinical trials</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="clinical-trials.html"><a href="clinical-trials.html#cue-contrast-average-across-intensity"><i class="fa fa-check"></i><b>6.1</b> cue contrast average across intensity</a></li>
+<li class="chapter" data-level="6.2" data-path="clinical-trials.html"><a href="clinical-trials.html#cue-contrast-average-across-expectation"><i class="fa fa-check"></i><b>6.2</b> cue contrast average across expectation</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html"><i class="fa fa-check"></i><b>7</b> expect-actual ~ cue * trial</a>
+<ul>
+<li class="chapter" data-level="7.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#overview"><i class="fa fa-check"></i><b>7.1</b> Overview</a></li>
+<li class="chapter" data-level="7.2" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#plot-1---one-run-average-across-participants"><i class="fa fa-check"></i><b>7.2</b> plot 1 - one run, average across participants</a></li>
+<li class="chapter" data-level="7.3" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#plot-2---average-across-participant-but-spread-all-6-runs-in-one-x-axis"><i class="fa fa-check"></i><b>7.3</b> plot 2 - average across participant, but spread all 6 runs in one x axis</a></li>
+<li class="chapter" data-level="7.4" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#vicarious-3"><i class="fa fa-check"></i><b>7.4</b> vicarious</a></li>
+<li class="chapter" data-level="7.5" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#cognitive-3"><i class="fa fa-check"></i><b>7.5</b> cognitive</a></li>
+<li class="chapter" data-level="7.6" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#within-subject-vicarious"><i class="fa fa-check"></i><b>7.6</b> within subject vicarious</a></li>
+<li class="chapter" data-level="7.7" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#tor-request-only-outcome-ratings.-3-tasks"><i class="fa fa-check"></i><b>7.7</b> Tor request – only outcome ratings. 3 tasks</a>
+<ul>
+<li class="chapter" data-level="7.7.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#pain-3"><i class="fa fa-check"></i><b>7.7.1</b> pain</a></li>
+<li class="chapter" data-level="7.7.2" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#vicarious-4"><i class="fa fa-check"></i><b>7.7.2</b> vicarious</a></li>
+<li class="chapter" data-level="7.7.3" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#cognitive-4"><i class="fa fa-check"></i><b>7.7.3</b> cognitive</a></li>
+</ul></li>
+<li class="chapter" data-level="7.8" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#tor-request-only-expect-ratings.-3-tasks"><i class="fa fa-check"></i><b>7.8</b> Tor request – only expect ratings. 3 tasks</a>
+<ul>
+<li class="chapter" data-level="7.8.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#pain-4"><i class="fa fa-check"></i><b>7.8.1</b> pain</a></li>
+<li class="chapter" data-level="7.8.2" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#vicarious-5"><i class="fa fa-check"></i><b>7.8.2</b> vicarious</a></li>
+<li class="chapter" data-level="7.8.3" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#cognitive-5"><i class="fa fa-check"></i><b>7.8.3</b> cognitive</a></li>
+</ul></li>
+<li class="chapter" data-level="7.9" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#lmer"><i class="fa fa-check"></i><b>7.9</b> lmer</a>
+<ul>
+<li class="chapter" data-level="7.9.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#lmer-histogram"><i class="fa fa-check"></i><b>7.9.1</b> lmer histogram</a></li>
+</ul></li>
+<li class="chapter" data-level="7.10" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#do-current-expectation-ratings-predict-outcome-ratings"><i class="fa fa-check"></i><b>7.10</b> Do current expectation ratings predict outcome ratings?</a></li>
+<li class="chapter" data-level="7.11" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#additional-analysis"><i class="fa fa-check"></i><b>7.11</b> Additional analysis</a></li>
+</ul></li>
+<li class="chapter" data-level="8" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html"><i class="fa fa-check"></i><b>8</b> [ beh ] outcome_demean ~ cue * stim * expectrating * n-1outcomerating</a>
+<ul>
+<li class="chapter" data-level="8.1" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#linear-model-0508"><i class="fa fa-check"></i><b>8.1</b> linear model 0508</a></li>
+<li class="chapter" data-level="8.2" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#linear-model"><i class="fa fa-check"></i><b>8.2</b> linear model</a></li>
+<li class="chapter" data-level="8.3" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#q.-are-those-overestimating-for-high-cues-also-underestimators-for-low-cues"><i class="fa fa-check"></i><b>8.3</b> Q. Are those overestimating for high cues also underestimators for low cues?</a></li>
+<li class="chapter" data-level="8.4" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#todo-can-you-test-if-the-slopes-are-the-same-that-might-tell-us-something-about-whether-expectancies-translate-into-outcomes-with-the-same-efficacy-across-all-three-tasks."><i class="fa fa-check"></i><b>8.4</b> TODO: Can you test if the slopes are the same? That might tell us something about whether, expectancies translate into outcomes with the same efficacy across all three tasks.</a></li>
+<li class="chapter" data-level="8.5" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#pain-run-collapsed-across-stimulus-intensity"><i class="fa fa-check"></i><b>8.5</b> pain run, collapsed across stimulus intensity</a></li>
+<li class="chapter" data-level="8.6" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#vicarious-6"><i class="fa fa-check"></i><b>8.6</b> vicarious</a></li>
+<li class="chapter" data-level="8.7" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#cognitive-6"><i class="fa fa-check"></i><b>8.7</b> cognitive</a></li>
+<li class="chapter" data-level="8.8" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#linear-model-0508-1"><i class="fa fa-check"></i><b>8.8</b> linear model 0508</a></li>
+<li class="chapter" data-level="8.9" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#across-tasks-pvc-is-the-slope-for-highvslow-cue-the-sametor-question"><i class="fa fa-check"></i><b>8.9</b> across tasks (PVC), is the slope for (highvslow cue) the same?Tor question</a></li>
+<li class="chapter" data-level="8.10" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#alireza-congruent-incongruent-pe"><i class="fa fa-check"></i><b>8.10</b> Alireza congruent incongruent (PE)</a>
+<ul>
+<li class="chapter" data-level="8.10.1" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#archive-this-cell"><i class="fa fa-check"></i><b>8.10.1</b> archive this cell</a></li>
+</ul></li>
+<li class="chapter" data-level="8.11" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#alireza-congruent-incongruent-incorrect"><i class="fa fa-check"></i><b>8.11</b> Alireza congruent incongruent (incorrect)</a>
+<ul>
+<li class="chapter" data-level="8.11.1" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#archive-this-cell-1"><i class="fa fa-check"></i><b>8.11.1</b> archive this cell</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="ch17_mediation.html"><a href="ch17_mediation.html"><i class="fa fa-check"></i><b>9</b> [beh] Mediation outcome ~ cue * stim * expectrating * n-1outcomerating</a>
+<ul>
+<li class="chapter" data-level="9.1" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation"><i class="fa fa-check"></i><b>9.1</b> mediation</a></li>
+<li class="chapter" data-level="9.2" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation-2"><i class="fa fa-check"></i><b>9.2</b> mediation 2</a></li>
+<li class="chapter" data-level="9.3" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation-3-test-same-model-using-mediation-from-mbess"><i class="fa fa-check"></i><b>9.3</b> mediation 3: Test same model using mediation() from MBESS</a></li>
+<li class="chapter" data-level="9.4" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation-4-test-library-mediation"><i class="fa fa-check"></i><b>9.4</b> mediation 4: Test library mediation</a></li>
+</ul></li>
+<li class="chapter" data-level="10" data-path="ch18_simulation.html"><a href="ch18_simulation.html"><i class="fa fa-check"></i><b>10</b> [beh] RL simulation</a>
+<ul>
+<li class="chapter" data-level="10.1" data-path="ch18_simulation.html"><a href="ch18_simulation.html#function"><i class="fa fa-check"></i><b>10.1</b> function</a></li>
+</ul></li>
+<li class="chapter" data-level="11" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html"><i class="fa fa-check"></i><b>11</b> [beh] RL simulation Aryan</a>
+<ul>
+<li class="chapter" data-level="11.1" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-expectation-and-outcome-rating-using-model-4-simulations-jepma"><i class="fa fa-check"></i><b>11.1</b> Plot the relationship between expectation and outcome rating using model 4 simulations (Jepma)</a></li>
+<li class="chapter" data-level="11.2" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-expectation-and-outcome-rating-using-model-2-simulations-jepma"><i class="fa fa-check"></i><b>11.2</b> Plot the relationship between expectation and outcome rating using model 2 simulations (Jepma)</a>
+<ul>
+<li class="chapter" data-level="11.2.1" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#model-fits-from-model-2.-expectation-ratings-jepma-model"><i class="fa fa-check"></i><b>11.2.1</b> model fits from model 2. expectation ratings (Jepma model)</a></li>
+<li class="chapter" data-level="11.2.2" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#model-fits-from-model-2.-outcome-ratings-jepma-model"><i class="fa fa-check"></i><b>11.2.2</b> model fits from model 2. outcome ratings (Jepma model)</a></li>
+</ul></li>
+<li class="chapter" data-level="11.3" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#correlation-betweeen-alpha_incongruent-and-cue-trial-slope-randome-effects-of-cue"><i class="fa fa-check"></i><b>11.3</b> correlation betweeen alpha_incongruent and cue trial slope (randome effects of cue)</a></li>
+<li class="chapter" data-level="11.4" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#correlation-betweeen-alpha_incongruent-and-nps"><i class="fa fa-check"></i><b>11.4</b> correlation betweeen alpha_incongruent and NPS</a></li>
+<li class="chapter" data-level="11.5" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#correlation-bettween-nps-and-pe"><i class="fa fa-check"></i><b>11.5</b> correlation bettween NPS and PE</a>
+<ul>
+<li class="chapter" data-level="11.5.1" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#test-similarity-between-nps-positive-values-and-pe-11062023"><i class="fa fa-check"></i><b>11.5.1</b> test similarity between NPS positive values and PE (11/06/2023)</a></li>
+<li class="chapter" data-level="11.5.2" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#test-relationship-between-pe-and-cue-type-and-stimintensity-06162023"><i class="fa fa-check"></i><b>11.5.2</b> test relationship between PE and cue type and stimintensity (06/16/2023)</a></li>
+<li class="chapter" data-level="11.5.3" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-pe-and-nps-as-a-function-of-cue"><i class="fa fa-check"></i><b>11.5.3</b> plot the relationship between PE and NPS as a function of cue</a></li>
+<li class="chapter" data-level="11.5.4" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-pe-and-nps-as-a-function-of-cue-and-stimulus-intensity"><i class="fa fa-check"></i><b>11.5.4</b> plot the relationship between PE and NPS as a function of cue and stimulus intensity</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="12" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html"><i class="fa fa-check"></i><b>12</b> [model] NPSsimulation</a>
+<ul>
+<li class="chapter" data-level="12.0.1" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#function-1"><i class="fa fa-check"></i><b>12.0.1</b> Function</a></li>
+<li class="chapter" data-level="12.0.2" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#nps-data"><i class="fa fa-check"></i><b>12.0.2</b> NPS data</a></li>
+<li class="chapter" data-level="12.0.3" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#behavioral-data"><i class="fa fa-check"></i><b>12.0.3</b> behavioral data</a></li>
+<li class="chapter" data-level="12.0.4" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#get-pain-relationship-controlling-for-cue-cuetype-expect"><i class="fa fa-check"></i><b>12.0.4</b> get pain relationship, controlling for cue, cuetype, expect</a></li>
+<li class="chapter" data-level="12.1" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#simulation"><i class="fa fa-check"></i><b>12.1</b> simulation **</a></li>
+</ul></li>
+<li class="chapter" data-level="13" data-path="ch51_fir_glasserTPJttl2.html"><a href="ch51_fir_glasserTPJttl2.html"><i class="fa fa-check"></i><b>13</b> [fMRI] FIR ~ task</a>
+<ul>
+<li class="chapter" data-level="13.1" data-path="ch51_fir_glasserTPJttl2.html"><a href="ch51_fir_glasserTPJttl2.html#parameters-todo-ignore"><i class="fa fa-check"></i><b>13.1</b> parameters {TODO: ignore}</a></li>
+</ul></li>
+<li class="chapter" data-level="14" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html"><i class="fa fa-check"></i><b>14</b> taskwise stim effect</a>
+<ul>
+<li class="chapter" data-level="14.0.1" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#pca-subjectwise"><i class="fa fa-check"></i><b>14.0.1</b> PCA subjectwise</a></li>
+<li class="chapter" data-level="14.0.2" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#pca-groupwise"><i class="fa fa-check"></i><b>14.0.2</b> PCA groupwise</a></li>
+<li class="chapter" data-level="14.1" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#dep-epoch-stim-high-cue-vs-low-cue"><i class="fa fa-check"></i><b>14.1</b> DEP: epoch: stim, high cue vs low cue</a></li>
+<li class="chapter" data-level="14.2" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#taskwise-cue-effect"><i class="fa fa-check"></i><b>14.2</b> taskwise cue effect</a></li>
+<li class="chapter" data-level="14.3" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#epoch-stim-rating"><i class="fa fa-check"></i><b>14.3</b> epoch: stim, rating</a></li>
+<li class="chapter" data-level="14.4" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#epoch-6-cond"><i class="fa fa-check"></i><b>14.4</b> epoch: 6 cond</a></li>
+</ul></li>
+<li class="chapter" data-level="15" data-path="taskwise-6-cond-effect.html"><a href="taskwise-6-cond-effect.html"><i class="fa fa-check"></i><b>15</b> taskwise 6 cond effect</a></li>
+<li class="chapter" data-level="16" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html"><i class="fa fa-check"></i><b>16</b> [fMRI] FIR ~ task TTL1</a>
+<ul>
+<li class="chapter" data-level="16.1" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#references"><i class="fa fa-check"></i><b>16.1</b> references</a></li>
+<li class="chapter" data-level="16.2" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#taskwise-stim-effect-1"><i class="fa fa-check"></i><b>16.2</b> taskwise stim effect</a>
+<ul>
+<li class="chapter" data-level="16.2.1" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#pca-subjectwise-1"><i class="fa fa-check"></i><b>16.2.1</b> PCA subjectwise</a></li>
+<li class="chapter" data-level="16.2.2" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#pca-groupwise-1"><i class="fa fa-check"></i><b>16.2.2</b> PCA groupwise</a></li>
+</ul></li>
+<li class="chapter" data-level="16.3" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#taskwise-cue-effect-1"><i class="fa fa-check"></i><b>16.3</b> taskwise cue effect</a>
+<ul>
+<li class="chapter" data-level="16.3.1" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#epoch-stim-rating-1"><i class="fa fa-check"></i><b>16.3.1</b> epoch: stim, rating</a></li>
+</ul></li>
+<li class="chapter" data-level="16.4" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#main-sandbox-6-condition-in-three-panels.-per-task.-per-roi"><i class="fa fa-check"></i><b>16.4</b> MAIN SANDBOX: 6 condition in three panels. per task. per ROI</a></li>
+</ul></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">52_ROI TTL1</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="ch17_mediation" class="section level1 hasAnchor" number="9">
+<h1><span class="header-section-number">Chapter 9</span> [beh] Mediation outcome ~ cue * stim * expectrating * n-1outcomerating<a href="ch17_mediation.html#ch17_mediation" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>helpful resources
+<a href="https://nmmichalak.github.io/nicholas_michalak/blog_entries/2018/nrg01/nrg01.html" class="uri">https://nmmichalak.github.io/nicholas_michalak/blog_entries/2018/nrg01/nrg01.html</a>
+## What is the purpose of this notebook? {.unlisted .unnumbered}
+Here, I model the outcome ratings as a function of cue, stimulus intensity, expectation ratings, N-1 outcome rating.
+* As opposed to notebook 15, I want to check if the demeaning process should be for runs as opposed to subjects.
+* In other words, calculate the average within run and subtract ratings
+* Main model: <code>lmer(outcome_rating ~ cue * stim * expectation rating + N-1 outcomerating)</code>
+* Main question: What constitutes a reported outcome rating?
+* Sub questions:
+- If there is a linear relationship between expectation rating and outcome rating, does this differ as a function of cue?
+- How does a N-1 outcome rating affect current expectation ratings?
+- Later, is this effect different across tasks or are they similar?</p>
+<ul>
+<li>IV:
+stim (high / med / low)
+cue (high / low)
+expectation rating (continuous)
+N-1 outcome rating (continuous)</li>
+<li>DV: outcome rating</li>
+</ul>
+<div id="some-thoughts-todos-2" class="section level3 unlisted unnumbered hasAnchor">
+<h3>Some thoughts, TODOs<a href="ch17_mediation.html#some-thoughts-todos-2" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<ul>
+<li>Standardized coefficients</li>
+<li>Slope difference? Intercept difference? ( cue and expectantion rating)</li>
+<li>Correct for the range (within participant)
+hypothesis:</li>
+</ul>
+<ol style="list-style-type: decimal">
+<li>Larger expectation leads to prediction error</li>
+<li>Individual differences in ratings</li>
+<li>Outcome experience, based on behavioral experience
+What are the brain maps associated with each component.</li>
+</ol>
+<p>load data and combine participant data</p>
+<pre><code>##  event02_expect_RT event04_actual_RT event02_expect_angle event04_actual_angle
+##  Min.   :0.6504    Min.   :0.0171    Min.   :  0.00       Min.   :  0.00      
+##  1st Qu.:1.6200    1st Qu.:1.9188    1st Qu.: 29.55       1st Qu.: 37.83      
+##  Median :2.0511    Median :2.3511    Median : 57.58       Median : 60.49      
+##  Mean   :2.1337    Mean   :2.4011    Mean   : 61.88       Mean   : 65.47      
+##  3rd Qu.:2.5589    3rd Qu.:2.8514    3rd Qu.: 88.61       3rd Qu.: 87.70      
+##  Max.   :3.9912    Max.   :3.9930    Max.   :180.00       Max.   :180.00      
+##  NA&#39;s   :651       NA&#39;s   :638       NA&#39;s   :651          NA&#39;s   :641</code></pre>
+</div>
+<div id="covariance-matrix-ratings-and-rt" class="section level3 unlisted unnumbered hasAnchor">
+<h3>Covariance matrix: ratings and RT<a href="ch17_mediation.html#covariance-matrix-ratings-and-rt" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div class="plotly html-widget html-fill-item" id="htmlwidget-c0ab84f5f70e74717c6b" style="width:672px;height:480px;"></div>
+<script type="application/json" data-for="htmlwidget-c0ab84f5f70e74717c6b">{"x":{"visdat":{"27da667288a2":["function () ","plotlyVisDat"]},"cur_data":"27da667288a2","attrs":{"27da667288a2":{"z":{},"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"heatmap","colors":["#590007","#590007","#5B0107","#5C0108","#5D0207","#5D0207","#5E0308","#5F0308","#600407","#610507","#620606","#620606","#630707","#640807","#650906","#660906","#670A07","#670B07","#680C06","#690C06","#6A0D06","#6B0D06","#6C0E07","#6C0F07","#6D1006","#6E1006","#6F1107","#701207","#711306","#721306","#731405","#731405","#741506","#751606","#761705","#771705","#781806","#791906","#7A1A05","#7B1A06","#7C1B06","#7D1C06","#7E1D05","#7E1D06","#7F1E06","#801E06","#822006","#832106","#842105","#852206","#862206","#872406","#882506","#892606","#8A2605","#8B2706","#8C2806","#8D2905","#8E2A05","#8F2B06","#902C06","#912D05","#932E05","#942F06","#953006","#963107","#973206","#983307","#993407","#9A3508","#9B3608","#9C3709","#9E3809","#9F390A","#A03B0A","#A13C0B","#A23D0C","#A33E0D","#A43F0E","#A5410F","#A6420F","#A74310","#A84411","#A94612","#AA4713","#AB4914","#AC4915","#AE4A16","#AE4B17","#AF4D19","#AF4E1A","#B1501C","#B2511D","#B2521E","#B3531F","#B4531F","#B55521","#B55622","#B65824","#B65925","#B75A26","#B75B27","#B85C28","#B95D29","#BA5E2A","#BA5F2C","#BB602D","#BB612E","#BC622F","#BC6330","#BD6431","#BD6432","#BE6533","#BD6635","#BE6736","#BE6837","#BF6938","#BF6A39","#C06B3A","#C06C3B","#C16D3C","#C16D3E","#C26E3F","#C16F40","#C27041","#C27142","#C37243","#C37344","#C47446","#C47447","#C57548","#C57649","#C6774A","#C5784B","#C67A4D","#C67A4E","#C77B50","#C87C51","#C87C51","#C97E53","#C87F54","#C98056","#C98157","#CA8258","#CA8259","#CB835A","#CB845B","#CC855D","#CB865E","#CC875F","#CC8860","#CD8961","#CD8A63","#CE8B64","#CE8B65","#CF8C66","#CE8D67","#CF8E68","#CF8F6A","#D0906B","#D0916C","#D1926D","#D1936F","#D29470","#D29471","#D39572","#D29673","#D39775","#D39876","#D49977","#D49A78","#D59B7A","#D59C7B","#D69D7C","#D59E7D","#D69F7F","#D69F80","#D7A081","#D7A182","#D8A284","#D8A385","#D9A486","#DAA688","#DAA789","#DBA88B","#DAA98C","#DBAA8D","#DBAB8E","#DCAC90","#DCAD91","#DDAE93","#DDAF94","#DEB095","#DEB196","#DFB298","#DEB399","#DFB49A","#DFB59B","#E0B69D","#E0B79F","#E1B8A0","#E1B9A1","#E2BAA2","#E2BBA4","#E3BCA5","#E3BDA7","#E4BEA8","#E3BEA9","#E4BFAA","#E4C0AC","#E5C1AE","#E5C3AF","#E6C4B0","#E6C5B1","#E7C6B2","#E7C7B4","#E8C8B6","#E8C9B7","#E9CAB8","#E8CBB9","#E9CCBB","#E9CDBC","#EACEBE","#EACFBF","#EBD0C1","#EBD0C2","#EBD1C3","#EBD3C5","#ECD4C6","#EDD5C8","#ECD6C9","#EDD7CB","#EDD8CC","#EED9CD","#EEDACE","#EDDBD0","#EDDCD1","#EEDDD3","#EEDDD4","#EEDED5","#EEDFD6","#EDE0D8","#EDE0D9","#EEE1DA","#EEE2DB","#EDE3DC","#EDE3DD","#ECE4DE","#ECE4DF","#EBE5E0","#EBE5E1","#EAE6E2","#EAE5E3","#E9E6E4","#E8E6E4","#E7E7E5","#E7E7E6","#E6E6E7","#E5E6E7","#E3E7E7","#E2E7E7","#E1E6E8","#E0E6E8","#DFE5E9","#DEE6E9","#DCE5E8","#DBE5E8","#D9E4E9","#D8E4E9","#D6E3E8","#D5E3E8","#D3E2E9","#D2E1E9","#D0E0E8","#CEDFE7","#CDDFE7","#CBDEE7","#CADDE7","#C8DCE6","#C7DBE6","#C5DAE5","#C4DAE5","#C2D9E4","#C1D8E4","#BFD7E3","#BED6E3","#BCD5E2","#BBD5E2","#B9D4E1","#B7D3E1","#B5D2E0","#B3D1DF","#B2D0DE","#B0CFDE","#AFCEDD","#ADCDDD","#ACCCDC","#AACBDC","#A9CADB","#A7C9DA","#A5C8D9","#A3C7D9","#A1C6D8","#A0C5D8","#9EC4D7","#9DC4D6","#9BC3D5","#9AC2D5","#98C1D4","#97C0D4","#95BFD3","#94BED2","#92BDD1","#90BCD1","#8EBBD0","#8DBAD0","#8BB9CF","#8AB8CE","#88B6CD","#86B5CC","#85B4CC","#83B3CB","#81B2CA","#7FB1C9","#7EB0C9","#7CAFC8","#7BAEC8","#79ADC7","#78ACC6","#76ABC5","#75AAC5","#73A9C4","#72A8C4","#70A7C3","#6EA6C2","#6CA5C1","#6AA4C1","#69A3C0","#67A2C0","#66A1BF","#64A0BE","#639FBD","#619EBD","#5F9DBC","#5D9CBB","#5B9BBA","#5A9ABA","#5999B9","#5798B9","#5597B8","#5496B7","#5295B6","#5194B6","#4F93B5","#4E92B4","#4C91B3","#4B90B3","#498EB2","#488DB2","#468BB1","#458BB0","#438AAF","#4289AF","#4087AE","#3E86AC","#3D85AC","#3B84AB","#3A83AB","#3882AA","#3781A9","#3580A8","#347FA8","#327EA7","#317DA6","#2F7CA5","#2E7BA5","#2C7AA4","#2B79A4","#2A78A3","#2977A2","#2776A1","#2575A1","#2474A0","#2373A0","#22729F","#20719E","#1F709D","#1E6F9D","#1D6E9C","#1C6D9C","#1B6C9B","#196B9A","#186A99","#176999","#166898","#156798","#146697","#136697","#126596","#116496","#106395","#106294","#0F6193","#0E6093","#0C5E92","#0C5E92","#0B5D91","#0B5D91","#0A5C90","#085A8F","#08598F","#07588E","#07578D","#06568C","#06568C","#05558B","#06548B","#05538A","#05528A","#045189","#055189","#045088","#044F88","#034E87","#034D87","#044C86","#044C86","#034B85","#034A85","#024984","#024984","#034883","#034783","#024682","#024582","#024481","#024481","#034380","#034280","#02417F","#02417F","#03407E","#033F7E","#023E7D","#023E7D","#033D7C","#033C7C","#023B7B","#023A7B","#01397A","#01397A","#023879","#023779","#013678","#013577","#023477","#013376","#013376","#023275","#023175","#013074","#013074","#022F73","#022E73","#012D72","#012D72","#022C71","#022B71","#012A70","#012A70","#02296F","#02286F","#01276E","#01276E","#02266D","#02256D","#02246C","#02236C","#01226B","#01226B","#02216A","#02206A","#011F69","#021F69","#011E68","#011D68","#021C67","#021C67","#011B66","#011A66","#001965","#001865","#011764","#011764","#001663","#001563","#011462","#011462","#001361","#001260"],"inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"scene":{"zaxis":{"title":"cormat"}},"xaxis":{"domain":[0,1],"automargin":true,"tickmode":"array","tickvals":[0,1,2,3,4],"ticktext":["event04_actual_angle","event02_expect_angle","event01_cue_onset","event02_expect_RT","event04_actual_RT"],"gridcolor":"transparent","zerolinecolor":"transparent","title":"","zeroline":false,"showgrid":false},"yaxis":{"domain":[0,1],"automargin":true,"tickmode":"array","tickvals":[0,1,2,3,4],"ticktext":["event04_actual_angle","event02_expect_angle","event01_cue_onset","event02_expect_RT","event04_actual_RT"],"gridcolor":"transparent","zerolinecolor":"transparent","title":"","autorange":"reversed","zeroline":false,"showgrid":false},"hovermode":"closest","showlegend":false,"legend":{"yanchor":"top","y":0.5},"plot_bgcolor":"transparent","paper_bgcolor":"transparent"},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false,"displayModeBar":false},"data":[{"colorbar":{"title":"cormat","ticklen":2,"len":0.5,"lenmode":"fraction","y":1,"yanchor":"top"},"colorscale":[["0","rgba(89,0,7,1)"],["0.0416666666666667","rgba(107,13,6,1)"],["0.0833333333333333","rgba(126,29,5,1)"],["0.125","rgba(147,46,5,1)"],["0.166666666666667","rgba(169,70,18,1)"],["0.208333333333333","rgba(186,94,42,1)"],["0.25","rgba(194,113,66,1)"],["0.291666666666667","rgba(203,132,91,1)"],["0.333333333333333","rgba(210,150,116,1)"],["0.375","rgba(219,171,142,1)"],["0.416666666666667","rgba(228,191,170,1)"],["0.458333333333333","rgba(237,213,199,1)"],["0.5","rgba(235,229,225,1)"],["0.541666666666667","rgba(212,227,232,1)"],["0.583333333333333","rgba(179,209,223,1)"],["0.625","rgba(146,189,209,1)"],["0.666666666666667","rgba(113,167,195,1)"],["0.708333333333333","rgba(79,147,181,1)"],["0.75","rgba(47,124,165,1)"],["0.791666666666667","rgba(21,103,152,1)"],["0.833333333333333","rgba(6,84,139,1)"],["0.875","rgba(3,67,128,1)"],["0.916666666666667","rgba(1,51,118,1)"],["0.958333333333333","rgba(1,34,107,1)"],["1","rgba(0,18,96,1)"]],"showscale":true,"z":[[1,0.62734921960762247,-0.12733126540763812,-0.038715816730490592,-0.15597630291158573],[0.62734921960762247,1,-0.094732639796961352,-0.053194395848554892,-0.12735368707113573],[-0.12733126540763812,-0.094732639796961352,1,0.087858734149391479,0.09477338992013444],[-0.038715816730490592,-0.053194395848554892,0.087858734149391479,1,0.2790896117901982],[-0.15597630291158573,-0.12735368707113573,0.09477338992013444,0.2790896117901982,1]],"type":"heatmap","xaxis":"x","yaxis":"y","frame":null,"zmin":-1,"zmax":1}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="covariance-matrix-fixation-durations-e.g.-isis" class="section level3 unlisted unnumbered hasAnchor">
+<h3>Covariance matrix: fixation durations (e.g. ISIs)<a href="ch17_mediation.html#covariance-matrix-fixation-durations-e.g.-isis" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div class="plotly html-widget html-fill-item" id="htmlwidget-2a735f03a348b056090f" style="width:672px;height:480px;"></div>
+<script type="application/json" data-for="htmlwidget-2a735f03a348b056090f">{"x":{"visdat":{"27da49ad1c3f":["function () ","plotlyVisDat"]},"cur_data":"27da49ad1c3f","attrs":{"27da49ad1c3f":{"z":{},"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"heatmap","colors":["#590007","#590007","#5B0107","#5C0108","#5D0207","#5D0207","#5E0308","#5F0308","#600407","#610507","#620606","#620606","#630707","#640807","#650906","#660906","#670A07","#670B07","#680C06","#690C06","#6A0D06","#6B0D06","#6C0E07","#6C0F07","#6D1006","#6E1006","#6F1107","#701207","#711306","#721306","#731405","#731405","#741506","#751606","#761705","#771705","#781806","#791906","#7A1A05","#7B1A06","#7C1B06","#7D1C06","#7E1D05","#7E1D06","#7F1E06","#801E06","#822006","#832106","#842105","#852206","#862206","#872406","#882506","#892606","#8A2605","#8B2706","#8C2806","#8D2905","#8E2A05","#8F2B06","#902C06","#912D05","#932E05","#942F06","#953006","#963107","#973206","#983307","#993407","#9A3508","#9B3608","#9C3709","#9E3809","#9F390A","#A03B0A","#A13C0B","#A23D0C","#A33E0D","#A43F0E","#A5410F","#A6420F","#A74310","#A84411","#A94612","#AA4713","#AB4914","#AC4915","#AE4A16","#AE4B17","#AF4D19","#AF4E1A","#B1501C","#B2511D","#B2521E","#B3531F","#B4531F","#B55521","#B55622","#B65824","#B65925","#B75A26","#B75B27","#B85C28","#B95D29","#BA5E2A","#BA5F2C","#BB602D","#BB612E","#BC622F","#BC6330","#BD6431","#BD6432","#BE6533","#BD6635","#BE6736","#BE6837","#BF6938","#BF6A39","#C06B3A","#C06C3B","#C16D3C","#C16D3E","#C26E3F","#C16F40","#C27041","#C27142","#C37243","#C37344","#C47446","#C47447","#C57548","#C57649","#C6774A","#C5784B","#C67A4D","#C67A4E","#C77B50","#C87C51","#C87C51","#C97E53","#C87F54","#C98056","#C98157","#CA8258","#CA8259","#CB835A","#CB845B","#CC855D","#CB865E","#CC875F","#CC8860","#CD8961","#CD8A63","#CE8B64","#CE8B65","#CF8C66","#CE8D67","#CF8E68","#CF8F6A","#D0906B","#D0916C","#D1926D","#D1936F","#D29470","#D29471","#D39572","#D29673","#D39775","#D39876","#D49977","#D49A78","#D59B7A","#D59C7B","#D69D7C","#D59E7D","#D69F7F","#D69F80","#D7A081","#D7A182","#D8A284","#D8A385","#D9A486","#DAA688","#DAA789","#DBA88B","#DAA98C","#DBAA8D","#DBAB8E","#DCAC90","#DCAD91","#DDAE93","#DDAF94","#DEB095","#DEB196","#DFB298","#DEB399","#DFB49A","#DFB59B","#E0B69D","#E0B79F","#E1B8A0","#E1B9A1","#E2BAA2","#E2BBA4","#E3BCA5","#E3BDA7","#E4BEA8","#E3BEA9","#E4BFAA","#E4C0AC","#E5C1AE","#E5C3AF","#E6C4B0","#E6C5B1","#E7C6B2","#E7C7B4","#E8C8B6","#E8C9B7","#E9CAB8","#E8CBB9","#E9CCBB","#E9CDBC","#EACEBE","#EACFBF","#EBD0C1","#EBD0C2","#EBD1C3","#EBD3C5","#ECD4C6","#EDD5C8","#ECD6C9","#EDD7CB","#EDD8CC","#EED9CD","#EEDACE","#EDDBD0","#EDDCD1","#EEDDD3","#EEDDD4","#EEDED5","#EEDFD6","#EDE0D8","#EDE0D9","#EEE1DA","#EEE2DB","#EDE3DC","#EDE3DD","#ECE4DE","#ECE4DF","#EBE5E0","#EBE5E1","#EAE6E2","#EAE5E3","#E9E6E4","#E8E6E4","#E7E7E5","#E7E7E6","#E6E6E7","#E5E6E7","#E3E7E7","#E2E7E7","#E1E6E8","#E0E6E8","#DFE5E9","#DEE6E9","#DCE5E8","#DBE5E8","#D9E4E9","#D8E4E9","#D6E3E8","#D5E3E8","#D3E2E9","#D2E1E9","#D0E0E8","#CEDFE7","#CDDFE7","#CBDEE7","#CADDE7","#C8DCE6","#C7DBE6","#C5DAE5","#C4DAE5","#C2D9E4","#C1D8E4","#BFD7E3","#BED6E3","#BCD5E2","#BBD5E2","#B9D4E1","#B7D3E1","#B5D2E0","#B3D1DF","#B2D0DE","#B0CFDE","#AFCEDD","#ADCDDD","#ACCCDC","#AACBDC","#A9CADB","#A7C9DA","#A5C8D9","#A3C7D9","#A1C6D8","#A0C5D8","#9EC4D7","#9DC4D6","#9BC3D5","#9AC2D5","#98C1D4","#97C0D4","#95BFD3","#94BED2","#92BDD1","#90BCD1","#8EBBD0","#8DBAD0","#8BB9CF","#8AB8CE","#88B6CD","#86B5CC","#85B4CC","#83B3CB","#81B2CA","#7FB1C9","#7EB0C9","#7CAFC8","#7BAEC8","#79ADC7","#78ACC6","#76ABC5","#75AAC5","#73A9C4","#72A8C4","#70A7C3","#6EA6C2","#6CA5C1","#6AA4C1","#69A3C0","#67A2C0","#66A1BF","#64A0BE","#639FBD","#619EBD","#5F9DBC","#5D9CBB","#5B9BBA","#5A9ABA","#5999B9","#5798B9","#5597B8","#5496B7","#5295B6","#5194B6","#4F93B5","#4E92B4","#4C91B3","#4B90B3","#498EB2","#488DB2","#468BB1","#458BB0","#438AAF","#4289AF","#4087AE","#3E86AC","#3D85AC","#3B84AB","#3A83AB","#3882AA","#3781A9","#3580A8","#347FA8","#327EA7","#317DA6","#2F7CA5","#2E7BA5","#2C7AA4","#2B79A4","#2A78A3","#2977A2","#2776A1","#2575A1","#2474A0","#2373A0","#22729F","#20719E","#1F709D","#1E6F9D","#1D6E9C","#1C6D9C","#1B6C9B","#196B9A","#186A99","#176999","#166898","#156798","#146697","#136697","#126596","#116496","#106395","#106294","#0F6193","#0E6093","#0C5E92","#0C5E92","#0B5D91","#0B5D91","#0A5C90","#085A8F","#08598F","#07588E","#07578D","#06568C","#06568C","#05558B","#06548B","#05538A","#05528A","#045189","#055189","#045088","#044F88","#034E87","#034D87","#044C86","#044C86","#034B85","#034A85","#024984","#024984","#034883","#034783","#024682","#024582","#024481","#024481","#034380","#034280","#02417F","#02417F","#03407E","#033F7E","#023E7D","#023E7D","#033D7C","#033C7C","#023B7B","#023A7B","#01397A","#01397A","#023879","#023779","#013678","#013577","#023477","#013376","#013376","#023275","#023175","#013074","#013074","#022F73","#022E73","#012D72","#012D72","#022C71","#022B71","#012A70","#012A70","#02296F","#02286F","#01276E","#01276E","#02266D","#02256D","#02246C","#02236C","#01226B","#01226B","#02216A","#02206A","#011F69","#021F69","#011E68","#011D68","#021C67","#021C67","#011B66","#011A66","#001965","#001865","#011764","#011764","#001663","#001563","#011462","#011462","#001361","#001260"],"inherit":true}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"scene":{"zaxis":{"title":"cormat"}},"xaxis":{"domain":[0,1],"automargin":true,"tickmode":"array","tickvals":[0,1,2],"ticktext":["ISI02_duration","ISI01_duration","ISI03_duration"],"gridcolor":"transparent","zerolinecolor":"transparent","title":"","zeroline":false,"showgrid":false},"yaxis":{"domain":[0,1],"automargin":true,"tickmode":"array","tickvals":[0,1,2],"ticktext":["ISI02_duration","ISI01_duration","ISI03_duration"],"gridcolor":"transparent","zerolinecolor":"transparent","title":"","autorange":"reversed","zeroline":false,"showgrid":false},"hovermode":"closest","showlegend":false,"legend":{"yanchor":"top","y":0.5},"plot_bgcolor":"transparent","paper_bgcolor":"transparent"},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false,"displayModeBar":false},"data":[{"colorbar":{"title":"cormat","ticklen":2,"len":0.5,"lenmode":"fraction","y":1,"yanchor":"top"},"colorscale":[["0","rgba(89,0,7,1)"],["0.0416666666666667","rgba(107,13,6,1)"],["0.0833333333333333","rgba(126,29,5,1)"],["0.125","rgba(147,46,5,1)"],["0.166666666666667","rgba(169,70,18,1)"],["0.208333333333333","rgba(186,94,42,1)"],["0.25","rgba(194,113,66,1)"],["0.291666666666667","rgba(203,132,91,1)"],["0.333333333333333","rgba(210,150,116,1)"],["0.375","rgba(219,171,142,1)"],["0.416666666666667","rgba(228,191,170,1)"],["0.458333333333333","rgba(237,213,199,1)"],["0.5","rgba(235,229,225,1)"],["0.541666666666667","rgba(212,227,232,1)"],["0.583333333333333","rgba(179,209,223,1)"],["0.625","rgba(146,189,209,1)"],["0.666666666666667","rgba(113,167,195,1)"],["0.708333333333333","rgba(79,147,181,1)"],["0.75","rgba(47,124,165,1)"],["0.791666666666667","rgba(21,103,152,1)"],["0.833333333333333","rgba(6,84,139,1)"],["0.875","rgba(3,67,128,1)"],["0.916666666666667","rgba(1,51,118,1)"],["0.958333333333333","rgba(1,34,107,1)"],["1","rgba(0,18,96,1)"]],"showscale":true,"z":[[1,0.10422759972680674,0.071212155444998371],[0.10422759972680674,1,-0.057678817016532574],[0.071212155444998371,-0.057678817016532574,1]],"type":"heatmap","xaxis":"x","yaxis":"y","frame":null,"zmin":-1,"zmax":1}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="mediation" class="section level2 hasAnchor" number="9.1">
+<h2><span class="header-section-number">9.1</span> mediation<a href="ch17_mediation.html#mediation" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb270"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb270-1"><a href="ch17_mediation.html#cb270-1" aria-hidden="true" tabindex="-1"></a>psych<span class="sc">::</span><span class="fu">mediate</span>(event04_actual_angle <span class="sc">~</span> CUE_high_gt_low<span class="sc">*</span>stim_con_linear<span class="sc">+</span> event02_expect_angle <span class="sc">+</span> lag<span class="fl">.04</span>outcomeangle, <span class="at">data =</span> pvc, <span class="at">n.iter =</span> <span class="dv">1000</span>) <span class="sc">%&gt;%</span> <span class="fu">print</span>(<span class="at">short =</span> <span class="cn">FALSE</span>) </span></code></pre></div>
+</details>
+<p><img src="17_mediation_cue-stim-expect_outcome_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre><code>## 
+## Mediation/Moderation Analysis 
+## Call: psych::mediate(y = event04_actual_angle ~ CUE_high_gt_low * stim_con_linear + 
+##     event02_expect_angle + lag.04outcomeangle, data = pvc, n.iter = 1000)
+## 
+## The DV (Y) was  event04_actual_angle . The IV (X) was  CUE_high_gt_low stim_con_linear event02_expect_angle lag.04outcomeangle CUE_high_gt_low*stim_con_linear . The mediating variable(s) =  .Call: psych::mediate(y = event04_actual_angle ~ CUE_high_gt_low * stim_con_linear + 
+##     event02_expect_angle + lag.04outcomeangle, data = pvc, n.iter = 1000)
+## 
+## No mediator specified leads to traditional regression 
+##                                 event04_actual_angle   se     t   df      Prob
+## Intercept                                       0.00 0.30 -0.01 5023  9.89e-01
+## CUE_high_gt_low                                -5.37 0.71 -7.54 5023  5.62e-14
+## stim_con_linear                                34.42 0.75 46.13 5023  0.00e+00
+## event02_expect_angle                            0.36 0.01 33.69 5023 1.84e-224
+## lag.04outcomeangle                              0.48 0.01 46.08 5023  0.00e+00
+## CUE_high_gt_low*stim_con_linear                 1.71 1.49  1.14 5023  2.53e-01
+## 
+## R = 0.83 R2 = 0.68   F = 2177.74 on 5 and 5023 DF   p-value:  0</code></pre>
+</div>
+<div id="mediation-2" class="section level2 hasAnchor" number="9.2">
+<h2><span class="header-section-number">9.2</span> mediation 2<a href="ch17_mediation.html#mediation-2" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb272"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb272-1"><a href="ch17_mediation.html#cb272-1" aria-hidden="true" tabindex="-1"></a>mod1 <span class="ot">&lt;-</span> <span class="st">&quot;# a path</span></span>
+<span id="cb272-2"><a href="ch17_mediation.html#cb272-2" aria-hidden="true" tabindex="-1"></a><span class="st">         #thirst ~ a * room_temp</span></span>
+<span id="cb272-3"><a href="ch17_mediation.html#cb272-3" aria-hidden="true" tabindex="-1"></a><span class="st">         event02_expect_angle ~ a * CUE_high_gt_low</span></span>
+<span id="cb272-4"><a href="ch17_mediation.html#cb272-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb272-5"><a href="ch17_mediation.html#cb272-5" aria-hidden="true" tabindex="-1"></a><span class="st">         # b path</span></span>
+<span id="cb272-6"><a href="ch17_mediation.html#cb272-6" aria-hidden="true" tabindex="-1"></a><span class="st">         #consume ~ b * thirst</span></span>
+<span id="cb272-7"><a href="ch17_mediation.html#cb272-7" aria-hidden="true" tabindex="-1"></a><span class="st">         event04_actual_angle ~ b* event02_expect_angle</span></span>
+<span id="cb272-8"><a href="ch17_mediation.html#cb272-8" aria-hidden="true" tabindex="-1"></a><span class="st">         </span></span>
+<span id="cb272-9"><a href="ch17_mediation.html#cb272-9" aria-hidden="true" tabindex="-1"></a><span class="st">         # c prime path </span></span>
+<span id="cb272-10"><a href="ch17_mediation.html#cb272-10" aria-hidden="true" tabindex="-1"></a><span class="st">         #consume ~ cp * room_temp</span></span>
+<span id="cb272-11"><a href="ch17_mediation.html#cb272-11" aria-hidden="true" tabindex="-1"></a><span class="st">         event04_actual_angle ~ cp * CUE_high_gt_low</span></span>
+<span id="cb272-12"><a href="ch17_mediation.html#cb272-12" aria-hidden="true" tabindex="-1"></a><span class="st">         </span></span>
+<span id="cb272-13"><a href="ch17_mediation.html#cb272-13" aria-hidden="true" tabindex="-1"></a><span class="st">         # indirect and total effects</span></span>
+<span id="cb272-14"><a href="ch17_mediation.html#cb272-14" aria-hidden="true" tabindex="-1"></a><span class="st">         ab := a * b</span></span>
+<span id="cb272-15"><a href="ch17_mediation.html#cb272-15" aria-hidden="true" tabindex="-1"></a><span class="st">         total := cp + ab&quot;</span></span></code></pre></div>
+</details>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb273"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb273-1"><a href="ch17_mediation.html#cb273-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lavaan)</span></code></pre></div>
+</details>
+<pre><code>## This is lavaan 0.6-17
+## lavaan is FREE software! Please report any bugs.</code></pre>
+<pre><code>## 
+## Attaching package: &#39;lavaan&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:psych&#39;:
+## 
+##     cor2cov</code></pre>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb277"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb277-1"><a href="ch17_mediation.html#cb277-1" aria-hidden="true" tabindex="-1"></a>fsem1 <span class="ot">&lt;-</span> <span class="fu">sem</span>(mod1, <span class="at">data =</span> pvc, <span class="at">se =</span> <span class="st">&quot;bootstrap&quot;</span>, <span class="at">bootstrap =</span> <span class="dv">1000</span>)</span></code></pre></div>
+</details>
+<pre><code>## Warning in lav_model_nvcov_bootstrap(lavmodel = lavmodel, lavsamplestats =
+## lavsamplestats, : lavaan WARNING: 256 bootstrap runs failed or did not
+## converge.</code></pre>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb279"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb279-1"><a href="ch17_mediation.html#cb279-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fsem1, <span class="at">standardized =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+</details>
+<pre><code>## lavaan 0.6.17 ended normally after 1 iteration
+## 
+##   Estimator                                         ML
+##   Optimization method                           NLMINB
+##   Number of model parameters                         5
+## 
+##                                                   Used       Total
+##   Number of observations                          4621        5029
+## 
+## Model Test User Model:
+##                                                       
+##   Test statistic                                 0.000
+##   Degrees of freedom                                 0
+## 
+## Parameter Estimates:
+## 
+##   Standard errors                            Bootstrap
+##   Number of requested bootstrap draws             1000
+##   Number of successful bootstrap draws             744
+## 
+## Regressions:
+##                          Estimate  Std.Err  z-value  P(&gt;|z|)   Std.lv  Std.all
+##   event02_expect_angle ~                                                      
+##     CUE_hgh__  (a)         34.622    1.059   32.695    0.000   34.622    0.429
+##   event04_actual_angle ~                                                      
+##     evnt02_x_  (b)          0.674    0.013   51.662    0.000    0.674    0.715
+##     CUE_hgh__ (cp)        -15.034    0.943  -15.936    0.000  -15.034   -0.198
+## 
+## Variances:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)   Std.lv  Std.all
+##    .evnt02_xpct_ng 1328.872   32.424   40.984    0.000 1328.872    0.816
+##    .evnt04_ctl_ngl  825.688   21.676   38.092    0.000  825.688    0.571
+## 
+## Defined Parameters:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)   Std.lv  Std.all
+##     ab               23.321    0.854   27.311    0.000   23.321    0.307
+##     total             8.287    1.153    7.188    0.000    8.287    0.109</code></pre>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb281"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb281-1"><a href="ch17_mediation.html#cb281-1" aria-hidden="true" tabindex="-1"></a><span class="fu">parameterestimates</span>(fsem1, <span class="at">boot.ci.type =</span> <span class="st">&quot;bca.simple&quot;</span>, <span class="at">standardized =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb281-2"><a href="ch17_mediation.html#cb281-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>()</span></code></pre></div>
+</details>
+<table style="width:100%;">
+<colgroup>
+<col width="13%" />
+<col width="1%" />
+<col width="13%" />
+<col width="3%" />
+<col width="8%" />
+<col width="7%" />
+<col width="7%" />
+<col width="4%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="7%" />
+<col width="7%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">lhs</th>
+<th align="left">op</th>
+<th align="left">rhs</th>
+<th align="left">label</th>
+<th align="right">est</th>
+<th align="right">se</th>
+<th align="right">z</th>
+<th align="right">pvalue</th>
+<th align="right">ci.lower</th>
+<th align="right">ci.upper</th>
+<th align="right">std.lv</th>
+<th align="right">std.all</th>
+<th align="right">std.nox</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">event02_expect_angle</td>
+<td align="left">~</td>
+<td align="left">CUE_high_gt_low</td>
+<td align="left">a</td>
+<td align="right">34.6222421</td>
+<td align="right">1.0589323</td>
+<td align="right">32.695425</td>
+<td align="right">0</td>
+<td align="right">32.5381074</td>
+<td align="right">36.8315576</td>
+<td align="right">34.6222421</td>
+<td align="right">0.4289292</td>
+<td align="right">0.8579540</td>
+</tr>
+<tr class="even">
+<td align="left">event04_actual_angle</td>
+<td align="left">~</td>
+<td align="left">event02_expect_angle</td>
+<td align="left">b</td>
+<td align="right">0.6735862</td>
+<td align="right">0.0130382</td>
+<td align="right">51.662357</td>
+<td align="right">0</td>
+<td align="right">0.6389107</td>
+<td align="right">0.6943671</td>
+<td align="right">0.6735862</td>
+<td align="right">0.7148784</td>
+<td align="right">0.7148784</td>
+</tr>
+<tr class="odd">
+<td align="left">event04_actual_angle</td>
+<td align="left">~</td>
+<td align="left">CUE_high_gt_low</td>
+<td align="left">cp</td>
+<td align="right">-15.0337345</td>
+<td align="right">0.9433923</td>
+<td align="right">-15.935825</td>
+<td align="right">0</td>
+<td align="right">-16.8526515</td>
+<td align="right">-13.2346722</td>
+<td align="right">-15.0337345</td>
+<td align="right">-0.1976680</td>
+<td align="right">-0.3953800</td>
+</tr>
+<tr class="even">
+<td align="left">event02_expect_angle</td>
+<td align="left">~~</td>
+<td align="left">event02_expect_angle</td>
+<td align="left"></td>
+<td align="right">1328.8715236</td>
+<td align="right">32.4239609</td>
+<td align="right">40.984244</td>
+<td align="right">0</td>
+<td align="right">1258.5450975</td>
+<td align="right">1388.0485222</td>
+<td align="right">1328.8715236</td>
+<td align="right">0.8160197</td>
+<td align="right">0.8160197</td>
+</tr>
+<tr class="odd">
+<td align="left">event04_actual_angle</td>
+<td align="left">~~</td>
+<td align="left">event04_actual_angle</td>
+<td align="left"></td>
+<td align="right">825.6875657</td>
+<td align="right">21.6759152</td>
+<td align="right">38.092397</td>
+<td align="right">0</td>
+<td align="right">784.8224538</td>
+<td align="right">874.9438625</td>
+<td align="right">825.6875657</td>
+<td align="right">0.5710990</td>
+<td align="right">0.5710990</td>
+</tr>
+<tr class="even">
+<td align="left">CUE_high_gt_low</td>
+<td align="left">~~</td>
+<td align="left">CUE_high_gt_low</td>
+<td align="left"></td>
+<td align="right">0.2499443</td>
+<td align="right">0.0000000</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">0.2499443</td>
+<td align="right">0.2499443</td>
+<td align="right">0.2499443</td>
+<td align="right">1.0000000</td>
+<td align="right">0.2499443</td>
+</tr>
+<tr class="odd">
+<td align="left">ab</td>
+<td align="left">:=</td>
+<td align="left">a*b</td>
+<td align="left">ab</td>
+<td align="right">23.3210633</td>
+<td align="right">0.8539010</td>
+<td align="right">27.311202</td>
+<td align="right">0</td>
+<td align="right">21.5371219</td>
+<td align="right">25.0046717</td>
+<td align="right">23.3210633</td>
+<td align="right">0.3066322</td>
+<td align="right">0.6133328</td>
+</tr>
+<tr class="even">
+<td align="left">total</td>
+<td align="left">:=</td>
+<td align="left">cp+ab</td>
+<td align="left">total</td>
+<td align="right">8.2873288</td>
+<td align="right">1.1529270</td>
+<td align="right">7.188078</td>
+<td align="right">0</td>
+<td align="right">6.0810341</td>
+<td align="right">10.5875605</td>
+<td align="right">8.2873288</td>
+<td align="right">0.1089642</td>
+<td align="right">0.2179528</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="mediation-3-test-same-model-using-mediation-from-mbess" class="section level2 hasAnchor" number="9.3">
+<h2><span class="header-section-number">9.3</span> mediation 3: Test same model using mediation() from MBESS<a href="ch17_mediation.html#mediation-3-test-same-model-using-mediation-from-mbess" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<pre><code>## Warning in resid.Y.on.X + resid.Y.on.M: longer object length is not a multiple
+## of shorter object length</code></pre>
+<pre><code>## Warning in resid.Y.on.X + resid.Y.on.M - resid.Y.on.X.and.M: longer object
+## length is not a multiple of shorter object length</code></pre>
+<pre><code>## Warning in standardized.resid.Y.on.X + standardized.resid.Y.on.M: longer object
+## length is not a multiple of shorter object length</code></pre>
+<pre><code>## Warning in standardized.resid.Y.on.X + standardized.resid.Y.on.M -
+## standardized.resid.Y.on.X.and.M: longer object length is not a multiple of
+## shorter object length</code></pre>
+<pre><code>## Warning in abs(e.1M) + abs(e.1Y): longer object length is not a multiple of
+## shorter object length</code></pre>
+<pre><code>## Warning in abs(standardized.e.1M) + abs(standardized.e.1Y): longer object
+## length is not a multiple of shorter object length</code></pre>
+<pre><code>## [1] &quot;Bootstrap resampling has begun. This process may take a considerable amount of time if the number of replications is large, which is optimal for the bootstrap procedure.&quot;</code></pre>
+<pre><code>##                                           Estimate CI.Lower_BCa CI.Upper_BCa
+## Indirect.Effect                        23.32106331           NA           NA
+## Indirect.Effect.Partially.Standardized  0.61326642           NA           NA
+## Index.of.Mediation                      0.30663221           NA           NA
+## R2_4.5                                 -0.02001083           NA           NA
+## R2_4.6                                  0.07764679           NA           NA
+## R2_4.7                                  0.18103664           NA           NA
+## Ratio.of.Indirect.to.Total.Effect       2.81406275           NA           NA
+## Ratio.of.Indirect.to.Direct.Effect     -1.55124885           NA           NA
+## Success.of.Surrogate.Endpoint           0.23936430           NA           NA
+## Residual.Based_Gamma                            NA           NA           NA
+## Residual.Based.Standardized_gamma               NA           NA           NA
+## SOS                                    -1.68537707           NA           NA</code></pre>
+</div>
+<div id="mediation-4-test-library-mediation" class="section level2 hasAnchor" number="9.4">
+<h2><span class="header-section-number">9.4</span> mediation 4: Test library mediation<a href="ch17_mediation.html#mediation-4-test-library-mediation" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="ch15_demean_per_sub.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="ch18_simulation.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": true,
+"facebook": false,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": null,
+"history": {
+"link": "https://github.com/jungheejung/cue_expectancy/commits/main/17_mediation_cue-stim-expect_outcome.Rmd",
+"text": "Chapter edit history"
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"search": {
+"engine": "lunr",
+"options": null
+},
+"toc": {
+"collapse": "subsection",
+"scroll_highlight": true
+},
+"toolbar": {
+"position": "fixed"
+},
+"info": true
+});
+});
+</script>
+
+</body>
+
+</html>

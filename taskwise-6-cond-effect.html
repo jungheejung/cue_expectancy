@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Chapter 15 taskwise 6 cond effect | 52_ROI TTL1</title>
+  <meta name="description" content="This is a logbook of all the mixed model analyses in one setting." />
+  <meta name="generator" content="bookdown 0.37 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Chapter 15 taskwise 6 cond effect | 52_ROI TTL1" />
+  <meta property="og:type" content="book" />
+  
+  <meta property="og:description" content="This is a logbook of all the mixed model analyses in one setting." />
+  <meta name="github-repo" content="rstudio/bookdown-demo" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 15 taskwise 6 cond effect | 52_ROI TTL1" />
+  
+  <meta name="twitter:description" content="This is a logbook of all the mixed model analyses in one setting." />
+  
+
+<meta name="author" content="Heejung Jung" />
+
+
+<meta name="date" content="2023-08-14" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="taskwise-stim-effect.html"/>
+<link rel="next" href="ch52_timeseries.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<link href="libs/codefolding-lua-1.1/codefolding-lua.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+<script src="libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+<script src="libs/plotly-binding-4.10.3/plotly.js"></script>
+<script src="libs/typedarray-0.1/typedarray.min.js"></script>
+<link href="libs/crosstalk-1.2.1/css/crosstalk.min.css" rel="stylesheet" />
+<script src="libs/crosstalk-1.2.1/js/crosstalk.min.js"></script>
+<link href="libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet" />
+<script src="libs/plotly-main-2.11.1/plotly-latest.min.js"></script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+  
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> About</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#usage"><i class="fa fa-check"></i><b>1.1</b> Usage</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="ch2_expect.html"><a href="ch2_expect.html"><i class="fa fa-check"></i><b>2</b> [beh] expectation ~ cue</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="ch2_expect.html"><a href="ch2_expect.html#pain"><i class="fa fa-check"></i><b>2.1</b> Pain</a></li>
+<li class="chapter" data-level="2.2" data-path="ch2_expect.html"><a href="ch2_expect.html#vicarious"><i class="fa fa-check"></i><b>2.2</b> Vicarious</a></li>
+<li class="chapter" data-level="2.3" data-path="ch2_expect.html"><a href="ch2_expect.html#cognitive"><i class="fa fa-check"></i><b>2.3</b> Cognitive</a></li>
+<li class="chapter" data-level="2.4" data-path="ch2_expect.html"><a href="ch2_expect.html#individual-difference-analysis"><i class="fa fa-check"></i><b>2.4</b> Individual difference analysis</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="ch03_cue.html"><a href="ch03_cue.html"><i class="fa fa-check"></i><b>3</b> [beh] outcome ~ cue</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="ch03_cue.html"><a href="ch03_cue.html#pain-1"><i class="fa fa-check"></i><b>3.1</b> Pain</a></li>
+<li class="chapter" data-level="3.2" data-path="ch03_cue.html"><a href="ch03_cue.html#vicarious-1"><i class="fa fa-check"></i><b>3.2</b> Vicarious</a></li>
+<li class="chapter" data-level="3.3" data-path="ch03_cue.html"><a href="ch03_cue.html#cognitive-1"><i class="fa fa-check"></i><b>3.3</b> Cognitive</a></li>
+<li class="chapter" data-level="3.4" data-path="ch03_cue.html"><a href="ch03_cue.html#individual-differences-analysis-random-cue-effects"><i class="fa fa-check"></i><b>3.4</b> Individual differences analysis: random cue effects</a></li>
+<li class="chapter" data-level="3.5" data-path="ch03_cue.html"><a href="ch03_cue.html#individual-differences-analysis-2-random-intercept-random-slopes-of-cue-effect"><i class="fa fa-check"></i><b>3.5</b> Individual differences analysis 2: random intercept + random slopes of cue effect</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html"><i class="fa fa-check"></i><b>4</b> [beh] outcome ~ stimulus_intensity</a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#pain-2"><i class="fa fa-check"></i><b>4.1</b> Pain</a></li>
+<li class="chapter" data-level="4.2" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#vicarious-2"><i class="fa fa-check"></i><b>4.2</b> Vicarious</a></li>
+<li class="chapter" data-level="4.3" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#cognitive-2"><i class="fa fa-check"></i><b>4.3</b> Cognitive</a></li>
+<li class="chapter" data-level="4.4" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#for-loop"><i class="fa fa-check"></i><b>4.4</b> for loop</a></li>
+<li class="chapter" data-level="4.5" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#lineplot"><i class="fa fa-check"></i><b>4.5</b> Lineplot</a></li>
+<li class="chapter" data-level="4.6" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#individual-differences-in-outcome-rating-cue-effect"><i class="fa fa-check"></i><b>4.6</b> individual differences in outcome rating cue effect</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html"><i class="fa fa-check"></i><b>5</b> [beh] outcome_rating ~ cue * stim</a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-03-iv-cuecontrast-dv-outcome"><i class="fa fa-check"></i><b>5.1</b> model 03 iv-cuecontrast dv-outcome</a>
+<ul>
+<li class="chapter" data-level="5.1.1" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-03-3-2.-individual-difference"><i class="fa fa-check"></i><b>5.1.1</b> model 03 3-2. individual difference</a></li>
+<li class="chapter" data-level="5.1.2" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-iv-cue-stim-dv-outcome"><i class="fa fa-check"></i><b>5.1.2</b> model 04 iv-cue-stim dv-outcome</a></li>
+<li class="chapter" data-level="5.1.3" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#nov-17-lmer"><i class="fa fa-check"></i><b>5.1.3</b> Nov 17 lmer</a></li>
+<li class="chapter" data-level="5.1.4" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-2-individual-differences-in-cue-effects"><i class="fa fa-check"></i><b>5.1.4</b> model 04 4-2 individual differences in cue effects</a></li>
+<li class="chapter" data-level="5.1.5" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-3-scatter-plot"><i class="fa fa-check"></i><b>5.1.5</b> model 04 4-3 scatter plot</a></li>
+<li class="chapter" data-level="5.1.6" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-4-lineplot"><i class="fa fa-check"></i><b>5.1.6</b> model 04 4-4 lineplot</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="clinical-trials.html"><a href="clinical-trials.html"><i class="fa fa-check"></i><b>6</b> Clinical trials</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="clinical-trials.html"><a href="clinical-trials.html#cue-contrast-average-across-intensity"><i class="fa fa-check"></i><b>6.1</b> cue contrast average across intensity</a></li>
+<li class="chapter" data-level="6.2" data-path="clinical-trials.html"><a href="clinical-trials.html#cue-contrast-average-across-expectation"><i class="fa fa-check"></i><b>6.2</b> cue contrast average across expectation</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html"><i class="fa fa-check"></i><b>7</b> expect-actual ~ cue * trial</a>
+<ul>
+<li class="chapter" data-level="7.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#overview"><i class="fa fa-check"></i><b>7.1</b> Overview</a></li>
+<li class="chapter" data-level="7.2" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#plot-1---one-run-average-across-participants"><i class="fa fa-check"></i><b>7.2</b> plot 1 - one run, average across participants</a></li>
+<li class="chapter" data-level="7.3" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#plot-2---average-across-participant-but-spread-all-6-runs-in-one-x-axis"><i class="fa fa-check"></i><b>7.3</b> plot 2 - average across participant, but spread all 6 runs in one x axis</a></li>
+<li class="chapter" data-level="7.4" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#vicarious-3"><i class="fa fa-check"></i><b>7.4</b> vicarious</a></li>
+<li class="chapter" data-level="7.5" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#cognitive-3"><i class="fa fa-check"></i><b>7.5</b> cognitive</a></li>
+<li class="chapter" data-level="7.6" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#within-subject-vicarious"><i class="fa fa-check"></i><b>7.6</b> within subject vicarious</a></li>
+<li class="chapter" data-level="7.7" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#tor-request-only-outcome-ratings.-3-tasks"><i class="fa fa-check"></i><b>7.7</b> Tor request – only outcome ratings. 3 tasks</a>
+<ul>
+<li class="chapter" data-level="7.7.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#pain-3"><i class="fa fa-check"></i><b>7.7.1</b> pain</a></li>
+<li class="chapter" data-level="7.7.2" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#vicarious-4"><i class="fa fa-check"></i><b>7.7.2</b> vicarious</a></li>
+<li class="chapter" data-level="7.7.3" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#cognitive-4"><i class="fa fa-check"></i><b>7.7.3</b> cognitive</a></li>
+</ul></li>
+<li class="chapter" data-level="7.8" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#tor-request-only-expect-ratings.-3-tasks"><i class="fa fa-check"></i><b>7.8</b> Tor request – only expect ratings. 3 tasks</a>
+<ul>
+<li class="chapter" data-level="7.8.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#pain-4"><i class="fa fa-check"></i><b>7.8.1</b> pain</a></li>
+<li class="chapter" data-level="7.8.2" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#vicarious-5"><i class="fa fa-check"></i><b>7.8.2</b> vicarious</a></li>
+<li class="chapter" data-level="7.8.3" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#cognitive-5"><i class="fa fa-check"></i><b>7.8.3</b> cognitive</a></li>
+</ul></li>
+<li class="chapter" data-level="7.9" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#lmer"><i class="fa fa-check"></i><b>7.9</b> lmer</a>
+<ul>
+<li class="chapter" data-level="7.9.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#lmer-histogram"><i class="fa fa-check"></i><b>7.9.1</b> lmer histogram</a></li>
+</ul></li>
+<li class="chapter" data-level="7.10" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#do-current-expectation-ratings-predict-outcome-ratings"><i class="fa fa-check"></i><b>7.10</b> Do current expectation ratings predict outcome ratings?</a></li>
+<li class="chapter" data-level="7.11" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#additional-analysis"><i class="fa fa-check"></i><b>7.11</b> Additional analysis</a></li>
+</ul></li>
+<li class="chapter" data-level="8" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html"><i class="fa fa-check"></i><b>8</b> [ beh ] outcome_demean ~ cue * stim * expectrating * n-1outcomerating</a>
+<ul>
+<li class="chapter" data-level="8.1" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#linear-model-0508"><i class="fa fa-check"></i><b>8.1</b> linear model 0508</a></li>
+<li class="chapter" data-level="8.2" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#linear-model"><i class="fa fa-check"></i><b>8.2</b> linear model</a></li>
+<li class="chapter" data-level="8.3" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#q.-are-those-overestimating-for-high-cues-also-underestimators-for-low-cues"><i class="fa fa-check"></i><b>8.3</b> Q. Are those overestimating for high cues also underestimators for low cues?</a></li>
+<li class="chapter" data-level="8.4" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#todo-can-you-test-if-the-slopes-are-the-same-that-might-tell-us-something-about-whether-expectancies-translate-into-outcomes-with-the-same-efficacy-across-all-three-tasks."><i class="fa fa-check"></i><b>8.4</b> TODO: Can you test if the slopes are the same? That might tell us something about whether, expectancies translate into outcomes with the same efficacy across all three tasks.</a></li>
+<li class="chapter" data-level="8.5" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#pain-run-collapsed-across-stimulus-intensity"><i class="fa fa-check"></i><b>8.5</b> pain run, collapsed across stimulus intensity</a></li>
+<li class="chapter" data-level="8.6" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#vicarious-6"><i class="fa fa-check"></i><b>8.6</b> vicarious</a></li>
+<li class="chapter" data-level="8.7" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#cognitive-6"><i class="fa fa-check"></i><b>8.7</b> cognitive</a></li>
+<li class="chapter" data-level="8.8" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#linear-model-0508-1"><i class="fa fa-check"></i><b>8.8</b> linear model 0508</a></li>
+<li class="chapter" data-level="8.9" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#across-tasks-pvc-is-the-slope-for-highvslow-cue-the-sametor-question"><i class="fa fa-check"></i><b>8.9</b> across tasks (PVC), is the slope for (highvslow cue) the same?Tor question</a></li>
+<li class="chapter" data-level="8.10" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#alireza-congruent-incongruent-pe"><i class="fa fa-check"></i><b>8.10</b> Alireza congruent incongruent (PE)</a>
+<ul>
+<li class="chapter" data-level="8.10.1" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#archive-this-cell"><i class="fa fa-check"></i><b>8.10.1</b> archive this cell</a></li>
+</ul></li>
+<li class="chapter" data-level="8.11" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#alireza-congruent-incongruent-incorrect"><i class="fa fa-check"></i><b>8.11</b> Alireza congruent incongruent (incorrect)</a>
+<ul>
+<li class="chapter" data-level="8.11.1" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#archive-this-cell-1"><i class="fa fa-check"></i><b>8.11.1</b> archive this cell</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="ch17_mediation.html"><a href="ch17_mediation.html"><i class="fa fa-check"></i><b>9</b> [beh] Mediation outcome ~ cue * stim * expectrating * n-1outcomerating</a>
+<ul>
+<li class="chapter" data-level="9.1" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation"><i class="fa fa-check"></i><b>9.1</b> mediation</a></li>
+<li class="chapter" data-level="9.2" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation-2"><i class="fa fa-check"></i><b>9.2</b> mediation 2</a></li>
+<li class="chapter" data-level="9.3" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation-3-test-same-model-using-mediation-from-mbess"><i class="fa fa-check"></i><b>9.3</b> mediation 3: Test same model using mediation() from MBESS</a></li>
+<li class="chapter" data-level="9.4" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation-4-test-library-mediation"><i class="fa fa-check"></i><b>9.4</b> mediation 4: Test library mediation</a></li>
+</ul></li>
+<li class="chapter" data-level="10" data-path="ch18_simulation.html"><a href="ch18_simulation.html"><i class="fa fa-check"></i><b>10</b> [beh] RL simulation</a>
+<ul>
+<li class="chapter" data-level="10.1" data-path="ch18_simulation.html"><a href="ch18_simulation.html#function"><i class="fa fa-check"></i><b>10.1</b> function</a></li>
+</ul></li>
+<li class="chapter" data-level="11" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html"><i class="fa fa-check"></i><b>11</b> [beh] RL simulation Aryan</a>
+<ul>
+<li class="chapter" data-level="11.1" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-expectation-and-outcome-rating-using-model-4-simulations-jepma"><i class="fa fa-check"></i><b>11.1</b> Plot the relationship between expectation and outcome rating using model 4 simulations (Jepma)</a></li>
+<li class="chapter" data-level="11.2" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-expectation-and-outcome-rating-using-model-2-simulations-jepma"><i class="fa fa-check"></i><b>11.2</b> Plot the relationship between expectation and outcome rating using model 2 simulations (Jepma)</a>
+<ul>
+<li class="chapter" data-level="11.2.1" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#model-fits-from-model-2.-expectation-ratings-jepma-model"><i class="fa fa-check"></i><b>11.2.1</b> model fits from model 2. expectation ratings (Jepma model)</a></li>
+<li class="chapter" data-level="11.2.2" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#model-fits-from-model-2.-outcome-ratings-jepma-model"><i class="fa fa-check"></i><b>11.2.2</b> model fits from model 2. outcome ratings (Jepma model)</a></li>
+</ul></li>
+<li class="chapter" data-level="11.3" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#correlation-betweeen-alpha_incongruent-and-cue-trial-slope-randome-effects-of-cue"><i class="fa fa-check"></i><b>11.3</b> correlation betweeen alpha_incongruent and cue trial slope (randome effects of cue)</a></li>
+<li class="chapter" data-level="11.4" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#correlation-betweeen-alpha_incongruent-and-nps"><i class="fa fa-check"></i><b>11.4</b> correlation betweeen alpha_incongruent and NPS</a></li>
+<li class="chapter" data-level="11.5" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#correlation-bettween-nps-and-pe"><i class="fa fa-check"></i><b>11.5</b> correlation bettween NPS and PE</a>
+<ul>
+<li class="chapter" data-level="11.5.1" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#test-similarity-between-nps-positive-values-and-pe-11062023"><i class="fa fa-check"></i><b>11.5.1</b> test similarity between NPS positive values and PE (11/06/2023)</a></li>
+<li class="chapter" data-level="11.5.2" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#test-relationship-between-pe-and-cue-type-and-stimintensity-06162023"><i class="fa fa-check"></i><b>11.5.2</b> test relationship between PE and cue type and stimintensity (06/16/2023)</a></li>
+<li class="chapter" data-level="11.5.3" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-pe-and-nps-as-a-function-of-cue"><i class="fa fa-check"></i><b>11.5.3</b> plot the relationship between PE and NPS as a function of cue</a></li>
+<li class="chapter" data-level="11.5.4" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-pe-and-nps-as-a-function-of-cue-and-stimulus-intensity"><i class="fa fa-check"></i><b>11.5.4</b> plot the relationship between PE and NPS as a function of cue and stimulus intensity</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="12" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html"><i class="fa fa-check"></i><b>12</b> [model] NPSsimulation</a>
+<ul>
+<li class="chapter" data-level="12.0.1" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#function-1"><i class="fa fa-check"></i><b>12.0.1</b> Function</a></li>
+<li class="chapter" data-level="12.0.2" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#nps-data"><i class="fa fa-check"></i><b>12.0.2</b> NPS data</a></li>
+<li class="chapter" data-level="12.0.3" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#behavioral-data"><i class="fa fa-check"></i><b>12.0.3</b> behavioral data</a></li>
+<li class="chapter" data-level="12.0.4" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#get-pain-relationship-controlling-for-cue-cuetype-expect"><i class="fa fa-check"></i><b>12.0.4</b> get pain relationship, controlling for cue, cuetype, expect</a></li>
+<li class="chapter" data-level="12.1" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#simulation"><i class="fa fa-check"></i><b>12.1</b> simulation **</a></li>
+</ul></li>
+<li class="chapter" data-level="13" data-path="ch51_fir_glasserTPJttl2.html"><a href="ch51_fir_glasserTPJttl2.html"><i class="fa fa-check"></i><b>13</b> [fMRI] FIR ~ task</a>
+<ul>
+<li class="chapter" data-level="13.1" data-path="ch51_fir_glasserTPJttl2.html"><a href="ch51_fir_glasserTPJttl2.html#parameters-todo-ignore"><i class="fa fa-check"></i><b>13.1</b> parameters {TODO: ignore}</a></li>
+</ul></li>
+<li class="chapter" data-level="14" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html"><i class="fa fa-check"></i><b>14</b> taskwise stim effect</a>
+<ul>
+<li class="chapter" data-level="14.0.1" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#pca-subjectwise"><i class="fa fa-check"></i><b>14.0.1</b> PCA subjectwise</a></li>
+<li class="chapter" data-level="14.0.2" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#pca-groupwise"><i class="fa fa-check"></i><b>14.0.2</b> PCA groupwise</a></li>
+<li class="chapter" data-level="14.1" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#dep-epoch-stim-high-cue-vs-low-cue"><i class="fa fa-check"></i><b>14.1</b> DEP: epoch: stim, high cue vs low cue</a></li>
+<li class="chapter" data-level="14.2" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#taskwise-cue-effect"><i class="fa fa-check"></i><b>14.2</b> taskwise cue effect</a></li>
+<li class="chapter" data-level="14.3" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#epoch-stim-rating"><i class="fa fa-check"></i><b>14.3</b> epoch: stim, rating</a></li>
+<li class="chapter" data-level="14.4" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#epoch-6-cond"><i class="fa fa-check"></i><b>14.4</b> epoch: 6 cond</a></li>
+</ul></li>
+<li class="chapter" data-level="15" data-path="taskwise-6-cond-effect.html"><a href="taskwise-6-cond-effect.html"><i class="fa fa-check"></i><b>15</b> taskwise 6 cond effect</a></li>
+<li class="chapter" data-level="16" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html"><i class="fa fa-check"></i><b>16</b> [fMRI] FIR ~ task TTL1</a>
+<ul>
+<li class="chapter" data-level="16.1" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#references"><i class="fa fa-check"></i><b>16.1</b> references</a></li>
+<li class="chapter" data-level="16.2" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#taskwise-stim-effect-1"><i class="fa fa-check"></i><b>16.2</b> taskwise stim effect</a>
+<ul>
+<li class="chapter" data-level="16.2.1" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#pca-subjectwise-1"><i class="fa fa-check"></i><b>16.2.1</b> PCA subjectwise</a></li>
+<li class="chapter" data-level="16.2.2" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#pca-groupwise-1"><i class="fa fa-check"></i><b>16.2.2</b> PCA groupwise</a></li>
+</ul></li>
+<li class="chapter" data-level="16.3" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#taskwise-cue-effect-1"><i class="fa fa-check"></i><b>16.3</b> taskwise cue effect</a>
+<ul>
+<li class="chapter" data-level="16.3.1" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#epoch-stim-rating-1"><i class="fa fa-check"></i><b>16.3.1</b> epoch: stim, rating</a></li>
+</ul></li>
+<li class="chapter" data-level="16.4" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#main-sandbox-6-condition-in-three-panels.-per-task.-per-roi"><i class="fa fa-check"></i><b>16.4</b> MAIN SANDBOX: 6 condition in three panels. per task. per ROI</a></li>
+</ul></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">52_ROI TTL1</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="taskwise-6-cond-effect" class="section level1 hasAnchor" number="15">
+<h1><span class="header-section-number">Chapter 15</span> taskwise 6 cond effect<a href="taskwise-6-cond-effect.html#taskwise-6-cond-effect" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb364"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb364-1"><a href="taskwise-6-cond-effect.html#cb364-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ------------------------------------------------------------------------------</span></span>
+<span id="cb364-2"><a href="taskwise-6-cond-effect.html#cb364-2" aria-hidden="true" tabindex="-1"></a><span class="co">#                       epoch stim, high cue vs low cue</span></span>
+<span id="cb364-3"><a href="taskwise-6-cond-effect.html#cb364-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ------------------------------------------------------------------------------</span></span>
+<span id="cb364-4"><a href="taskwise-6-cond-effect.html#cb364-4" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------- subset regions based on ROI ----------------------------</span></span>
+<span id="cb364-5"><a href="taskwise-6-cond-effect.html#cb364-5" aria-hidden="true" tabindex="-1"></a>run_types <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;pain&quot;</span>, <span class="st">&quot;vicarious&quot;</span>, <span class="st">&quot;cognitive&quot;</span>)</span>
+<span id="cb364-6"><a href="taskwise-6-cond-effect.html#cb364-6" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb364-7"><a href="taskwise-6-cond-effect.html#cb364-7" aria-hidden="true" tabindex="-1"></a>  TR_length <span class="ot">&lt;-</span> <span class="dv">42</span></span>
+<span id="cb364-8"><a href="taskwise-6-cond-effect.html#cb364-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (run_type <span class="cf">in</span> run_types) {</span>
+<span id="cb364-9"><a href="taskwise-6-cond-effect.html#cb364-9" aria-hidden="true" tabindex="-1"></a>  filtered_df <span class="ot">&lt;-</span> df[<span class="sc">!</span>(df<span class="sc">$</span>condition <span class="sc">==</span> <span class="st">&quot;rating&quot;</span> <span class="sc">|</span> df<span class="sc">$</span>condition <span class="sc">==</span> <span class="st">&quot;cue&quot;</span> <span class="sc">|</span> df<span class="sc">$</span>runtype <span class="sc">!=</span> run_type), ]</span>
+<span id="cb364-10"><a href="taskwise-6-cond-effect.html#cb364-10" aria-hidden="true" tabindex="-1"></a>plot_list <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb364-11"><a href="taskwise-6-cond-effect.html#cb364-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb364-12"><a href="taskwise-6-cond-effect.html#cb364-12" aria-hidden="true" tabindex="-1"></a>  parsed_df <span class="ot">&lt;-</span> filtered_df <span class="sc">%&gt;%</span></span>
+<span id="cb364-13"><a href="taskwise-6-cond-effect.html#cb364-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">separate</span>(condition, <span class="at">into =</span> <span class="fu">c</span>(<span class="st">&quot;cue&quot;</span>, <span class="st">&quot;stim&quot;</span>), <span class="at">sep =</span> <span class="st">&quot;_&quot;</span>, <span class="at">remove =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb364-14"><a href="taskwise-6-cond-effect.html#cb364-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --------------------- subset regions based on ROI ----------------------------</span></span>
+<span id="cb364-15"><a href="taskwise-6-cond-effect.html#cb364-15" aria-hidden="true" tabindex="-1"></a>  df_long <span class="ot">&lt;-</span> <span class="fu">pivot_longer</span>(parsed_df, <span class="at">cols =</span> <span class="fu">starts_with</span>(<span class="st">&quot;tr&quot;</span>), <span class="at">names_to =</span> <span class="st">&quot;tr_num&quot;</span>, <span class="at">values_to =</span> <span class="st">&quot;tr_value&quot;</span>)</span>
+<span id="cb364-16"><a href="taskwise-6-cond-effect.html#cb364-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb364-17"><a href="taskwise-6-cond-effect.html#cb364-17" aria-hidden="true" tabindex="-1"></a><span class="co"># ----------------------------- clean factor -----------------------------------</span></span>
+<span id="cb364-18"><a href="taskwise-6-cond-effect.html#cb364-18" aria-hidden="true" tabindex="-1"></a>df_long<span class="sc">$</span>tr_ordered <span class="ot">&lt;-</span> <span class="fu">factor</span>(</span>
+<span id="cb364-19"><a href="taskwise-6-cond-effect.html#cb364-19" aria-hidden="true" tabindex="-1"></a>        df_long<span class="sc">$</span>tr_num,</span>
+<span id="cb364-20"><a href="taskwise-6-cond-effect.html#cb364-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">levels =</span> <span class="fu">c</span>(<span class="fu">paste0</span>(<span class="st">&quot;tr&quot;</span>, <span class="dv">1</span><span class="sc">:</span>TR_length))</span>
+<span id="cb364-21"><a href="taskwise-6-cond-effect.html#cb364-21" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb364-22"><a href="taskwise-6-cond-effect.html#cb364-22" aria-hidden="true" tabindex="-1"></a>df_long<span class="sc">$</span>cue_ordered <span class="ot">&lt;-</span> <span class="fu">factor</span>(</span>
+<span id="cb364-23"><a href="taskwise-6-cond-effect.html#cb364-23" aria-hidden="true" tabindex="-1"></a>        df_long<span class="sc">$</span>cue,</span>
+<span id="cb364-24"><a href="taskwise-6-cond-effect.html#cb364-24" aria-hidden="true" tabindex="-1"></a>        <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;cueH&quot;</span>, <span class="st">&quot;cueL&quot;</span>)</span>
+<span id="cb364-25"><a href="taskwise-6-cond-effect.html#cb364-25" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb364-26"><a href="taskwise-6-cond-effect.html#cb364-26" aria-hidden="true" tabindex="-1"></a>df_long<span class="sc">$</span>stim_ordered <span class="ot">&lt;-</span> <span class="fu">factor</span>(</span>
+<span id="cb364-27"><a href="taskwise-6-cond-effect.html#cb364-27" aria-hidden="true" tabindex="-1"></a>        df_long<span class="sc">$</span>stim,</span>
+<span id="cb364-28"><a href="taskwise-6-cond-effect.html#cb364-28" aria-hidden="true" tabindex="-1"></a>        <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;stimH&quot;</span>, <span class="st">&quot;stimM&quot;</span>, <span class="st">&quot;stimL&quot;</span>)</span>
+<span id="cb364-29"><a href="taskwise-6-cond-effect.html#cb364-29" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb364-30"><a href="taskwise-6-cond-effect.html#cb364-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb364-31"><a href="taskwise-6-cond-effect.html#cb364-31" aria-hidden="true" tabindex="-1"></a>df_long<span class="sc">$</span>sixcond <span class="ot">&lt;-</span> <span class="fu">factor</span>(</span>
+<span id="cb364-32"><a href="taskwise-6-cond-effect.html#cb364-32" aria-hidden="true" tabindex="-1"></a>        df_long<span class="sc">$</span>condition,</span>
+<span id="cb364-33"><a href="taskwise-6-cond-effect.html#cb364-33" aria-hidden="true" tabindex="-1"></a>        <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;cueH_stimH&quot;</span>, <span class="st">&quot;cueL_stimH&quot;</span>, </span>
+<span id="cb364-34"><a href="taskwise-6-cond-effect.html#cb364-34" aria-hidden="true" tabindex="-1"></a>                   <span class="st">&quot;cueH_stimM&quot;</span>, <span class="st">&quot;cueL_stimM&quot;</span>,</span>
+<span id="cb364-35"><a href="taskwise-6-cond-effect.html#cb364-35" aria-hidden="true" tabindex="-1"></a>                   <span class="st">&quot;cueH_stimL&quot;</span>, <span class="st">&quot;cueL_stimL&quot;</span>)</span>
+<span id="cb364-36"><a href="taskwise-6-cond-effect.html#cb364-36" aria-hidden="true" tabindex="-1"></a>) </span>
+<span id="cb364-37"><a href="taskwise-6-cond-effect.html#cb364-37" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------- summary statistics -------------------------------</span></span>
+<span id="cb364-38"><a href="taskwise-6-cond-effect.html#cb364-38" aria-hidden="true" tabindex="-1"></a>subjectwise <span class="ot">&lt;-</span> <span class="fu">meanSummary</span>(df_long,</span>
+<span id="cb364-39"><a href="taskwise-6-cond-effect.html#cb364-39" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">c</span>(<span class="st">&quot;sub&quot;</span>, <span class="st">&quot;tr_ordered&quot;</span>, <span class="st">&quot;sixcond&quot;</span>), <span class="st">&quot;tr_value&quot;</span>)</span>
+<span id="cb364-40"><a href="taskwise-6-cond-effect.html#cb364-40" aria-hidden="true" tabindex="-1"></a>groupwise <span class="ot">&lt;-</span> <span class="fu">summarySEwithin</span>(</span>
+<span id="cb364-41"><a href="taskwise-6-cond-effect.html#cb364-41" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> subjectwise,</span>
+<span id="cb364-42"><a href="taskwise-6-cond-effect.html#cb364-42" aria-hidden="true" tabindex="-1"></a>  <span class="at">measurevar =</span> <span class="st">&quot;mean_per_sub&quot;</span>,</span>
+<span id="cb364-43"><a href="taskwise-6-cond-effect.html#cb364-43" aria-hidden="true" tabindex="-1"></a>  <span class="at">withinvars =</span> <span class="fu">c</span>(<span class="st">&quot;sixcond&quot;</span>, <span class="st">&quot;tr_ordered&quot;</span>),</span>
+<span id="cb364-44"><a href="taskwise-6-cond-effect.html#cb364-44" aria-hidden="true" tabindex="-1"></a>  <span class="at">idvar =</span> <span class="st">&quot;sub&quot;</span></span>
+<span id="cb364-45"><a href="taskwise-6-cond-effect.html#cb364-45" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb364-46"><a href="taskwise-6-cond-effect.html#cb364-46" aria-hidden="true" tabindex="-1"></a>groupwise<span class="sc">$</span>task <span class="ot">&lt;-</span> taskname</span>
+<span id="cb364-47"><a href="taskwise-6-cond-effect.html#cb364-47" aria-hidden="true" tabindex="-1"></a><span class="co"># https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402</span></span>
+<span id="cb364-48"><a href="taskwise-6-cond-effect.html#cb364-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb364-49"><a href="taskwise-6-cond-effect.html#cb364-49" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------- plot ---------------------------------------</span></span>
+<span id="cb364-50"><a href="taskwise-6-cond-effect.html#cb364-50" aria-hidden="true" tabindex="-1"></a>LINEIV1 <span class="ot">=</span> <span class="st">&quot;tr_ordered&quot;</span></span>
+<span id="cb364-51"><a href="taskwise-6-cond-effect.html#cb364-51" aria-hidden="true" tabindex="-1"></a>LINEIV2 <span class="ot">=</span> <span class="st">&quot;sixcond&quot;</span></span>
+<span id="cb364-52"><a href="taskwise-6-cond-effect.html#cb364-52" aria-hidden="true" tabindex="-1"></a>MEAN <span class="ot">=</span> <span class="st">&quot;mean_per_sub_norm_mean&quot;</span></span>
+<span id="cb364-53"><a href="taskwise-6-cond-effect.html#cb364-53" aria-hidden="true" tabindex="-1"></a>ERROR <span class="ot">=</span> <span class="st">&quot;se&quot;</span></span>
+<span id="cb364-54"><a href="taskwise-6-cond-effect.html#cb364-54" aria-hidden="true" tabindex="-1"></a>dv_keyword <span class="ot">=</span> <span class="st">&quot;actual&quot;</span></span>
+<span id="cb364-55"><a href="taskwise-6-cond-effect.html#cb364-55" aria-hidden="true" tabindex="-1"></a>sorted_indices <span class="ot">&lt;-</span> <span class="fu">order</span>(groupwise<span class="sc">$</span>tr_ordered)</span>
+<span id="cb364-56"><a href="taskwise-6-cond-effect.html#cb364-56" aria-hidden="true" tabindex="-1"></a>groupwise_sorted <span class="ot">&lt;-</span> groupwise[sorted_indices, ]</span>
+<span id="cb364-57"><a href="taskwise-6-cond-effect.html#cb364-57" aria-hidden="true" tabindex="-1"></a>p3H <span class="ot">=</span> <span class="fu">plot_timeseries_bar</span>(groupwise, </span>
+<span id="cb364-58"><a href="taskwise-6-cond-effect.html#cb364-58" aria-hidden="true" tabindex="-1"></a>               LINEIV1, LINEIV2, MEAN, ERROR,  <span class="at">xlab =</span> <span class="st">&quot;Runs&quot;</span> , <span class="at">ylab=</span> <span class="st">&quot;Epoch: stimulus, High cue vs. Low cue&quot;</span>, <span class="at">ggtitle=</span><span class="fu">paste0</span>(<span class="st">&quot;High intensity - Low cue vs. High cue (N = &quot;</span>, <span class="fu">unique</span>(groupwise<span class="sc">$</span>N), <span class="st">&quot;)&quot;</span> ), <span class="at">color=</span><span class="fu">c</span>(<span class="st">&quot;red&quot;</span>,<span class="st">&quot;#5f0f40&quot;</span>,<span class="st">&quot;gray&quot;</span>, <span class="st">&quot;gray&quot;</span>, <span class="st">&quot;gray&quot;</span>, <span class="st">&quot;gray&quot;</span>))</span>
+<span id="cb364-59"><a href="taskwise-6-cond-effect.html#cb364-59" aria-hidden="true" tabindex="-1"></a>time_points <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="fl">0.46</span> <span class="sc">*</span> TR_length, <span class="fl">0.46</span>)</span>
+<span id="cb364-60"><a href="taskwise-6-cond-effect.html#cb364-60" aria-hidden="true" tabindex="-1"></a><span class="co"># p3H + scale_x_discrete(labels = setNames(time_points, colnames(df_long)[7:7+TR_length]))+ theme_classic()</span></span>
+<span id="cb364-61"><a href="taskwise-6-cond-effect.html#cb364-61" aria-hidden="true" tabindex="-1"></a>p3H <span class="sc">+</span> <span class="fu">theme_classic</span>()</span>
+<span id="cb364-62"><a href="taskwise-6-cond-effect.html#cb364-62" aria-hidden="true" tabindex="-1"></a>plot_list[[<span class="st">&quot;H&quot;</span>]] <span class="ot">&lt;-</span> p3H <span class="sc">+</span> <span class="fu">theme_classic</span>()</span>
+<span id="cb364-63"><a href="taskwise-6-cond-effect.html#cb364-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb364-64"><a href="taskwise-6-cond-effect.html#cb364-64" aria-hidden="true" tabindex="-1"></a>p3M <span class="ot">=</span> <span class="fu">plot_timeseries_bar</span>(groupwise, </span>
+<span id="cb364-65"><a href="taskwise-6-cond-effect.html#cb364-65" aria-hidden="true" tabindex="-1"></a>               LINEIV1, LINEIV2, MEAN, ERROR,  <span class="at">xlab =</span> <span class="st">&quot;Runs&quot;</span> , <span class="at">ylab=</span> <span class="st">&quot;Epoch: stimulus, High cue vs. Low cue&quot;</span>, <span class="at">ggtitle=</span><span class="fu">paste0</span>(<span class="st">&quot;Medium intensity - Low cue vs. High cue (N = &quot;</span>, <span class="fu">unique</span>(groupwise<span class="sc">$</span>N), <span class="st">&quot;)&quot;</span>), <span class="at">color=</span><span class="fu">c</span>(<span class="st">&quot;#d6d6d6&quot;</span>,<span class="st">&quot;#d6d6d6&quot;</span>,<span class="st">&quot;#bc3908&quot;</span>, <span class="st">&quot;#f6aa1c&quot;</span>, <span class="st">&quot;gray&quot;</span>, <span class="st">&quot;gray&quot;</span>))</span>
+<span id="cb364-66"><a href="taskwise-6-cond-effect.html#cb364-66" aria-hidden="true" tabindex="-1"></a>time_points <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="fl">0.46</span> <span class="sc">*</span> TR_length, <span class="fl">0.46</span>)</span>
+<span id="cb364-67"><a href="taskwise-6-cond-effect.html#cb364-67" aria-hidden="true" tabindex="-1"></a><span class="co"># p3M + scale_x_discrete(labels = setNames(time_points, colnames(df_long)[7:7+TR_length]))+ theme_classic()</span></span>
+<span id="cb364-68"><a href="taskwise-6-cond-effect.html#cb364-68" aria-hidden="true" tabindex="-1"></a>plot_list[[<span class="st">&quot;M&quot;</span>]] <span class="ot">&lt;-</span> p3M <span class="sc">+</span> <span class="fu">theme_classic</span>()</span>
+<span id="cb364-69"><a href="taskwise-6-cond-effect.html#cb364-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb364-70"><a href="taskwise-6-cond-effect.html#cb364-70" aria-hidden="true" tabindex="-1"></a>p3L <span class="ot">=</span> <span class="fu">plot_timeseries_bar</span>(groupwise, </span>
+<span id="cb364-71"><a href="taskwise-6-cond-effect.html#cb364-71" aria-hidden="true" tabindex="-1"></a>               LINEIV1, LINEIV2, MEAN, ERROR,  <span class="at">xlab =</span> <span class="st">&quot;Runs&quot;</span> , <span class="at">ylab=</span> <span class="st">&quot;Epoch: stimulus, High cue vs. Low cue&quot;</span>, <span class="at">ggtitle=</span><span class="fu">paste0</span>(<span class="st">&quot;Low intensity - Low cue vs. High cue (N = &quot;</span>, <span class="fu">unique</span>(groupwise<span class="sc">$</span>N), <span class="st">&quot;)&quot;</span>), <span class="at">color=</span><span class="fu">c</span>(<span class="st">&quot;gray&quot;</span>,<span class="st">&quot;gray&quot;</span>,<span class="st">&quot;gray&quot;</span>, <span class="st">&quot;gray&quot;</span>, <span class="st">&quot;#2541b2&quot;</span>, <span class="st">&quot;#00a6fb&quot;</span>))</span>
+<span id="cb364-72"><a href="taskwise-6-cond-effect.html#cb364-72" aria-hidden="true" tabindex="-1"></a>time_points <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="fl">0.46</span> <span class="sc">*</span> TR_length, <span class="fl">0.46</span>)</span>
+<span id="cb364-73"><a href="taskwise-6-cond-effect.html#cb364-73" aria-hidden="true" tabindex="-1"></a><span class="co"># p3L + scale_x_discrete(labels = setNames(time_points, colnames(df_long)[7:7+TR_length]))+ theme_classic()</span></span>
+<span id="cb364-74"><a href="taskwise-6-cond-effect.html#cb364-74" aria-hidden="true" tabindex="-1"></a>plot_list[[<span class="st">&quot;L&quot;</span>]] <span class="ot">&lt;-</span> p3L <span class="sc">+</span> <span class="fu">theme_classic</span>()</span>
+<span id="cb364-75"><a href="taskwise-6-cond-effect.html#cb364-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb364-76"><a href="taskwise-6-cond-effect.html#cb364-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb364-77"><a href="taskwise-6-cond-effect.html#cb364-77" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --------------------------- plot three tasks -------------------------------</span></span>
+<span id="cb364-78"><a href="taskwise-6-cond-effect.html#cb364-78" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gridExtra)</span>
+<span id="cb364-79"><a href="taskwise-6-cond-effect.html#cb364-79" aria-hidden="true" tabindex="-1"></a>plot_list <span class="ot">&lt;-</span> <span class="fu">lapply</span>(plot_list, <span class="cf">function</span>(plot) {</span>
+<span id="cb364-80"><a href="taskwise-6-cond-effect.html#cb364-80" aria-hidden="true" tabindex="-1"></a>  plot <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="dv">5</span>, <span class="dv">5</span>, <span class="dv">5</span>, <span class="dv">5</span>))  <span class="co"># Adjust plot margins if needed</span></span>
+<span id="cb364-81"><a href="taskwise-6-cond-effect.html#cb364-81" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb364-82"><a href="taskwise-6-cond-effect.html#cb364-82" aria-hidden="true" tabindex="-1"></a>combined_plot <span class="ot">&lt;-</span> ggpubr<span class="sc">::</span><span class="fu">ggarrange</span>(plot_list[[<span class="st">&quot;H&quot;</span>]],plot_list[[<span class="st">&quot;M&quot;</span>]],plot_list[[<span class="st">&quot;L&quot;</span>]],</span>
+<span id="cb364-83"><a href="taskwise-6-cond-effect.html#cb364-83" aria-hidden="true" tabindex="-1"></a>                  <span class="at">common.legend =</span> <span class="cn">FALSE</span>,<span class="at">legend =</span> <span class="st">&quot;bottom&quot;</span>, <span class="at">ncol =</span> <span class="dv">3</span>, <span class="at">nrow =</span> <span class="dv">1</span>, </span>
+<span id="cb364-84"><a href="taskwise-6-cond-effect.html#cb364-84" aria-hidden="true" tabindex="-1"></a>                  <span class="at">widths =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">3</span>), <span class="at">heights =</span> <span class="fu">c</span>(.<span class="dv">5</span>,.<span class="dv">5</span>,.<span class="dv">5</span>), <span class="at">align =</span> <span class="st">&quot;v&quot;</span>)</span>
+<span id="cb364-85"><a href="taskwise-6-cond-effect.html#cb364-85" aria-hidden="true" tabindex="-1"></a>combined_plot</span>
+<span id="cb364-86"><a href="taskwise-6-cond-effect.html#cb364-86" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="fu">file.path</span>(save_dir, <span class="fu">paste0</span>(<span class="st">&quot;taskwise-&quot;</span>,run_type, <span class="st">&quot;_epoch-stim_desc-stimcuecomparison.png&quot;</span>)), combined_plot, <span class="at">width =</span> <span class="dv">12</span>, <span class="at">height =</span> <span class="dv">4</span>)</span>
+<span id="cb364-87"><a href="taskwise-6-cond-effect.html#cb364-87" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+</details>
+
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="taskwise-stim-effect.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="ch52_timeseries.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": true,
+"facebook": false,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": null,
+"history": {
+"link": "https://github.com/jungheejung/cue_expectancy/commits/main/51_iv-6cond_dv-firglasserSPM_ttl2_rois.Rmd",
+"text": "Chapter edit history"
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"search": {
+"engine": "lunr",
+"options": null
+},
+"toc": {
+"collapse": "subsection",
+"scroll_highlight": true
+},
+"toolbar": {
+"position": "fixed"
+},
+"info": true
+});
+});
+</script>
+
+</body>
+
+</html>

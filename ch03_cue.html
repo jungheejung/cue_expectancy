@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Chapter 3 [beh] outcome ~ cue | 52_ROI TTL1</title>
+  <meta name="description" content="This is a logbook of all the mixed model analyses in one setting." />
+  <meta name="generator" content="bookdown 0.37 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Chapter 3 [beh] outcome ~ cue | 52_ROI TTL1" />
+  <meta property="og:type" content="book" />
+  
+  <meta property="og:description" content="This is a logbook of all the mixed model analyses in one setting." />
+  <meta name="github-repo" content="rstudio/bookdown-demo" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 3 [beh] outcome ~ cue | 52_ROI TTL1" />
+  
+  <meta name="twitter:description" content="This is a logbook of all the mixed model analyses in one setting." />
+  
+
+<meta name="author" content="Heejung Jung" />
+
+
+<meta name="date" content="2023-08-14" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="ch2_expect.html"/>
+<link rel="next" href="ch04_outcome-stim.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<link href="libs/codefolding-lua-1.1/codefolding-lua.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+<script src="libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+<script src="libs/plotly-binding-4.10.3/plotly.js"></script>
+<script src="libs/typedarray-0.1/typedarray.min.js"></script>
+<link href="libs/crosstalk-1.2.1/css/crosstalk.min.css" rel="stylesheet" />
+<script src="libs/crosstalk-1.2.1/js/crosstalk.min.js"></script>
+<link href="libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet" />
+<script src="libs/plotly-main-2.11.1/plotly-latest.min.js"></script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+  
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> About</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#usage"><i class="fa fa-check"></i><b>1.1</b> Usage</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="ch2_expect.html"><a href="ch2_expect.html"><i class="fa fa-check"></i><b>2</b> [beh] expectation ~ cue</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="ch2_expect.html"><a href="ch2_expect.html#pain"><i class="fa fa-check"></i><b>2.1</b> Pain</a></li>
+<li class="chapter" data-level="2.2" data-path="ch2_expect.html"><a href="ch2_expect.html#vicarious"><i class="fa fa-check"></i><b>2.2</b> Vicarious</a></li>
+<li class="chapter" data-level="2.3" data-path="ch2_expect.html"><a href="ch2_expect.html#cognitive"><i class="fa fa-check"></i><b>2.3</b> Cognitive</a></li>
+<li class="chapter" data-level="2.4" data-path="ch2_expect.html"><a href="ch2_expect.html#individual-difference-analysis"><i class="fa fa-check"></i><b>2.4</b> Individual difference analysis</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="ch03_cue.html"><a href="ch03_cue.html"><i class="fa fa-check"></i><b>3</b> [beh] outcome ~ cue</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="ch03_cue.html"><a href="ch03_cue.html#pain-1"><i class="fa fa-check"></i><b>3.1</b> Pain</a></li>
+<li class="chapter" data-level="3.2" data-path="ch03_cue.html"><a href="ch03_cue.html#vicarious-1"><i class="fa fa-check"></i><b>3.2</b> Vicarious</a></li>
+<li class="chapter" data-level="3.3" data-path="ch03_cue.html"><a href="ch03_cue.html#cognitive-1"><i class="fa fa-check"></i><b>3.3</b> Cognitive</a></li>
+<li class="chapter" data-level="3.4" data-path="ch03_cue.html"><a href="ch03_cue.html#individual-differences-analysis-random-cue-effects"><i class="fa fa-check"></i><b>3.4</b> Individual differences analysis: random cue effects</a></li>
+<li class="chapter" data-level="3.5" data-path="ch03_cue.html"><a href="ch03_cue.html#individual-differences-analysis-2-random-intercept-random-slopes-of-cue-effect"><i class="fa fa-check"></i><b>3.5</b> Individual differences analysis 2: random intercept + random slopes of cue effect</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html"><i class="fa fa-check"></i><b>4</b> [beh] outcome ~ stimulus_intensity</a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#pain-2"><i class="fa fa-check"></i><b>4.1</b> Pain</a></li>
+<li class="chapter" data-level="4.2" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#vicarious-2"><i class="fa fa-check"></i><b>4.2</b> Vicarious</a></li>
+<li class="chapter" data-level="4.3" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#cognitive-2"><i class="fa fa-check"></i><b>4.3</b> Cognitive</a></li>
+<li class="chapter" data-level="4.4" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#for-loop"><i class="fa fa-check"></i><b>4.4</b> for loop</a></li>
+<li class="chapter" data-level="4.5" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#lineplot"><i class="fa fa-check"></i><b>4.5</b> Lineplot</a></li>
+<li class="chapter" data-level="4.6" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#individual-differences-in-outcome-rating-cue-effect"><i class="fa fa-check"></i><b>4.6</b> individual differences in outcome rating cue effect</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html"><i class="fa fa-check"></i><b>5</b> [beh] outcome_rating ~ cue * stim</a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-03-iv-cuecontrast-dv-outcome"><i class="fa fa-check"></i><b>5.1</b> model 03 iv-cuecontrast dv-outcome</a>
+<ul>
+<li class="chapter" data-level="5.1.1" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-03-3-2.-individual-difference"><i class="fa fa-check"></i><b>5.1.1</b> model 03 3-2. individual difference</a></li>
+<li class="chapter" data-level="5.1.2" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-iv-cue-stim-dv-outcome"><i class="fa fa-check"></i><b>5.1.2</b> model 04 iv-cue-stim dv-outcome</a></li>
+<li class="chapter" data-level="5.1.3" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#nov-17-lmer"><i class="fa fa-check"></i><b>5.1.3</b> Nov 17 lmer</a></li>
+<li class="chapter" data-level="5.1.4" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-2-individual-differences-in-cue-effects"><i class="fa fa-check"></i><b>5.1.4</b> model 04 4-2 individual differences in cue effects</a></li>
+<li class="chapter" data-level="5.1.5" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-3-scatter-plot"><i class="fa fa-check"></i><b>5.1.5</b> model 04 4-3 scatter plot</a></li>
+<li class="chapter" data-level="5.1.6" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-4-lineplot"><i class="fa fa-check"></i><b>5.1.6</b> model 04 4-4 lineplot</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="clinical-trials.html"><a href="clinical-trials.html"><i class="fa fa-check"></i><b>6</b> Clinical trials</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="clinical-trials.html"><a href="clinical-trials.html#cue-contrast-average-across-intensity"><i class="fa fa-check"></i><b>6.1</b> cue contrast average across intensity</a></li>
+<li class="chapter" data-level="6.2" data-path="clinical-trials.html"><a href="clinical-trials.html#cue-contrast-average-across-expectation"><i class="fa fa-check"></i><b>6.2</b> cue contrast average across expectation</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html"><i class="fa fa-check"></i><b>7</b> expect-actual ~ cue * trial</a>
+<ul>
+<li class="chapter" data-level="7.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#overview"><i class="fa fa-check"></i><b>7.1</b> Overview</a></li>
+<li class="chapter" data-level="7.2" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#plot-1---one-run-average-across-participants"><i class="fa fa-check"></i><b>7.2</b> plot 1 - one run, average across participants</a></li>
+<li class="chapter" data-level="7.3" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#plot-2---average-across-participant-but-spread-all-6-runs-in-one-x-axis"><i class="fa fa-check"></i><b>7.3</b> plot 2 - average across participant, but spread all 6 runs in one x axis</a></li>
+<li class="chapter" data-level="7.4" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#vicarious-3"><i class="fa fa-check"></i><b>7.4</b> vicarious</a></li>
+<li class="chapter" data-level="7.5" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#cognitive-3"><i class="fa fa-check"></i><b>7.5</b> cognitive</a></li>
+<li class="chapter" data-level="7.6" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#within-subject-vicarious"><i class="fa fa-check"></i><b>7.6</b> within subject vicarious</a></li>
+<li class="chapter" data-level="7.7" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#tor-request-only-outcome-ratings.-3-tasks"><i class="fa fa-check"></i><b>7.7</b> Tor request – only outcome ratings. 3 tasks</a>
+<ul>
+<li class="chapter" data-level="7.7.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#pain-3"><i class="fa fa-check"></i><b>7.7.1</b> pain</a></li>
+<li class="chapter" data-level="7.7.2" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#vicarious-4"><i class="fa fa-check"></i><b>7.7.2</b> vicarious</a></li>
+<li class="chapter" data-level="7.7.3" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#cognitive-4"><i class="fa fa-check"></i><b>7.7.3</b> cognitive</a></li>
+</ul></li>
+<li class="chapter" data-level="7.8" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#tor-request-only-expect-ratings.-3-tasks"><i class="fa fa-check"></i><b>7.8</b> Tor request – only expect ratings. 3 tasks</a>
+<ul>
+<li class="chapter" data-level="7.8.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#pain-4"><i class="fa fa-check"></i><b>7.8.1</b> pain</a></li>
+<li class="chapter" data-level="7.8.2" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#vicarious-5"><i class="fa fa-check"></i><b>7.8.2</b> vicarious</a></li>
+<li class="chapter" data-level="7.8.3" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#cognitive-5"><i class="fa fa-check"></i><b>7.8.3</b> cognitive</a></li>
+</ul></li>
+<li class="chapter" data-level="7.9" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#lmer"><i class="fa fa-check"></i><b>7.9</b> lmer</a>
+<ul>
+<li class="chapter" data-level="7.9.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#lmer-histogram"><i class="fa fa-check"></i><b>7.9.1</b> lmer histogram</a></li>
+</ul></li>
+<li class="chapter" data-level="7.10" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#do-current-expectation-ratings-predict-outcome-ratings"><i class="fa fa-check"></i><b>7.10</b> Do current expectation ratings predict outcome ratings?</a></li>
+<li class="chapter" data-level="7.11" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#additional-analysis"><i class="fa fa-check"></i><b>7.11</b> Additional analysis</a></li>
+</ul></li>
+<li class="chapter" data-level="8" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html"><i class="fa fa-check"></i><b>8</b> [ beh ] outcome_demean ~ cue * stim * expectrating * n-1outcomerating</a>
+<ul>
+<li class="chapter" data-level="8.1" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#linear-model-0508"><i class="fa fa-check"></i><b>8.1</b> linear model 0508</a></li>
+<li class="chapter" data-level="8.2" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#linear-model"><i class="fa fa-check"></i><b>8.2</b> linear model</a></li>
+<li class="chapter" data-level="8.3" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#q.-are-those-overestimating-for-high-cues-also-underestimators-for-low-cues"><i class="fa fa-check"></i><b>8.3</b> Q. Are those overestimating for high cues also underestimators for low cues?</a></li>
+<li class="chapter" data-level="8.4" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#todo-can-you-test-if-the-slopes-are-the-same-that-might-tell-us-something-about-whether-expectancies-translate-into-outcomes-with-the-same-efficacy-across-all-three-tasks."><i class="fa fa-check"></i><b>8.4</b> TODO: Can you test if the slopes are the same? That might tell us something about whether, expectancies translate into outcomes with the same efficacy across all three tasks.</a></li>
+<li class="chapter" data-level="8.5" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#pain-run-collapsed-across-stimulus-intensity"><i class="fa fa-check"></i><b>8.5</b> pain run, collapsed across stimulus intensity</a></li>
+<li class="chapter" data-level="8.6" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#vicarious-6"><i class="fa fa-check"></i><b>8.6</b> vicarious</a></li>
+<li class="chapter" data-level="8.7" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#cognitive-6"><i class="fa fa-check"></i><b>8.7</b> cognitive</a></li>
+<li class="chapter" data-level="8.8" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#linear-model-0508-1"><i class="fa fa-check"></i><b>8.8</b> linear model 0508</a></li>
+<li class="chapter" data-level="8.9" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#across-tasks-pvc-is-the-slope-for-highvslow-cue-the-sametor-question"><i class="fa fa-check"></i><b>8.9</b> across tasks (PVC), is the slope for (highvslow cue) the same?Tor question</a></li>
+<li class="chapter" data-level="8.10" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#alireza-congruent-incongruent-pe"><i class="fa fa-check"></i><b>8.10</b> Alireza congruent incongruent (PE)</a>
+<ul>
+<li class="chapter" data-level="8.10.1" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#archive-this-cell"><i class="fa fa-check"></i><b>8.10.1</b> archive this cell</a></li>
+</ul></li>
+<li class="chapter" data-level="8.11" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#alireza-congruent-incongruent-incorrect"><i class="fa fa-check"></i><b>8.11</b> Alireza congruent incongruent (incorrect)</a>
+<ul>
+<li class="chapter" data-level="8.11.1" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#archive-this-cell-1"><i class="fa fa-check"></i><b>8.11.1</b> archive this cell</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="ch17_mediation.html"><a href="ch17_mediation.html"><i class="fa fa-check"></i><b>9</b> [beh] Mediation outcome ~ cue * stim * expectrating * n-1outcomerating</a>
+<ul>
+<li class="chapter" data-level="9.1" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation"><i class="fa fa-check"></i><b>9.1</b> mediation</a></li>
+<li class="chapter" data-level="9.2" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation-2"><i class="fa fa-check"></i><b>9.2</b> mediation 2</a></li>
+<li class="chapter" data-level="9.3" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation-3-test-same-model-using-mediation-from-mbess"><i class="fa fa-check"></i><b>9.3</b> mediation 3: Test same model using mediation() from MBESS</a></li>
+<li class="chapter" data-level="9.4" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation-4-test-library-mediation"><i class="fa fa-check"></i><b>9.4</b> mediation 4: Test library mediation</a></li>
+</ul></li>
+<li class="chapter" data-level="10" data-path="ch18_simulation.html"><a href="ch18_simulation.html"><i class="fa fa-check"></i><b>10</b> [beh] RL simulation</a>
+<ul>
+<li class="chapter" data-level="10.1" data-path="ch18_simulation.html"><a href="ch18_simulation.html#function"><i class="fa fa-check"></i><b>10.1</b> function</a></li>
+</ul></li>
+<li class="chapter" data-level="11" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html"><i class="fa fa-check"></i><b>11</b> [beh] RL simulation Aryan</a>
+<ul>
+<li class="chapter" data-level="11.1" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-expectation-and-outcome-rating-using-model-4-simulations-jepma"><i class="fa fa-check"></i><b>11.1</b> Plot the relationship between expectation and outcome rating using model 4 simulations (Jepma)</a></li>
+<li class="chapter" data-level="11.2" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-expectation-and-outcome-rating-using-model-2-simulations-jepma"><i class="fa fa-check"></i><b>11.2</b> Plot the relationship between expectation and outcome rating using model 2 simulations (Jepma)</a>
+<ul>
+<li class="chapter" data-level="11.2.1" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#model-fits-from-model-2.-expectation-ratings-jepma-model"><i class="fa fa-check"></i><b>11.2.1</b> model fits from model 2. expectation ratings (Jepma model)</a></li>
+<li class="chapter" data-level="11.2.2" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#model-fits-from-model-2.-outcome-ratings-jepma-model"><i class="fa fa-check"></i><b>11.2.2</b> model fits from model 2. outcome ratings (Jepma model)</a></li>
+</ul></li>
+<li class="chapter" data-level="11.3" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#correlation-betweeen-alpha_incongruent-and-cue-trial-slope-randome-effects-of-cue"><i class="fa fa-check"></i><b>11.3</b> correlation betweeen alpha_incongruent and cue trial slope (randome effects of cue)</a></li>
+<li class="chapter" data-level="11.4" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#correlation-betweeen-alpha_incongruent-and-nps"><i class="fa fa-check"></i><b>11.4</b> correlation betweeen alpha_incongruent and NPS</a></li>
+<li class="chapter" data-level="11.5" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#correlation-bettween-nps-and-pe"><i class="fa fa-check"></i><b>11.5</b> correlation bettween NPS and PE</a>
+<ul>
+<li class="chapter" data-level="11.5.1" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#test-similarity-between-nps-positive-values-and-pe-11062023"><i class="fa fa-check"></i><b>11.5.1</b> test similarity between NPS positive values and PE (11/06/2023)</a></li>
+<li class="chapter" data-level="11.5.2" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#test-relationship-between-pe-and-cue-type-and-stimintensity-06162023"><i class="fa fa-check"></i><b>11.5.2</b> test relationship between PE and cue type and stimintensity (06/16/2023)</a></li>
+<li class="chapter" data-level="11.5.3" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-pe-and-nps-as-a-function-of-cue"><i class="fa fa-check"></i><b>11.5.3</b> plot the relationship between PE and NPS as a function of cue</a></li>
+<li class="chapter" data-level="11.5.4" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-pe-and-nps-as-a-function-of-cue-and-stimulus-intensity"><i class="fa fa-check"></i><b>11.5.4</b> plot the relationship between PE and NPS as a function of cue and stimulus intensity</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="12" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html"><i class="fa fa-check"></i><b>12</b> [model] NPSsimulation</a>
+<ul>
+<li class="chapter" data-level="12.0.1" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#function-1"><i class="fa fa-check"></i><b>12.0.1</b> Function</a></li>
+<li class="chapter" data-level="12.0.2" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#nps-data"><i class="fa fa-check"></i><b>12.0.2</b> NPS data</a></li>
+<li class="chapter" data-level="12.0.3" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#behavioral-data"><i class="fa fa-check"></i><b>12.0.3</b> behavioral data</a></li>
+<li class="chapter" data-level="12.0.4" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#get-pain-relationship-controlling-for-cue-cuetype-expect"><i class="fa fa-check"></i><b>12.0.4</b> get pain relationship, controlling for cue, cuetype, expect</a></li>
+<li class="chapter" data-level="12.1" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#simulation"><i class="fa fa-check"></i><b>12.1</b> simulation **</a></li>
+</ul></li>
+<li class="chapter" data-level="13" data-path="ch51_fir_glasserTPJttl2.html"><a href="ch51_fir_glasserTPJttl2.html"><i class="fa fa-check"></i><b>13</b> [fMRI] FIR ~ task</a>
+<ul>
+<li class="chapter" data-level="13.1" data-path="ch51_fir_glasserTPJttl2.html"><a href="ch51_fir_glasserTPJttl2.html#parameters-todo-ignore"><i class="fa fa-check"></i><b>13.1</b> parameters {TODO: ignore}</a></li>
+</ul></li>
+<li class="chapter" data-level="14" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html"><i class="fa fa-check"></i><b>14</b> taskwise stim effect</a>
+<ul>
+<li class="chapter" data-level="14.0.1" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#pca-subjectwise"><i class="fa fa-check"></i><b>14.0.1</b> PCA subjectwise</a></li>
+<li class="chapter" data-level="14.0.2" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#pca-groupwise"><i class="fa fa-check"></i><b>14.0.2</b> PCA groupwise</a></li>
+<li class="chapter" data-level="14.1" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#dep-epoch-stim-high-cue-vs-low-cue"><i class="fa fa-check"></i><b>14.1</b> DEP: epoch: stim, high cue vs low cue</a></li>
+<li class="chapter" data-level="14.2" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#taskwise-cue-effect"><i class="fa fa-check"></i><b>14.2</b> taskwise cue effect</a></li>
+<li class="chapter" data-level="14.3" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#epoch-stim-rating"><i class="fa fa-check"></i><b>14.3</b> epoch: stim, rating</a></li>
+<li class="chapter" data-level="14.4" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#epoch-6-cond"><i class="fa fa-check"></i><b>14.4</b> epoch: 6 cond</a></li>
+</ul></li>
+<li class="chapter" data-level="15" data-path="taskwise-6-cond-effect.html"><a href="taskwise-6-cond-effect.html"><i class="fa fa-check"></i><b>15</b> taskwise 6 cond effect</a></li>
+<li class="chapter" data-level="16" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html"><i class="fa fa-check"></i><b>16</b> [fMRI] FIR ~ task TTL1</a>
+<ul>
+<li class="chapter" data-level="16.1" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#references"><i class="fa fa-check"></i><b>16.1</b> references</a></li>
+<li class="chapter" data-level="16.2" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#taskwise-stim-effect-1"><i class="fa fa-check"></i><b>16.2</b> taskwise stim effect</a>
+<ul>
+<li class="chapter" data-level="16.2.1" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#pca-subjectwise-1"><i class="fa fa-check"></i><b>16.2.1</b> PCA subjectwise</a></li>
+<li class="chapter" data-level="16.2.2" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#pca-groupwise-1"><i class="fa fa-check"></i><b>16.2.2</b> PCA groupwise</a></li>
+</ul></li>
+<li class="chapter" data-level="16.3" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#taskwise-cue-effect-1"><i class="fa fa-check"></i><b>16.3</b> taskwise cue effect</a>
+<ul>
+<li class="chapter" data-level="16.3.1" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#epoch-stim-rating-1"><i class="fa fa-check"></i><b>16.3.1</b> epoch: stim, rating</a></li>
+</ul></li>
+<li class="chapter" data-level="16.4" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#main-sandbox-6-condition-in-three-panels.-per-task.-per-roi"><i class="fa fa-check"></i><b>16.4</b> MAIN SANDBOX: 6 condition in three panels. per task. per ROI</a></li>
+</ul></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">52_ROI TTL1</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="ch03_cue" class="section level1 hasAnchor" number="3">
+<h1><span class="header-section-number">Chapter 3</span> [beh] outcome ~ cue<a href="ch03_cue.html#ch03_cue" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<div id="what-is-the-purpose-of-this-notebook-1" class="section level2 unlisted unnumbered hasAnchor">
+<h2>What is the purpose of this notebook?<a href="ch03_cue.html#what-is-the-purpose-of-this-notebook-1" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Here, I plot the outcome ratings as a function of cue.</p>
+<ul>
+<li>Main model: <code>lmer(outcome_rating ~ cue)</code></li>
+<li>Main question: do outcome ratings differ as a function of cue type?</li>
+<li>If there is a main effect of cue on outcome ratings, does this cue effect differ depending on task type?</li>
+<li>IV: cue (high / low)</li>
+<li>DV: outcome rating</li>
+</ul>
+<p>FIX: plot statistics in random effect plot - what is broken?</p>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="ch03_cue.html#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># parameters _____________________________________ # nolint</span></span>
+<span id="cb4-2"><a href="ch03_cue.html#cb4-2" aria-hidden="true" tabindex="-1"></a>subject_varkey <span class="ot">&lt;-</span> <span class="st">&quot;src_subject_id&quot;</span></span>
+<span id="cb4-3"><a href="ch03_cue.html#cb4-3" aria-hidden="true" tabindex="-1"></a>iv <span class="ot">&lt;-</span> <span class="st">&quot;param_cue_type&quot;</span>; iv_keyword <span class="ot">&lt;-</span> <span class="st">&quot;cue&quot;</span>; dv <span class="ot">&lt;-</span> <span class="st">&quot;event04_actual_angle&quot;</span>; dv_keyword <span class="ot">&lt;-</span> <span class="st">&quot;outcome&quot;</span></span>
+<span id="cb4-4"><a href="ch03_cue.html#cb4-4" aria-hidden="true" tabindex="-1"></a>xlab <span class="ot">&lt;-</span> <span class="st">&quot;&quot;</span>; ylim <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">180</span>); ylab <span class="ot">&lt;-</span> <span class="st">&quot;ratings (degree)&quot;</span></span>
+<span id="cb4-5"><a href="ch03_cue.html#cb4-5" aria-hidden="true" tabindex="-1"></a>subject <span class="ot">&lt;-</span> <span class="st">&quot;subject&quot;</span></span>
+<span id="cb4-6"><a href="ch03_cue.html#cb4-6" aria-hidden="true" tabindex="-1"></a>exclude <span class="ot">&lt;-</span> <span class="st">&quot;sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999&quot;</span></span>
+<span id="cb4-7"><a href="ch03_cue.html#cb4-7" aria-hidden="true" tabindex="-1"></a>subjectwise_mean <span class="ot">&lt;-</span> <span class="st">&quot;mean_per_sub&quot;</span>; group_mean <span class="ot">&lt;-</span> <span class="st">&quot;mean_per_sub_norm_mean&quot;</span>; se <span class="ot">&lt;-</span> <span class="st">&quot;se&quot;</span></span>
+<span id="cb4-8"><a href="ch03_cue.html#cb4-8" aria-hidden="true" tabindex="-1"></a>color_scheme <span class="ot">&lt;-</span>     <span class="cf">if</span> (<span class="fu">any</span>(<span class="fu">startsWith</span>(dv_keyword, <span class="fu">c</span>(<span class="st">&quot;expect&quot;</span>, <span class="st">&quot;Expect&quot;</span>)))) {</span>
+<span id="cb4-9"><a href="ch03_cue.html#cb4-9" aria-hidden="true" tabindex="-1"></a>        color_scheme <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;#1B9E77&quot;</span>, <span class="st">&quot;#D95F02&quot;</span>)</span>
+<span id="cb4-10"><a href="ch03_cue.html#cb4-10" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb4-11"><a href="ch03_cue.html#cb4-11" aria-hidden="true" tabindex="-1"></a>        color_scheme <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;#4575B4&quot;</span>, <span class="st">&quot;#D73027&quot;</span>)</span>
+<span id="cb4-12"><a href="ch03_cue.html#cb4-12" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb4-13"><a href="ch03_cue.html#cb4-13" aria-hidden="true" tabindex="-1"></a>print_lmer_output <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
+<span id="cb4-14"><a href="ch03_cue.html#cb4-14" aria-hidden="true" tabindex="-1"></a>ggtitle_phrase <span class="ot">&lt;-</span> <span class="st">&quot; - Outcome Rating (degree)&quot;</span></span>
+<span id="cb4-15"><a href="ch03_cue.html#cb4-15" aria-hidden="true" tabindex="-1"></a>analysis_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(main_dir, <span class="st">&quot;analysis&quot;</span>, <span class="st">&quot;mixedeffect&quot;</span>, <span class="st">&quot;model03_iv-cue_dv-outcome&quot;</span>, <span class="fu">as.character</span>(<span class="fu">Sys.Date</span>()))</span>
+<span id="cb4-16"><a href="ch03_cue.html#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(analysis_dir, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>, <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+</details>
+</div>
+<div id="pain-1" class="section level2 hasAnchor" number="3.1">
+<h2><span class="header-section-number">3.1</span> Pain<a href="ch03_cue.html#pain-1" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="for-the-vicarious-task-what-is-the-effect-of-cue-on-outcome-ratings" class="section level3 unlisted unnumbered hasAnchor">
+<h3>For the vicarious task, what is the effect of cue on outcome ratings?<a href="ch03_cue.html#for-the-vicarious-task-what-is-the-effect-of-cue-on-outcome-ratings" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>[ INSERT DESCRIPTION ]
+<img src="03_iv-cue_dv-actual_files/figure-html/pain_iv-cue_dv-outcome-1.png" width="672" /></p>
+</div>
+</div>
+<div id="vicarious-1" class="section level2 hasAnchor" number="3.2">
+<h2><span class="header-section-number">3.2</span> Vicarious<a href="ch03_cue.html#vicarious-1" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="for-the-vicarious-task-what-is-the-effect-of-cue-on-outcome-ratings-1" class="section level3 unlisted unnumbered hasAnchor">
+<h3>For the vicarious task, what is the effect of cue on outcome ratings?<a href="ch03_cue.html#for-the-vicarious-task-what-is-the-effect-of-cue-on-outcome-ratings-1" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>[ INSERT DESCRIPTION ]
+<img src="03_iv-cue_dv-actual_files/figure-html/vicarious_iv-cue_dv-outcome-1.png" width="672" /></p>
+</div>
+</div>
+<div id="cognitive-1" class="section level2 hasAnchor" number="3.3">
+<h2><span class="header-section-number">3.3</span> Cognitive<a href="ch03_cue.html#cognitive-1" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="for-the-cognitive-task-what-is-the-effect-of-cue-on-outcome-ratings" class="section level3 unlisted unnumbered hasAnchor">
+<h3>For the cognitive task, what is the effect of cue on outcome ratings?<a href="ch03_cue.html#for-the-cognitive-task-what-is-the-effect-of-cue-on-outcome-ratings" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>[ INSERT DESCRIPTION ]
+<img src="03_iv-cue_dv-actual_files/figure-html/cognitive_iv-cue_dv-outcome-1.png" width="672" /></p>
+</div>
+</div>
+<div id="individual-differences-analysis-random-cue-effects" class="section level2 hasAnchor" number="3.4">
+<h2><span class="header-section-number">3.4</span> Individual differences analysis: random cue effects<a href="ch03_cue.html#individual-differences-analysis-random-cue-effects" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Using the random effects from the mixed effects model, I’m plotting the random effect of cue types per task.</p>
+<p>[ INSERT DESCRIPTION ]
+<img src="03_iv-cue_dv-actual_files/figure-html/random_cue_scatter_plot_2-1.png" width="672" /></p>
+<p>Note:
+* Pain: Warning: Removed 2 rows containing non-finite values (<code>stat_cor()</code>).
+* Vicarious: Warning: Removed 1 rows containing non-finite values (<code>stat_cor()</code>).
+* Cognitive: Warning: Removed 2 rows containing non-finite values (<code>stat_cor()</code>).</p>
+</div>
+<div id="individual-differences-analysis-2-random-intercept-random-slopes-of-cue-effect" class="section level2 hasAnchor" number="3.5">
+<h2><span class="header-section-number">3.5</span> Individual differences analysis 2: random intercept + random slopes of cue effect<a href="ch03_cue.html#individual-differences-analysis-2-random-intercept-random-slopes-of-cue-effect" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>based on Tor’s suggestion, plotting the random efects with the random intercepts as well. not just the cue effects
+<img src="03_iv-cue_dv-actual_files/figure-html/random_effects_scatter_plot_2-1.png" width="672" /></p>
+<p>Note:
+* Pain: Warning: Removed 49 rows containing non-finite values (<code>stat_cor()</code>).
+* Vicarious: Removed 8 rows containing non-finite values (<code>stat_cor()</code>).
+* Cognitive: Removed 52 rows containing non-finite values (<code>stat_cor()</code>).</p>
+
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="ch2_expect.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="ch04_outcome-stim.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": true,
+"facebook": false,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": null,
+"history": {
+"link": "https://github.com/jungheejung/cue_expectancy/commits/main/03_iv-cue_dv-actual.Rmd",
+"text": "Chapter edit history"
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"search": {
+"engine": "lunr",
+"options": null
+},
+"toc": {
+"collapse": "subsection",
+"scroll_highlight": true
+},
+"toolbar": {
+"position": "fixed"
+},
+"info": true
+});
+});
+</script>
+
+</body>
+
+</html>

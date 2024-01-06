@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Chapter 14 taskwise stim effect | 52_ROI TTL1</title>
+  <meta name="description" content="This is a logbook of all the mixed model analyses in one setting." />
+  <meta name="generator" content="bookdown 0.37 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Chapter 14 taskwise stim effect | 52_ROI TTL1" />
+  <meta property="og:type" content="book" />
+  
+  <meta property="og:description" content="This is a logbook of all the mixed model analyses in one setting." />
+  <meta name="github-repo" content="rstudio/bookdown-demo" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 14 taskwise stim effect | 52_ROI TTL1" />
+  
+  <meta name="twitter:description" content="This is a logbook of all the mixed model analyses in one setting." />
+  
+
+<meta name="author" content="Heejung Jung" />
+
+
+<meta name="date" content="2023-08-14" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="ch51_fir_glasserTPJttl2.html"/>
+<link rel="next" href="taskwise-6-cond-effect.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<link href="libs/codefolding-lua-1.1/codefolding-lua.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+<script src="libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+<script src="libs/plotly-binding-4.10.3/plotly.js"></script>
+<script src="libs/typedarray-0.1/typedarray.min.js"></script>
+<link href="libs/crosstalk-1.2.1/css/crosstalk.min.css" rel="stylesheet" />
+<script src="libs/crosstalk-1.2.1/js/crosstalk.min.js"></script>
+<link href="libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet" />
+<script src="libs/plotly-main-2.11.1/plotly-latest.min.js"></script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+  
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> About</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#usage"><i class="fa fa-check"></i><b>1.1</b> Usage</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="ch2_expect.html"><a href="ch2_expect.html"><i class="fa fa-check"></i><b>2</b> [beh] expectation ~ cue</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="ch2_expect.html"><a href="ch2_expect.html#pain"><i class="fa fa-check"></i><b>2.1</b> Pain</a></li>
+<li class="chapter" data-level="2.2" data-path="ch2_expect.html"><a href="ch2_expect.html#vicarious"><i class="fa fa-check"></i><b>2.2</b> Vicarious</a></li>
+<li class="chapter" data-level="2.3" data-path="ch2_expect.html"><a href="ch2_expect.html#cognitive"><i class="fa fa-check"></i><b>2.3</b> Cognitive</a></li>
+<li class="chapter" data-level="2.4" data-path="ch2_expect.html"><a href="ch2_expect.html#individual-difference-analysis"><i class="fa fa-check"></i><b>2.4</b> Individual difference analysis</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="ch03_cue.html"><a href="ch03_cue.html"><i class="fa fa-check"></i><b>3</b> [beh] outcome ~ cue</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="ch03_cue.html"><a href="ch03_cue.html#pain-1"><i class="fa fa-check"></i><b>3.1</b> Pain</a></li>
+<li class="chapter" data-level="3.2" data-path="ch03_cue.html"><a href="ch03_cue.html#vicarious-1"><i class="fa fa-check"></i><b>3.2</b> Vicarious</a></li>
+<li class="chapter" data-level="3.3" data-path="ch03_cue.html"><a href="ch03_cue.html#cognitive-1"><i class="fa fa-check"></i><b>3.3</b> Cognitive</a></li>
+<li class="chapter" data-level="3.4" data-path="ch03_cue.html"><a href="ch03_cue.html#individual-differences-analysis-random-cue-effects"><i class="fa fa-check"></i><b>3.4</b> Individual differences analysis: random cue effects</a></li>
+<li class="chapter" data-level="3.5" data-path="ch03_cue.html"><a href="ch03_cue.html#individual-differences-analysis-2-random-intercept-random-slopes-of-cue-effect"><i class="fa fa-check"></i><b>3.5</b> Individual differences analysis 2: random intercept + random slopes of cue effect</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html"><i class="fa fa-check"></i><b>4</b> [beh] outcome ~ stimulus_intensity</a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#pain-2"><i class="fa fa-check"></i><b>4.1</b> Pain</a></li>
+<li class="chapter" data-level="4.2" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#vicarious-2"><i class="fa fa-check"></i><b>4.2</b> Vicarious</a></li>
+<li class="chapter" data-level="4.3" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#cognitive-2"><i class="fa fa-check"></i><b>4.3</b> Cognitive</a></li>
+<li class="chapter" data-level="4.4" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#for-loop"><i class="fa fa-check"></i><b>4.4</b> for loop</a></li>
+<li class="chapter" data-level="4.5" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#lineplot"><i class="fa fa-check"></i><b>4.5</b> Lineplot</a></li>
+<li class="chapter" data-level="4.6" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#individual-differences-in-outcome-rating-cue-effect"><i class="fa fa-check"></i><b>4.6</b> individual differences in outcome rating cue effect</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html"><i class="fa fa-check"></i><b>5</b> [beh] outcome_rating ~ cue * stim</a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-03-iv-cuecontrast-dv-outcome"><i class="fa fa-check"></i><b>5.1</b> model 03 iv-cuecontrast dv-outcome</a>
+<ul>
+<li class="chapter" data-level="5.1.1" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-03-3-2.-individual-difference"><i class="fa fa-check"></i><b>5.1.1</b> model 03 3-2. individual difference</a></li>
+<li class="chapter" data-level="5.1.2" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-iv-cue-stim-dv-outcome"><i class="fa fa-check"></i><b>5.1.2</b> model 04 iv-cue-stim dv-outcome</a></li>
+<li class="chapter" data-level="5.1.3" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#nov-17-lmer"><i class="fa fa-check"></i><b>5.1.3</b> Nov 17 lmer</a></li>
+<li class="chapter" data-level="5.1.4" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-2-individual-differences-in-cue-effects"><i class="fa fa-check"></i><b>5.1.4</b> model 04 4-2 individual differences in cue effects</a></li>
+<li class="chapter" data-level="5.1.5" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-3-scatter-plot"><i class="fa fa-check"></i><b>5.1.5</b> model 04 4-3 scatter plot</a></li>
+<li class="chapter" data-level="5.1.6" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-4-lineplot"><i class="fa fa-check"></i><b>5.1.6</b> model 04 4-4 lineplot</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="clinical-trials.html"><a href="clinical-trials.html"><i class="fa fa-check"></i><b>6</b> Clinical trials</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="clinical-trials.html"><a href="clinical-trials.html#cue-contrast-average-across-intensity"><i class="fa fa-check"></i><b>6.1</b> cue contrast average across intensity</a></li>
+<li class="chapter" data-level="6.2" data-path="clinical-trials.html"><a href="clinical-trials.html#cue-contrast-average-across-expectation"><i class="fa fa-check"></i><b>6.2</b> cue contrast average across expectation</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html"><i class="fa fa-check"></i><b>7</b> expect-actual ~ cue * trial</a>
+<ul>
+<li class="chapter" data-level="7.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#overview"><i class="fa fa-check"></i><b>7.1</b> Overview</a></li>
+<li class="chapter" data-level="7.2" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#plot-1---one-run-average-across-participants"><i class="fa fa-check"></i><b>7.2</b> plot 1 - one run, average across participants</a></li>
+<li class="chapter" data-level="7.3" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#plot-2---average-across-participant-but-spread-all-6-runs-in-one-x-axis"><i class="fa fa-check"></i><b>7.3</b> plot 2 - average across participant, but spread all 6 runs in one x axis</a></li>
+<li class="chapter" data-level="7.4" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#vicarious-3"><i class="fa fa-check"></i><b>7.4</b> vicarious</a></li>
+<li class="chapter" data-level="7.5" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#cognitive-3"><i class="fa fa-check"></i><b>7.5</b> cognitive</a></li>
+<li class="chapter" data-level="7.6" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#within-subject-vicarious"><i class="fa fa-check"></i><b>7.6</b> within subject vicarious</a></li>
+<li class="chapter" data-level="7.7" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#tor-request-only-outcome-ratings.-3-tasks"><i class="fa fa-check"></i><b>7.7</b> Tor request – only outcome ratings. 3 tasks</a>
+<ul>
+<li class="chapter" data-level="7.7.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#pain-3"><i class="fa fa-check"></i><b>7.7.1</b> pain</a></li>
+<li class="chapter" data-level="7.7.2" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#vicarious-4"><i class="fa fa-check"></i><b>7.7.2</b> vicarious</a></li>
+<li class="chapter" data-level="7.7.3" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#cognitive-4"><i class="fa fa-check"></i><b>7.7.3</b> cognitive</a></li>
+</ul></li>
+<li class="chapter" data-level="7.8" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#tor-request-only-expect-ratings.-3-tasks"><i class="fa fa-check"></i><b>7.8</b> Tor request – only expect ratings. 3 tasks</a>
+<ul>
+<li class="chapter" data-level="7.8.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#pain-4"><i class="fa fa-check"></i><b>7.8.1</b> pain</a></li>
+<li class="chapter" data-level="7.8.2" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#vicarious-5"><i class="fa fa-check"></i><b>7.8.2</b> vicarious</a></li>
+<li class="chapter" data-level="7.8.3" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#cognitive-5"><i class="fa fa-check"></i><b>7.8.3</b> cognitive</a></li>
+</ul></li>
+<li class="chapter" data-level="7.9" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#lmer"><i class="fa fa-check"></i><b>7.9</b> lmer</a>
+<ul>
+<li class="chapter" data-level="7.9.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#lmer-histogram"><i class="fa fa-check"></i><b>7.9.1</b> lmer histogram</a></li>
+</ul></li>
+<li class="chapter" data-level="7.10" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#do-current-expectation-ratings-predict-outcome-ratings"><i class="fa fa-check"></i><b>7.10</b> Do current expectation ratings predict outcome ratings?</a></li>
+<li class="chapter" data-level="7.11" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#additional-analysis"><i class="fa fa-check"></i><b>7.11</b> Additional analysis</a></li>
+</ul></li>
+<li class="chapter" data-level="8" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html"><i class="fa fa-check"></i><b>8</b> [ beh ] outcome_demean ~ cue * stim * expectrating * n-1outcomerating</a>
+<ul>
+<li class="chapter" data-level="8.1" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#linear-model-0508"><i class="fa fa-check"></i><b>8.1</b> linear model 0508</a></li>
+<li class="chapter" data-level="8.2" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#linear-model"><i class="fa fa-check"></i><b>8.2</b> linear model</a></li>
+<li class="chapter" data-level="8.3" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#q.-are-those-overestimating-for-high-cues-also-underestimators-for-low-cues"><i class="fa fa-check"></i><b>8.3</b> Q. Are those overestimating for high cues also underestimators for low cues?</a></li>
+<li class="chapter" data-level="8.4" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#todo-can-you-test-if-the-slopes-are-the-same-that-might-tell-us-something-about-whether-expectancies-translate-into-outcomes-with-the-same-efficacy-across-all-three-tasks."><i class="fa fa-check"></i><b>8.4</b> TODO: Can you test if the slopes are the same? That might tell us something about whether, expectancies translate into outcomes with the same efficacy across all three tasks.</a></li>
+<li class="chapter" data-level="8.5" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#pain-run-collapsed-across-stimulus-intensity"><i class="fa fa-check"></i><b>8.5</b> pain run, collapsed across stimulus intensity</a></li>
+<li class="chapter" data-level="8.6" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#vicarious-6"><i class="fa fa-check"></i><b>8.6</b> vicarious</a></li>
+<li class="chapter" data-level="8.7" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#cognitive-6"><i class="fa fa-check"></i><b>8.7</b> cognitive</a></li>
+<li class="chapter" data-level="8.8" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#linear-model-0508-1"><i class="fa fa-check"></i><b>8.8</b> linear model 0508</a></li>
+<li class="chapter" data-level="8.9" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#across-tasks-pvc-is-the-slope-for-highvslow-cue-the-sametor-question"><i class="fa fa-check"></i><b>8.9</b> across tasks (PVC), is the slope for (highvslow cue) the same?Tor question</a></li>
+<li class="chapter" data-level="8.10" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#alireza-congruent-incongruent-pe"><i class="fa fa-check"></i><b>8.10</b> Alireza congruent incongruent (PE)</a>
+<ul>
+<li class="chapter" data-level="8.10.1" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#archive-this-cell"><i class="fa fa-check"></i><b>8.10.1</b> archive this cell</a></li>
+</ul></li>
+<li class="chapter" data-level="8.11" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#alireza-congruent-incongruent-incorrect"><i class="fa fa-check"></i><b>8.11</b> Alireza congruent incongruent (incorrect)</a>
+<ul>
+<li class="chapter" data-level="8.11.1" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#archive-this-cell-1"><i class="fa fa-check"></i><b>8.11.1</b> archive this cell</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="ch17_mediation.html"><a href="ch17_mediation.html"><i class="fa fa-check"></i><b>9</b> [beh] Mediation outcome ~ cue * stim * expectrating * n-1outcomerating</a>
+<ul>
+<li class="chapter" data-level="9.1" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation"><i class="fa fa-check"></i><b>9.1</b> mediation</a></li>
+<li class="chapter" data-level="9.2" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation-2"><i class="fa fa-check"></i><b>9.2</b> mediation 2</a></li>
+<li class="chapter" data-level="9.3" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation-3-test-same-model-using-mediation-from-mbess"><i class="fa fa-check"></i><b>9.3</b> mediation 3: Test same model using mediation() from MBESS</a></li>
+<li class="chapter" data-level="9.4" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation-4-test-library-mediation"><i class="fa fa-check"></i><b>9.4</b> mediation 4: Test library mediation</a></li>
+</ul></li>
+<li class="chapter" data-level="10" data-path="ch18_simulation.html"><a href="ch18_simulation.html"><i class="fa fa-check"></i><b>10</b> [beh] RL simulation</a>
+<ul>
+<li class="chapter" data-level="10.1" data-path="ch18_simulation.html"><a href="ch18_simulation.html#function"><i class="fa fa-check"></i><b>10.1</b> function</a></li>
+</ul></li>
+<li class="chapter" data-level="11" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html"><i class="fa fa-check"></i><b>11</b> [beh] RL simulation Aryan</a>
+<ul>
+<li class="chapter" data-level="11.1" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-expectation-and-outcome-rating-using-model-4-simulations-jepma"><i class="fa fa-check"></i><b>11.1</b> Plot the relationship between expectation and outcome rating using model 4 simulations (Jepma)</a></li>
+<li class="chapter" data-level="11.2" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-expectation-and-outcome-rating-using-model-2-simulations-jepma"><i class="fa fa-check"></i><b>11.2</b> Plot the relationship between expectation and outcome rating using model 2 simulations (Jepma)</a>
+<ul>
+<li class="chapter" data-level="11.2.1" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#model-fits-from-model-2.-expectation-ratings-jepma-model"><i class="fa fa-check"></i><b>11.2.1</b> model fits from model 2. expectation ratings (Jepma model)</a></li>
+<li class="chapter" data-level="11.2.2" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#model-fits-from-model-2.-outcome-ratings-jepma-model"><i class="fa fa-check"></i><b>11.2.2</b> model fits from model 2. outcome ratings (Jepma model)</a></li>
+</ul></li>
+<li class="chapter" data-level="11.3" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#correlation-betweeen-alpha_incongruent-and-cue-trial-slope-randome-effects-of-cue"><i class="fa fa-check"></i><b>11.3</b> correlation betweeen alpha_incongruent and cue trial slope (randome effects of cue)</a></li>
+<li class="chapter" data-level="11.4" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#correlation-betweeen-alpha_incongruent-and-nps"><i class="fa fa-check"></i><b>11.4</b> correlation betweeen alpha_incongruent and NPS</a></li>
+<li class="chapter" data-level="11.5" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#correlation-bettween-nps-and-pe"><i class="fa fa-check"></i><b>11.5</b> correlation bettween NPS and PE</a>
+<ul>
+<li class="chapter" data-level="11.5.1" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#test-similarity-between-nps-positive-values-and-pe-11062023"><i class="fa fa-check"></i><b>11.5.1</b> test similarity between NPS positive values and PE (11/06/2023)</a></li>
+<li class="chapter" data-level="11.5.2" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#test-relationship-between-pe-and-cue-type-and-stimintensity-06162023"><i class="fa fa-check"></i><b>11.5.2</b> test relationship between PE and cue type and stimintensity (06/16/2023)</a></li>
+<li class="chapter" data-level="11.5.3" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-pe-and-nps-as-a-function-of-cue"><i class="fa fa-check"></i><b>11.5.3</b> plot the relationship between PE and NPS as a function of cue</a></li>
+<li class="chapter" data-level="11.5.4" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-pe-and-nps-as-a-function-of-cue-and-stimulus-intensity"><i class="fa fa-check"></i><b>11.5.4</b> plot the relationship between PE and NPS as a function of cue and stimulus intensity</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="12" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html"><i class="fa fa-check"></i><b>12</b> [model] NPSsimulation</a>
+<ul>
+<li class="chapter" data-level="12.0.1" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#function-1"><i class="fa fa-check"></i><b>12.0.1</b> Function</a></li>
+<li class="chapter" data-level="12.0.2" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#nps-data"><i class="fa fa-check"></i><b>12.0.2</b> NPS data</a></li>
+<li class="chapter" data-level="12.0.3" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#behavioral-data"><i class="fa fa-check"></i><b>12.0.3</b> behavioral data</a></li>
+<li class="chapter" data-level="12.0.4" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#get-pain-relationship-controlling-for-cue-cuetype-expect"><i class="fa fa-check"></i><b>12.0.4</b> get pain relationship, controlling for cue, cuetype, expect</a></li>
+<li class="chapter" data-level="12.1" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#simulation"><i class="fa fa-check"></i><b>12.1</b> simulation **</a></li>
+</ul></li>
+<li class="chapter" data-level="13" data-path="ch51_fir_glasserTPJttl2.html"><a href="ch51_fir_glasserTPJttl2.html"><i class="fa fa-check"></i><b>13</b> [fMRI] FIR ~ task</a>
+<ul>
+<li class="chapter" data-level="13.1" data-path="ch51_fir_glasserTPJttl2.html"><a href="ch51_fir_glasserTPJttl2.html#parameters-todo-ignore"><i class="fa fa-check"></i><b>13.1</b> parameters {TODO: ignore}</a></li>
+</ul></li>
+<li class="chapter" data-level="14" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html"><i class="fa fa-check"></i><b>14</b> taskwise stim effect</a>
+<ul>
+<li class="chapter" data-level="14.0.1" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#pca-subjectwise"><i class="fa fa-check"></i><b>14.0.1</b> PCA subjectwise</a></li>
+<li class="chapter" data-level="14.0.2" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#pca-groupwise"><i class="fa fa-check"></i><b>14.0.2</b> PCA groupwise</a></li>
+<li class="chapter" data-level="14.1" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#dep-epoch-stim-high-cue-vs-low-cue"><i class="fa fa-check"></i><b>14.1</b> DEP: epoch: stim, high cue vs low cue</a></li>
+<li class="chapter" data-level="14.2" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#taskwise-cue-effect"><i class="fa fa-check"></i><b>14.2</b> taskwise cue effect</a></li>
+<li class="chapter" data-level="14.3" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#epoch-stim-rating"><i class="fa fa-check"></i><b>14.3</b> epoch: stim, rating</a></li>
+<li class="chapter" data-level="14.4" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#epoch-6-cond"><i class="fa fa-check"></i><b>14.4</b> epoch: 6 cond</a></li>
+</ul></li>
+<li class="chapter" data-level="15" data-path="taskwise-6-cond-effect.html"><a href="taskwise-6-cond-effect.html"><i class="fa fa-check"></i><b>15</b> taskwise 6 cond effect</a></li>
+<li class="chapter" data-level="16" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html"><i class="fa fa-check"></i><b>16</b> [fMRI] FIR ~ task TTL1</a>
+<ul>
+<li class="chapter" data-level="16.1" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#references"><i class="fa fa-check"></i><b>16.1</b> references</a></li>
+<li class="chapter" data-level="16.2" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#taskwise-stim-effect-1"><i class="fa fa-check"></i><b>16.2</b> taskwise stim effect</a>
+<ul>
+<li class="chapter" data-level="16.2.1" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#pca-subjectwise-1"><i class="fa fa-check"></i><b>16.2.1</b> PCA subjectwise</a></li>
+<li class="chapter" data-level="16.2.2" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#pca-groupwise-1"><i class="fa fa-check"></i><b>16.2.2</b> PCA groupwise</a></li>
+</ul></li>
+<li class="chapter" data-level="16.3" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#taskwise-cue-effect-1"><i class="fa fa-check"></i><b>16.3</b> taskwise cue effect</a>
+<ul>
+<li class="chapter" data-level="16.3.1" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#epoch-stim-rating-1"><i class="fa fa-check"></i><b>16.3.1</b> epoch: stim, rating</a></li>
+</ul></li>
+<li class="chapter" data-level="16.4" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#main-sandbox-6-condition-in-three-panels.-per-task.-per-roi"><i class="fa fa-check"></i><b>16.4</b> MAIN SANDBOX: 6 condition in three panels. per task. per ROI</a></li>
+</ul></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">52_ROI TTL1</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="taskwise-stim-effect" class="section level1 hasAnchor" number="14">
+<h1><span class="header-section-number">Chapter 14</span> taskwise stim effect<a href="taskwise-stim-effect.html#taskwise-stim-effect" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb319"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb319-1"><a href="taskwise-stim-effect.html#cb319-1" aria-hidden="true" tabindex="-1"></a>roi_list <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&#39;rINS&#39;</span>, <span class="st">&#39;TPJ&#39;</span>, <span class="st">&#39;dACC&#39;</span>, <span class="st">&#39;PHG&#39;</span>, <span class="st">&#39;V1&#39;</span>, <span class="st">&#39;SM&#39;</span>, <span class="st">&#39;MT&#39;</span>, <span class="st">&#39;RSC&#39;</span>, <span class="st">&#39;LOC&#39;</span>, <span class="st">&#39;FFC&#39;</span>, <span class="st">&#39;PIT&#39;</span>, <span class="st">&#39;pSTS&#39;</span>, <span class="st">&#39;AIP&#39;</span>, <span class="st">&#39;premotor&#39;</span>)</span>
+<span id="cb319-2"><a href="taskwise-stim-effect.html#cb319-2" aria-hidden="true" tabindex="-1"></a>run_types <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;pain&quot;</span>, <span class="st">&quot;vicarious&quot;</span>, <span class="st">&quot;cognitive&quot;</span>)</span>
+<span id="cb319-3"><a href="taskwise-stim-effect.html#cb319-3" aria-hidden="true" tabindex="-1"></a>  plot_list <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb319-4"><a href="taskwise-stim-effect.html#cb319-4" aria-hidden="true" tabindex="-1"></a>  TR_length <span class="ot">&lt;-</span> <span class="dv">42</span></span>
+<span id="cb319-5"><a href="taskwise-stim-effect.html#cb319-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (ROI <span class="cf">in</span> roi_list) {</span>
+<span id="cb319-6"><a href="taskwise-stim-effect.html#cb319-6" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb319-7"><a href="taskwise-stim-effect.html#cb319-7" aria-hidden="true" tabindex="-1"></a>    datadir <span class="ot">=</span> <span class="fu">file.path</span>(main_dir, <span class="st">&quot;analysis/fmri/spm/fir/ttl2par&quot;</span>)</span>
+<span id="cb319-8"><a href="taskwise-stim-effect.html#cb319-8" aria-hidden="true" tabindex="-1"></a> taskname <span class="ot">=</span> <span class="st">&#39;pain&#39;</span></span>
+<span id="cb319-9"><a href="taskwise-stim-effect.html#cb319-9" aria-hidden="true" tabindex="-1"></a>exclude <span class="ot">&lt;-</span> <span class="st">&quot;sub-0001&quot;</span></span>
+<span id="cb319-10"><a href="taskwise-stim-effect.html#cb319-10" aria-hidden="true" tabindex="-1"></a>filename <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;sub-*&quot;</span>,  <span class="st">&quot;*roi-&quot;</span>, ROI, <span class="st">&quot;_tr-42.csv&quot;</span>)</span>
+<span id="cb319-11"><a href="taskwise-stim-effect.html#cb319-11" aria-hidden="true" tabindex="-1"></a>  common_path <span class="ot">&lt;-</span> <span class="fu">Sys.glob</span>(<span class="fu">file.path</span>(datadir, <span class="st">&quot;sub-*&quot;</span>,  filename</span>
+<span id="cb319-12"><a href="taskwise-stim-effect.html#cb319-12" aria-hidden="true" tabindex="-1"></a>  ))</span>
+<span id="cb319-13"><a href="taskwise-stim-effect.html#cb319-13" aria-hidden="true" tabindex="-1"></a>  filter_path <span class="ot">&lt;-</span> common_path[<span class="sc">!</span><span class="fu">str_detect</span>(common_path, <span class="at">pattern =</span> exclude)]</span>
+<span id="cb319-14"><a href="taskwise-stim-effect.html#cb319-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb319-15"><a href="taskwise-stim-effect.html#cb319-15" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">do.call</span>(<span class="st">&quot;rbind.fill&quot;</span>, <span class="fu">lapply</span>(filter_path, <span class="at">FUN =</span> <span class="cf">function</span>(files) {</span>
+<span id="cb319-16"><a href="taskwise-stim-effect.html#cb319-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">read.table</span>(files, <span class="at">header =</span> <span class="cn">TRUE</span>, <span class="at">sep =</span> <span class="st">&quot;,&quot;</span>)</span>
+<span id="cb319-17"><a href="taskwise-stim-effect.html#cb319-17" aria-hidden="true" tabindex="-1"></a>    }))</span>
+<span id="cb319-18"><a href="taskwise-stim-effect.html#cb319-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb319-19"><a href="taskwise-stim-effect.html#cb319-19" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (run_type <span class="cf">in</span> run_types) {</span>
+<span id="cb319-20"><a href="taskwise-stim-effect.html#cb319-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(run_type)</span>
+<span id="cb319-21"><a href="taskwise-stim-effect.html#cb319-21" aria-hidden="true" tabindex="-1"></a>  filtered_df <span class="ot">&lt;-</span> df[<span class="sc">!</span>(df<span class="sc">$</span>condition <span class="sc">==</span> <span class="st">&quot;rating&quot;</span> <span class="sc">|</span> df<span class="sc">$</span>condition <span class="sc">==</span> <span class="st">&quot;cue&quot;</span> <span class="sc">|</span> df<span class="sc">$</span>runtype <span class="sc">!=</span> run_type), ]</span>
+<span id="cb319-22"><a href="taskwise-stim-effect.html#cb319-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb319-23"><a href="taskwise-stim-effect.html#cb319-23" aria-hidden="true" tabindex="-1"></a>  parsed_df <span class="ot">&lt;-</span> filtered_df <span class="sc">%&gt;%</span></span>
+<span id="cb319-24"><a href="taskwise-stim-effect.html#cb319-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">separate</span>(condition, <span class="at">into =</span> <span class="fu">c</span>(<span class="st">&quot;cue&quot;</span>, <span class="st">&quot;stim&quot;</span>), <span class="at">sep =</span> <span class="st">&quot;_&quot;</span>, <span class="at">remove =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb319-25"><a href="taskwise-stim-effect.html#cb319-25" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --------------------- subset regions based on ROI ----------------------------</span></span>
+<span id="cb319-26"><a href="taskwise-stim-effect.html#cb319-26" aria-hidden="true" tabindex="-1"></a>  df_long <span class="ot">&lt;-</span> <span class="fu">pivot_longer</span>(parsed_df, <span class="at">cols =</span> <span class="fu">starts_with</span>(<span class="st">&quot;tr&quot;</span>), <span class="at">names_to =</span> <span class="st">&quot;tr_num&quot;</span>, <span class="at">values_to =</span> <span class="st">&quot;tr_value&quot;</span>)</span>
+<span id="cb319-27"><a href="taskwise-stim-effect.html#cb319-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb319-28"><a href="taskwise-stim-effect.html#cb319-28" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ----------------------------- clean factor -----------------------------------</span></span>
+<span id="cb319-29"><a href="taskwise-stim-effect.html#cb319-29" aria-hidden="true" tabindex="-1"></a>  df_long<span class="sc">$</span>tr_ordered <span class="ot">&lt;-</span> <span class="fu">factor</span>(</span>
+<span id="cb319-30"><a href="taskwise-stim-effect.html#cb319-30" aria-hidden="true" tabindex="-1"></a>          df_long<span class="sc">$</span>tr_num,</span>
+<span id="cb319-31"><a href="taskwise-stim-effect.html#cb319-31" aria-hidden="true" tabindex="-1"></a>          <span class="at">levels =</span> <span class="fu">c</span>(<span class="fu">paste0</span>(<span class="st">&quot;tr&quot;</span>, <span class="dv">1</span><span class="sc">:</span>TR_length))</span>
+<span id="cb319-32"><a href="taskwise-stim-effect.html#cb319-32" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb319-33"><a href="taskwise-stim-effect.html#cb319-33" aria-hidden="true" tabindex="-1"></a>  df_long<span class="sc">$</span>stim_ordered <span class="ot">&lt;-</span> <span class="fu">factor</span>(</span>
+<span id="cb319-34"><a href="taskwise-stim-effect.html#cb319-34" aria-hidden="true" tabindex="-1"></a>          df_long<span class="sc">$</span>stim,</span>
+<span id="cb319-35"><a href="taskwise-stim-effect.html#cb319-35" aria-hidden="true" tabindex="-1"></a>          <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;stimH&quot;</span>, <span class="st">&quot;stimM&quot;</span>, <span class="st">&quot;stimL&quot;</span>)</span>
+<span id="cb319-36"><a href="taskwise-stim-effect.html#cb319-36" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb319-37"><a href="taskwise-stim-effect.html#cb319-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb319-38"><a href="taskwise-stim-effect.html#cb319-38" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --------------------------- summary statistics -------------------------------</span></span>
+<span id="cb319-39"><a href="taskwise-stim-effect.html#cb319-39" aria-hidden="true" tabindex="-1"></a>  subjectwise <span class="ot">&lt;-</span> <span class="fu">meanSummary</span>(df_long,</span>
+<span id="cb319-40"><a href="taskwise-stim-effect.html#cb319-40" aria-hidden="true" tabindex="-1"></a>                                        <span class="fu">c</span>(<span class="st">&quot;sub&quot;</span>,<span class="st">&quot;tr_ordered&quot;</span>, <span class="st">&quot;stim_ordered&quot;</span>), <span class="st">&quot;tr_value&quot;</span>)</span>
+<span id="cb319-41"><a href="taskwise-stim-effect.html#cb319-41" aria-hidden="true" tabindex="-1"></a>  groupwise <span class="ot">&lt;-</span> <span class="fu">summarySEwithin</span>(</span>
+<span id="cb319-42"><a href="taskwise-stim-effect.html#cb319-42" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> subjectwise,</span>
+<span id="cb319-43"><a href="taskwise-stim-effect.html#cb319-43" aria-hidden="true" tabindex="-1"></a>    <span class="at">measurevar =</span> <span class="st">&quot;mean_per_sub&quot;</span>,</span>
+<span id="cb319-44"><a href="taskwise-stim-effect.html#cb319-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">withinvars =</span> <span class="fu">c</span>( <span class="st">&quot;stim_ordered&quot;</span>, <span class="st">&quot;tr_ordered&quot;</span>),</span>
+<span id="cb319-45"><a href="taskwise-stim-effect.html#cb319-45" aria-hidden="true" tabindex="-1"></a>    <span class="at">idvar =</span> <span class="st">&quot;sub&quot;</span></span>
+<span id="cb319-46"><a href="taskwise-stim-effect.html#cb319-46" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb319-47"><a href="taskwise-stim-effect.html#cb319-47" aria-hidden="true" tabindex="-1"></a>  groupwise<span class="sc">$</span>task <span class="ot">&lt;-</span> run_type</span>
+<span id="cb319-48"><a href="taskwise-stim-effect.html#cb319-48" aria-hidden="true" tabindex="-1"></a>  <span class="co"># https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402</span></span>
+<span id="cb319-49"><a href="taskwise-stim-effect.html#cb319-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb319-50"><a href="taskwise-stim-effect.html#cb319-50" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ... Rest of your data processing code ...</span></span>
+<span id="cb319-51"><a href="taskwise-stim-effect.html#cb319-51" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb319-52"><a href="taskwise-stim-effect.html#cb319-52" aria-hidden="true" tabindex="-1"></a>  <span class="co"># subset &lt;- groupwise[groupwise$runtype == run_type, ]</span></span>
+<span id="cb319-53"><a href="taskwise-stim-effect.html#cb319-53" aria-hidden="true" tabindex="-1"></a>  LINEIV1 <span class="ot">=</span> <span class="st">&quot;tr_ordered&quot;</span></span>
+<span id="cb319-54"><a href="taskwise-stim-effect.html#cb319-54" aria-hidden="true" tabindex="-1"></a>  LINEIV2 <span class="ot">=</span> <span class="st">&quot;stim_ordered&quot;</span></span>
+<span id="cb319-55"><a href="taskwise-stim-effect.html#cb319-55" aria-hidden="true" tabindex="-1"></a>  MEAN <span class="ot">=</span> <span class="st">&quot;mean_per_sub_norm_mean&quot;</span></span>
+<span id="cb319-56"><a href="taskwise-stim-effect.html#cb319-56" aria-hidden="true" tabindex="-1"></a>  ERROR <span class="ot">=</span> <span class="st">&quot;se&quot;</span></span>
+<span id="cb319-57"><a href="taskwise-stim-effect.html#cb319-57" aria-hidden="true" tabindex="-1"></a>  dv_keyword <span class="ot">=</span> <span class="st">&quot;actual&quot;</span></span>
+<span id="cb319-58"><a href="taskwise-stim-effect.html#cb319-58" aria-hidden="true" tabindex="-1"></a>  sorted_indices <span class="ot">&lt;-</span> <span class="fu">order</span>(groupwise<span class="sc">$</span>tr_ordered)</span>
+<span id="cb319-59"><a href="taskwise-stim-effect.html#cb319-59" aria-hidden="true" tabindex="-1"></a>  groupwise_sorted <span class="ot">&lt;-</span> groupwise[sorted_indices, ]</span>
+<span id="cb319-60"><a href="taskwise-stim-effect.html#cb319-60" aria-hidden="true" tabindex="-1"></a>  p1 <span class="ot">&lt;-</span> <span class="fu">plot_timeseries_bar</span>(groupwise_sorted, </span>
+<span id="cb319-61"><a href="taskwise-stim-effect.html#cb319-61" aria-hidden="true" tabindex="-1"></a>                            LINEIV1, LINEIV2, MEAN, ERROR,  </span>
+<span id="cb319-62"><a href="taskwise-stim-effect.html#cb319-62" aria-hidden="true" tabindex="-1"></a>                            <span class="at">xlab =</span> <span class="st">&quot;TRs&quot;</span>, </span>
+<span id="cb319-63"><a href="taskwise-stim-effect.html#cb319-63" aria-hidden="true" tabindex="-1"></a>                            <span class="at">ylab =</span> <span class="fu">paste0</span>(ROI, <span class="st">&quot; activation (A.U.)&quot;</span>), </span>
+<span id="cb319-64"><a href="taskwise-stim-effect.html#cb319-64" aria-hidden="true" tabindex="-1"></a>                            <span class="at">ggtitle =</span> <span class="fu">paste0</span>(ROI, <span class="st">&quot;: &quot;</span>,run_type, <span class="st">&quot; (N = &quot;</span>, <span class="fu">length</span>(<span class="fu">unique</span>(subjectwise<span class="sc">$</span>sub)),<span class="st">&quot;) time series, Epoch - stimulus&quot;</span>), </span>
+<span id="cb319-65"><a href="taskwise-stim-effect.html#cb319-65" aria-hidden="true" tabindex="-1"></a>                            <span class="at">color =</span> <span class="fu">c</span>(<span class="st">&quot;#5f0f40&quot;</span>,<span class="st">&quot;#ae2012&quot;</span>, <span class="st">&quot;#fcbf49&quot;</span>))</span>
+<span id="cb319-66"><a href="taskwise-stim-effect.html#cb319-66" aria-hidden="true" tabindex="-1"></a>  time_points <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="fl">0.46</span> <span class="sc">*</span> TR_length, <span class="fl">0.46</span>)</span>
+<span id="cb319-67"><a href="taskwise-stim-effect.html#cb319-67" aria-hidden="true" tabindex="-1"></a>  <span class="co">#p1 &lt;- p1 + scale_x_discrete(labels = setNames(time_points, colnames(df_long)[7:(7 + TR_length)])) + theme_classic()</span></span>
+<span id="cb319-68"><a href="taskwise-stim-effect.html#cb319-68" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb319-69"><a href="taskwise-stim-effect.html#cb319-69" aria-hidden="true" tabindex="-1"></a>  plot_list[[run_type]] <span class="ot">&lt;-</span> p1 <span class="sc">+</span> <span class="fu">theme_classic</span>()</span>
+<span id="cb319-70"><a href="taskwise-stim-effect.html#cb319-70" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb319-71"><a href="taskwise-stim-effect.html#cb319-71" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb319-72"><a href="taskwise-stim-effect.html#cb319-72" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --------------------------- plot three tasks -------------------------------</span></span>
+<span id="cb319-73"><a href="taskwise-stim-effect.html#cb319-73" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gridExtra)</span>
+<span id="cb319-74"><a href="taskwise-stim-effect.html#cb319-74" aria-hidden="true" tabindex="-1"></a>plot_list <span class="ot">&lt;-</span> <span class="fu">lapply</span>(plot_list, <span class="cf">function</span>(plot) {</span>
+<span id="cb319-75"><a href="taskwise-stim-effect.html#cb319-75" aria-hidden="true" tabindex="-1"></a>  plot <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="dv">5</span>, <span class="dv">5</span>, <span class="dv">5</span>, <span class="dv">5</span>))  <span class="co"># Adjust plot margins if needed</span></span>
+<span id="cb319-76"><a href="taskwise-stim-effect.html#cb319-76" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb319-77"><a href="taskwise-stim-effect.html#cb319-77" aria-hidden="true" tabindex="-1"></a>combined_plot <span class="ot">&lt;-</span> ggpubr<span class="sc">::</span><span class="fu">ggarrange</span>(plot_list[[<span class="st">&quot;pain&quot;</span>]],plot_list[[<span class="st">&quot;vicarious&quot;</span>]],plot_list[[<span class="st">&quot;cognitive&quot;</span>]],</span>
+<span id="cb319-78"><a href="taskwise-stim-effect.html#cb319-78" aria-hidden="true" tabindex="-1"></a>                  <span class="at">common.legend =</span> <span class="cn">TRUE</span>,<span class="at">legend =</span> <span class="st">&quot;bottom&quot;</span>, <span class="at">ncol =</span> <span class="dv">3</span>, <span class="at">nrow =</span> <span class="dv">1</span>, </span>
+<span id="cb319-79"><a href="taskwise-stim-effect.html#cb319-79" aria-hidden="true" tabindex="-1"></a>                  <span class="at">widths =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">3</span>), <span class="at">heights =</span> <span class="fu">c</span>(.<span class="dv">5</span>,.<span class="dv">5</span>,.<span class="dv">5</span>), <span class="at">align =</span> <span class="st">&quot;v&quot;</span>)</span>
+<span id="cb319-80"><a href="taskwise-stim-effect.html#cb319-80" aria-hidden="true" tabindex="-1"></a>combined_plot</span>
+<span id="cb319-81"><a href="taskwise-stim-effect.html#cb319-81" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="fu">file.path</span>(save_dir, <span class="fu">paste0</span>(<span class="st">&quot;roi-&quot;</span>, ROI,<span class="st">&quot;_epoch-stim_desc-highstimGTlowstim.png&quot;</span>)), combined_plot, <span class="at">width =</span> <span class="dv">12</span>, <span class="at">height =</span> <span class="dv">4</span>)</span>
+<span id="cb319-82"><a href="taskwise-stim-effect.html#cb319-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb319-83"><a href="taskwise-stim-effect.html#cb319-83" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+</details>
+<pre><code>## [1] &quot;pain&quot;</code></pre>
+<pre><code>## 
+## Attaching package: &#39;raincloudplots&#39;</code></pre>
+<pre><code>## The following object is masked _by_ &#39;.GlobalEnv&#39;:
+## 
+##     GeomFlatViolin</code></pre>
+<pre><code>## [1] &quot;vicarious&quot;
+## [1] &quot;cognitive&quot;</code></pre>
+<pre><code>## 
+## Attaching package: &#39;gridExtra&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:dplyr&#39;:
+## 
+##     combine</code></pre>
+<pre><code>## [1] &quot;pain&quot;
+## [1] &quot;vicarious&quot;
+## [1] &quot;cognitive&quot;</code></pre>
+<pre><code>## [1] &quot;pain&quot;
+## [1] &quot;vicarious&quot;
+## [1] &quot;cognitive&quot;</code></pre>
+<pre><code>## [1] &quot;pain&quot;
+## [1] &quot;vicarious&quot;
+## [1] &quot;cognitive&quot;</code></pre>
+<pre><code>## [1] &quot;pain&quot;
+## [1] &quot;vicarious&quot;
+## [1] &quot;cognitive&quot;</code></pre>
+<pre><code>## [1] &quot;pain&quot;
+## [1] &quot;vicarious&quot;
+## [1] &quot;cognitive&quot;</code></pre>
+<pre><code>## [1] &quot;pain&quot;
+## [1] &quot;vicarious&quot;
+## [1] &quot;cognitive&quot;</code></pre>
+<pre><code>## [1] &quot;pain&quot;
+## [1] &quot;vicarious&quot;
+## [1] &quot;cognitive&quot;</code></pre>
+<pre><code>## [1] &quot;pain&quot;
+## [1] &quot;vicarious&quot;
+## [1] &quot;cognitive&quot;</code></pre>
+<pre><code>## [1] &quot;pain&quot;
+## [1] &quot;vicarious&quot;
+## [1] &quot;cognitive&quot;</code></pre>
+<pre><code>## [1] &quot;pain&quot;
+## [1] &quot;vicarious&quot;
+## [1] &quot;cognitive&quot;</code></pre>
+<pre><code>## [1] &quot;pain&quot;
+## [1] &quot;vicarious&quot;
+## [1] &quot;cognitive&quot;</code></pre>
+<pre><code>## [1] &quot;pain&quot;
+## [1] &quot;vicarious&quot;
+## [1] &quot;cognitive&quot;</code></pre>
+<pre><code>## [1] &quot;pain&quot;
+## [1] &quot;vicarious&quot;
+## [1] &quot;cognitive&quot;</code></pre>
+<div id="pca-subjectwise" class="section level3 hasAnchor" number="14.0.1">
+<h3><span class="header-section-number">14.0.1</span> PCA subjectwise<a href="taskwise-stim-effect.html#pca-subjectwise" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb339"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb339-1"><a href="taskwise-stim-effect.html#cb339-1" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages(&quot;ggplot2&quot;)    # Install ggplot2 if you haven&#39;t already</span></span>
+<span id="cb339-2"><a href="taskwise-stim-effect.html#cb339-2" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages(&quot;FactoMineR&quot;) # Install FactoMineR if you haven&#39;t already</span></span>
+<span id="cb339-3"><a href="taskwise-stim-effect.html#cb339-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb339-4"><a href="taskwise-stim-effect.html#cb339-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(FactoMineR)</span>
+<span id="cb339-5"><a href="taskwise-stim-effect.html#cb339-5" aria-hidden="true" tabindex="-1"></a>run_types <span class="ot">=</span> <span class="fu">c</span>(<span class="st">&quot;pain&quot;</span>)</span>
+<span id="cb339-6"><a href="taskwise-stim-effect.html#cb339-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (run_type <span class="cf">in</span> run_types) {</span>
+<span id="cb339-7"><a href="taskwise-stim-effect.html#cb339-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(run_type)</span>
+<span id="cb339-8"><a href="taskwise-stim-effect.html#cb339-8" aria-hidden="true" tabindex="-1"></a>  filtered_df <span class="ot">&lt;-</span> df[<span class="sc">!</span>(df<span class="sc">$</span>condition <span class="sc">==</span> <span class="st">&quot;rating&quot;</span> <span class="sc">|</span> df<span class="sc">$</span>condition <span class="sc">==</span> <span class="st">&quot;cue&quot;</span> <span class="sc">|</span> df<span class="sc">$</span>runtype <span class="sc">!=</span> run_type), ]</span>
+<span id="cb339-9"><a href="taskwise-stim-effect.html#cb339-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb339-10"><a href="taskwise-stim-effect.html#cb339-10" aria-hidden="true" tabindex="-1"></a>  parsed_df <span class="ot">&lt;-</span> filtered_df <span class="sc">%&gt;%</span></span>
+<span id="cb339-11"><a href="taskwise-stim-effect.html#cb339-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">separate</span>(condition, <span class="at">into =</span> <span class="fu">c</span>(<span class="st">&quot;cue&quot;</span>, <span class="st">&quot;stim&quot;</span>), <span class="at">sep =</span> <span class="st">&quot;_&quot;</span>, <span class="at">remove =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb339-12"><a href="taskwise-stim-effect.html#cb339-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --------------------- subset regions based on ROI ----------------------------</span></span>
+<span id="cb339-13"><a href="taskwise-stim-effect.html#cb339-13" aria-hidden="true" tabindex="-1"></a>  df_long <span class="ot">&lt;-</span> <span class="fu">pivot_longer</span>(parsed_df, <span class="at">cols =</span> <span class="fu">starts_with</span>(<span class="st">&quot;tr&quot;</span>), <span class="at">names_to =</span> <span class="st">&quot;tr_num&quot;</span>, <span class="at">values_to =</span> <span class="st">&quot;tr_value&quot;</span>)</span>
+<span id="cb339-14"><a href="taskwise-stim-effect.html#cb339-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb339-15"><a href="taskwise-stim-effect.html#cb339-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ----------------------------- clean factor -----------------------------------</span></span>
+<span id="cb339-16"><a href="taskwise-stim-effect.html#cb339-16" aria-hidden="true" tabindex="-1"></a>  df_long<span class="sc">$</span>tr_ordered <span class="ot">&lt;-</span> <span class="fu">factor</span>(</span>
+<span id="cb339-17"><a href="taskwise-stim-effect.html#cb339-17" aria-hidden="true" tabindex="-1"></a>          df_long<span class="sc">$</span>tr_num,</span>
+<span id="cb339-18"><a href="taskwise-stim-effect.html#cb339-18" aria-hidden="true" tabindex="-1"></a>          <span class="at">levels =</span> <span class="fu">c</span>(<span class="fu">paste0</span>(<span class="st">&quot;tr&quot;</span>, <span class="dv">1</span><span class="sc">:</span>TR_length))</span>
+<span id="cb339-19"><a href="taskwise-stim-effect.html#cb339-19" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb339-20"><a href="taskwise-stim-effect.html#cb339-20" aria-hidden="true" tabindex="-1"></a>  df_long<span class="sc">$</span>stim_ordered <span class="ot">&lt;-</span> <span class="fu">factor</span>(</span>
+<span id="cb339-21"><a href="taskwise-stim-effect.html#cb339-21" aria-hidden="true" tabindex="-1"></a>          df_long<span class="sc">$</span>stim,</span>
+<span id="cb339-22"><a href="taskwise-stim-effect.html#cb339-22" aria-hidden="true" tabindex="-1"></a>          <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;stimH&quot;</span>, <span class="st">&quot;stimM&quot;</span>, <span class="st">&quot;stimL&quot;</span>)</span>
+<span id="cb339-23"><a href="taskwise-stim-effect.html#cb339-23" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb339-24"><a href="taskwise-stim-effect.html#cb339-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb339-25"><a href="taskwise-stim-effect.html#cb339-25" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --------------------------- summary statistics -------------------------------</span></span>
+<span id="cb339-26"><a href="taskwise-stim-effect.html#cb339-26" aria-hidden="true" tabindex="-1"></a>  subjectwise <span class="ot">&lt;-</span> <span class="fu">meanSummary</span>(df_long,</span>
+<span id="cb339-27"><a href="taskwise-stim-effect.html#cb339-27" aria-hidden="true" tabindex="-1"></a>                                        <span class="fu">c</span>(<span class="st">&quot;sub&quot;</span>,<span class="st">&quot;tr_ordered&quot;</span>, <span class="st">&quot;stim_ordered&quot;</span>), <span class="st">&quot;tr_value&quot;</span>)</span>
+<span id="cb339-28"><a href="taskwise-stim-effect.html#cb339-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb339-29"><a href="taskwise-stim-effect.html#cb339-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Assuming your original dataframe is named &#39;df&#39;</span></span>
+<span id="cb339-30"><a href="taskwise-stim-effect.html#cb339-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb339-31"><a href="taskwise-stim-effect.html#cb339-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert the dataframe to wide format</span></span>
+<span id="cb339-32"><a href="taskwise-stim-effect.html#cb339-32" aria-hidden="true" tabindex="-1"></a>df_wide <span class="ot">&lt;-</span> <span class="fu">pivot_wider</span>(subjectwise, </span>
+<span id="cb339-33"><a href="taskwise-stim-effect.html#cb339-33" aria-hidden="true" tabindex="-1"></a>                       <span class="at">id_cols =</span> <span class="fu">c</span>(<span class="st">&quot;tr_ordered&quot;</span>, <span class="st">&quot;stim_ordered&quot;</span>), </span>
+<span id="cb339-34"><a href="taskwise-stim-effect.html#cb339-34" aria-hidden="true" tabindex="-1"></a>                       <span class="at">names_from =</span> <span class="fu">c</span>(<span class="st">&quot;sub&quot;</span>), </span>
+<span id="cb339-35"><a href="taskwise-stim-effect.html#cb339-35" aria-hidden="true" tabindex="-1"></a>                       <span class="at">values_from =</span> <span class="st">&quot;mean_per_sub&quot;</span>)</span>
+<span id="cb339-36"><a href="taskwise-stim-effect.html#cb339-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb339-37"><a href="taskwise-stim-effect.html#cb339-37" aria-hidden="true" tabindex="-1"></a><span class="co"># df_wide &lt;- pivot_wider(subjectwise, </span></span>
+<span id="cb339-38"><a href="taskwise-stim-effect.html#cb339-38" aria-hidden="true" tabindex="-1"></a><span class="co">#                        id_cols = c(&quot;sub&quot;, &quot;ROIindex&quot;,&quot;stim_ordered&quot;), </span></span>
+<span id="cb339-39"><a href="taskwise-stim-effect.html#cb339-39" aria-hidden="true" tabindex="-1"></a><span class="co">#                        names_from = &quot;tr_ordered&quot;, </span></span>
+<span id="cb339-40"><a href="taskwise-stim-effect.html#cb339-40" aria-hidden="true" tabindex="-1"></a><span class="co">#                        values_from = &quot;mean_per_sub&quot;)</span></span>
+<span id="cb339-41"><a href="taskwise-stim-effect.html#cb339-41" aria-hidden="true" tabindex="-1"></a>stim_high.df <span class="ot">&lt;-</span> df_wide[df_wide<span class="sc">$</span>stim_ordered <span class="sc">==</span> <span class="st">&quot;stimH&quot;</span>,]</span>
+<span id="cb339-42"><a href="taskwise-stim-effect.html#cb339-42" aria-hidden="true" tabindex="-1"></a>stim_med.df <span class="ot">&lt;-</span> df_wide[df_wide<span class="sc">$</span>stim_ordered <span class="sc">==</span> <span class="st">&quot;stimM&quot;</span>,]</span>
+<span id="cb339-43"><a href="taskwise-stim-effect.html#cb339-43" aria-hidden="true" tabindex="-1"></a>stim_low.df <span class="ot">&lt;-</span> df_wide[df_wide<span class="sc">$</span>stim_ordered <span class="sc">==</span> <span class="st">&quot;stimL&quot;</span>,]</span>
+<span id="cb339-44"><a href="taskwise-stim-effect.html#cb339-44" aria-hidden="true" tabindex="-1"></a><span class="co"># selected_columns &lt;- subset(stim_high.df, select = 2:(ncol(stim_high.df) - 1))</span></span>
+<span id="cb339-45"><a href="taskwise-stim-effect.html#cb339-45" aria-hidden="true" tabindex="-1"></a>meanhighdf <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">subset</span>(stim_high.df, <span class="at">select =</span> <span class="dv">3</span><span class="sc">:</span>(<span class="fu">ncol</span>(stim_high.df) <span class="sc">-</span> <span class="dv">1</span>)))</span>
+<span id="cb339-46"><a href="taskwise-stim-effect.html#cb339-46" aria-hidden="true" tabindex="-1"></a>high.pca_result <span class="ot">&lt;-</span> <span class="fu">prcomp</span>(meanhighdf)</span>
+<span id="cb339-47"><a href="taskwise-stim-effect.html#cb339-47" aria-hidden="true" tabindex="-1"></a>high.pca_scores <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(high.pca_result<span class="sc">$</span>x)</span>
+<span id="cb339-48"><a href="taskwise-stim-effect.html#cb339-48" aria-hidden="true" tabindex="-1"></a><span class="co"># Access the proportion of variance explained by each principal component</span></span>
+<span id="cb339-49"><a href="taskwise-stim-effect.html#cb339-49" aria-hidden="true" tabindex="-1"></a>high.variance_explained <span class="ot">&lt;-</span> high.pca_result<span class="sc">$</span>sdev<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> <span class="fu">sum</span>(high.pca_result<span class="sc">$</span>sdev<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb339-50"><a href="taskwise-stim-effect.html#cb339-50" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(high.variance_explained)</span>
+<span id="cb339-51"><a href="taskwise-stim-effect.html#cb339-51" aria-hidden="true" tabindex="-1"></a><span class="co"># Access the standard deviations of each principal component</span></span>
+<span id="cb339-52"><a href="taskwise-stim-effect.html#cb339-52" aria-hidden="true" tabindex="-1"></a>high.stdev <span class="ot">&lt;-</span> high.pca_result<span class="sc">$</span>sdev</span>
+<span id="cb339-53"><a href="taskwise-stim-effect.html#cb339-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb339-54"><a href="taskwise-stim-effect.html#cb339-54" aria-hidden="true" tabindex="-1"></a>meanmeddf <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">subset</span>(stim_med.df, <span class="at">select =</span> <span class="dv">3</span><span class="sc">:</span>(<span class="fu">ncol</span>(stim_med.df) <span class="sc">-</span> <span class="dv">1</span>)))</span>
+<span id="cb339-55"><a href="taskwise-stim-effect.html#cb339-55" aria-hidden="true" tabindex="-1"></a>med.pca <span class="ot">&lt;-</span> <span class="fu">prcomp</span>(meanmeddf)</span>
+<span id="cb339-56"><a href="taskwise-stim-effect.html#cb339-56" aria-hidden="true" tabindex="-1"></a>med.pca_scores <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(med.pca<span class="sc">$</span>x)</span>
+<span id="cb339-57"><a href="taskwise-stim-effect.html#cb339-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb339-58"><a href="taskwise-stim-effect.html#cb339-58" aria-hidden="true" tabindex="-1"></a>meanlowdf <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">subset</span>(stim_low.df, <span class="at">select =</span> <span class="dv">3</span><span class="sc">:</span>(<span class="fu">ncol</span>(stim_low.df) <span class="sc">-</span> <span class="dv">1</span>)))</span>
+<span id="cb339-59"><a href="taskwise-stim-effect.html#cb339-59" aria-hidden="true" tabindex="-1"></a>low.pca <span class="ot">&lt;-</span> <span class="fu">prcomp</span>(meanlowdf)</span>
+<span id="cb339-60"><a href="taskwise-stim-effect.html#cb339-60" aria-hidden="true" tabindex="-1"></a>low.pca_scores <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(low.pca<span class="sc">$</span>x)</span>
+<span id="cb339-61"><a href="taskwise-stim-effect.html#cb339-61" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(plotly)  <span class="co"># You can use plotly to create an interactive 3D plot</span></span>
+<span id="cb339-62"><a href="taskwise-stim-effect.html#cb339-62" aria-hidden="true" tabindex="-1"></a><span class="co"># plot_ly(high.pca_scores, x = ~PC1, y = ~PC2, z = ~PC3, type = &quot;scatter3d&quot;, mode = &quot;markers&quot;)</span></span>
+<span id="cb339-63"><a href="taskwise-stim-effect.html#cb339-63" aria-hidden="true" tabindex="-1"></a><span class="co"># plot_ly(low.pca_scores, x = ~PC1, y = ~PC2, z = ~PC3, type = &quot;scatter3d&quot;, mode = &quot;markers&quot;)</span></span>
+<span id="cb339-64"><a href="taskwise-stim-effect.html#cb339-64" aria-hidden="true" tabindex="-1"></a>combined_pca_scores <span class="ot">&lt;-</span> <span class="fu">rbind</span>(high.pca_scores, med.pca_scores, low.pca_scores)</span>
+<span id="cb339-65"><a href="taskwise-stim-effect.html#cb339-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb339-66"><a href="taskwise-stim-effect.html#cb339-66" aria-hidden="true" tabindex="-1"></a><span class="co"># Add a new column to indicate the stim_ordered category (high_stim or low_stim)</span></span>
+<span id="cb339-67"><a href="taskwise-stim-effect.html#cb339-67" aria-hidden="true" tabindex="-1"></a>combined_pca_scores<span class="sc">$</span>stim_ordered <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="st">&quot;high_stim&quot;</span>, <span class="fu">nrow</span>(high.pca_scores)), </span>
+<span id="cb339-68"><a href="taskwise-stim-effect.html#cb339-68" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">rep</span>(<span class="st">&quot;med_stim&quot;</span>, <span class="fu">nrow</span>(med.pca_scores)), </span>
+<span id="cb339-69"><a href="taskwise-stim-effect.html#cb339-69" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">rep</span>(<span class="st">&quot;low_stim&quot;</span>, <span class="fu">nrow</span>(low.pca_scores)))</span>
+<span id="cb339-70"><a href="taskwise-stim-effect.html#cb339-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb339-71"><a href="taskwise-stim-effect.html#cb339-71" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the 3D PCA plot</span></span>
+<span id="cb339-72"><a href="taskwise-stim-effect.html#cb339-72" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_ly</span>(combined_pca_scores, <span class="at">x =</span> <span class="sc">~</span>PC1, <span class="at">y =</span> <span class="sc">~</span>PC2, <span class="at">z =</span> <span class="sc">~</span>PC3, <span class="at">type =</span> <span class="st">&quot;scatter3d&quot;</span>, <span class="at">mode =</span> <span class="st">&quot;markers&quot;</span>,</span>
+<span id="cb339-73"><a href="taskwise-stim-effect.html#cb339-73" aria-hidden="true" tabindex="-1"></a>        <span class="at">color =</span> <span class="sc">~</span>stim_ordered)</span>
+<span id="cb339-74"><a href="taskwise-stim-effect.html#cb339-74" aria-hidden="true" tabindex="-1"></a><span class="co"># data_matrix &lt;- groupwise[groupwise$stim_ordered == &quot;high_stim&quot;,c(&quot;tr_ordered&quot;, &quot;mean_per_sub_norm_mean&quot;)]</span></span>
+<span id="cb339-75"><a href="taskwise-stim-effect.html#cb339-75" aria-hidden="true" tabindex="-1"></a><span class="co"># sorted_indices &lt;- order(data_matrix$tr_ordered)</span></span>
+<span id="cb339-76"><a href="taskwise-stim-effect.html#cb339-76" aria-hidden="true" tabindex="-1"></a><span class="co"># df_ordered &lt;- data_matrix[sorted_indices, ]</span></span>
+<span id="cb339-77"><a href="taskwise-stim-effect.html#cb339-77" aria-hidden="true" tabindex="-1"></a><span class="co"># pca_result &lt;- PCA(data_matrix$mean_per_sub_norm_mean)</span></span>
+<span id="cb339-78"><a href="taskwise-stim-effect.html#cb339-78" aria-hidden="true" tabindex="-1"></a><span class="co"># datapoints &lt;- df$datapoints</span></span>
+<span id="cb339-79"><a href="taskwise-stim-effect.html#cb339-79" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+</details>
+<pre><code>## [1] &quot;pain&quot;</code></pre>
+<pre><code>## 
+## Attaching package: &#39;plotly&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:ggplot2&#39;:
+## 
+##     last_plot</code></pre>
+<pre><code>## The following objects are masked from &#39;package:plyr&#39;:
+## 
+##     arrange, mutate, rename, summarise</code></pre>
+<pre><code>## The following object is masked from &#39;package:reshape&#39;:
+## 
+##     rename</code></pre>
+<pre><code>## The following object is masked from &#39;package:stats&#39;:
+## 
+##     filter</code></pre>
+<pre><code>## The following object is masked from &#39;package:graphics&#39;:
+## 
+##     layout</code></pre>
+<p><img src="51_iv-6cond_dv-firglasserSPM_ttl2_rois_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb347"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb347-1"><a href="taskwise-stim-effect.html#cb347-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_ly</span>(combined_pca_scores, <span class="at">x =</span> <span class="sc">~</span>PC1, <span class="at">y =</span> <span class="sc">~</span>PC2, <span class="at">z =</span> <span class="sc">~</span>PC3, <span class="at">type =</span> <span class="st">&quot;scatter3d&quot;</span>, <span class="at">mode =</span> <span class="st">&quot;markers&quot;</span>,</span>
+<span id="cb347-2"><a href="taskwise-stim-effect.html#cb347-2" aria-hidden="true" tabindex="-1"></a>        <span class="at">color =</span> <span class="sc">~</span>stim_ordered)</span></code></pre></div>
+</details>
+<div class="plotly html-widget html-fill-item" id="htmlwidget-e869bb4ce26c42276545" style="width:672px;height:480px;"></div>
+<script type="application/json" data-for="htmlwidget-e869bb4ce26c42276545">{"x":{"visdat":{"28e7434709f9":["function () ","plotlyVisDat"]},"cur_data":"28e7434709f9","attrs":{"28e7434709f9":{"x":{},"y":{},"z":{},"mode":"markers","color":{},"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter3d"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"scene":{"xaxis":{"title":"PC1"},"yaxis":{"title":"PC2"},"zaxis":{"title":"PC3"}},"hovermode":"closest","showlegend":true},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"x":[-3.5788109233784819,-2.0533347388596508,-6.5336218647865598,-2.7083216152222849,-0.8237495447086165,1.0655748176928745,3.5832988818958524,5.5563725928506917,12.885062337428746,17.164931474166693,26.318430905717509,22.124327309718247,35.004207885933894,40.558945380024475,58.529141037493446,64.663134539960524,75.574527605961364,80.504681380370528,88.853870004454848,88.474313313103664,90.870391787896637,92.487071169826365,91.578581425689961,80.506727557836783,79.630063963028817,71.482883358234119,66.461675896748062,51.86721571890569,31.162107340353895,10.660676316876559,-15.439539064936159,-31.490238750398635,-63.430947755775946,-80.61203482905448,-100.8353665232453,-116.34121468973694,-128.03202901695411,-140.62301423580092,-150.52905134311825,-151.59358717604783,-145.81099929470383,-147.13235263544212],"y":[-35.799086995981995,-40.762489650462321,-51.943208835590674,-52.21806866486066,-60.020978980189966,-59.713727196356842,-63.765093576372969,-63.012208382804147,-68.154743793542835,-58.743133103019048,-48.555550398250006,-54.69018356241196,-46.069270743051106,-42.045770006073873,-27.797390325514606,-26.995409904715338,-13.916191815317477,-7.4124700487557558,11.429275355703664,17.121117406962117,26.327938273260436,42.321370478231955,42.977995658382234,56.459525411413459,63.498300398301872,71.960100980349338,64.470761099784852,49.35218716039622,51.538679580944525,40.852807250062995,38.356454462271962,36.088401666324643,38.02882853099203,34.601746501051309,36.528602437331429,31.113200797482548,26.389499705204546,18.696845742053558,10.977683013121531,12.863126172777573,1.9568677900900378,-2.2963398892233036],"z":[-20.368503983741295,-21.888162194383774,-25.968037199696546,-25.101881294833703,-23.885738856181103,-21.158121479978981,-20.622217996634834,-13.953720977137348,-13.096391751480825,-8.8966820595222647,0.34077690684816997,0.61485990703649906,14.755912745603011,21.629297858872029,27.496511515079202,34.504693974335716,33.136603233913021,38.151524374152295,35.179539959984886,27.822283474719885,20.044042082498962,18.156917899465654,14.268748250323528,11.186305471004029,2.0557724533876449,-7.3188258482323256,-18.236587362937126,-35.527744846727138,-32.706286932286204,-36.624545340348376,-40.854960187380833,-36.401260869286794,-30.051021786625803,-20.495095826176584,-3.3876880999761529,2.4659565243325599,12.892098280121754,19.634708309930531,28.388527367522538,28.101953981149173,30.437012729858221,35.279427593428707],"mode":"markers","type":"scatter3d","name":"high_stim","marker":{"color":"rgba(102,194,165,1)","line":{"color":"rgba(102,194,165,1)"}},"textfont":{"color":"rgba(102,194,165,1)"},"error_y":{"color":"rgba(102,194,165,1)"},"error_x":{"color":"rgba(102,194,165,1)"},"line":{"color":"rgba(102,194,165,1)"},"frame":null},{"x":[-27.632028230350532,-25.731525601711713,-25.299975170275072,-25.186809037560455,-23.190695001267848,-18.714852981660076,-16.55342686097643,-5.0427579982985167,-2.5890864976130286,7.1557849615622384,10.083579323217338,15.069773962025495,21.351099134012422,26.730591023251005,37.556582097691994,44.78142377883664,51.198376881716577,52.96024834403034,56.867843328561669,61.16685274269507,55.114354917589452,53.990358400640709,54.749928352466256,49.77035747808231,40.04583021963915,39.359048989428693,38.173043512008789,27.826457484642887,23.86870039769709,18.288836395540034,-2.5735371544542152,-13.433993856144752,-24.054673094068445,-39.580455144127626,-44.622157733759749,-63.459942825754887,-63.510197460095149,-70.010374365201471,-71.899606526203698,-75.272211756018677,-75.798648291621902,-71.952116138171846],"y":[-37.102745040665155,-41.340295373177149,-42.336580300145776,-39.804649201559208,-47.352420897833923,-39.330599410608592,-44.698058781433666,-45.02332243567173,-37.243082738739574,-41.662043127370012,-39.628405295853455,-41.120345561609426,-31.559728676254196,-33.969592054887684,-34.48795962747387,-36.470004295599473,-25.368378853670052,-14.531406919543105,0.70553831635619491,7.4019566042573892,18.441679983069232,31.063225606071413,33.655743143016096,32.744628795618539,33.427484144797027,33.49654443767718,35.889854547859436,42.247560240578565,43.734744530717862,43.994528304917473,47.92128378432264,43.725371341232766,37.149976316356117,34.429599696987211,29.827582968062544,24.053173425286673,18.310636228456655,21.644152022919471,18.352394324321754,15.700065016024539,16.416793762640186,8.6951010505489492],"z":[12.944966892698959,24.228006333311228,22.226845407650163,27.988087566390607,17.796756595861737,20.889840850123164,13.972857024967388,9.0928043277548305,6.6988219346300033,1.2435680706410839,-7.1896146780466461,-3.2260773933458826,-13.272562029074438,-14.122783303383567,-18.187305562670325,-22.555863326985712,-17.918953623211195,-19.312581921894708,-15.538754071029466,-15.253948888685114,-10.052919062076107,-17.038299687496391,-8.8265517205285757,-3.9878522169802624,4.6343921578681888,13.106450940197163,18.530075732600633,25.725376690627176,30.496485197553167,17.043818902974721,18.908667534385472,18.61709280667732,7.3346358511762553,4.8279529169838638,-3.159348423902379,-4.9592606700033661,-13.789468144083251,-23.349364250258592,-22.078398554948791,-29.842803707948537,-20.445587879324211,-12.199204619195617],"mode":"markers","type":"scatter3d","name":"low_stim","marker":{"color":"rgba(252,141,98,1)","line":{"color":"rgba(252,141,98,1)"}},"textfont":{"color":"rgba(252,141,98,1)"},"error_y":{"color":"rgba(252,141,98,1)"},"error_x":{"color":"rgba(252,141,98,1)"},"line":{"color":"rgba(252,141,98,1)"},"frame":null},{"x":[-22.572817516108412,-22.171528797928978,-17.733962648674268,-21.667777499678383,-14.752657832200196,-18.186987462937548,-9.4109152518257169,-7.4817355752711512,-11.412613512158412,0.58843919147860335,5.8333607041739972,17.10472007670807,26.998767315430527,40.357636826826138,53.468859105262503,59.535903257677923,67.626804272407711,80.584641846019423,80.202720619935661,85.096036532619678,87.060030350298831,82.000839271200562,71.533836552662024,73.912659740620384,71.783583044393453,60.863580729147216,61.334492988222593,59.343511875210211,41.881054007010086,24.694885328027393,-3.0284188020669331,-19.907332582962042,-49.10616018409592,-69.257938788566108,-93.783894549422087,-93.021380448889417,-100.04904639031912,-112.66269524071932,-118.91132427851494,-121.25557696091575,-116.42887632593813,-109.0027229861401],"y":[-40.35301484899211,-40.903875118265994,-47.796362915935674,-44.029778049751428,-50.528894185296139,-54.058728268569787,-49.30906013220136,-52.905864331945565,-51.553105222815439,-46.976772247944538,-41.312146478011989,-47.923003665257383,-42.870421753912439,-34.826216184513022,-30.048235203847632,-22.157647455666854,-8.483848927786072,-8.0545911367992655,0.68533110647278184,7.538624140663968,15.328212113987567,24.562984529331647,24.132304725546927,36.805423068875285,36.862356204132865,43.035487897747309,50.174379981963277,44.008096476464779,51.117731966268835,47.776767457461261,51.544021514064887,43.627911216505176,43.925397826766869,40.415043528706164,36.11846508664987,29.608543200591534,25.529470899405265,23.321048514401703,17.936521235668273,6.7010637427867294,8.1204004571408497,5.2159792359088373],"z":[-22.930393323846037,-25.769046967938152,-23.300906197190464,-28.734337300773628,-27.108961058629934,-26.565628989981306,-18.704874337325379,-17.501344638383308,-12.240090499975649,-4.742777452278613,-0.85187279232867597,6.6360924823896799,16.281255300129011,25.148355523211034,25.662871267643439,26.327945481442224,26.165235527681517,29.485027447616066,26.17706934838607,19.054385220131067,23.037592141643398,25.679860259186341,11.134785059992685,7.6799621536568541,-9.4757232491520398,-15.970738295852819,-23.408235115326637,-23.808293226827892,-27.87523257694318,-26.230153978951524,-29.114105185194735,-21.181092932002507,-23.754048725172687,-13.265289434056603,-3.6556052623843778,2.4878780937361382,21.446309979704367,21.617508744478066,26.838412956964,33.499003617514227,27.306281743390361,24.522919191619572],"mode":"markers","type":"scatter3d","name":"med_stim","marker":{"color":"rgba(141,160,203,1)","line":{"color":"rgba(141,160,203,1)"}},"textfont":{"color":"rgba(141,160,203,1)"},"error_y":{"color":"rgba(141,160,203,1)"},"error_x":{"color":"rgba(141,160,203,1)"},"line":{"color":"rgba(141,160,203,1)"},"frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="pca-groupwise" class="section level3 hasAnchor" number="14.0.2">
+<h3><span class="header-section-number">14.0.2</span> PCA groupwise<a href="taskwise-stim-effect.html#pca-groupwise" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb348"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb348-1"><a href="taskwise-stim-effect.html#cb348-1" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages(&quot;ggplot2&quot;)    # Install ggplot2 if you haven&#39;t already</span></span>
+<span id="cb348-2"><a href="taskwise-stim-effect.html#cb348-2" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages(&quot;FactoMineR&quot;) # Install FactoMineR if you haven&#39;t already</span></span>
+<span id="cb348-3"><a href="taskwise-stim-effect.html#cb348-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb348-4"><a href="taskwise-stim-effect.html#cb348-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(FactoMineR)</span>
+<span id="cb348-5"><a href="taskwise-stim-effect.html#cb348-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb348-6"><a href="taskwise-stim-effect.html#cb348-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb348-7"><a href="taskwise-stim-effect.html#cb348-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb348-8"><a href="taskwise-stim-effect.html#cb348-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Assuming your original dataframe is named &#39;df&#39;</span></span>
+<span id="cb348-9"><a href="taskwise-stim-effect.html#cb348-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb348-10"><a href="taskwise-stim-effect.html#cb348-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert the dataframe to wide format</span></span>
+<span id="cb348-11"><a href="taskwise-stim-effect.html#cb348-11" aria-hidden="true" tabindex="-1"></a>df_wide.group <span class="ot">&lt;-</span> <span class="fu">pivot_wider</span>(subjectwise,</span>
+<span id="cb348-12"><a href="taskwise-stim-effect.html#cb348-12" aria-hidden="true" tabindex="-1"></a>                       <span class="at">id_cols =</span> <span class="fu">c</span>(<span class="st">&quot;tr_ordered&quot;</span>, <span class="st">&quot;stim_ordered&quot;</span>),</span>
+<span id="cb348-13"><a href="taskwise-stim-effect.html#cb348-13" aria-hidden="true" tabindex="-1"></a>                       <span class="at">names_from =</span> <span class="st">&quot;sub&quot;</span>,</span>
+<span id="cb348-14"><a href="taskwise-stim-effect.html#cb348-14" aria-hidden="true" tabindex="-1"></a>                       <span class="at">values_from =</span> <span class="st">&quot;mean_per_sub&quot;</span>)</span>
+<span id="cb348-15"><a href="taskwise-stim-effect.html#cb348-15" aria-hidden="true" tabindex="-1"></a><span class="co"># ------</span></span>
+<span id="cb348-16"><a href="taskwise-stim-effect.html#cb348-16" aria-hidden="true" tabindex="-1"></a><span class="co"># data_matrix &lt;- groupwise[groupwise$stim_ordered == &quot;high_stim&quot;,c(&quot;tr_ordered&quot;, &quot;mean_per_sub_norm_mean&quot;)]</span></span>
+<span id="cb348-17"><a href="taskwise-stim-effect.html#cb348-17" aria-hidden="true" tabindex="-1"></a><span class="co"># sorted_indices &lt;- order(data_matrix$tr_ordered)</span></span>
+<span id="cb348-18"><a href="taskwise-stim-effect.html#cb348-18" aria-hidden="true" tabindex="-1"></a><span class="co"># df_ordered &lt;- data_matrix[sorted_indices, ]</span></span>
+<span id="cb348-19"><a href="taskwise-stim-effect.html#cb348-19" aria-hidden="true" tabindex="-1"></a><span class="co"># datapoints &lt;- df_ordered$mean_per_sub_norm_mean</span></span>
+<span id="cb348-20"><a href="taskwise-stim-effect.html#cb348-20" aria-hidden="true" tabindex="-1"></a><span class="co"># data_df &lt;- data.frame(Dim1 = datapoints, Dim2 = datapoints, Dim3 = datapoints)</span></span>
+<span id="cb348-21"><a href="taskwise-stim-effect.html#cb348-21" aria-hidden="true" tabindex="-1"></a><span class="co"># pca &lt;- prcomp(data_df)</span></span>
+<span id="cb348-22"><a href="taskwise-stim-effect.html#cb348-22" aria-hidden="true" tabindex="-1"></a><span class="co"># pca_scores &lt;- as.data.frame(pca$x)</span></span>
+<span id="cb348-23"><a href="taskwise-stim-effect.html#cb348-23" aria-hidden="true" tabindex="-1"></a><span class="co"># plot_ly(pca_scores, x = ~PC1, y = ~PC2, z = ~PC3, type = &quot;scatter3d&quot;, mode = &quot;markers&quot;)</span></span>
+<span id="cb348-24"><a href="taskwise-stim-effect.html#cb348-24" aria-hidden="true" tabindex="-1"></a><span class="co"># -------</span></span>
+<span id="cb348-25"><a href="taskwise-stim-effect.html#cb348-25" aria-hidden="true" tabindex="-1"></a>stim_high.df <span class="ot">&lt;-</span> df_wide[df_wide<span class="sc">$</span>stim_ordered <span class="sc">==</span> <span class="st">&quot;stimH&quot;</span>,]</span>
+<span id="cb348-26"><a href="taskwise-stim-effect.html#cb348-26" aria-hidden="true" tabindex="-1"></a>stim_low.df <span class="ot">&lt;-</span> df_wide[df_wide<span class="sc">$</span>stim_ordered <span class="sc">==</span> <span class="st">&quot;stimL&quot;</span>,]</span>
+<span id="cb348-27"><a href="taskwise-stim-effect.html#cb348-27" aria-hidden="true" tabindex="-1"></a><span class="co"># selected_columns &lt;- subset(stim_high.df, select = 2:(ncol(stim_high.df) - 1))</span></span>
+<span id="cb348-28"><a href="taskwise-stim-effect.html#cb348-28" aria-hidden="true" tabindex="-1"></a>meanhighdf <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">subset</span>(stim_high.df, <span class="at">select =</span> <span class="dv">3</span><span class="sc">:</span>(<span class="fu">ncol</span>(stim_high.df) <span class="sc">-</span> <span class="dv">1</span>)))</span>
+<span id="cb348-29"><a href="taskwise-stim-effect.html#cb348-29" aria-hidden="true" tabindex="-1"></a>high.pca <span class="ot">&lt;-</span> <span class="fu">prcomp</span>(meanhighdf)</span>
+<span id="cb348-30"><a href="taskwise-stim-effect.html#cb348-30" aria-hidden="true" tabindex="-1"></a>high.pca_scores <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(high.pca<span class="sc">$</span>x)</span>
+<span id="cb348-31"><a href="taskwise-stim-effect.html#cb348-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb348-32"><a href="taskwise-stim-effect.html#cb348-32" aria-hidden="true" tabindex="-1"></a>meanlowdf <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">subset</span>(stim_low.df, <span class="at">select =</span> <span class="dv">3</span><span class="sc">:</span>(<span class="fu">ncol</span>(stim_low.df) <span class="sc">-</span> <span class="dv">1</span>)))</span>
+<span id="cb348-33"><a href="taskwise-stim-effect.html#cb348-33" aria-hidden="true" tabindex="-1"></a>low.pca <span class="ot">&lt;-</span> <span class="fu">prcomp</span>(meanlowdf)</span>
+<span id="cb348-34"><a href="taskwise-stim-effect.html#cb348-34" aria-hidden="true" tabindex="-1"></a>low.pca_scores <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(low.pca<span class="sc">$</span>x)</span>
+<span id="cb348-35"><a href="taskwise-stim-effect.html#cb348-35" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(plotly)  <span class="co"># You can use plotly to create an interactive 3D plot</span></span>
+<span id="cb348-36"><a href="taskwise-stim-effect.html#cb348-36" aria-hidden="true" tabindex="-1"></a><span class="co"># plot_ly(high.pca_scores, x = ~PC1, y = ~PC2, z = ~PC3, type = &quot;scatter3d&quot;, mode = &quot;markers&quot;)</span></span>
+<span id="cb348-37"><a href="taskwise-stim-effect.html#cb348-37" aria-hidden="true" tabindex="-1"></a><span class="co"># plot_ly(low.pca_scores, x = ~PC1, y = ~PC2, z = ~PC3, type = &quot;scatter3d&quot;, mode = &quot;markers&quot;)</span></span>
+<span id="cb348-38"><a href="taskwise-stim-effect.html#cb348-38" aria-hidden="true" tabindex="-1"></a>combined_pca_scores <span class="ot">&lt;-</span> <span class="fu">rbind</span>(high.pca_scores, low.pca_scores)</span>
+<span id="cb348-39"><a href="taskwise-stim-effect.html#cb348-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb348-40"><a href="taskwise-stim-effect.html#cb348-40" aria-hidden="true" tabindex="-1"></a><span class="co"># Add a new column to indicate the stim_ordered category (high_stim or low_stim)</span></span>
+<span id="cb348-41"><a href="taskwise-stim-effect.html#cb348-41" aria-hidden="true" tabindex="-1"></a>combined_pca_scores<span class="sc">$</span>stim_ordered <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="st">&quot;high_stim&quot;</span>, <span class="fu">nrow</span>(high.pca_scores)), <span class="fu">rep</span>(<span class="st">&quot;low_stim&quot;</span>, <span class="fu">nrow</span>(low.pca_scores)))</span>
+<span id="cb348-42"><a href="taskwise-stim-effect.html#cb348-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb348-43"><a href="taskwise-stim-effect.html#cb348-43" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the 3D PCA plot</span></span>
+<span id="cb348-44"><a href="taskwise-stim-effect.html#cb348-44" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_ly</span>(combined_pca_scores, <span class="at">x =</span> <span class="sc">~</span>PC1, <span class="at">y =</span> <span class="sc">~</span>PC2, <span class="at">z =</span> <span class="sc">~</span>PC3, <span class="at">type =</span> <span class="st">&quot;scatter3d&quot;</span>, <span class="at">mode =</span> <span class="st">&quot;markers&quot;</span>,</span>
+<span id="cb348-45"><a href="taskwise-stim-effect.html#cb348-45" aria-hidden="true" tabindex="-1"></a>        <span class="at">color =</span> <span class="sc">~</span>stim_ordered)</span></code></pre></div>
+</details>
+<pre><code>## Warning in RColorBrewer::brewer.pal(N, &quot;Set2&quot;): minimal value for n is 3, returning requested palette with 3 different levels
+
+## Warning in RColorBrewer::brewer.pal(N, &quot;Set2&quot;): minimal value for n is 3, returning requested palette with 3 different levels</code></pre>
+<div class="plotly html-widget html-fill-item" id="htmlwidget-3f7a791e162832995885" style="width:672px;height:480px;"></div>
+<script type="application/json" data-for="htmlwidget-3f7a791e162832995885">{"x":{"visdat":{"28e75d224867":["function () ","plotlyVisDat"]},"cur_data":"28e75d224867","attrs":{"28e75d224867":{"x":{},"y":{},"z":{},"mode":"markers","color":{},"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter3d"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"scene":{"xaxis":{"title":"PC1"},"yaxis":{"title":"PC2"},"zaxis":{"title":"PC3"}},"hovermode":"closest","showlegend":true},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"x":[-3.5788109233784819,-2.0533347388596508,-6.5336218647865598,-2.7083216152222849,-0.8237495447086165,1.0655748176928745,3.5832988818958524,5.5563725928506917,12.885062337428746,17.164931474166693,26.318430905717509,22.124327309718247,35.004207885933894,40.558945380024475,58.529141037493446,64.663134539960524,75.574527605961364,80.504681380370528,88.853870004454848,88.474313313103664,90.870391787896637,92.487071169826365,91.578581425689961,80.506727557836783,79.630063963028817,71.482883358234119,66.461675896748062,51.86721571890569,31.162107340353895,10.660676316876559,-15.439539064936159,-31.490238750398635,-63.430947755775946,-80.61203482905448,-100.8353665232453,-116.34121468973694,-128.03202901695411,-140.62301423580092,-150.52905134311825,-151.59358717604783,-145.81099929470383,-147.13235263544212],"y":[-35.799086995981995,-40.762489650462321,-51.943208835590674,-52.21806866486066,-60.020978980189966,-59.713727196356842,-63.765093576372969,-63.012208382804147,-68.154743793542835,-58.743133103019048,-48.555550398250006,-54.69018356241196,-46.069270743051106,-42.045770006073873,-27.797390325514606,-26.995409904715338,-13.916191815317477,-7.4124700487557558,11.429275355703664,17.121117406962117,26.327938273260436,42.321370478231955,42.977995658382234,56.459525411413459,63.498300398301872,71.960100980349338,64.470761099784852,49.35218716039622,51.538679580944525,40.852807250062995,38.356454462271962,36.088401666324643,38.02882853099203,34.601746501051309,36.528602437331429,31.113200797482548,26.389499705204546,18.696845742053558,10.977683013121531,12.863126172777573,1.9568677900900378,-2.2963398892233036],"z":[-20.368503983741295,-21.888162194383774,-25.968037199696546,-25.101881294833703,-23.885738856181103,-21.158121479978981,-20.622217996634834,-13.953720977137348,-13.096391751480825,-8.8966820595222647,0.34077690684816997,0.61485990703649906,14.755912745603011,21.629297858872029,27.496511515079202,34.504693974335716,33.136603233913021,38.151524374152295,35.179539959984886,27.822283474719885,20.044042082498962,18.156917899465654,14.268748250323528,11.186305471004029,2.0557724533876449,-7.3188258482323256,-18.236587362937126,-35.527744846727138,-32.706286932286204,-36.624545340348376,-40.854960187380833,-36.401260869286794,-30.051021786625803,-20.495095826176584,-3.3876880999761529,2.4659565243325599,12.892098280121754,19.634708309930531,28.388527367522538,28.101953981149173,30.437012729858221,35.279427593428707],"mode":"markers","type":"scatter3d","name":"high_stim","marker":{"color":"rgba(102,194,165,1)","line":{"color":"rgba(102,194,165,1)"}},"textfont":{"color":"rgba(102,194,165,1)"},"error_y":{"color":"rgba(102,194,165,1)"},"error_x":{"color":"rgba(102,194,165,1)"},"line":{"color":"rgba(102,194,165,1)"},"frame":null},{"x":[-27.632028230350532,-25.731525601711713,-25.299975170275072,-25.186809037560455,-23.190695001267848,-18.714852981660076,-16.55342686097643,-5.0427579982985167,-2.5890864976130286,7.1557849615622384,10.083579323217338,15.069773962025495,21.351099134012422,26.730591023251005,37.556582097691994,44.78142377883664,51.198376881716577,52.96024834403034,56.867843328561669,61.16685274269507,55.114354917589452,53.990358400640709,54.749928352466256,49.77035747808231,40.04583021963915,39.359048989428693,38.173043512008789,27.826457484642887,23.86870039769709,18.288836395540034,-2.5735371544542152,-13.433993856144752,-24.054673094068445,-39.580455144127626,-44.622157733759749,-63.459942825754887,-63.510197460095149,-70.010374365201471,-71.899606526203698,-75.272211756018677,-75.798648291621902,-71.952116138171846],"y":[-37.102745040665155,-41.340295373177149,-42.336580300145776,-39.804649201559208,-47.352420897833923,-39.330599410608592,-44.698058781433666,-45.02332243567173,-37.243082738739574,-41.662043127370012,-39.628405295853455,-41.120345561609426,-31.559728676254196,-33.969592054887684,-34.48795962747387,-36.470004295599473,-25.368378853670052,-14.531406919543105,0.70553831635619491,7.4019566042573892,18.441679983069232,31.063225606071413,33.655743143016096,32.744628795618539,33.427484144797027,33.49654443767718,35.889854547859436,42.247560240578565,43.734744530717862,43.994528304917473,47.92128378432264,43.725371341232766,37.149976316356117,34.429599696987211,29.827582968062544,24.053173425286673,18.310636228456655,21.644152022919471,18.352394324321754,15.700065016024539,16.416793762640186,8.6951010505489492],"z":[12.944966892698959,24.228006333311228,22.226845407650163,27.988087566390607,17.796756595861737,20.889840850123164,13.972857024967388,9.0928043277548305,6.6988219346300033,1.2435680706410839,-7.1896146780466461,-3.2260773933458826,-13.272562029074438,-14.122783303383567,-18.187305562670325,-22.555863326985712,-17.918953623211195,-19.312581921894708,-15.538754071029466,-15.253948888685114,-10.052919062076107,-17.038299687496391,-8.8265517205285757,-3.9878522169802624,4.6343921578681888,13.106450940197163,18.530075732600633,25.725376690627176,30.496485197553167,17.043818902974721,18.908667534385472,18.61709280667732,7.3346358511762553,4.8279529169838638,-3.159348423902379,-4.9592606700033661,-13.789468144083251,-23.349364250258592,-22.078398554948791,-29.842803707948537,-20.445587879324211,-12.199204619195617],"mode":"markers","type":"scatter3d","name":"low_stim","marker":{"color":"rgba(141,160,203,1)","line":{"color":"rgba(141,160,203,1)"}},"textfont":{"color":"rgba(141,160,203,1)"},"error_y":{"color":"rgba(141,160,203,1)"},"error_x":{"color":"rgba(141,160,203,1)"},"line":{"color":"rgba(141,160,203,1)"},"frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb350"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb350-1"><a href="taskwise-stim-effect.html#cb350-1" aria-hidden="true" tabindex="-1"></a><span class="co"># data_matrix &lt;- groupwise[groupwise$stim_ordered == &quot;high_stim&quot;,c(&quot;tr_ordered&quot;, &quot;mean_per_sub_norm_mean&quot;)]</span></span>
+<span id="cb350-2"><a href="taskwise-stim-effect.html#cb350-2" aria-hidden="true" tabindex="-1"></a><span class="co"># sorted_indices &lt;- order(data_matrix$tr_ordered)</span></span>
+<span id="cb350-3"><a href="taskwise-stim-effect.html#cb350-3" aria-hidden="true" tabindex="-1"></a><span class="co"># df_ordered &lt;- data_matrix[sorted_indices, ]</span></span>
+<span id="cb350-4"><a href="taskwise-stim-effect.html#cb350-4" aria-hidden="true" tabindex="-1"></a><span class="co"># pca_result &lt;- PCA(data_matrix$mean_per_sub_norm_mean)</span></span>
+<span id="cb350-5"><a href="taskwise-stim-effect.html#cb350-5" aria-hidden="true" tabindex="-1"></a><span class="co"># datapoints &lt;- df$datapoints</span></span>
+<span id="cb350-6"><a href="taskwise-stim-effect.html#cb350-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb350-7"><a href="taskwise-stim-effect.html#cb350-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Assuming you have a dataframe named &#39;data&#39; containing the 20 data points, &#39;x&#39; and &#39;y&#39; values, and corresponding standard deviations &#39;sd&#39;</span></span>
+<span id="cb350-8"><a href="taskwise-stim-effect.html#cb350-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb350-9"><a href="taskwise-stim-effect.html#cb350-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the ggplot2 library</span></span>
+<span id="cb350-10"><a href="taskwise-stim-effect.html#cb350-10" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages(&quot;ggplot2&quot;)</span></span>
+<span id="cb350-11"><a href="taskwise-stim-effect.html#cb350-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb350-12"><a href="taskwise-stim-effect.html#cb350-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb350-13"><a href="taskwise-stim-effect.html#cb350-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the plot</span></span>
+<span id="cb350-14"><a href="taskwise-stim-effect.html#cb350-14" aria-hidden="true" tabindex="-1"></a><span class="co"># y = &quot;mean_per_sub_mean&quot;z</span></span>
+<span id="cb350-15"><a href="taskwise-stim-effect.html#cb350-15" aria-hidden="true" tabindex="-1"></a><span class="co"># combined_pca &lt;- combined_pca_scores %&gt;%</span></span>
+<span id="cb350-16"><a href="taskwise-stim-effect.html#cb350-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># mutate(group_index = group_indices(., stim_ordered))</span></span>
+<span id="cb350-17"><a href="taskwise-stim-effect.html#cb350-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb350-18"><a href="taskwise-stim-effect.html#cb350-18" aria-hidden="true" tabindex="-1"></a>combined_pca <span class="ot">&lt;-</span> combined_pca_scores <span class="sc">%&gt;%</span></span>
+<span id="cb350-19"><a href="taskwise-stim-effect.html#cb350-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(stim_ordered) <span class="sc">%&gt;%</span></span>
+<span id="cb350-20"><a href="taskwise-stim-effect.html#cb350-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">group_index =</span> <span class="fu">row_number</span>())</span>
+<span id="cb350-21"><a href="taskwise-stim-effect.html#cb350-21" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(combined_pca, <span class="fu">aes</span>(<span class="at">x=</span>group_index,<span class="at">y=</span>PC1, <span class="at">group =</span> stim_ordered, <span class="at">colour=</span>stim_ordered)) <span class="sc">+</span></span>
+<span id="cb350-22"><a href="taskwise-stim-effect.html#cb350-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_smooth</span>(<span class="at">method=</span><span class="st">&quot;loess&quot;</span>, <span class="at">span=</span><span class="fl">0.25</span>, <span class="at">se=</span><span class="cn">TRUE</span>, <span class="fu">aes</span>(<span class="at">color=</span>stim_ordered), <span class="at">alpha=</span><span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb350-23"><a href="taskwise-stim-effect.html#cb350-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span></code></pre></div>
+</details>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="51_iv-6cond_dv-firglasserSPM_ttl2_rois_files/figure-html/unnamed-chunk-6-2.png" width="672" /></p>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb352"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb352-1"><a href="taskwise-stim-effect.html#cb352-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Assuming you have a dataframe named &#39;data&#39; containing the 20 data points, &#39;x&#39; and &#39;y&#39; values, and corresponding standard deviations &#39;sd&#39;</span></span>
+<span id="cb352-2"><a href="taskwise-stim-effect.html#cb352-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb352-3"><a href="taskwise-stim-effect.html#cb352-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the ggplot2 library</span></span>
+<span id="cb352-4"><a href="taskwise-stim-effect.html#cb352-4" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages(&quot;ggplot2&quot;)</span></span>
+<span id="cb352-5"><a href="taskwise-stim-effect.html#cb352-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb352-6"><a href="taskwise-stim-effect.html#cb352-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb352-7"><a href="taskwise-stim-effect.html#cb352-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the plot</span></span>
+<span id="cb352-8"><a href="taskwise-stim-effect.html#cb352-8" aria-hidden="true" tabindex="-1"></a><span class="co"># y = &quot;mean_per_sub_mean&quot;z</span></span>
+<span id="cb352-9"><a href="taskwise-stim-effect.html#cb352-9" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(groupwise, <span class="fu">aes</span>(<span class="at">x=</span>tr_ordered,<span class="at">y=</span>mean_per_sub_mean, <span class="at">group =</span> stim_ordered, <span class="at">colour=</span>stim_ordered)) <span class="sc">+</span></span>
+<span id="cb352-10"><a href="taskwise-stim-effect.html#cb352-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_smooth</span>(<span class="at">method=</span><span class="st">&quot;loess&quot;</span>, <span class="at">span=</span><span class="fl">0.25</span>, <span class="at">se=</span><span class="cn">TRUE</span>, <span class="fu">aes</span>(<span class="at">color=</span>stim_ordered), <span class="at">alpha=</span><span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb352-11"><a href="taskwise-stim-effect.html#cb352-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span></code></pre></div>
+</details>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="51_iv-6cond_dv-firglasserSPM_ttl2_rois_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb354"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb354-1"><a href="taskwise-stim-effect.html#cb354-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ggplot(data=groupwise, aes(x=tr_ordered, y=mean_per_sub_mean, ymin=se, ymax=se, fill=stim_ordered, linetype=stim_ordered)) + </span></span>
+<span id="cb354-2"><a href="taskwise-stim-effect.html#cb354-2" aria-hidden="true" tabindex="-1"></a><span class="co">#  geom_line() + </span></span>
+<span id="cb354-3"><a href="taskwise-stim-effect.html#cb354-3" aria-hidden="true" tabindex="-1"></a><span class="co">#  geom_ribbon(alpha=0.5)  </span></span>
+<span id="cb354-4"><a href="taskwise-stim-effect.html#cb354-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Assuming you have a dataframe named &#39;data&#39; containing the 20 mean data points and corresponding standard errors</span></span>
+<span id="cb354-5"><a href="taskwise-stim-effect.html#cb354-5" aria-hidden="true" tabindex="-1"></a><span class="co"># &#39;x&#39; represents the x-values (e.g., time points)</span></span>
+<span id="cb354-6"><a href="taskwise-stim-effect.html#cb354-6" aria-hidden="true" tabindex="-1"></a><span class="co"># &#39;mean_y&#39; represents the mean y-values</span></span>
+<span id="cb354-7"><a href="taskwise-stim-effect.html#cb354-7" aria-hidden="true" tabindex="-1"></a><span class="co"># &#39;se_y&#39; represents the standard errors of the mean y-values</span></span>
+<span id="cb354-8"><a href="taskwise-stim-effect.html#cb354-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb354-9"><a href="taskwise-stim-effect.html#cb354-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the ggplot2 library</span></span>
+<span id="cb354-10"><a href="taskwise-stim-effect.html#cb354-10" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages(&quot;ggplot2&quot;)</span></span>
+<span id="cb354-11"><a href="taskwise-stim-effect.html#cb354-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb354-12"><a href="taskwise-stim-effect.html#cb354-12" aria-hidden="true" tabindex="-1"></a><span class="co"># groupwise$x &lt;- as.numeric(groupwise$x)</span></span>
+<span id="cb354-13"><a href="taskwise-stim-effect.html#cb354-13" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb354-14"><a href="taskwise-stim-effect.html#cb354-14" aria-hidden="true" tabindex="-1"></a><span class="co"># # Sort the dataframe by the &#39;x&#39; variable (if it&#39;s not already sorted)</span></span>
+<span id="cb354-15"><a href="taskwise-stim-effect.html#cb354-15" aria-hidden="true" tabindex="-1"></a><span class="co"># data &lt;- data[order(data$x), ]</span></span>
+<span id="cb354-16"><a href="taskwise-stim-effect.html#cb354-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb354-17"><a href="taskwise-stim-effect.html#cb354-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the plot</span></span>
+<span id="cb354-18"><a href="taskwise-stim-effect.html#cb354-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the plot with custom span and smoothing method</span></span>
+<span id="cb354-19"><a href="taskwise-stim-effect.html#cb354-19" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(groupwise, <span class="fu">aes</span>(<span class="at">x=</span>tr_ordered,<span class="at">y=</span>mean_per_sub_mean)) <span class="sc">+</span></span>
+<span id="cb354-20"><a href="taskwise-stim-effect.html#cb354-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span>                                   <span class="co"># Plot the smooth line for the mean</span></span>
+<span id="cb354-21"><a href="taskwise-stim-effect.html#cb354-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> mean_per_sub_mean <span class="sc">-</span> se, <span class="at">ymax =</span> mean_per_sub_mean <span class="sc">+</span> se), <span class="at">alpha =</span> <span class="fl">0.3</span>) <span class="sc">+</span> <span class="co"># Add the ribbon for standard error</span></span>
+<span id="cb354-22"><a href="taskwise-stim-effect.html#cb354-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">&quot;loess&quot;</span>, <span class="at">span =</span> <span class="fl">0.1</span>, <span class="at">se =</span> <span class="cn">FALSE</span>) <span class="sc">+</span>       <span class="co"># Add the loess smoothing curve</span></span>
+<span id="cb354-23"><a href="taskwise-stim-effect.html#cb354-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;X-axis Label&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Y-axis Label&quot;</span>, <span class="at">title =</span> <span class="st">&quot;Smooth Line with Standard Error Ribbon&quot;</span>) <span class="sc">+</span></span>
+<span id="cb354-24"><a href="taskwise-stim-effect.html#cb354-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div>
+</details>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="51_iv-6cond_dv-firglasserSPM_ttl2_rois_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+</div>
+<div id="dep-epoch-stim-high-cue-vs-low-cue" class="section level2 hasAnchor" number="14.1">
+<h2><span class="header-section-number">14.1</span> DEP: epoch: stim, high cue vs low cue<a href="taskwise-stim-effect.html#dep-epoch-stim-high-cue-vs-low-cue" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb356"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb356-1"><a href="taskwise-stim-effect.html#cb356-1" aria-hidden="true" tabindex="-1"></a><span class="co"># filtered_df &lt;- subset(df, condition != &quot;rating&quot;)</span></span>
+<span id="cb356-2"><a href="taskwise-stim-effect.html#cb356-2" aria-hidden="true" tabindex="-1"></a>filtered_df <span class="ot">&lt;-</span> df[<span class="sc">!</span>(df<span class="sc">$</span>condition <span class="sc">==</span> <span class="st">&quot;rating&quot;</span> <span class="sc">|</span> df<span class="sc">$</span>condition <span class="sc">==</span> <span class="st">&quot;cue&quot;</span>), ]</span>
+<span id="cb356-3"><a href="taskwise-stim-effect.html#cb356-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb356-4"><a href="taskwise-stim-effect.html#cb356-4" aria-hidden="true" tabindex="-1"></a>parsed_df <span class="ot">&lt;-</span> filtered_df <span class="sc">%&gt;%</span></span>
+<span id="cb356-5"><a href="taskwise-stim-effect.html#cb356-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(condition, <span class="at">into =</span> <span class="fu">c</span>(<span class="st">&quot;cue&quot;</span>, <span class="st">&quot;stim&quot;</span>), <span class="at">sep =</span> <span class="st">&quot;_&quot;</span>, <span class="at">remove =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb356-6"><a href="taskwise-stim-effect.html#cb356-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb356-7"><a href="taskwise-stim-effect.html#cb356-7" aria-hidden="true" tabindex="-1"></a>TR_length <span class="ot">&lt;-</span> <span class="dv">42</span></span>
+<span id="cb356-8"><a href="taskwise-stim-effect.html#cb356-8" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------- subset regions based on ROI ----------------------------</span></span>
+<span id="cb356-9"><a href="taskwise-stim-effect.html#cb356-9" aria-hidden="true" tabindex="-1"></a>df_long <span class="ot">&lt;-</span> <span class="fu">pivot_longer</span>(parsed_df, <span class="at">cols =</span> <span class="fu">starts_with</span>(<span class="st">&quot;tr&quot;</span>), <span class="at">names_to =</span> <span class="st">&quot;tr_num&quot;</span>, <span class="at">values_to =</span> <span class="st">&quot;tr_value&quot;</span>)</span>
+<span id="cb356-10"><a href="taskwise-stim-effect.html#cb356-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb356-11"><a href="taskwise-stim-effect.html#cb356-11" aria-hidden="true" tabindex="-1"></a><span class="co"># ----------------------------- clean factor -----------------------------------</span></span>
+<span id="cb356-12"><a href="taskwise-stim-effect.html#cb356-12" aria-hidden="true" tabindex="-1"></a>df_long<span class="sc">$</span>tr_ordered <span class="ot">&lt;-</span> <span class="fu">factor</span>(</span>
+<span id="cb356-13"><a href="taskwise-stim-effect.html#cb356-13" aria-hidden="true" tabindex="-1"></a>        df_long<span class="sc">$</span>tr_num,</span>
+<span id="cb356-14"><a href="taskwise-stim-effect.html#cb356-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">levels =</span> <span class="fu">c</span>(<span class="fu">paste0</span>(<span class="st">&quot;tr&quot;</span>, <span class="dv">1</span><span class="sc">:</span>TR_length))</span>
+<span id="cb356-15"><a href="taskwise-stim-effect.html#cb356-15" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb356-16"><a href="taskwise-stim-effect.html#cb356-16" aria-hidden="true" tabindex="-1"></a>df_long<span class="sc">$</span>cue_ordered <span class="ot">&lt;-</span> <span class="fu">factor</span>(</span>
+<span id="cb356-17"><a href="taskwise-stim-effect.html#cb356-17" aria-hidden="true" tabindex="-1"></a>        df_long<span class="sc">$</span>cue,</span>
+<span id="cb356-18"><a href="taskwise-stim-effect.html#cb356-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;cueH&quot;</span>,<span class="st">&quot;cueL&quot;</span>)</span>
+<span id="cb356-19"><a href="taskwise-stim-effect.html#cb356-19" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb356-20"><a href="taskwise-stim-effect.html#cb356-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb356-21"><a href="taskwise-stim-effect.html#cb356-21" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------- summary statistics -------------------------------</span></span>
+<span id="cb356-22"><a href="taskwise-stim-effect.html#cb356-22" aria-hidden="true" tabindex="-1"></a>subjectwise <span class="ot">&lt;-</span> <span class="fu">meanSummary</span>(df_long,</span>
+<span id="cb356-23"><a href="taskwise-stim-effect.html#cb356-23" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">c</span>(<span class="st">&quot;sub&quot;</span>, <span class="st">&quot;tr_ordered&quot;</span>, <span class="st">&quot;cue_ordered&quot;</span>), <span class="st">&quot;tr_value&quot;</span>)</span>
+<span id="cb356-24"><a href="taskwise-stim-effect.html#cb356-24" aria-hidden="true" tabindex="-1"></a>groupwise <span class="ot">&lt;-</span> <span class="fu">summarySEwithin</span>(</span>
+<span id="cb356-25"><a href="taskwise-stim-effect.html#cb356-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> subjectwise,</span>
+<span id="cb356-26"><a href="taskwise-stim-effect.html#cb356-26" aria-hidden="true" tabindex="-1"></a>  <span class="at">measurevar =</span> <span class="st">&quot;mean_per_sub&quot;</span>,</span>
+<span id="cb356-27"><a href="taskwise-stim-effect.html#cb356-27" aria-hidden="true" tabindex="-1"></a>  <span class="at">withinvars =</span> <span class="fu">c</span>(<span class="st">&quot;cue_ordered&quot;</span>, <span class="st">&quot;tr_ordered&quot;</span>),</span>
+<span id="cb356-28"><a href="taskwise-stim-effect.html#cb356-28" aria-hidden="true" tabindex="-1"></a>  <span class="at">idvar =</span> <span class="st">&quot;sub&quot;</span></span>
+<span id="cb356-29"><a href="taskwise-stim-effect.html#cb356-29" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb356-30"><a href="taskwise-stim-effect.html#cb356-30" aria-hidden="true" tabindex="-1"></a>groupwise<span class="sc">$</span>task <span class="ot">&lt;-</span> taskname</span>
+<span id="cb356-31"><a href="taskwise-stim-effect.html#cb356-31" aria-hidden="true" tabindex="-1"></a><span class="co"># https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402</span></span>
+<span id="cb356-32"><a href="taskwise-stim-effect.html#cb356-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb356-33"><a href="taskwise-stim-effect.html#cb356-33" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------- plot ---------------------------------------</span></span>
+<span id="cb356-34"><a href="taskwise-stim-effect.html#cb356-34" aria-hidden="true" tabindex="-1"></a>LINEIV1 <span class="ot">=</span> <span class="st">&quot;tr_ordered&quot;</span></span>
+<span id="cb356-35"><a href="taskwise-stim-effect.html#cb356-35" aria-hidden="true" tabindex="-1"></a>LINEIV2 <span class="ot">=</span> <span class="st">&quot;cue_ordered&quot;</span></span>
+<span id="cb356-36"><a href="taskwise-stim-effect.html#cb356-36" aria-hidden="true" tabindex="-1"></a>MEAN <span class="ot">=</span> <span class="st">&quot;mean_per_sub_norm_mean&quot;</span></span>
+<span id="cb356-37"><a href="taskwise-stim-effect.html#cb356-37" aria-hidden="true" tabindex="-1"></a>ERROR <span class="ot">=</span> <span class="st">&quot;se&quot;</span></span>
+<span id="cb356-38"><a href="taskwise-stim-effect.html#cb356-38" aria-hidden="true" tabindex="-1"></a>dv_keyword <span class="ot">=</span> <span class="st">&quot;actual&quot;</span></span>
+<span id="cb356-39"><a href="taskwise-stim-effect.html#cb356-39" aria-hidden="true" tabindex="-1"></a>sorted_indices <span class="ot">&lt;-</span> <span class="fu">order</span>(groupwise<span class="sc">$</span>tr_ordered)</span>
+<span id="cb356-40"><a href="taskwise-stim-effect.html#cb356-40" aria-hidden="true" tabindex="-1"></a>groupwise_sorted <span class="ot">&lt;-</span> groupwise[sorted_indices, ]</span>
+<span id="cb356-41"><a href="taskwise-stim-effect.html#cb356-41" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">=</span> <span class="fu">plot_timeseries_bar</span>(groupwise, </span>
+<span id="cb356-42"><a href="taskwise-stim-effect.html#cb356-42" aria-hidden="true" tabindex="-1"></a>               LINEIV1, LINEIV2, MEAN, ERROR,  <span class="at">xlab =</span> <span class="st">&quot;Runs&quot;</span> , <span class="at">ylab=</span> <span class="st">&quot;Epoch: stimulus, High cue vs. Low cue&quot;</span>, <span class="at">ggtitle=</span><span class="st">&quot;time_series&quot;</span>, <span class="at">color=</span><span class="fu">c</span>(<span class="st">&quot;red&quot;</span>, <span class="st">&quot;blue&quot;</span>))</span>
+<span id="cb356-43"><a href="taskwise-stim-effect.html#cb356-43" aria-hidden="true" tabindex="-1"></a>time_points <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="fl">0.46</span> <span class="sc">*</span> TR_length, <span class="fl">0.46</span>)</span>
+<span id="cb356-44"><a href="taskwise-stim-effect.html#cb356-44" aria-hidden="true" tabindex="-1"></a>p1 <span class="sc">+</span> <span class="fu">scale_x_discrete</span>(<span class="at">labels =</span> <span class="fu">setNames</span>(time_points, <span class="fu">colnames</span>(df_long)[<span class="dv">7</span><span class="sc">:</span><span class="dv">7</span><span class="sc">+</span>TR_length]))<span class="sc">+</span> <span class="fu">theme_classic</span>()</span></code></pre></div>
+</details>
+<p><img src="51_iv-6cond_dv-firglasserSPM_ttl2_rois_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+</div>
+<div id="taskwise-cue-effect" class="section level2 hasAnchor" number="14.2">
+<h2><span class="header-section-number">14.2</span> taskwise cue effect<a href="taskwise-stim-effect.html#taskwise-cue-effect" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb357"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb357-1"><a href="taskwise-stim-effect.html#cb357-1" aria-hidden="true" tabindex="-1"></a>roi_list <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&#39;rINS&#39;</span>, <span class="st">&#39;TPJ&#39;</span>, <span class="st">&#39;dACC&#39;</span>, <span class="st">&#39;PHG&#39;</span>, <span class="st">&#39;V1&#39;</span>, <span class="st">&#39;SM&#39;</span>, <span class="st">&#39;MT&#39;</span>, <span class="st">&#39;RSC&#39;</span>, <span class="st">&#39;LOC&#39;</span>, <span class="st">&#39;FFC&#39;</span>, <span class="st">&#39;PIT&#39;</span>, <span class="st">&#39;pSTS&#39;</span>, <span class="st">&#39;AIP&#39;</span>, <span class="st">&#39;premotor&#39;</span>)</span>
+<span id="cb357-2"><a href="taskwise-stim-effect.html#cb357-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (ROI <span class="cf">in</span> roi_list) {</span>
+<span id="cb357-3"><a href="taskwise-stim-effect.html#cb357-3" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb357-4"><a href="taskwise-stim-effect.html#cb357-4" aria-hidden="true" tabindex="-1"></a>    datadir <span class="ot">=</span> <span class="fu">file.path</span>(main_dir, <span class="st">&quot;analysis/fmri/spm/fir/ttl2par&quot;</span>)</span>
+<span id="cb357-5"><a href="taskwise-stim-effect.html#cb357-5" aria-hidden="true" tabindex="-1"></a><span class="co"># taskname = &#39;pain&#39;</span></span>
+<span id="cb357-6"><a href="taskwise-stim-effect.html#cb357-6" aria-hidden="true" tabindex="-1"></a>exclude <span class="ot">&lt;-</span> <span class="st">&quot;sub-0001&quot;</span></span>
+<span id="cb357-7"><a href="taskwise-stim-effect.html#cb357-7" aria-hidden="true" tabindex="-1"></a>filename <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;sub-*&quot;</span>,  <span class="st">&quot;*roi-&quot;</span>, ROI, <span class="st">&quot;_tr-42.csv&quot;</span>)</span>
+<span id="cb357-8"><a href="taskwise-stim-effect.html#cb357-8" aria-hidden="true" tabindex="-1"></a>  common_path <span class="ot">&lt;-</span> <span class="fu">Sys.glob</span>(<span class="fu">file.path</span>(datadir, <span class="st">&quot;sub-*&quot;</span>,  filename</span>
+<span id="cb357-9"><a href="taskwise-stim-effect.html#cb357-9" aria-hidden="true" tabindex="-1"></a>  ))</span>
+<span id="cb357-10"><a href="taskwise-stim-effect.html#cb357-10" aria-hidden="true" tabindex="-1"></a>  filter_path <span class="ot">&lt;-</span> common_path[<span class="sc">!</span><span class="fu">str_detect</span>(common_path, <span class="at">pattern =</span> exclude)]</span>
+<span id="cb357-11"><a href="taskwise-stim-effect.html#cb357-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb357-12"><a href="taskwise-stim-effect.html#cb357-12" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">do.call</span>(<span class="st">&quot;rbind.fill&quot;</span>, <span class="fu">lapply</span>(filter_path, <span class="at">FUN =</span> <span class="cf">function</span>(files) {</span>
+<span id="cb357-13"><a href="taskwise-stim-effect.html#cb357-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">read.table</span>(files, <span class="at">header =</span> <span class="cn">TRUE</span>, <span class="at">sep =</span> <span class="st">&quot;,&quot;</span>)</span>
+<span id="cb357-14"><a href="taskwise-stim-effect.html#cb357-14" aria-hidden="true" tabindex="-1"></a>    }))</span>
+<span id="cb357-15"><a href="taskwise-stim-effect.html#cb357-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb357-16"><a href="taskwise-stim-effect.html#cb357-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb357-17"><a href="taskwise-stim-effect.html#cb357-17" aria-hidden="true" tabindex="-1"></a>run_types <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;pain&quot;</span>, <span class="st">&quot;vicarious&quot;</span>, <span class="st">&quot;cognitive&quot;</span>)</span>
+<span id="cb357-18"><a href="taskwise-stim-effect.html#cb357-18" aria-hidden="true" tabindex="-1"></a>  plot_list <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb357-19"><a href="taskwise-stim-effect.html#cb357-19" aria-hidden="true" tabindex="-1"></a>  TR_length <span class="ot">&lt;-</span> <span class="dv">42</span></span>
+<span id="cb357-20"><a href="taskwise-stim-effect.html#cb357-20" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (run_type <span class="cf">in</span> run_types) {</span>
+<span id="cb357-21"><a href="taskwise-stim-effect.html#cb357-21" aria-hidden="true" tabindex="-1"></a>  filtered_df <span class="ot">&lt;-</span> df[<span class="sc">!</span>(df<span class="sc">$</span>condition <span class="sc">==</span> <span class="st">&quot;rating&quot;</span> <span class="sc">|</span> df<span class="sc">$</span>condition <span class="sc">==</span> <span class="st">&quot;cue&quot;</span> <span class="sc">|</span> df<span class="sc">$</span>runtype <span class="sc">!=</span> run_type), ]</span>
+<span id="cb357-22"><a href="taskwise-stim-effect.html#cb357-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb357-23"><a href="taskwise-stim-effect.html#cb357-23" aria-hidden="true" tabindex="-1"></a>  parsed_df <span class="ot">&lt;-</span> filtered_df <span class="sc">%&gt;%</span></span>
+<span id="cb357-24"><a href="taskwise-stim-effect.html#cb357-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">separate</span>(condition, <span class="at">into =</span> <span class="fu">c</span>(<span class="st">&quot;cue&quot;</span>, <span class="st">&quot;stim&quot;</span>), <span class="at">sep =</span> <span class="st">&quot;_&quot;</span>, <span class="at">remove =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb357-25"><a href="taskwise-stim-effect.html#cb357-25" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --------------------- subset regions based on ROI ----------------------------</span></span>
+<span id="cb357-26"><a href="taskwise-stim-effect.html#cb357-26" aria-hidden="true" tabindex="-1"></a>  df_long <span class="ot">&lt;-</span> <span class="fu">pivot_longer</span>(parsed_df, <span class="at">cols =</span> <span class="fu">starts_with</span>(<span class="st">&quot;tr&quot;</span>), <span class="at">names_to =</span> <span class="st">&quot;tr_num&quot;</span>, <span class="at">values_to =</span> <span class="st">&quot;tr_value&quot;</span>)</span>
+<span id="cb357-27"><a href="taskwise-stim-effect.html#cb357-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb357-28"><a href="taskwise-stim-effect.html#cb357-28" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ----------------------------- clean factor -----------------------------------</span></span>
+<span id="cb357-29"><a href="taskwise-stim-effect.html#cb357-29" aria-hidden="true" tabindex="-1"></a>  df_long<span class="sc">$</span>tr_ordered <span class="ot">&lt;-</span> <span class="fu">factor</span>(</span>
+<span id="cb357-30"><a href="taskwise-stim-effect.html#cb357-30" aria-hidden="true" tabindex="-1"></a>          df_long<span class="sc">$</span>tr_num,</span>
+<span id="cb357-31"><a href="taskwise-stim-effect.html#cb357-31" aria-hidden="true" tabindex="-1"></a>          <span class="at">levels =</span> <span class="fu">c</span>(<span class="fu">paste0</span>(<span class="st">&quot;tr&quot;</span>, <span class="dv">1</span><span class="sc">:</span>TR_length))</span>
+<span id="cb357-32"><a href="taskwise-stim-effect.html#cb357-32" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb357-33"><a href="taskwise-stim-effect.html#cb357-33" aria-hidden="true" tabindex="-1"></a>df_long<span class="sc">$</span>cue_ordered <span class="ot">&lt;-</span> <span class="fu">factor</span>(</span>
+<span id="cb357-34"><a href="taskwise-stim-effect.html#cb357-34" aria-hidden="true" tabindex="-1"></a>        df_long<span class="sc">$</span>cue,</span>
+<span id="cb357-35"><a href="taskwise-stim-effect.html#cb357-35" aria-hidden="true" tabindex="-1"></a>        <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;cueH&quot;</span>,<span class="st">&quot;cueL&quot;</span>)</span>
+<span id="cb357-36"><a href="taskwise-stim-effect.html#cb357-36" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb357-37"><a href="taskwise-stim-effect.html#cb357-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb357-38"><a href="taskwise-stim-effect.html#cb357-38" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --------------------------- summary statistics -------------------------------</span></span>
+<span id="cb357-39"><a href="taskwise-stim-effect.html#cb357-39" aria-hidden="true" tabindex="-1"></a>  subjectwise <span class="ot">&lt;-</span> <span class="fu">meanSummary</span>(df_long,</span>
+<span id="cb357-40"><a href="taskwise-stim-effect.html#cb357-40" aria-hidden="true" tabindex="-1"></a>                                        <span class="fu">c</span>(<span class="st">&quot;sub&quot;</span>,<span class="st">&quot;tr_ordered&quot;</span>, <span class="st">&quot;cue_ordered&quot;</span>), <span class="st">&quot;tr_value&quot;</span>)</span>
+<span id="cb357-41"><a href="taskwise-stim-effect.html#cb357-41" aria-hidden="true" tabindex="-1"></a>  groupwise <span class="ot">&lt;-</span> <span class="fu">summarySEwithin</span>(</span>
+<span id="cb357-42"><a href="taskwise-stim-effect.html#cb357-42" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> subjectwise,</span>
+<span id="cb357-43"><a href="taskwise-stim-effect.html#cb357-43" aria-hidden="true" tabindex="-1"></a>    <span class="at">measurevar =</span> <span class="st">&quot;mean_per_sub&quot;</span>,</span>
+<span id="cb357-44"><a href="taskwise-stim-effect.html#cb357-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">withinvars =</span> <span class="fu">c</span>( <span class="st">&quot;cue_ordered&quot;</span>, <span class="st">&quot;tr_ordered&quot;</span>),</span>
+<span id="cb357-45"><a href="taskwise-stim-effect.html#cb357-45" aria-hidden="true" tabindex="-1"></a>    <span class="at">idvar =</span> <span class="st">&quot;sub&quot;</span></span>
+<span id="cb357-46"><a href="taskwise-stim-effect.html#cb357-46" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb357-47"><a href="taskwise-stim-effect.html#cb357-47" aria-hidden="true" tabindex="-1"></a>  groupwise<span class="sc">$</span>task <span class="ot">&lt;-</span> run_type</span>
+<span id="cb357-48"><a href="taskwise-stim-effect.html#cb357-48" aria-hidden="true" tabindex="-1"></a>  <span class="co"># https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402</span></span>
+<span id="cb357-49"><a href="taskwise-stim-effect.html#cb357-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb357-50"><a href="taskwise-stim-effect.html#cb357-50" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ... Rest of your data processing code ...</span></span>
+<span id="cb357-51"><a href="taskwise-stim-effect.html#cb357-51" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb357-52"><a href="taskwise-stim-effect.html#cb357-52" aria-hidden="true" tabindex="-1"></a>  <span class="co"># subset &lt;- groupwise[groupwise$runtype == run_type, ]</span></span>
+<span id="cb357-53"><a href="taskwise-stim-effect.html#cb357-53" aria-hidden="true" tabindex="-1"></a>  LINEIV1 <span class="ot">=</span> <span class="st">&quot;tr_ordered&quot;</span></span>
+<span id="cb357-54"><a href="taskwise-stim-effect.html#cb357-54" aria-hidden="true" tabindex="-1"></a>  LINEIV2 <span class="ot">=</span> <span class="st">&quot;cue_ordered&quot;</span></span>
+<span id="cb357-55"><a href="taskwise-stim-effect.html#cb357-55" aria-hidden="true" tabindex="-1"></a>  MEAN <span class="ot">=</span> <span class="st">&quot;mean_per_sub_norm_mean&quot;</span></span>
+<span id="cb357-56"><a href="taskwise-stim-effect.html#cb357-56" aria-hidden="true" tabindex="-1"></a>  ERROR <span class="ot">=</span> <span class="st">&quot;se&quot;</span></span>
+<span id="cb357-57"><a href="taskwise-stim-effect.html#cb357-57" aria-hidden="true" tabindex="-1"></a>  dv_keyword <span class="ot">=</span> <span class="st">&quot;actual&quot;</span></span>
+<span id="cb357-58"><a href="taskwise-stim-effect.html#cb357-58" aria-hidden="true" tabindex="-1"></a>  sorted_indices <span class="ot">&lt;-</span> <span class="fu">order</span>(groupwise<span class="sc">$</span>tr_ordered)</span>
+<span id="cb357-59"><a href="taskwise-stim-effect.html#cb357-59" aria-hidden="true" tabindex="-1"></a>  groupwise_sorted <span class="ot">&lt;-</span> groupwise[sorted_indices, ]</span>
+<span id="cb357-60"><a href="taskwise-stim-effect.html#cb357-60" aria-hidden="true" tabindex="-1"></a>  p1 <span class="ot">&lt;-</span> <span class="fu">plot_timeseries_bar</span>(groupwise_sorted, </span>
+<span id="cb357-61"><a href="taskwise-stim-effect.html#cb357-61" aria-hidden="true" tabindex="-1"></a>                            LINEIV1, LINEIV2, MEAN, ERROR,  </span>
+<span id="cb357-62"><a href="taskwise-stim-effect.html#cb357-62" aria-hidden="true" tabindex="-1"></a>                            <span class="at">xlab =</span> <span class="st">&quot;TRs&quot;</span>, </span>
+<span id="cb357-63"><a href="taskwise-stim-effect.html#cb357-63" aria-hidden="true" tabindex="-1"></a>                            <span class="at">ylab =</span> <span class="fu">paste0</span>(ROI, <span class="st">&quot; activation (A.U.)&quot;</span>), </span>
+<span id="cb357-64"><a href="taskwise-stim-effect.html#cb357-64" aria-hidden="true" tabindex="-1"></a>                            <span class="at">ggtitle =</span> <span class="fu">paste0</span>(run_type, <span class="st">&quot; time series, Epoch - stimulus&quot;</span>), </span>
+<span id="cb357-65"><a href="taskwise-stim-effect.html#cb357-65" aria-hidden="true" tabindex="-1"></a>                            <span class="at">color =</span><span class="fu">c</span>(<span class="st">&quot;red&quot;</span>, <span class="st">&quot;blue&quot;</span>))</span>
+<span id="cb357-66"><a href="taskwise-stim-effect.html#cb357-66" aria-hidden="true" tabindex="-1"></a>  time_points <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="fl">0.46</span> <span class="sc">*</span> TR_length, <span class="fl">0.46</span>)</span>
+<span id="cb357-67"><a href="taskwise-stim-effect.html#cb357-67" aria-hidden="true" tabindex="-1"></a>  <span class="co">#p1 &lt;- p1 + scale_x_discrete(labels = setNames(time_points, colnames(df_long)[7:(7 + TR_length)])) + theme_classic()</span></span>
+<span id="cb357-68"><a href="taskwise-stim-effect.html#cb357-68" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb357-69"><a href="taskwise-stim-effect.html#cb357-69" aria-hidden="true" tabindex="-1"></a>  plot_list[[run_type]] <span class="ot">&lt;-</span> p1 <span class="sc">+</span> <span class="fu">theme_classic</span>()</span>
+<span id="cb357-70"><a href="taskwise-stim-effect.html#cb357-70" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb357-71"><a href="taskwise-stim-effect.html#cb357-71" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb357-72"><a href="taskwise-stim-effect.html#cb357-72" aria-hidden="true" tabindex="-1"></a>  <span class="co"># --------------------------- plot three tasks -------------------------------</span></span>
+<span id="cb357-73"><a href="taskwise-stim-effect.html#cb357-73" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gridExtra)</span>
+<span id="cb357-74"><a href="taskwise-stim-effect.html#cb357-74" aria-hidden="true" tabindex="-1"></a>plot_list <span class="ot">&lt;-</span> <span class="fu">lapply</span>(plot_list, <span class="cf">function</span>(plot) {</span>
+<span id="cb357-75"><a href="taskwise-stim-effect.html#cb357-75" aria-hidden="true" tabindex="-1"></a>  plot <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="dv">5</span>, <span class="dv">5</span>, <span class="dv">5</span>, <span class="dv">5</span>))  <span class="co"># Adjust plot margins if needed</span></span>
+<span id="cb357-76"><a href="taskwise-stim-effect.html#cb357-76" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb357-77"><a href="taskwise-stim-effect.html#cb357-77" aria-hidden="true" tabindex="-1"></a>combined_plot <span class="ot">&lt;-</span> ggpubr<span class="sc">::</span><span class="fu">ggarrange</span>(plot_list[[<span class="st">&quot;pain&quot;</span>]],plot_list[[<span class="st">&quot;vicarious&quot;</span>]],plot_list[[<span class="st">&quot;cognitive&quot;</span>]],</span>
+<span id="cb357-78"><a href="taskwise-stim-effect.html#cb357-78" aria-hidden="true" tabindex="-1"></a>                  <span class="at">common.legend =</span> <span class="cn">TRUE</span>,<span class="at">legend =</span> <span class="st">&quot;bottom&quot;</span>, <span class="at">ncol =</span> <span class="dv">3</span>, <span class="at">nrow =</span> <span class="dv">1</span>, </span>
+<span id="cb357-79"><a href="taskwise-stim-effect.html#cb357-79" aria-hidden="true" tabindex="-1"></a>                  <span class="at">widths =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">3</span>), <span class="at">heights =</span> <span class="fu">c</span>(.<span class="dv">5</span>,.<span class="dv">5</span>,.<span class="dv">5</span>), <span class="at">align =</span> <span class="st">&quot;v&quot;</span>)</span>
+<span id="cb357-80"><a href="taskwise-stim-effect.html#cb357-80" aria-hidden="true" tabindex="-1"></a>combined_plot</span>
+<span id="cb357-81"><a href="taskwise-stim-effect.html#cb357-81" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="fu">file.path</span>(save_dir, <span class="fu">paste0</span>(<span class="st">&quot;roi-&quot;</span>, ROI, <span class="st">&quot;_epoch-stim_desc-highcueGTlowcue.png&quot;</span>)), combined_plot, <span class="at">width =</span> <span class="dv">12</span>, <span class="at">height =</span> <span class="dv">4</span>)</span>
+<span id="cb357-82"><a href="taskwise-stim-effect.html#cb357-82" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+</details>
+</div>
+<div id="epoch-stim-rating" class="section level2 hasAnchor" number="14.3">
+<h2><span class="header-section-number">14.3</span> epoch: stim, rating<a href="taskwise-stim-effect.html#epoch-stim-rating" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+</div>
+<div id="epoch-6-cond" class="section level2 hasAnchor" number="14.4">
+<h2><span class="header-section-number">14.4</span> epoch: 6 cond<a href="taskwise-stim-effect.html#epoch-6-cond" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb358"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb358-1"><a href="taskwise-stim-effect.html#cb358-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ------------------------------------------------------------------------------</span></span>
+<span id="cb358-2"><a href="taskwise-stim-effect.html#cb358-2" aria-hidden="true" tabindex="-1"></a><span class="co">#                       epoch stim, high cue vs low cue</span></span>
+<span id="cb358-3"><a href="taskwise-stim-effect.html#cb358-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ------------------------------------------------------------------------------</span></span>
+<span id="cb358-4"><a href="taskwise-stim-effect.html#cb358-4" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------- subset regions based on ROI ----------------------------</span></span>
+<span id="cb358-5"><a href="taskwise-stim-effect.html#cb358-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb358-6"><a href="taskwise-stim-effect.html#cb358-6" aria-hidden="true" tabindex="-1"></a><span class="co"># ----------------------------- clean factor -----------------------------------</span></span>
+<span id="cb358-7"><a href="taskwise-stim-effect.html#cb358-7" aria-hidden="true" tabindex="-1"></a>df_long<span class="sc">$</span>tr_ordered <span class="ot">&lt;-</span> <span class="fu">factor</span>(</span>
+<span id="cb358-8"><a href="taskwise-stim-effect.html#cb358-8" aria-hidden="true" tabindex="-1"></a>        df_long<span class="sc">$</span>tr_num,</span>
+<span id="cb358-9"><a href="taskwise-stim-effect.html#cb358-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">levels =</span> <span class="fu">c</span>(<span class="fu">paste0</span>(<span class="st">&quot;tr&quot;</span>, <span class="dv">1</span><span class="sc">:</span>TR_length))</span>
+<span id="cb358-10"><a href="taskwise-stim-effect.html#cb358-10" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb358-11"><a href="taskwise-stim-effect.html#cb358-11" aria-hidden="true" tabindex="-1"></a>df_long<span class="sc">$</span>cue_ordered <span class="ot">&lt;-</span> <span class="fu">factor</span>(</span>
+<span id="cb358-12"><a href="taskwise-stim-effect.html#cb358-12" aria-hidden="true" tabindex="-1"></a>        df_long<span class="sc">$</span>cue,</span>
+<span id="cb358-13"><a href="taskwise-stim-effect.html#cb358-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;cueH&quot;</span>, <span class="st">&quot;cueL&quot;</span>)</span>
+<span id="cb358-14"><a href="taskwise-stim-effect.html#cb358-14" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb358-15"><a href="taskwise-stim-effect.html#cb358-15" aria-hidden="true" tabindex="-1"></a>df_long<span class="sc">$</span>stim_ordered <span class="ot">&lt;-</span> <span class="fu">factor</span>(</span>
+<span id="cb358-16"><a href="taskwise-stim-effect.html#cb358-16" aria-hidden="true" tabindex="-1"></a>        df_long<span class="sc">$</span>stim,</span>
+<span id="cb358-17"><a href="taskwise-stim-effect.html#cb358-17" aria-hidden="true" tabindex="-1"></a>        <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;stimH&quot;</span>, <span class="st">&quot;stimM&quot;</span>, <span class="st">&quot;stimL&quot;</span>)</span>
+<span id="cb358-18"><a href="taskwise-stim-effect.html#cb358-18" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb358-19"><a href="taskwise-stim-effect.html#cb358-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb358-20"><a href="taskwise-stim-effect.html#cb358-20" aria-hidden="true" tabindex="-1"></a>df_long<span class="sc">$</span>sixcond <span class="ot">&lt;-</span> <span class="fu">factor</span>(</span>
+<span id="cb358-21"><a href="taskwise-stim-effect.html#cb358-21" aria-hidden="true" tabindex="-1"></a>        df_long<span class="sc">$</span>condition,</span>
+<span id="cb358-22"><a href="taskwise-stim-effect.html#cb358-22" aria-hidden="true" tabindex="-1"></a>        <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;cueH_stimH&quot;</span>, <span class="st">&quot;cueL_stimH&quot;</span>, </span>
+<span id="cb358-23"><a href="taskwise-stim-effect.html#cb358-23" aria-hidden="true" tabindex="-1"></a>                   <span class="st">&quot;cueH_stimM&quot;</span>, <span class="st">&quot;cueL_stimM&quot;</span>,</span>
+<span id="cb358-24"><a href="taskwise-stim-effect.html#cb358-24" aria-hidden="true" tabindex="-1"></a>                   <span class="st">&quot;cueH_stimL&quot;</span>, <span class="st">&quot;cueL_stimL&quot;</span>)</span>
+<span id="cb358-25"><a href="taskwise-stim-effect.html#cb358-25" aria-hidden="true" tabindex="-1"></a>) </span>
+<span id="cb358-26"><a href="taskwise-stim-effect.html#cb358-26" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------- summary statistics -------------------------------</span></span>
+<span id="cb358-27"><a href="taskwise-stim-effect.html#cb358-27" aria-hidden="true" tabindex="-1"></a>subjectwise <span class="ot">&lt;-</span> <span class="fu">meanSummary</span>(df_long,</span>
+<span id="cb358-28"><a href="taskwise-stim-effect.html#cb358-28" aria-hidden="true" tabindex="-1"></a>                                      <span class="fu">c</span>(<span class="st">&quot;sub&quot;</span>, <span class="st">&quot;tr_ordered&quot;</span>, <span class="st">&quot;sixcond&quot;</span>), <span class="st">&quot;tr_value&quot;</span>)</span>
+<span id="cb358-29"><a href="taskwise-stim-effect.html#cb358-29" aria-hidden="true" tabindex="-1"></a>groupwise <span class="ot">&lt;-</span> <span class="fu">summarySEwithin</span>(</span>
+<span id="cb358-30"><a href="taskwise-stim-effect.html#cb358-30" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> subjectwise,</span>
+<span id="cb358-31"><a href="taskwise-stim-effect.html#cb358-31" aria-hidden="true" tabindex="-1"></a>  <span class="at">measurevar =</span> <span class="st">&quot;mean_per_sub&quot;</span>,</span>
+<span id="cb358-32"><a href="taskwise-stim-effect.html#cb358-32" aria-hidden="true" tabindex="-1"></a>  <span class="at">withinvars =</span> <span class="fu">c</span>(<span class="st">&quot;sixcond&quot;</span>, <span class="st">&quot;tr_ordered&quot;</span>),</span>
+<span id="cb358-33"><a href="taskwise-stim-effect.html#cb358-33" aria-hidden="true" tabindex="-1"></a>  <span class="at">idvar =</span> <span class="st">&quot;sub&quot;</span></span>
+<span id="cb358-34"><a href="taskwise-stim-effect.html#cb358-34" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb358-35"><a href="taskwise-stim-effect.html#cb358-35" aria-hidden="true" tabindex="-1"></a>groupwise<span class="sc">$</span>task <span class="ot">&lt;-</span> taskname</span>
+<span id="cb358-36"><a href="taskwise-stim-effect.html#cb358-36" aria-hidden="true" tabindex="-1"></a><span class="co"># https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402</span></span>
+<span id="cb358-37"><a href="taskwise-stim-effect.html#cb358-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb358-38"><a href="taskwise-stim-effect.html#cb358-38" aria-hidden="true" tabindex="-1"></a><span class="co"># --------------------------------- plot ---------------------------------------</span></span>
+<span id="cb358-39"><a href="taskwise-stim-effect.html#cb358-39" aria-hidden="true" tabindex="-1"></a>LINEIV1 <span class="ot">=</span> <span class="st">&quot;tr_ordered&quot;</span></span>
+<span id="cb358-40"><a href="taskwise-stim-effect.html#cb358-40" aria-hidden="true" tabindex="-1"></a>LINEIV2 <span class="ot">=</span> <span class="st">&quot;sixcond&quot;</span></span>
+<span id="cb358-41"><a href="taskwise-stim-effect.html#cb358-41" aria-hidden="true" tabindex="-1"></a>MEAN <span class="ot">=</span> <span class="st">&quot;mean_per_sub_norm_mean&quot;</span></span>
+<span id="cb358-42"><a href="taskwise-stim-effect.html#cb358-42" aria-hidden="true" tabindex="-1"></a>ERROR <span class="ot">=</span> <span class="st">&quot;se&quot;</span></span>
+<span id="cb358-43"><a href="taskwise-stim-effect.html#cb358-43" aria-hidden="true" tabindex="-1"></a>dv_keyword <span class="ot">=</span> <span class="st">&quot;actual&quot;</span></span>
+<span id="cb358-44"><a href="taskwise-stim-effect.html#cb358-44" aria-hidden="true" tabindex="-1"></a>sorted_indices <span class="ot">&lt;-</span> <span class="fu">order</span>(groupwise<span class="sc">$</span>tr_ordered)</span>
+<span id="cb358-45"><a href="taskwise-stim-effect.html#cb358-45" aria-hidden="true" tabindex="-1"></a>groupwise_sorted <span class="ot">&lt;-</span> groupwise[sorted_indices, ]</span>
+<span id="cb358-46"><a href="taskwise-stim-effect.html#cb358-46" aria-hidden="true" tabindex="-1"></a>p3H <span class="ot">=</span> <span class="fu">plot_timeseries_bar</span>(groupwise, </span>
+<span id="cb358-47"><a href="taskwise-stim-effect.html#cb358-47" aria-hidden="true" tabindex="-1"></a>               LINEIV1, LINEIV2, MEAN, ERROR,  <span class="at">xlab =</span> <span class="st">&quot;Runs&quot;</span> , <span class="at">ylab=</span> <span class="st">&quot;Epoch: stimulus, High cue vs. Low cue&quot;</span>, <span class="at">ggtitle=</span><span class="fu">paste0</span>(<span class="st">&quot;High intensity - Low cue vs. High cue (N = &quot;</span>, <span class="fu">unique</span>(groupwise<span class="sc">$</span>N), <span class="st">&quot;)&quot;</span> ), <span class="at">color=</span><span class="fu">c</span>(<span class="st">&quot;red&quot;</span>,<span class="st">&quot;#5f0f40&quot;</span>,<span class="st">&quot;gray&quot;</span>, <span class="st">&quot;gray&quot;</span>, <span class="st">&quot;gray&quot;</span>, <span class="st">&quot;gray&quot;</span>))</span>
+<span id="cb358-48"><a href="taskwise-stim-effect.html#cb358-48" aria-hidden="true" tabindex="-1"></a>time_points <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="fl">0.46</span> <span class="sc">*</span> TR_length, <span class="fl">0.46</span>)</span>
+<span id="cb358-49"><a href="taskwise-stim-effect.html#cb358-49" aria-hidden="true" tabindex="-1"></a>p3H <span class="sc">+</span> <span class="fu">scale_x_discrete</span>(<span class="at">labels =</span> <span class="fu">setNames</span>(time_points, <span class="fu">colnames</span>(df_long)[<span class="dv">7</span><span class="sc">:</span><span class="dv">7</span><span class="sc">+</span>TR_length]))<span class="sc">+</span> <span class="fu">theme_classic</span>()</span></code></pre></div>
+</details>
+<p><img src="51_iv-6cond_dv-firglasserSPM_ttl2_rois_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb359"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb359-1"><a href="taskwise-stim-effect.html#cb359-1" aria-hidden="true" tabindex="-1"></a>p3H <span class="sc">+</span> <span class="fu">theme_classic</span>()</span></code></pre></div>
+</details>
+<p><img src="51_iv-6cond_dv-firglasserSPM_ttl2_rois_files/figure-html/unnamed-chunk-12-2.png" width="672" /></p>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb360"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb360-1"><a href="taskwise-stim-effect.html#cb360-1" aria-hidden="true" tabindex="-1"></a>p3M <span class="ot">=</span> <span class="fu">plot_timeseries_bar</span>(groupwise, </span>
+<span id="cb360-2"><a href="taskwise-stim-effect.html#cb360-2" aria-hidden="true" tabindex="-1"></a>               LINEIV1, LINEIV2, MEAN, ERROR,  <span class="at">xlab =</span> <span class="st">&quot;Runs&quot;</span> , <span class="at">ylab=</span> <span class="st">&quot;Epoch: stimulus, High cue vs. Low cue&quot;</span>, <span class="at">ggtitle=</span><span class="fu">paste0</span>(<span class="st">&quot;Medium intensity - Low cue vs. High cue (N = &quot;</span>, <span class="fu">unique</span>(groupwise<span class="sc">$</span>N), <span class="st">&quot;)&quot;</span>), <span class="at">color=</span><span class="fu">c</span>(<span class="st">&quot;#d6d6d6&quot;</span>,<span class="st">&quot;#d6d6d6&quot;</span>,<span class="st">&quot;#bc3908&quot;</span>, <span class="st">&quot;#f6aa1c&quot;</span>, <span class="st">&quot;gray&quot;</span>, <span class="st">&quot;gray&quot;</span>))</span>
+<span id="cb360-3"><a href="taskwise-stim-effect.html#cb360-3" aria-hidden="true" tabindex="-1"></a>time_points <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="fl">0.46</span> <span class="sc">*</span> TR_length, <span class="fl">0.46</span>)</span>
+<span id="cb360-4"><a href="taskwise-stim-effect.html#cb360-4" aria-hidden="true" tabindex="-1"></a>p3M <span class="sc">+</span> <span class="fu">scale_x_discrete</span>(<span class="at">labels =</span> <span class="fu">setNames</span>(time_points, <span class="fu">colnames</span>(df_long)[<span class="dv">7</span><span class="sc">:</span><span class="dv">7</span><span class="sc">+</span>TR_length]))<span class="sc">+</span> <span class="fu">theme_classic</span>()</span></code></pre></div>
+</details>
+<p><img src="51_iv-6cond_dv-firglasserSPM_ttl2_rois_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb361"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb361-1"><a href="taskwise-stim-effect.html#cb361-1" aria-hidden="true" tabindex="-1"></a>p3M <span class="sc">+</span> <span class="fu">theme_classic</span>()</span></code></pre></div>
+</details>
+<p><img src="51_iv-6cond_dv-firglasserSPM_ttl2_rois_files/figure-html/unnamed-chunk-13-2.png" width="672" /></p>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb362"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb362-1"><a href="taskwise-stim-effect.html#cb362-1" aria-hidden="true" tabindex="-1"></a>p3L <span class="ot">=</span> <span class="fu">plot_timeseries_bar</span>(groupwise, </span>
+<span id="cb362-2"><a href="taskwise-stim-effect.html#cb362-2" aria-hidden="true" tabindex="-1"></a>               LINEIV1, LINEIV2, MEAN, ERROR,  <span class="at">xlab =</span> <span class="st">&quot;Runs&quot;</span> , <span class="at">ylab=</span> <span class="st">&quot;Epoch: stimulus, High cue vs. Low cue&quot;</span>, <span class="at">ggtitle=</span><span class="fu">paste0</span>(<span class="st">&quot;Low intensity - Low cue vs. High cue (N = &quot;</span>, <span class="fu">unique</span>(groupwise<span class="sc">$</span>N), <span class="st">&quot;)&quot;</span>), <span class="at">color=</span><span class="fu">c</span>(<span class="st">&quot;gray&quot;</span>,<span class="st">&quot;gray&quot;</span>,<span class="st">&quot;gray&quot;</span>, <span class="st">&quot;gray&quot;</span>, <span class="st">&quot;#2541b2&quot;</span>, <span class="st">&quot;#00a6fb&quot;</span>))</span>
+<span id="cb362-3"><a href="taskwise-stim-effect.html#cb362-3" aria-hidden="true" tabindex="-1"></a>time_points <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="fl">0.46</span> <span class="sc">*</span> TR_length, <span class="fl">0.46</span>)</span>
+<span id="cb362-4"><a href="taskwise-stim-effect.html#cb362-4" aria-hidden="true" tabindex="-1"></a>p3L <span class="sc">+</span> <span class="fu">scale_x_discrete</span>(<span class="at">labels =</span> <span class="fu">setNames</span>(time_points, <span class="fu">colnames</span>(df_long)[<span class="dv">7</span><span class="sc">:</span><span class="dv">7</span><span class="sc">+</span>TR_length]))<span class="sc">+</span> <span class="fu">theme_classic</span>()</span></code></pre></div>
+</details>
+<p><img src="51_iv-6cond_dv-firglasserSPM_ttl2_rois_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb363"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb363-1"><a href="taskwise-stim-effect.html#cb363-1" aria-hidden="true" tabindex="-1"></a>p3L <span class="sc">+</span> <span class="fu">theme_classic</span>()</span></code></pre></div>
+</details>
+<p><img src="51_iv-6cond_dv-firglasserSPM_ttl2_rois_files/figure-html/unnamed-chunk-14-2.png" width="672" /></p>
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="ch51_fir_glasserTPJttl2.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="taskwise-6-cond-effect.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": true,
+"facebook": false,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": null,
+"history": {
+"link": "https://github.com/jungheejung/cue_expectancy/commits/main/51_iv-6cond_dv-firglasserSPM_ttl2_rois.Rmd",
+"text": "Chapter edit history"
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"search": {
+"engine": "lunr",
+"options": null
+},
+"toc": {
+"collapse": "subsection",
+"scroll_highlight": true
+},
+"toolbar": {
+"position": "fixed"
+},
+"info": true
+});
+});
+</script>
+
+</body>
+
+</html>

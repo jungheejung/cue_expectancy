@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Chapter 10 cognitive RT tradeoff ~ cue * stim (withinsubject) | behavioral_ICC</title>
+  <meta name="description" content="<p>This is a minimal example of using the bookdown package to write a book.
+The HTML output format for this example is bookdown::gitbook,
+set in the _output.yml file.</p>" />
+  <meta name="generator" content="bookdown 0.32 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Chapter 10 cognitive RT tradeoff ~ cue * stim (withinsubject) | behavioral_ICC" />
+  <meta property="og:type" content="book" />
+  
+  <meta property="og:description" content="<p>This is a minimal example of using the bookdown package to write a book.
+The HTML output format for this example is bookdown::gitbook,
+set in the _output.yml file.</p>" />
+  <meta name="github-repo" content="rstudio/bookdown-demo" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 10 cognitive RT tradeoff ~ cue * stim (withinsubject) | behavioral_ICC" />
+  
+  <meta name="twitter:description" content="<p>This is a minimal example of using the bookdown package to write a book.
+The HTML output format for this example is bookdown::gitbook,
+set in the _output.yml file.</p>" />
+  
+
+<meta name="author" content="Heejung Jung" />
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="ch08_RT-cueXstim.html"/>
+<link rel="next" href="ch10_icc.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+<script src="libs/htmlwidgets-1.6.2/htmlwidgets.js"></script>
+<script src="libs/plotly-binding-4.10.1/plotly.js"></script>
+<script src="libs/typedarray-0.1/typedarray.min.js"></script>
+<link href="libs/crosstalk-1.2.0/css/crosstalk.min.css" rel="stylesheet" />
+<script src="libs/crosstalk-1.2.0/js/crosstalk.min.js"></script>
+<link href="libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet" />
+<script src="libs/plotly-main-2.11.1/plotly-latest.min.js"></script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">Analysis logbook: cue-expectancy</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> About</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#usage"><i class="fa fa-check"></i><b>1.1</b> Usage</a></li>
+<li class="chapter" data-level="1.2" data-path="index.html"><a href="index.html#render-book"><i class="fa fa-check"></i><b>1.2</b> Render book</a></li>
+<li class="chapter" data-level="1.3" data-path="index.html"><a href="index.html#preview-book"><i class="fa fa-check"></i><b>1.3</b> Preview book</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="hello-bookdown.html"><a href="hello-bookdown.html"><i class="fa fa-check"></i><b>2</b> Hello bookdown</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="hello-bookdown.html"><a href="hello-bookdown.html#a-section"><i class="fa fa-check"></i><b>2.1</b> A section</a>
+<ul>
+<li class="chapter" data-level="" data-path="hello-bookdown.html"><a href="hello-bookdown.html#an-unnumbered-section"><i class="fa fa-check"></i>An unnumbered section</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="ch2_expect.html"><a href="ch2_expect.html"><i class="fa fa-check"></i><b>3</b> [ beh] expectation ~ cue</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="ch2_expect.html"><a href="ch2_expect.html#pain"><i class="fa fa-check"></i><b>3.1</b> Pain</a></li>
+<li class="chapter" data-level="3.2" data-path="ch2_expect.html"><a href="ch2_expect.html#vicarious"><i class="fa fa-check"></i><b>3.2</b> Vicarious</a></li>
+<li class="chapter" data-level="3.3" data-path="ch2_expect.html"><a href="ch2_expect.html#cognitive"><i class="fa fa-check"></i><b>3.3</b> Cognitive</a></li>
+<li class="chapter" data-level="3.4" data-path="ch2_expect.html"><a href="ch2_expect.html#individual-difference-analysis"><i class="fa fa-check"></i><b>3.4</b> Individual difference analysis</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="ch03_cue.html"><a href="ch03_cue.html"><i class="fa fa-check"></i><b>4</b> [ beh ] outcome ~ cue</a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="ch03_cue.html"><a href="ch03_cue.html#pain-1"><i class="fa fa-check"></i><b>4.1</b> Pain</a></li>
+<li class="chapter" data-level="4.2" data-path="ch03_cue.html"><a href="ch03_cue.html#vicarious-1"><i class="fa fa-check"></i><b>4.2</b> Vicarious</a></li>
+<li class="chapter" data-level="4.3" data-path="ch03_cue.html"><a href="ch03_cue.html#cognitive-1"><i class="fa fa-check"></i><b>4.3</b> Cognitive</a></li>
+<li class="chapter" data-level="4.4" data-path="ch03_cue.html"><a href="ch03_cue.html#individual-differences-analysis-random-cue-effects"><i class="fa fa-check"></i><b>4.4</b> Individual differences analysis: random cue effects</a></li>
+<li class="chapter" data-level="4.5" data-path="ch03_cue.html"><a href="ch03_cue.html#individual-differences-analysis-2-random-intercept-random-slopes-of-cue-effect"><i class="fa fa-check"></i><b>4.5</b> Individual differences analysis 2: random intercept + random slopes of cue effect</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html"><i class="fa fa-check"></i><b>5</b> [ beh ] outcome ~ stimulus_intensity</a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#pain-2"><i class="fa fa-check"></i><b>5.1</b> Pain</a></li>
+<li class="chapter" data-level="5.2" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#vicarious-2"><i class="fa fa-check"></i><b>5.2</b> Vicarious</a></li>
+<li class="chapter" data-level="5.3" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#cognitive-2"><i class="fa fa-check"></i><b>5.3</b> Cognitive</a></li>
+<li class="chapter" data-level="5.4" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#for-loop"><i class="fa fa-check"></i><b>5.4</b> for loop</a></li>
+<li class="chapter" data-level="5.5" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#lineplot"><i class="fa fa-check"></i><b>5.5</b> Lineplot</a></li>
+<li class="chapter" data-level="5.6" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#individual-differences-in-outcome-rating-cue-effect"><i class="fa fa-check"></i><b>5.6</b> individual differences in outcome rating cue effect</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html"><i class="fa fa-check"></i><b>6</b> outcome_rating ~ cue * stim</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#what-is-the-purpose-of-this-notebook-3"><i class="fa fa-check"></i><b>6.1</b> What is the purpose of this notebook?</a></li>
+<li class="chapter" data-level="6.2" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-03-iv-cuecontrast-dv-actual"><i class="fa fa-check"></i><b>6.2</b> model 03 iv-cuecontrast dv-actual</a>
+<ul>
+<li class="chapter" data-level="6.2.1" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-03-3-2.-individual-difference"><i class="fa fa-check"></i><b>6.2.1</b> model 03 3-2. individual difference</a></li>
+<li class="chapter" data-level="6.2.2" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-iv-cue-stim-dv-actual"><i class="fa fa-check"></i><b>6.2.2</b> model 04 iv-cue-stim dv-actual</a></li>
+<li class="chapter" data-level="6.2.3" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-2-individual-differences-in-cue-effects"><i class="fa fa-check"></i><b>6.2.3</b> model 04 4-2 individual differences in cue effects</a></li>
+<li class="chapter" data-level="6.2.4" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-3-scatter-plot"><i class="fa fa-check"></i><b>6.2.4</b> model 04 4-3 scatter plot</a></li>
+<li class="chapter" data-level="6.2.5" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-4-lineplot"><i class="fa fa-check"></i><b>6.2.5</b> model 04 4-4 lineplot</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html"><i class="fa fa-check"></i><b>7</b> expect-actual ~ cue * trial</a>
+<ul>
+<li class="chapter" data-level="7.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#overview"><i class="fa fa-check"></i><b>7.1</b> Overview</a></li>
+<li class="chapter" data-level="7.2" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#plot-1---one-run-average-across-participants"><i class="fa fa-check"></i><b>7.2</b> plot 1 - one run, average across participants</a></li>
+<li class="chapter" data-level="7.3" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#plot-2---average-across-participant-but-spread-all-6-runs-in-one-x-axis"><i class="fa fa-check"></i><b>7.3</b> plot 2 - average across participant, but spread all 6 runs in one x axis</a></li>
+<li class="chapter" data-level="7.4" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#do-current-expectation-ratings-predict-outcome-ratings"><i class="fa fa-check"></i><b>7.4</b> Do current expectation ratings predict outcome ratings?</a></li>
+<li class="chapter" data-level="7.5" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#additional-analysis"><i class="fa fa-check"></i><b>7.5</b> Additional analysis</a></li>
+</ul></li>
+<li class="chapter" data-level="8" data-path="ch07_RT-cue.html"><a href="ch07_RT-cue.html"><i class="fa fa-check"></i><b>8</b> RT ~ cue</a>
+<ul>
+<li class="chapter" data-level="8.0.1" data-path="ch07_RT-cue.html"><a href="ch07_RT-cue.html#parameters"><i class="fa fa-check"></i><b>8.0.1</b> parameters</a></li>
+<li class="chapter" data-level="8.0.2" data-path="ch07_RT-cue.html"><a href="ch07_RT-cue.html#plot-rt-data"><i class="fa fa-check"></i><b>8.0.2</b> 1) plot RT data</a></li>
+<li class="chapter" data-level="8.0.3" data-path="ch07_RT-cue.html"><a href="ch07_RT-cue.html#plot-rt-distribution-per-participant"><i class="fa fa-check"></i><b>8.0.3</b> plot RT distribution per participant</a></li>
+<li class="chapter" data-level="8.0.4" data-path="ch07_RT-cue.html"><a href="ch07_RT-cue.html#exclude-participants-with-rt-of-5-seconds"><i class="fa fa-check"></i><b>8.0.4</b> exclude participants with RT of 5 seconds</a></li>
+<li class="chapter" data-level="8.1" data-path="ch07_RT-cue.html"><a href="ch07_RT-cue.html#model-1"><i class="fa fa-check"></i><b>8.1</b> model 1:</a></li>
+<li class="chapter" data-level="8.2" data-path="ch07_RT-cue.html"><a href="ch07_RT-cue.html#model-1-1"><i class="fa fa-check"></i><b>8.2</b> model 1-1</a></li>
+<li class="chapter" data-level="8.3" data-path="ch07_RT-cue.html"><a href="ch07_RT-cue.html#model-1-2"><i class="fa fa-check"></i><b>8.3</b> model 1-2:</a></li>
+<li class="chapter" data-level="8.4" data-path="ch07_RT-cue.html"><a href="ch07_RT-cue.html#model-2"><i class="fa fa-check"></i><b>8.4</b> model 2:</a></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="ch08_RT-cueXstim.html"><a href="ch08_RT-cueXstim.html"><i class="fa fa-check"></i><b>9</b> RT ~ cue * stim</a>
+<ul>
+<li class="chapter" data-level="9.1" data-path="ch08_RT-cueXstim.html"><a href="ch08_RT-cueXstim.html#overview-model-05-iv-cue-dv-rt-summary"><i class="fa fa-check"></i><b>9.1</b> Overview model 05 iv-cue dv-RT summary</a></li>
+<li class="chapter" data-level="9.2" data-path="ch08_RT-cueXstim.html"><a href="ch08_RT-cueXstim.html#prepare-data-and-preprocess"><i class="fa fa-check"></i><b>9.2</b> Prepare data and preprocess</a></li>
+<li class="chapter" data-level="9.3" data-path="ch08_RT-cueXstim.html"><a href="ch08_RT-cueXstim.html#model-1-3"><i class="fa fa-check"></i><b>9.3</b> model 1:</a></li>
+<li class="chapter" data-level="9.4" data-path="ch08_RT-cueXstim.html"><a href="ch08_RT-cueXstim.html#model-1-1-1"><i class="fa fa-check"></i><b>9.4</b> model 1-1</a></li>
+<li class="chapter" data-level="9.5" data-path="ch08_RT-cueXstim.html"><a href="ch08_RT-cueXstim.html#model-1-2-1"><i class="fa fa-check"></i><b>9.5</b> model 1-2:</a></li>
+<li class="chapter" data-level="9.6" data-path="ch08_RT-cueXstim.html"><a href="ch08_RT-cueXstim.html#model-2-log-transformation"><i class="fa fa-check"></i><b>9.6</b> model 2: Log transformation</a></li>
+<li class="chapter" data-level="9.7" data-path="ch08_RT-cueXstim.html"><a href="ch08_RT-cueXstim.html#conclusion-across-model-1-and-2"><i class="fa fa-check"></i><b>9.7</b> Conclusion across model 1 and 2</a></li>
+</ul></li>
+<li class="chapter" data-level="10" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html"><i class="fa fa-check"></i><b>10</b> cognitive RT tradeoff ~ cue * stim (withinsubject)</a>
+<ul>
+<li class="chapter" data-level="10.1" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#overview-1"><i class="fa fa-check"></i><b>10.1</b> Overview</a></li>
+<li class="chapter" data-level="10.2" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#why-use-multilevel-models"><i class="fa fa-check"></i><b>10.2</b> Why use multilevel models?</a></li>
+<li class="chapter" data-level="10.3" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#terminology"><i class="fa fa-check"></i><b>10.3</b> Terminology</a></li>
+<li class="chapter" data-level="10.4" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#model-versions"><i class="fa fa-check"></i><b>10.4</b> Model versions</a></li>
+<li class="chapter" data-level="10.5" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#method-1-one-sample-t"><i class="fa fa-check"></i><b>10.5</b> Method 1 one-sample t</a></li>
+<li class="chapter" data-level="10.6" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#method-1-1-aov"><i class="fa fa-check"></i><b>10.6</b> Method 1-1 aov</a></li>
+<li class="chapter" data-level="10.7" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#method-1-2-aov-contrast-coding"><i class="fa fa-check"></i><b>10.7</b> Method 1-2 aov contrast-coding</a></li>
+<li class="chapter" data-level="10.8" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#method-1-effectsize-1"><i class="fa fa-check"></i><b>10.8</b> Method 1 effectsize</a></li>
+<li class="chapter" data-level="10.9" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#method-2-matlab"><i class="fa fa-check"></i><b>10.9</b> Method 2 matlab</a></li>
+<li class="chapter" data-level="10.10" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#method-3-multilevel-modeling"><i class="fa fa-check"></i><b>10.10</b> Method 3 multilevel modeling</a></li>
+<li class="chapter" data-level="" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#conclusion-method-1-vs-method-3"><i class="fa fa-check"></i>Conclusion: Method 1 vs Method 3</a></li>
+<li class="chapter" data-level="10.11" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#references"><i class="fa fa-check"></i><b>10.11</b> References</a></li>
+<li class="chapter" data-level="10.12" data-path="ch09_tradeoff-cueXstim.html"><a href="ch09_tradeoff-cueXstim.html#other-links"><i class="fa fa-check"></i><b>10.12</b> Other links</a></li>
+</ul></li>
+<li class="chapter" data-level="11" data-path="ch10_icc.html"><a href="ch10_icc.html"><i class="fa fa-check"></i><b>11</b> outcome_rating ~ session (“behavioral ICC”)</a>
+<ul>
+<li class="chapter" data-level="11.1" data-path="ch10_icc.html"><a href="ch10_icc.html#functions"><i class="fa fa-check"></i><b>11.1</b> Functions</a></li>
+<li class="chapter" data-level="11.2" data-path="ch10_icc.html"><a href="ch10_icc.html#todo"><i class="fa fa-check"></i><b>11.2</b> TODO:</a></li>
+</ul></li>
+<li class="chapter" data-level="12" data-path="ch11_n-1outcome.html"><a href="ch11_n-1outcome.html"><i class="fa fa-check"></i><b>12</b> N-1 outcome rating ~ N expectation rating</a>
+<ul>
+<li class="chapter" data-level="12.0.1" data-path="ch11_n-1outcome.html"><a href="ch11_n-1outcome.html#done"><i class="fa fa-check"></i><b>12.0.1</b> DONE</a></li>
+<li class="chapter" data-level="12.1" data-path="ch11_n-1outcome.html"><a href="ch11_n-1outcome.html#overview-2"><i class="fa fa-check"></i><b>12.1</b> Overview</a></li>
+<li class="chapter" data-level="12.2" data-path="ch11_n-1outcome.html"><a href="ch11_n-1outcome.html#do-previous-outcome-ratings-predict-current-expectation-ratings"><i class="fa fa-check"></i><b>12.2</b> Do previous outcome ratings predict current expectation ratings?</a></li>
+<li class="chapter" data-level="12.3" data-path="ch11_n-1outcome.html"><a href="ch11_n-1outcome.html#additional-analysis-1"><i class="fa fa-check"></i><b>12.3</b> Additional analysis</a></li>
+<li class="chapter" data-level="12.4" data-path="ch11_n-1outcome.html"><a href="ch11_n-1outcome.html#lets-demean-the-ratings."><i class="fa fa-check"></i><b>12.4</b> Let’s demean the ratings.</a></li>
+<li class="chapter" data-level="12.5" data-path="ch11_n-1outcome.html"><a href="ch11_n-1outcome.html#demean-and-then-discretize"><i class="fa fa-check"></i><b>12.5</b> DEMEAN AND THEN DISCRETIZE</a></li>
+</ul></li>
+<li class="chapter" data-level="13" data-path="ch12_n-1outcome.html"><a href="ch12_n-1outcome.html"><i class="fa fa-check"></i><b>13</b> (N-2) shifted outcome ratings ~ (N) expectation ratings; Jayazeri (2018)</a>
+<ul>
+<li class="chapter" data-level="13.1" data-path="ch12_n-1outcome.html"><a href="ch12_n-1outcome.html#do-previous-outcome-ratings-predict-current-expectation-ratings-1"><i class="fa fa-check"></i><b>13.1</b> Do previous outcome ratings predict current expectation ratings?</a></li>
+<li class="chapter" data-level="13.2" data-path="ch12_n-1outcome.html"><a href="ch12_n-1outcome.html#do-these-models-differ-as-a-function-of-cue"><i class="fa fa-check"></i><b>13.2</b> Do these models differ as a function of cue?</a></li>
+<li class="chapter" data-level="13.3" data-path="ch12_n-1outcome.html"><a href="ch12_n-1outcome.html#demean-and-discretize"><i class="fa fa-check"></i><b>13.3</b> Demean and discretize</a></li>
+</ul></li>
+<li class="chapter" data-level="14" data-path="ch13_outcome-expect.html"><a href="ch13_outcome-expect.html"><i class="fa fa-check"></i><b>14</b> outcome ~ expect Jayazeri (2018)</a>
+<ul>
+<li class="chapter" data-level="14.1" data-path="ch13_outcome-expect.html"><a href="ch13_outcome-expect.html#overview-4"><i class="fa fa-check"></i><b>14.1</b> Overview</a></li>
+<li class="chapter" data-level="14.2" data-path="ch13_outcome-expect.html"><a href="ch13_outcome-expect.html#do-expectation-ratings-predict-current-outcome-ratings-does-this-differ-as-a-function-of-cue"><i class="fa fa-check"></i><b>14.2</b> Do expectation ratings predict current outcome ratings? Does this differ as a function of cue?</a></li>
+<li class="chapter" data-level="14.3" data-path="ch13_outcome-expect.html"><a href="ch13_outcome-expect.html#task-pain-hlm-modeling"><i class="fa fa-check"></i><b>14.3</b> task-pain, HLM modeling</a></li>
+<li class="chapter" data-level="14.4" data-path="ch13_outcome-expect.html"><a href="ch13_outcome-expect.html#fig.-expectation-ratings-predict-outcome-ratings"><i class="fa fa-check"></i><b>14.4</b> Fig. Expectation ratings predict outcome ratings</a></li>
+<li class="chapter" data-level="14.5" data-path="ch13_outcome-expect.html"><a href="ch13_outcome-expect.html#binned-expectation-ratings-per-task"><i class="fa fa-check"></i><b>14.5</b> binned expectation ratings per task</a>
+<ul>
+<li class="chapter" data-level="14.5.1" data-path="ch13_outcome-expect.html"><a href="ch13_outcome-expect.html#pain-binned-expectation-ratings"><i class="fa fa-check"></i><b>14.5.1</b> Pain: binned expectation ratings</a></li>
+<li class="chapter" data-level="14.5.2" data-path="ch13_outcome-expect.html"><a href="ch13_outcome-expect.html#vicarious-binned-expectation-ratings"><i class="fa fa-check"></i><b>14.5.2</b> Vicarious: binned expectation ratings</a></li>
+<li class="chapter" data-level="14.5.3" data-path="ch13_outcome-expect.html"><a href="ch13_outcome-expect.html#cognitive-binned-expectation-ratings"><i class="fa fa-check"></i><b>14.5.3</b> Cognitive: binned expectation ratings</a></li>
+</ul></li>
+<li class="chapter" data-level="14.6" data-path="ch13_outcome-expect.html"><a href="ch13_outcome-expect.html#not-splitting-into-cue-groups"><i class="fa fa-check"></i><b>14.6</b> not splitting into cue groups</a></li>
+</ul></li>
+<li class="chapter" data-level="15" data-path="ch14_factorize.html"><a href="ch14_factorize.html"><i class="fa fa-check"></i><b>15</b> [ beh ] outcome ~ cue * stim * expectrating * n-1outcomerating</a>
+<ul>
+<li class="chapter" data-level="15.1" data-path="ch14_factorize.html"><a href="ch14_factorize.html#original-motivation"><i class="fa fa-check"></i><b>15.1</b> Original motivation:</a></li>
+<li class="chapter" data-level="15.2" data-path="ch14_factorize.html"><a href="ch14_factorize.html#pain-3"><i class="fa fa-check"></i><b>15.2</b> Pain</a>
+<ul>
+<li class="chapter" data-level="15.2.1" data-path="ch14_factorize.html"><a href="ch14_factorize.html#pain-plot-parameters"><i class="fa fa-check"></i><b>15.2.1</b> pain plot parameters</a></li>
+<li class="chapter" data-level="15.2.2" data-path="ch14_factorize.html"><a href="ch14_factorize.html#loess"><i class="fa fa-check"></i><b>15.2.2</b> loess</a></li>
+</ul></li>
+<li class="chapter" data-level="15.3" data-path="ch14_factorize.html"><a href="ch14_factorize.html#vicarious-3"><i class="fa fa-check"></i><b>15.3</b> Vicarious</a></li>
+<li class="chapter" data-level="15.4" data-path="ch14_factorize.html"><a href="ch14_factorize.html#cognitive-3"><i class="fa fa-check"></i><b>15.4</b> Cognitive</a>
+<ul>
+<li class="chapter" data-level="15.4.1" data-path="ch14_factorize.html"><a href="ch14_factorize.html#cognitive-parameters"><i class="fa fa-check"></i><b>15.4.1</b> cognitive parameters</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="16" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html"><i class="fa fa-check"></i><b>16</b> [ beh ] outcome_demean ~ cue * stim * expectrating * n-1outcomerating</a>
+<ul>
+<li class="chapter" data-level="16.1" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#linear-model-1"><i class="fa fa-check"></i><b>16.1</b> linear model</a></li>
+<li class="chapter" data-level="16.2" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#q.-are-those-overestimating-for-high-cues-also-underestimators-for-low-cues"><i class="fa fa-check"></i><b>16.2</b> Q. Are those overestimating for high cues also underestimators for low cues?</a></li>
+<li class="chapter" data-level="16.3" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#pain-run-collapsed-across-stimulus-intensity-1"><i class="fa fa-check"></i><b>16.3</b> pain run, collapsed across stimulus intensity</a></li>
+<li class="chapter" data-level="16.4" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#vicarious-4"><i class="fa fa-check"></i><b>16.4</b> vicarious</a></li>
+<li class="chapter" data-level="16.5" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#cognitive-4"><i class="fa fa-check"></i><b>16.5</b> cognitive</a></li>
+<li class="chapter" data-level="16.6" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#across-tasks-pvc-is-the-slope-for-highvslow-cue-the-sametor-question"><i class="fa fa-check"></i><b>16.6</b> across tasks (PVC), is the slope for (highvslow cue) the same?Tor question</a></li>
+</ul></li>
+<li class="chapter" data-level="17" data-path="ch16_demean_per_run.html"><a href="ch16_demean_per_run.html"><i class="fa fa-check"></i><b>17</b> [ beh ] outcome_demean_per_run ~ cue * stim * expectrating * n-1outcomerating</a>
+<ul>
+<li class="chapter" data-level="17.1" data-path="ch16_demean_per_run.html"><a href="ch16_demean_per_run.html#linear-model-with-three-factors-cue-x-stim-x-expectation-rating"><i class="fa fa-check"></i><b>17.1</b> Linear model with three factors: cue X stim X expectation rating</a></li>
+<li class="chapter" data-level="17.2" data-path="ch16_demean_per_run.html"><a href="ch16_demean_per_run.html#pain-run-collapsed-across-stimulus-intensity-2"><i class="fa fa-check"></i><b>17.2</b> Pain run, collapsed across stimulus intensity</a></li>
+<li class="chapter" data-level="17.3" data-path="ch16_demean_per_run.html"><a href="ch16_demean_per_run.html#vicarious-5"><i class="fa fa-check"></i><b>17.3</b> vicarious</a></li>
+<li class="chapter" data-level="17.4" data-path="ch16_demean_per_run.html"><a href="ch16_demean_per_run.html#cognitive-5"><i class="fa fa-check"></i><b>17.4</b> cognitive</a></li>
+<li class="chapter" data-level="17.5" data-path="ch16_demean_per_run.html"><a href="ch16_demean_per_run.html#across-tasks-pvc-is-the-slope-for-highvslow-cue-the-sametor-question-1"><i class="fa fa-check"></i><b>17.5</b> across tasks (PVC), is the slope for (highvslow cue) the same?Tor question</a></li>
+</ul></li>
+<li class="chapter" data-level="18" data-path="nps_contrast.html"><a href="nps_contrast.html"><i class="fa fa-check"></i><b>18</b> NPS_contrast ~ cue * stim</a>
+<ul>
+<li class="chapter" data-level="18.1" data-path="nps_contrast.html"><a href="nps_contrast.html#overview-5"><i class="fa fa-check"></i><b>18.1</b> Overview</a></li>
+<li class="chapter" data-level="18.2" data-path="nps_contrast.html"><a href="nps_contrast.html#regressors-and-contrasts"><i class="fa fa-check"></i><b>18.2</b> regressors and contrasts</a></li>
+<li class="chapter" data-level="18.3" data-path="nps_contrast.html"><a href="nps_contrast.html#main-effect-stim-linear-high-low"><i class="fa fa-check"></i><b>18.3</b> main effect: stim-linear high &gt; low</a></li>
+<li class="chapter" data-level="18.4" data-path="nps_contrast.html"><a href="nps_contrast.html#main_effect-stim-quadratic-med-highlow"><i class="fa fa-check"></i><b>18.4</b> main_effect: stim-quadratic med &gt; high&amp;low</a></li>
+<li class="chapter" data-level="18.5" data-path="nps_contrast.html"><a href="nps_contrast.html#interaction-cue-x-stim-linear"><i class="fa fa-check"></i><b>18.5</b> interaction: cue X stim-linear</a></li>
+<li class="chapter" data-level="18.6" data-path="nps_contrast.html"><a href="nps_contrast.html#interaction-cue-x-stim-quadratic"><i class="fa fa-check"></i><b>18.6</b> interaction: cue X stim-quadratic</a></li>
+</ul></li>
+<li class="chapter" data-level="19" data-path="nps_dummy.html"><a href="nps_dummy.html"><i class="fa fa-check"></i><b>19</b> nps_contrast ~ cue * stim</a>
+<ul>
+<li class="chapter" data-level="19.1" data-path="nps_dummy.html"><a href="nps_dummy.html#overview-6"><i class="fa fa-check"></i><b>19.1</b> Overview</a></li>
+<li class="chapter" data-level="19.2" data-path="nps_dummy.html"><a href="nps_dummy.html#for-loop-for-all-the-pvc-dummy-codes"><i class="fa fa-check"></i><b>19.2</b> For loop for all the pvc dummy codes</a></li>
+</ul></li>
+<li class="chapter" data-level="20" data-path="nps_stim.html"><a href="nps_stim.html"><i class="fa fa-check"></i><b>20</b> nps_dummy ~ stim</a>
+<ul>
+<li class="chapter" data-level="20.1" data-path="nps_stim.html"><a href="nps_stim.html#todo-2"><i class="fa fa-check"></i><b>20.1</b> TODO</a></li>
+<li class="chapter" data-level="20.2" data-path="nps_stim.html"><a href="nps_stim.html#regressors-and-contrasts-1"><i class="fa fa-check"></i><b>20.2</b> regressors and contrasts</a></li>
+<li class="chapter" data-level="20.3" data-path="nps_stim.html"><a href="nps_stim.html#functions-1"><i class="fa fa-check"></i><b>20.3</b> Functions</a></li>
+<li class="chapter" data-level="20.4" data-path="nps_stim.html"><a href="nps_stim.html#pain-4"><i class="fa fa-check"></i><b>20.4</b> Pain</a></li>
+<li class="chapter" data-level="20.5" data-path="nps_stim.html"><a href="nps_stim.html#vicarious-6"><i class="fa fa-check"></i><b>20.5</b> Vicarious</a></li>
+<li class="chapter" data-level="20.6" data-path="nps_stim.html"><a href="nps_stim.html#cognitive-6"><i class="fa fa-check"></i><b>20.6</b> Cognitive</a></li>
+</ul></li>
+<li class="chapter" data-level="21" data-path="nps_stim_task.html"><a href="nps_stim_task.html"><i class="fa fa-check"></i><b>21</b> NPSdummy ~ stim * task (contrast-scaled)</a>
+<ul>
+<li class="chapter" data-level="21.1" data-path="nps_stim_task.html"><a href="nps_stim_task.html#raincloud-plots"><i class="fa fa-check"></i><b>21.1</b> Raincloud plots</a></li>
+<li class="chapter" data-level="21.2" data-path="nps_stim_task.html"><a href="nps_stim_task.html#line-plots"><i class="fa fa-check"></i><b>21.2</b> Line plots</a></li>
+</ul></li>
+<li class="chapter" data-level="22" data-path="ch35_singletrial_P.html"><a href="ch35_singletrial_P.html"><i class="fa fa-check"></i><b>22</b> fMRI Pain signature ~ single trial</a>
+<ul>
+<li class="chapter" data-level="22.1" data-path="ch35_singletrial_P.html"><a href="ch35_singletrial_P.html#pvc-all-task-comparison"><i class="fa fa-check"></i><b>22.1</b> PVC all task comparison</a></li>
+<li class="chapter" data-level="22.2" data-path="ch35_singletrial_P.html"><a href="ch35_singletrial_P.html#pain-only-stim-x-cue-interaction"><i class="fa fa-check"></i><b>22.2</b> Pain only Stim x cue interaction</a>
+<ul>
+<li class="chapter" data-level="22.2.1" data-path="ch35_singletrial_P.html"><a href="ch35_singletrial_P.html#x3-stimulus-intensity-cue"><i class="fa fa-check"></i><b>22.2.1</b> 2x3 stimulus intensity * cue</a></li>
+<li class="chapter" data-level="22.2.2" data-path="ch35_singletrial_P.html"><a href="ch35_singletrial_P.html#linear-model-2"><i class="fa fa-check"></i><b>22.2.2</b> Linear model</a></li>
+<li class="chapter" data-level="22.2.3" data-path="ch35_singletrial_P.html"><a href="ch35_singletrial_P.html#nps-stimulus-intensity-cohens-d-1.287"><i class="fa fa-check"></i><b>22.2.3</b> NPS stimulus intensity Cohen’s d = 1.287</a></li>
+<li class="chapter" data-level="22.2.4" data-path="ch35_singletrial_P.html"><a href="ch35_singletrial_P.html#nps-stimulus-cue-effect-size-stim_d-1.16-cue_d-0.45"><i class="fa fa-check"></i><b>22.2.4</b> NPS stimulus &amp; cue effect size: stim_d = 1.16, cue_d = 0.45</a></li>
+<li class="chapter" data-level="22.2.5" data-path="ch35_singletrial_P.html"><a href="ch35_singletrial_P.html#lineplots"><i class="fa fa-check"></i><b>22.2.5</b> Lineplots</a></li>
+</ul></li>
+<li class="chapter" data-level="22.3" data-path="ch35_singletrial_P.html"><a href="ch35_singletrial_P.html#pain-only-outcome-ratings-nps"><i class="fa fa-check"></i><b>22.3</b> Pain only: Outcome ratings &amp; NPS</a>
+<ul>
+<li class="chapter" data-level="22.3.1" data-path="ch35_singletrial_P.html"><a href="ch35_singletrial_P.html#outcome-ratings-cue"><i class="fa fa-check"></i><b>22.3.1</b> outcome ratings * cue</a></li>
+</ul></li>
+<li class="chapter" data-level="22.4" data-path="ch35_singletrial_P.html"><a href="ch35_singletrial_P.html#pain-only-expectation-ratings-nps"><i class="fa fa-check"></i><b>22.4</b> Pain only: Expectation ratings &amp; NPS</a></li>
+</ul></li>
+<li class="chapter" data-level="23" data-path="ch36_singletrial_V.html"><a href="ch36_singletrial_V.html"><i class="fa fa-check"></i><b>23</b> fMRI Pain signature ~ single trial</a>
+<ul>
+<li class="chapter" data-level="23.1" data-path="ch36_singletrial_V.html"><a href="ch36_singletrial_V.html#pvc-all-task-comparison-1"><i class="fa fa-check"></i><b>23.1</b> PVC all task comparison</a></li>
+<li class="chapter" data-level="23.2" data-path="ch36_singletrial_V.html"><a href="ch36_singletrial_V.html#vicarious-only-stim-x-cue-interaction"><i class="fa fa-check"></i><b>23.2</b> Vicarious only Stim x cue interaction</a>
+<ul>
+<li class="chapter" data-level="23.2.1" data-path="ch36_singletrial_V.html"><a href="ch36_singletrial_V.html#x3-stimulus-intensity-cue-1"><i class="fa fa-check"></i><b>23.2.1</b> 2x3 stimulus intensity * cue</a></li>
+<li class="chapter" data-level="23.2.2" data-path="ch36_singletrial_V.html"><a href="ch36_singletrial_V.html#linear-model-3"><i class="fa fa-check"></i><b>23.2.2</b> Linear model</a></li>
+<li class="chapter" data-level="23.2.3" data-path="ch36_singletrial_V.html"><a href="ch36_singletrial_V.html#vps-stimulus-intensity-cohens-d-0.2131521"><i class="fa fa-check"></i><b>23.2.3</b> VPS stimulus intensity Cohen’s d = 0.2131521</a></li>
+<li class="chapter" data-level="23.2.4" data-path="ch36_singletrial_V.html"><a href="ch36_singletrial_V.html#vps-stimulus-cue-effect-size-stim_d-0.217-cue_d-0.013"><i class="fa fa-check"></i><b>23.2.4</b> VPS stimulus &amp; cue effect size: stim_d = 0.217, cue_d = 0.013</a></li>
+<li class="chapter" data-level="23.2.5" data-path="ch36_singletrial_V.html"><a href="ch36_singletrial_V.html#lineplots-1"><i class="fa fa-check"></i><b>23.2.5</b> Lineplots</a></li>
+<li class="chapter" data-level="23.2.6" data-path="ch36_singletrial_V.html"><a href="ch36_singletrial_V.html#linear-model-with-stim-x-cue-x-expectation-rating"><i class="fa fa-check"></i><b>23.2.6</b> Linear model with Stim x Cue x Expectation rating</a></li>
+</ul></li>
+<li class="chapter" data-level="23.3" data-path="ch36_singletrial_V.html"><a href="ch36_singletrial_V.html#vicarious-only-outcome-ratings-vps"><i class="fa fa-check"></i><b>23.3</b> Vicarious only: Outcome ratings &amp; VPS</a>
+<ul>
+<li class="chapter" data-level="23.3.1" data-path="ch36_singletrial_V.html"><a href="ch36_singletrial_V.html#outcome-ratings-cue-1"><i class="fa fa-check"></i><b>23.3.1</b> outcome ratings * cue</a></li>
+</ul></li>
+<li class="chapter" data-level="23.4" data-path="ch36_singletrial_V.html"><a href="ch36_singletrial_V.html#vicarious-only-expectation-ratings-vps"><i class="fa fa-check"></i><b>23.4</b> Vicarious only: Expectation ratings &amp; VPS</a></li>
+</ul></li>
+<li class="chapter" data-level="24" data-path="ch37_singletrial_C.html"><a href="ch37_singletrial_C.html"><i class="fa fa-check"></i><b>24</b> Cognitive signature ~ single trial</a>
+<ul>
+<li class="chapter" data-level="24.1" data-path="ch37_singletrial_C.html"><a href="ch37_singletrial_C.html#pvc-all-task-comparison-2"><i class="fa fa-check"></i><b>24.1</b> PVC all task comparison</a></li>
+<li class="chapter" data-level="24.2" data-path="ch37_singletrial_C.html"><a href="ch37_singletrial_C.html#cognitive-only-stim-x-cue-interaction"><i class="fa fa-check"></i><b>24.2</b> Cognitive only Stim x cue interaction</a>
+<ul>
+<li class="chapter" data-level="24.2.1" data-path="ch37_singletrial_C.html"><a href="ch37_singletrial_C.html#x3-stimulus-intensity-cue-2"><i class="fa fa-check"></i><b>24.2.1</b> 2x3 stimulus intensity * cue</a></li>
+<li class="chapter" data-level="24.2.2" data-path="ch37_singletrial_C.html"><a href="ch37_singletrial_C.html#linear-model-4"><i class="fa fa-check"></i><b>24.2.2</b> Linear model</a></li>
+<li class="chapter" data-level="24.2.3" data-path="ch37_singletrial_C.html"><a href="ch37_singletrial_C.html#cog-stimulus-intensity-cohens-d-0.72"><i class="fa fa-check"></i><b>24.2.3</b> Cog stimulus intensity Cohen’s d = 0.72</a></li>
+<li class="chapter" data-level="24.2.4" data-path="ch37_singletrial_C.html"><a href="ch37_singletrial_C.html#cognitivee-stimulus-cue-effect-size-stim_d-0.73-cue_d-0.069"><i class="fa fa-check"></i><b>24.2.4</b> Cognitivee stimulus &amp; cue effect size: stim_d = 0.73, cue_d = 0.069</a></li>
+<li class="chapter" data-level="24.2.5" data-path="ch37_singletrial_C.html"><a href="ch37_singletrial_C.html#lineplots-2"><i class="fa fa-check"></i><b>24.2.5</b> Lineplots</a></li>
+</ul></li>
+<li class="chapter" data-level="24.3" data-path="ch37_singletrial_C.html"><a href="ch37_singletrial_C.html#cognitive-only-outcome-ratings-kragel-2018"><i class="fa fa-check"></i><b>24.3</b> Cognitive only: Outcome ratings &amp; Kragel 2018</a>
+<ul>
+<li class="chapter" data-level="24.3.1" data-path="ch37_singletrial_C.html"><a href="ch37_singletrial_C.html#outcome-ratings-cue-2"><i class="fa fa-check"></i><b>24.3.1</b> outcome ratings * cue</a></li>
+</ul></li>
+<li class="chapter" data-level="24.4" data-path="ch37_singletrial_C.html"><a href="ch37_singletrial_C.html#cognitive-only-expectation-ratings-nps"><i class="fa fa-check"></i><b>24.4</b> Cognitive only: Expectation ratings &amp; NPS</a></li>
+</ul></li>
+<li class="chapter" data-level="25" data-path="ch38_singletrial_corr.html"><a href="ch38_singletrial_corr.html"><i class="fa fa-check"></i><b>25</b> single trial correlation between cue and stim ~ cue x stim</a>
+<ul>
+<li class="chapter" data-level="25.1" data-path="ch38_singletrial_corr.html"><a href="ch38_singletrial_corr.html#stack-data"><i class="fa fa-check"></i><b>25.1</b> Stack data</a></li>
+<li class="chapter" data-level="25.2" data-path="ch38_singletrial_corr.html"><a href="ch38_singletrial_corr.html#plot-correlation-one-sample-t"><i class="fa fa-check"></i><b>25.2</b> plot correlation (one-sample-t)</a></li>
+<li class="chapter" data-level="25.3" data-path="ch38_singletrial_corr.html"><a href="ch38_singletrial_corr.html#lineplot-1"><i class="fa fa-check"></i><b>25.3</b> Lineplot</a></li>
+</ul></li>
+<li class="chapter" data-level="26" data-path="ch39_signature_effectsize.html"><a href="ch39_signature_effectsize.html"><i class="fa fa-check"></i><b>26</b> signature effect size ~ single trial</a>
+<ul>
+<li class="chapter" data-level="26.1" data-path="ch39_signature_effectsize.html"><a href="ch39_signature_effectsize.html#effeect-size"><i class="fa fa-check"></i><b>26.1</b> effeect size</a></li>
+<li class="chapter" data-level="26.2" data-path="ch39_signature_effectsize.html"><a href="ch39_signature_effectsize.html#contrastt-stim-intensity"><i class="fa fa-check"></i><b>26.2</b> contrastt (stim intensity)</a></li>
+<li class="chapter" data-level="26.3" data-path="ch39_signature_effectsize.html"><a href="ch39_signature_effectsize.html#layer-in-metadata"><i class="fa fa-check"></i><b>26.3</b> layer in metadata</a></li>
+</ul></li>
+<li class="chapter" data-level="27" data-path="ch40_vif.html"><a href="ch40_vif.html"><i class="fa fa-check"></i><b>27</b> VIF</a>
+<ul>
+<li class="chapter" data-level="27.1" data-path="ch40_vif.html"><a href="ch40_vif.html#load-in-the-datamatrix-and-calculate-the-vif"><i class="fa fa-check"></i><b>27.1</b> load in the datamatrix and calculate the vif</a></li>
+</ul></li>
+<li class="chapter" data-level="28" data-path="vif.html"><a href="vif.html"><i class="fa fa-check"></i><b>28</b> vif</a></li>
+<li class="chapter" data-level="29" data-path="ch90_nps22.html"><a href="ch90_nps22.html"><i class="fa fa-check"></i><b>29</b> biomarker NPS ~ cue x stim (2022)</a>
+<ul>
+<li class="chapter" data-level="29.1" data-path="ch90_nps22.html"><a href="ch90_nps22.html#load-libraries"><i class="fa fa-check"></i><b>29.1</b> load libraries</a>
+<ul>
+<li class="chapter" data-level="29.1.1" data-path="ch90_nps22.html"><a href="ch90_nps22.html#nps-cue-effect"><i class="fa fa-check"></i><b>29.1.1</b> NPS cue effect</a></li>
+</ul></li>
+<li class="chapter" data-level="29.2" data-path="ch90_nps22.html"><a href="ch90_nps22.html#nps-stim-effect"><i class="fa fa-check"></i><b>29.2</b> NPS stim effect</a></li>
+<li class="chapter" data-level="29.3" data-path="ch90_nps22.html"><a href="ch90_nps22.html#vps"><i class="fa fa-check"></i><b>29.3</b> VPS</a></li>
+<li class="chapter" data-level="29.4" data-path="ch90_nps22.html"><a href="ch90_nps22.html#vps-cue-effect"><i class="fa fa-check"></i><b>29.4</b> VPS cue effect</a></li>
+<li class="chapter" data-level="29.5" data-path="ch90_nps22.html"><a href="ch90_nps22.html#vps-stim-effect"><i class="fa fa-check"></i><b>29.5</b> VPS stim effect</a></li>
+</ul></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">behavioral_ICC</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="ch09_tradeoff-cueXstim" class="section level1 hasAnchor" number="10">
+<h1><span class="header-section-number">Chapter 10</span> cognitive RT tradeoff ~ cue * stim (withinsubject)<a href="ch09_tradeoff-cueXstim.html#ch09_tradeoff-cueXstim" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<pre><code>date: &#39;2022-07-17&#39;</code></pre>
+<div id="overview-1" class="section level2 hasAnchor" number="10.1">
+<h2><span class="header-section-number">10.1</span> Overview<a href="ch09_tradeoff-cueXstim.html#overview-1" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>The purpose of this notebook is to example within subject analysis. More
+specifically, we want to compare diverging methods and check if the end
+results are identical.</p>
+<hr />
+</div>
+<div id="why-use-multilevel-models" class="section level2 hasAnchor" number="10.2">
+<h2><span class="header-section-number">10.2</span> Why use multilevel models?<a href="ch09_tradeoff-cueXstim.html#why-use-multilevel-models" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<ul>
+<li>content copied from
+<a href="http://www.bristol.ac.uk/cmm/learning/multilevel-models/what-why.html" class="uri">http://www.bristol.ac.uk/cmm/learning/multilevel-models/what-why.html</a></li>
+</ul>
+<blockquote>
+<p>There are a number of reasons for using multilevel models:</p>
+<ol style="list-style-type: decimal">
+<li><p>Correct inferences: Traditional multiple regression techniques
+treat the units of analysis as independent observations. One
+consequence of failing to recognise hierarchical structures is
+that standard errors of regression coefficients will be
+underestimated, leading to an overstatement of statistical
+significance. Standard errors for the coefficients of higher-level
+predictor variables will be the most affected by ignoring
+grouping.</p></li>
+<li><p>Substantive interest in group effects: In many situations a key
+research question concerns the extent of grouping in individual
+outcomes, and the identification of ‘outlying’ groups. In
+evaluations of school performance, for example, interest centres
+on obtaining ‘value-added’ school effects on pupil attainment.
+Such effects correspond to school-level residuals in a multilevel
+model which adjusts for prior attainment.</p></li>
+<li><p>Estimating group effects simultaneously with the effects of
+group-level predictors: An alternative way to allow for group
+effects is to include dummy variables for groups in a traditional
+(ordinary least squares) regression model. Such a model is called
+an analysis of variance or fixed effects model. In many cases
+there will be predictors defined at the group level, eg type of
+school (mixed vs. single sex). In a fixed effects model, the
+effects of group-level predictors are confounded with the effects
+of the group dummies, ie it is not possible to separate out
+effects due to observed and unobserved group characteristics. In a
+multilevel (random effects) model, the effects of both types of
+variable can be estimated.</p></li>
+<li><p>Inference to a population of groups: In a multilevel model the
+groups in the sample are treated as a random sample from a
+population of groups. Using a fixed effects model, inferences
+cannot be made beyond the groups in the sample.</p></li>
+</ol>
+</blockquote>
+<hr />
+<p>load libraries</p>
+</div>
+<div id="terminology" class="section level2 hasAnchor" number="10.3">
+<h2><span class="header-section-number">10.3</span> Terminology<a href="ch09_tradeoff-cueXstim.html#terminology" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<dl>
+<dt>factor</dt>
+<dd>
+<p>In experimental designs, factor is the equivalent of independent
+variable. In R, one can factorize a categorical variable by using
+the <code>factor</code> function. Thereby we interchangeably use the term
+factor in lieu of independent variable.</p>
+<p>From this, the term <code>factorial design</code> originates.</p>
+</dd>
+<dt>level</dt>
+<dd>
+<p>within each independent variable, a researcher may determine
+different levels. Since the purpose of linear models is to compare
+at least one condition to another, a factor contains more than one
+level.</p>
+</dd>
+<dt>group variable</dt>
+<dd>
+<p>Unit of analysis. In most fMRI experiments that collect individual
+data, the group variable would be the individual participant.
+However, in other research questions, the group variable could
+easily be more than one individual. For instance, a dyad of
+participants that carry out conversations, multiple patients that
+see an identical doctor, a classroom full of individuals, or voting
+districts could serve as a grouping variable, depending on the
+research question.</p>
+</dd>
+</dl>
+<ul>
+<li><div>
+<pre><code>factor:
+group</code></pre>
+</div></li>
+</ul>
+</div>
+<div id="model-versions" class="section level2 tabset hasAnchor" number="10.4">
+<h2><span class="header-section-number">10.4</span> Model versions<a href="ch09_tradeoff-cueXstim.html#model-versions" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="method-1-repeated-measures-and-one-sample-t-tests" class="section level3 unlisted unnumbered hasAnchor">
+<h3>Method 1: repeated measures and <code>one-sample t-tests</code><a href="ch09_tradeoff-cueXstim.html#method-1-repeated-measures-and-one-sample-t-tests" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<ul>
+<li>Data Matrix: Wide form
+<ul>
+<li>row (83 subject)</li>
+<li>column (6 conditions: highCue x highStim, highCue x medStim,
+highCue x lowStim, lowCue x highStim,lowCue x medStim, lowCue x
+lowStim)</li>
+</ul></li>
+<li>Model: Use “lm”. One-sample t-test</li>
+<li>Effect size (cohen’s d): mean / sd (intersubject slope) &gt; use
+degrees of freedom.</li>
+</ul>
+</div>
+<div id="method-1-1-repeated-measures-using-aov-in-r" class="section level3 unlisted unnumbered hasAnchor">
+<h3>Method 1-1: repeated measures using <code>**aov**</code> in R<a href="ch09_tradeoff-cueXstim.html#method-1-1-repeated-measures-using-aov-in-r" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>repeated measures in R using aov link
+<a href="https://www.statology.org/repeated-measures-anova-in-r/#" class="uri">https://www.statology.org/repeated-measures-anova-in-r/#</a><a href="https://www.statology.org/repeated-measures-anova-in-r/#:~:text=A%20repeated%20measures%20ANOVA%20is,show%20up%20in%20each%20group">:~:text=A%20repeated%20measures%20ANOVA%20is,show%20up%20in%20each%20group</a>
+using aov, includes subject as error term</p>
+</div>
+<div id="method-2-multilevel-modeling-using-glmfit_multilevel-in-matlab" class="section level3 unlisted unnumbered hasAnchor">
+<h3>Method 2: multilevel modeling using <code>**glmfit_multilevel**</code> in matlab<a href="ch09_tradeoff-cueXstim.html#method-2-multilevel-modeling-using-glmfit_multilevel-in-matlab" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<ul>
+<li>Data Matrix: Long form
+<ul>
+<li>Cell (1x83 subject)
+<ul>
+<li><p>double (1x6 condition) (6 conditions: highCue<em>highStim,
+highCue</em>medStim, highCue<em>lowStim,
+lowCue</em>highStim,lowCue<em>medStim, lowCue</em>lowStim)</p></li>
+<li><p>e.g. X_factor{1,83}(6)</p></li>
+</ul></li>
+</ul></li>
+<li>Model: Use
+“glmfit_multilevel&lt;<a href="https://github.com/canlab/CanlabCore/blob/master/CanlabCore/Statistics_tools/glmfit_multilevel.m" class="uri">https://github.com/canlab/CanlabCore/blob/master/CanlabCore/Statistics_tools/glmfit_multilevel.m</a>&gt;”</li>
+<li>Effect size: output from the Stats variable.</li>
+<li>TODO: need to identify if multiple factors are allowed as input</li>
+</ul>
+</div>
+<div id="method-3-multilevel-modeling-using-lmer-in-r" class="section level3 unlisted unnumbered hasAnchor">
+<h3>Method 3: multilevel modeling using <code>**lmer**</code> in R<a href="ch09_tradeoff-cueXstim.html#method-3-multilevel-modeling-using-lmer-in-r" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<ul>
+<li>Data Matrix: Long form
+<ul>
+<li>Row (498: 83 subject * 2 cue * 3 stimulus intensity)</li>
+<li>Columns (4: subject, cue type, stimulus intensity type,
+tradeoff)</li>
+</ul></li>
+<li>Model: Use “lmer” multilevel-modeling
+<ul>
+<li>grouping variable: subjects (i.e. src_subject_id)</li>
+<li>fixed effects - cue (2 levels, contrast-coded [high, low: 1,
+-1]) - stim_linear (3 levels, [low, med, high: -1, 0, 1]) -
+stim_quadratic (3 levels, [low, med, high: -1, 2, -1])</li>
+<li>random effects - cue - stim_linear - cue*stim_linear</li>
+<li>NOTE: due to convergence failure, cue*stim_quadratic term was
+removed</li>
+</ul></li>
+<li>Effect size (cohen’s d): beta_coefficient/ sqrt(sum of all random
+variance)</li>
+</ul>
+<p>load data and combine participant data</p>
+<div class="sourceCode" id="cb294"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb294-1"><a href="ch09_tradeoff-cueXstim.html#cb294-1" aria-hidden="true" tabindex="-1"></a>main_dir <span class="ot">=</span> <span class="fu">dirname</span>(<span class="fu">dirname</span>(<span class="fu">getwd</span>()))</span>
+<span id="cb294-2"><a href="ch09_tradeoff-cueXstim.html#cb294-2" aria-hidden="true" tabindex="-1"></a>datadir <span class="ot">=</span> <span class="fu">file.path</span>(main_dir, <span class="st">&#39;data&#39;</span>, <span class="st">&#39;beh&#39;</span>, <span class="st">&#39;beh02_preproc&#39;</span>)</span>
+<span id="cb294-3"><a href="ch09_tradeoff-cueXstim.html#cb294-3" aria-hidden="true" tabindex="-1"></a><span class="co"># parameters _____________________________________ # nolint</span></span>
+<span id="cb294-4"><a href="ch09_tradeoff-cueXstim.html#cb294-4" aria-hidden="true" tabindex="-1"></a>subject_varkey <span class="ot">&lt;-</span> <span class="st">&quot;src_subject_id&quot;</span></span>
+<span id="cb294-5"><a href="ch09_tradeoff-cueXstim.html#cb294-5" aria-hidden="true" tabindex="-1"></a>iv <span class="ot">&lt;-</span> <span class="st">&quot;param_cue_type&quot;</span></span>
+<span id="cb294-6"><a href="ch09_tradeoff-cueXstim.html#cb294-6" aria-hidden="true" tabindex="-1"></a>dv <span class="ot">&lt;-</span> <span class="st">&quot;event03_RT&quot;</span></span>
+<span id="cb294-7"><a href="ch09_tradeoff-cueXstim.html#cb294-7" aria-hidden="true" tabindex="-1"></a>dv_keyword <span class="ot">&lt;-</span> <span class="st">&quot;RT&quot;</span></span>
+<span id="cb294-8"><a href="ch09_tradeoff-cueXstim.html#cb294-8" aria-hidden="true" tabindex="-1"></a>xlab <span class="ot">&lt;-</span> <span class="st">&quot;&quot;</span></span>
+<span id="cb294-9"><a href="ch09_tradeoff-cueXstim.html#cb294-9" aria-hidden="true" tabindex="-1"></a>taskname <span class="ot">&lt;-</span> <span class="st">&quot;cognitive&quot;</span></span>
+<span id="cb294-10"><a href="ch09_tradeoff-cueXstim.html#cb294-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb294-11"><a href="ch09_tradeoff-cueXstim.html#cb294-11" aria-hidden="true" tabindex="-1"></a>ylab <span class="ot">&lt;-</span> <span class="st">&quot;ratings (degree)&quot;</span></span>
+<span id="cb294-12"><a href="ch09_tradeoff-cueXstim.html#cb294-12" aria-hidden="true" tabindex="-1"></a>subject <span class="ot">&lt;-</span> <span class="st">&quot;subject&quot;</span></span>
+<span id="cb294-13"><a href="ch09_tradeoff-cueXstim.html#cb294-13" aria-hidden="true" tabindex="-1"></a>exclude <span class="ot">&lt;-</span> <span class="st">&quot;sub-0999|sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0007|sub-0008|sub-0009|sub-0010|sub-0011&quot;</span></span>
+<span id="cb294-14"><a href="ch09_tradeoff-cueXstim.html#cb294-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb294-15"><a href="ch09_tradeoff-cueXstim.html#cb294-15" aria-hidden="true" tabindex="-1"></a><span class="co"># load data _____________________________________</span></span>
+<span id="cb294-16"><a href="ch09_tradeoff-cueXstim.html#cb294-16" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">load_task_social_df</span>(datadir, <span class="at">taskname =</span> taskname, <span class="at">subject_varkey =</span> subject_varkey, <span class="at">iv =</span> iv, <span class="at">exclude =</span> exclude)</span>
+<span id="cb294-17"><a href="ch09_tradeoff-cueXstim.html#cb294-17" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>event03_RT <span class="ot">&lt;-</span> data<span class="sc">$</span>event03_stimulusC_reseponseonset <span class="sc">-</span> data<span class="sc">$</span>event03_stimulus_displayonset</span>
+<span id="cb294-18"><a href="ch09_tradeoff-cueXstim.html#cb294-18" aria-hidden="true" tabindex="-1"></a><span class="co"># data[&#39;event03_RT&#39;], data.event03_RT - pandas</span></span>
+<span id="cb294-19"><a href="ch09_tradeoff-cueXstim.html#cb294-19" aria-hidden="true" tabindex="-1"></a>analysis_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(main_dir, <span class="st">&quot;analysis&quot;</span>, <span class="st">&quot;mixedeffect&quot;</span>, <span class="st">&quot;model06_iv-cue-stim_dv-tradeoff_withinsubject&quot;</span>, <span class="fu">as.character</span>(<span class="fu">Sys.Date</span>()))</span>
+<span id="cb294-20"><a href="ch09_tradeoff-cueXstim.html#cb294-20" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(analysis_dir, <span class="at">showWarnings =</span> <span class="cn">FALSE</span>, <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb294-21"><a href="ch09_tradeoff-cueXstim.html#cb294-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb294-22"><a href="ch09_tradeoff-cueXstim.html#cb294-22" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>event03_response_samediff <span class="ot">&lt;-</span> <span class="fu">mapvalues</span>(data<span class="sc">$</span>event03_stimulusC_response,</span>
+<span id="cb294-23"><a href="ch09_tradeoff-cueXstim.html#cb294-23" aria-hidden="true" tabindex="-1"></a>                                                <span class="at">from =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>),</span>
+<span id="cb294-24"><a href="ch09_tradeoff-cueXstim.html#cb294-24" aria-hidden="true" tabindex="-1"></a>                                                <span class="at">to =</span> <span class="fu">c</span>(<span class="st">&quot;diff&quot;</span>, <span class="st">&quot;same&quot;</span>))</span>
+<span id="cb294-25"><a href="ch09_tradeoff-cueXstim.html#cb294-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb294-26"><a href="ch09_tradeoff-cueXstim.html#cb294-26" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>event03_correct <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(data<span class="sc">$</span>event03_C_stim_match <span class="sc">==</span> data<span class="sc">$</span>event03_response_samediff, <span class="dv">1</span>, <span class="fu">ifelse</span>(data<span class="sc">$</span>event03_C_stim_match <span class="sc">!=</span> data<span class="sc">$</span>event03_response_samediff, <span class="dv">0</span>, <span class="st">&quot;NA&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb295"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb295-1"><a href="ch09_tradeoff-cueXstim.html#cb295-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1) calculate accuracy of cognitive mental rotation task</span></span>
+<span id="cb295-2"><a href="ch09_tradeoff-cueXstim.html#cb295-2" aria-hidden="true" tabindex="-1"></a>data_perf <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span></span>
+<span id="cb295-3"><a href="ch09_tradeoff-cueXstim.html#cb295-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(src_subject_id, param_cue_type, param_stimulus_type) <span class="sc">%&gt;%</span></span>
+<span id="cb295-4"><a href="ch09_tradeoff-cueXstim.html#cb295-4" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">summarise</span>(</span>
+<span id="cb295-5"><a href="ch09_tradeoff-cueXstim.html#cb295-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">accuracy =</span> <span class="fu">sum</span>(<span class="fu">as.numeric</span>(event03_correct), <span class="at">na.rm =</span> <span class="cn">TRUE</span>), </span>
+<span id="cb295-6"><a href="ch09_tradeoff-cueXstim.html#cb295-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">count =</span> <span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(<span class="fu">as.numeric</span>(event03_correct))),</span>
+<span id="cb295-7"><a href="ch09_tradeoff-cueXstim.html#cb295-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">&#39;drop&#39;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb295-8"><a href="ch09_tradeoff-cueXstim.html#cb295-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb295-9"><a href="ch09_tradeoff-cueXstim.html#cb295-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(src_subject_id) <span class="sc">%&gt;%</span></span>
+<span id="cb295-10"><a href="ch09_tradeoff-cueXstim.html#cb295-10" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">zscore_acc =</span> <span class="fu">as.numeric</span>(<span class="fu">scale</span>(accuracy)))</span>
+<span id="cb295-11"><a href="ch09_tradeoff-cueXstim.html#cb295-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb295-12"><a href="ch09_tradeoff-cueXstim.html#cb295-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb295-13"><a href="ch09_tradeoff-cueXstim.html#cb295-13" aria-hidden="true" tabindex="-1"></a><span class="co"># 2) calculate average RT within subject, for each condition type</span></span>
+<span id="cb295-14"><a href="ch09_tradeoff-cueXstim.html#cb295-14" aria-hidden="true" tabindex="-1"></a>data_RT <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span></span>
+<span id="cb295-15"><a href="ch09_tradeoff-cueXstim.html#cb295-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(src_subject_id, param_cue_type, param_stimulus_type) <span class="sc">%&gt;%</span></span>
+<span id="cb295-16"><a href="ch09_tradeoff-cueXstim.html#cb295-16" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">summarise</span>(<span class="at">subjectwise_RT =</span> <span class="fu">mean</span>(<span class="fu">as.numeric</span>(event03_RT), <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">&#39;drop&#39;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb295-17"><a href="ch09_tradeoff-cueXstim.html#cb295-17" aria-hidden="true" tabindex="-1"></a> <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb295-18"><a href="ch09_tradeoff-cueXstim.html#cb295-18" aria-hidden="true" tabindex="-1"></a>     <span class="fu">group_by</span>(src_subject_id) <span class="sc">%&gt;%</span></span>
+<span id="cb295-19"><a href="ch09_tradeoff-cueXstim.html#cb295-19" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">zscore_RT =</span> <span class="fu">as.numeric</span>(<span class="fu">scale</span>(subjectwise_RT)))</span>
+<span id="cb295-20"><a href="ch09_tradeoff-cueXstim.html#cb295-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb295-21"><a href="ch09_tradeoff-cueXstim.html#cb295-21" aria-hidden="true" tabindex="-1"></a><span class="co"># 3) calculate tradeoff based on RT and accuracy</span></span>
+<span id="cb295-22"><a href="ch09_tradeoff-cueXstim.html#cb295-22" aria-hidden="true" tabindex="-1"></a>df_tradeoff <span class="ot">=</span> <span class="fu">merge</span>(<span class="at">x =</span> data_RT, <span class="at">y =</span> data_perf, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;src_subject_id&quot;</span>, <span class="st">&quot;param_cue_type&quot;</span>, <span class="st">&quot;param_stimulus_type&quot;</span>), <span class="at">all =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb295-23"><a href="ch09_tradeoff-cueXstim.html#cb295-23" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>tradeoff <span class="ot">=</span> df_tradeoff<span class="sc">$</span>zscore_acc <span class="sc">-</span> df_tradeoff<span class="sc">$</span>zscore_RT</span></code></pre></div>
+<p>This is the data that we will use</p>
+<pre><code>##   src_subject_id param_cue_type param_stimulus_type subjectwise_RT  zscore_RT
+## 1            100       high_cue           high_stim       3.461085  0.0977099
+## 2            100       high_cue            low_stim       3.697358  0.9879113
+## 3            100       high_cue            med_stim       3.518048  0.3123281
+## 4            100        low_cue           high_stim       3.630573  0.7362880
+## 5            100        low_cue            low_stim       3.348520 -0.3263990
+## 6            100        low_cue            med_stim       2.955323 -1.8078382
+##   accuracy count zscore_acc   tradeoff          condition con_num
+## 1        8    10   0.000000 -0.0977099 high_cue_high_stim       1
+## 2       10    10   1.118034  0.1301227  high_cue_low_stim       2
+## 3        6    10  -1.118034 -1.4303621  high_cue_med_stim       3
+## 4        8     9   0.000000 -0.7362880  low_cue_high_stim       4
+## 5       10    10   1.118034  1.4444330   low_cue_low_stim       5
+## 6        6     9  -1.118034  0.6898042   low_cue_med_stim       6</code></pre>
+</div>
+</div>
+<div id="method-1-one-sample-t" class="section level2 hasAnchor" number="10.5">
+<h2><span class="header-section-number">10.5</span> Method 1 one-sample t<a href="ch09_tradeoff-cueXstim.html#method-1-one-sample-t" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="method-1-one-sample-t-1" class="section level3 unlisted unnumbered hasAnchor">
+<h3>Method 1 one-sample t<a href="ch09_tradeoff-cueXstim.html#method-1-one-sample-t-1" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<ul>
+<li>Data Matrix: Wide form
+<ul>
+<li>row (83 subject)</li>
+<li>column (6 conditions: highCue x highStim, highCue x medStim,
+highCue x lowStim, lowCue x highStim,lowCue x medStim, lowCue x
+lowStim)</li>
+</ul></li>
+<li>Model: Use “lm”. One-sample t-test</li>
+<li>Effect size (cohen’s d): mean / sd (intersubject slope) &gt; use
+degrees of freedom.</li>
+</ul>
+<div class="sourceCode" id="cb297"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb297-1"><a href="ch09_tradeoff-cueXstim.html#cb297-1" aria-hidden="true" tabindex="-1"></a>w1.perf <span class="ot">=</span> df_tradeoff[<span class="fu">c</span>(<span class="st">&quot;src_subject_id&quot;</span>,<span class="st">&quot;param_cue_type&quot;</span>, <span class="st">&quot;param_stimulus_type&quot;</span>,<span class="st">&quot;zscore_acc&quot;</span> )] <span class="sc">%&gt;%</span> </span>
+<span id="cb297-2"><a href="ch09_tradeoff-cueXstim.html#cb297-2" aria-hidden="true" tabindex="-1"></a>   <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> <span class="fu">c</span>(param_cue_type, param_stimulus_type), <span class="at">values_from =</span> zscore_acc) </span>
+<span id="cb297-3"><a href="ch09_tradeoff-cueXstim.html#cb297-3" aria-hidden="true" tabindex="-1"></a>w1.rt <span class="ot">=</span> df_tradeoff[<span class="fu">c</span>(<span class="st">&quot;src_subject_id&quot;</span>,<span class="st">&quot;param_cue_type&quot;</span>, <span class="st">&quot;param_stimulus_type&quot;</span>,<span class="st">&quot;zscore_RT&quot;</span> )] <span class="sc">%&gt;%</span> </span>
+<span id="cb297-4"><a href="ch09_tradeoff-cueXstim.html#cb297-4" aria-hidden="true" tabindex="-1"></a>   <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> <span class="fu">c</span>(param_cue_type, param_stimulus_type), <span class="at">values_from =</span> zscore_RT) </span>
+<span id="cb297-5"><a href="ch09_tradeoff-cueXstim.html#cb297-5" aria-hidden="true" tabindex="-1"></a>w1.tradeoff <span class="ot">=</span> df_tradeoff[<span class="fu">c</span>(<span class="st">&quot;src_subject_id&quot;</span>,<span class="st">&quot;param_cue_type&quot;</span>, <span class="st">&quot;param_stimulus_type&quot;</span>,<span class="st">&quot;tradeoff&quot;</span> )] <span class="sc">%&gt;%</span> </span>
+<span id="cb297-6"><a href="ch09_tradeoff-cueXstim.html#cb297-6" aria-hidden="true" tabindex="-1"></a>   <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> <span class="fu">c</span>(param_cue_type, param_stimulus_type), <span class="at">values_from =</span> tradeoff) </span></code></pre></div>
+<div class="sourceCode" id="cb298"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb298-1"><a href="ch09_tradeoff-cueXstim.html#cb298-1" aria-hidden="true" tabindex="-1"></a><span class="co"># library(effectsize)</span></span>
+<span id="cb298-2"><a href="ch09_tradeoff-cueXstim.html#cb298-2" aria-hidden="true" tabindex="-1"></a><span class="co"># eta_squared(t.int, partial = FALSE)</span></span></code></pre></div>
+<p><strong>Creating within subject effect</strong> Each participants data point is
+transformed from long-to-wide format. Rows represent participants;
+columns represent conditions. In our case, we have a 2x3 design.
+Therefore, we have 6 columns. By linear combining these 6 combination
+with contrast-code weights, we can obtain one column, that is the cue
+effect. Ultimately, we test whether this cue effect is different from
+zero, using a one sample t-test.</p>
+<p><strong>1) cue effect</strong> The cue effect is not significant, b = -0.0987 , se =
+0.1798, t(82) = -0.549, p = 0.585</p>
+<div class="sourceCode" id="cb299"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb299-1"><a href="ch09_tradeoff-cueXstim.html#cb299-1" aria-hidden="true" tabindex="-1"></a><span class="co"># average</span></span>
+<span id="cb299-2"><a href="ch09_tradeoff-cueXstim.html#cb299-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb299-3"><a href="ch09_tradeoff-cueXstim.html#cb299-3" aria-hidden="true" tabindex="-1"></a><span class="co"># cue effect</span></span>
+<span id="cb299-4"><a href="ch09_tradeoff-cueXstim.html#cb299-4" aria-hidden="true" tabindex="-1"></a>w1.tradeoff<span class="sc">$</span>cue_effect <span class="ot">=</span> (<span class="sc">+</span><span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>) <span class="sc">*</span> w1.tradeoff<span class="sc">$</span>high_cue_high_stim <span class="sc">+</span> </span>
+<span id="cb299-5"><a href="ch09_tradeoff-cueXstim.html#cb299-5" aria-hidden="true" tabindex="-1"></a>  (<span class="sc">+</span><span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>) <span class="sc">*</span> w1.tradeoff<span class="sc">$</span>high_cue_med_stim <span class="sc">+</span> </span>
+<span id="cb299-6"><a href="ch09_tradeoff-cueXstim.html#cb299-6" aria-hidden="true" tabindex="-1"></a>  (<span class="sc">+</span><span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>) <span class="sc">*</span> w1.tradeoff<span class="sc">$</span>high_cue_low_stim <span class="sc">+</span> </span>
+<span id="cb299-7"><a href="ch09_tradeoff-cueXstim.html#cb299-7" aria-hidden="true" tabindex="-1"></a>  (<span class="sc">-</span><span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>) <span class="sc">*</span> w1.tradeoff<span class="sc">$</span>low_cue_high_stim <span class="sc">+</span> </span>
+<span id="cb299-8"><a href="ch09_tradeoff-cueXstim.html#cb299-8" aria-hidden="true" tabindex="-1"></a>  (<span class="sc">-</span><span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>) <span class="sc">*</span> w1.tradeoff<span class="sc">$</span>low_cue_med_stim <span class="sc">+</span> </span>
+<span id="cb299-9"><a href="ch09_tradeoff-cueXstim.html#cb299-9" aria-hidden="true" tabindex="-1"></a>  (<span class="sc">-</span><span class="dv">1</span><span class="sc">/</span><span class="dv">2</span>) <span class="sc">*</span> w1.tradeoff<span class="sc">$</span>low_cue_low_stim </span>
+<span id="cb299-10"><a href="ch09_tradeoff-cueXstim.html#cb299-10" aria-hidden="true" tabindex="-1"></a>tradeoff.cue <span class="ot">=</span> <span class="fu">lm</span>(w1.tradeoff<span class="sc">$</span>cue_effect <span class="sc">~</span> <span class="dv">1</span>)</span>
+<span id="cb299-11"><a href="ch09_tradeoff-cueXstim.html#cb299-11" aria-hidden="true" tabindex="-1"></a><span class="fu">t.test</span>(w1.tradeoff<span class="sc">$</span>cue_effect, <span class="at">mu =</span> <span class="dv">0</span>, <span class="at">alternative =</span> <span class="st">&quot;two.sided&quot;</span>)</span></code></pre></div>
+<pre><code>## 
+##  One Sample t-test
+## 
+## data:  w1.tradeoff$cue_effect
+## t = -0.76582, df = 104, p-value = 0.4455
+## alternative hypothesis: true mean is not equal to 0
+## 95 percent confidence interval:
+##  -0.4248327  0.1881188
+## sample estimates:
+## mean of x 
+## -0.118357</code></pre>
+<div class="sourceCode" id="cb301"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb301-1"><a href="ch09_tradeoff-cueXstim.html#cb301-1" aria-hidden="true" tabindex="-1"></a><span class="co"># output of cue effect</span></span>
+<span id="cb301-2"><a href="ch09_tradeoff-cueXstim.html#cb301-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(tradeoff.cue)</span></code></pre></div>
+<pre><code>## 
+## Call:
+## lm(formula = w1.tradeoff$cue_effect ~ 1)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -3.9035 -1.2443 -0.0625  1.3321  3.3766 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept)  -0.1184     0.1545  -0.766    0.446
+## 
+## Residual standard error: 1.584 on 104 degrees of freedom</code></pre>
+<p>We sill continue to calculate this within subject effect for the
+stimulus and interaction contrast. </p>
+<p><strong>2) linear stimulus effect</strong> The linear stimulus effect is significant,
+b = -0.8343, se = 0.0787, t(82) = -10.6, p &lt; 2e-16 ***</p>
+<div class="sourceCode" id="cb303"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb303-1"><a href="ch09_tradeoff-cueXstim.html#cb303-1" aria-hidden="true" tabindex="-1"></a><span class="co"># linear stim effect</span></span>
+<span id="cb303-2"><a href="ch09_tradeoff-cueXstim.html#cb303-2" aria-hidden="true" tabindex="-1"></a>w1.tradeoff<span class="sc">$</span>lin_stim_effect <span class="ot">=</span> </span>
+<span id="cb303-3"><a href="ch09_tradeoff-cueXstim.html#cb303-3" aria-hidden="true" tabindex="-1"></a>  (<span class="sc">+</span><span class="dv">1</span><span class="sc">/</span><span class="dv">4</span>) <span class="sc">*</span> w1.tradeoff<span class="sc">$</span>high_cue_high_stim <span class="sc">+</span> </span>
+<span id="cb303-4"><a href="ch09_tradeoff-cueXstim.html#cb303-4" aria-hidden="true" tabindex="-1"></a>  (<span class="dv">0</span>) <span class="sc">*</span> w1.tradeoff<span class="sc">$</span>high_cue_med_stim <span class="sc">+</span> </span>
+<span id="cb303-5"><a href="ch09_tradeoff-cueXstim.html#cb303-5" aria-hidden="true" tabindex="-1"></a>  (<span class="sc">-</span><span class="dv">1</span><span class="sc">/</span><span class="dv">4</span>) <span class="sc">*</span> w1.tradeoff<span class="sc">$</span>high_cue_low_stim <span class="sc">+</span> </span>
+<span id="cb303-6"><a href="ch09_tradeoff-cueXstim.html#cb303-6" aria-hidden="true" tabindex="-1"></a>  (<span class="sc">+</span><span class="dv">1</span><span class="sc">/</span><span class="dv">4</span>) <span class="sc">*</span> w1.tradeoff<span class="sc">$</span>low_cue_high_stim <span class="sc">+</span> </span>
+<span id="cb303-7"><a href="ch09_tradeoff-cueXstim.html#cb303-7" aria-hidden="true" tabindex="-1"></a>  (<span class="dv">0</span>) <span class="sc">*</span> w1.tradeoff<span class="sc">$</span>low_cue_med_stim <span class="sc">+</span> </span>
+<span id="cb303-8"><a href="ch09_tradeoff-cueXstim.html#cb303-8" aria-hidden="true" tabindex="-1"></a>  (<span class="sc">-</span><span class="dv">1</span><span class="sc">/</span><span class="dv">4</span>) <span class="sc">*</span> w1.tradeoff<span class="sc">$</span>low_cue_low_stim </span>
+<span id="cb303-9"><a href="ch09_tradeoff-cueXstim.html#cb303-9" aria-hidden="true" tabindex="-1"></a>tradeoff.lin_stim <span class="ot">=</span> <span class="fu">lm</span>(w1.tradeoff<span class="sc">$</span>lin_stim_effect <span class="sc">~</span> <span class="dv">1</span>)</span>
+<span id="cb303-10"><a href="ch09_tradeoff-cueXstim.html#cb303-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb303-11"><a href="ch09_tradeoff-cueXstim.html#cb303-11" aria-hidden="true" tabindex="-1"></a><span class="co"># output of stimulus linear contrast effect</span></span>
+<span id="cb303-12"><a href="ch09_tradeoff-cueXstim.html#cb303-12" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(tradeoff.lin_stim)</span></code></pre></div>
+<pre><code>## 
+## Call:
+## lm(formula = w1.tradeoff$lin_stim_effect ~ 1)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.08946 -0.58857 -0.05204  0.42664  2.14818 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) -0.80490    0.07042  -11.43   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.7216 on 104 degrees of freedom</code></pre>
+<p><strong>3) quadratic stimulus effect</strong> The quadratic stimulus effect is
+significant, b = -0.31599, se = 0.07563, t(82) = -4.178, p &lt; 2e-16
+***</p>
+<div class="sourceCode" id="cb305"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb305-1"><a href="ch09_tradeoff-cueXstim.html#cb305-1" aria-hidden="true" tabindex="-1"></a><span class="co"># quadratic stimulus effect</span></span>
+<span id="cb305-2"><a href="ch09_tradeoff-cueXstim.html#cb305-2" aria-hidden="true" tabindex="-1"></a>w1.tradeoff<span class="sc">$</span>quad_stim_effect <span class="ot">=</span> </span>
+<span id="cb305-3"><a href="ch09_tradeoff-cueXstim.html#cb305-3" aria-hidden="true" tabindex="-1"></a>  (<span class="sc">-</span><span class="dv">1</span><span class="sc">/</span><span class="dv">6</span>) <span class="sc">*</span> w1.tradeoff<span class="sc">$</span>high_cue_high_stim <span class="sc">+</span> </span>
+<span id="cb305-4"><a href="ch09_tradeoff-cueXstim.html#cb305-4" aria-hidden="true" tabindex="-1"></a>  (<span class="dv">2</span><span class="sc">/</span><span class="dv">6</span>) <span class="sc">*</span> w1.tradeoff<span class="sc">$</span>high_cue_med_stim <span class="sc">+</span> </span>
+<span id="cb305-5"><a href="ch09_tradeoff-cueXstim.html#cb305-5" aria-hidden="true" tabindex="-1"></a>  (<span class="sc">-</span><span class="dv">1</span><span class="sc">/</span><span class="dv">6</span>) <span class="sc">*</span> w1.tradeoff<span class="sc">$</span>high_cue_low_stim <span class="sc">+</span> </span>
+<span id="cb305-6"><a href="ch09_tradeoff-cueXstim.html#cb305-6" aria-hidden="true" tabindex="-1"></a>  (<span class="sc">-</span><span class="dv">1</span><span class="sc">/</span><span class="dv">6</span>) <span class="sc">*</span> w1.tradeoff<span class="sc">$</span>low_cue_high_stim <span class="sc">+</span> </span>
+<span id="cb305-7"><a href="ch09_tradeoff-cueXstim.html#cb305-7" aria-hidden="true" tabindex="-1"></a>  (<span class="dv">2</span><span class="sc">/</span><span class="dv">6</span>) <span class="sc">*</span> w1.tradeoff<span class="sc">$</span>low_cue_med_stim <span class="sc">+</span> </span>
+<span id="cb305-8"><a href="ch09_tradeoff-cueXstim.html#cb305-8" aria-hidden="true" tabindex="-1"></a>  (<span class="sc">-</span><span class="dv">1</span><span class="sc">/</span><span class="dv">6</span>) <span class="sc">*</span> w1.tradeoff<span class="sc">$</span>low_cue_low_stim </span>
+<span id="cb305-9"><a href="ch09_tradeoff-cueXstim.html#cb305-9" aria-hidden="true" tabindex="-1"></a>tradeoff.quad_stim <span class="ot">=</span> <span class="fu">lm</span>(w1.tradeoff<span class="sc">$</span>quad_stim_effect <span class="sc">~</span> <span class="dv">1</span>)</span>
+<span id="cb305-10"><a href="ch09_tradeoff-cueXstim.html#cb305-10" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(tradeoff.quad_stim)</span></code></pre></div>
+<pre><code>## 
+## Call:
+## lm(formula = w1.tradeoff$quad_stim_effect ~ 1)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.65581 -0.55973  0.03071  0.49762  1.89672 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) -0.27494    0.07036  -3.908 0.000166 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.721 on 104 degrees of freedom</code></pre>
+<p><strong>4) interaction effect</strong> The interaction is significant, b = 0.19646,
+se = 0.07542, t(82) = 2.605, p = 0.0109 **</p>
+<div class="sourceCode" id="cb307"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb307-1"><a href="ch09_tradeoff-cueXstim.html#cb307-1" aria-hidden="true" tabindex="-1"></a><span class="co"># interaction</span></span>
+<span id="cb307-2"><a href="ch09_tradeoff-cueXstim.html#cb307-2" aria-hidden="true" tabindex="-1"></a>w1.tradeoff<span class="sc">$</span>interaction <span class="ot">=</span> </span>
+<span id="cb307-3"><a href="ch09_tradeoff-cueXstim.html#cb307-3" aria-hidden="true" tabindex="-1"></a>  (<span class="sc">+</span><span class="dv">1</span><span class="sc">/</span><span class="dv">4</span>) <span class="sc">*</span> w1.tradeoff<span class="sc">$</span>high_cue_high_stim <span class="sc">+</span> </span>
+<span id="cb307-4"><a href="ch09_tradeoff-cueXstim.html#cb307-4" aria-hidden="true" tabindex="-1"></a>  (<span class="dv">0</span>) <span class="sc">*</span> w1.tradeoff<span class="sc">$</span>high_cue_med_stim <span class="sc">+</span> </span>
+<span id="cb307-5"><a href="ch09_tradeoff-cueXstim.html#cb307-5" aria-hidden="true" tabindex="-1"></a>  (<span class="sc">-</span><span class="dv">1</span><span class="sc">/</span><span class="dv">4</span>) <span class="sc">*</span> w1.tradeoff<span class="sc">$</span>high_cue_low_stim <span class="sc">+</span> </span>
+<span id="cb307-6"><a href="ch09_tradeoff-cueXstim.html#cb307-6" aria-hidden="true" tabindex="-1"></a>  (<span class="sc">-</span><span class="dv">1</span><span class="sc">/</span><span class="dv">4</span>) <span class="sc">*</span> w1.tradeoff<span class="sc">$</span>low_cue_high_stim <span class="sc">+</span> </span>
+<span id="cb307-7"><a href="ch09_tradeoff-cueXstim.html#cb307-7" aria-hidden="true" tabindex="-1"></a>  (<span class="dv">0</span><span class="sc">/</span><span class="dv">4</span>) <span class="sc">*</span> w1.tradeoff<span class="sc">$</span>low_cue_med_stim <span class="sc">+</span> </span>
+<span id="cb307-8"><a href="ch09_tradeoff-cueXstim.html#cb307-8" aria-hidden="true" tabindex="-1"></a>  (<span class="sc">+</span><span class="dv">1</span><span class="sc">/</span><span class="dv">4</span>) <span class="sc">*</span> w1.tradeoff<span class="sc">$</span>low_cue_low_stim </span>
+<span id="cb307-9"><a href="ch09_tradeoff-cueXstim.html#cb307-9" aria-hidden="true" tabindex="-1"></a>tradeoff.int <span class="ot">=</span> <span class="fu">lm</span>(w1.tradeoff<span class="sc">$</span>interaction <span class="sc">~</span> <span class="dv">1</span>)</span>
+<span id="cb307-10"><a href="ch09_tradeoff-cueXstim.html#cb307-10" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(tradeoff.int)</span></code></pre></div>
+<pre><code>## 
+## Call:
+## lm(formula = w1.tradeoff$interaction ~ 1)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.52806 -0.38884 -0.02102  0.39899  1.74262 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)  
+## (Intercept)  0.14994    0.06445   2.327   0.0219 *
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.6604 on 104 degrees of freedom</code></pre>
+</div>
+<div id="method-1-effectsize" class="section level3 unlisted unnumbered hasAnchor">
+<h3>Method 1 effectsize<a href="ch09_tradeoff-cueXstim.html#method-1-effectsize" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div class="sourceCode" id="cb309"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb309-1"><a href="ch09_tradeoff-cueXstim.html#cb309-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tradeoff$cue_effect:</span></span>
+<span id="cb309-2"><a href="ch09_tradeoff-cueXstim.html#cb309-2" aria-hidden="true" tabindex="-1"></a>cohens_d <span class="ot">=</span> <span class="sc">-</span><span class="fl">0.1974</span><span class="sc">/</span>(<span class="fl">0.3597</span><span class="sc">*</span><span class="fu">sqrt</span>(<span class="dv">82</span>))</span>
+<span id="cb309-3"><a href="ch09_tradeoff-cueXstim.html#cb309-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">paste</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">cohen&#39;s d of the cue effect:  -0.1974/(0.3597*sqrt(82)) = &quot;</span>, cohens_d))</span></code></pre></div>
+<pre><code>## 
+## cohen&#39;s d of the cue effect:  -0.1974/(0.3597*sqrt(82)) =  -0.0606037899560042</code></pre>
+<div class="sourceCode" id="cb311"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb311-1"><a href="ch09_tradeoff-cueXstim.html#cb311-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tradeoff lin_effect</span></span>
+<span id="cb311-2"><a href="ch09_tradeoff-cueXstim.html#cb311-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">paste</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">cohen&#39;s d of the linear stimulus intensity effect: &quot;</span>, <span class="sc">-</span><span class="fl">3.3371</span><span class="sc">/</span>(<span class="fl">0.3148</span><span class="sc">*</span><span class="fu">sqrt</span>(<span class="dv">82</span>))))</span></code></pre></div>
+<pre><code>## 
+## cohen&#39;s d of the linear stimulus intensity effect:  -1.17065135217398</code></pre>
+<div class="sourceCode" id="cb313"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb313-1"><a href="ch09_tradeoff-cueXstim.html#cb313-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tradeoff stim_quad_effect</span></span>
+<span id="cb313-2"><a href="ch09_tradeoff-cueXstim.html#cb313-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">paste</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">cohen&#39;s d of the quadratic stimulus intensity effect: &quot;</span>,<span class="sc">-</span><span class="fl">1.8960</span><span class="sc">/</span>(<span class="fl">0.4538</span><span class="sc">*</span><span class="fu">sqrt</span>(<span class="dv">82</span>))))</span></code></pre></div>
+<pre><code>## 
+## cohen&#39;s d of the quadratic stimulus intensity effect:  -0.461388658964101</code></pre>
+<div class="sourceCode" id="cb315"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb315-1"><a href="ch09_tradeoff-cueXstim.html#cb315-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tradeoff interaction_effect</span></span>
+<span id="cb315-2"><a href="ch09_tradeoff-cueXstim.html#cb315-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">paste</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">cohen&#39;s d of the quadratic stimulus intensity effect: &quot;</span>,</span>
+<span id="cb315-3"><a href="ch09_tradeoff-cueXstim.html#cb315-3" aria-hidden="true" tabindex="-1"></a><span class="fl">0.7858</span><span class="sc">/</span>(<span class="fl">0.3017</span><span class="sc">*</span><span class="fu">sqrt</span>(<span class="dv">82</span>))))</span></code></pre></div>
+<pre><code>## 
+## cohen&#39;s d of the quadratic stimulus intensity effect:  0.287627090452815</code></pre>
+<div class="sourceCode" id="cb317"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb317-1"><a href="ch09_tradeoff-cueXstim.html#cb317-1" aria-hidden="true" tabindex="-1"></a>cohens_f <span class="ot">=</span>  <span class="fu">as.numeric</span>(cohens_d)<span class="sc">*</span><span class="fl">0.5</span></span>
+<span id="cb317-2"><a href="ch09_tradeoff-cueXstim.html#cb317-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">paste</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">cohen&#39;s f of the cue effect: 1/2 * cohen&#39;s d = &quot;</span>,<span class="fu">as.numeric</span>(cohens_d)<span class="sc">*</span><span class="fl">0.5</span> ))</span></code></pre></div>
+<pre><code>## 
+## cohen&#39;s f of the cue effect: 1/2 * cohen&#39;s d =  -0.0303018949780021</code></pre>
+<ul>
+<li>Keep note of this Cohen’s f value, -0.03. It will appear in the next
+model as well.</li>
+</ul>
+</div>
+</div>
+<div id="method-1-1-aov" class="section level2 hasAnchor" number="10.6">
+<h2><span class="header-section-number">10.6</span> Method 1-1 aov<a href="ch09_tradeoff-cueXstim.html#method-1-1-aov" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>contrast-coding for aov modeling (code-hidden)</p>
+<div class="sourceCode" id="cb319"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb319-1"><a href="ch09_tradeoff-cueXstim.html#cb319-1" aria-hidden="true" tabindex="-1"></a><span class="co">#contrast code 1 linear</span></span>
+<span id="cb319-2"><a href="ch09_tradeoff-cueXstim.html#cb319-2" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>stim_con_linear[df_tradeoff<span class="sc">$</span>param_stimulus_type <span class="sc">==</span> <span class="st">&quot;low_stim&quot;</span>] <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fl">0.5</span></span>
+<span id="cb319-3"><a href="ch09_tradeoff-cueXstim.html#cb319-3" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>stim_con_linear[df_tradeoff<span class="sc">$</span>param_stimulus_type <span class="sc">==</span> <span class="st">&quot;med_stim&quot;</span>] <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb319-4"><a href="ch09_tradeoff-cueXstim.html#cb319-4" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>stim_con_linear[df_tradeoff<span class="sc">$</span>param_stimulus_type <span class="sc">==</span> <span class="st">&quot;high_stim&quot;</span>] <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
+<span id="cb319-5"><a href="ch09_tradeoff-cueXstim.html#cb319-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb319-6"><a href="ch09_tradeoff-cueXstim.html#cb319-6" aria-hidden="true" tabindex="-1"></a><span class="co"># contrast code 2 quadratic</span></span>
+<span id="cb319-7"><a href="ch09_tradeoff-cueXstim.html#cb319-7" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>stim_con_quad[df_tradeoff<span class="sc">$</span>param_stimulus_type <span class="sc">==</span> <span class="st">&quot;low_stim&quot;</span>] <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fl">0.33</span></span>
+<span id="cb319-8"><a href="ch09_tradeoff-cueXstim.html#cb319-8" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>stim_con_quad[df_tradeoff<span class="sc">$</span>param_stimulus_type <span class="sc">==</span> <span class="st">&quot;med_stim&quot;</span>] <span class="ot">&lt;-</span> <span class="fl">0.66</span></span>
+<span id="cb319-9"><a href="ch09_tradeoff-cueXstim.html#cb319-9" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>stim_con_quad[df_tradeoff<span class="sc">$</span>param_stimulus_type <span class="sc">==</span> <span class="st">&quot;high_stim&quot;</span>] <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fl">0.33</span></span>
+<span id="cb319-10"><a href="ch09_tradeoff-cueXstim.html#cb319-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb319-11"><a href="ch09_tradeoff-cueXstim.html#cb319-11" aria-hidden="true" tabindex="-1"></a><span class="co"># social cue contrast</span></span>
+<span id="cb319-12"><a href="ch09_tradeoff-cueXstim.html#cb319-12" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>social_cue[df_tradeoff<span class="sc">$</span>param_cue_type <span class="sc">==</span> <span class="st">&#39;low_cue&#39;</span>] <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fl">0.5</span> <span class="co"># social influence task</span></span>
+<span id="cb319-13"><a href="ch09_tradeoff-cueXstim.html#cb319-13" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>social_cue[df_tradeoff<span class="sc">$</span>param_cue_type <span class="sc">==</span> <span class="st">&#39;high_cue&#39;</span>] <span class="ot">&lt;-</span> <span class="fl">0.5</span> <span class="co"># no influence task</span></span>
+<span id="cb319-14"><a href="ch09_tradeoff-cueXstim.html#cb319-14" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>cue_factor <span class="ot">=</span> <span class="fu">factor</span>(df_tradeoff<span class="sc">$</span>param_cue_type)</span></code></pre></div>
+<div class="sourceCode" id="cb320"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb320-1"><a href="ch09_tradeoff-cueXstim.html#cb320-1" aria-hidden="true" tabindex="-1"></a>model_1_1 <span class="ot">&lt;-</span> <span class="fu">aov</span>(tradeoff<span class="sc">~</span><span class="fu">factor</span>(param_cue_type)<span class="sc">*</span><span class="fu">factor</span>(param_stimulus_type)<span class="sc">+</span><span class="fu">Error</span>(<span class="fu">factor</span>(src_subject_id)), <span class="at">data =</span> df_tradeoff)</span>
+<span id="cb320-2"><a href="ch09_tradeoff-cueXstim.html#cb320-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model_1_1)</span></code></pre></div>
+<pre><code>## 
+## Error: factor(src_subject_id)
+##            Df    Sum Sq   Mean Sq F value Pr(&gt;F)
+## Residuals 104 9.657e-28 9.285e-30               
+## 
+## Error: Within
+##                                                     Df Sum Sq Mean Sq F value
+## factor(param_cue_type)                               1    1.0    0.98   0.577
+## factor(param_stimulus_type)                          2  295.9  147.96  87.025
+## factor(param_cue_type):factor(param_stimulus_type)   2    9.5    4.73   2.780
+## Residuals                                          520  884.1    1.70        
+##                                                    Pr(&gt;F)    
+## factor(param_cue_type)                             0.4479    
+## factor(param_stimulus_type)                        &lt;2e-16 ***
+## factor(param_cue_type):factor(param_stimulus_type) 0.0629 .  
+## Residuals                                                    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<div class="sourceCode" id="cb322"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb322-1"><a href="ch09_tradeoff-cueXstim.html#cb322-1" aria-hidden="true" tabindex="-1"></a><span class="co">#knitr::kable(nice(model_1_1))</span></span>
+<span id="cb322-2"><a href="ch09_tradeoff-cueXstim.html#cb322-2" aria-hidden="true" tabindex="-1"></a><span class="fu">coefficients</span>(model_1_1)</span></code></pre></div>
+<pre><code>## (Intercept) :
+##   (Intercept) 
+## -1.022873e-16 
+## 
+## factor(src_subject_id) :
+## numeric(0)
+## 
+## Within :
+##                                     factor(param_cue_type)low_cue 
+##                                                        -0.2150776 
+##                               factor(param_stimulus_type)low_stim 
+##                                                         1.3099065 
+##                               factor(param_stimulus_type)med_stim 
+##                                                         0.2513999 
+## factor(param_cue_type)low_cue:factor(param_stimulus_type)low_stim 
+##                                                         0.5997752 
+## factor(param_cue_type)low_cue:factor(param_stimulus_type)med_stim 
+##                                                         0.2821716</code></pre>
+<div id="method-1-1-effectsize" class="section level3 unlisted unnumbered hasAnchor">
+<h3>Method 1-1 effectsize<a href="ch09_tradeoff-cueXstim.html#method-1-1-effectsize" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Note that the effectsize of the cue effect (“cue_factor”) is 5.64e-04.
+We’ll check that this is equivalent to the effectsize estimate in the
+next model</p>
+<div class="sourceCode" id="cb324"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb324-1"><a href="ch09_tradeoff-cueXstim.html#cb324-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cohens_f</span>(model_1_1)</span></code></pre></div>
+<pre><code>## # Effect Size for ANOVA (Type I)
+## 
+## Group  |                                          Parameter | Cohen&#39;s f (partial) |      95% CI
+## -----------------------------------------------------------------------------------------------
+## Within |                             factor(param_cue_type) |                0.03 | [0.00, Inf]
+## Within |                        factor(param_stimulus_type) |                0.58 | [0.50, Inf]
+## Within | factor(param_cue_type):factor(param_stimulus_type) |                0.10 | [0.00, Inf]
+## 
+## - One-sided CIs: upper bound fixed at [Inf].</code></pre>
+<div class="sourceCode" id="cb326"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb326-1"><a href="ch09_tradeoff-cueXstim.html#cb326-1" aria-hidden="true" tabindex="-1"></a><span class="fu">eta_squared</span>(model_1_1, <span class="at">partial =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+<pre><code>## # Effect Size for ANOVA (Type I)
+## 
+## Group  |                                          Parameter |     Eta2 |       95% CI
+## -------------------------------------------------------------------------------------
+## Within |                             factor(param_cue_type) | 8.24e-04 | [0.00, 1.00]
+## Within |                        factor(param_stimulus_type) |     0.25 | [0.20, 1.00]
+## Within | factor(param_cue_type):factor(param_stimulus_type) | 7.94e-03 | [0.00, 1.00]
+## 
+## - One-sided CIs: upper bound fixed at [1.00].</code></pre>
+</div>
+</div>
+<div id="method-1-2-aov-contrast-coding" class="section level2 hasAnchor" number="10.7">
+<h2><span class="header-section-number">10.7</span> Method 1-2 aov contrast-coding<a href="ch09_tradeoff-cueXstim.html#method-1-2-aov-contrast-coding" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div class="sourceCode" id="cb328"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb328-1"><a href="ch09_tradeoff-cueXstim.html#cb328-1" aria-hidden="true" tabindex="-1"></a><span class="co"># because the coefficients don&#39;t match, instead of adding one factor, I plan to contrast code each factor and include it in model</span></span>
+<span id="cb328-2"><a href="ch09_tradeoff-cueXstim.html#cb328-2" aria-hidden="true" tabindex="-1"></a>model_1_2 <span class="ot">&lt;-</span> <span class="fu">aov</span>(tradeoff <span class="sc">~</span> <span class="dv">1</span><span class="sc">+</span> cue_factor <span class="sc">+</span> stim_con_linear <span class="sc">+</span> stim_con_quad <span class="sc">+</span> cue_factor<span class="sc">*</span>stim_con_linear <span class="sc">+</span> cue_factor<span class="sc">*</span>stim_con_quad <span class="sc">+</span> <span class="sc">+</span><span class="fu">Error</span>(<span class="fu">factor</span>(src_subject_id)), <span class="at">data =</span> df_tradeoff)</span>
+<span id="cb328-3"><a href="ch09_tradeoff-cueXstim.html#cb328-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model_1_2)</span></code></pre></div>
+<pre><code>## 
+## Error: factor(src_subject_id)
+##            Df    Sum Sq   Mean Sq F value Pr(&gt;F)
+## Residuals 104 9.657e-28 9.285e-30               
+## 
+## Error: Within
+##                             Df Sum Sq Mean Sq F value   Pr(&gt;F)    
+## cue_factor                   1    1.0    0.98   0.577 0.447927    
+## stim_con_linear              1  272.1  272.10 160.045  &lt; 2e-16 ***
+## stim_con_quad                1   23.8   23.81  14.006 0.000203 ***
+## cue_factor:stim_con_linear   1    9.4    9.44   5.554 0.018807 *  
+## cue_factor:stim_con_quad     1    0.0    0.01   0.006 0.935965    
+## Residuals                  520  884.1    1.70                     
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<div class="sourceCode" id="cb330"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb330-1"><a href="ch09_tradeoff-cueXstim.html#cb330-1" aria-hidden="true" tabindex="-1"></a><span class="fu">coefficients</span>(model_1_2)</span></code></pre></div>
+<pre><code>## (Intercept) :
+##   (Intercept) 
+## -1.022873e-16 
+## 
+## factor(src_subject_id) :
+## numeric(0)
+## 
+## Within :
+##                 cue_factorlow_cue                   stim_con_linear 
+##                        0.07890465                       -1.30990652 
+##                     stim_con_quad cue_factorlow_cue:stim_con_linear 
+##                       -0.40762969                       -0.59977524 
+##   cue_factorlow_cue:stim_con_quad 
+##                       -0.01789492</code></pre>
+<div id="method-1-2-effectsize" class="section level3 unlisted unnumbered hasAnchor">
+<h3>Method 1-2 effectsize<a href="ch09_tradeoff-cueXstim.html#method-1-2-effectsize" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Note that the effectsize of the cue effect (“cue_factor”) is 5.64e-04.
+This is identical to the effect size of the cue effect from Method 1-1.
+For the other estimates, we can’t really compare, because the estimates
+arre collapsed into omnibus models in Method 1-1, where as Method 1-2
+uses orthogonalized contrast codes, parsing out the stimulus effect into
+two contrasts.</p>
+<div class="sourceCode" id="cb332"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb332-1"><a href="ch09_tradeoff-cueXstim.html#cb332-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cohens_f</span>(model_1_2)</span></code></pre></div>
+<pre><code>## # Effect Size for ANOVA (Type I)
+## 
+## Group  |                  Parameter | Cohen&#39;s f (partial) |      95% CI
+## -----------------------------------------------------------------------
+## Within |                 cue_factor |                0.03 | [0.00, Inf]
+## Within |            stim_con_linear |                0.55 | [0.48, Inf]
+## Within |              stim_con_quad |                0.16 | [0.09, Inf]
+## Within | cue_factor:stim_con_linear |                0.10 | [0.03, Inf]
+## Within |   cue_factor:stim_con_quad |            3.52e-03 | [0.00, Inf]
+## 
+## - One-sided CIs: upper bound fixed at [Inf].</code></pre>
+<div class="sourceCode" id="cb334"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb334-1"><a href="ch09_tradeoff-cueXstim.html#cb334-1" aria-hidden="true" tabindex="-1"></a><span class="fu">eta_squared</span>(model_1_2, <span class="at">partial =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+<pre><code>## # Effect Size for ANOVA (Type I)
+## 
+## Group  |                  Parameter |     Eta2 |       95% CI
+## -------------------------------------------------------------
+## Within |                 cue_factor | 8.24e-04 | [0.00, 1.00]
+## Within |            stim_con_linear |     0.23 | [0.18, 1.00]
+## Within |              stim_con_quad |     0.02 | [0.00, 1.00]
+## Within | cue_factor:stim_con_linear | 7.93e-03 | [0.00, 1.00]
+## Within |   cue_factor:stim_con_quad | 9.23e-06 | [0.00, 1.00]
+## 
+## - One-sided CIs: upper bound fixed at [1.00].</code></pre>
+<pre><code>UPDATE OR DELETE
+y_{ij} = \mu + \beta_{j} + \b_{i} + \epsilon_{ij}
+* y_{ij} is the response value for the ith individual at the jth period (day)</code></pre>
+<div class="sourceCode" id="cb337"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb337-1"><a href="ch09_tradeoff-cueXstim.html#cb337-1" aria-hidden="true" tabindex="-1"></a>Within_Data.BarGraph<span class="ot">&lt;-</span><span class="fu">ggplot</span>(df_tradeoff, <span class="fu">aes</span>(param_stimulus_type, tradeoff, <span class="at">fill=</span>param_stimulus_type)) <span class="sc">+</span></span>
+<span id="cb337-2"><a href="ch09_tradeoff-cueXstim.html#cb337-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat=</span><span class="st">&quot;summary&quot;</span>, <span class="at">fun.y=</span><span class="st">&quot;mean&quot;</span>) <span class="sc">+</span> </span>
+<span id="cb337-3"><a href="ch09_tradeoff-cueXstim.html#cb337-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>() <span class="sc">+</span> <span class="co"># breaks = seq(0, 101, 10), limits =c(0,101)</span></span>
+<span id="cb337-4"><a href="ch09_tradeoff-cueXstim.html#cb337-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_grid</span>(.<span class="sc">~</span>param_cue_type) <span class="sc">+</span></span>
+<span id="cb337-5"><a href="ch09_tradeoff-cueXstim.html#cb337-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">&quot;Cue&quot;</span>) <span class="sc">+</span> <span class="fu">ylab</span>(<span class="st">&quot;Tradeoff&quot;</span>) <span class="sc">+</span></span>
+<span id="cb337-6"><a href="ch09_tradeoff-cueXstim.html#cb337-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_brewer</span>(<span class="at">palette=</span><span class="st">&quot;Dark2&quot;</span>) <span class="sc">+</span></span>
+<span id="cb337-7"><a href="ch09_tradeoff-cueXstim.html#cb337-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position=</span><span class="st">&quot;none&quot;</span>)</span></code></pre></div>
+<pre><code>## Warning in geom_bar(stat = &quot;summary&quot;, fun.y = &quot;mean&quot;): Ignoring unknown
+## parameters: `fun.y`</code></pre>
+<div class="sourceCode" id="cb339"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb339-1"><a href="ch09_tradeoff-cueXstim.html#cb339-1" aria-hidden="true" tabindex="-1"></a>Within_Data.BarGraph</span></code></pre></div>
+<pre><code>## No summary function supplied, defaulting to `mean_se()`
+## No summary function supplied, defaulting to `mean_se()`</code></pre>
+<p><img src="09_iv-cue-stim_dv-tradeoff_withinsubj_files/figure-html/rough%20plot-1.png" width="672" /></p>
+</div>
+</div>
+<div id="method-1-effectsize-1" class="section level2 hasAnchor" number="10.8">
+<h2><span class="header-section-number">10.8</span> Method 1 effectsize<a href="ch09_tradeoff-cueXstim.html#method-1-effectsize-1" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="method-1-effectsize-estimate-one-sample-t-test" class="section level3 unlisted unnumbered hasAnchor">
+<h3>Method 1 effectsize estimate (one-sample t-test)<a href="ch09_tradeoff-cueXstim.html#method-1-effectsize-estimate-one-sample-t-test" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div class="sourceCode" id="cb341"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb341-1"><a href="ch09_tradeoff-cueXstim.html#cb341-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tradeoff$cue_effect:</span></span>
+<span id="cb341-2"><a href="ch09_tradeoff-cueXstim.html#cb341-2" aria-hidden="true" tabindex="-1"></a>cohens_d <span class="ot">=</span> <span class="sc">-</span><span class="fl">0.1974</span><span class="sc">/</span>(<span class="fl">0.3597</span><span class="sc">*</span><span class="fu">sqrt</span>(<span class="dv">82</span>))</span>
+<span id="cb341-3"><a href="ch09_tradeoff-cueXstim.html#cb341-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">paste</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">cohen&#39;s d of the cue effect:  -0.1974/(0.3597*sqrt(82)) = &quot;</span>, cohens_d))</span></code></pre></div>
+<pre><code>## 
+## cohen&#39;s d of the cue effect:  -0.1974/(0.3597*sqrt(82)) =  -0.0606037899560042</code></pre>
+<div class="sourceCode" id="cb343"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb343-1"><a href="ch09_tradeoff-cueXstim.html#cb343-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tradeoff lin_effect</span></span>
+<span id="cb343-2"><a href="ch09_tradeoff-cueXstim.html#cb343-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">paste</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">cohen&#39;s d of the linear stimulus intensity effect: &quot;</span>, <span class="sc">-</span><span class="fl">3.3371</span><span class="sc">/</span>(<span class="fl">0.3148</span><span class="sc">*</span><span class="fu">sqrt</span>(<span class="dv">82</span>))))</span></code></pre></div>
+<pre><code>## 
+## cohen&#39;s d of the linear stimulus intensity effect:  -1.17065135217398</code></pre>
+<div class="sourceCode" id="cb345"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb345-1"><a href="ch09_tradeoff-cueXstim.html#cb345-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tradeoff stim_quad_effect</span></span>
+<span id="cb345-2"><a href="ch09_tradeoff-cueXstim.html#cb345-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">paste</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">cohen&#39;s d of the quadratic stimulus intensity effect: &quot;</span>,<span class="sc">-</span><span class="fl">1.8960</span><span class="sc">/</span>(<span class="fl">0.4538</span><span class="sc">*</span><span class="fu">sqrt</span>(<span class="dv">82</span>))))</span></code></pre></div>
+<pre><code>## 
+## cohen&#39;s d of the quadratic stimulus intensity effect:  -0.461388658964101</code></pre>
+<div class="sourceCode" id="cb347"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb347-1"><a href="ch09_tradeoff-cueXstim.html#cb347-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tradeoff interaction_effect</span></span>
+<span id="cb347-2"><a href="ch09_tradeoff-cueXstim.html#cb347-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">paste</span>(<span class="st">&quot;</span><span class="sc">\n</span><span class="st">cohen&#39;s d of the quadratic stimulus intensity effect: &quot;</span>,</span>
+<span id="cb347-3"><a href="ch09_tradeoff-cueXstim.html#cb347-3" aria-hidden="true" tabindex="-1"></a><span class="fl">0.7858</span><span class="sc">/</span>(<span class="fl">0.3017</span><span class="sc">*</span><span class="fu">sqrt</span>(<span class="dv">82</span>))))</span></code></pre></div>
+<pre><code>## 
+## cohen&#39;s d of the quadratic stimulus intensity effect:  0.287627090452815</code></pre>
+</div>
+<div id="method-1-1-effectsize-estimate-one-sample-t-test" class="section level3 unlisted unnumbered hasAnchor">
+<h3>Method 1-1 effectsize estimate (one-sample t-test)<a href="ch09_tradeoff-cueXstim.html#method-1-1-effectsize-estimate-one-sample-t-test" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div class="sourceCode" id="cb349"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb349-1"><a href="ch09_tradeoff-cueXstim.html#cb349-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cohens_f</span>(model_1_1)</span></code></pre></div>
+<pre><code>## # Effect Size for ANOVA (Type I)
+## 
+## Group  |                                          Parameter | Cohen&#39;s f (partial) |      95% CI
+## -----------------------------------------------------------------------------------------------
+## Within |                             factor(param_cue_type) |                0.03 | [0.00, Inf]
+## Within |                        factor(param_stimulus_type) |                0.58 | [0.50, Inf]
+## Within | factor(param_cue_type):factor(param_stimulus_type) |                0.10 | [0.00, Inf]
+## 
+## - One-sided CIs: upper bound fixed at [Inf].</code></pre>
+<div class="sourceCode" id="cb351"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb351-1"><a href="ch09_tradeoff-cueXstim.html#cb351-1" aria-hidden="true" tabindex="-1"></a><span class="fu">eta_squared</span>(model_1_1, <span class="at">partial =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+<pre><code>## # Effect Size for ANOVA (Type I)
+## 
+## Group  |                                          Parameter |     Eta2 |       95% CI
+## -------------------------------------------------------------------------------------
+## Within |                             factor(param_cue_type) | 8.24e-04 | [0.00, 1.00]
+## Within |                        factor(param_stimulus_type) |     0.25 | [0.20, 1.00]
+## Within | factor(param_cue_type):factor(param_stimulus_type) | 7.94e-03 | [0.00, 1.00]
+## 
+## - One-sided CIs: upper bound fixed at [1.00].</code></pre>
+</div>
+<div id="method-1-2-effectsize-estimate-one-sample-t-test" class="section level3 unlisted unnumbered hasAnchor">
+<h3>Method 1-2 effectsize estimate (one-sample t-test)<a href="ch09_tradeoff-cueXstim.html#method-1-2-effectsize-estimate-one-sample-t-test" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div class="sourceCode" id="cb353"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb353-1"><a href="ch09_tradeoff-cueXstim.html#cb353-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cohens_f</span>(model_1_2)</span></code></pre></div>
+<pre><code>## # Effect Size for ANOVA (Type I)
+## 
+## Group  |                  Parameter | Cohen&#39;s f (partial) |      95% CI
+## -----------------------------------------------------------------------
+## Within |                 cue_factor |                0.03 | [0.00, Inf]
+## Within |            stim_con_linear |                0.55 | [0.48, Inf]
+## Within |              stim_con_quad |                0.16 | [0.09, Inf]
+## Within | cue_factor:stim_con_linear |                0.10 | [0.03, Inf]
+## Within |   cue_factor:stim_con_quad |            3.52e-03 | [0.00, Inf]
+## 
+## - One-sided CIs: upper bound fixed at [Inf].</code></pre>
+<div class="sourceCode" id="cb355"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb355-1"><a href="ch09_tradeoff-cueXstim.html#cb355-1" aria-hidden="true" tabindex="-1"></a><span class="fu">eta_squared</span>(model_1_2, <span class="at">partial =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+<pre><code>## # Effect Size for ANOVA (Type I)
+## 
+## Group  |                  Parameter |     Eta2 |       95% CI
+## -------------------------------------------------------------
+## Within |                 cue_factor | 8.24e-04 | [0.00, 1.00]
+## Within |            stim_con_linear |     0.23 | [0.18, 1.00]
+## Within |              stim_con_quad |     0.02 | [0.00, 1.00]
+## Within | cue_factor:stim_con_linear | 7.93e-03 | [0.00, 1.00]
+## Within |   cue_factor:stim_con_quad | 9.23e-06 | [0.00, 1.00]
+## 
+## - One-sided CIs: upper bound fixed at [1.00].</code></pre>
+<p>Note that the effectsize of the cue effect (“cue_factor”) is 5.64e-04.
+We’ll check that this is equivalent to the effectsize estimate in the
+next model</p>
+</div>
+</div>
+<div id="method-2-matlab" class="section level2 tabset hasAnchor" number="10.9">
+<h2><span class="header-section-number">10.9</span> Method 2 matlab<a href="ch09_tradeoff-cueXstim.html#method-2-matlab" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="method-2-matlab-1" class="section level3 unlisted unnumbered hasAnchor">
+<h3>Method 2 matlab<a href="ch09_tradeoff-cueXstim.html#method-2-matlab-1" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<ul>
+<li><p>Data Matrix: Long form</p>
+<ul>
+<li>row (83 subject) x column (6 conditions: highCue<em>highStim,
+highCue</em>medStim, highCue<em>lowStim,
+lowCue</em>highStim,lowCue<em>medStim, lowCue</em>lowStim)</li>
+</ul></li>
+<li><p>Model: Use “lm”. One-sample t-test</p></li>
+<li><p>Effect size (cohen’s d): mean / sd (intersubject slope) &gt; use
+degrees of freedom.</p></li>
+<li><p>See function help here:
+<a href="https://canlabcore.readthedocs.io/_/downloads/en/latest/pdf/" class="uri">https://canlabcore.readthedocs.io/_/downloads/en/latest/pdf/</a></p></li>
+<li><p><code>Question ::</code> How do I indicate that that is a 2 factor dataset?</p></li>
+</ul>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge,IE=9,chrome=1"><meta name="generator" content="MATLAB 2020b"><title>Untitled</title><style type="text/css">.rtcContent { padding: 30px; } .CodeBlock { background-color: #F7F7F7; margin: 10px 0 10px 0;}
+.S0 { border-left: 1px solid rgb(233, 233, 233); border-right: 1px solid rgb(233, 233, 233); border-top: 1px solid rgb(233, 233, 233); border-bottom: 0px none rgb(0, 0, 0); border-radius: 4px 4px 0px 0px; padding: 6px 45px 0px 13px; line-height: 44.316px; min-height: 18px; white-space: nowrap; color: rgb(0, 0, 0); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 36px;  }
+.S1 { border-left: 1px solid rgb(233, 233, 233); border-right: 1px solid rgb(233, 233, 233); border-top: 0px none rgb(0, 0, 0); border-bottom: 0px none rgb(0, 0, 0); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 44.316px; min-height: 18px; white-space: nowrap; color: rgb(0, 0, 0); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 36px;  }
+.S2 { border-left: 1px solid rgb(233, 233, 233); border-right: 1px solid rgb(233, 233, 233); border-top: 0px none rgb(0, 0, 0); border-bottom: 1px solid rgb(233, 233, 233); border-radius: 0px; padding: 0px 45px 4px 13px; line-height: 44.316px; min-height: 18px; white-space: nowrap; color: rgb(0, 0, 0); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 36px;  }
+.S3 { color: rgb(64, 64, 64); padding: 10px 0px 6px 17px; background: rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box; font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 36px; overflow-x: hidden; line-height: 44.316px;  }
+.embeddedOutputsErrorElement {min-height: 18px; max-height: 250px; overflow: auto;}
+.embeddedOutputsErrorElement.inlineElement {}
+.embeddedOutputsErrorElement.rightPaneElement {}
+.embeddedOutputsWarningElement{min-height: 18px; max-height: 250px; overflow: auto;}
+.embeddedOutputsWarningElement.inlineElement {}
+.embeddedOutputsWarningElement.rightPaneElement {}
+.diagnosticMessage-wrapper {font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 12px;}
+.diagnosticMessage-wrapper.diagnosticMessage-warningType {color: rgb(255,100,0);}
+.diagnosticMessage-wrapper.diagnosticMessage-warningType a {color: rgb(255,100,0); text-decoration: underline;}
+.diagnosticMessage-wrapper.diagnosticMessage-errorType {color: rgb(230,0,0);}
+.diagnosticMessage-wrapper.diagnosticMessage-errorType a {color: rgb(230,0,0); text-decoration: underline;}
+.diagnosticMessage-wrapper .diagnosticMessage-messagePart,.diagnosticMessage-wrapper .diagnosticMessage-causePart {white-space: pre-wrap;}
+.diagnosticMessage-wrapper .diagnosticMessage-stackPart {white-space: pre;}
+.embeddedOutputsTextElement,.embeddedOutputsVariableStringElement {white-space: pre; word-wrap: initial; min-height: 18px; max-height: 250px; overflow: auto;}
+.textElement,.rtcDataTipElement .textElement {padding-top: 3px;}
+.embeddedOutputsTextElement.inlineElement,.embeddedOutputsVariableStringElement.inlineElement {}
+.inlineElement .textElement {}
+.embeddedOutputsTextElement.rightPaneElement,.embeddedOutputsVariableStringElement.rightPaneElement {min-height: 16px;}
+.rightPaneElement .textElement {padding-top: 2px; padding-left: 9px;}
+.S4 { border-left: 1px solid rgb(233, 233, 233); border-right: 1px solid rgb(233, 233, 233); border-top: 1px solid rgb(233, 233, 233); border-bottom: 1px solid rgb(233, 233, 233); border-radius: 0px; padding: 6px 45px 4px 13px; line-height: 44.316px; min-height: 18px; white-space: nowrap; color: rgb(0, 0, 0); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 36px;  }
+.S5 { border-left: 1px solid rgb(233, 233, 233); border-right: 1px solid rgb(233, 233, 233); border-top: 1px solid rgb(233, 233, 233); border-bottom: 1px solid rgb(233, 233, 233); border-radius: 0px 0px 4px 4px; padding: 6px 45px 4px 13px; line-height: 44.316px; min-height: 18px; white-space: nowrap; color: rgb(0, 0, 0); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 36px;  }</style></head><body><div class = rtcContent><div class="CodeBlock"><div class="inlineWrapper"><div  class = 'S0'><span style="white-space: pre;"><span>format </span><span style="color: rgb(170, 4, 249);">short</span></span></div></div><div class="inlineWrapper"><div  class = 'S1'><span style="white-space: pre;"><span style="color: rgb(2, 128, 9);">% read csv as table</span></span></div></div><div class="inlineWrapper"><div  class = 'S1'><span style="white-space: pre;"><span>filename = </span><span style="color: rgb(170, 4, 249);">'/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect/model05_iv-cue-stim_dv-tradeoff_withinsubject/model05_iv-cue-stim_dv-tradeoff_withinsubject.csv'</span><span>;</span></span></div></div><div class="inlineWrapper"><div  class = 'S1'><span style="white-space: pre;"><span>T = readtable(filename);</span></span></div></div><div class="inlineWrapper"><div  class = 'S1'><span style="white-space: pre;"><span style="color: rgb(2, 128, 9);">% assign each column to cell</span></span></div></div><div class="inlineWrapper"><div  class = 'S1'></div></div><div class="inlineWrapper"><div  class = 'S1'><span style="white-space: pre;"><span>subject_list = unique(T.src_subject_id);</span></span></div></div><div class="inlineWrapper"><div  class = 'S1'><span style="white-space: pre;"><span>Y_DV = cell(1,length(unique(T.src_subject_id)));</span></span></div></div><div class="inlineWrapper"><div  class = 'S1'><span style="white-space: pre;"><span>X_factor = cell(1, length(unique(T.src_subject_id)));</span></span></div></div><div class="inlineWrapper"><div  class = 'S1'><span style="white-space: pre;"><span style="color: rgb(14, 0, 255);">for </span><span>n = 1:length(unique(T.src_subject_id))</span></span></div></div><div class="inlineWrapper"><div  class = 'S1'><span style="white-space: pre;"><span>    </span><span style="color: rgb(2, 128, 9);">% subset value per subject</span></span></div></div><div class="inlineWrapper"><div  class = 'S1'><span style="white-space: pre;"><span>    Y_DV{n} = T(T.src_subject_id==subject_list(n),:).tradeoff;</span></span></div></div><div class="inlineWrapper"><div  class = 'S1'><span style="white-space: pre;"><span>    X_factor{n} = T(T.src_subject_id==subject_list(n),:).con_num;</span></span></div></div><div class="inlineWrapper"><div  class = 'S1'><span style="white-space: pre;"><span style="color: rgb(14, 0, 255);">end</span></span></div></div><div class="inlineWrapper"><div  class = 'S1'></div></div><div class="inlineWrapper outputs"><div  class = 'S2'><span style="white-space: pre;"><span>stats = glmfit_multilevel(Y_DV, X_factor, [], </span><span style="color: rgb(170, 4, 249);">'verbose'</span><span>, </span><span style="color: rgb(170, 4, 249);">'weighted'</span><span>);</span></span></div><div  class = 'S3'><div class="inlineElement eoOutputWrapper embeddedOutputsTextElement scrollableOutput" uid="99D2DDC7" data-scroll-top="null" data-scroll-left="null" data-testid="output_0" data-width="3186" data-height="1408" data-hashorizontaloverflow="false" style="width: 3214px; max-height: 261px;"><div class="textElement">Analysis description: Second Level of Multilevel Model  
+GLS analysis
+
+Observations:  83, Predictors:   1
+Outcome names: 1st-level B1 1st-level B2    
+Weighting option: weighted
+Inference option: t-test
+
+Other Options:
+    Plots: No
+    Robust: no
+    Save: No
+    Output file: glmfit_general_output.txt
+    R &amp; B - type Empirical Bayes reweighting.
+Total time: 0.00 s
+
+________________________________________
+
+Second Level of Multilevel Model 
+    Outcome variables:
+    1st-level B1    1st-level B2    
+Adj. mean   -0.21   0.06    
+
+2nd-level B01
+    1st-level B1    1st-level B2    
+Coeff   -0.21   0.06    
+STE 0.12    0.04    
+t   -1.73   1.76    
+Z   -1.71   1.74    
+p   0.08812 0.08170 
+
+________________________________________</div></div></div></div><div class="inlineWrapper outputs"><div  class = 'S4'><span style="white-space: pre;"><span>disp(stats)</span></span></div><div  class = 'S3'><div class="inlineElement eoOutputWrapper embeddedOutputsTextElement scrollableOutput" uid="0DE12AF9" data-testid="output_1" data-width="3186" data-height="1056" data-hashorizontaloverflow="false" style="width: 3214px; max-height: 261px;"><div class="textElement">              mean: [-0.2132 0.0620]
+      mean_descrip: 'Intercept of each col. of Y; (mean response if predictors are centered)'
+              beta: [-0.2132 0.0620]
+      beta_descrip: 'betas (regression coefficients), k predictors x nvars'
+               var: [0.0152 0.0012]
+       var_descrip: 'Residual variance of each col. of Y'
+               ste: [0.1234 0.0352]
+       ste_descrip: 'Std. error of each beta for each col. of Y, k predictors x nvars'
+                 t: [-1.7271 1.7637]
+               dfe: [77.8088 78.0496]
+       dfe_descrip: 'error DF for each col. of Y, Satterthwaite corrected if necessary;  1 x nvars'
+                 e: [83×1 double]
+         e_descrip: 'weighted residuals (resid. from weighted GLS model.)'
+                 p: [0.0881 0.0817]
+         p_descrip: 'Two-tailed p-values'
+      analysisname: 'Second Level of Multilevel Model '
+            b_star: [-0.2307 0.0659]
+    b_star_descrip: 'R &amp; B reweighted fixed-effects estimates'
+            Y_star: [83×2 double]
+    Y_star_descrip: 'Empirical Bayes estimates of individual 2nd-level effects after re-weighting'
+      btwn_var_est: [2×1 double]
+                 W: [83×2 double]
+      inputOptions: [1×1 struct]
+       first_level: [1×1 struct]</div></div></div></div><div class="inlineWrapper"><div  class = 'S5'></div></div></div></div>
+<br>
+<!-- 
+##### SOURCE BEGIN #####
+format short
+% read csv as table
+filename = '/Users/h/Dropbox/projects_dropbox/social_influence_analysis/analysis/mixedeffect/model05_iv-cue-stim_dv-tradeoff_withinsubject/model05_iv-cue-stim_dv-tradeoff_withinsubject.csv';
+T = readtable(filename);
+% assign each column to cell
+
+subject_list = unique(T.src_subject_id);
+Y_DV = cell(1,length(unique(T.src_subject_id)));
+X_factor = cell(1, length(unique(T.src_subject_id)));
+for n = 1:length(unique(T.src_subject_id))
+    % subset value per subject
+    Y_DV{n} = T(T.src_subject_id==subject_list(n),:).tradeoff;
+    X_factor{n} = T(T.src_subject_id==subject_list(n),:).con_num;
+end
+
+stats = glmfit_multilevel(Y_DV, X_factor, [], 'verbose', 'weighted');
+disp(stats)
+##### SOURCE END #####
+--></body></html>
+</div>
+</div>
+<div id="method-3-multilevel-modeling" class="section level2 hasAnchor" number="10.10">
+<h2><span class="header-section-number">10.10</span> Method 3 multilevel modeling<a href="ch09_tradeoff-cueXstim.html#method-3-multilevel-modeling" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<ul>
+<li>Data Matrix: Long form
+<ul>
+<li>Row (498: 83 subject * 2 cue * 3 stimulus intensity)</li>
+<li>Columns (4: subject, cue type, stimulus intensity type,
+tradeoff)</li>
+</ul></li>
+<li>Model: Use “lmer” multilevel-modeling
+<ul>
+<li>grouping variable: subjects (i.e. src_subject_id)</li>
+<li>fixed effects - cue (2 levels, contrast-coded [high, low: 1,
+-1]) - stim_linear (3 levels, [low, med, high: -1, 0, 1]) -
+stim_quadratic (3 levels, [low, med, high: -1, 2, -1])</li>
+<li>random effects - cue - stim_linear - cue*stim_linear</li>
+<li>NOTE: due to convergence failure, cue*stim_quadratic term was
+removed</li>
+</ul></li>
+<li>Effect size (cohen’s d): beta_coefficient/ sqrt(sum of all random
+variance)</li>
+</ul>
+<p>contrast-coding for multi-level modeling (code-hidden)</p>
+<div class="sourceCode" id="cb357"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb357-1"><a href="ch09_tradeoff-cueXstim.html#cb357-1" aria-hidden="true" tabindex="-1"></a><span class="co">#contrast code 1 linear</span></span>
+<span id="cb357-2"><a href="ch09_tradeoff-cueXstim.html#cb357-2" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>stim_con_linear[df_tradeoff<span class="sc">$</span>param_stimulus_type <span class="sc">==</span> <span class="st">&quot;low_stim&quot;</span>] <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fl">0.5</span></span>
+<span id="cb357-3"><a href="ch09_tradeoff-cueXstim.html#cb357-3" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>stim_con_linear[df_tradeoff<span class="sc">$</span>param_stimulus_type <span class="sc">==</span> <span class="st">&quot;med_stim&quot;</span>] <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb357-4"><a href="ch09_tradeoff-cueXstim.html#cb357-4" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>stim_con_linear[df_tradeoff<span class="sc">$</span>param_stimulus_type <span class="sc">==</span> <span class="st">&quot;high_stim&quot;</span>] <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
+<span id="cb357-5"><a href="ch09_tradeoff-cueXstim.html#cb357-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb357-6"><a href="ch09_tradeoff-cueXstim.html#cb357-6" aria-hidden="true" tabindex="-1"></a><span class="co"># contrast code 2 quadratic</span></span>
+<span id="cb357-7"><a href="ch09_tradeoff-cueXstim.html#cb357-7" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>stim_con_quad[df_tradeoff<span class="sc">$</span>param_stimulus_type <span class="sc">==</span> <span class="st">&quot;low_stim&quot;</span>] <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fl">0.33</span></span>
+<span id="cb357-8"><a href="ch09_tradeoff-cueXstim.html#cb357-8" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>stim_con_quad[df_tradeoff<span class="sc">$</span>param_stimulus_type <span class="sc">==</span> <span class="st">&quot;med_stim&quot;</span>] <span class="ot">&lt;-</span> <span class="fl">0.66</span></span>
+<span id="cb357-9"><a href="ch09_tradeoff-cueXstim.html#cb357-9" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>stim_con_quad[df_tradeoff<span class="sc">$</span>param_stimulus_type <span class="sc">==</span> <span class="st">&quot;high_stim&quot;</span>] <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fl">0.33</span></span>
+<span id="cb357-10"><a href="ch09_tradeoff-cueXstim.html#cb357-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb357-11"><a href="ch09_tradeoff-cueXstim.html#cb357-11" aria-hidden="true" tabindex="-1"></a><span class="co"># social cue contrast</span></span>
+<span id="cb357-12"><a href="ch09_tradeoff-cueXstim.html#cb357-12" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>social_cue[df_tradeoff<span class="sc">$</span>param_cue_type <span class="sc">==</span> <span class="st">&#39;low_cue&#39;</span>] <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fl">0.5</span> <span class="co"># social influence task</span></span>
+<span id="cb357-13"><a href="ch09_tradeoff-cueXstim.html#cb357-13" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>social_cue[df_tradeoff<span class="sc">$</span>param_cue_type <span class="sc">==</span> <span class="st">&#39;high_cue&#39;</span>] <span class="ot">&lt;-</span> <span class="fl">0.5</span> <span class="co"># no influence task</span></span>
+<span id="cb357-14"><a href="ch09_tradeoff-cueXstim.html#cb357-14" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>cue_factor <span class="ot">=</span> <span class="fu">factor</span>(df_tradeoff<span class="sc">$</span>social_cue)</span></code></pre></div>
+<div class="sourceCode" id="cb358"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb358-1"><a href="ch09_tradeoff-cueXstim.html#cb358-1" aria-hidden="true" tabindex="-1"></a><span class="co"># parameters ___________________________________________________________________</span></span>
+<span id="cb358-2"><a href="ch09_tradeoff-cueXstim.html#cb358-2" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>subject <span class="ot">=</span> <span class="fu">factor</span>(df_tradeoff<span class="sc">$</span>src_subject_id)</span>
+<span id="cb358-3"><a href="ch09_tradeoff-cueXstim.html#cb358-3" aria-hidden="true" tabindex="-1"></a>subject_varkey <span class="ot">&lt;-</span> <span class="st">&quot;subject&quot;</span></span>
+<span id="cb358-4"><a href="ch09_tradeoff-cueXstim.html#cb358-4" aria-hidden="true" tabindex="-1"></a>iv <span class="ot">&lt;-</span> <span class="st">&quot;cue_factor&quot;</span></span>
+<span id="cb358-5"><a href="ch09_tradeoff-cueXstim.html#cb358-5" aria-hidden="true" tabindex="-1"></a>stim_con1 <span class="ot">=</span> <span class="st">&quot;stim_con_linear&quot;</span></span>
+<span id="cb358-6"><a href="ch09_tradeoff-cueXstim.html#cb358-6" aria-hidden="true" tabindex="-1"></a>stim_con2 <span class="ot">=</span> <span class="st">&quot;stim_con_quad&quot;</span></span>
+<span id="cb358-7"><a href="ch09_tradeoff-cueXstim.html#cb358-7" aria-hidden="true" tabindex="-1"></a>dv <span class="ot">&lt;-</span> <span class="st">&quot;tradeoff&quot;</span></span>
+<span id="cb358-8"><a href="ch09_tradeoff-cueXstim.html#cb358-8" aria-hidden="true" tabindex="-1"></a>iv_keyword <span class="ot">&lt;-</span> <span class="st">&quot;cue-stim&quot;</span></span>
+<span id="cb358-9"><a href="ch09_tradeoff-cueXstim.html#cb358-9" aria-hidden="true" tabindex="-1"></a>dv_keyword <span class="ot">&lt;-</span> <span class="st">&quot;tradeoff&quot;</span></span>
+<span id="cb358-10"><a href="ch09_tradeoff-cueXstim.html#cb358-10" aria-hidden="true" tabindex="-1"></a>xlab <span class="ot">&lt;-</span> <span class="st">&quot;&quot;</span></span>
+<span id="cb358-11"><a href="ch09_tradeoff-cueXstim.html#cb358-11" aria-hidden="true" tabindex="-1"></a>taskname <span class="ot">&lt;-</span> <span class="st">&quot;cognitive&quot;</span></span>
+<span id="cb358-12"><a href="ch09_tradeoff-cueXstim.html#cb358-12" aria-hidden="true" tabindex="-1"></a>ylim <span class="ot">=</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>)</span></code></pre></div>
+<p>Method-3 multi-level modeling using <strong>lmer</strong></p>
+<div class="sourceCode" id="cb359"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb359-1"><a href="ch09_tradeoff-cueXstim.html#cb359-1" aria-hidden="true" tabindex="-1"></a>Method3_fullmodel <span class="ot">=</span> <span class="fu">lmer</span>(tradeoff <span class="sc">~</span> <span class="dv">1</span><span class="sc">+</span> cue_factor <span class="sc">+</span> stim_con_linear <span class="sc">+</span> stim_con_quad <span class="sc">+</span> cue_factor<span class="sc">:</span>stim_con_linear <span class="sc">+</span> cue_factor<span class="sc">:</span>stim_con_quad <span class="sc">+</span> (<span class="dv">1</span>  <span class="sc">|</span>subject), <span class="at">data =</span> df_tradeoff)</span></code></pre></div>
+<pre><code>## boundary (singular) fit: see help(&#39;isSingular&#39;)</code></pre>
+<div class="sourceCode" id="cb361"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb361-1"><a href="ch09_tradeoff-cueXstim.html#cb361-1" aria-hidden="true" tabindex="-1"></a><span class="co"># output of Method-3 model</span></span>
+<span id="cb361-2"><a href="ch09_tradeoff-cueXstim.html#cb361-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(Method3_fullmodel)</span></code></pre></div>
+<pre><code>## Linear mixed model fit by REML. t-tests use Satterthwaite&#39;s method [
+## lmerModLmerTest]
+## Formula: tradeoff ~ 1 + cue_factor + stim_con_linear + stim_con_quad +  
+##     cue_factor:stim_con_linear + cue_factor:stim_con_quad + (1 |      subject)
+##    Data: df_tradeoff
+## 
+## REML criterion at convergence: 2016.1
+## 
+## Scaled residuals: 
+##      Min       1Q   Median       3Q      Max 
+## -2.60815 -0.68446 -0.00249  0.68088  3.12799 
+## 
+## Random effects:
+##  Groups   Name        Variance  Std.Dev. 
+##  subject  (Intercept) 4.115e-31 6.415e-16
+##  Residual             1.417e+00 1.190e+00
+## Number of obs: 630, groups:  subject, 105
+## 
+## Fixed effects:
+##                                Estimate Std. Error        df t value Pr(&gt;|t|)
+## (Intercept)                     0.03945    0.06707 624.00000   0.588  0.55657
+## cue_factor0.5                  -0.07890    0.09484 624.00000  -0.832  0.40576
+## stim_con_linear                -1.90968    0.16428 624.00000 -11.625  &lt; 2e-16
+## stim_con_quad                  -0.42552    0.14370 624.00000  -2.961  0.00318
+## cue_factor0.5:stim_con_linear   0.59978    0.23232 624.00000   2.582  0.01006
+## cue_factor0.5:stim_con_quad     0.01789    0.20323 624.00000   0.088  0.92986
+##                                  
+## (Intercept)                      
+## cue_factor0.5                    
+## stim_con_linear               ***
+## stim_con_quad                 ** 
+## cue_factor0.5:stim_con_linear *  
+## cue_factor0.5:stim_con_quad      
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Correlation of Fixed Effects:
+##                    (Intr) c_f0.5 stm_cn_l stm_cn_q c_fctr0.5:stm_cn_l
+## cue_fctr0.5        -0.707                                            
+## stim_cn_lnr         0.000  0.000                                     
+## stim_con_qd         0.000  0.000  0.000                              
+## c_fctr0.5:stm_cn_l  0.000  0.000 -0.707    0.000                     
+## c_fctr0.5:stm_cn_q  0.000  0.000  0.000   -0.707    0.000            
+## optimizer (nloptwrap) convergence code: 0 (OK)
+## boundary (singular) fit: see help(&#39;isSingular&#39;)</code></pre>
+<div class="sourceCode" id="cb363"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb363-1"><a href="ch09_tradeoff-cueXstim.html#cb363-1" aria-hidden="true" tabindex="-1"></a>cooksd <span class="ot">&lt;-</span> <span class="fu">cooks.distance</span>(Method3_fullmodel)</span>
+<span id="cb363-2"><a href="ch09_tradeoff-cueXstim.html#cb363-2" aria-hidden="true" tabindex="-1"></a>influential <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">names</span>(cooksd)[</span>
+<span id="cb363-3"><a href="ch09_tradeoff-cueXstim.html#cb363-3" aria-hidden="true" tabindex="-1"></a>    (cooksd <span class="sc">&gt;</span> (<span class="dv">4</span> <span class="sc">/</span> <span class="fu">as.numeric</span>(<span class="fu">length</span>(<span class="fu">unique</span>(df_tradeoff<span class="sc">$</span>subject)))))])</span>
+<span id="cb363-4"><a href="ch09_tradeoff-cueXstim.html#cb363-4" aria-hidden="true" tabindex="-1"></a>data_screen <span class="ot">&lt;-</span> df_tradeoff[<span class="sc">-</span>influential, ]</span>
+<span id="cb363-5"><a href="ch09_tradeoff-cueXstim.html#cb363-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb363-6"><a href="ch09_tradeoff-cueXstim.html#cb363-6" aria-hidden="true" tabindex="-1"></a><span class="co"># reordering for plots _________________________________________________________</span></span>
+<span id="cb363-7"><a href="ch09_tradeoff-cueXstim.html#cb363-7" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>cue_name[df_tradeoff<span class="sc">$</span>param_cue_type <span class="sc">==</span> <span class="st">&quot;high_cue&quot;</span>] <span class="ot">&lt;-</span> <span class="st">&quot;high cue&quot;</span></span>
+<span id="cb363-8"><a href="ch09_tradeoff-cueXstim.html#cb363-8" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>cue_name[df_tradeoff<span class="sc">$</span>param_cue_type <span class="sc">==</span> <span class="st">&quot;low_cue&quot;</span>] <span class="ot">&lt;-</span> <span class="st">&quot;low cue&quot;</span> <span class="co"># no influence task</span></span>
+<span id="cb363-9"><a href="ch09_tradeoff-cueXstim.html#cb363-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb363-10"><a href="ch09_tradeoff-cueXstim.html#cb363-10" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>stim_name[df_tradeoff<span class="sc">$</span>param_stimulus_type <span class="sc">==</span> <span class="st">&quot;high_stim&quot;</span>] <span class="ot">&lt;-</span> <span class="st">&quot;high&quot;</span> <span class="co"># no influence task</span></span>
+<span id="cb363-11"><a href="ch09_tradeoff-cueXstim.html#cb363-11" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>stim_name[df_tradeoff<span class="sc">$</span>param_stimulus_type <span class="sc">==</span> <span class="st">&quot;med_stim&quot;</span>] <span class="ot">&lt;-</span> <span class="st">&quot;med&quot;</span> <span class="co"># no influence task</span></span>
+<span id="cb363-12"><a href="ch09_tradeoff-cueXstim.html#cb363-12" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>stim_name[df_tradeoff<span class="sc">$</span>param_stimulus_type <span class="sc">==</span> <span class="st">&quot;low_stim&quot;</span>] <span class="ot">&lt;-</span> <span class="st">&quot;low&quot;</span> <span class="co"># no influence task</span></span>
+<span id="cb363-13"><a href="ch09_tradeoff-cueXstim.html#cb363-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb363-14"><a href="ch09_tradeoff-cueXstim.html#cb363-14" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>stim_ordered <span class="ot">&lt;-</span> <span class="fu">factor</span>(df_tradeoff<span class="sc">$</span>stim_name, <span class="at">levels=</span><span class="fu">c</span>(<span class="st">&quot;low&quot;</span>, <span class="st">&quot;med&quot;</span>, <span class="st">&quot;high&quot;</span>))</span>
+<span id="cb363-15"><a href="ch09_tradeoff-cueXstim.html#cb363-15" aria-hidden="true" tabindex="-1"></a>df_tradeoff<span class="sc">$</span>cue_ordered <span class="ot">&lt;-</span> <span class="fu">factor</span>(df_tradeoff<span class="sc">$</span>cue_name, <span class="at">levels=</span><span class="fu">c</span>(<span class="st">&quot;low cue&quot;</span>, <span class="st">&quot;high cue&quot;</span>))</span>
+<span id="cb363-16"><a href="ch09_tradeoff-cueXstim.html#cb363-16" aria-hidden="true" tabindex="-1"></a>model_iv1 <span class="ot">=</span> <span class="st">&quot;stim_ordered&quot;</span>;model_iv2 <span class="ot">=</span> <span class="st">&quot;cue_ordered&quot;</span></span>
+<span id="cb363-17"><a href="ch09_tradeoff-cueXstim.html#cb363-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb363-18"><a href="ch09_tradeoff-cueXstim.html#cb363-18" aria-hidden="true" tabindex="-1"></a><span class="co"># summary statistics for plots _________________________________________________</span></span>
+<span id="cb363-19"><a href="ch09_tradeoff-cueXstim.html#cb363-19" aria-hidden="true" tabindex="-1"></a>subjectwise <span class="ot">&lt;-</span> <span class="fu">meanSummary</span>(df_tradeoff, <span class="fu">c</span>(subject, model_iv1, model_iv2), dv)</span>
+<span id="cb363-20"><a href="ch09_tradeoff-cueXstim.html#cb363-20" aria-hidden="true" tabindex="-1"></a>groupwise <span class="ot">&lt;-</span> <span class="fu">summarySEwithin</span>(</span>
+<span id="cb363-21"><a href="ch09_tradeoff-cueXstim.html#cb363-21" aria-hidden="true" tabindex="-1"></a>        <span class="at">data =</span> subjectwise,</span>
+<span id="cb363-22"><a href="ch09_tradeoff-cueXstim.html#cb363-22" aria-hidden="true" tabindex="-1"></a>        <span class="at">measurevar =</span> <span class="st">&quot;mean_per_sub&quot;</span>, <span class="co"># variable created from above</span></span>
+<span id="cb363-23"><a href="ch09_tradeoff-cueXstim.html#cb363-23" aria-hidden="true" tabindex="-1"></a>        <span class="at">withinvars =</span> <span class="fu">c</span>(model_iv1, model_iv2), <span class="co"># iv</span></span>
+<span id="cb363-24"><a href="ch09_tradeoff-cueXstim.html#cb363-24" aria-hidden="true" tabindex="-1"></a>        <span class="at">idvar =</span> <span class="st">&quot;subject&quot;</span></span>
+<span id="cb363-25"><a href="ch09_tradeoff-cueXstim.html#cb363-25" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb363-26"><a href="ch09_tradeoff-cueXstim.html#cb363-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb363-27"><a href="ch09_tradeoff-cueXstim.html#cb363-27" aria-hidden="true" tabindex="-1"></a>subjectwise_mean <span class="ot">&lt;-</span> <span class="st">&quot;mean_per_sub&quot;</span>;    </span>
+<span id="cb363-28"><a href="ch09_tradeoff-cueXstim.html#cb363-28" aria-hidden="true" tabindex="-1"></a>group_mean <span class="ot">&lt;-</span> <span class="st">&quot;mean_per_sub_norm_mean&quot;</span></span>
+<span id="cb363-29"><a href="ch09_tradeoff-cueXstim.html#cb363-29" aria-hidden="true" tabindex="-1"></a>se <span class="ot">&lt;-</span> <span class="st">&quot;se&quot;</span>;   </span>
+<span id="cb363-30"><a href="ch09_tradeoff-cueXstim.html#cb363-30" aria-hidden="true" tabindex="-1"></a>ggtitle <span class="ot">&lt;-</span> <span class="fu">paste</span>(taskname, dv_keyword);    </span>
+<span id="cb363-31"><a href="ch09_tradeoff-cueXstim.html#cb363-31" aria-hidden="true" tabindex="-1"></a>title <span class="ot">&lt;-</span> <span class="fu">paste</span>(taskname, <span class="st">&quot; - RT&quot;</span>)</span>
+<span id="cb363-32"><a href="ch09_tradeoff-cueXstim.html#cb363-32" aria-hidden="true" tabindex="-1"></a>xlab <span class="ot">&lt;-</span> <span class="st">&quot;&quot;</span>;    </span>
+<span id="cb363-33"><a href="ch09_tradeoff-cueXstim.html#cb363-33" aria-hidden="true" tabindex="-1"></a>ylab <span class="ot">&lt;-</span> <span class="st">&quot;Reaction Time (s)&quot;</span>;    </span>
+<span id="cb363-34"><a href="ch09_tradeoff-cueXstim.html#cb363-34" aria-hidden="true" tabindex="-1"></a>w <span class="ot">=</span> <span class="dv">5</span>; h <span class="ot">=</span> <span class="dv">3</span>; </span>
+<span id="cb363-35"><a href="ch09_tradeoff-cueXstim.html#cb363-35" aria-hidden="true" tabindex="-1"></a>ylim <span class="ot">=</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">5</span>,<span class="dv">5</span>)</span>
+<span id="cb363-36"><a href="ch09_tradeoff-cueXstim.html#cb363-36" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">any</span>(<span class="fu">startsWith</span>(dv_keyword, <span class="fu">c</span>(<span class="st">&quot;expect&quot;</span>, <span class="st">&quot;Expect&quot;</span>)))) {</span>
+<span id="cb363-37"><a href="ch09_tradeoff-cueXstim.html#cb363-37" aria-hidden="true" tabindex="-1"></a>        color <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;#1B9E77&quot;</span>, <span class="st">&quot;#D95F02&quot;</span>)</span>
+<span id="cb363-38"><a href="ch09_tradeoff-cueXstim.html#cb363-38" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb363-39"><a href="ch09_tradeoff-cueXstim.html#cb363-39" aria-hidden="true" tabindex="-1"></a>        color <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;#4575B4&quot;</span>, <span class="st">&quot;#D73027&quot;</span>)</span>
+<span id="cb363-40"><a href="ch09_tradeoff-cueXstim.html#cb363-40" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb363-41"><a href="ch09_tradeoff-cueXstim.html#cb363-41" aria-hidden="true" tabindex="-1"></a>plot_savefname <span class="ot">&lt;-</span> <span class="fu">file.path</span>(</span>
+<span id="cb363-42"><a href="ch09_tradeoff-cueXstim.html#cb363-42" aria-hidden="true" tabindex="-1"></a>        analysis_dir,</span>
+<span id="cb363-43"><a href="ch09_tradeoff-cueXstim.html#cb363-43" aria-hidden="true" tabindex="-1"></a>        <span class="fu">paste</span>(<span class="st">&quot;raincloud_task-&quot;</span>, taskname,</span>
+<span id="cb363-44"><a href="ch09_tradeoff-cueXstim.html#cb363-44" aria-hidden="true" tabindex="-1"></a>              <span class="st">&quot;_iv-&quot;</span>, iv_keyword,<span class="st">&quot;_dv-&quot;</span>, dv_keyword,</span>
+<span id="cb363-45"><a href="ch09_tradeoff-cueXstim.html#cb363-45" aria-hidden="true" tabindex="-1"></a>              <span class="st">&quot;_&quot;</span>, <span class="fu">as.character</span>(<span class="fu">Sys.Date</span>()), <span class="st">&quot;.png&quot;</span>,</span>
+<span id="cb363-46"><a href="ch09_tradeoff-cueXstim.html#cb363-46" aria-hidden="true" tabindex="-1"></a>              <span class="at">sep =</span> <span class="st">&quot;&quot;</span></span>
+<span id="cb363-47"><a href="ch09_tradeoff-cueXstim.html#cb363-47" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb363-48"><a href="ch09_tradeoff-cueXstim.html#cb363-48" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb363-49"><a href="ch09_tradeoff-cueXstim.html#cb363-49" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_rainclouds_twofactor</span>(</span>
+<span id="cb363-50"><a href="ch09_tradeoff-cueXstim.html#cb363-50" aria-hidden="true" tabindex="-1"></a>        subjectwise, groupwise,</span>
+<span id="cb363-51"><a href="ch09_tradeoff-cueXstim.html#cb363-51" aria-hidden="true" tabindex="-1"></a>        model_iv1, model_iv2, subjectwise_mean, group_mean, se, subject,</span>
+<span id="cb363-52"><a href="ch09_tradeoff-cueXstim.html#cb363-52" aria-hidden="true" tabindex="-1"></a>        ggtitle, title, xlab, ylab, task_name, ylim,</span>
+<span id="cb363-53"><a href="ch09_tradeoff-cueXstim.html#cb363-53" aria-hidden="true" tabindex="-1"></a>        w, h, dv_keyword, color, plot_savefname</span>
+<span id="cb363-54"><a href="ch09_tradeoff-cueXstim.html#cb363-54" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div>
+<pre><code>## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], y
+## = .data[[sub_mean]], : Ignoring unknown aesthetics: fill</code></pre>
+<pre><code>## Warning: Duplicated aesthetics after name standardisation: width</code></pre>
+<pre><code>## Warning: Using the `size` aesthietic with geom_polygon was deprecated in ggplot2 3.4.0.
+## ℹ Please use the `linewidth` aesthetic instead.</code></pre>
+<p><img src="09_iv-cue-stim_dv-tradeoff_withinsubj_files/figure-html/plot%20results-1.png" width="672" /></p>
+<div class="sourceCode" id="cb367"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb367-1"><a href="ch09_tradeoff-cueXstim.html#cb367-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fixef</span>(Method3_fullmodel)</span></code></pre></div>
+<pre><code>##                   (Intercept)                 cue_factor0.5 
+##                    0.03945233                   -0.07890465 
+##               stim_con_linear                 stim_con_quad 
+##                   -1.90968176                   -0.42552462 
+## cue_factor0.5:stim_con_linear   cue_factor0.5:stim_con_quad 
+##                    0.59977524                    0.01789492</code></pre>
+<div class="sourceCode" id="cb369"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb369-1"><a href="ch09_tradeoff-cueXstim.html#cb369-1" aria-hidden="true" tabindex="-1"></a>sd_raw_pre_t <span class="ot">&lt;-</span> <span class="fu">filter</span>(df_tradeoff, cue_factor <span class="sc">==</span>  <span class="st">&quot;0.5&quot;</span>) <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">s =</span> <span class="fu">sd</span>(tradeoff)) <span class="sc">%&gt;%</span> <span class="fu">pull</span>()  <span class="co"># treatment baseline SD</span></span>
+<span id="cb369-2"><a href="ch09_tradeoff-cueXstim.html#cb369-2" aria-hidden="true" tabindex="-1"></a>sd_raw_pre_c <span class="ot">&lt;-</span> <span class="fu">filter</span>(df_tradeoff, cue_factor <span class="sc">==</span> <span class="st">&quot;-0.5&quot;</span>) <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">s =</span> <span class="fu">sd</span>(tradeoff)) <span class="sc">%&gt;%</span> <span class="fu">pull</span>()  <span class="co"># control baseline SD</span></span>
+<span id="cb369-3"><a href="ch09_tradeoff-cueXstim.html#cb369-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb369-4"><a href="ch09_tradeoff-cueXstim.html#cb369-4" aria-hidden="true" tabindex="-1"></a>sd_raw_pre_t</span></code></pre></div>
+<pre><code>## [1] 1.327879</code></pre>
+<div class="sourceCode" id="cb371"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb371-1"><a href="ch09_tradeoff-cueXstim.html#cb371-1" aria-hidden="true" tabindex="-1"></a>sd_raw_pre_c</span></code></pre></div>
+<pre><code>## [1] 1.422946</code></pre>
+<div class="sourceCode" id="cb373"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb373-1"><a href="ch09_tradeoff-cueXstim.html#cb373-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pooled PRE based on addition of two group conditions</span></span>
+<span id="cb373-2"><a href="ch09_tradeoff-cueXstim.html#cb373-2" aria-hidden="true" tabindex="-1"></a>sd_raw_pre_p <span class="ot">&lt;-</span> <span class="fu">sqrt</span>((sd_raw_pre_c<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> sd_raw_pre_t<span class="sc">^</span><span class="dv">2</span>) <span class="sc">/</span> <span class="dv">2</span>)</span>
+<span id="cb373-3"><a href="ch09_tradeoff-cueXstim.html#cb373-3" aria-hidden="true" tabindex="-1"></a>sd_raw_pre_p</span></code></pre></div>
+<pre><code>## [1] 1.376234</code></pre>
+</div>
+<div id="method-3---effect-size-estimates" class="section level2 unlisted unnumbered hasAnchor">
+<h2>Method 3 - Effect size estimates<a href="ch09_tradeoff-cueXstim.html#method-3---effect-size-estimates" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>d = estimate for fixed effect / (sqrt of sum of variances of random
+effects)</p>
+<div class="sourceCode" id="cb375"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb375-1"><a href="ch09_tradeoff-cueXstim.html#cb375-1" aria-hidden="true" tabindex="-1"></a><span class="co">#https://www.journalofcognition.org/articles/10.5334/joc.10/</span></span>
+<span id="cb375-2"><a href="ch09_tradeoff-cueXstim.html#cb375-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">paste</span>(<span class="st">&quot;effectsize of lmer cue effect:&quot;</span>, </span>
+<span id="cb375-3"><a href="ch09_tradeoff-cueXstim.html#cb375-3" aria-hidden="true" tabindex="-1"></a>          <span class="fl">0.0658</span> <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">sum</span>(<span class="fl">0.0000</span>,<span class="fl">0.6077</span>,<span class="fl">1.1785</span>,<span class="fl">4.0424</span>,<span class="fl">0.8779</span>))))</span></code></pre></div>
+<pre><code>## effectsize of lmer cue effect: 0.0254084357658397</code></pre>
+<div class="sourceCode" id="cb377"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb377-1"><a href="ch09_tradeoff-cueXstim.html#cb377-1" aria-hidden="true" tabindex="-1"></a><span class="co">#0.0658 / sqrt(sum(0.1519,0.6078,2.0258,4.0428,0.8779))</span></span>
+<span id="cb377-2"><a href="ch09_tradeoff-cueXstim.html#cb377-2" aria-hidden="true" tabindex="-1"></a><span class="co">#0.07/sqrt(sum(0.88,0.15,0.61,2.35,4.04,-1.00,0.37,-0.61))</span></span>
+<span id="cb377-3"><a href="ch09_tradeoff-cueXstim.html#cb377-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb377-4"><a href="ch09_tradeoff-cueXstim.html#cb377-4" aria-hidden="true" tabindex="-1"></a><span class="co">#cohen_f = 0.02540844**2 / (2*2)</span></span>
+<span id="cb377-5"><a href="ch09_tradeoff-cueXstim.html#cb377-5" aria-hidden="true" tabindex="-1"></a><span class="co">#cohen_f</span></span></code></pre></div>
+</div>
+<div id="method-3-plotting" class="section level2 unlisted unnumbered hasAnchor">
+<h2>Method 3 plotting<a href="ch09_tradeoff-cueXstim.html#method-3-plotting" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div class="sourceCode" id="cb378"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb378-1"><a href="ch09_tradeoff-cueXstim.html#cb378-1" aria-hidden="true" tabindex="-1"></a><span class="co"># library(sjPlot)</span></span>
+<span id="cb378-2"><a href="ch09_tradeoff-cueXstim.html#cb378-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb378-3"><a href="ch09_tradeoff-cueXstim.html#cb378-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tab_model</span>(Method3_fullmodel, <span class="at">p.val =</span> <span class="st">&quot;kr&quot;</span>, <span class="at">show.df =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<table style="border-collapse:collapse; border:none;">
+<tr>
+<th style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm;  text-align:left; ">
+ 
+</th>
+<th colspan="4" style="border-top: double; text-align:center; font-style:normal; font-weight:bold; padding:0.2cm; ">
+tradeoff
+</th>
+</tr>
+<tr>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  text-align:left; ">
+Predictors
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+Estimates
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+CI
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+p
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal;  ">
+df
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+(Intercept)
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.04
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.09 – 0.17
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.557
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+346.67
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+cue factor [0.5]
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.08
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.27 – 0.11
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.406
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+520.00
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+stim con linear
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-1.91
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-2.23 – -1.59
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+<strong>&lt;0.001</strong>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+520.00
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+stim con quad
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.43
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.71 – -0.14
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+<strong>0.003</strong>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+520.00
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+cue factor [0.5] * stim<br>con linear
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.60
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.14 – 1.06
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+<strong>0.010</strong>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+520.00
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+cue factor [0.5] * stim<br>con quad
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.02
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+-0.38 – 0.42
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.930
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+520.00
+</td>
+</tr>
+<tr>
+<td colspan="5" style="font-weight:bold; text-align:left; padding-top:.8em;">
+Random Effects
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+σ<sup>2</sup>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="4">
+1.42
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+τ<sub>00</sub> <sub>subject</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="4">
+0.00
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+N <sub>subject</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="4">
+105
+</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">
+Observations
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left; border-top:1px solid;" colspan="4">
+630
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:left;" colspan="4">
+0.256 / NA
+</td>
+</tr>
+</table>
+<div class="sourceCode" id="cb379"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb379-1"><a href="ch09_tradeoff-cueXstim.html#cb379-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_model</span>(Method3_fullmodel, <span class="at">vline.color =</span> <span class="st">&quot;red&quot;</span>)</span></code></pre></div>
+<p><img src="09_iv-cue-stim_dv-tradeoff_withinsubj_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<div class="sourceCode" id="cb380"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb380-1"><a href="ch09_tradeoff-cueXstim.html#cb380-1" aria-hidden="true" tabindex="-1"></a><span class="co"># sort coefficients based on sizee</span></span>
+<span id="cb380-2"><a href="ch09_tradeoff-cueXstim.html#cb380-2" aria-hidden="true" tabindex="-1"></a><span class="co"># plot_model(Method3_fullmodel, sort.est = TRUE)</span></span>
+<span id="cb380-3"><a href="ch09_tradeoff-cueXstim.html#cb380-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb380-4"><a href="ch09_tradeoff-cueXstim.html#cb380-4" aria-hidden="true" tabindex="-1"></a><span class="co"># sjp.lmer(Method3_fullmodel, y.offset = .4)</span></span>
+<span id="cb380-5"><a href="ch09_tradeoff-cueXstim.html#cb380-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb380-6"><a href="ch09_tradeoff-cueXstim.html#cb380-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_model</span>(Method3_fullmodel, <span class="at">type =</span> <span class="st">&quot;re&quot;</span>)</span></code></pre></div>
+<p><img src="09_iv-cue-stim_dv-tradeoff_withinsubj_files/figure-html/unnamed-chunk-18-2.png" width="672" /></p>
+<div class="sourceCode" id="cb381"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb381-1"><a href="ch09_tradeoff-cueXstim.html#cb381-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(equatiomatic)</span>
+<span id="cb381-2"><a href="ch09_tradeoff-cueXstim.html#cb381-2" aria-hidden="true" tabindex="-1"></a>equatiomatic<span class="sc">::</span><span class="fu">extract_eq</span>(Method3_fullmodel)</span></code></pre></div>
+<p><span class="math display">\[
+\begin{aligned}
+  \operatorname{tradeoff}_{i}  &amp;\sim N \left(\mu, \sigma^2 \right) \\
+    \mu &amp;=\alpha_{j[i]} + \beta_{1}(\operatorname{cue\_factor}_{\operatorname{0.5}}) + \beta_{2}(\operatorname{stim\_con\_linear}) + \beta_{3}(\operatorname{stim\_con\_quad}) + \beta_{4}(\operatorname{cue\_factor}_{\operatorname{0.5}} \times \operatorname{stim\_con\_linear}) + \beta_{5}(\operatorname{cue\_factor}_{\operatorname{0.5}} \times \operatorname{stim\_con\_quad}) \\
+    \alpha_{j}  &amp;\sim N \left(\mu_{\alpha_{j}}, \sigma^2_{\alpha_{j}} \right)
+    \text{, for subject j = 1,} \dots \text{,J}
+\end{aligned}
+\]</span></p>
+<p>–</p>
+</div>
+<div id="conclusion-method-1-vs-method-3" class="section level2 unnumbered hasAnchor">
+<h2>Conclusion: Method 1 vs Method 3<a href="ch09_tradeoff-cueXstim.html#conclusion-method-1-vs-method-3" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<ul>
+<li>TODO: find a way to plot the results side-by-side</li>
+</ul>
+<div class="sourceCode" id="cb382"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb382-1"><a href="ch09_tradeoff-cueXstim.html#cb382-1" aria-hidden="true" tabindex="-1"></a><span class="co">#sjPlot::sjt.lmer(Method3_fullmodel)</span></span></code></pre></div>
+<div id="comparison-between-method-1-and-method-3" class="section level3 unlisted unnumbered hasAnchor">
+<h3><strong>Comparison between Method 1 and Method 3</strong><a href="ch09_tradeoff-cueXstim.html#comparison-between-method-1-and-method-3" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>While the coefficients vary from model to model, the t and p values are
+identical. Please note that the multilevel modeling does not include the
+quadratic stimulus x cue interaction term int he random slopes. Thereby
+the t values do differ in this case. TODO: expand and clean * update
+the beta coefficients</p>
+<div id="statistics-of-cue-effect" class="section level4 unlisted unnumbered hasAnchor">
+<h4>1) Statistics of Cue effect<a href="ch09_tradeoff-cueXstim.html#statistics-of-cue-effect" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<ul>
+<li><strong>Method 1 onesample-t version</strong>: <em>b</em> = -0.1974, <em>se</em> = 0.3597,
+<em>t</em>(82) = -0.549, <em>p</em> = .585</li>
+</ul>
+<!-- -->
+<ul>
+<li><strong>Method 3 lmer version</strong>: <em>b</em> = 0.06580, <em>se</em> = 0.11989, <em>t</em>(81.99)
+= 0.549, <em>p</em> = .5846</li>
+</ul>
+</div>
+<div id="interaction-effect" class="section level4 unlisted unnumbered hasAnchor">
+<h4>4) Interaction effect<a href="ch09_tradeoff-cueXstim.html#interaction-effect" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<ul>
+<li><p><strong>Method 1 onesample-t version:</strong> <em>b</em> = 0.7858, <em>se</em> = 0.3017,
+<em>t</em>(82) = 2.605, <em>p</em> = 0.0109</p></li>
+<li><p><strong>Method 3 lmer version</strong>: <em>b</em> = -0.78582, <em>se</em> = 0.30170,
+<em>t</em>(81.99944) = -2.605, <em>p</em> = .0109</p></li>
+</ul>
+</div>
+</div>
+<div id="in-otherwords-the-results-are-identical." class="section level3 unlisted unnumbered hasAnchor">
+<h3>In otherwords, the results are identical.<a href="ch09_tradeoff-cueXstim.html#in-otherwords-the-results-are-identical." class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<hr />
+</div>
+</div>
+<div id="references" class="section level2 hasAnchor" number="10.11">
+<h2><span class="header-section-number">10.11</span> References<a href="ch09_tradeoff-cueXstim.html#references" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<ul>
+<li>multilevel modelling ::
+<a href="http://www.bristol.ac.uk/cmm/learning/multilevel-models/what-why.html" class="uri">http://www.bristol.ac.uk/cmm/learning/multilevel-models/what-why.html</a></li>
+<li>multilevel modelling :: df
+<a href="https://bbolker.github.io/mixedmodels-misc/glmmFAQ.html#why-doesnt-lme4-display-denominator-degrees-of-freedomp-values-what-other-options-do-i-have" class="uri">https://bbolker.github.io/mixedmodels-misc/glmmFAQ.html#why-doesnt-lme4-display-denominator-degrees-of-freedomp-values-what-other-options-do-i-have</a></li>
+<li>multilevel modelling :: <a href="https://m-clark.github.io/" class="uri">https://m-clark.github.io/</a></li>
+<li><a href="https://biblio.ugent.be/publication/5775681/file/5775705.pdf">Fixed vs random effects models for fMRI meta
+analysis</a></li>
+<li><a href="https://rpsychologist.com/d3/ci/" class="uri">https://rpsychologist.com/d3/ci/</a></li>
+<li>power analysis :: <a href="https://jakewestfall.shinyapps.io/crossedpower/" class="uri">https://jakewestfall.shinyapps.io/crossedpower/</a></li>
+<li>power analysis in lmm glmm ::
+<a href="https://lkumle.github.io/power_notebooks/" class="uri">https://lkumle.github.io/power_notebooks/</a></li>
+<li>sjPlot :: <a href="https://github.com/strengejacke/sjPlot/issues/311" class="uri">https://github.com/strengejacke/sjPlot/issues/311</a></li>
+<li>sjPlot :: <a href="https://strengejacke.wordpress.com/2017/10/23/one-function-to-rule-them-all-visualization-of-regression-models-in-rstats-w-sjplot/" class="uri">https://strengejacke.wordpress.com/2017/10/23/one-function-to-rule-them-all-visualization-of-regression-models-in-rstats-w-sjplot/</a></li>
+</ul>
+</div>
+<div id="other-links" class="section level2 hasAnchor" number="10.12">
+<h2><span class="header-section-number">10.12</span> Other links<a href="ch09_tradeoff-cueXstim.html#other-links" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<ul>
+<li>Markdown formatting ::
+<a href="https://bookdown.org/yihui/rmarkdown-cookbook/embed-rmd.html" class="uri">https://bookdown.org/yihui/rmarkdown-cookbook/embed-rmd.html</a></li>
+<li>CANlab glmfit_multilevel ::
+<a href="https://github.com/canlab/CanlabCore/blob/master/CanlabCore/Statistics_tools/glmfit_multilevel.m" class="uri">https://github.com/canlab/CanlabCore/blob/master/CanlabCore/Statistics_tools/glmfit_multilevel.m</a></li>
+<li>lmer results formatting ::
+<a href="http://www.strengejacke.de/sjPlot/articles/sjtlmer.html" class="uri">http://www.strengejacke.de/sjPlot/articles/sjtlmer.html</a></li>
+<li>lmer results formatting ::
+<a href="https://stats.stackexchange.com/questions/173335/two-regression-outputs-side-by-side-in-r" class="uri">https://stats.stackexchange.com/questions/173335/two-regression-outputs-side-by-side-in-r</a></li>
+<li>lmer and formulas :: <a href="https://rpubs.com/rslbliss/r_mlm_ws" class="uri">https://rpubs.com/rslbliss/r_mlm_ws</a></li>
+<li>repeated measures using aov in R ::
+<a href="https://stackoverflow.com/questions/5694664/repeated-measures-within-subjects-anova-in-r" class="uri">https://stackoverflow.com/questions/5694664/repeated-measures-within-subjects-anova-in-r</a></li>
+<li>Matthew McCurdy anova using afex in R
+<a href="https://ademos.people.uic.edu/Chapter21.html" class="uri">https://ademos.people.uic.edu/Chapter21.html</a></li>
+<li>error term in repeated measures R ::
+<a href="https://stats.stackexchange.com/questions/247582/repeated-measures-anova-in-r-errorsubject-vs-errorsubject-day" class="uri">https://stats.stackexchange.com/questions/247582/repeated-measures-anova-in-r-errorsubject-vs-errorsubject-day</a></li>
+<li>effect sizes in anova R ::
+<a href="https://cran.r-project.org/web/packages/effectsize/vignettes/anovaES.html" class="uri">https://cran.r-project.org/web/packages/effectsize/vignettes/anovaES.html</a></li>
+</ul>
+
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="ch08_RT-cueXstim.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="ch10_icc.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": "https://github.com/USERNAME/REPO/edit/BRANCH/09_iv-cue-stim_dv-tradeoff_withinsubj.Rmd",
+"text": "Edit"
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": ["_main.pdf", "_main.epub"],
+"search": {
+"engine": "fuse",
+"options": null
+},
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

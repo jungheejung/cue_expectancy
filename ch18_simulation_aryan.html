@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Chapter 11 [beh] RL simulation Aryan | 52_ROI TTL1</title>
+  <meta name="description" content="This is a logbook of all the mixed model analyses in one setting." />
+  <meta name="generator" content="bookdown 0.37 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Chapter 11 [beh] RL simulation Aryan | 52_ROI TTL1" />
+  <meta property="og:type" content="book" />
+  
+  <meta property="og:description" content="This is a logbook of all the mixed model analyses in one setting." />
+  <meta name="github-repo" content="rstudio/bookdown-demo" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chapter 11 [beh] RL simulation Aryan | 52_ROI TTL1" />
+  
+  <meta name="twitter:description" content="This is a logbook of all the mixed model analyses in one setting." />
+  
+
+<meta name="author" content="Heejung Jung" />
+
+
+<meta name="date" content="2023-08-14" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="ch18_simulation.html"/>
+<link rel="next" href="ch20_npssimulation.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<link href="libs/codefolding-lua-1.1/codefolding-lua.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+<script src="libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+<script src="libs/plotly-binding-4.10.3/plotly.js"></script>
+<script src="libs/typedarray-0.1/typedarray.min.js"></script>
+<link href="libs/crosstalk-1.2.1/css/crosstalk.min.css" rel="stylesheet" />
+<script src="libs/crosstalk-1.2.1/js/crosstalk.min.js"></script>
+<link href="libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet" />
+<script src="libs/plotly-main-2.11.1/plotly-latest.min.js"></script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+  
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> About</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#usage"><i class="fa fa-check"></i><b>1.1</b> Usage</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="ch2_expect.html"><a href="ch2_expect.html"><i class="fa fa-check"></i><b>2</b> [beh] expectation ~ cue</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="ch2_expect.html"><a href="ch2_expect.html#pain"><i class="fa fa-check"></i><b>2.1</b> Pain</a></li>
+<li class="chapter" data-level="2.2" data-path="ch2_expect.html"><a href="ch2_expect.html#vicarious"><i class="fa fa-check"></i><b>2.2</b> Vicarious</a></li>
+<li class="chapter" data-level="2.3" data-path="ch2_expect.html"><a href="ch2_expect.html#cognitive"><i class="fa fa-check"></i><b>2.3</b> Cognitive</a></li>
+<li class="chapter" data-level="2.4" data-path="ch2_expect.html"><a href="ch2_expect.html#individual-difference-analysis"><i class="fa fa-check"></i><b>2.4</b> Individual difference analysis</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="ch03_cue.html"><a href="ch03_cue.html"><i class="fa fa-check"></i><b>3</b> [beh] outcome ~ cue</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="ch03_cue.html"><a href="ch03_cue.html#pain-1"><i class="fa fa-check"></i><b>3.1</b> Pain</a></li>
+<li class="chapter" data-level="3.2" data-path="ch03_cue.html"><a href="ch03_cue.html#vicarious-1"><i class="fa fa-check"></i><b>3.2</b> Vicarious</a></li>
+<li class="chapter" data-level="3.3" data-path="ch03_cue.html"><a href="ch03_cue.html#cognitive-1"><i class="fa fa-check"></i><b>3.3</b> Cognitive</a></li>
+<li class="chapter" data-level="3.4" data-path="ch03_cue.html"><a href="ch03_cue.html#individual-differences-analysis-random-cue-effects"><i class="fa fa-check"></i><b>3.4</b> Individual differences analysis: random cue effects</a></li>
+<li class="chapter" data-level="3.5" data-path="ch03_cue.html"><a href="ch03_cue.html#individual-differences-analysis-2-random-intercept-random-slopes-of-cue-effect"><i class="fa fa-check"></i><b>3.5</b> Individual differences analysis 2: random intercept + random slopes of cue effect</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html"><i class="fa fa-check"></i><b>4</b> [beh] outcome ~ stimulus_intensity</a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#pain-2"><i class="fa fa-check"></i><b>4.1</b> Pain</a></li>
+<li class="chapter" data-level="4.2" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#vicarious-2"><i class="fa fa-check"></i><b>4.2</b> Vicarious</a></li>
+<li class="chapter" data-level="4.3" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#cognitive-2"><i class="fa fa-check"></i><b>4.3</b> Cognitive</a></li>
+<li class="chapter" data-level="4.4" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#for-loop"><i class="fa fa-check"></i><b>4.4</b> for loop</a></li>
+<li class="chapter" data-level="4.5" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#lineplot"><i class="fa fa-check"></i><b>4.5</b> Lineplot</a></li>
+<li class="chapter" data-level="4.6" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#individual-differences-in-outcome-rating-cue-effect"><i class="fa fa-check"></i><b>4.6</b> individual differences in outcome rating cue effect</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html"><i class="fa fa-check"></i><b>5</b> [beh] outcome_rating ~ cue * stim</a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-03-iv-cuecontrast-dv-outcome"><i class="fa fa-check"></i><b>5.1</b> model 03 iv-cuecontrast dv-outcome</a>
+<ul>
+<li class="chapter" data-level="5.1.1" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-03-3-2.-individual-difference"><i class="fa fa-check"></i><b>5.1.1</b> model 03 3-2. individual difference</a></li>
+<li class="chapter" data-level="5.1.2" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-iv-cue-stim-dv-outcome"><i class="fa fa-check"></i><b>5.1.2</b> model 04 iv-cue-stim dv-outcome</a></li>
+<li class="chapter" data-level="5.1.3" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#nov-17-lmer"><i class="fa fa-check"></i><b>5.1.3</b> Nov 17 lmer</a></li>
+<li class="chapter" data-level="5.1.4" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-2-individual-differences-in-cue-effects"><i class="fa fa-check"></i><b>5.1.4</b> model 04 4-2 individual differences in cue effects</a></li>
+<li class="chapter" data-level="5.1.5" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-3-scatter-plot"><i class="fa fa-check"></i><b>5.1.5</b> model 04 4-3 scatter plot</a></li>
+<li class="chapter" data-level="5.1.6" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-4-lineplot"><i class="fa fa-check"></i><b>5.1.6</b> model 04 4-4 lineplot</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="clinical-trials.html"><a href="clinical-trials.html"><i class="fa fa-check"></i><b>6</b> Clinical trials</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="clinical-trials.html"><a href="clinical-trials.html#cue-contrast-average-across-intensity"><i class="fa fa-check"></i><b>6.1</b> cue contrast average across intensity</a></li>
+<li class="chapter" data-level="6.2" data-path="clinical-trials.html"><a href="clinical-trials.html#cue-contrast-average-across-expectation"><i class="fa fa-check"></i><b>6.2</b> cue contrast average across expectation</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html"><i class="fa fa-check"></i><b>7</b> expect-actual ~ cue * trial</a>
+<ul>
+<li class="chapter" data-level="7.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#overview"><i class="fa fa-check"></i><b>7.1</b> Overview</a></li>
+<li class="chapter" data-level="7.2" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#plot-1---one-run-average-across-participants"><i class="fa fa-check"></i><b>7.2</b> plot 1 - one run, average across participants</a></li>
+<li class="chapter" data-level="7.3" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#plot-2---average-across-participant-but-spread-all-6-runs-in-one-x-axis"><i class="fa fa-check"></i><b>7.3</b> plot 2 - average across participant, but spread all 6 runs in one x axis</a></li>
+<li class="chapter" data-level="7.4" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#vicarious-3"><i class="fa fa-check"></i><b>7.4</b> vicarious</a></li>
+<li class="chapter" data-level="7.5" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#cognitive-3"><i class="fa fa-check"></i><b>7.5</b> cognitive</a></li>
+<li class="chapter" data-level="7.6" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#within-subject-vicarious"><i class="fa fa-check"></i><b>7.6</b> within subject vicarious</a></li>
+<li class="chapter" data-level="7.7" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#tor-request-only-outcome-ratings.-3-tasks"><i class="fa fa-check"></i><b>7.7</b> Tor request – only outcome ratings. 3 tasks</a>
+<ul>
+<li class="chapter" data-level="7.7.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#pain-3"><i class="fa fa-check"></i><b>7.7.1</b> pain</a></li>
+<li class="chapter" data-level="7.7.2" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#vicarious-4"><i class="fa fa-check"></i><b>7.7.2</b> vicarious</a></li>
+<li class="chapter" data-level="7.7.3" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#cognitive-4"><i class="fa fa-check"></i><b>7.7.3</b> cognitive</a></li>
+</ul></li>
+<li class="chapter" data-level="7.8" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#tor-request-only-expect-ratings.-3-tasks"><i class="fa fa-check"></i><b>7.8</b> Tor request – only expect ratings. 3 tasks</a>
+<ul>
+<li class="chapter" data-level="7.8.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#pain-4"><i class="fa fa-check"></i><b>7.8.1</b> pain</a></li>
+<li class="chapter" data-level="7.8.2" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#vicarious-5"><i class="fa fa-check"></i><b>7.8.2</b> vicarious</a></li>
+<li class="chapter" data-level="7.8.3" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#cognitive-5"><i class="fa fa-check"></i><b>7.8.3</b> cognitive</a></li>
+</ul></li>
+<li class="chapter" data-level="7.9" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#lmer"><i class="fa fa-check"></i><b>7.9</b> lmer</a>
+<ul>
+<li class="chapter" data-level="7.9.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#lmer-histogram"><i class="fa fa-check"></i><b>7.9.1</b> lmer histogram</a></li>
+</ul></li>
+<li class="chapter" data-level="7.10" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#do-current-expectation-ratings-predict-outcome-ratings"><i class="fa fa-check"></i><b>7.10</b> Do current expectation ratings predict outcome ratings?</a></li>
+<li class="chapter" data-level="7.11" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#additional-analysis"><i class="fa fa-check"></i><b>7.11</b> Additional analysis</a></li>
+</ul></li>
+<li class="chapter" data-level="8" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html"><i class="fa fa-check"></i><b>8</b> [ beh ] outcome_demean ~ cue * stim * expectrating * n-1outcomerating</a>
+<ul>
+<li class="chapter" data-level="8.1" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#linear-model-0508"><i class="fa fa-check"></i><b>8.1</b> linear model 0508</a></li>
+<li class="chapter" data-level="8.2" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#linear-model"><i class="fa fa-check"></i><b>8.2</b> linear model</a></li>
+<li class="chapter" data-level="8.3" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#q.-are-those-overestimating-for-high-cues-also-underestimators-for-low-cues"><i class="fa fa-check"></i><b>8.3</b> Q. Are those overestimating for high cues also underestimators for low cues?</a></li>
+<li class="chapter" data-level="8.4" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#todo-can-you-test-if-the-slopes-are-the-same-that-might-tell-us-something-about-whether-expectancies-translate-into-outcomes-with-the-same-efficacy-across-all-three-tasks."><i class="fa fa-check"></i><b>8.4</b> TODO: Can you test if the slopes are the same? That might tell us something about whether, expectancies translate into outcomes with the same efficacy across all three tasks.</a></li>
+<li class="chapter" data-level="8.5" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#pain-run-collapsed-across-stimulus-intensity"><i class="fa fa-check"></i><b>8.5</b> pain run, collapsed across stimulus intensity</a></li>
+<li class="chapter" data-level="8.6" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#vicarious-6"><i class="fa fa-check"></i><b>8.6</b> vicarious</a></li>
+<li class="chapter" data-level="8.7" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#cognitive-6"><i class="fa fa-check"></i><b>8.7</b> cognitive</a></li>
+<li class="chapter" data-level="8.8" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#linear-model-0508-1"><i class="fa fa-check"></i><b>8.8</b> linear model 0508</a></li>
+<li class="chapter" data-level="8.9" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#across-tasks-pvc-is-the-slope-for-highvslow-cue-the-sametor-question"><i class="fa fa-check"></i><b>8.9</b> across tasks (PVC), is the slope for (highvslow cue) the same?Tor question</a></li>
+<li class="chapter" data-level="8.10" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#alireza-congruent-incongruent-pe"><i class="fa fa-check"></i><b>8.10</b> Alireza congruent incongruent (PE)</a>
+<ul>
+<li class="chapter" data-level="8.10.1" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#archive-this-cell"><i class="fa fa-check"></i><b>8.10.1</b> archive this cell</a></li>
+</ul></li>
+<li class="chapter" data-level="8.11" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#alireza-congruent-incongruent-incorrect"><i class="fa fa-check"></i><b>8.11</b> Alireza congruent incongruent (incorrect)</a>
+<ul>
+<li class="chapter" data-level="8.11.1" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#archive-this-cell-1"><i class="fa fa-check"></i><b>8.11.1</b> archive this cell</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="ch17_mediation.html"><a href="ch17_mediation.html"><i class="fa fa-check"></i><b>9</b> [beh] Mediation outcome ~ cue * stim * expectrating * n-1outcomerating</a>
+<ul>
+<li class="chapter" data-level="9.1" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation"><i class="fa fa-check"></i><b>9.1</b> mediation</a></li>
+<li class="chapter" data-level="9.2" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation-2"><i class="fa fa-check"></i><b>9.2</b> mediation 2</a></li>
+<li class="chapter" data-level="9.3" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation-3-test-same-model-using-mediation-from-mbess"><i class="fa fa-check"></i><b>9.3</b> mediation 3: Test same model using mediation() from MBESS</a></li>
+<li class="chapter" data-level="9.4" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation-4-test-library-mediation"><i class="fa fa-check"></i><b>9.4</b> mediation 4: Test library mediation</a></li>
+</ul></li>
+<li class="chapter" data-level="10" data-path="ch18_simulation.html"><a href="ch18_simulation.html"><i class="fa fa-check"></i><b>10</b> [beh] RL simulation</a>
+<ul>
+<li class="chapter" data-level="10.1" data-path="ch18_simulation.html"><a href="ch18_simulation.html#function"><i class="fa fa-check"></i><b>10.1</b> function</a></li>
+</ul></li>
+<li class="chapter" data-level="11" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html"><i class="fa fa-check"></i><b>11</b> [beh] RL simulation Aryan</a>
+<ul>
+<li class="chapter" data-level="11.1" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-expectation-and-outcome-rating-using-model-4-simulations-jepma"><i class="fa fa-check"></i><b>11.1</b> Plot the relationship between expectation and outcome rating using model 4 simulations (Jepma)</a></li>
+<li class="chapter" data-level="11.2" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-expectation-and-outcome-rating-using-model-2-simulations-jepma"><i class="fa fa-check"></i><b>11.2</b> Plot the relationship between expectation and outcome rating using model 2 simulations (Jepma)</a>
+<ul>
+<li class="chapter" data-level="11.2.1" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#model-fits-from-model-2.-expectation-ratings-jepma-model"><i class="fa fa-check"></i><b>11.2.1</b> model fits from model 2. expectation ratings (Jepma model)</a></li>
+<li class="chapter" data-level="11.2.2" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#model-fits-from-model-2.-outcome-ratings-jepma-model"><i class="fa fa-check"></i><b>11.2.2</b> model fits from model 2. outcome ratings (Jepma model)</a></li>
+</ul></li>
+<li class="chapter" data-level="11.3" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#correlation-betweeen-alpha_incongruent-and-cue-trial-slope-randome-effects-of-cue"><i class="fa fa-check"></i><b>11.3</b> correlation betweeen alpha_incongruent and cue trial slope (randome effects of cue)</a></li>
+<li class="chapter" data-level="11.4" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#correlation-betweeen-alpha_incongruent-and-nps"><i class="fa fa-check"></i><b>11.4</b> correlation betweeen alpha_incongruent and NPS</a></li>
+<li class="chapter" data-level="11.5" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#correlation-bettween-nps-and-pe"><i class="fa fa-check"></i><b>11.5</b> correlation bettween NPS and PE</a>
+<ul>
+<li class="chapter" data-level="11.5.1" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#test-similarity-between-nps-positive-values-and-pe-11062023"><i class="fa fa-check"></i><b>11.5.1</b> test similarity between NPS positive values and PE (11/06/2023)</a></li>
+<li class="chapter" data-level="11.5.2" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#test-relationship-between-pe-and-cue-type-and-stimintensity-06162023"><i class="fa fa-check"></i><b>11.5.2</b> test relationship between PE and cue type and stimintensity (06/16/2023)</a></li>
+<li class="chapter" data-level="11.5.3" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-pe-and-nps-as-a-function-of-cue"><i class="fa fa-check"></i><b>11.5.3</b> plot the relationship between PE and NPS as a function of cue</a></li>
+<li class="chapter" data-level="11.5.4" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-pe-and-nps-as-a-function-of-cue-and-stimulus-intensity"><i class="fa fa-check"></i><b>11.5.4</b> plot the relationship between PE and NPS as a function of cue and stimulus intensity</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="12" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html"><i class="fa fa-check"></i><b>12</b> [model] NPSsimulation</a>
+<ul>
+<li class="chapter" data-level="12.0.1" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#function-1"><i class="fa fa-check"></i><b>12.0.1</b> Function</a></li>
+<li class="chapter" data-level="12.0.2" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#nps-data"><i class="fa fa-check"></i><b>12.0.2</b> NPS data</a></li>
+<li class="chapter" data-level="12.0.3" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#behavioral-data"><i class="fa fa-check"></i><b>12.0.3</b> behavioral data</a></li>
+<li class="chapter" data-level="12.0.4" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#get-pain-relationship-controlling-for-cue-cuetype-expect"><i class="fa fa-check"></i><b>12.0.4</b> get pain relationship, controlling for cue, cuetype, expect</a></li>
+<li class="chapter" data-level="12.1" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#simulation"><i class="fa fa-check"></i><b>12.1</b> simulation **</a></li>
+</ul></li>
+<li class="chapter" data-level="13" data-path="ch51_fir_glasserTPJttl2.html"><a href="ch51_fir_glasserTPJttl2.html"><i class="fa fa-check"></i><b>13</b> [fMRI] FIR ~ task</a>
+<ul>
+<li class="chapter" data-level="13.1" data-path="ch51_fir_glasserTPJttl2.html"><a href="ch51_fir_glasserTPJttl2.html#parameters-todo-ignore"><i class="fa fa-check"></i><b>13.1</b> parameters {TODO: ignore}</a></li>
+</ul></li>
+<li class="chapter" data-level="14" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html"><i class="fa fa-check"></i><b>14</b> taskwise stim effect</a>
+<ul>
+<li class="chapter" data-level="14.0.1" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#pca-subjectwise"><i class="fa fa-check"></i><b>14.0.1</b> PCA subjectwise</a></li>
+<li class="chapter" data-level="14.0.2" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#pca-groupwise"><i class="fa fa-check"></i><b>14.0.2</b> PCA groupwise</a></li>
+<li class="chapter" data-level="14.1" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#dep-epoch-stim-high-cue-vs-low-cue"><i class="fa fa-check"></i><b>14.1</b> DEP: epoch: stim, high cue vs low cue</a></li>
+<li class="chapter" data-level="14.2" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#taskwise-cue-effect"><i class="fa fa-check"></i><b>14.2</b> taskwise cue effect</a></li>
+<li class="chapter" data-level="14.3" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#epoch-stim-rating"><i class="fa fa-check"></i><b>14.3</b> epoch: stim, rating</a></li>
+<li class="chapter" data-level="14.4" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#epoch-6-cond"><i class="fa fa-check"></i><b>14.4</b> epoch: 6 cond</a></li>
+</ul></li>
+<li class="chapter" data-level="15" data-path="taskwise-6-cond-effect.html"><a href="taskwise-6-cond-effect.html"><i class="fa fa-check"></i><b>15</b> taskwise 6 cond effect</a></li>
+<li class="chapter" data-level="16" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html"><i class="fa fa-check"></i><b>16</b> [fMRI] FIR ~ task TTL1</a>
+<ul>
+<li class="chapter" data-level="16.1" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#references"><i class="fa fa-check"></i><b>16.1</b> references</a></li>
+<li class="chapter" data-level="16.2" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#taskwise-stim-effect-1"><i class="fa fa-check"></i><b>16.2</b> taskwise stim effect</a>
+<ul>
+<li class="chapter" data-level="16.2.1" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#pca-subjectwise-1"><i class="fa fa-check"></i><b>16.2.1</b> PCA subjectwise</a></li>
+<li class="chapter" data-level="16.2.2" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#pca-groupwise-1"><i class="fa fa-check"></i><b>16.2.2</b> PCA groupwise</a></li>
+</ul></li>
+<li class="chapter" data-level="16.3" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#taskwise-cue-effect-1"><i class="fa fa-check"></i><b>16.3</b> taskwise cue effect</a>
+<ul>
+<li class="chapter" data-level="16.3.1" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#epoch-stim-rating-1"><i class="fa fa-check"></i><b>16.3.1</b> epoch: stim, rating</a></li>
+</ul></li>
+<li class="chapter" data-level="16.4" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#main-sandbox-6-condition-in-three-panels.-per-task.-per-roi"><i class="fa fa-check"></i><b>16.4</b> MAIN SANDBOX: 6 condition in three panels. per task. per ROI</a></li>
+</ul></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">52_ROI TTL1</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="ch18_simulation_aryan" class="section level1 hasAnchor" number="11">
+<h1><span class="header-section-number">Chapter 11</span> [beh] RL simulation Aryan<a href="ch18_simulation_aryan.html#ch18_simulation_aryan" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<div id="what-is-the-purpose-of-this-notebook-6" class="section level2 unlisted unnumbered hasAnchor">
+<h2>What is the purpose of this notebook?<a href="ch18_simulation_aryan.html#what-is-the-purpose-of-this-notebook-6" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<ul>
+<li>Here, I model Aryans model fitted results, using the same scheme as my behavioral analysis (15*.Rmd)</li>
+</ul>
+</div>
+<div id="load-data-1" class="section level2 unlisted unnumbered hasAnchor">
+<h2>load data<a href="ch18_simulation_aryan.html#load-data-1" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+</div>
+<div id="plot-the-relationship-between-expectation-and-outcome-rating-using-model-4-simulations-jepma" class="section level2 hasAnchor" number="11.1">
+<h2><span class="header-section-number">11.1</span> Plot the relationship between expectation and outcome rating using model 4 simulations (Jepma)<a href="ch18_simulation_aryan.html#plot-the-relationship-between-expectation-and-outcome-rating-using-model-4-simulations-jepma" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p><img src="19_RLsimulation_Aryan_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<p><img src="19_RLsimulation_Aryan_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+</div>
+<div id="plot-the-relationship-between-expectation-and-outcome-rating-using-model-2-simulations-jepma" class="section level2 hasAnchor" number="11.2">
+<h2><span class="header-section-number">11.2</span> Plot the relationship between expectation and outcome rating using model 2 simulations (Jepma)<a href="ch18_simulation_aryan.html#plot-the-relationship-between-expectation-and-outcome-rating-using-model-2-simulations-jepma" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p><img src="19_RLsimulation_Aryan_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p><img src="19_RLsimulation_Aryan_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<div id="model-fits-from-model-2.-expectation-ratings-jepma-model" class="section level3 hasAnchor" number="11.2.1">
+<h3><span class="header-section-number">11.2.1</span> model fits from model 2. expectation ratings (Jepma model)<a href="ch18_simulation_aryan.html#model-fits-from-model-2.-expectation-ratings-jepma-model" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb294"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb294-1"><a href="ch18_simulation_aryan.html#cb294-1" aria-hidden="true" tabindex="-1"></a>main_dir <span class="ot">=</span> <span class="fu">dirname</span>(<span class="fu">dirname</span>(<span class="fu">getwd</span>()))</span>
+<span id="cb294-2"><a href="ch18_simulation_aryan.html#cb294-2" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="fu">file.path</span>(main_dir, <span class="st">&#39;data/simulated/model_ver04_0508/table_pain_new.csv&#39;</span>))</span>
+<span id="cb294-3"><a href="ch18_simulation_aryan.html#cb294-3" aria-hidden="true" tabindex="-1"></a>subjectwise_2dv <span class="ot">&lt;-</span> <span class="fu">meanSummary_2dv</span>(data, <span class="fu">c</span>(<span class="st">&quot;src_subject_id&quot;</span>), </span>
+<span id="cb294-4"><a href="ch18_simulation_aryan.html#cb294-4" aria-hidden="true" tabindex="-1"></a>                                   <span class="st">&quot;event02_expect_angle&quot;</span>, <span class="st">&quot;Exp_mdl2&quot;</span> )</span>
+<span id="cb294-5"><a href="ch18_simulation_aryan.html#cb294-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> subjectwise_2dv, </span>
+<span id="cb294-6"><a href="ch18_simulation_aryan.html#cb294-6" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> .data[[<span class="st">&quot;DV1_mean_per_sub&quot;</span>]], </span>
+<span id="cb294-7"><a href="ch18_simulation_aryan.html#cb294-7" aria-hidden="true" tabindex="-1"></a>           <span class="at">y =</span> .data[[<span class="st">&quot;DV2_mean_per_sub&quot;</span>]],</span>
+<span id="cb294-8"><a href="ch18_simulation_aryan.html#cb294-8" aria-hidden="true" tabindex="-1"></a>           <span class="at">size =</span> .<span class="dv">5</span></span>
+<span id="cb294-9"><a href="ch18_simulation_aryan.html#cb294-9" aria-hidden="true" tabindex="-1"></a>           )) <span class="sc">+</span></span>
+<span id="cb294-10"><a href="ch18_simulation_aryan.html#cb294-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">2</span>, <span class="at">alpha =</span> .<span class="dv">5</span>  ) <span class="sc">+</span> </span>
+<span id="cb294-11"><a href="ch18_simulation_aryan.html#cb294-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="dv">0</span>,<span class="dv">180</span>) <span class="sc">+</span> </span>
+<span id="cb294-12"><a href="ch18_simulation_aryan.html#cb294-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="dv">0</span>,<span class="dv">180</span>) <span class="sc">+</span></span>
+<span id="cb294-13"><a href="ch18_simulation_aryan.html#cb294-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_fixed</span>() <span class="sc">+</span></span>
+<span id="cb294-14"><a href="ch18_simulation_aryan.html#cb294-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">slope =</span> <span class="dv">1</span>, <span class="at">color =</span> <span class="st">&quot;#373737&quot;</span>, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">linewidth =</span> .<span class="dv">5</span>) <span class="sc">+</span> </span>
+<span id="cb294-15"><a href="ch18_simulation_aryan.html#cb294-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">&quot;Observed</span><span class="sc">\n</span><span class="st">expectation rating&quot;</span>) <span class="sc">+</span> </span>
+<span id="cb294-16"><a href="ch18_simulation_aryan.html#cb294-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">&quot;Model-fitted </span><span class="sc">\n</span><span class="st">expectation rating&quot;</span>)<span class="sc">+</span></span>
+<span id="cb294-17"><a href="ch18_simulation_aryan.html#cb294-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb294-18"><a href="ch18_simulation_aryan.html#cb294-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&quot;grey50&quot;</span>),</span>
+<span id="cb294-19"><a href="ch18_simulation_aryan.html#cb294-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.background =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb294-20"><a href="ch18_simulation_aryan.html#cb294-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.subtitle =</span> ggtext<span class="sc">::</span><span class="fu">element_textbox_simple</span>(<span class="at">size =</span> <span class="dv">1</span>), </span>
+<span id="cb294-21"><a href="ch18_simulation_aryan.html#cb294-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>),</span>
+<span id="cb294-22"><a href="ch18_simulation_aryan.html#cb294-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>),</span>
+<span id="cb294-23"><a href="ch18_simulation_aryan.html#cb294-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">15</span>),</span>
+<span id="cb294-24"><a href="ch18_simulation_aryan.html#cb294-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">15</span>)</span>
+<span id="cb294-25"><a href="ch18_simulation_aryan.html#cb294-25" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb294-26"><a href="ch18_simulation_aryan.html#cb294-26" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div>
+</details>
+<p><img src="19_RLsimulation_Aryan_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+</div>
+<div id="model-fits-from-model-2.-outcome-ratings-jepma-model" class="section level3 hasAnchor" number="11.2.2">
+<h3><span class="header-section-number">11.2.2</span> model fits from model 2. outcome ratings (Jepma model)<a href="ch18_simulation_aryan.html#model-fits-from-model-2.-outcome-ratings-jepma-model" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb295"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb295-1"><a href="ch18_simulation_aryan.html#cb295-1" aria-hidden="true" tabindex="-1"></a>subjectwise_2dv <span class="ot">&lt;-</span> <span class="fu">meanSummary_2dv</span>(data, <span class="fu">c</span>(<span class="st">&quot;src_subject_id&quot;</span>), </span>
+<span id="cb295-2"><a href="ch18_simulation_aryan.html#cb295-2" aria-hidden="true" tabindex="-1"></a>                                   <span class="st">&quot;event04_actual_angle&quot;</span>, <span class="st">&quot;Pain_mdl2&quot;</span> )</span>
+<span id="cb295-3"><a href="ch18_simulation_aryan.html#cb295-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> subjectwise_2dv, </span>
+<span id="cb295-4"><a href="ch18_simulation_aryan.html#cb295-4" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> .data[[<span class="st">&quot;DV1_mean_per_sub&quot;</span>]], </span>
+<span id="cb295-5"><a href="ch18_simulation_aryan.html#cb295-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">y =</span> .data[[<span class="st">&quot;DV2_mean_per_sub&quot;</span>]],</span>
+<span id="cb295-6"><a href="ch18_simulation_aryan.html#cb295-6" aria-hidden="true" tabindex="-1"></a>           <span class="at">size =</span> .<span class="dv">5</span></span>
+<span id="cb295-7"><a href="ch18_simulation_aryan.html#cb295-7" aria-hidden="true" tabindex="-1"></a>           )) <span class="sc">+</span></span>
+<span id="cb295-8"><a href="ch18_simulation_aryan.html#cb295-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">2</span>, <span class="at">alpha =</span> .<span class="dv">5</span>  ) <span class="sc">+</span> </span>
+<span id="cb295-9"><a href="ch18_simulation_aryan.html#cb295-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="dv">0</span>,<span class="dv">180</span>) <span class="sc">+</span> </span>
+<span id="cb295-10"><a href="ch18_simulation_aryan.html#cb295-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="dv">0</span>,<span class="dv">180</span>) <span class="sc">+</span></span>
+<span id="cb295-11"><a href="ch18_simulation_aryan.html#cb295-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_fixed</span>() <span class="sc">+</span></span>
+<span id="cb295-12"><a href="ch18_simulation_aryan.html#cb295-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">slope =</span> <span class="dv">1</span>, <span class="at">color =</span> <span class="st">&quot;#373737&quot;</span>, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">linewidth =</span> .<span class="dv">5</span>) <span class="sc">+</span> </span>
+<span id="cb295-13"><a href="ch18_simulation_aryan.html#cb295-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">&quot;Observed</span><span class="sc">\n</span><span class="st">outcome rating&quot;</span>) <span class="sc">+</span> </span>
+<span id="cb295-14"><a href="ch18_simulation_aryan.html#cb295-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">&quot;Model-fitted </span><span class="sc">\n</span><span class="st">outcome rating&quot;</span>)<span class="sc">+</span></span>
+<span id="cb295-15"><a href="ch18_simulation_aryan.html#cb295-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb295-16"><a href="ch18_simulation_aryan.html#cb295-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&quot;grey50&quot;</span>),</span>
+<span id="cb295-17"><a href="ch18_simulation_aryan.html#cb295-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.background =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb295-18"><a href="ch18_simulation_aryan.html#cb295-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.subtitle =</span> ggtext<span class="sc">::</span><span class="fu">element_textbox_simple</span>(<span class="at">size =</span> <span class="dv">1</span>), </span>
+<span id="cb295-19"><a href="ch18_simulation_aryan.html#cb295-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">15</span>),</span>
+<span id="cb295-20"><a href="ch18_simulation_aryan.html#cb295-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">15</span>),</span>
+<span id="cb295-21"><a href="ch18_simulation_aryan.html#cb295-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">20</span>),</span>
+<span id="cb295-22"><a href="ch18_simulation_aryan.html#cb295-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">20</span>)</span>
+<span id="cb295-23"><a href="ch18_simulation_aryan.html#cb295-23" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb295-24"><a href="ch18_simulation_aryan.html#cb295-24" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div>
+</details>
+<p><img src="19_RLsimulation_Aryan_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+</div>
+</div>
+<div id="correlation-betweeen-alpha_incongruent-and-cue-trial-slope-randome-effects-of-cue" class="section level2 hasAnchor" number="11.3">
+<h2><span class="header-section-number">11.3</span> correlation betweeen alpha_incongruent and cue trial slope (randome effects of cue)<a href="ch18_simulation_aryan.html#correlation-betweeen-alpha_incongruent-and-cue-trial-slope-randome-effects-of-cue" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<pre><code>## Warning: Removed 3 rows containing missing values (`geom_point()`).</code></pre>
+<p><img src="19_RLsimulation_Aryan_files/figure-html/unnamed-chunk-9-1.png" width="672" />
+<img src="19_RLsimulation_Aryan_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<pre><code>## Warning: Removed 2 rows containing missing values (`geom_point()`).</code></pre>
+<p><img src="19_RLsimulation_Aryan_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+</div>
+<div id="correlation-betweeen-alpha_incongruent-and-nps" class="section level2 hasAnchor" number="11.4">
+<h2><span class="header-section-number">11.4</span> correlation betweeen alpha_incongruent and NPS<a href="ch18_simulation_aryan.html#correlation-betweeen-alpha_incongruent-and-nps" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb298"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb298-1"><a href="ch18_simulation_aryan.html#cb298-1" aria-hidden="true" tabindex="-1"></a><span class="co"># load dataframe</span></span>
+<span id="cb298-2"><a href="ch18_simulation_aryan.html#cb298-2" aria-hidden="true" tabindex="-1"></a>NPS <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">read.csv</span>(<span class="fu">file.path</span>(main_dir, <span class="st">&#39;data/NPS_curated.csv&#39;</span>)))</span>
+<span id="cb298-3"><a href="ch18_simulation_aryan.html#cb298-3" aria-hidden="true" tabindex="-1"></a>NPS <span class="ot">&lt;-</span> NPS <span class="sc">%&gt;%</span></span>
+<span id="cb298-4"><a href="ch18_simulation_aryan.html#cb298-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">congruency =</span> <span class="fu">case_when</span>(</span>
+<span id="cb298-5"><a href="ch18_simulation_aryan.html#cb298-5" aria-hidden="true" tabindex="-1"></a>    cuetype <span class="sc">==</span> <span class="st">&quot;cuetype-low&quot;</span> <span class="sc">&amp;</span> stimintensity <span class="sc">==</span> <span class="st">&quot;low&quot;</span> <span class="sc">~</span> <span class="st">&quot;congruent&quot;</span>,</span>
+<span id="cb298-6"><a href="ch18_simulation_aryan.html#cb298-6" aria-hidden="true" tabindex="-1"></a>    cuetype <span class="sc">==</span> <span class="st">&quot;cuetype-high&quot;</span> <span class="sc">&amp;</span> stimintensity <span class="sc">==</span> <span class="st">&quot;high&quot;</span> <span class="sc">~</span> <span class="st">&quot;congruent&quot;</span>,</span>
+<span id="cb298-7"><a href="ch18_simulation_aryan.html#cb298-7" aria-hidden="true" tabindex="-1"></a>    cuetype <span class="sc">==</span> <span class="st">&quot;cuetype-low&quot;</span> <span class="sc">&amp;</span> stimintensity <span class="sc">==</span> <span class="st">&quot;high&quot;</span> <span class="sc">~</span> <span class="st">&quot;incongruent&quot;</span>,</span>
+<span id="cb298-8"><a href="ch18_simulation_aryan.html#cb298-8" aria-hidden="true" tabindex="-1"></a>    cuetype <span class="sc">==</span> <span class="st">&quot;cuetype-high&quot;</span> <span class="sc">&amp;</span> stimintensity <span class="sc">==</span> <span class="st">&quot;low&quot;</span> <span class="sc">~</span> <span class="st">&quot;incongruent&quot;</span>,</span>
+<span id="cb298-9"><a href="ch18_simulation_aryan.html#cb298-9" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">&quot;other&quot;</span></span>
+<span id="cb298-10"><a href="ch18_simulation_aryan.html#cb298-10" aria-hidden="true" tabindex="-1"></a>  ))</span>
+<span id="cb298-11"><a href="ch18_simulation_aryan.html#cb298-11" aria-hidden="true" tabindex="-1"></a>NPS_congru <span class="ot">&lt;-</span> NPS <span class="sc">%&gt;%</span></span>
+<span id="cb298-12"><a href="ch18_simulation_aryan.html#cb298-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(sub) <span class="sc">%&gt;%</span></span>
+<span id="cb298-13"><a href="ch18_simulation_aryan.html#cb298-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">avg_diff =</span> <span class="fu">mean</span>(NPSpos[congruency <span class="sc">==</span> <span class="st">&quot;congruent&quot;</span>]) <span class="sc">-</span> <span class="fu">mean</span>(NPSpos[congruency <span class="sc">==</span> <span class="st">&quot;incongruent&quot;</span>]))</span>
+<span id="cb298-14"><a href="ch18_simulation_aryan.html#cb298-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb298-15"><a href="ch18_simulation_aryan.html#cb298-15" aria-hidden="true" tabindex="-1"></a><span class="co"># grab alpha_incongruent</span></span>
+<span id="cb298-16"><a href="ch18_simulation_aryan.html#cb298-16" aria-hidden="true" tabindex="-1"></a>model_param <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">read.csv</span>(<span class="fu">file.path</span>(main_dir, <span class="st">&quot;data/RL/modelfit_jepma_0525/par_mdl2_pain.csv&quot;</span>)))</span>
+<span id="cb298-17"><a href="ch18_simulation_aryan.html#cb298-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb298-18"><a href="ch18_simulation_aryan.html#cb298-18" aria-hidden="true" tabindex="-1"></a>model_param <span class="ot">&lt;-</span> model_param <span class="sc">%&gt;%</span></span>
+<span id="cb298-19"><a href="ch18_simulation_aryan.html#cb298-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sub =</span> <span class="fu">sprintf</span>(<span class="st">&quot;sub-%04d&quot;</span>, subj_num_new_pain))</span>
+<span id="cb298-20"><a href="ch18_simulation_aryan.html#cb298-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb298-21"><a href="ch18_simulation_aryan.html#cb298-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Merge the two dataframes based on the &quot;sub&quot; column</span></span>
+<span id="cb298-22"><a href="ch18_simulation_aryan.html#cb298-22" aria-hidden="true" tabindex="-1"></a>merged_NPS <span class="ot">&lt;-</span> <span class="fu">merge</span>(NPS_congru, model_param, <span class="at">by =</span> <span class="st">&quot;sub&quot;</span>)</span>
+<span id="cb298-23"><a href="ch18_simulation_aryan.html#cb298-23" aria-hidden="true" tabindex="-1"></a>merged_NPS<span class="sc">$</span>alpha_c_gt_i <span class="ot">&lt;-</span> merged_NPS<span class="sc">$</span>alpha_c <span class="sc">-</span> merged_NPS<span class="sc">$</span>alpha_i</span>
+<span id="cb298-24"><a href="ch18_simulation_aryan.html#cb298-24" aria-hidden="true" tabindex="-1"></a><span class="co"># grab cue slope</span></span>
+<span id="cb298-25"><a href="ch18_simulation_aryan.html#cb298-25" aria-hidden="true" tabindex="-1"></a><span class="co"># grab intersection of subject ids</span></span>
+<span id="cb298-26"><a href="ch18_simulation_aryan.html#cb298-26" aria-hidden="true" tabindex="-1"></a><span class="co"># plot ggplot</span></span>
+<span id="cb298-27"><a href="ch18_simulation_aryan.html#cb298-27" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> merged_NPS, </span>
+<span id="cb298-28"><a href="ch18_simulation_aryan.html#cb298-28" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> .data[[<span class="st">&quot;avg_diff&quot;</span>]], </span>
+<span id="cb298-29"><a href="ch18_simulation_aryan.html#cb298-29" aria-hidden="true" tabindex="-1"></a>           <span class="at">y =</span> .data[[<span class="st">&quot;alpha_c_gt_i&quot;</span>]],</span>
+<span id="cb298-30"><a href="ch18_simulation_aryan.html#cb298-30" aria-hidden="true" tabindex="-1"></a>           <span class="at">size =</span> .<span class="dv">5</span></span>
+<span id="cb298-31"><a href="ch18_simulation_aryan.html#cb298-31" aria-hidden="true" tabindex="-1"></a>           )) <span class="sc">+</span></span>
+<span id="cb298-32"><a href="ch18_simulation_aryan.html#cb298-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">2</span>, <span class="at">alpha =</span> .<span class="dv">5</span>  ) <span class="sc">+</span> </span>
+<span id="cb298-33"><a href="ch18_simulation_aryan.html#cb298-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="sc">-</span><span class="dv">10</span>,<span class="dv">10</span>) <span class="sc">+</span> </span>
+<span id="cb298-34"><a href="ch18_simulation_aryan.html#cb298-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="sc">-</span><span class="dv">10</span>,<span class="dv">10</span>) <span class="sc">+</span></span>
+<span id="cb298-35"><a href="ch18_simulation_aryan.html#cb298-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_fixed</span>() <span class="sc">+</span></span>
+<span id="cb298-36"><a href="ch18_simulation_aryan.html#cb298-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">slope =</span> <span class="dv">1</span>, <span class="at">color =</span> <span class="st">&quot;#373737&quot;</span>, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">linewidth =</span> .<span class="dv">5</span>) <span class="sc">+</span> </span>
+<span id="cb298-37"><a href="ch18_simulation_aryan.html#cb298-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">&quot;NPS </span><span class="sc">\n</span><span class="st">(congruent &gt; incongruent)&quot;</span>) <span class="sc">+</span> </span>
+<span id="cb298-38"><a href="ch18_simulation_aryan.html#cb298-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">&quot;Alpha </span><span class="sc">\n</span><span class="st">(congruent &gt; incongruent)&quot;</span>)<span class="sc">+</span></span>
+<span id="cb298-39"><a href="ch18_simulation_aryan.html#cb298-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb298-40"><a href="ch18_simulation_aryan.html#cb298-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&quot;grey50&quot;</span>),</span>
+<span id="cb298-41"><a href="ch18_simulation_aryan.html#cb298-41" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.background =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb298-42"><a href="ch18_simulation_aryan.html#cb298-42" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.subtitle =</span> ggtext<span class="sc">::</span><span class="fu">element_textbox_simple</span>(<span class="at">size =</span> <span class="dv">1</span>), </span>
+<span id="cb298-43"><a href="ch18_simulation_aryan.html#cb298-43" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">15</span>),</span>
+<span id="cb298-44"><a href="ch18_simulation_aryan.html#cb298-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">15</span>),</span>
+<span id="cb298-45"><a href="ch18_simulation_aryan.html#cb298-45" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">20</span>),</span>
+<span id="cb298-46"><a href="ch18_simulation_aryan.html#cb298-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">20</span>)</span>
+<span id="cb298-47"><a href="ch18_simulation_aryan.html#cb298-47" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb298-48"><a href="ch18_simulation_aryan.html#cb298-48" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div>
+</details>
+<p><img src="19_RLsimulation_Aryan_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb299"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb299-1"><a href="ch18_simulation_aryan.html#cb299-1" aria-hidden="true" tabindex="-1"></a><span class="co"># run lmer</span></span></code></pre></div>
+</details>
+</div>
+<div id="correlation-bettween-nps-and-pe" class="section level2 hasAnchor" number="11.5">
+<h2><span class="header-section-number">11.5</span> correlation bettween NPS and PE<a href="ch18_simulation_aryan.html#correlation-bettween-nps-and-pe" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="test-similarity-between-nps-positive-values-and-pe-11062023" class="section level3 hasAnchor" number="11.5.1">
+<h3><span class="header-section-number">11.5.1</span> test similarity between NPS positive values and PE (11/06/2023)<a href="ch18_simulation_aryan.html#test-similarity-between-nps-positive-values-and-pe-11062023" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb300"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb300-1"><a href="ch18_simulation_aryan.html#cb300-1" aria-hidden="true" tabindex="-1"></a>PEdf <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="fu">file.path</span>(main_dir, <span class="st">&#39;data/RL/modelfit_jepma_0525/table_pain.csv&#39;</span>))</span>
+<span id="cb300-2"><a href="ch18_simulation_aryan.html#cb300-2" aria-hidden="true" tabindex="-1"></a>NPS <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">read.csv</span>(<span class="fu">file.path</span>(main_dir, <span class="st">&#39;data/NPS_curated.csv&#39;</span>)))</span>
+<span id="cb300-3"><a href="ch18_simulation_aryan.html#cb300-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb300-4"><a href="ch18_simulation_aryan.html#cb300-4" aria-hidden="true" tabindex="-1"></a>PEdf <span class="ot">&lt;-</span> PEdf <span class="sc">%&gt;%</span></span>
+<span id="cb300-5"><a href="ch18_simulation_aryan.html#cb300-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sub =</span> <span class="fu">sprintf</span>(<span class="st">&quot;sub-%04d&quot;</span>, src_subject_id),</span>
+<span id="cb300-6"><a href="ch18_simulation_aryan.html#cb300-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">ses =</span> <span class="fu">sprintf</span>(<span class="st">&quot;ses-%02d&quot;</span>, session_id),</span>
+<span id="cb300-7"><a href="ch18_simulation_aryan.html#cb300-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">run =</span> <span class="fu">sprintf</span>(<span class="st">&quot;run-%02d&quot;</span>, param_run_num),</span>
+<span id="cb300-8"><a href="ch18_simulation_aryan.html#cb300-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">trial =</span> <span class="fu">sprintf</span>(<span class="st">&quot;trial-%03d&quot;</span>, trial_index_runwise<span class="dv">-1</span>)</span>
+<span id="cb300-9"><a href="ch18_simulation_aryan.html#cb300-9" aria-hidden="true" tabindex="-1"></a>         )</span>
+<span id="cb300-10"><a href="ch18_simulation_aryan.html#cb300-10" aria-hidden="true" tabindex="-1"></a>merged_NPSpe <span class="ot">&lt;-</span> <span class="fu">merge</span>(NPS, PEdf, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;sub&quot;</span>, <span class="st">&quot;ses&quot;</span>, <span class="st">&quot;run&quot;</span>, <span class="st">&quot;trial&quot;</span>))</span>
+<span id="cb300-11"><a href="ch18_simulation_aryan.html#cb300-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb300-12"><a href="ch18_simulation_aryan.html#cb300-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb300-13"><a href="ch18_simulation_aryan.html#cb300-13" aria-hidden="true" tabindex="-1"></a>subjectwise_2dv <span class="ot">&lt;-</span> <span class="fu">meanSummary_2dv</span>(merged_NPSpe, <span class="fu">c</span>(<span class="st">&quot;src_subject_id&quot;</span>,<span class="st">&quot;stimintensity&quot;</span>, <span class="st">&quot;cuetype&quot;</span>), </span>
+<span id="cb300-14"><a href="ch18_simulation_aryan.html#cb300-14" aria-hidden="true" tabindex="-1"></a>                                   <span class="st">&quot;PE_mdl2&quot;</span>, <span class="st">&quot;NPSpos&quot;</span> )</span>
+<span id="cb300-15"><a href="ch18_simulation_aryan.html#cb300-15" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> subjectwise_2dv, </span>
+<span id="cb300-16"><a href="ch18_simulation_aryan.html#cb300-16" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> .data[[<span class="st">&quot;DV1_mean_per_sub&quot;</span>]], </span>
+<span id="cb300-17"><a href="ch18_simulation_aryan.html#cb300-17" aria-hidden="true" tabindex="-1"></a>           <span class="at">y =</span> .data[[<span class="st">&quot;DV2_mean_per_sub&quot;</span>]],</span>
+<span id="cb300-18"><a href="ch18_simulation_aryan.html#cb300-18" aria-hidden="true" tabindex="-1"></a>           <span class="at">color =</span> .data[[<span class="st">&quot;cuetype&quot;</span>]],</span>
+<span id="cb300-19"><a href="ch18_simulation_aryan.html#cb300-19" aria-hidden="true" tabindex="-1"></a>           <span class="co"># shape = .data[[&quot;stimintensity&quot;]],</span></span>
+<span id="cb300-20"><a href="ch18_simulation_aryan.html#cb300-20" aria-hidden="true" tabindex="-1"></a>           <span class="co"># size = .5</span></span>
+<span id="cb300-21"><a href="ch18_simulation_aryan.html#cb300-21" aria-hidden="true" tabindex="-1"></a>           )) <span class="sc">+</span></span>
+<span id="cb300-22"><a href="ch18_simulation_aryan.html#cb300-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">2</span>, <span class="at">alpha =</span> .<span class="dv">5</span>  ) <span class="sc">+</span> </span>
+<span id="cb300-23"><a href="ch18_simulation_aryan.html#cb300-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="sc">-</span><span class="dv">50</span>,<span class="dv">50</span>) <span class="sc">+</span> </span>
+<span id="cb300-24"><a href="ch18_simulation_aryan.html#cb300-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="sc">-</span><span class="dv">50</span>,<span class="dv">50</span>) <span class="sc">+</span></span>
+<span id="cb300-25"><a href="ch18_simulation_aryan.html#cb300-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_fixed</span>() <span class="sc">+</span></span>
+<span id="cb300-26"><a href="ch18_simulation_aryan.html#cb300-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;cuetype-high&quot;</span> <span class="ot">=</span><span class="st">&quot;red&quot;</span>,<span class="st">&quot;cuetype-low&quot;</span> <span class="ot">=</span>  <span class="st">&quot;#5D5C5C&quot;</span>))<span class="sc">+</span></span>
+<span id="cb300-27"><a href="ch18_simulation_aryan.html#cb300-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">slope =</span> <span class="dv">1</span>, <span class="at">color =</span> <span class="st">&quot;#373737&quot;</span>, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">linewidth =</span> .<span class="dv">5</span>) <span class="sc">+</span> </span>
+<span id="cb300-28"><a href="ch18_simulation_aryan.html#cb300-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">&quot;PE&quot;</span>) <span class="sc">+</span> </span>
+<span id="cb300-29"><a href="ch18_simulation_aryan.html#cb300-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">&quot;NPSpos&quot;</span>)<span class="sc">+</span></span>
+<span id="cb300-30"><a href="ch18_simulation_aryan.html#cb300-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb300-31"><a href="ch18_simulation_aryan.html#cb300-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&quot;grey50&quot;</span>),</span>
+<span id="cb300-32"><a href="ch18_simulation_aryan.html#cb300-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.background =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb300-33"><a href="ch18_simulation_aryan.html#cb300-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.subtitle =</span> ggtext<span class="sc">::</span><span class="fu">element_textbox_simple</span>(<span class="at">size =</span> <span class="dv">1</span>), </span>
+<span id="cb300-34"><a href="ch18_simulation_aryan.html#cb300-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">15</span>),</span>
+<span id="cb300-35"><a href="ch18_simulation_aryan.html#cb300-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">15</span>),</span>
+<span id="cb300-36"><a href="ch18_simulation_aryan.html#cb300-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">20</span>),</span>
+<span id="cb300-37"><a href="ch18_simulation_aryan.html#cb300-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">20</span>)</span>
+<span id="cb300-38"><a href="ch18_simulation_aryan.html#cb300-38" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb300-39"><a href="ch18_simulation_aryan.html#cb300-39" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div>
+</details>
+<pre><code>## Warning: Removed 13 rows containing missing values (`geom_point()`).</code></pre>
+<p><img src="19_RLsimulation_Aryan_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb302"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb302-1"><a href="ch18_simulation_aryan.html#cb302-1" aria-hidden="true" tabindex="-1"></a>model<span class="fl">.25</span> <span class="ot">&lt;-</span> <span class="fu">lmer</span>(merged_NPSpe<span class="sc">$</span>NPSpos <span class="sc">~</span> merged_NPSpe<span class="sc">$</span>PE_mdl2 <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>sub), <span class="at">data =</span> merged_NPSpe)</span>
+<span id="cb302-2"><a href="ch18_simulation_aryan.html#cb302-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model<span class="fl">.25</span>)</span></code></pre></div>
+</details>
+<pre><code>## Linear mixed model fit by REML. t-tests use Satterthwaite&#39;s method [
+## lmerModLmerTest]
+## Formula: merged_NPSpe$NPSpos ~ merged_NPSpe$PE_mdl2 + (1 | sub)
+##    Data: merged_NPSpe
+## 
+## REML criterion at convergence: 20826.7
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -5.4290 -0.5073 -0.0168  0.5202  5.5313 
+## 
+## Random effects:
+##  Groups   Name        Variance Std.Dev.
+##  sub      (Intercept) 28.52    5.340   
+##  Residual             68.76    8.292   
+## Number of obs: 2922, groups:  sub, 54
+## 
+## Fixed effects:
+##                       Estimate Std. Error        df t value Pr(&gt;|t|)    
+## (Intercept)          6.501e+00  7.457e-01 5.305e+01   8.718 8.06e-12 ***
+## merged_NPSpe$PE_mdl2 3.876e-02  6.866e-03 2.896e+03   5.645 1.81e-08 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Correlation of Fixed Effects:
+##             (Intr)
+## mr_NPS$PE_2 -0.052</code></pre>
+</div>
+<div id="test-relationship-between-pe-and-cue-type-and-stimintensity-06162023" class="section level3 hasAnchor" number="11.5.2">
+<h3><span class="header-section-number">11.5.2</span> test relationship between PE and cue type and stimintensity (06/16/2023)<a href="ch18_simulation_aryan.html#test-relationship-between-pe-and-cue-type-and-stimintensity-06162023" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb304"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb304-1"><a href="ch18_simulation_aryan.html#cb304-1" aria-hidden="true" tabindex="-1"></a>model.PENPS <span class="ot">&lt;-</span> <span class="fu">lmer</span>(NPSpos <span class="sc">~</span> PE_mdl2<span class="sc">*</span>cuetype<span class="sc">*</span>stimintensity <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>sub), <span class="at">data =</span> merged_NPSpe)</span>
+<span id="cb304-2"><a href="ch18_simulation_aryan.html#cb304-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model.PENPS)</span></code></pre></div>
+</details>
+<pre><code>## Linear mixed model fit by REML. t-tests use Satterthwaite&#39;s method [
+## lmerModLmerTest]
+## Formula: NPSpos ~ PE_mdl2 * cuetype * stimintensity + (1 | sub)
+##    Data: merged_NPSpe
+## 
+## REML criterion at convergence: 20816
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -5.5455 -0.5260 -0.0153  0.5196  5.6086 
+## 
+## Random effects:
+##  Groups   Name        Variance Std.Dev.
+##  sub      (Intercept) 28.32    5.321   
+##  Residual             68.21    8.259   
+## Number of obs: 2922, groups:  sub, 54
+## 
+## Fixed effects:
+##                                               Estimate Std. Error         df
+## (Intercept)                                  7.590e+00  8.362e-01  8.488e+01
+## PE_mdl2                                     -1.962e-02  3.555e-02  2.887e+03
+## cuetypecuetype-low                           1.515e+00  9.025e-01  2.890e+03
+## stimintensitylow                            -1.753e+00  8.436e-01  2.883e+03
+## stimintensitymed                            -2.107e+00  6.415e-01  2.873e+03
+## PE_mdl2:cuetypecuetype-low                   2.818e-03  4.109e-02  2.887e+03
+## PE_mdl2:stimintensitylow                     4.253e-02  4.452e-02  2.883e+03
+## PE_mdl2:stimintensitymed                     1.800e-03  4.896e-02  2.870e+03
+## cuetypecuetype-low:stimintensitylow         -1.618e+00  1.252e+00  2.893e+03
+## cuetypecuetype-low:stimintensitymed          4.626e-01  1.160e+00  2.868e+03
+## PE_mdl2:cuetypecuetype-low:stimintensitylow -2.715e-02  5.295e-02  2.867e+03
+## PE_mdl2:cuetypecuetype-low:stimintensitymed  2.309e-02  5.654e-02  2.863e+03
+##                                             t value Pr(&gt;|t|)    
+## (Intercept)                                   9.077 3.81e-14 ***
+## PE_mdl2                                      -0.552  0.58111    
+## cuetypecuetype-low                            1.678  0.09337 .  
+## stimintensitylow                             -2.077  0.03786 *  
+## stimintensitymed                             -3.284  0.00104 ** 
+## PE_mdl2:cuetypecuetype-low                    0.069  0.94533    
+## PE_mdl2:stimintensitylow                      0.955  0.33953    
+## PE_mdl2:stimintensitymed                      0.037  0.97068    
+## cuetypecuetype-low:stimintensitylow          -1.293  0.19626    
+## cuetypecuetype-low:stimintensitymed           0.399  0.69017    
+## PE_mdl2:cuetypecuetype-low:stimintensitylow  -0.513  0.60816    
+## PE_mdl2:cuetypecuetype-low:stimintensitymed   0.408  0.68304    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Correlation of Fixed Effects:
+##                                (Intr) PE_md2 ctypc- stmntnstyl stmntnstym
+## PE_mdl2                        -0.215                                    
+## ctypctyp-lw                    -0.224  0.174                             
+## stmntnstylw                    -0.252  0.234  0.273                      
+## stmntnstymd                    -0.329  0.314  0.308  0.365               
+## PE_mdl2:ct-                     0.184 -0.850 -0.565 -0.232     -0.276    
+## PE_mdl2:stmntnstyl              0.164 -0.780 -0.096  0.285     -0.217    
+## PE_mdl2:stmntnstym              0.141 -0.668 -0.096 -0.102      0.138    
+## ctypctyp-lw:stmntnstyl          0.168 -0.138 -0.747 -0.704     -0.249    
+## ctypctyp-lw:stmntnstym          0.180 -0.159 -0.741 -0.221     -0.557    
+## PE_mdl2:ctypctyp-lw:stmntnstyl -0.136  0.636  0.359 -0.222      0.181    
+## PE_mdl2:ctypctyp-lw:stmntnstym -0.121  0.572  0.337  0.095     -0.117    
+##                                PE_m2:- PE_mdl2:stmntnstyl PE_mdl2:stmntnstym
+## PE_mdl2                                                                     
+## ctypctyp-lw                                                                 
+## stmntnstylw                                                                 
+## stmntnstymd                                                                 
+## PE_mdl2:ct-                                                                 
+## PE_mdl2:stmntnstyl              0.635                                       
+## PE_mdl2:stmntnstym              0.554   0.566                               
+## ctypctyp-lw:stmntnstyl          0.434  -0.235              0.042            
+## ctypctyp-lw:stmntnstym          0.431   0.090             -0.099            
+## PE_mdl2:ctypctyp-lw:stmntnstyl -0.705  -0.807             -0.454            
+## PE_mdl2:ctypctyp-lw:stmntnstym -0.643  -0.478             -0.855            
+##                                ctypctyp-lw:stmntnstyl ctypctyp-lw:stmntnstym
+## PE_mdl2                                                                     
+## ctypctyp-lw                                                                 
+## stmntnstylw                                                                 
+## stmntnstymd                                                                 
+## PE_mdl2:ct-                                                                 
+## PE_mdl2:stmntnstyl                                                          
+## PE_mdl2:stmntnstym                                                          
+## ctypctyp-lw:stmntnstyl                                                      
+## ctypctyp-lw:stmntnstym          0.562                                       
+## PE_mdl2:ctypctyp-lw:stmntnstyl -0.068                 -0.295                
+## PE_mdl2:ctypctyp-lw:stmntnstym -0.226                 -0.264                
+##                                PE_mdl2:ctypctyp-lw:stmntnstyl
+## PE_mdl2                                                      
+## ctypctyp-lw                                                  
+## stmntnstylw                                                  
+## stmntnstymd                                                  
+## PE_mdl2:ct-                                                  
+## PE_mdl2:stmntnstyl                                           
+## PE_mdl2:stmntnstym                                           
+## ctypctyp-lw:stmntnstyl                                       
+## ctypctyp-lw:stmntnstym                                       
+## PE_mdl2:ctypctyp-lw:stmntnstyl                               
+## PE_mdl2:ctypctyp-lw:stmntnstym  0.520</code></pre>
+</div>
+<div id="plot-the-relationship-between-pe-and-nps-as-a-function-of-cue" class="section level3 hasAnchor" number="11.5.3">
+<h3><span class="header-section-number">11.5.3</span> plot the relationship between PE and NPS as a function of cue<a href="ch18_simulation_aryan.html#plot-the-relationship-between-pe-and-nps-as-a-function-of-cue" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
+<div class="sourceCode" id="cb306"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb306-1"><a href="ch18_simulation_aryan.html#cb306-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> merged_NPSpe, </span>
+<span id="cb306-2"><a href="ch18_simulation_aryan.html#cb306-2" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> .data[[<span class="st">&quot;PE_mdl2&quot;</span>]], </span>
+<span id="cb306-3"><a href="ch18_simulation_aryan.html#cb306-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">y =</span> .data[[<span class="st">&quot;NPSpos&quot;</span>]],</span>
+<span id="cb306-4"><a href="ch18_simulation_aryan.html#cb306-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">color =</span> .data[[<span class="st">&quot;cuetype&quot;</span>]],</span>
+<span id="cb306-5"><a href="ch18_simulation_aryan.html#cb306-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">size =</span> .<span class="dv">5</span></span>
+<span id="cb306-6"><a href="ch18_simulation_aryan.html#cb306-6" aria-hidden="true" tabindex="-1"></a>           )) <span class="sc">+</span></span>
+<span id="cb306-7"><a href="ch18_simulation_aryan.html#cb306-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">2</span>, <span class="at">alpha =</span> .<span class="dv">5</span>  ) <span class="sc">+</span> </span>
+<span id="cb306-8"><a href="ch18_simulation_aryan.html#cb306-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="sc">-</span><span class="dv">150</span>,<span class="dv">150</span>) <span class="sc">+</span> </span>
+<span id="cb306-9"><a href="ch18_simulation_aryan.html#cb306-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="sc">-</span><span class="dv">150</span>,<span class="dv">150</span>) <span class="sc">+</span></span>
+<span id="cb306-10"><a href="ch18_simulation_aryan.html#cb306-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_fixed</span>() <span class="sc">+</span></span>
+<span id="cb306-11"><a href="ch18_simulation_aryan.html#cb306-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;cuetype-high&quot;</span> <span class="ot">=</span><span class="st">&quot;red&quot;</span>,<span class="st">&quot;cuetype-low&quot;</span> <span class="ot">=</span>  <span class="st">&quot;#5D5C5C&quot;</span>))<span class="sc">+</span></span>
+<span id="cb306-12"><a href="ch18_simulation_aryan.html#cb306-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">slope =</span> <span class="dv">1</span>, <span class="at">color =</span> <span class="st">&quot;#373737&quot;</span>, <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>, <span class="at">linewidth =</span> .<span class="dv">5</span>) <span class="sc">+</span> </span>
+<span id="cb306-13"><a href="ch18_simulation_aryan.html#cb306-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">&quot;PE&quot;</span>) <span class="sc">+</span> </span>
+<span id="cb306-14"><a href="ch18_simulation_aryan.html#cb306-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">&quot;NPSpos&quot;</span>)<span class="sc">+</span></span>
+<span id="cb306-15"><a href="ch18_simulation_aryan.html#cb306-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb306-16"><a href="ch18_simulation_aryan.html#cb306-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&quot;grey50&quot;</span>),</span>
+<span id="cb306-17"><a href="ch18_simulation_aryan.html#cb306-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.background =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb306-18"><a href="ch18_simulation_aryan.html#cb306-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.subtitle =</span> ggtext<span class="sc">::</span><span class="fu">element_textbox_simple</span>(<span class="at">size =</span> <span class="dv">1</span>), </span>
+<span id="cb306-19"><a href="ch18_simulation_aryan.html#cb306-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">15</span>),</span>
+<span id="cb306-20"><a href="ch18_simulation_aryan.html#cb306-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">15</span>),</span>
+<span id="cb306-21"><a href="ch18_simulation_aryan.html#cb306-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">20</span>),</span>
+<span id="cb306-22"><a href="ch18_simulation_aryan.html#cb306-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">20</span>)</span>
+<span id="cb306-23"><a href="ch18_simulation_aryan.html#cb306-23" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb306-24"><a href="ch18_simulation_aryan.html#cb306-24" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div>
+</details>
+<p><img src="19_RLsimulation_Aryan_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+</div>
+<div id="plot-the-relationship-between-pe-and-nps-as-a-function-of-cue-and-stimulus-intensity" class="section level3 hasAnchor" number="11.5.4">
+<h3><span class="header-section-number">11.5.4</span> plot the relationship between PE and NPS as a function of cue and stimulus intensity<a href="ch18_simulation_aryan.html#plot-the-relationship-between-pe-and-nps-as-a-function-of-cue-and-stimulus-intensity" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p><img src="19_RLsimulation_Aryan_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+
+</div>
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="ch18_simulation.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="ch20_npssimulation.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": true,
+"facebook": false,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": null,
+"history": {
+"link": "https://github.com/jungheejung/cue_expectancy/commits/main/19_RLsimulation_Aryan.Rmd",
+"text": "Chapter edit history"
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"search": {
+"engine": "lunr",
+"options": null
+},
+"toc": {
+"collapse": "subsection",
+"scroll_highlight": true
+},
+"toolbar": {
+"position": "fixed"
+},
+"info": true
+});
+});
+</script>
+
+</body>
+
+</html>
