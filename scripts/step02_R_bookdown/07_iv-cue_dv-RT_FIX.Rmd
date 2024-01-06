@@ -92,11 +92,16 @@ data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus
 
 ### plot RT distribution per participant
 - the purpose is to identify whether RTs are distributed from 0-5 sec or not
-```{r plot_RT_distribution_6, echo=TRUE}
-ggplot(data,aes(x=event03_RT, group = subject)) +
-  geom_histogram(color="darkblue", fill="lightblue", binwidth=0.25, bins = 20) + 
-  facet_wrap(~subject, ncol = 10) + 
-  theme(axis.text=element_text(size=5),text=element_text(size=6))
+```{r plot_RT_distribution_6, echo=TRUE, fig.width=10, fig.height=12}
+ggplot(data, aes(x = event03_RT, group = subject)) +
+  geom_histogram(
+    color = "darkblue",
+    fill = "lightblue",
+    binwidth = 0.25,
+    bins = 20
+  ) +
+  facet_wrap( ~ subject, ncol = 10) +
+  theme(axis.text = element_text(size = 7), text = element_text(size = 12))
 ```
 
 * some participants may not have responded within time limit
