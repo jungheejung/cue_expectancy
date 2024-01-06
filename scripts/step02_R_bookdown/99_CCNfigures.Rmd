@@ -348,16 +348,18 @@ ggsave(file.path(analysis_dir, "beh_iv-cue-stim-dv-outcome.png"), plot = p1, bg 
 ```
 
 
-## behavioral :: line plots cue * stim * expect (demean outcome)
+## 1) behavioral :: line plots cue * stim * expect (demean outcome)
 Here, I plot the demeaned-outcome rating as a function of cue, stimulus intensity, and expectation interaction. 
 
 ```{r, fig.height=10}
 # Function to create individual plots
-create_individual_plot <- function(data, iv1, iv2, intensity, xlab, ylab, ggtitle, color_scheme, size = 2, subtitle_size, text_size) {
+create_individual_plot <- function(data, iv1, iv2, intensity, 
+                                   xmin = -50, xmax = 50, ymin = -50, ymax = 50,
+                                   xlab, ylab, ggtitle, color_scheme, size = 2, subtitle_size, text_size) {
   plot <- plot_twovariable(
     data, iv1 = iv1, iv2 = iv2,
     group = "cuetype", subject = "sub",
-    xmin = -50, xmax = 50, ymin = -50, ymax = 50,
+    xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax,
     xlab = xlab, ylab = ylab,
     ggtitle = ggtitle,
     color_scheme = color_scheme,
@@ -375,7 +377,7 @@ create_individual_plot <- function(data, iv1, iv2, intensity, xlab, ylab, ggtitl
     
     axis.title.y = element_blank(),          # Remove y-axis title
     axis.title.x = element_blank(),
-    plot.margin = margin(5, 5, 5, 5)
+    plot.margin = margin(.5,.5,.5,.5, unit = "pt")
   )
   return(plot_trans)
 }
@@ -403,18 +405,18 @@ create_legend <- function() {
 ```
 
 
-```{r, fig.height=4, fig.width=10}
+```{r echo=FALSE, fig.height=4, fig.width=10}
 # Main data preprocessing
 # ----------------------------------------------------------------------------
 #                  plot paramters
 # ----------------------------------------------------------------------------
 iv1 <- "demean_EXPECT"
 iv2 <- "demean_OUTCOME"
-XAXIS_TEXT <- "Expectation rating\n(subjectwise centered)"
-YAXIS_TEXT <- "Outcome rating\n(subjectwise centered)"
+XAXIS_TEXT <- "Expectation rating\n(subjectwise-centered)"
+YAXIS_TEXT <- "Outcome rating\n(subjectwise-centered)"
 TEXT_FONTSIZE <- 12
 LABEL_FONTSIZE <- 15
-TITLE_FONTSIZE <- 15
+TITLE_FONTSIZE <- 20
 
 # ----------------------------------------------------------------------------
 #                  format dataframe
@@ -463,7 +465,7 @@ plots <- lapply(intensities, function(intensity) {
     text_size = TEXT_FONTSIZE
   )
 })
-combined_plots <- do.call(grid.arrange, c(plots, ncol = 3))
+combined_plots <- do.call(grid.arrange, c(plots, ncol=3))
 
 # ----------------------------------------------------------------------------
 #                  create common axis label
@@ -471,7 +473,8 @@ combined_plots <- do.call(grid.arrange, c(plots, ncol = 3))
 y_axis_label <-
   textGrob(YAXIS_TEXT,
            rot = 90,
-           gp = gpar(fontsize = LABEL_FONTSIZE))
+           gp = gpar(fontsize = LABEL_FONTSIZE),
+           vp = viewport(y = unit(.56, "npc") + unit(0.5, "lines")))
 x_axis_label <-
   textGrob(XAXIS_TEXT,
            rot = 0,
@@ -483,264 +486,133 @@ heights <- c(rep(1, length(run_types)), 2)
 # ----------------------------------------------------------------------------
 #                  combined plots across 3 intensities
 # ----------------------------------------------------------------------------
-x_combined_plot <- grid.arrange(combined_plots, x_axis_label, nrow = 2, heights = c(1, .1))
-roi_combined_plot <- grid.arrange(y_axis_label, x_combined_plot, ncol = 2, widths = c(1, 10))
-final_plot <- grid.arrange(roi_combined_plot,
-    #x_axis_label,
+#x_combined_plot <- grid.arrange(combined_plots, x_axis_label, nrow = 2, heights = c(1, .1))
+#roi_combined_plot <- grid.arrange(y_axis_label, combined_plots, ncol = 2, widths = c(1, 10))
+final_plot <- grid.arrange(y_axis_label, 
+    arrangeGrob(combined_plots,
+    x_axis_label,
     legend_grob,
     ncol = 1,
-    nrow = 2,
-    heights = unit.c(unit(8, "null"), unit(1, "null")),
+    nrow = 3,
+    heights = c(4, 1, 1),
     top = textGrob(
     sprintf("Outcome rating as a function of cue x stim x expectation"),
-    gp = gpar(fontsize = TITLE_FONTSIZE, fontface = "bold")
-  ) 
+    gp = gpar(fontsize = TITLE_FONTSIZE, fontface = "bold"), vjust = 0.2
+    
+  ) ),
+  ncol = 2,
+  widths = c(1,9)
     )
 grid.draw(final_plot)
-
-
-################################# sandbox
-
+ggsave(file.path(analysis_dir, "beh_iv-cue-stim-dv-demeanoutcome-demeanexpect.png"), plot = final_plot, bg = "transparent", device = "png")
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-# 
-# # Color: low FF8800, med DB6000, high 941100
 
-maindata.df<- simple_contrasts_beh(maindata)
+## 2) behavioral :: line plots cue * stim * intensity ( outcome)
+```{r}
+# ----------------------------------------------------------------------------
+#                  plot paramters
+# ----------------------------------------------------------------------------
+iv1 <- "demean_EXPECT"
+iv2 <- "OUTCOME"
+XAXIS_TEXT <- "Expectation rating\n(subjectwise-centered)"
+YAXIS_TEXT <- "Outcome rating"
+TEXT_FONTSIZE <- 14
+LABEL_FONTSIZE <- 15
+TITLE_FONTSIZE <- 17
+
+# ----------------------------------------------------------------------------
+#                  format dataframe
+# ----------------------------------------------------------------------------
+maindata.df <- simple_contrasts_beh(maindata)
+maindata.df$OUTCOME <- maindata.df$event04_actual_angle
 pvc.df <- maindata.df %>%
   mutate(
-    cuetype = case_when(
-      cue_ordered == "low" ~ "low",
-      cue_ordered == "high" ~ "high",
-    ),
+    cuetype = case_when(cue_ordered == "low" ~ "low",
+                        cue_ordered == "high" ~ "high"),
     stimintensity = case_when(
       stim_ordered == "high_stim" ~ "high",
       stim_ordered == "med_stim" ~ "med",
-      stim_ordered == "low_stim" ~ "low",
+      stim_ordered == "low_stim" ~ "low"
     )
+  )
+pvc.df$sub <- pvc.df$src_subject_id
+df_dropna <-
+  pvc.df[!is.na(pvc.df$demean_EXPECT) &
+           !is.na(pvc.df$demean_OUTCOME),]
+
+# Create individual plots
+df_intensity <- list(low = df_dropna[df_dropna$stimintensity == "low",],
+                     med = df_dropna[df_dropna$stimintensity == "med",],
+                     high = df_dropna[df_dropna$stimintensity == "high",])
+
+intensities <- c("low", "med", "high")
+color_mapping <- list(
+  "high" = c("high" = "#941100", "low" = "#5D5C5C"),
+  "med" = c("high" = "#DB6000", "low" = "#5D5C5C"),
+  "low" = c("high" = "#FF8800", "low" = "#5D5C5C")
+)
+
+# ----------------------------------------------------------------------------
+#                  plot
+# ----------------------------------------------------------------------------
+plots <- lapply(intensities, function(intensity) {
+  create_individual_plot(
+    df_intensity[[intensity]],
+    iv1 = "demean_EXPECT",
+    iv2 = "OUTCOME",
+    xlab = ifelse(intensity == "low", " ", "Expectation rating"),
+    ylab = ifelse(intensity == "high", " ", "Outcome rating"),
+    xmin = -50, xmax = 50, ymin = 0, ymax = 180,
+    ggtitle = paste(tools::toTitleCase(intensity), "intensity"),
+    color_scheme = color_mapping[[intensity]], 
+    subtitle_size = TITLE_FONTSIZE,
+    text_size = TEXT_FONTSIZE
+  )
+})
+combined_plots <- do.call(grid.arrange, c(plots, ncol=3))
+
+# ----------------------------------------------------------------------------
+#                  create common axis label
+# ----------------------------------------------------------------------------
+y_axis_label <-
+  textGrob(YAXIS_TEXT,
+           rot = 90,
+           gp = gpar(fontsize = LABEL_FONTSIZE),
+           vp = viewport(y = unit(.56, "npc") + unit(0.5, "lines")))
+x_axis_label <-
+  textGrob(XAXIS_TEXT,
+           rot = 0,
+           gp = gpar(fontsize = LABEL_FONTSIZE))
+num_rows <- length(combined_plots) + 1  # +1 for the legend
+
+legend_grob <- create_legend()
+heights <- c(rep(1, length(run_types)), 2)
+# ----------------------------------------------------------------------------
+#                  combined plots across 3 intensities
+# ----------------------------------------------------------------------------
+#x_combined_plot <- grid.arrange(combined_plots, x_axis_label, nrow = 2, heights = c(1, .1))
+#roi_combined_plot <- grid.arrange(y_axis_label, combined_plots, ncol = 2, widths = c(1, 10))
+final_plot2 <- grid.arrange(y_axis_label, 
+    arrangeGrob(combined_plots,
+    x_axis_label,
+    legend_grob,
+    ncol = 1,
+    nrow = 3,
+    heights = c(4, 1, 1),
+    top = textGrob(
+    sprintf("Outcome rating as a function of cue x stim x expectation"),
+    gp = gpar(fontsize = TITLE_FONTSIZE, fontface = "bold"), vjust = 0.2
+    
+  ) ),
+  ncol = 2,
+  widths = c(1,9)
     )
-pvc.df$sub = pvc.df$src_subject_id
-df_dropna <- pvc.df[!is.na(pvc.df$demean_EXPECT) & !is.na(pvc.df$demean_OUTCOME),]
-df_low = df_dropna[df_dropna$stimintensity == "low", ]
-low <-
-  plot_twovariable(
-    df_low, iv1 = "demean_EXPECT", iv2 = "demean_OUTCOME",
-    group = "cuetype", subject = "sub",
-    xmin=-50, xmax=50, ymin=-50, ymax=50,
-    xlab = " ", ylab = "Outcome rating",
-    ggtitle = "Low intensity", #DB6000
-    color_scheme = c("high" ="#FF8800","low" =  "#5D5C5C"),
-    alpha = .6, fit_lm = TRUE, lm_method = "lm", identity_line=FALSE, size=NULL
-  )
+grid.draw(final_plot2)
 
-
-df_med = df_dropna[df_dropna$stimintensity == "med", ]
-med <-
-  plot_twovariable(
-    df_med, iv1 = "demean_EXPECT", iv2 = "demean_OUTCOME",
-    group = "cuetype", subject = "sub",
-    xmin=-50, xmax=50, ymin=-50, ymax=50,
-    xlab = "Expectation rating", ylab = " ",
-    ggtitle = "Medium intensity",
-    color_scheme = c("high" ="#DB6000","low" =  "#5D5C5C"),
-    alpha = .6, fit_lm = TRUE, lm_method = "lm", identity_line=FALSE, size=NULL
-  )
-
-df_high = df_dropna[df_dropna$stimintensity == "high", ]
-high <-
-  plot_twovariable(
-    df_high, iv1 = "demean_EXPECT", iv2 = "demean_OUTCOME",
-    group = "cuetype", subject = "sub",
-    xmin=-50, xmax=50, ymin=-50, ymax=50,
-    xlab = "", ylab = " ",
-    ggtitle = "High intensity",
-    color_scheme = c("high" ="#941100","low" =  "#5D5C5C"),
-    alpha = .6, fit_lm = TRUE, lm_method = "lm", identity_line=FALSE, size=NULL
-  )
-high_trans <- high +  theme(
-    panel.background = element_rect(fill='transparent'), #transparent panel bg
-    plot.background = element_rect(fill='transparent', color=NA), #transparent plot bg
-    panel.grid.major = element_blank(), #remove major gridlines
-    panel.grid.minor = element_blank(), #remove minor gridlines
-    legend.background = element_rect(fill='transparent'), #transparent legend bg
-    legend.box.background = element_rect(fill='transparent') #transparent legend panel
-  )
-med_trans <- med +  theme(
-    panel.background = element_rect(fill='transparent'), #transparent panel bg
-    plot.background = element_rect(fill='transparent', color=NA), #transparent plot bg
-    panel.grid.major = element_blank(), #remove major gridlines
-    panel.grid.minor = element_blank(), #remove minor gridlines
-    legend.background = element_rect(fill='transparent'), #transparent legend bg
-    legend.box.background = element_rect(fill='transparent') #transparent legend panel
-  )
-low_trans <- low +  theme(
-    panel.background = element_rect(fill='transparent'), #transparent panel bg
-    plot.background = element_rect(fill='transparent', color=NA), #transparent plot bg
-    panel.grid.major = element_blank(), #remove major gridlines
-    panel.grid.minor = element_blank(), #remove minor gridlines
-    legend.background = element_rect(fill='transparent'), #transparent legend bg
-    legend.box.background = element_rect(fill='transparent') #transparent legend panel
-  )
-plots <- ggpubr::ggarrange(low_trans, med_trans, high_trans, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
-plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
-plots
-
-
-
-ggsave(file.path(analysis_dir, "beh_iv-cue-stim-dv-outcome-expect.png"), plot = plots, bg = "transparent", device = "png")
 ```
 
-## behavioral :: line plots cue * stim * intensity ( outcome)
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-# 
-# # Color: low FF8800, med DB6000, high 941100
-
-maindata.df<- simple_contrasts_beh(maindata)
-pvc.df <- maindata.df %>%
-  mutate(
-    cuetype = case_when(
-      cue_ordered == "low" ~ "low",
-      cue_ordered == "high" ~ "high",
-    ),
-    stimintensity = case_when(
-      stim_ordered == "high_stim" ~ "high",
-      stim_ordered == "med_stim" ~ "med",
-      stim_ordered == "low_stim" ~ "low",
-    )
-    )
-pvc.df$sub = pvc.df$src_subject_id
-df_dropna <- pvc.df[!is.na(pvc.df$demean_EXPECT) & !is.na(pvc.df$demean_OUTCOME),]
-df_low = df_dropna[df_dropna$stimintensity == "low", ]
-low <-
-  plot_twovariable(
-    df_low, iv1 = "demean_EXPECT", iv2 = "event04_actual_angle",
-    group = "cuetype", subject = "sub",
-    xmin=-50, xmax=50, ymin=-0, ymax=180,
-    xlab = " ", ylab = "Outcome rating",
-    ggtitle = "Low intensity", #DB6000
-    color_scheme = c("high" ="#FF8800","low" =  "#5D5C5C"),
-    alpha = .6, fit_lm = TRUE, lm_method = "lm", identity_line=FALSE, size=NULL
-  )
-
-
-df_med = df_dropna[df_dropna$stimintensity == "med", ]
-med <-
-  plot_twovariable(
-    df_med, iv1 = "demean_EXPECT", iv2 = "event04_actual_angle",
-    group = "cuetype", subject = "sub",
-    xmin=-50, xmax=50, ymin=-0, ymax=180,
-    xlab = "Expectation rating (Demean)", ylab = " ",
-    ggtitle = "Medium intensity",
-    color_scheme = c("high" ="#DB6000","low" =  "#5D5C5C"),
-    alpha = .6, fit_lm = TRUE, lm_method = "lm", identity_line=FALSE, size=NULL
-  )
-
-df_high = df_dropna[df_dropna$stimintensity == "high", ]
-high <-
-  plot_twovariable(
-    df_high, iv1 = "demean_EXPECT", iv2 = "event04_actual_angle",
-    group = "cuetype", subject = "sub",
-    xmin=-50, xmax=50, ymin=-0, ymax=180,
-    xlab = "", ylab = " ",
-    ggtitle = "High intensity",
-    color_scheme = c("high" ="#941100","low" =  "#5D5C5C"),
-    alpha = .6, fit_lm = TRUE, lm_method = "lm", identity_line=FALSE, size=NULL
-  )
-high_trans <- high +  theme(
-    panel.background = element_rect(fill='transparent'), #transparent panel bg
-    plot.background = element_rect(fill='transparent', color=NA), #transparent plot bg
-    panel.grid.major = element_blank(), #remove major gridlines
-    panel.grid.minor = element_blank(), #remove minor gridlines
-    legend.background = element_rect(fill='transparent'), #transparent legend bg
-    legend.box.background = element_rect(fill='transparent') #transparent legend panel
-  )
-med_trans <- med +  theme(
-    panel.background = element_rect(fill='transparent'), #transparent panel bg
-    plot.background = element_rect(fill='transparent', color=NA), #transparent plot bg
-    panel.grid.major = element_blank(), #remove major gridlines
-    panel.grid.minor = element_blank(), #remove minor gridlines
-    legend.background = element_rect(fill='transparent'), #transparent legend bg
-    legend.box.background = element_rect(fill='transparent') #transparent legend panel
-  )
-low_trans <- low +  theme(
-    panel.background = element_rect(fill='transparent'), #transparent panel bg
-    plot.background = element_rect(fill='transparent', color=NA), #transparent plot bg
-    panel.grid.major = element_blank(), #remove major gridlines
-    panel.grid.minor = element_blank(), #remove minor gridlines
-    legend.background = element_rect(fill='transparent'), #transparent legend bg
-    legend.box.background = element_rect(fill='transparent') #transparent legend panel
-  )
-plots <- ggpubr::ggarrange(low_trans, med_trans, high_trans, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
-plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
-plots
-
-
-
-ggsave(file.path(analysis_dir, "beh_iv-cue-stim-dv-outcome-expect.png"), plot = plots, bg = "transparent", device = "png")
-```
   
-  
-## behavioral :: line plots cue * stim * intensity (demean outcome)
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-# 
-# # Color: low FF8800, med DB6000, high 941100
-
-maindata.df<- simple_contrasts_beh(maindata)
-pvc.df <- maindata.df %>%
-  mutate(
-    cuetype = case_when(
-      cue_ordered == "low" ~ "low",
-      cue_ordered == "high" ~ "high",
-    ),
-    stimintensity = case_when(
-      stim_ordered == "high_stim" ~ "high",
-      stim_ordered == "med_stim" ~ "med",
-      stim_ordered == "low_stim" ~ "low",
-    )
-    )
-pvc.df$sub = pvc.df$src_subject_id
-df_dropna <- pvc.df[!is.na(pvc.df$demean_EXPECT) & !is.na(pvc.df$event04_actual_angle),]
-df_low = df_dropna[df_dropna$stimintensity == "low", ]
-low <-
-  plot_twovariable(
-    df_low, iv1 = "demean_EXPECT", iv2 = "event04_actual_angle",
-    group = "cuetype", subject = "sub",
-    xmin=-50, xmax=50, ymin=0, ymax=180,
-    xlab = "expectation rating\n(subjectwise mean-centered)", ylab = "Outcome rating",
-    ggtitle = "Low intensity", #DB6000
-    color_scheme = c("high" ="#FF8800","low" =  "#5D5C5C"),
-    alpha = .6, fit_lm = TRUE, lm_method = "lm", identity_line=FALSE, size=NULL
-  )
-
-
-df_med = df_dropna[df_dropna$stimintensity == "med", ]
-med <-
-  plot_twovariable(
-    df_med, iv1 = "demean_EXPECT", iv2 = "event04_actual_angle",
-    group = "cuetype", subject = "sub",
-   xmin=-50, xmax=50, ymin=0, ymax=180,
-    xlab = "expectation rating\n(subjectwise mean-centered)", ylab = "Outcome rating",
-    ggtitle = "Medium intensity",
-    color_scheme = c("high" ="#DB6000","low" =  "#5D5C5C"),
-    alpha = .6, fit_lm = TRUE, lm_method = "lm", identity_line=FALSE, size=NULL
-  )
-
-df_high = df_dropna[df_dropna$stimintensity == "high", ]
-high <-
-  plot_twovariable(
-    df_high, iv1 = "demean_EXPECT", iv2 = "event04_actual_angle",
-    group = "cuetype", subject = "sub",
-    xmin=-50, xmax=50, ymin=0, ymax=180,
-    xlab = "expectation rating\n(subjectwise mean-centered)", ylab = "Outcome rating",
-    ggtitle = "High intensity",
-    color_scheme = c("high" ="#941100","low" =  "#5D5C5C"),
-    alpha = .6, fit_lm = TRUE, lm_method = "lm", identity_line=FALSE, size=NULL
-  )
-plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
-plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
-plots
-```
 
 ## NPS: stim * cue
 ```{r message=FALSE, warning=FALSE, include=FALSE}
