@@ -23,10 +23,11 @@ jobs:
           Rscript -e 'remotes::install_git("https://github.com/jorvlan/raincloudplots.git")'
           Rscript -e 'remotes::install_git("https://github.com/datalorax/equatiomatic.git")'
           Rscript -e 'devtools::install_github("m-clark/visibly")'
-          Rscript -e 'install.packages(c("afex", "bayestestR", "bookdown", "bbmle", "bitops", "boot", "brms", "broom", "car", "caTools", "correlation", "cowplot", "DescTools", "devtools", "dplyr", "DT", "effectsize", "EMAtools", "emmeans", "extrafont", "FactoMineR", "GGally", "gghalves", "ggplot2", "ggpubr", "ggrepel", "ggtext", "glmmTMB", "gridExtra", "htmltools", "ICC", "jsonlite", "knitr", "lavaan", "lme4", "lmerTest", "magrittr", "Matrix", "MBESS", "mediation", "merTools", "optimx", "patchwork", "plotly", "plyr", "plyrlibrarydplyr", "png", "psych", "PupillometryR", "purrr", "r2mlm", "RColorBrewer", "RCurl", "readr", "reghelper", "reshape", "rmarkdown", "rstanarm", "scico", "semPlot", "sjlabelled", "sjmisc", "sjPlot", "sjstats", "stats", "stringr", "tidyr", "tidyselect", "tidyverse", "TMB", "yaml"))'
+          Rscript -e 'install.packages(c("afex", "bayestestR", "bookdown", "bbmle", "bitops", "boot", "brms", "broom", "car", "caTools", "correlation", "cowplot", "DescTools", "devtools","downlit", "dplyr", "DT", "effectsize", "EMAtools", "emmeans", "extrafont", "FactoMineR", "GGally", "gghalves", "ggplot2", "ggpubr", "ggrepel", "ggtext", "glmmTMB", "gridExtra", "htmltools", "ICC", "jsonlite", "knitr", "lavaan", "lme4", "lmerTest", "magrittr", "Matrix", "MBESS", "mediation", "merTools", "optimx", "patchwork", "plotly", "plyr", "plyrlibrarydplyr", "png", "psych", "PupillometryR", "purrr", "r2mlm", "RColorBrewer", "RCurl", "readr", "reghelper", "reshape", "rmarkdown", "rstanarm", "scico", "semPlot", "sjlabelled", "sjmisc", "sjPlot", "sjstats", "stats", "stringr", "tidyr", "tidyselect", "tidyverse", "TMB", "yaml"))'
           
       - name: Render Book
-        run: Rscript -e "setwd('scripts/step02_R_bookdown'); bookdown::render_book('index.Rmd', 'bookdown::gitbook')"
+        #run: Rscript -e "setwd('scripts/step02_R_bookdown'); bookdown::render_book('index.Rmd', 'bookdown::gitbook')"
+        run: Rscript -e "setwd('scripts/step02_R_bookdown'); bookdown::render_book('index.Rmd', 'bookdown::bs4_book')"
       - uses: actions/upload-artifact@v1
         with:
           name: _book

@@ -7,19 +7,20 @@ documentclass: book
 output:
   bookdown::bs4_book:
     repo: https://github.com/jungheejung/cue_expectancy
+    css: docute.css
     theme:
       primary: "#0d6efd"   
-      base_font: 
-        google: 
-          family: Sen
-      heading_font:
-        google:
-          family: Bitter
-          wght: 200
-      code_font:
-        google: 
-          family: DM Mono
-          local: false
+      # base_font: 
+      #   google: 
+      #     family: Lato
+      # heading_font:
+      #   google:
+      #     family: Lato
+      #     wght: 200
+      # code_font:
+      #   google: 
+      #     family: Oxygen Mono
+      #     local: false
   bookdown::gitbook:
     config:
       toc:
@@ -39,20 +40,29 @@ output:
         family: sans
         size: 2
       info: true
-    css: style.css
+    css: docute.css
     code_folding: hide
     includes:
       in_header: null
 bibliography:
   - book.bib
   - packages.bib
+biblio-style: apalike
 description: "This is a logbook of all the mixed model analyses in one setting."
 link-citations: yes
-github-repo: "rstudio/bookdown-demo"
+github-repo: "jungheejung/cue_expectancy"
 editor_options: 
   markdown: 
     wrap: 72
 ---
 
 # About
-...
+
+This is an analysis book written in Markdown. The purpose is to keep track of analyses and summarize findings, while decluttering from result vs. code. 
+
+## Usage 
+
+Each bookdown chapter is an .Rmd file. This .Rmd is migrated from the git repository cue-expectancy and specifically from the folder **step02_R**. Each .Rmd file was developed as a standalone analysis pipeline. Once validated, the identical .Rmd is migrated to the bookdown folder and edited for bookdown compiling. 
+
+
+
