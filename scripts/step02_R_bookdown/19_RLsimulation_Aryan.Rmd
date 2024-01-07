@@ -1,6 +1,8 @@
 # [beh] RL simulation Aryan {#ch18_simulation_aryan}
 
-
+---
+output: rmdformats::downcute
+---
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 * Here, I model Aryans model fitted results, using the same scheme as my behavioral analysis (15*.Rmd)
@@ -69,7 +71,8 @@ sapply(file.sources,source,.GlobalEnv)
 ```{r load_data_and_exclude_m1, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 main_dir = dirname(dirname(getwd()))
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
-# parameters _____________________________________ # nolint
+
+# parameters ___________________________________________________________________
 subject_varkey <- "src_subject_id"
 iv <- "param_cue_type"
 dv <- "event03_RT"
@@ -80,7 +83,7 @@ ylab <- "ratings (degree)"
 subject <- "subject"
 exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 
-# load data _____________________________________
+# load data ____________________________________________________________________
 main_dir = dirname(dirname(getwd()))
 data <- read.csv(file.path(main_dir, 'data/simulated/model_ver04_0508/table_pain_new.csv'))
 analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model19_RLsimulationplot", as.character(Sys.Date()))
@@ -92,7 +95,7 @@ dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
 ```{r function::simple_contrasts_beh, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 simple_contrasts_beh <- function(df) {
-#factorize stimulus type ________________________________________
+# factorize stimulus type ______________________________________________________
 df$stim_factor <- factor(df$param_stimulus_type)
 
 # contrast code 1 linear
@@ -127,11 +130,11 @@ return(df)
 
 ## Plot the relationship between expectation and outcome rating using model 4 simulations (Jepma)
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-# convert column names
+# convert column names _________________________________________________________
 data$event04_actual_angle <- data$Pain_mdl4
 data$event02_expect_angle <- data$Exp_mdl4
 
-# demean data
+# demean data __________________________________________________________________
 maindata <- data %>%
   group_by(src_subject_id) %>%
     mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
@@ -141,7 +144,7 @@ maindata <- data %>%
     mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
     mutate(demean_expect = event02_expect_angle - avg_expect)
 
-# assign trial numbers
+# assign trial numbers _________________________________________________________
 data_p2 <- maindata %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
@@ -151,18 +154,18 @@ data_a3 <- data_p2 %>%
   group_by(src_subject_id, session_id, param_run_num) %>% 
   mutate(trial_index = row_number(param_run_num))
 
-# calculate lag score (N-1 outcome score_)
+# calculate lag score (N-1 outcome score_) _____________________________________
 data_a3lag <- 
     data_a3 %>%
     group_by(src_subject_id, session_id, param_run_num) %>%
     mutate(lag.demean_outcome = dplyr::lag(demean_outcome, n = 1, default = NA))
 
-# calculate subject level average score
+# calculate subject level average score ________________________________________
 data_a3lag <- data_a3lag %>%
   mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) 
 data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.demean_outcome),]
 
-# compute contrasts
+# compute contrasts ____________________________________________________________
 df <- data_a3lag_omit
 pvc <- simple_contrasts_beh(df)
 ```
