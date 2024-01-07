@@ -2,16 +2,16 @@ name: Sync to R Package Repo
 
 on:
   push:
-    branches:
-      - main  # or your default branch
+    paths:
+      - "scripts/step02_R/utils/**/*.R"
 
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-    - name: Repository Dispatch
-      uses: peter-evans/repository-dispatch@v1
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        repository: jungheejung/cueR  # Replace with your R package repo
-        event-type: update-r-scripts
+      - name: Repository Dispatch
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.ACTION }}
+          repository: jungheejung/cueR # Replace with your R package repo
+          event-type: update-r-scripts
