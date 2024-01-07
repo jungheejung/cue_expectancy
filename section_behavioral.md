@@ -14,3 +14,19 @@ Here's a quick run down of the main topics:
 
 
 Let's begin by working on your workflow for developing apps.
+
+## Check if this one produces a line
+I wonder why this doesn't produce a line
+Let's also check the block quotes
+
+> this is a text
+
+```
+this is also a text
+```
+
+
+```r
+#and let me check my code
+```
+

@@ -1,357 +1,118 @@
 <!DOCTYPE html>
-<html lang="" xml:lang="">
+<html lang="en">
 <head>
-
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>Chapter 12 [model] NPSsimulation | 52_ROI TTL1</title>
-  <meta name="description" content="This is a logbook of all the mixed model analyses in one setting." />
-  <meta name="generator" content="bookdown 0.37 and GitBook 2.6.7" />
-
-  <meta property="og:title" content="Chapter 12 [model] NPSsimulation | 52_ROI TTL1" />
-  <meta property="og:type" content="book" />
-  
-  <meta property="og:description" content="This is a logbook of all the mixed model analyses in one setting." />
-  <meta name="github-repo" content="rstudio/bookdown-demo" />
-
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Chapter 12 [model] NPSsimulation | 52_ROI TTL1" />
-  
-  <meta name="twitter:description" content="This is a logbook of all the mixed model analyses in one setting." />
-  
-
-<meta name="author" content="Heejung Jung" />
-
-
-<meta name="date" content="2023-08-14" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-  
-  
-<link rel="prev" href="ch18_simulation_aryan.html"/>
-<link rel="next" href="fmri_time.html"/>
-<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
-<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
-<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
-<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
-<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
-<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
-<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
-<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
-
-
-
-
-
-
-
-
-
-<link href="libs/codefolding-lua-1.1/codefolding-lua.css" rel="stylesheet" />
-<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
-<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
-<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
-<script src="libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
-<script src="libs/plotly-binding-4.10.3/plotly.js"></script>
-<script src="libs/typedarray-0.1/typedarray.min.js"></script>
-<link href="libs/crosstalk-1.2.1/css/crosstalk.min.css" rel="stylesheet" />
-<script src="libs/crosstalk-1.2.1/js/crosstalk.min.js"></script>
-<link href="libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet" />
-<script src="libs/plotly-main-2.11.1/plotly-latest.min.js"></script>
-
-
-<style type="text/css">
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-    color: #aaaaaa;
-  }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { color: #008000; } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { color: #008000; font-weight: bold; } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
-</style>
-
-<style type="text/css">
-  
-  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-</style>
-
-<link rel="stylesheet" href="style.css" type="text/css" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 12 [model] NPSsimulation | 52_ROI TTL1</title>
+<meta name="author" content="Heejung Jung">
+<meta name="description" content="12.0.1 Function   12.0.2 NPS data   12.0.3 behavioral data  Q. Within pain task, Does stimulus intenisty level and cue level significantly predict NPS dotproducts?   12.0.4 get pain relationship,...">
+<meta name="generator" content="bookdown 0.37 with bs4_book()">
+<meta property="og:title" content="Chapter 12 [model] NPSsimulation | 52_ROI TTL1">
+<meta property="og:type" content="book">
+<meta property="og:description" content="12.0.1 Function   12.0.2 NPS data   12.0.3 behavioral data  Q. Within pain task, Does stimulus intenisty level and cue level significantly predict NPS dotproducts?   12.0.4 get pain relationship,...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 12 [model] NPSsimulation | 52_ROI TTL1">
+<meta name="twitter:description" content="12.0.1 Function   12.0.2 NPS data   12.0.3 behavioral data  Q. Within pain task, Does stimulus intenisty level and cue level significantly predict NPS dotproducts?   12.0.4 get pain relationship,...">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.6.1/transition.js"></script><script src="libs/bs3compat-0.6.1/tabs.js"></script><script src="libs/bs3compat-0.6.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/htmlwidgets-1.6.4/htmlwidgets.js"></script><script src="libs/plotly-binding-4.10.3/plotly.js"></script><script src="libs/typedarray-0.1/typedarray.min.js"></script><link href="libs/crosstalk-1.2.1/css/crosstalk.min.css" rel="stylesheet">
+<script src="libs/crosstalk-1.2.1/js/crosstalk.min.js"></script><link href="libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet">
+<script src="libs/plotly-main-2.11.1/plotly-latest.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<link rel="stylesheet" href="docute.css">
 </head>
+<body data-spy="scroll" data-target="#toc">
 
-<body>
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
 
-
-
-  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
-
-    <div class="book-summary">
-      <nav role="navigation">
-
-<ul class="summary">
-<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> About</a></li>
-<li class="part"><span><b>Behavioral</b></span></li>
-<li class="chapter" data-level="" data-path="action-intro.html"><a href="action-intro.html"><i class="fa fa-check"></i>Behavioral Rating analysis</a></li>
-<li class="chapter" data-level="2" data-path="ch2_expect.html"><a href="ch2_expect.html"><i class="fa fa-check"></i><b>2</b> [beh] expectation ~ cue</a>
-<ul>
-<li class="chapter" data-level="2.1" data-path="ch2_expect.html"><a href="ch2_expect.html#pain"><i class="fa fa-check"></i><b>2.1</b> Pain</a></li>
-<li class="chapter" data-level="2.2" data-path="ch2_expect.html"><a href="ch2_expect.html#vicarious"><i class="fa fa-check"></i><b>2.2</b> Vicarious</a></li>
-<li class="chapter" data-level="2.3" data-path="ch2_expect.html"><a href="ch2_expect.html#cognitive"><i class="fa fa-check"></i><b>2.3</b> Cognitive</a></li>
-<li class="chapter" data-level="2.4" data-path="ch2_expect.html"><a href="ch2_expect.html#individual-difference-analysis"><i class="fa fa-check"></i><b>2.4</b> Individual difference analysis</a></li>
-</ul></li>
-<li class="chapter" data-level="3" data-path="ch03_cue.html"><a href="ch03_cue.html"><i class="fa fa-check"></i><b>3</b> [beh] outcome ~ cue</a>
-<ul>
-<li class="chapter" data-level="3.1" data-path="ch03_cue.html"><a href="ch03_cue.html#pain-1"><i class="fa fa-check"></i><b>3.1</b> Pain</a></li>
-<li class="chapter" data-level="3.2" data-path="ch03_cue.html"><a href="ch03_cue.html#vicarious-1"><i class="fa fa-check"></i><b>3.2</b> Vicarious</a></li>
-<li class="chapter" data-level="3.3" data-path="ch03_cue.html"><a href="ch03_cue.html#cognitive-1"><i class="fa fa-check"></i><b>3.3</b> Cognitive</a></li>
-<li class="chapter" data-level="3.4" data-path="ch03_cue.html"><a href="ch03_cue.html#individual-differences-analysis-random-cue-effects"><i class="fa fa-check"></i><b>3.4</b> Individual differences analysis: random cue effects</a></li>
-<li class="chapter" data-level="3.5" data-path="ch03_cue.html"><a href="ch03_cue.html#individual-differences-analysis-2-random-intercept-random-slopes-of-cue-effect"><i class="fa fa-check"></i><b>3.5</b> Individual differences analysis 2: random intercept + random slopes of cue effect</a></li>
-</ul></li>
-<li class="chapter" data-level="4" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html"><i class="fa fa-check"></i><b>4</b> [beh] outcome ~ stimulus_intensity</a>
-<ul>
-<li class="chapter" data-level="4.1" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#pain-2"><i class="fa fa-check"></i><b>4.1</b> Pain</a></li>
-<li class="chapter" data-level="4.2" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#vicarious-2"><i class="fa fa-check"></i><b>4.2</b> Vicarious</a></li>
-<li class="chapter" data-level="4.3" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#cognitive-2"><i class="fa fa-check"></i><b>4.3</b> Cognitive</a></li>
-<li class="chapter" data-level="4.4" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#for-loop"><i class="fa fa-check"></i><b>4.4</b> for loop</a></li>
-<li class="chapter" data-level="4.5" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#lineplot"><i class="fa fa-check"></i><b>4.5</b> Lineplot</a></li>
-<li class="chapter" data-level="4.6" data-path="ch04_outcome-stim.html"><a href="ch04_outcome-stim.html#individual-differences-in-outcome-rating-cue-effect"><i class="fa fa-check"></i><b>4.6</b> individual differences in outcome rating cue effect</a></li>
-</ul></li>
-<li class="chapter" data-level="5" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html"><i class="fa fa-check"></i><b>5</b> [beh] outcome_rating ~ cue * stim</a>
-<ul>
-<li class="chapter" data-level="5.1" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-03-iv-cuecontrast-dv-outcome"><i class="fa fa-check"></i><b>5.1</b> model 03 iv-cuecontrast dv-outcome</a>
-<ul>
-<li class="chapter" data-level="5.1.1" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-03-3-2.-individual-difference"><i class="fa fa-check"></i><b>5.1.1</b> model 03 3-2. individual difference</a></li>
-<li class="chapter" data-level="5.1.2" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-iv-cue-stim-dv-outcome"><i class="fa fa-check"></i><b>5.1.2</b> model 04 iv-cue-stim dv-outcome</a></li>
-<li class="chapter" data-level="5.1.3" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#nov-17-lmer"><i class="fa fa-check"></i><b>5.1.3</b> Nov 17 lmer</a></li>
-<li class="chapter" data-level="5.1.4" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-2-individual-differences-in-cue-effects"><i class="fa fa-check"></i><b>5.1.4</b> model 04 4-2 individual differences in cue effects</a></li>
-<li class="chapter" data-level="5.1.5" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-3-scatter-plot"><i class="fa fa-check"></i><b>5.1.5</b> model 04 4-3 scatter plot</a></li>
-<li class="chapter" data-level="5.1.6" data-path="ch05_outcome-cueXstim.html"><a href="ch05_outcome-cueXstim.html#model-04-4-4-lineplot"><i class="fa fa-check"></i><b>5.1.6</b> model 04 4-4 lineplot</a></li>
-</ul></li>
-</ul></li>
-<li class="chapter" data-level="6" data-path="clinical-trials.html"><a href="clinical-trials.html"><i class="fa fa-check"></i><b>6</b> Clinical trials</a>
-<ul>
-<li class="chapter" data-level="6.1" data-path="clinical-trials.html"><a href="clinical-trials.html#cue-contrast-average-across-intensity"><i class="fa fa-check"></i><b>6.1</b> cue contrast average across intensity</a></li>
-<li class="chapter" data-level="6.2" data-path="clinical-trials.html"><a href="clinical-trials.html#cue-contrast-average-across-expectation"><i class="fa fa-check"></i><b>6.2</b> cue contrast average across expectation</a></li>
-</ul></li>
-<li class="chapter" data-level="7" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html"><i class="fa fa-check"></i><b>7</b> expect-actual ~ cue * trial</a>
-<ul>
-<li class="chapter" data-level="7.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#overview"><i class="fa fa-check"></i><b>7.1</b> Overview</a></li>
-<li class="chapter" data-level="7.2" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#plot-1---one-run-average-across-participants"><i class="fa fa-check"></i><b>7.2</b> plot 1 - one run, average across participants</a></li>
-<li class="chapter" data-level="7.3" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#plot-2---average-across-participant-but-spread-all-6-runs-in-one-x-axis"><i class="fa fa-check"></i><b>7.3</b> plot 2 - average across participant, but spread all 6 runs in one x axis</a></li>
-<li class="chapter" data-level="7.4" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#vicarious-3"><i class="fa fa-check"></i><b>7.4</b> vicarious</a></li>
-<li class="chapter" data-level="7.5" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#cognitive-3"><i class="fa fa-check"></i><b>7.5</b> cognitive</a></li>
-<li class="chapter" data-level="7.6" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#within-subject-vicarious"><i class="fa fa-check"></i><b>7.6</b> within subject vicarious</a></li>
-<li class="chapter" data-level="7.7" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#tor-request-only-outcome-ratings.-3-tasks"><i class="fa fa-check"></i><b>7.7</b> Tor request – only outcome ratings. 3 tasks</a>
-<ul>
-<li class="chapter" data-level="7.7.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#pain-3"><i class="fa fa-check"></i><b>7.7.1</b> pain</a></li>
-<li class="chapter" data-level="7.7.2" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#vicarious-4"><i class="fa fa-check"></i><b>7.7.2</b> vicarious</a></li>
-<li class="chapter" data-level="7.7.3" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#cognitive-4"><i class="fa fa-check"></i><b>7.7.3</b> cognitive</a></li>
-</ul></li>
-<li class="chapter" data-level="7.8" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#tor-request-only-expect-ratings.-3-tasks"><i class="fa fa-check"></i><b>7.8</b> Tor request – only expect ratings. 3 tasks</a>
-<ul>
-<li class="chapter" data-level="7.8.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#pain-4"><i class="fa fa-check"></i><b>7.8.1</b> pain</a></li>
-<li class="chapter" data-level="7.8.2" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#vicarious-5"><i class="fa fa-check"></i><b>7.8.2</b> vicarious</a></li>
-<li class="chapter" data-level="7.8.3" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#cognitive-5"><i class="fa fa-check"></i><b>7.8.3</b> cognitive</a></li>
-</ul></li>
-<li class="chapter" data-level="7.9" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#lmer"><i class="fa fa-check"></i><b>7.9</b> lmer</a>
-<ul>
-<li class="chapter" data-level="7.9.1" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#lmer-histogram"><i class="fa fa-check"></i><b>7.9.1</b> lmer histogram</a></li>
-</ul></li>
-<li class="chapter" data-level="7.10" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#do-current-expectation-ratings-predict-outcome-ratings"><i class="fa fa-check"></i><b>7.10</b> Do current expectation ratings predict outcome ratings?</a></li>
-<li class="chapter" data-level="7.11" data-path="ch06_Jepma.html"><a href="ch06_Jepma.html#additional-analysis"><i class="fa fa-check"></i><b>7.11</b> Additional analysis</a></li>
-</ul></li>
-<li class="chapter" data-level="8" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html"><i class="fa fa-check"></i><b>8</b> [ beh ] outcome_demean ~ cue * stim * expectrating * n-1outcomerating</a>
-<ul>
-<li class="chapter" data-level="8.1" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#linear-model-0508"><i class="fa fa-check"></i><b>8.1</b> linear model 0508</a></li>
-<li class="chapter" data-level="8.2" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#linear-model"><i class="fa fa-check"></i><b>8.2</b> linear model</a></li>
-<li class="chapter" data-level="8.3" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#q.-are-those-overestimating-for-high-cues-also-underestimators-for-low-cues"><i class="fa fa-check"></i><b>8.3</b> Q. Are those overestimating for high cues also underestimators for low cues?</a></li>
-<li class="chapter" data-level="8.4" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#todo-can-you-test-if-the-slopes-are-the-same-that-might-tell-us-something-about-whether-expectancies-translate-into-outcomes-with-the-same-efficacy-across-all-three-tasks."><i class="fa fa-check"></i><b>8.4</b> TODO: Can you test if the slopes are the same? That might tell us something about whether, expectancies translate into outcomes with the same efficacy across all three tasks.</a></li>
-<li class="chapter" data-level="8.5" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#pain-run-collapsed-across-stimulus-intensity"><i class="fa fa-check"></i><b>8.5</b> pain run, collapsed across stimulus intensity</a></li>
-<li class="chapter" data-level="8.6" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#vicarious-6"><i class="fa fa-check"></i><b>8.6</b> vicarious</a></li>
-<li class="chapter" data-level="8.7" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#cognitive-6"><i class="fa fa-check"></i><b>8.7</b> cognitive</a></li>
-<li class="chapter" data-level="8.8" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#linear-model-0508-1"><i class="fa fa-check"></i><b>8.8</b> linear model 0508</a></li>
-<li class="chapter" data-level="8.9" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#across-tasks-pvc-is-the-slope-for-highvslow-cue-the-sametor-question"><i class="fa fa-check"></i><b>8.9</b> across tasks (PVC), is the slope for (highvslow cue) the same?Tor question</a></li>
-<li class="chapter" data-level="8.10" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#alireza-congruent-incongruent-pe"><i class="fa fa-check"></i><b>8.10</b> Alireza congruent incongruent (PE)</a>
-<ul>
-<li class="chapter" data-level="8.10.1" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#archive-this-cell"><i class="fa fa-check"></i><b>8.10.1</b> archive this cell</a></li>
-</ul></li>
-<li class="chapter" data-level="8.11" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#alireza-congruent-incongruent-incorrect"><i class="fa fa-check"></i><b>8.11</b> Alireza congruent incongruent (incorrect)</a>
-<ul>
-<li class="chapter" data-level="8.11.1" data-path="ch15_demean_per_sub.html"><a href="ch15_demean_per_sub.html#archive-this-cell-1"><i class="fa fa-check"></i><b>8.11.1</b> archive this cell</a></li>
-</ul></li>
-</ul></li>
-<li class="chapter" data-level="9" data-path="ch17_mediation.html"><a href="ch17_mediation.html"><i class="fa fa-check"></i><b>9</b> [beh] Mediation outcome ~ cue * stim * expectrating * n-1outcomerating</a>
-<ul>
-<li class="chapter" data-level="9.1" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation"><i class="fa fa-check"></i><b>9.1</b> mediation</a></li>
-<li class="chapter" data-level="9.2" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation-2"><i class="fa fa-check"></i><b>9.2</b> mediation 2</a></li>
-<li class="chapter" data-level="9.3" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation-3-test-same-model-using-mediation-from-mbess"><i class="fa fa-check"></i><b>9.3</b> mediation 3: Test same model using mediation() from MBESS</a></li>
-<li class="chapter" data-level="9.4" data-path="ch17_mediation.html"><a href="ch17_mediation.html#mediation-4-test-library-mediation"><i class="fa fa-check"></i><b>9.4</b> mediation 4: Test library mediation</a></li>
-</ul></li>
-<li class="chapter" data-level="10" data-path="ch18_simulation.html"><a href="ch18_simulation.html"><i class="fa fa-check"></i><b>10</b> [beh] RL simulation</a>
-<ul>
-<li class="chapter" data-level="10.1" data-path="ch18_simulation.html"><a href="ch18_simulation.html#function"><i class="fa fa-check"></i><b>10.1</b> function</a></li>
-</ul></li>
-<li class="chapter" data-level="11" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html"><i class="fa fa-check"></i><b>11</b> [beh] RL simulation Aryan</a>
-<ul>
-<li class="chapter" data-level="11.1" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-expectation-and-outcome-rating-using-model-4-simulations-jepma"><i class="fa fa-check"></i><b>11.1</b> Plot the relationship between expectation and outcome rating using model 4 simulations (Jepma)</a></li>
-<li class="chapter" data-level="11.2" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-expectation-and-outcome-rating-using-model-2-simulations-jepma"><i class="fa fa-check"></i><b>11.2</b> Plot the relationship between expectation and outcome rating using model 2 simulations (Jepma)</a>
-<ul>
-<li class="chapter" data-level="11.2.1" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#model-fits-from-model-2.-expectation-ratings-jepma-model"><i class="fa fa-check"></i><b>11.2.1</b> model fits from model 2. expectation ratings (Jepma model)</a></li>
-<li class="chapter" data-level="11.2.2" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#model-fits-from-model-2.-outcome-ratings-jepma-model"><i class="fa fa-check"></i><b>11.2.2</b> model fits from model 2. outcome ratings (Jepma model)</a></li>
-</ul></li>
-<li class="chapter" data-level="11.3" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#correlation-betweeen-alpha_incongruent-and-cue-trial-slope-randome-effects-of-cue"><i class="fa fa-check"></i><b>11.3</b> correlation betweeen alpha_incongruent and cue trial slope (randome effects of cue)</a></li>
-<li class="chapter" data-level="11.4" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#correlation-betweeen-alpha_incongruent-and-nps"><i class="fa fa-check"></i><b>11.4</b> correlation betweeen alpha_incongruent and NPS</a></li>
-<li class="chapter" data-level="11.5" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#correlation-bettween-nps-and-pe"><i class="fa fa-check"></i><b>11.5</b> correlation bettween NPS and PE</a>
-<ul>
-<li class="chapter" data-level="11.5.1" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#test-similarity-between-nps-positive-values-and-pe-11062023"><i class="fa fa-check"></i><b>11.5.1</b> test similarity between NPS positive values and PE (11/06/2023)</a></li>
-<li class="chapter" data-level="11.5.2" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#test-relationship-between-pe-and-cue-type-and-stimintensity-06162023"><i class="fa fa-check"></i><b>11.5.2</b> test relationship between PE and cue type and stimintensity (06/16/2023)</a></li>
-<li class="chapter" data-level="11.5.3" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-pe-and-nps-as-a-function-of-cue"><i class="fa fa-check"></i><b>11.5.3</b> plot the relationship between PE and NPS as a function of cue</a></li>
-<li class="chapter" data-level="11.5.4" data-path="ch18_simulation_aryan.html"><a href="ch18_simulation_aryan.html#plot-the-relationship-between-pe-and-nps-as-a-function-of-cue-and-stimulus-intensity"><i class="fa fa-check"></i><b>11.5.4</b> plot the relationship between PE and NPS as a function of cue and stimulus intensity</a></li>
-</ul></li>
-</ul></li>
-<li class="chapter" data-level="12" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html"><i class="fa fa-check"></i><b>12</b> [model] NPSsimulation</a>
-<ul>
-<li class="chapter" data-level="12.0.1" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#function-1"><i class="fa fa-check"></i><b>12.0.1</b> Function</a></li>
-<li class="chapter" data-level="12.0.2" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#nps-data"><i class="fa fa-check"></i><b>12.0.2</b> NPS data</a></li>
-<li class="chapter" data-level="12.0.3" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#behavioral-data"><i class="fa fa-check"></i><b>12.0.3</b> behavioral data</a></li>
-<li class="chapter" data-level="12.0.4" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#get-pain-relationship-controlling-for-cue-cuetype-expect"><i class="fa fa-check"></i><b>12.0.4</b> get pain relationship, controlling for cue, cuetype, expect</a></li>
-<li class="chapter" data-level="12.1" data-path="ch20_npssimulation.html"><a href="ch20_npssimulation.html#simulation"><i class="fa fa-check"></i><b>12.1</b> simulation **</a></li>
-</ul></li>
-<li class="part"><span><b>fMRI timeseries</b></span></li>
-<li class="chapter" data-level="" data-path="fmri_time.html"><a href="fmri_time.html"><i class="fa fa-check"></i>fMRI timeseries</a></li>
-<li class="chapter" data-level="13" data-path="ch51_fir_glasserTPJttl2.html"><a href="ch51_fir_glasserTPJttl2.html"><i class="fa fa-check"></i><b>13</b> [fMRI] FIR ~ task</a>
-<ul>
-<li class="chapter" data-level="13.1" data-path="ch51_fir_glasserTPJttl2.html"><a href="ch51_fir_glasserTPJttl2.html#parameters-todo-ignore"><i class="fa fa-check"></i><b>13.1</b> parameters {TODO: ignore}</a></li>
-</ul></li>
-<li class="chapter" data-level="14" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html"><i class="fa fa-check"></i><b>14</b> taskwise stim effect</a>
-<ul>
-<li class="chapter" data-level="14.0.1" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#pca-subjectwise"><i class="fa fa-check"></i><b>14.0.1</b> PCA subjectwise</a></li>
-<li class="chapter" data-level="14.0.2" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#pca-groupwise"><i class="fa fa-check"></i><b>14.0.2</b> PCA groupwise</a></li>
-<li class="chapter" data-level="14.1" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#dep-epoch-stim-high-cue-vs-low-cue"><i class="fa fa-check"></i><b>14.1</b> DEP: epoch: stim, high cue vs low cue</a></li>
-<li class="chapter" data-level="14.2" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#taskwise-cue-effect"><i class="fa fa-check"></i><b>14.2</b> taskwise cue effect</a></li>
-<li class="chapter" data-level="14.3" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#epoch-stim-rating"><i class="fa fa-check"></i><b>14.3</b> epoch: stim, rating</a></li>
-<li class="chapter" data-level="14.4" data-path="taskwise-stim-effect.html"><a href="taskwise-stim-effect.html#epoch-6-cond"><i class="fa fa-check"></i><b>14.4</b> epoch: 6 cond</a></li>
-</ul></li>
-<li class="chapter" data-level="15" data-path="taskwise-6-cond-effect.html"><a href="taskwise-6-cond-effect.html"><i class="fa fa-check"></i><b>15</b> taskwise 6 cond effect</a></li>
-<li class="chapter" data-level="16" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html"><i class="fa fa-check"></i><b>16</b> [fMRI] FIR ~ task TTL1</a>
-<ul>
-<li class="chapter" data-level="16.1" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#references"><i class="fa fa-check"></i><b>16.1</b> references</a></li>
-<li class="chapter" data-level="16.2" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#taskwise-stim-effect-1"><i class="fa fa-check"></i><b>16.2</b> taskwise stim effect</a>
-<ul>
-<li class="chapter" data-level="16.2.1" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#pca-subjectwise-1"><i class="fa fa-check"></i><b>16.2.1</b> PCA subjectwise</a></li>
-<li class="chapter" data-level="16.2.2" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#pca-groupwise-1"><i class="fa fa-check"></i><b>16.2.2</b> PCA groupwise</a></li>
-</ul></li>
-<li class="chapter" data-level="16.3" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#taskwise-cue-effect-1"><i class="fa fa-check"></i><b>16.3</b> taskwise cue effect</a>
-<ul>
-<li class="chapter" data-level="16.3.1" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#epoch-stim-rating-1"><i class="fa fa-check"></i><b>16.3.1</b> epoch: stim, rating</a></li>
-</ul></li>
-<li class="chapter" data-level="16.4" data-path="ch52_timeseries.html"><a href="ch52_timeseries.html#main-sandbox-6-condition-in-three-panels.-per-task.-per-roi"><i class="fa fa-check"></i><b>16.4</b> MAIN SANDBOX: 6 condition in three panels. per task. per ROI</a></li>
-</ul></li>
-</ul>
-
-      </nav>
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">52_ROI TTL1</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
     </div>
 
-    <div class="book-body">
-      <div class="body-inner">
-        <div class="book-header" role="navigation">
-          <h1>
-            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">52_ROI TTL1</a>
-          </h1>
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html"><span class="header-section-number">1</span> About</a></li>
+<li class="book-part">Behavioral</li>
+<li><a class="" href="action-intro.html">Behavioral Rating analysis</a></li>
+<li><a class="" href="ch2_expect.html"><span class="header-section-number">2</span> [beh] expectation ~ cue</a></li>
+<li><a class="" href="ch03_cue.html"><span class="header-section-number">3</span> [beh] outcome ~ cue</a></li>
+<li><a class="" href="ch04_outcome-stim.html"><span class="header-section-number">4</span> [beh] outcome ~ stimulus_intensity</a></li>
+<li><a class="" href="ch05_outcome-cueXstim.html"><span class="header-section-number">5</span> [beh] outcome_rating ~ cue * stim</a></li>
+<li><a class="" href="clinical-trials.html"><span class="header-section-number">6</span> Clinical trials</a></li>
+<li><a class="" href="ch06_Jepma.html"><span class="header-section-number">7</span> expect-actual ~ cue * trial</a></li>
+<li><a class="" href="ch15_demean_per_sub.html"><span class="header-section-number">8</span> [ beh ] outcome_demean ~ cue * stim * expectrating * n-1outcomerating</a></li>
+<li><a class="" href="ch17_mediation.html"><span class="header-section-number">9</span> [beh] Mediation outcome ~ cue * stim * expectrating * n-1outcomerating</a></li>
+<li><a class="" href="ch18_simulation.html"><span class="header-section-number">10</span> [beh] RL simulation</a></li>
+<li><a class="" href="ch18_simulation_aryan.html"><span class="header-section-number">11</span> [beh] RL simulation Aryan</a></li>
+<li><a class="active" href="ch20_npssimulation.html"><span class="header-section-number">12</span> [model] NPSsimulation</a></li>
+<li class="book-part">fMRI timeseries</li>
+<li><a class="" href="fmri_time.html">fMRI timeseries</a></li>
+<li><a class="" href="ch51_fir_glasserTPJttl2.html"><span class="header-section-number">13</span> [fMRI] FIR ~ task</a></li>
+<li><a class="" href="taskwise-stim-effect.html"><span class="header-section-number">14</span> taskwise stim effect</a></li>
+<li><a class="" href="taskwise-6-cond-effect.html"><span class="header-section-number">15</span> taskwise 6 cond effect</a></li>
+<li><a class="" href="ch52_timeseries.html"><span class="header-section-number">16</span> [fMRI] FIR ~ task TTL1</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/jungheejung/cue_expectancy">View book source <i class="fab fa-github"></i></a></p>
         </div>
-
-        <div class="page-wrapper" tabindex="-1" role="main">
-          <div class="page-inner">
-
-            <section class="normal" id="section-">
-<div id="ch20_npssimulation" class="section level1 hasAnchor" number="12">
-<h1><span class="header-section-number">Chapter 12</span> [model] NPSsimulation<a href="ch20_npssimulation.html#ch20_npssimulation" class="anchor-section" aria-label="Anchor link to header"></a></h1>
-<div id="function-1" class="section level3 hasAnchor" number="12.0.1">
-<h3><span class="header-section-number">12.0.1</span> Function<a href="ch20_npssimulation.html#function-1" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+      </nav>
 </div>
-<div id="nps-data" class="section level3 hasAnchor" number="12.0.2">
-<h3><span class="header-section-number">12.0.2</span> NPS data<a href="ch20_npssimulation.html#nps-data" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="ch20_npssimulation" class="section level1" number="12">
+<h1>
+<span class="header-section-number">12</span> [model] NPSsimulation<a class="anchor" aria-label="anchor" href="#ch20_npssimulation"><i class="fas fa-link"></i></a>
+</h1>
+<div id="function-1" class="section level3" number="12.0.1">
+<h3>
+<span class="header-section-number">12.0.1</span> Function<a class="anchor" aria-label="anchor" href="#function-1"><i class="fas fa-link"></i></a>
+</h3>
 </div>
-<div id="behavioral-data" class="section level3 hasAnchor" number="12.0.3">
-<h3><span class="header-section-number">12.0.3</span> behavioral data<a href="ch20_npssimulation.html#behavioral-data" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div id="nps-data" class="section level3" number="12.0.2">
+<h3>
+<span class="header-section-number">12.0.2</span> NPS data<a class="anchor" aria-label="anchor" href="#nps-data"><i class="fas fa-link"></i></a>
+</h3>
 </div>
-<div id="q.-within-pain-task-does-stimulus-intenisty-level-and-cue-level-significantly-predict-nps-dotproducts" class="section level3 unlisted unnumbered hasAnchor">
-<h3>Q. Within pain task, Does stimulus intenisty level and cue level significantly predict NPS dotproducts?<a href="ch20_npssimulation.html#q.-within-pain-task-does-stimulus-intenisty-level-and-cue-level-significantly-predict-nps-dotproducts" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<p><img src="20_NPS_simulation_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<div id="behavioral-data" class="section level3" number="12.0.3">
+<h3>
+<span class="header-section-number">12.0.3</span> behavioral data<a class="anchor" aria-label="anchor" href="#behavioral-data"><i class="fas fa-link"></i></a>
+</h3>
 </div>
-<div id="get-pain-relationship-controlling-for-cue-cuetype-expect" class="section level3 hasAnchor" number="12.0.4">
-<h3><span class="header-section-number">12.0.4</span> get pain relationship, controlling for cue, cuetype, expect<a href="ch20_npssimulation.html#get-pain-relationship-controlling-for-cue-cuetype-expect" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
-<div class="sourceCode" id="cb307"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb307-1"><a href="ch20_npssimulation.html#cb307-1" aria-hidden="true" tabindex="-1"></a>model.stim <span class="ot">&lt;-</span> <span class="fu">lmer</span>(event04_actual_angle <span class="sc">~</span> </span>
-<span id="cb307-2"><a href="ch20_npssimulation.html#cb307-2" aria-hidden="true" tabindex="-1"></a>                          STIM_linear <span class="sc">+</span> </span>
-<span id="cb307-3"><a href="ch20_npssimulation.html#cb307-3" aria-hidden="true" tabindex="-1"></a>                          CUE_high_gt_low <span class="sc">+</span> STIM_quadratic<span class="sc">+</span> EXPECT_demean <span class="sc">+</span></span>
-<span id="cb307-4"><a href="ch20_npssimulation.html#cb307-4" aria-hidden="true" tabindex="-1"></a>                          EXPECT_cmc <span class="sc">+</span></span>
-<span id="cb307-5"><a href="ch20_npssimulation.html#cb307-5" aria-hidden="true" tabindex="-1"></a>                          ses <span class="sc">+</span> </span>
-<span id="cb307-6"><a href="ch20_npssimulation.html#cb307-6" aria-hidden="true" tabindex="-1"></a>                          (<span class="dv">1</span><span class="sc">|</span>sub), <span class="at">data =</span> df</span>
-<span id="cb307-7"><a href="ch20_npssimulation.html#cb307-7" aria-hidden="true" tabindex="-1"></a>                    ) </span>
-<span id="cb307-8"><a href="ch20_npssimulation.html#cb307-8" aria-hidden="true" tabindex="-1"></a><span class="co"># CUE_high_gt_low+STIM+EXPECT_demean</span></span>
-<span id="cb307-9"><a href="ch20_npssimulation.html#cb307-9" aria-hidden="true" tabindex="-1"></a>sjPlot<span class="sc">::</span><span class="fu">tab_model</span>(model.stim,</span>
-<span id="cb307-10"><a href="ch20_npssimulation.html#cb307-10" aria-hidden="true" tabindex="-1"></a>                  <span class="at">title =</span> <span class="st">&quot;Multilevel-modeling: </span><span class="sc">\n</span><span class="st">lmer(NPSpos ~ CUE + STIM + EXPECT_demean + SES + (1| sub), data = pvc)&quot;</span>,</span>
-<span id="cb307-11"><a href="ch20_npssimulation.html#cb307-11" aria-hidden="true" tabindex="-1"></a>                  <span class="at">CSS =</span> <span class="fu">list</span>(<span class="at">css.table =</span> <span class="st">&#39;+font-size: 12;&#39;</span>))</span></code></pre></div>
-</details>
-<table style="border-collapse:collapse; border:none;font-size: 12;">
+<div id="q.-within-pain-task-does-stimulus-intenisty-level-and-cue-level-significantly-predict-nps-dotproducts" class="section level3 unlisted unnumbered">
+<h3>Q. Within pain task, Does stimulus intenisty level and cue level significantly predict NPS dotproducts?<a class="anchor" aria-label="anchor" href="#q.-within-pain-task-does-stimulus-intenisty-level-and-cue-level-significantly-predict-nps-dotproducts"><i class="fas fa-link"></i></a>
+</h3>
+<div class="inline-figure"><img src="20_NPS_simulation_files/figure-html/unnamed-chunk-4-1.png" width="672"></div>
+</div>
+<div id="get-pain-relationship-controlling-for-cue-cuetype-expect" class="section level3" number="12.0.4">
+<h3>
+<span class="header-section-number">12.0.4</span> get pain relationship, controlling for cue, cuetype, expect<a class="anchor" aria-label="anchor" href="#get-pain-relationship-controlling-for-cue-cuetype-expect"><i class="fas fa-link"></i></a>
+</h3>
+<div class="sourceCode" id="cb309"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">model.stim</span> <span class="op">&lt;-</span> <span class="fu">lmer</span><span class="op">(</span><span class="va">event04_actual_angle</span> <span class="op">~</span> </span>
+<span>                          <span class="va">STIM_linear</span> <span class="op">+</span> </span>
+<span>                          <span class="va">CUE_high_gt_low</span> <span class="op">+</span> <span class="va">STIM_quadratic</span><span class="op">+</span> <span class="va">EXPECT_demean</span> <span class="op">+</span></span>
+<span>                          <span class="va">EXPECT_cmc</span> <span class="op">+</span></span>
+<span>                          <span class="va">ses</span> <span class="op">+</span> </span>
+<span>                          <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">sub</span><span class="op">)</span>, data <span class="op">=</span> <span class="va">df</span></span>
+<span>                    <span class="op">)</span> </span>
+<span><span class="co"># CUE_high_gt_low+STIM+EXPECT_demean</span></span>
+<span><span class="fu">sjPlot</span><span class="fu">::</span><span class="fu"><a href="https://strengejacke.github.io/sjPlot/reference/tab_model.html">tab_model</a></span><span class="op">(</span><span class="va">model.stim</span>,</span>
+<span>                  title <span class="op">=</span> <span class="st">"Multilevel-modeling: \nlmer(NPSpos ~ CUE + STIM + EXPECT_demean + SES + (1| sub), data = pvc)"</span>,</span>
+<span>                  CSS <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>css.table <span class="op">=</span> <span class="st">'+font-size: 12;'</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-table"><table style="border-collapse:collapse; border:none;font-size: 12;" class="table table-sm">
 <caption style="font-weight: bold; text-align:left;">
 Multilevel-modeling:
 lmer(NPSpos ~ CUE + STIM + EXPECT_demean + SES + (1| sub), data = pvc)
@@ -505,11 +266,12 @@ Random Effects
 </tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
-τ<sub>00</sub> <sub>sub</sub>
+τ<sub>00</sub><sub>sub</sub>
 </td>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center;" colspan="3">
 157.35
 </td>
+</tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
 ICC
@@ -517,6 +279,7 @@ ICC
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center;" colspan="3">
 0.30
 </td>
+</tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
 N <sub>sub</sub>
@@ -524,6 +287,7 @@ N <sub>sub</sub>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center;" colspan="3">
 96
 </td>
+</tr>
 <tr>
 <td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">
 Observations
@@ -540,31 +304,29 @@ Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
 0.645 / 0.751
 </td>
 </tr>
-</table>
-<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
-<div class="sourceCode" id="cb308"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb308-1"><a href="ch20_npssimulation.html#cb308-1" aria-hidden="true" tabindex="-1"></a><span class="co"># re.beta &lt;- coef(model.stim)$unit[,&quot;x&quot;]</span></span>
-<span id="cb308-2"><a href="ch20_npssimulation.html#cb308-2" aria-hidden="true" tabindex="-1"></a>fixEffect_expect <span class="ot">&lt;-</span><span class="fu">as.data.frame</span>(<span class="fu">fixef</span>(model.stim))</span>
-<span id="cb308-3"><a href="ch20_npssimulation.html#cb308-3" aria-hidden="true" tabindex="-1"></a>randEffect_expect <span class="ot">&lt;-</span><span class="fu">as.data.frame</span>(<span class="fu">ranef</span>(model.stim))</span></code></pre></div>
-</details>
-<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
-<div class="sourceCode" id="cb309"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb309-1"><a href="ch20_npssimulation.html#cb309-1" aria-hidden="true" tabindex="-1"></a>ntrials <span class="ot">=</span> <span class="dv">12</span></span>
-<span id="cb309-2"><a href="ch20_npssimulation.html#cb309-2" aria-hidden="true" tabindex="-1"></a>lowintens <span class="ot">=</span> <span class="dv">48</span>;     </span>
-<span id="cb309-3"><a href="ch20_npssimulation.html#cb309-3" aria-hidden="true" tabindex="-1"></a>medintens <span class="ot">=</span> <span class="dv">49</span>;</span>
-<span id="cb309-4"><a href="ch20_npssimulation.html#cb309-4" aria-hidden="true" tabindex="-1"></a>highintens <span class="ot">=</span> <span class="dv">50</span>;</span>
-<span id="cb309-5"><a href="ch20_npssimulation.html#cb309-5" aria-hidden="true" tabindex="-1"></a>stim <span class="ot">&lt;-</span> <span class="dv">48</span><span class="sc">:</span><span class="dv">50</span></span>
-<span id="cb309-6"><a href="ch20_npssimulation.html#cb309-6" aria-hidden="true" tabindex="-1"></a>painmean <span class="ot">=</span> <span class="dv">30</span>      <span class="co"># average pain; arbitrary, on a 0 - 100 scale</span></span>
-<span id="cb309-7"><a href="ch20_npssimulation.html#cb309-7" aria-hidden="true" tabindex="-1"></a>painslope <span class="ot">=</span> fixEffect_expect[<span class="st">&#39;STIM_linear&#39;</span>,<span class="dv">1</span>]     <span class="co"># rise in pain per unit change in stim (per degree)</span></span>
-<span id="cb309-8"><a href="ch20_npssimulation.html#cb309-8" aria-hidden="true" tabindex="-1"></a>painslope_stan <span class="ot">=</span> <span class="fl">0.33621048</span> </span>
-<span id="cb309-9"><a href="ch20_npssimulation.html#cb309-9" aria-hidden="true" tabindex="-1"></a>stdCoef.merMod <span class="ot">&lt;-</span> <span class="cf">function</span>(object) {</span>
-<span id="cb309-10"><a href="ch20_npssimulation.html#cb309-10" aria-hidden="true" tabindex="-1"></a>  sdy <span class="ot">&lt;-</span> <span class="fu">sd</span>(<span class="fu">getME</span>(object,<span class="st">&quot;y&quot;</span>))</span>
-<span id="cb309-11"><a href="ch20_npssimulation.html#cb309-11" aria-hidden="true" tabindex="-1"></a>  sdx <span class="ot">&lt;-</span> <span class="fu">apply</span>(<span class="fu">getME</span>(object,<span class="st">&quot;X&quot;</span>), <span class="dv">2</span>, sd)</span>
-<span id="cb309-12"><a href="ch20_npssimulation.html#cb309-12" aria-hidden="true" tabindex="-1"></a>  sc <span class="ot">&lt;-</span> <span class="fu">fixef</span>(object)<span class="sc">*</span>sdx<span class="sc">/</span>sdy</span>
-<span id="cb309-13"><a href="ch20_npssimulation.html#cb309-13" aria-hidden="true" tabindex="-1"></a>  se.fixef <span class="ot">&lt;-</span> <span class="fu">coef</span>(<span class="fu">summary</span>(object))[,<span class="st">&quot;Std. Error&quot;</span>]</span>
-<span id="cb309-14"><a href="ch20_npssimulation.html#cb309-14" aria-hidden="true" tabindex="-1"></a>  se <span class="ot">&lt;-</span> se.fixef<span class="sc">*</span>sdx<span class="sc">/</span>sdy</span>
-<span id="cb309-15"><a href="ch20_npssimulation.html#cb309-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">data.frame</span>(<span class="at">stdcoef=</span>sc, <span class="at">stdse=</span>se))</span>
-<span id="cb309-16"><a href="ch20_npssimulation.html#cb309-16" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb309-17"><a href="ch20_npssimulation.html#cb309-17" aria-hidden="true" tabindex="-1"></a><span class="fu">stdCoef.merMod</span>(model.stim)</span></code></pre></div>
-</details>
+</table></div>
+<div class="sourceCode" id="cb310"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># re.beta &lt;- coef(model.stim)$unit[,"x"]</span></span>
+<span><span class="va">fixEffect_expect</span> <span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="fu">fixef</span><span class="op">(</span><span class="va">model.stim</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">randEffect_expect</span> <span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="fu">ranef</span><span class="op">(</span><span class="va">model.stim</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb311"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ntrials</span> <span class="op">=</span> <span class="fl">12</span></span>
+<span><span class="va">lowintens</span> <span class="op">=</span> <span class="fl">48</span>;     </span>
+<span><span class="va">medintens</span> <span class="op">=</span> <span class="fl">49</span>;</span>
+<span><span class="va">highintens</span> <span class="op">=</span> <span class="fl">50</span>;</span>
+<span><span class="va">stim</span> <span class="op">&lt;-</span> <span class="fl">48</span><span class="op">:</span><span class="fl">50</span></span>
+<span><span class="va">painmean</span> <span class="op">=</span> <span class="fl">30</span>      <span class="co"># average pain; arbitrary, on a 0 - 100 scale</span></span>
+<span><span class="va">painslope</span> <span class="op">=</span> <span class="va">fixEffect_expect</span><span class="op">[</span><span class="st">'STIM_linear'</span>,<span class="fl">1</span><span class="op">]</span>     <span class="co"># rise in pain per unit change in stim (per degree)</span></span>
+<span><span class="va">painslope_stan</span> <span class="op">=</span> <span class="fl">0.33621048</span> </span>
+<span><span class="va">stdCoef.merMod</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">object</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">sdy</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="fu">getME</span><span class="op">(</span><span class="va">object</span>,<span class="st">"y"</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">sdx</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="fu">getME</span><span class="op">(</span><span class="va">object</span>,<span class="st">"X"</span><span class="op">)</span>, <span class="fl">2</span>, <span class="va">sd</span><span class="op">)</span></span>
+<span>  <span class="va">sc</span> <span class="op">&lt;-</span> <span class="fu">fixef</span><span class="op">(</span><span class="va">object</span><span class="op">)</span><span class="op">*</span><span class="va">sdx</span><span class="op">/</span><span class="va">sdy</span></span>
+<span>  <span class="va">se.fixef</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coef</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">object</span><span class="op">)</span><span class="op">)</span><span class="op">[</span>,<span class="st">"Std. Error"</span><span class="op">]</span></span>
+<span>  <span class="va">se</span> <span class="op">&lt;-</span> <span class="va">se.fixef</span><span class="op">*</span><span class="va">sdx</span><span class="op">/</span><span class="va">sdy</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>stdcoef<span class="op">=</span><span class="va">sc</span>, stdse<span class="op">=</span><span class="va">se</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="fu">stdCoef.merMod</span><span class="op">(</span><span class="va">model.stim</span><span class="op">)</span></span></code></pre></div>
 <pre><code>##                     stdcoef       stdse
 ## (Intercept)      0.00000000 0.000000000
 ## STIM_linear      0.31648413 0.007848709
@@ -574,89 +336,96 @@ Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
 ## EXPECT_cmc       0.69471095 0.034434185
 ## sesses-03       -0.08777975 0.010153298
 ## sesses-04       -0.09126342 0.010120143</code></pre>
-<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
-<div class="sourceCode" id="cb311"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb311-1"><a href="ch20_npssimulation.html#cb311-1" aria-hidden="true" tabindex="-1"></a><span class="co"># # library(limma)</span></span>
-<span id="cb311-2"><a href="ch20_npssimulation.html#cb311-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb311-3"><a href="ch20_npssimulation.html#cb311-3" aria-hidden="true" tabindex="-1"></a><span class="co"># S &lt;- rep(stim,times=ntrials) # stim</span></span>
-<span id="cb311-4"><a href="ch20_npssimulation.html#cb311-4" aria-hidden="true" tabindex="-1"></a><span class="co"># C &lt;- rep(rep(c(1,-1), each = 3), times = 6) #cue</span></span>
-<span id="cb311-5"><a href="ch20_npssimulation.html#cb311-5" aria-hidden="true" tabindex="-1"></a><span class="co"># E &lt;- painslope * (C + rnorm(length(C))) + painmean # pseudo nociception</span></span>
-<span id="cb311-6"><a href="ch20_npssimulation.html#cb311-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Szscore &lt;- (S - mean(S)) / sd(S)</span></span>
-<span id="cb311-7"><a href="ch20_npssimulation.html#cb311-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb311-8"><a href="ch20_npssimulation.html#cb311-8" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>S <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">mapvalues</span>(df<span class="sc">$</span>stimintensity, </span>
-<span id="cb311-9"><a href="ch20_npssimulation.html#cb311-9" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">from =</span> <span class="fu">c</span>(<span class="st">&quot;low&quot;</span>, <span class="st">&quot;med&quot;</span>, <span class="st">&quot;high&quot;</span>), <span class="fu">c</span>(<span class="dv">48</span>, <span class="dv">49</span>, <span class="dv">50</span>)))</span>
-<span id="cb311-10"><a href="ch20_npssimulation.html#cb311-10" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>C <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">mapvalues</span>(df<span class="sc">$</span>cuetype, </span>
-<span id="cb311-11"><a href="ch20_npssimulation.html#cb311-11" aria-hidden="true" tabindex="-1"></a>                                        <span class="at">from =</span> <span class="fu">c</span>(<span class="st">&quot;cuetype-low&quot;</span>, <span class="st">&quot;cuetype-high&quot;</span>), <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>)))</span>
-<span id="cb311-12"><a href="ch20_npssimulation.html#cb311-12" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>E <span class="ot">&lt;-</span> painslope <span class="sc">*</span> (df<span class="sc">$</span>C <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="fu">length</span>(df<span class="sc">$</span>C))) <span class="sc">+</span> painmean</span>
-<span id="cb311-13"><a href="ch20_npssimulation.html#cb311-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb311-14"><a href="ch20_npssimulation.html#cb311-14" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>Szscore <span class="ot">&lt;-</span> (df<span class="sc">$</span>S <span class="sc">-</span> <span class="fu">mean</span>(df<span class="sc">$</span>S, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">/</span> <span class="fu">sd</span>(df<span class="sc">$</span>S)</span>
-<span id="cb311-15"><a href="ch20_npssimulation.html#cb311-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb311-16"><a href="ch20_npssimulation.html#cb311-16" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>Pcalib <span class="ot">=</span> df<span class="sc">$</span>Szscore <span class="sc">*</span> painslope <span class="sc">+</span> painmean <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="fu">length</span>(df<span class="sc">$</span>C))</span>
-<span id="cb311-17"><a href="ch20_npssimulation.html#cb311-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb311-18"><a href="ch20_npssimulation.html#cb311-18" aria-hidden="true" tabindex="-1"></a>model.stim2pain <span class="ot">&lt;-</span> <span class="fu">lmer</span>(Pcalib <span class="sc">~</span> S  <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>sub), df)</span>
-<span id="cb311-19"><a href="ch20_npssimulation.html#cb311-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb311-20"><a href="ch20_npssimulation.html#cb311-20" aria-hidden="true" tabindex="-1"></a>b_stim2pain <span class="ot">=</span> <span class="fu">fixef</span>(model.stim2pain)[<span class="dv">2</span>] <span class="co">#0.4126089 #36.5757</span></span>
-<span id="cb311-21"><a href="ch20_npssimulation.html#cb311-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb311-22"><a href="ch20_npssimulation.html#cb311-22" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>Sprime <span class="ot">=</span> df<span class="sc">$</span>Szscore <span class="sc">*</span> b_stim2pain <span class="sc">+</span> painmean <span class="co"># subjective pain experience, converted to a scale of 0-180, in order to match expectation ratings</span></span>
-<span id="cb311-23"><a href="ch20_npssimulation.html#cb311-23" aria-hidden="true" tabindex="-1"></a><span class="co"># df$Sprime = df$S * b_stim2pain </span></span>
-<span id="cb311-24"><a href="ch20_npssimulation.html#cb311-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb311-25"><a href="ch20_npssimulation.html#cb311-25" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span></span>
-<span id="cb311-26"><a href="ch20_npssimulation.html#cb311-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(sub) <span class="sc">%&gt;%</span></span>
-<span id="cb311-27"><a href="ch20_npssimulation.html#cb311-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">E =</span> <span class="fu">as.numeric</span>(E)) <span class="sc">%&gt;%</span></span>
-<span id="cb311-28"><a href="ch20_npssimulation.html#cb311-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">avg_E =</span> <span class="fu">mean</span>(E, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb311-29"><a href="ch20_npssimulation.html#cb311-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">E_demean =</span> E <span class="sc">-</span> avg_E) <span class="sc">%&gt;%</span></span>
-<span id="cb311-30"><a href="ch20_npssimulation.html#cb311-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">E_cmc =</span> avg_E <span class="sc">-</span> <span class="fu">mean</span>(avg_E))</span></code></pre></div>
-</details>
+<div class="sourceCode" id="cb313"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># # library(limma)</span></span>
+<span></span>
+<span><span class="co"># S &lt;- rep(stim,times=ntrials) # stim</span></span>
+<span><span class="co"># C &lt;- rep(rep(c(1,-1), each = 3), times = 6) #cue</span></span>
+<span><span class="co"># E &lt;- painslope * (C + rnorm(length(C))) + painmean # pseudo nociception</span></span>
+<span><span class="co"># Szscore &lt;- (S - mean(S)) / sd(S)</span></span>
+<span></span>
+<span><span class="va">df</span><span class="op">$</span><span class="va">S</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="fu">mapvalues</span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">stimintensity</span>, </span>
+<span>                                        from <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"low"</span>, <span class="st">"med"</span>, <span class="st">"high"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">48</span>, <span class="fl">49</span>, <span class="fl">50</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">df</span><span class="op">$</span><span class="va">C</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="fu">mapvalues</span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">cuetype</span>, </span>
+<span>                                        from <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"cuetype-low"</span>, <span class="st">"cuetype-high"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">df</span><span class="op">$</span><span class="va">E</span> <span class="op">&lt;-</span> <span class="va">painslope</span> <span class="op">*</span> <span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">C</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">C</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="va">painmean</span></span>
+<span></span>
+<span><span class="va">df</span><span class="op">$</span><span class="va">Szscore</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">S</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">S</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">S</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">df</span><span class="op">$</span><span class="va">Pcalib</span> <span class="op">=</span> <span class="va">df</span><span class="op">$</span><span class="va">Szscore</span> <span class="op">*</span> <span class="va">painslope</span> <span class="op">+</span> <span class="va">painmean</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">C</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">model.stim2pain</span> <span class="op">&lt;-</span> <span class="fu">lmer</span><span class="op">(</span><span class="va">Pcalib</span> <span class="op">~</span> <span class="va">S</span>  <span class="op">+</span> <span class="op">(</span><span class="fl">1</span><span class="op">|</span><span class="va">sub</span><span class="op">)</span>, <span class="va">df</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">b_stim2pain</span> <span class="op">=</span> <span class="fu">fixef</span><span class="op">(</span><span class="va">model.stim2pain</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="co">#0.4126089 #36.5757</span></span>
+<span></span>
+<span><span class="va">df</span><span class="op">$</span><span class="va">Sprime</span> <span class="op">=</span> <span class="va">df</span><span class="op">$</span><span class="va">Szscore</span> <span class="op">*</span> <span class="va">b_stim2pain</span> <span class="op">+</span> <span class="va">painmean</span> <span class="co"># subjective pain experience, converted to a scale of 0-180, in order to match expectation ratings</span></span>
+<span><span class="co"># df$Sprime = df$S * b_stim2pain </span></span>
+<span></span>
+<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="va">df</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">sub</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>E <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="va">E</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>avg_E <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">E</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>E_demean <span class="op">=</span> <span class="va">E</span> <span class="op">-</span> <span class="va">avg_E</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>E_cmc <span class="op">=</span> <span class="va">avg_E</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">avg_E</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
-<div id="simulation" class="section level2 hasAnchor" number="12.1">
-<h2><span class="header-section-number">12.1</span> simulation **<a href="ch20_npssimulation.html#simulation" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<details class=chunk-details><summary class=chunk-summary><span class=chunk-summary-text>Code</span></summary>
-<div class="sourceCode" id="cb312"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb312-1"><a href="ch20_npssimulation.html#cb312-1" aria-hidden="true" tabindex="-1"></a>w <span class="ot">=</span> <span class="fl">0.7</span></span>
-<span id="cb312-2"><a href="ch20_npssimulation.html#cb312-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb312-3"><a href="ch20_npssimulation.html#cb312-3" aria-hidden="true" tabindex="-1"></a>error <span class="ot">=</span> <span class="fu">rnorm</span>(<span class="fu">length</span>(df<span class="sc">$</span>C))</span>
-<span id="cb312-4"><a href="ch20_npssimulation.html#cb312-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb312-5"><a href="ch20_npssimulation.html#cb312-5" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>P.assim <span class="ot">&lt;-</span>  w <span class="sc">*</span> df<span class="sc">$</span>Sprime <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> w) <span class="sc">*</span> df<span class="sc">$</span>E <span class="sc">+</span> error</span>
-<span id="cb312-6"><a href="ch20_npssimulation.html#cb312-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb312-7"><a href="ch20_npssimulation.html#cb312-7" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>P.pe <span class="ot">=</span> df<span class="sc">$</span>Sprime <span class="sc">-</span> df<span class="sc">$</span>E <span class="sc">+</span> error</span>
-<span id="cb312-8"><a href="ch20_npssimulation.html#cb312-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb312-9"><a href="ch20_npssimulation.html#cb312-9" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>P.adapt <span class="ot">&lt;-</span> <span class="dv">1</span></span>
-<span id="cb312-10"><a href="ch20_npssimulation.html#cb312-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb312-11"><a href="ch20_npssimulation.html#cb312-11" aria-hidden="true" tabindex="-1"></a>  minimal.diff <span class="ot">&lt;-</span> (df<span class="sc">$</span>Sprime <span class="sc">-</span> df<span class="sc">$</span>E)<span class="sc">/</span><span class="fu">std</span>(df<span class="sc">$</span>Sprime) <span class="sc">&lt;</span> b_stim2pain</span>
-<span id="cb312-12"><a href="ch20_npssimulation.html#cb312-12" aria-hidden="true" tabindex="-1"></a>  large.diff <span class="ot">&lt;-</span> (df<span class="sc">$</span>Sprime <span class="sc">-</span> df<span class="sc">$</span>E)<span class="sc">/</span><span class="fu">std</span>(df<span class="sc">$</span>Sprime) <span class="sc">&gt;</span> b_stim2pain</span>
-<span id="cb312-13"><a href="ch20_npssimulation.html#cb312-13" aria-hidden="true" tabindex="-1"></a>  df<span class="sc">$</span>P.adapt[minimal.diff] <span class="ot">&lt;-</span> w <span class="sc">*</span> df<span class="sc">$</span>Sprime[minimal.diff] <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">-</span> w) <span class="sc">*</span> df<span class="sc">$</span>E[minimal.diff] <span class="sc">+</span> error[minimal.diff]</span>
-<span id="cb312-14"><a href="ch20_npssimulation.html#cb312-14" aria-hidden="true" tabindex="-1"></a>  df<span class="sc">$</span>P.adapt[large.diff] <span class="ot">&lt;-</span> w <span class="sc">*</span> df<span class="sc">$</span>Sprime[large.diff]  <span class="sc">+</span> error[large.diff]</span></code></pre></div>
-</details>
-<p><img src="20_NPS_simulation_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
-<p><img src="20_NPS_simulation_files/figure-html/unnamed-chunk-11-1.png" width="672" />
-<img src="20_NPS_simulation_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<div id="simulation" class="section level2" number="12.1">
+<h2>
+<span class="header-section-number">12.1</span> simulation **<a class="anchor" aria-label="anchor" href="#simulation"><i class="fas fa-link"></i></a>
+</h2>
+<div class="sourceCode" id="cb314"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">w</span> <span class="op">=</span> <span class="fl">0.7</span></span>
+<span></span>
+<span><span class="va">error</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">C</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">df</span><span class="op">$</span><span class="va">P.assim</span> <span class="op">&lt;-</span>  <span class="va">w</span> <span class="op">*</span> <span class="va">df</span><span class="op">$</span><span class="va">Sprime</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">w</span><span class="op">)</span> <span class="op">*</span> <span class="va">df</span><span class="op">$</span><span class="va">E</span> <span class="op">+</span> <span class="va">error</span></span>
+<span></span>
+<span><span class="va">df</span><span class="op">$</span><span class="va">P.pe</span> <span class="op">=</span> <span class="va">df</span><span class="op">$</span><span class="va">Sprime</span> <span class="op">-</span> <span class="va">df</span><span class="op">$</span><span class="va">E</span> <span class="op">+</span> <span class="va">error</span></span>
+<span></span>
+<span><span class="va">df</span><span class="op">$</span><span class="va">P.adapt</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
+<span></span>
+<span>  <span class="va">minimal.diff</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">Sprime</span> <span class="op">-</span> <span class="va">df</span><span class="op">$</span><span class="va">E</span><span class="op">)</span><span class="op">/</span><span class="fu">std</span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">Sprime</span><span class="op">)</span> <span class="op">&lt;</span> <span class="va">b_stim2pain</span></span>
+<span>  <span class="va">large.diff</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">Sprime</span> <span class="op">-</span> <span class="va">df</span><span class="op">$</span><span class="va">E</span><span class="op">)</span><span class="op">/</span><span class="fu">std</span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">Sprime</span><span class="op">)</span> <span class="op">&gt;</span> <span class="va">b_stim2pain</span></span>
+<span>  <span class="va">df</span><span class="op">$</span><span class="va">P.adapt</span><span class="op">[</span><span class="va">minimal.diff</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">w</span> <span class="op">*</span> <span class="va">df</span><span class="op">$</span><span class="va">Sprime</span><span class="op">[</span><span class="va">minimal.diff</span><span class="op">]</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">w</span><span class="op">)</span> <span class="op">*</span> <span class="va">df</span><span class="op">$</span><span class="va">E</span><span class="op">[</span><span class="va">minimal.diff</span><span class="op">]</span> <span class="op">+</span> <span class="va">error</span><span class="op">[</span><span class="va">minimal.diff</span><span class="op">]</span></span>
+<span>  <span class="va">df</span><span class="op">$</span><span class="va">P.adapt</span><span class="op">[</span><span class="va">large.diff</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">w</span> <span class="op">*</span> <span class="va">df</span><span class="op">$</span><span class="va">Sprime</span><span class="op">[</span><span class="va">large.diff</span><span class="op">]</span>  <span class="op">+</span> <span class="va">error</span><span class="op">[</span><span class="va">large.diff</span><span class="op">]</span></span></code></pre></div>
+<div class="inline-figure"><img src="20_NPS_simulation_files/figure-html/unnamed-chunk-10-1.png" width="672"></div>
+<p><img src="20_NPS_simulation_files/figure-html/unnamed-chunk-11-1.png" width="672"><img src="20_NPS_simulation_files/figure-html/unnamed-chunk-12-1.png" width="672"></p>
 </div>
-<div id="lineplots-original" class="section level2 unlisted unnumbered hasAnchor">
-<h2>Lineplots Original<a href="ch20_npssimulation.html#lineplots-original" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="lineplots-original" class="section level2 unlisted unnumbered">
+<h2>Lineplots Original<a class="anchor" aria-label="anchor" href="#lineplots-original"><i class="fas fa-link"></i></a>
+</h2>
 <pre><code>## Automatically converting the following non-factors to factors: cue_name</code></pre>
-<p><img src="20_NPS_simulation_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
-<div id="lineplots-p.assim" class="section level3 unlisted unnumbered hasAnchor">
-<h3>Lineplots P.assim<a href="ch20_npssimulation.html#lineplots-p.assim" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div class="inline-figure"><img src="20_NPS_simulation_files/figure-html/unnamed-chunk-13-1.png" width="672"></div>
+<div id="lineplots-p.assim" class="section level3 unlisted unnumbered">
+<h3>Lineplots P.assim<a class="anchor" aria-label="anchor" href="#lineplots-p.assim"><i class="fas fa-link"></i></a>
+</h3>
 <pre><code>## Automatically converting the following non-factors to factors: cue_name</code></pre>
-<p><img src="20_NPS_simulation_files/figure-html/unnamed-chunk-14-1.png" width="672" />
+<p><img src="20_NPS_simulation_files/figure-html/unnamed-chunk-14-1.png" width="672">
 ### P.assim ~ demeaned_expect * cue * stim
-<img src="20_NPS_simulation_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<img src="20_NPS_simulation_files/figure-html/unnamed-chunk-15-1.png" width="672"></p>
 </div>
-<div id="lineplots-p.pe" class="section level3 unlisted unnumbered hasAnchor">
-<h3>Lineplots P.pe<a href="ch20_npssimulation.html#lineplots-p.pe" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div id="lineplots-p.pe" class="section level3 unlisted unnumbered">
+<h3>Lineplots P.pe<a class="anchor" aria-label="anchor" href="#lineplots-p.pe"><i class="fas fa-link"></i></a>
+</h3>
 <pre><code>## Automatically converting the following non-factors to factors: cue_name</code></pre>
-<p><img src="20_NPS_simulation_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<div class="inline-figure"><img src="20_NPS_simulation_files/figure-html/unnamed-chunk-16-1.png" width="672"></div>
 </div>
-<div id="p.pe-demeaned_expect-cue-stim" class="section level3 hasAnchor" number="12.1.1">
-<h3><span class="header-section-number">12.1.1</span> P.pe ~ demeaned_expect * cue * stim<a href="ch20_npssimulation.html#p.pe-demeaned_expect-cue-stim" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<p><img src="20_NPS_simulation_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<div id="p.pe-demeaned_expect-cue-stim" class="section level3" number="12.1.1">
+<h3>
+<span class="header-section-number">12.1.1</span> P.pe ~ demeaned_expect * cue * stim<a class="anchor" aria-label="anchor" href="#p.pe-demeaned_expect-cue-stim"><i class="fas fa-link"></i></a>
+</h3>
+<div class="inline-figure"><img src="20_NPS_simulation_files/figure-html/unnamed-chunk-17-1.png" width="672"></div>
 </div>
-<div id="lineplots-p.adapt" class="section level3 unlisted unnumbered hasAnchor">
-<h3>Lineplots P.adapt<a href="ch20_npssimulation.html#lineplots-p.adapt" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div id="lineplots-p.adapt" class="section level3 unlisted unnumbered">
+<h3>Lineplots P.adapt<a class="anchor" aria-label="anchor" href="#lineplots-p.adapt"><i class="fas fa-link"></i></a>
+</h3>
 <pre><code>## Automatically converting the following non-factors to factors: cue_name</code></pre>
-<p><img src="20_NPS_simulation_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<div class="inline-figure"><img src="20_NPS_simulation_files/figure-html/unnamed-chunk-18-1.png" width="672"></div>
 </div>
-<div id="p.adapt-demeaned_expect-cue-stim" class="section level3 hasAnchor" number="12.1.2">
-<h3><span class="header-section-number">12.1.2</span> P.adapt ~ demeaned_expect * cue * stim<a href="ch20_npssimulation.html#p.adapt-demeaned_expect-cue-stim" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<p><img src="20_NPS_simulation_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<div id="p.adapt-demeaned_expect-cue-stim" class="section level3" number="12.1.2">
+<h3>
+<span class="header-section-number">12.1.2</span> P.adapt ~ demeaned_expect * cue * stim<a class="anchor" aria-label="anchor" href="#p.adapt-demeaned_expect-cue-stim"><i class="fas fa-link"></i></a>
+</h3>
+<div class="inline-figure"><img src="20_NPS_simulation_files/figure-html/unnamed-chunk-19-1.png" width="672"></div>
 
 </div>
 </div>
@@ -664,69 +433,56 @@ Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
 
 
 
-            </section>
+  <div class="chapter-nav">
+<div class="prev"><a href="ch18_simulation_aryan.html"><span class="header-section-number">11</span> [beh] RL simulation Aryan</a></div>
+<div class="next"><a href="fmri_time.html">fMRI timeseries</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li>
+<a class="nav-link" href="#ch20_npssimulation"><span class="header-section-number">12</span> [model] NPSsimulation</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#function-1"><span class="header-section-number">12.0.1</span> Function</a></li>
+<li><a class="nav-link" href="#nps-data"><span class="header-section-number">12.0.2</span> NPS data</a></li>
+<li><a class="nav-link" href="#behavioral-data"><span class="header-section-number">12.0.3</span> behavioral data</a></li>
+<li><a class="nav-link" href="#q.-within-pain-task-does-stimulus-intenisty-level-and-cue-level-significantly-predict-nps-dotproducts">Q. Within pain task, Does stimulus intenisty level and cue level significantly predict NPS dotproducts?</a></li>
+<li><a class="nav-link" href="#get-pain-relationship-controlling-for-cue-cuetype-expect"><span class="header-section-number">12.0.4</span> get pain relationship, controlling for cue, cuetype, expect</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#simulation"><span class="header-section-number">12.1</span> simulation **</a></li>
+<li>
+<a class="nav-link" href="#lineplots-original">Lineplots Original</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#lineplots-p.assim">Lineplots P.assim</a></li>
+<li><a class="nav-link" href="#lineplots-p.pe">Lineplots P.pe</a></li>
+<li><a class="nav-link" href="#p.pe-demeaned_expect-cue-stim"><span class="header-section-number">12.1.1</span> P.pe ~ demeaned_expect * cue * stim</a></li>
+<li><a class="nav-link" href="#lineplots-p.adapt">Lineplots P.adapt</a></li>
+<li><a class="nav-link" href="#p.adapt-demeaned_expect-cue-stim"><span class="header-section-number">12.1.2</span> P.adapt ~ demeaned_expect * cue * stim</a></li>
+</ul>
+</li>
+</ul>
 
-          </div>
-        </div>
-      </div>
-<a href="ch18_simulation_aryan.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="fmri_time.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
-    </div>
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/jungheejung/cue_expectancy/blob/master/20_NPS_simulation.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/jungheejung/cue_expectancy/edit/master/20_NPS_simulation.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>52_ROI TTL1</strong>" was written by Heejung Jung. It was last built on 2023-08-14.</p>
   </div>
-<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
-<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
-<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
-<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
-<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
-<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
-<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
-<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
-<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
-<script>
-gitbook.require(["gitbook"], function(gitbook) {
-gitbook.start({
-"sharing": {
-"github": true,
-"facebook": false,
-"twitter": true,
-"linkedin": false,
-"weibo": false,
-"instapaper": false,
-"vk": false,
-"whatsapp": false,
-"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
-},
-"fontsettings": {
-"theme": "white",
-"family": "sans",
-"size": 2
-},
-"edit": null,
-"history": {
-"link": "https://github.com/jungheejung/cue_expectancy/commits/main/20_NPS_simulation.Rmd",
-"text": "Chapter edit history"
-},
-"view": {
-"link": null,
-"text": null
-},
-"download": null,
-"search": {
-"engine": "lunr",
-"options": null
-},
-"toc": {
-"collapse": "section",
-"scroll_highlight": true
-},
-"toolbar": {
-"position": "fixed"
-},
-"info": true
-});
-});
-</script>
 
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer>
 </body>
-
 </html>
