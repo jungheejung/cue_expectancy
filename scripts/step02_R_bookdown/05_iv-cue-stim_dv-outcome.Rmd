@@ -1,4 +1,4 @@
-# beh :: outcome_rating ~ cue \* stim {#beh_outcome-cueXstim}
+# beh :: outcome ~ cue \* stim {#beh_outcome-cueXstim}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
@@ -226,14 +226,14 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
 
     # 5. save data for reproducibility__________________________________________
 
-    subset_df<- data[,c("src_subject_id", "SES", "RUN", "RUNTYPE", "CUE", "STIM","EXPECT_RT", "EXPECT","OUTCOME_RT", "OUTCOME")]
+    subset_df<- data[,c("subject", "SES", "RUN", "RUNTYPE", "CUE", "STIM","EXPECT_RT", "EXPECT","OUTCOME_RT", "OUTCOME")]
     df_trials <- subset_df %>%
-      group_by(src_subject_id, session_id, param_run_num) %>%
-      mutate(trial_index_runwise = row_number(param_run_num))
+      group_by(subject, SES, RUN) %>%
+      mutate(trial_index_runwise = row_number(RUN))
     df_filtered <- subset(df_trials, complete.cases(df_trials) & !is.na(EXPECT) & !is.na(OUTCOME))
     df_filtered_final= df_filtered %>%
-      arrange(src_subject_id ) %>%
-      group_by(src_subject_id) %>%
+      arrange(subject ) %>%
+      group_by(subject) %>%
       mutate(trial_index_subjectwise = row_number())
     save_dir <- file.path(main_dir, "data", "hlm")
     dir.create(save_dir, recursive = TRUE, showWarnings = FALSE)
@@ -244,7 +244,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
 ## TODO: model 03 3-2. individual differences
 
 ### DELETE AFTER SANDBOX
-```{r}
+```{r eval=FALSE, include=FALSE}
 count_and_plot_na_ratings <- function(DF, TASKNAME, COLUMN) {
 
   is.nan.data.frame <- function(x) do.call(cbind, lapply(x, is.nan))
@@ -267,13 +267,14 @@ count_and_plot_na_ratings <- function(DF, TASKNAME, COLUMN) {
 # Usage example:
 # count_and_plot_na_ratings("/path/to/main_dir", "your_task_name")
 
-```
-```{r}
+
 count_and_plot_na_ratings(df, TASKNAME="Pain", COLUMN="OUTCOME")
 ```
+
+
 ## Cue X Stim Raincloud plots 
-* IV: 
-* DV: 
+* IV: Cue x stim
+* DV: Outcome rating
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 combined_se_calc_cooksd <- data.frame()
@@ -562,8 +563,10 @@ ggsave(save_plotname, width = 10, height = 3)
 ```
 
 ## Cue X Stim Lineplot 
+
 Instead of the rain cloud plots, here, I plot the lines and confidence interval
 for each cue x stim combination. Plotted per task. 
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
 DATA = as.data.frame(combined_se_calc_cooksd)
@@ -579,14 +582,14 @@ p2 = plot_lineplot_twofactor_subset(DATA,'vicarious',
                LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = tools::toTitleCase("vicarious"))
 p3 = plot_lineplot_twofactor_subset(DATA, 'cognitive',
                LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = tools::toTitleCase('cognitive'))
-#grid.arrange(p1, p2, p3, ncol=3 , common.legend = TRUE)
+
 ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
 plot_filename = file.path(analysis_dir,
                           paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
 ggsave(plot_filename, width = 8, height = 4)
 ```
 
-# Clinical trials
+## Clinical trials
 
 ## cue contrast average across intensity
 
