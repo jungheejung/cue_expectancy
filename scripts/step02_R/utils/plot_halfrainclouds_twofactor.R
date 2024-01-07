@@ -110,6 +110,11 @@ plot_halfrainclouds_twofactor <- function(subjectwise, groupwise,
         xlab(xlab) +
         ylab(ylab) +
         theme_classic()
+        #theme(text = element_text(size = 30))   +
+        theme(text = element_text(size = 15)) +theme(aspect.ratio=1) +
+        theme(axis.line = element_line(colour = "black"),
+            panel.background = element_blank(),
+            plot.subtitle = ggtext::element_textbox_simple(size= 11))
 
     if (!is.null(ylim)) {
         g + ylim(ylim)
