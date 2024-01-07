@@ -6,13 +6,13 @@
     --page-background: #ffffff; /* Default background color */
     --link-color: #009688;
 
-    --border-color: #eaeaea;
+    --border-color: #eaeaea; /*#E9E9E9;*/
 
     --sidebar-width: 280px;
     --sidebar-background: #ffffff ;
-    --sidebar-link-color: #666;
-    --sidebar-link-active-color: #000;
-    --sidebar-linke-arrow-color: #999;
+    --sidebar-link-color: #444;
+    --sidebar-link-active-color: #009688 ;     /* rgb(92, 136, 158);    #000 */
+    --sidebar-link-arrow-color: #999;
     --header-height: 55px; 
     --text-color: #000;
     --header-background: #fff; 
@@ -27,8 +27,10 @@
     --success-color: #42b983;
     --warning-color: #ff9800; 
     --danger-color:rgb(255, 0, 31);
-    --nav-link-color: #2c3e50;
-    --nav-link-border-color: #009688;
+    --nav-link-color: rgb(164,170,176);    /* #2c3e50; */
+    --nav-link-border-color: rgb(237,239,241) ; /* #009688;*/
+    --nav-link-active-color: #009688;
+    --nav-link-activeborder-color:rgb(244,249,252);
 
     --loader-primary-color: #f3f3f3;
     --loader-secondary-color: #ecebeb;
@@ -44,17 +46,16 @@
     --search-focus-border-color: #ccc;
     --search-focus-icon-color: #333;
     --search-result-hover-background: #f9f9f9;
-
-
-    --blockquote-background-color:#f5f9f7;
-    --blockquote-border-color: #467d95; 
+    --blockquote-background-color: rgb(245, 247, 249);
+    /* #EFFAFF; */
+    --blockquote-border-color: #0086BF; 
     --blockquote-text-color: #333;
     --main-background: #fff; 
     --docute-select-height:38px;
     --anchor-color: #bbb;
     --datatable-odd-background: rgb(10,10,9);
     --datatable-even-background: #1d1c1c; 
-    --datatable-hover-background: ##f6f6f6;
+    --datatable-hover-background: #f6f6f6;
     --toc-border-color: #aaa;
 }
 
@@ -78,15 +79,120 @@ body {
     box-sizing: border-box
 }
 
-/* https://github.com/rstudio/bookdown/issues/1328 */
+
+blockquote {
+    position: relative;
+    background: var(--blockquote-background-color);
+    border-left: 0.25rem solid var(--blockquote-border-color);
+    
+    padding: 1rem 3rem; /* Top and bottom padding 1rem, Left and right padding 3rem */
+    margin-left: -0.5rem;
+    color: var(--blockquote-text-color);
+    border-radius: 0.3rem; 
+    /* Adds rounded corners */ 
+  }
+    /* border-left: 0.5rem solid #eee;
+    padding-left: 0.5rem;
+    margin-left: -0.5rem;
+
+    background: var(--blockquote-background-color);
+    border-left: 8px solid var(--blockquote-border-color);
+    margin: 20px 0;
+    padding: 14px 16px; */
+blockquote:before {
+    content: "\f0eb"; /* FontAwesome quote-left icon Unicode */
+    font-family: 'FontAwesome';
+    position: absolute;
+    left: 1rem;
+    top: 1rem;
+    font-size: 1.25rem;
+    color: var(--blockquote-border-color); /* Adjust icon color as needed */
+  }
+
+  h2 {
+    margin-top: 7rem;
+    margin-bottom: 1.5rem;
+    font-size: 2rem;
+    border-bottom: 1px solid var(--border-color); /* Adds a bottom border */
+    padding-bottom: 0.5rem;     /* Adds some space between the text and the line */
+
+
+  }
+/* ########################### ADDED HJ
+https://github.com/rstudio/bookdown/issues/1328 */
 .container-fluid {
     max-width: 120rem;
 }
 .container-fluid main {
     max-width: 55rem;
 }
+.book-extra {
+    color: #666666; /* Replace #yourColor with the hex code of the color you want */
+}
 
+.book-toc li {
+    line-height: 2rem; /* Adjust the line height as needed for spacing */
+    margin-bottom: 0.5rem; /* Adds space between TOC items */
+  }
 
+.book-toc .active {
+    font-weight: bolder;
+    color: var(--nav-link-active-color);
+    background-color: var(--nav-link-activeborder-color); 
+    /* border: 1px solid var(--nav-link-activeborder-color); Adds a border */
+    /* padding: 0.25rem; 4pxOptional: for space around the text inside the border */
+    /* background-color: transparent; Removes the background color */
+    display: block; /* To properly wrap the border around the text */
+    text-decoration: none;
+
+  }
+
+.book-toc a:not(.active):hover {
+    color: var(--nav-link-color);
+    background-color: var(--nav-link-border-color); 
+    display: block; /* To properly wrap the border around the text */
+    text-decoration: none;
+  }
+
+/* Chapter nav ----------------------------------------- */
+  .chapter-nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+    color: var(--accent-color)
+  }
+  
+  .chapter-nav .prev, .chapter-nav .next {
+    padding: 0.5rem;
+    background-color: #fff; /* Replace with your desired background color */
+    border: none; /* Removes border */
+    border-radius: 0; /* Removes border-radius */
+    box-shadow: none; /* Removes box shadow */
+    color: var(--accent-color); /* Replace with your desired text color */
+  }
+  
+  .chapter-nav .prev a, .chapter-nav .next a {
+    color: var(--accent-color); /* Ensuring link text color matches arrow */
+  }       
+  .chapter-nav .empty {
+    display: none; /* Hides empty navigation elements */
+  }
+  
+  .chapter-nav .prev a:before {
+    content: "← "; /* Change to left arrow */
+    color: var(--accent-color);
+  }
+  
+  .chapter-nav .next a:after {
+    content: " →"; /* Change to right arrow */
+
+    color: var(--accent-color);
+  }
+  
+
+  
+
+/* ########################### ADDED HJ */
 .Content a,
 .page-content a,
 a {
@@ -94,8 +200,12 @@ a {
     text-decoration: none
 }
 
+/* ########################### ADDED HJ */
 .Content a:hover {
-    text-decoration: underline
+    /* text-decoration: underline */
+    color: var(--nav-link-color);
+    background-color: var(--nav-link-border-color)
+
 }
 
 .external-link-icon {
@@ -276,6 +386,29 @@ a {
     text-decoration: none;
     color: var(--text-color)
 }
+/* ############## HJ ADDED */
+
+.Sidebar li {
+    padding: 4px; /* Adds padding to each chapter item */
+    line-height: 1.5; /* Adjust line height as needed for spacing between lines */
+  }
+
+.Sidebar a:hover {
+    color: #333; /* Replace with your desired text hover color */
+    border: 1px solid #b2ccd6; /* Replace with your desired border color */
+    padding: 4px; /* Optional: for space around the text inside the border */
+}
+
+/* Adjust margin for the sidebar containing the Table of Contents */
+.sidebar-book {
+    margin-right: 20px; /* Adds space to the right */
+}
+
+/* Adjust margin for the main content area */
+main {
+    margin-left: 20px; /* Adds space to the left */
+}
+
 
 @media (max-width:1000px) {
     .Sidebar {
@@ -549,10 +682,10 @@ a {
 }
 
 .page-content h1 {
-    font-size: 3rem;
+    font-size: 2.5rem;
     border-bottom: 1px solid var(--border-color);
     margin-top: 7rem;
-    font-weight: 100;
+    font-weight: 200;
     margin-bottom: 1.4rem;
     padding-bottom: 5px
 }
@@ -672,6 +805,59 @@ a {
 }
 
 
+/* Code ------------------------------------------------ */
+
+pre {
+  position: relative;
+  overflow: auto;
+  border: 1px solid #eee;
+  padding: 0.5rem;
+  margin: 0 -0.5rem 1rem -0.5rem;
+  background-image: linear-gradient(160deg,#f8f8f8 0,#f1f1f1 100%);
+
+  white-space: pre;
+  border-radius: 6px;
+  background-color: var(--code-block-background);
+  color: var(--code-block-text-color);
+}
+
+@media (max-width: 767.98px) {
+  /* Make background span full width on mobile */
+  .section > .sourceCode > pre {
+    margin: 0 -1rem 1rem -1rem;
+    padding: 0.5rem 1rem;
+    width: 100vw;
+  }
+}
+
+code {
+  background-color: #f8f8f8;
+}
+
+pre code {
+  /* background-color: transparent;
+  word-break: normal; /* force wide blocks to scroll, not wrap */
+  /* word-wrap: normal; */ 
+  box-shadow: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+  /* font-size: 1em; */
+  background-color: transparent;
+  color: inherit;
+  /* font-size: 16px; */
+  white-space: pre;
+}
+
+pre, code {
+  border-radius: 0.2rem;
+  color: #212529; /* match text colour */
+}
+code a:any-link {
+  color: inherit; /* use colour from syntax highlighting */
+  text-decoration: underline;
+  text-decoration-color: #ccc;
+}
 
 @media print {
 
@@ -845,7 +1031,7 @@ a {
     }
 }
 
-h1.title {
+h1 {
     font-size: 3rem;
     margin: 0 0 1.4rem;
     font-weight: 100;
@@ -1236,14 +1422,18 @@ button.code-folding-btn {
 }
 
 #toc > ul li a:hover {
-    color: var(--sidebar-link-active-color);
-    background-color: inherit;
+    color: var(--nav-link-color);
+    background-color: var(--nav-link-border-color);
+     /* #999    inherit; */
 }
 
 #toc > ul > li.active > a,
 #toc > ul ul > li.active > a {
     font-weight: bold;
+    color: var(--nav-link-activeborder-color);
+    background-color: var(--nav-link-activeborder-color)
 }
+/* ACTIVE HJ */
 
 #toc > ul li ul {
     margin-left: 3px;
@@ -1293,19 +1483,82 @@ body .plot {
     color: black;
 }
 
-
+/* ####### SANDBOX ---------------------------------- */
 footer.bg-primary {
     background-color: #fff !important; /* Replace #newColorCode with your desired color */
-}
-footer.bg-primary {
+} 
+footer.bg-primary .container {
     background-color: #fff; /* Replace with your desired color */
-    color: #ccc; /* Replace with your desired text color */
+    color: var(--anchor-color); /* Replace with your desired text color */
 }
 
-footer.bg-primary a.text-light {
-    color: #009688; /* Replace with your desired anchor text color */
+footer.bg-primary .container {
+    border-top: 1px solid var(--border-color); /* Adds a top border line, change color as needed */
+    padding-top: 1rem; /* Adds some spacing above the content */
 }
 
-footer.bg-primary a.text-light:hover {
+/* Ensure .container within footer does not exceed the width of main content */
+footer.bg-primary .container {
+    max-width: 55rem; /* Matches the width of main content */
+    margin: auto; /* Centers the container within the footer */
+}
+
+footer.bg-primary a.text-light .container {
+    color: var(--anchor-color); /* Replace with your desired anchor text color */
+}
+
+footer.bg-primary a.text-light:hover .container {
     color: #009688; /* Replace with your desired hover color */
 }
+
+
+/* ############# HJ */
+/* sidebar dynamic */
+.InjectedComponents {
+    &[data-position="sidebar:start"],
+    &[data-position="mobile-sidebar:start"] {
+      margin-bottom: 25px;
+  
+      &>*:first-child {
+        margin-top: 0;
+      }
+    }
+  
+    &[data-position="sidebar:end"],
+    &[data-position="sidebar:post-end"] {
+      margin-top: 25px;
+  
+      &>*:first-child {
+        margin-top: 0;
+      }
+    }
+  
+    &[data-position="content:start"] {
+      margin-bottom: 35px;
+  
+      &>*:first-child {
+        margin-top: 0;
+      }
+  
+      &>*:last-child {
+        margin-bottom: 0;
+      }
+    }
+  
+    &[data-position="content:end"] {
+      margin-top: 30px;
+    }
+  
+    &[data-position="header-right:start"] + .header-nav {
+      margin-left: 30px;
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .InjectedComponents {
+      &[data-position="mobile-sidebar:start"],
+      &[data-position="mobile-sidebar:end"] {
+        display: none;
+      }
+    }
+  }
