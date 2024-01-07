@@ -1,15 +1,17 @@
 # [model] RL-simulated PE & NPS{#ch25_NPSandPE}
 
 ---
+
 title: "PE & NPS "
 output:
-  html_document:
-    code_folding: hide
+html_document:
+code_folding: hide
+
 ---
 
 ## The purpose of this notebook? {.unlisted .unnumbered}
-Investigate the relationship between prediction errors and NPS extracted values.
 
+Investigate the relationship between prediction errors and NPS extracted values.
 
 ```{r include=FALSE}
 library(car)
@@ -39,16 +41,15 @@ library(r2mlm)
 main_dir <- dirname(dirname(getwd()))
 print(main_dir)
 file.sources = list.files(file.path(main_dir, 'scripts', 'step02_R', 'utils'),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 
 ```
 
-
-
 ### load dataframe
+
 ```{r}
 
 # load NPS dot product
@@ -62,7 +63,8 @@ analysis_dir <- file.path(main_dir, 'analysis', 'mixedeffect', 'model25_RL_NPS',
 dir.create(analysis_dir, recursive = TRUE)
 ```
 
-### some data wrangling: 
+### some data wrangling:
+
 split filenames into columns. This will serve as metadata. NPSsplit
 We'll use this to merge NPSsplit and RLdf
 
@@ -82,8 +84,8 @@ NPSsplit <- NPSdf %>%
     param_cue_type = case_when(
       str_detect(cuetype, "low") ~ "low_cue",
       str_detect(cuetype, "high") ~ "high_cue"
-    ), 
-    param_task_name = str_replace(runtype, "runtype-", ""), 
+    ),
+    param_task_name = str_replace(runtype, "runtype-", ""),
     param_stimulus_type = case_when(
       stimintensity == "stimintensity-low" ~ "low_stim",
       stimintensity == "stimintensity-med" ~ "med_stim",
@@ -125,8 +127,8 @@ NPSsplit <- NPSdf %>%
     cue = case_when(
       str_detect(cuetype, "low") ~ "low_cue",
       str_detect(cuetype, "high") ~ "high_cue"
-    ), 
-    task = str_replace(runtype, "runtype-", ""), 
+    ),
+    task = str_replace(runtype, "runtype-", ""),
     stimintensity = case_when(
       stimintensity == "stimintensity-low" ~ "low_stim",
       stimintensity == "stimintensity-med" ~ "med_stim",
@@ -149,6 +151,7 @@ NPSsplit <- NPSdf %>%
 ```
 
 ### rename RL dataframe so that columns are identical. we will merge on these columns
+
 ```{r}
 names(RLdf)[names(RLdf) == "src_subject_id"] <- "sub"
 names(RLdf)[names(RLdf) == "session_id"] <- "ses"
@@ -160,12 +163,13 @@ names(RLdf)[names(RLdf) == "trial_index_runwise"] <- "trial"
 ```
 
 ### merge the two dataframes
+
 ```{r}
 merge_df <- inner_join(NPSsplit, RLdf, by = c("sub", "ses", "run", "task", "cue", "stimintensity", "trial"))
 ```
 
-
 ### remove bad runs
+
 ```{r}
 library(jsonlite)
 jsonfname <- file.path(main_dir, "scripts/bad_runs.json")
@@ -179,23 +183,22 @@ bad_runs_df <- data.frame(sub = integer(), ses = integer(), run = integer(), str
 # Parse the JSON content
 for (sub_id in names(bad_runs)) {
   sub_num <- as.integer(substring(sub_id, 5))  # Extract the numeric part of the subject ID
-  
+
   # Iterate over sessions and their runs for each subject
   for (ses_run_str in bad_runs[[sub_id]]) {
     ses_num <- as.integer(substring(strsplit(ses_run_str, "_")[[1]][1], 5))  # Extract session number
     run_num <- as.integer(substring(strsplit(ses_run_str, "_")[[1]][2], 5))  # Extract run number
-    
+
     # Append to the bad_runs_df data frame
     bad_runs_df <- rbind(bad_runs_df, data.frame(sub = sub_num, ses = ses_num, run = run_num))
   }
 }
 
-# drop rows in merge_df if they overlap with bad_runs_df 
+# drop rows in merge_df if they overlap with bad_runs_df
 clean_merge_df <- merge_df %>%
   anti_join(bad_runs_df, by = c("sub", "ses", "run"))
 
 ```
-
 
 ```{r}
 # DROP sub 23
@@ -215,14 +218,14 @@ clean_merge_df$PE =   clean_merge_df$RATING_outcome - clean_merge_df$RATING_expe
 # Lag expectation rating ______________________________________________________
 # per run/ses/sub
 data_a3lag <- clean_merge_df %>%
-  group_by(sub,ses,run) %>% 
-  mutate(prev_trial.RATING_expectation = lag(RATING_expectation, n = 1, default = NA)) %>% 
+  group_by(sub,ses,run) %>%
+  mutate(prev_trial.RATING_expectation = lag(RATING_expectation, n = 1, default = NA)) %>%
   mutate(next_trial.RATING_expectation = lead(RATING_expectation, n = 1, default = NA)) %>%
   mutate(ave.RATING_expectation = mean(RATING_expectation, na.rm = TRUE))
 data_a3lag <- data_a3lag[!is.na(data_a3lag$ave.RATING_expectation),]
 taskname = 'pain'
-data_a3lag$next_trial.RATING_expect_fill = coalesce(data_a3lag$next_trial.RATING_expectation, data_a3lag$ave.RATING_expectation) 
-data_a3lag$prev_trial.RATING_expect_fill = coalesce(data_a3lag$prev_trial.RATING_expectation, data_a3lag$ave.RATING_expectation) 
+data_a3lag$next_trial.RATING_expect_fill = coalesce(data_a3lag$next_trial.RATING_expectation, data_a3lag$ave.RATING_expectation)
+data_a3lag$prev_trial.RATING_expect_fill = coalesce(data_a3lag$prev_trial.RATING_expectation, data_a3lag$ave.RATING_expectation)
 
 # EXPECTUPDATE :: expectation (N) - expectation (N-1) ________________________
 clean_merge_df <- data_a3lag %>%
@@ -232,9 +235,8 @@ clean_merge_df <- data_a3lag %>%
 # beh_PE_JEPMA: Jepma (2018)
 ```
 
-
-
 ## NPS plot N = 120
+
 ```{r warning=FALSE}
 ################################################################################
 # contrast coding ______________________________________________________________
@@ -242,7 +244,7 @@ NPSdf <- NPSsplit %>%
   anti_join(bad_runs_df, by = c("sub", "ses", "run"))
 data <- NPSdf
 data$sub <- factor(data$sub)
-# contrast code 
+# contrast code
 data$stim[data$stimintensity == "low_stim"] <-  -0.5 # social influence task
 data$stim[data$stimintensity == "med_stim"] <- 0 # no influence task
 data$stim[data$stimintensity == "high_stim"] <-  0.5 # no influence task
@@ -280,7 +282,7 @@ model_savefname <- file.path(
   )
 )
 
-cooksd <- lmer_twofactor_cooksd_fix(
+cooksd <- lmer_twofactor_cooksd(
   data,  taskname,  iv1,  stim_con1,  stim_con2,  dv,  subject = "sub",  dv_keyword,  model_savefname,  'random_intercept',
   print_lmer_output = FALSE
 )
@@ -338,23 +340,25 @@ signature_key <- "NPSpos"
     ylab = paste(signature_key, " (dot product)"),
     ylim = c(-250, 500)
   )
-  
+
 
 ################################################################################
 ### Lineplots {.unlisted .unnumbered} __________________________________________
 
-fig.nps120 <- plot_lineplot_twofactor(NPSstimcue_groupwise, 
-                        iv1 = "stim_ordered", iv2 = "cue_ordered", 
+fig.nps120 <- plot_lineplot_twofactor(NPSstimcue_groupwise,
+                        iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("#5D5C5C", "#941100"), ggtitle = paste0(
       str_to_title(signature_key),
       " dot product: ", str_to_title(taskname), ' ', ggtitle_phrase, " (N = ", length(unique(data_screen$sub)), ")"
-    ), #"Within pain task: NPS dotproducts as a function of stimulus intensity level and cue", 
+    ), #"Within pain task: NPS dotproducts as a function of stimulus intensity level and cue",
                         xlab = "Stimulus intensity", ylab = "NPS (dot product)")
 fig.nps120
 
 ```
+
 ## contrast coding for the merged dataframe
+
 ```{r warning=FALSE}
 clean_merge_df$sub <- factor(clean_merge_df$sub)
 # contrast code ________________________________________
@@ -403,6 +407,7 @@ clean_merge_df$EXPECT <- clean_merge_df$event02_expect_angle
 ```
 
 ## A. NPS plot N = 60
+
 ```{r warning=FALSE}
 ################################################################################
 # contrast coding ______________________________________________________________
@@ -424,7 +429,7 @@ model_savefname <- file.path(
   )
 )
 
-cooksd <- lmer_twofactor_cooksd_fix(
+cooksd <- lmer_twofactor_cooksd(
   data,  taskname,  iv1,  stim_con1,  stim_con2,  dv,  subject = "sub",  dv_keyword,  model_savefname,  'random_intercept',
   print_lmer_output = FALSE
 )
@@ -480,38 +485,39 @@ plot_keys <- list(
     ylab = paste(signature_key, " (dot product)"),
     ylim = c(-250, 500)
   )
-  
+
 ################################################################################
 # Lineplots {.unlisted .unnumbered} ____________________________________________
-# fig.nps60 <- plot_lineplot_twofactor(NPSstimcue_groupwise, 
-#                         iv1 = "stim_ordered", iv2 = "cue_ordered", 
+# fig.nps60 <- plot_lineplot_twofactor(NPSstimcue_groupwise,
+#                         iv1 = "stim_ordered", iv2 = "cue_ordered",
 #                         mean = "mean_per_sub_norm_mean", error = "se",
-#                         color = c("#5D5C5C", "#941100"), 
+#                         color = c("#5D5C5C", "#941100"),
 #                         ggtitle = paste0(      str_to_title(signature_key), " dot product: ", str_to_title(taskname), ' ', ggtitle_phrase, " (N = ", length(unique(data_screen$sub)), ")"
-#     ), 
+#     ),
 #                         xlab = "Stimulus intensity", ylab = "NPS (dot product)")
-# fig.nps60   + theme(aspect.ratio=0.8) 
+# fig.nps60   + theme(aspect.ratio=0.8)
 
 
-fig.nps60 <- plot_lineplot_twofactorthick(NPSstimcue_groupwise, 
-                        iv1 = "stim_ordered", iv2 = "cue_ordered", 
+fig.nps60 <- plot_lineplot_twofactorthick(NPSstimcue_groupwise,
+                        iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("skyblue", "red"), 
-                        ggtitle = paste0( "NPS ", " (N = ", length(unique(data_screen$sub)), ")"    ), 
+                        color = c("skyblue", "red"),
+                        ggtitle = paste0( "NPS ", " (N = ", length(unique(data_screen$sub)), ")"    ),
                         xlab = "Stimulus intensity", ylab = "NPS")
 fig.nps60 <- fig.nps60 + theme(aspect.ratio=.8)
 ggsave(file.path(analysis_dir, "iv-cue-stim-dv-NPS.png"), plot = fig.nps60, bg = "transparent", device = "png")
 
 ```
+
 ```{r}
-model.nps <- lmer(NPSpos ~ CUE_high_gt_low *STIM_linear + CUE_high_gt_low *STIM_quadratic + 
+model.nps <- lmer(NPSpos ~ CUE_high_gt_low *STIM_linear + CUE_high_gt_low *STIM_quadratic +
        (CUE_high_gt_low+STIM_linear|sub), data = clean_merge_df,REML=FALSE,
        control = lmerControl(optimizer = "Nelder_Mead", boundary.tol = 1e-2))
 summary(model.nps)
 ```
 
-
 ## B. PE plot
+
 ```{r message=FALSE, warning=FALSE}
 ################################################################################
 # contrast coding ______________________________________________________________
@@ -533,7 +539,7 @@ model_savefname <- file.path(
   )
 )
 
-cooksd <- lmer_twofactor_cooksd_fix(
+cooksd <- lmer_twofactor_cooksd(
   data,  taskname,  iv1,  stim_con1,  stim_con2,  dv,  subject = "sub",  dv_keyword,  model_savefname,  'random_intercept',
   print_lmer_output = FALSE
 )
@@ -589,21 +595,22 @@ plot_keys <- list(
     ylab = paste(signature_key, " (dot product)"),
     ylim = c(-250, 500)
   )
-  
+
 ################################################################################
 # Lineplots {.unlisted .unnumbered} ____________________________________________
-fig.PE <- plot_lineplot_twofactor(NPSstimcue_groupwise, 
-                        iv1 = "stim_ordered", iv2 = "cue_ordered", 
+fig.PE <- plot_lineplot_twofactor(NPSstimcue_groupwise,
+                        iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("#5D5C5C", "#941100"), 
+                        color = c("#5D5C5C", "#941100"),
                         ggtitle = paste0( "PE", " (N = ", length(unique(data_screen$sub)), ")"
-    ), 
+    ),
                         xlab = "Stimulus intensity", ylab = "PE")
 fig.PE
 
 ```
 
 ## C. behavior PE plot
+
 ```{r}
 ################################################################################
 # contrast coding ______________________________________________________________
@@ -622,7 +629,7 @@ model_savefname <- file.path(
   paste("lmer_task-", taskname, "_rating-", dv_keyword, "_", as.character(Sys.Date()), "_cooksd.txt", sep = ""  )
 )
 
-cooksd <- lmer_twofactor_cooksd_fix(
+cooksd <- lmer_twofactor_cooksd(
   data,  taskname,  iv1,  stim_con1,  stim_con2,  dv,  subject = "sub",  dv_keyword,  model_savefname,  'random_intercept',
   print_lmer_output = FALSE
 )
@@ -675,20 +682,21 @@ plot_keys <- list(
     ylab = paste(signature_key, " (dot product)"),
     ylim = c(-250, 500)
   )
-  
+
 ################################################################################
 # Lineplots {.unlisted .unnumbered} ____________________________________________
-fig.PE_beh <- plot_lineplot_twofactor(NPSstimcue_groupwise, 
-                        iv1 = "stim_ordered", iv2 = "cue_ordered", 
+fig.PE_beh <- plot_lineplot_twofactor(NPSstimcue_groupwise,
+                        iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("#5D5C5C", "#941100"), 
-                        ggtitle = paste0( "PE (behavioral) ", " (N = ", length(unique(data_screen$sub)), ")"    ), 
+                        color = c("#5D5C5C", "#941100"),
+                        ggtitle = paste0( "PE (behavioral) ", " (N = ", length(unique(data_screen$sub)), ")"    ),
                         xlab = "Stimulus intensity", ylab = "PE")
 fig.PE_beh
 
 ```
 
 ## D. outcome rating plot
+
 ```{r}
 ################################################################################
 # contrast coding ______________________________________________________________
@@ -708,7 +716,7 @@ model_savefname <- file.path(
   paste("lmer_task-", taskname, "_rating-", dv_keyword, "_", as.character(Sys.Date()), "_cooksd.txt", sep = ""  )
 )
 
-cooksd <- lmer_twofactor_cooksd_fix(
+cooksd <- lmer_twofactor_cooksd(
   data,  taskname,  iv1,  stim_con1,  stim_con2,  dv,  subject = "sub",  dv_keyword,  model_savefname,  'random_intercept',
   print_lmer_output = FALSE
 )
@@ -761,19 +769,20 @@ plot_keys <- list(
     ylab = paste(signature_key, " (dot product)"),
     ylim = c(-250, 500)
   )
-  
+
 ################################################################################
 # Lineplots {.unlisted .unnumbered} ____________________________________________
-fig.outcome <- plot_lineplot_twofactorthick(NPSstimcue_groupwise, 
-                        iv1 = "stim_ordered", iv2 = "cue_ordered", 
+fig.outcome <- plot_lineplot_twofactorthick(NPSstimcue_groupwise,
+                        iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("skyblue", "red"), 
-                        ggtitle = paste0( "Outcome rating ", " (N = ", length(unique(data_screen$sub)), ")"    ), 
+                        color = c("skyblue", "red"),
+                        ggtitle = paste0( "Outcome rating ", " (N = ", length(unique(data_screen$sub)), ")"    ),
                         xlab = "Stimulus intensity", ylab = "Outcome rating")
 fig.outcome <- fig.outcome + theme(aspect.ratio=1)
 ggsave(file.path(analysis_dir, "iv-cue-stim-dv-outcome.png"), plot = fig.outcome, bg = "transparent", device = "png")
 
 ```
+
 ```{r}
 model.outcome <- lmer(RATING_outcome ~ CUE_high_gt_low*STIM_linear + CUE_high_gt_low*STIM_quadratic + (CUE_high_gt_low+STIM_linear|sub),data = clean_merge_df, REML=FALSE,lmerControl(optimizer = "nloptwrap",
                                    optCtrl = list(maxfun = 2e5, tol = 1e-2),
@@ -783,19 +792,20 @@ summary(model.outcome)
 ```
 
 ## E. behavioral PE
+
 ```{r}
 clean_merge_df$PE =   clean_merge_df$RATING_outcome - clean_merge_df$RATING_expectation
 # Lag expectation rating ______________________________________________________
 # per run/ses/sub
 data_a3lag <- clean_merge_df %>%
-  group_by(sub,ses,run) %>% 
-  mutate(prev_trial.RATING_expectation = lag(RATING_expectation, n = 1, default = NA)) %>% 
+  group_by(sub,ses,run) %>%
+  mutate(prev_trial.RATING_expectation = lag(RATING_expectation, n = 1, default = NA)) %>%
   mutate(next_trial.RATING_expectation = lead(RATING_expectation, n = 1, default = NA)) %>%
   mutate(ave.RATING_expectation = mean(RATING_expectation, na.rm = TRUE))
 data_a3lag <- data_a3lag[!is.na(data_a3lag$ave.RATING_expectation),]
 taskname = 'pain'
-data_a3lag$next_trial.RATING_expect_fill = coalesce(data_a3lag$next_trial.RATING_expectation, data_a3lag$ave.RATING_expectation) 
-data_a3lag$prev_trial.RATING_expect_fill = coalesce(data_a3lag$prev_trial.RATING_expectation, data_a3lag$ave.RATING_expectation) 
+data_a3lag$next_trial.RATING_expect_fill = coalesce(data_a3lag$next_trial.RATING_expectation, data_a3lag$ave.RATING_expectation)
+data_a3lag$prev_trial.RATING_expect_fill = coalesce(data_a3lag$prev_trial.RATING_expectation, data_a3lag$ave.RATING_expectation)
 
 data_a3lag <- data_a3lag[data_a3lag$task == 'pain',]
 # EXPECTUPDATE :: expectation (N) - expectation (N-1) ________________________
@@ -804,7 +814,9 @@ clean_merge_df <- data_a3lag %>%
   mutate(EXPECTUPDATE_NEXT =  next_trial.RATING_expect_fill-RATING_expectation )  %>%
   mutate(EXPECTUPDATE_NEXT_JEPMA =  (next_trial.RATING_expect_fill - RATING_expectation)/((PE)+1))
 ```
+
 ## F. PE plot
+
 ```{r message=FALSE, warning=FALSE}
 ################################################################################
 # contrast coding ______________________________________________________________
@@ -826,7 +838,7 @@ model_savefname <- file.path(
   )
 )
 
-cooksd <- lmer_twofactor_cooksd_fix(
+cooksd <- lmer_twofactor_cooksd(
   data,  taskname,  iv1,  stim_con1,  stim_con2,  dv,  subject = "sub",  dv_keyword,  model_savefname,  'random_intercept',
   print_lmer_output = FALSE
 )
@@ -882,21 +894,22 @@ plot_keys <- list(
     ylab = paste(signature_key, " (dot product)"),
     ylim = c(-250, 500)
   )
-  
+
 ################################################################################
 # Lineplots {.unlisted .unnumbered} ____________________________________________
-fig.PE <- plot_lineplot_twofactor(NPSstimcue_groupwise, 
-                        iv1 = "stim_ordered", iv2 = "cue_ordered", 
+fig.PE <- plot_lineplot_twofactor(NPSstimcue_groupwise,
+                        iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("#5D5C5C", "#941100"), 
+                        color = c("#5D5C5C", "#941100"),
                         ggtitle = paste0( "PE", " (N = ", length(unique(data_screen$sub)), ")"
-    ), 
+    ),
                         xlab = "Stimulus intensity", ylab = "PE")
 fig.PE
 
 ```
 
 ## 1. Relationship between NPS and PE
+
 ```{r}
 # demean NPS just i case
 clean_merge_df <- clean_merge_df %>%
@@ -911,14 +924,16 @@ range(clean_merge_df$PE_mdl2)
 ```
 
 ### 1.1 lmer model 1 - NPSpos_demean ~ PE + (PE | sub) >> singular
-* IV: PE (Jepma)
-* DV: NPSpos (demean)
-* random effects: random slopes, PE effects per subject
+
+- IV: PE (Jepma)
+- DV: NPSpos (demean)
+- random effects: random slopes, PE effects per subject
+
 ```{r}
 library(optimx)
 clean_merge_df$sub <- factor(clean_merge_df$sub)
 
-model.NPSRL = lmer(NPSpos_demean ~ PE_mdl2 + (PE_mdl2| sub) , data = clean_merge_df, 
+model.NPSRL = lmer(NPSpos_demean ~ PE_mdl2 + (PE_mdl2| sub) , data = clean_merge_df,
                    REML = FALSE, lmerControl(optimizer ="Nelder_Mead"))
           # control = lmerControl(
           #                  optimizer ='optimx', optCtrl=list(method='L-BFGS-B')))
@@ -926,28 +941,33 @@ summary(model.NPSRL)
 ```
 
 ### 1.2 lmer model 2 - No demean: NPSpos ~ PE + ( PE | sub)
-* IV: PE (Jepma)
-* DV: NPSpos
-* random effects: random intercepts per subject
+
+- IV: PE (Jepma)
+- DV: NPSpos
+- random effects: random intercepts per subject
+
 ```{r}
 library(optimx)
-model.NPSRL = lmer(NPSpos ~ PE_mdl2 + (PE_mdl2| sub) , data = clean_merge_df, 
+model.NPSRL = lmer(NPSpos ~ PE_mdl2 + (PE_mdl2| sub) , data = clean_merge_df,
                    REML = FALSE, lmerControl(optimizer ="Nelder_Mead"))
 
 summary(model.NPSRL)
 ```
 
 model 2
+
 ```{r}
 hist(clean_merge_df$PE_mdl2)
 ```
 
 ### 1.3 lmer model 3
-* IV: PE (Jepma) * Stim * cue
-* DV: NPSpos
-* random effects: random intercepts per subject
+
+- IV: PE (Jepma) _ Stim _ cue
+- DV: NPSpos
+- random effects: random intercepts per subject
+
 ```{r}
-model.NPSRL = lmer(NPSpos ~ STIM_linear*cue*PE_mdl2 + STIM_quadratic*cue*PE_mdl2 + 
+model.NPSRL = lmer(NPSpos ~ STIM_linear*cue*PE_mdl2 + STIM_quadratic*cue*PE_mdl2 +
                      (1 + STIM_linear | sub) , data = clean_merge_df,
                    REML = FALSE, lmerControl(optimizer ="Nelder_Mead"))
 summary(model.NPSRL)
@@ -956,15 +976,15 @@ summary(model.NPSRL)
 structure: sub, NPS, PE
 subjectwise correlations
 
-
 ### 1.4 plot group level slope of PE & NPS, alongside subjectwise slopes
+
 ```{r}
 library(ggplot2)
 
 min_value <- -40
 max_value <- 40
 clean_merge_df$sub <- factor(clean_merge_df$sub)
-ggplot(clean_merge_df, aes(x = PE_mdl2, y = NPSpos)) + 
+ggplot(clean_merge_df, aes(x = PE_mdl2, y = NPSpos)) +
   geom_point(aes(colour = sub), size = .1) +  # Points colored by subject
   geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .3, linetype = "dashed") +  # Subject-wise regression lines
   geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = .5, color = "black") +  # Group regression line
@@ -973,16 +993,15 @@ ggplot(clean_merge_df, aes(x = PE_mdl2, y = NPSpos)) +
 
 ```
 
-
-
 #### 1.4.1 subsetting medium intensity value - are the aforementioned effects mainly driven by the medium stimulus intensity?
+
 ```{r}
 subset_med <- clean_merge_df[clean_merge_df$stimintensity == "med_stim", ]
 
 min_value <- -40
 max_value <- 40
 subset_med$sub <- factor(subset_med$sub)
-ggplot(subset_med, aes(x = PE_mdl2, y = NPSpos)) + 
+ggplot(subset_med, aes(x = PE_mdl2, y = NPSpos)) +
   geom_point(aes(colour = sub), size = .1) +  # Points colored by subject
   geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .3, linetype = "dashed") +  # Subject-wise regression lines
   geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = .5, color = "black") +  # Group regression line
@@ -992,13 +1011,14 @@ ggplot(subset_med, aes(x = PE_mdl2, y = NPSpos)) +
 ```
 
 #### 1.4.2 subsetting high intensity value - are the aforementioned effects mainly driven by the medium stimulus intensity?
+
 ```{r}
 subset_high <- clean_merge_df[clean_merge_df$stimintensity == "high_stim", ]
 
 min_value <- -40
 max_value <- 40
 subset_high$sub <- factor(subset_high$sub)
-ggplot(subset_high, aes(x = PE_mdl2, y = NPSpos)) + 
+ggplot(subset_high, aes(x = PE_mdl2, y = NPSpos)) +
   geom_point(aes(colour = sub), size = .1) +  # Points colored by subject
   geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .3, linetype = "dashed") +  # Subject-wise regression lines
   geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = .5, color = "black") +  # Group regression line
@@ -1008,11 +1028,12 @@ ggplot(subset_high, aes(x = PE_mdl2, y = NPSpos)) +
 ```
 
 #### 1.4.3 subsetting low intensity value - are the aforementioned effects mainly driven by the medium stimulus intensity?
+
 ```{r}
 subset_low <- clean_merge_df[clean_merge_df$stimintensity == "low_stim", ]
 min_value <- -40;max_value <- 40
 subset_low$sub <- factor(subset_low$sub)
-ggplot(subset_high, aes(x = PE_mdl2, y = NPSpos)) + 
+ggplot(subset_high, aes(x = PE_mdl2, y = NPSpos)) +
   geom_point(aes(colour = sub), size = .1) +  # Points colored by subject
   geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .3, linetype = "dashed") +  # Subject-wise regression lines
   geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = .5, color = "black") +  # Group regression line
@@ -1021,36 +1042,39 @@ ggplot(subset_high, aes(x = PE_mdl2, y = NPSpos)) +
 
 ```
 
-
-
 ## 2. Relationship between behavioral PE and NPS
+
 ```{r}
 hist(clean_merge_df$beh_PE)
 ```
 
 ### 2.1 lmer model 1 - NPSpos_demean ~ PE + (PE | sub) >> singular
-* IV: PE (beh)
-* DV: NPSpos (demean)
-* random effects: random slopes, PE effects per subject
+
+- IV: PE (beh)
+- DV: NPSpos (demean)
+- random effects: random slopes, PE effects per subject
+
 ```{r}
 library(optimx)
 clean_merge_df <- clean_merge_df %>%
   dplyr::group_by(.data[["sub"]]) %>%
   select(everything())  %>%
   mutate(NPSpos_demean = .data[["NPSpos"]] - mean(.data[["NPSpos"]]))
-model.behPE1 = lmer(NPSpos ~ beh_PE + (beh_PE| sub) , data = clean_merge_df, 
+model.behPE1 = lmer(NPSpos ~ beh_PE + (beh_PE| sub) , data = clean_merge_df,
                    REML = FALSE, lmerControl(optimizer ="Nelder_Mead"))
 summary(model.behPE1)
 isSingular(model.behPE1)
 ```
 
 ### 2.2 lmer model 2 - No demean: NPSpos ~ PE + ( PE | sub)
-* IV: PE (beh)
-* DV: NPSpos
-* random effects: random intercepts per subject
+
+- IV: PE (beh)
+- DV: NPSpos
+- random effects: random intercepts per subject
+
 ```{r}
 library(optimx)
-model.behPE2 = lmer(NPSpos ~ beh_PE + (beh_PE| sub) , data = clean_merge_df, 
+model.behPE2 = lmer(NPSpos ~ beh_PE + (beh_PE| sub) , data = clean_merge_df,
                    REML = FALSE, lmerControl(optimizer ="Nelder_Mead"))
 
 summary(model.behPE2)
@@ -1058,28 +1082,28 @@ summary(model.behPE2)
 
 ### 2.3 lmer model 3 - INCORRECT - PE is redundant with Stim and Cue
 
-* IV: PE (beh) * Stim * cue
-* DV: NPSpos
-* random effects: random intercepts per subject
+- IV: PE (beh) _ Stim _ cue
+- DV: NPSpos
+- random effects: random intercepts per subject
+
 ```{r}
-model.behPE3 = lmer(NPSpos ~ STIM_linear*cue*beh_PE + STIM_quadratic*cue*beh_PE + 
+model.behPE3 = lmer(NPSpos ~ STIM_linear*cue*beh_PE + STIM_quadratic*cue*beh_PE +
                      (1| sub) , data = clean_merge_df,
                    REML = FALSE, lmerControl(optimizer ="Nelder_Mead"))
 summary(model.behPE3)
 ```
 
-
-
-
 ### 2.4 plot behavioral PE & NPS.
+
 group level slope, alongside subjectwise slopes
+
 ```{r}
 library(ggplot2)
 
 min_value <- -40
 max_value <- 40
 clean_merge_df$sub <- factor(clean_merge_df$sub)
-plot.PE_NPS <- ggplot(clean_merge_df, aes(x = beh_PE, y = NPSpos)) + 
+plot.PE_NPS <- ggplot(clean_merge_df, aes(x = beh_PE, y = NPSpos)) +
   geom_point(aes(colour = sub), size = .1) +  # Points colored by subject
   geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .3, linetype = "dashed") +  # Subject-wise regression lines
   geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = .5, color = "black") +  # Group regression line
@@ -1088,53 +1112,55 @@ plot.PE_NPS <- ggplot(clean_merge_df, aes(x = beh_PE, y = NPSpos)) +
 plot.PE_NPS
 ```
 
-
 ## 3. What did I submit to SfN?
-* I Modeled the NPS as a function of PE, cue, and stim. 
-* A discussion on whether this is a valid model would help.
-* NOTE: The significant results I report today are coming from a model with just NPS and PE. 
 
+- I Modeled the NPS as a function of PE, cue, and stim.
+- A discussion on whether this is a valid model would help.
+- NOTE: The significant results I report today are coming from a model with just NPS and PE.
 
 ### 3.1 test relationship between PE and cue type and stimintensity (06/16/2023)
+
 ```{r}
 model.PENPS <- lmer(NPSpos ~ PE_mdl2*cue*stimintensity + (1|sub), data = clean_merge_df)
 summary(model.PENPS)
 ```
 
 ### 3.2 plot using PE and NPS as a function of cue
+
 ```{r}
 
-subjectwise_2dv <- meanSummary_2dv(clean_merge_df, c("sub","stimintensity", "cue"), 
+subjectwise_2dv <- meanSummary_2dv(clean_merge_df, c("sub","stimintensity", "cue"),
                                    "PE_mdl2", "NPSpos" )
-plot.SfN_PE_NPS <- ggplot(data = subjectwise_2dv, 
-       aes(x = .data[["DV1_mean_per_sub"]], 
+plot.SfN_PE_NPS <- ggplot(data = subjectwise_2dv,
+       aes(x = .data[["DV1_mean_per_sub"]],
            y = .data[["DV2_mean_per_sub"]],
            color = .data[["cue"]],
            # shape = .data[["stimintensity"]],
            # size = .5
            )) +
-  geom_point(size = 2, alpha = .5  ) + 
-  ylim(-50,50) + 
+  geom_point(size = 2, alpha = .5  ) +
+  ylim(-50,50) +
   xlim(-50,50) +
   coord_fixed() +
   scale_color_manual(values = c("high_cue" ="red","low_cue" =  "#5D5C5C"))+
-  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) + 
-  xlab("PE") + 
+  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) +
+  xlab("PE") +
   ylab("NPSpos")+
   theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
-    plot.subtitle = ggtext::element_textbox_simple(size = 1), 
+    plot.subtitle = ggtext::element_textbox_simple(size = 1),
     axis.text.x = element_text(size = 15),
     axis.text.y = element_text(size = 15),
     axis.title.x = element_text(size = 20),
     axis.title.y = element_text(size = 20)
-      
+
   )
 plot.SfN_PE_NPS
 ```
 
 ### 3.3 plot the relationship between PE and NPS as a function of cue and stimulus intensity
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
 df_low = clean_merge_df[clean_merge_df$stimintensity == "low_stim", ]
@@ -1177,10 +1203,11 @@ plots
 ```
 
 ## 4. Manipulation check: bin the Jepma PE levels and look at the relationship with behavioral PE
+
 ```{r echo=FALSE}
 # df <- load_task_social_df(datadir,taskname = taskname,subject_varkey = subject_varkey,iv = iv,exclude = exclude  )
 iv2 = "beh_PE"; levels = 10
-iv1 = "PE_mdl2"; 
+iv1 = "PE_mdl2";
 df_dropna <- clean_merge_df[!is.na(clean_merge_df[, iv1]) & !is.na(clean_merge_df[, iv2]), ]
 k <-df_dropna %>% group_by(sub) %>% filter(n()>= 5) %>% ungroup()
 
@@ -1203,21 +1230,22 @@ swp <- ggplot(
   geom_point(position = position_jitter(width = .1),size = .1, alpha = .3) +
   # geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .1) +
   geom_smooth(method = 'rlm', se = F, linewidth = .1, alpha = .5) +
-  theme(axis.line = element_line(colour = "grey50"), 
+  theme(axis.line = element_line(colour = "grey50"),
       panel.background = element_blank(),
       plot.subtitle = ggtext::element_textbox_simple(size= 11))
 
 # ADD description
-swp 
+swp
 ```
 
 ## 5. Relationshipe between NPS and binned PE
 
-
 ### 5.1 lmer
-* IV: PE (beh) * Stim * cue
-* DV: NPSpos
-* random effects: random intercepts per subject
+
+- IV: PE (beh) _ Stim _ cue
+- DV: NPSpos
+- random effects: random intercepts per subject
+
 ```{r}
 model.binPE <- lmer(NPSpos ~ pelevels + (pelevels|sub), data=clean_merge_df)
 summary(model.binPE)
@@ -1229,6 +1257,7 @@ summary(model.binPE_cue_stim)
 ```
 
 ### 5.2. plot NPS and binned PE (jepma)
+
 ```{r}
 iv1 = "PE_mdl2"; iv2 = "NPSpos"; levels = 10
 k <-clean_merge_df %>% group_by(sub) %>% filter(n()>= 5) %>% ungroup()
@@ -1252,13 +1281,13 @@ clean_merge_df <- k %>%
 #   geom_point(position = position_jitter(width = .1),size = .1, alpha = .3) +
 #   # geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .1) +
 #   geom_smooth(method = 'rlm', se = F, linewidth = .1, alpha = .5) +
-#   theme(axis.line = element_line(colour = "grey50"), 
+#   theme(axis.line = element_line(colour = "grey50"),
 #       panel.background = element_blank(),
 #       plot.subtitle = ggtext::element_textbox_simple(size= 11))
-# swp 
+# swp
 
 
-ggplot(clean_merge_df, aes(x = pelevels, y = NPSpos)) + 
+ggplot(clean_merge_df, aes(x = pelevels, y = NPSpos)) +
   geom_point(aes(colour = sub), size = .1) +  # Points colored by subject
   geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .3, linetype = "dashed") +  # Subject-wise regression lines
   geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = .5, color = "black") +  # Group regression line
@@ -1268,9 +1297,8 @@ xlab( "PE (binned)" ) + ylab("NPSpos") +
 
 ```
 
-
-
 ### 5.3 plot NPS and binned PE (within subjects: average within bins -> aggregate this at the group lvel)
+
 ```{r}
 iv1 = "PE_mdl2"; iv2 = "NPSpos"; levels = 10
 k <-clean_merge_df %>% group_by(sub) %>% filter(n()>= 5) %>% ungroup()
@@ -1315,30 +1343,25 @@ plot_keys <- list(
     ylab = paste(signature_key, " (dot product)"),
     ylim = c(-250, 500)
   )
-  
+
 ################################################################################
 # Lineplots {.unlisted .unnumbered} ____________________________________________
 fig.PE_jepmabin <- plot_lineplot_onefactor(PEbin_groupwise, taskname = "pain",
-                        iv = model_iv1, #iv2 = "cue_ordered", 
+                        iv = model_iv1, #iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("#5D5C5C", "#941100"), 
-                        ggtitle = paste0( "PE (Jepma) ", " (N = ", length(unique(data_screen$sub)), ")"    ), 
-                        xlab = "PE (binned)", 
+                        color = c("#5D5C5C", "#941100"),
+                        ggtitle = paste0( "PE (Jepma) ", " (N = ", length(unique(data_screen$sub)), ")"    ),
+                        xlab = "PE (binned)",
                         ylab = "NPSpos")
 fig.PE_jepmabin
 
 ```
-
 
 ```{r}
 frequency_table <- table(clean_merge_df$sub, clean_merge_df$pelevels)
 print(frequency_table)
 heatmap(frequency_table)
 ```
-
-
-
-
 
 ### 5.4. plot NPS,binned PE and cue type
 
@@ -1386,21 +1409,22 @@ plot_keys <- list(
     ylab = paste(signature_key, " (dot product)"),
     ylim = c(-250, 500)
   )
-  
+
 ################################################################################
 # Lineplots {.unlisted .unnumbered} ____________________________________________
 fig.PE_beh <- plot_lineplot_twofactor(PEbin_groupwise, #taskname = "pain",
-                        iv = model_iv1, iv2 = model_iv2, 
+                        iv = model_iv1, iv2 = model_iv2,
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("#5D5C5C", "#941100"), 
-                        ggtitle = paste0( "PE (Jepma) ", " (N = ", length(unique(data_screen$sub)), ")"    ), 
-                        xlab = "PE (binned)", 
+                        color = c("#5D5C5C", "#941100"),
+                        ggtitle = paste0( "PE (Jepma) ", " (N = ", length(unique(data_screen$sub)), ")"    ),
+                        xlab = "PE (binned)",
                         ylab = "NPSpos")
 fig.PE_beh
 
 ```
 
 ### 5.5 plot the relationship between PE and NPS as a function of cue and stimulus intensity
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 model_iv1 <- "pelevels"
 model_iv2 <- "cue"
@@ -1418,11 +1442,11 @@ PEbinlow_groupwise <- summarySEwithin(
 )
 PEbinlow_groupwise$task <- taskname
 low <- plot_lineplot_twofactor(PEbinlow_groupwise, #taskname = "pain",
-                        iv = model_iv1, iv2 = model_iv2, 
+                        iv = model_iv1, iv2 = model_iv2,
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("#5D5C5C", "#941100"), 
-                        ggtitle = paste0( "Stim intensity Low ", " (N = ", length(unique(data_screen$sub)), ")"    ), 
-                        xlab = "PE (binned)", 
+                        color = c("#5D5C5C", "#941100"),
+                        ggtitle = paste0( "Stim intensity Low ", " (N = ", length(unique(data_screen$sub)), ")"    ),
+                        xlab = "PE (binned)",
                         ylab = "NPSpos")
 
 ################################################################################
@@ -1437,11 +1461,11 @@ PEbinmed_groupwise <- summarySEwithin(
 )
 PEbinmed_groupwise$task <- taskname
 med <- plot_lineplot_twofactor(PEbinmed_groupwise, #taskname = "pain",
-                        iv = model_iv1, iv2 = model_iv2, 
+                        iv = model_iv1, iv2 = model_iv2,
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("#5D5C5C", "#941100"), 
-                        ggtitle = paste0( "Stim intensity med ", " (N = ", length(unique(data_screen$sub)), ")"    ), 
-                        xlab = "PE (binned)", 
+                        color = c("#5D5C5C", "#941100"),
+                        ggtitle = paste0( "Stim intensity med ", " (N = ", length(unique(data_screen$sub)), ")"    ),
+                        xlab = "PE (binned)",
                         ylab = "NPSpos")
 
 ################################################################################
@@ -1456,11 +1480,11 @@ PEbinhigh_groupwise <- summarySEwithin(
 )
 PEbinhigh_groupwise$task <- taskname
 high <- plot_lineplot_twofactor(PEbinhigh_groupwise, #taskname = "pain",
-                        iv = model_iv1, iv2 = model_iv2, 
+                        iv = model_iv1, iv2 = model_iv2,
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("#5D5C5C", "#941100"), 
-                        ggtitle = paste0( "Stim intensity High ", " (N = ", length(unique(data_screen$subΩ)), ")"    ), 
-                        xlab = "PE (binned)", 
+                        color = c("#5D5C5C", "#941100"),
+                        ggtitle = paste0( "Stim intensity High ", " (N = ", length(unique(data_screen$subΩ)), ")"    ),
+                        xlab = "PE (binned)",
                         ylab = "NPSpos")
 
 ################################################################################
@@ -1470,6 +1494,7 @@ plots
 ```
 
 ## scale the pelevel
+
 ```{r}
 
 
@@ -1523,24 +1548,24 @@ plot_keys <- list(
     ylab = paste(signature_key, " (dot product)"),
     ylim = c(-250, 500)
   )
-  
+
 #
 
 ################################################################################
 # Lineplots {.unlisted .unnumbered} ____________________________________________
 fig.PE_jepmabin <- plot_lineplot_onefactor(PEbin_groupwise, taskname = "pain",
-                        iv = model_iv1, #iv2 = "cue_ordered", 
+                        iv = model_iv1, #iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("#5D5C5C", "#941100"), 
-                        ggtitle = paste0( "PE (Jepma) ", " (N = ", length(unique(data_screen$sub)), ")"    ), 
-                        xlab = "pelevels_scaled (binned)", 
+                        color = c("#5D5C5C", "#941100"),
+                        ggtitle = paste0( "PE (Jepma) ", " (N = ", length(unique(data_screen$sub)), ")"    ),
+                        xlab = "pelevels_scaled (binned)",
                         ylab = "NPSpos")
 fig.PE_jepmabin
 
 ################################################################################
 # plots with gorup level effect and random slopes
 clean_merge_df$sub <- factor(clean_merge_df$sub)
-plot.PE_NPS <- ggplot(clean_merge_df, aes(x = PE_mdl2_scaled, y = NPSpos)) + 
+plot.PE_NPS <- ggplot(clean_merge_df, aes(x = PE_mdl2_scaled, y = NPSpos)) +
   geom_point(aes(colour = sub), size = .3, alpha = .2) +  # Points colored by subject
   geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .3, linetype = "dashed") +  # Subject-wise regression lines
   geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = 1, color = "black") +  # Group regression line
@@ -1555,7 +1580,7 @@ plot.PE_NPS <- ggplot(clean_merge_df, aes(x = PE_mdl2_scaled, y = NPSpos)) +
     legend.text = element_text(size = 12)  # Set legend text size
   ) +
   xlab("Prediction Error") +
-  ylab("Pain Biomarker (A.U.)") 
+  ylab("Pain Biomarker (A.U.)")
   #theme_classic2()  # Use a theme with a white background
 plot.PE_NPS
 ################################################################################
@@ -1569,7 +1594,7 @@ library(RColorBrewer)
 palette <- brewer.pal(name = "OrRd", n = min(9, length(unique(clean_merge_df$sub))))
 palette <- colorRampPalette(palette)(length(unique(clean_merge_df$sub)))
 
-plot.PE_NPS <- ggplot(clean_merge_df, aes(x = PE_mdl2_scaled, y = NPSpos)) + 
+plot.PE_NPS <- ggplot(clean_merge_df, aes(x = PE_mdl2_scaled, y = NPSpos)) +
   # Your layers here
   scale_colour_manual(values = palette) + # Add this line to change colors
   # The rest of your theme and plot customizations
@@ -1587,7 +1612,7 @@ plot.PE_NPS <- ggplot(clean_merge_df, aes(x = PE_mdl2_scaled, y = NPSpos)) +
     legend.text = element_text(size = 12)  # Set legend text size
   ) +
   xlab("Prediction Error") +
-  ylab("Pain Biomarker (A.U.)") 
+  ylab("Pain Biomarker (A.U.)")
 # If running in a script, explicitly print the plot
 print(plot.PE_NPS)
 plot.PE_NPS
@@ -1599,7 +1624,9 @@ frequency_table <- table(clean_merge_df$sub, clean_merge_df$pelevels_scaled)
 print(frequency_table)
 heatmap(frequency_table)
 ```
+
 ## SFN PE NPS
+
 ```{r}
 
 model1<- lmer(NPSpos~PE_mdl2 + (PE_mdl2|sub), data = clean_merge_df, REML=TRUE,
@@ -1608,26 +1635,27 @@ model1<- lmer(NPSpos~PE_mdl2 + (PE_mdl2|sub), data = clean_merge_df, REML=TRUE,
 summary(model1)
 ```
 
-
 ## 6. meeting
-mediator: model based expectation. 
-cue 
+
+mediator: model based expectation.
+cue
 cue + exp_mdl2
+
 ```{r}
 range(clean_merge_df$Exp_mdl2)
 range(clean_merge_df$NPSpos)
 hist(clean_merge_df$Exp_mdl2)
 original_vector <- clean_merge_df$Exp_mdl2
-# 
+#
 # # Normalize your data to be between 0 and 1
 # normalized_vector <- (original_vector - min(original_vector)) / (max(original_vector) - min(original_vector))
-# 
+#
 # # Apply a quantile transformation assuming a beta distribution
 # # Specify your alpha (shape1) and beta (shape2) parameters for the beta distribution
 # alpha <- 7
 # beta <- 4
 # clean_merge_df$beta_Exp_mdl2 <- qbeta(normalized_vector, shape1 = alpha, shape2 = beta)
-# 
+#
 # hist(clean_merge_df$beta_Exp_mdl2 )
 ```
 
@@ -1654,7 +1682,7 @@ clean_merge_df <- clean_merge_df %>%
   select(everything())  %>%
   mutate(Exp_mdl2_demean = .data[["Exp_mdl2"]] - mean(.data[["Exp_mdl2"]]))
 
-# beta transform 
+# beta transform
 original_vector <- clean_merge_df$Exp_mdl2
 normalized_vector <- (original_vector - min(original_vector)) / (max(original_vector) - min(original_vector))
 # Apply a quantile transformation assuming a beta distribution
@@ -1663,7 +1691,7 @@ alpha <- 2
 beta <- 5
 clean_merge_df$beta_Exp_mdl2 <- qbeta(normalized_vector, shape1 = alpha, shape2 = beta)
 
-# 
+#
 clean_merge_df <- clean_merge_df %>%
   group_by(sub) %>%
   mutate(Exp_mdl2_scaled = (Exp_mdl2 - mean(Exp_mdl2, na.rm = TRUE)) / sd(Exp_mdl2, na.rm = TRUE)) %>%
@@ -1675,16 +1703,16 @@ clean_merge_df <- clean_merge_df %>%
 clean_merge_df$ses <- factor(clean_merge_df$ses)
 clean_merge_df$sub <- factor(clean_merge_df$sub)
 clean_merge_df$stim <- factor(clean_merge_df$stim)
-model.suggested = lmer(NPSpos ~ EXPlevels* STIM_linear + EXPlevels*STIM_quadratic 
-                       + ( EXPlevels* STIM_linear  | sub), data = clean_merge_df, REML=FALSE, 
+model.suggested = lmer(NPSpos ~ EXPlevels* STIM_linear + EXPlevels*STIM_quadratic
+                       + ( EXPlevels* STIM_linear  | sub), data = clean_merge_df, REML=FALSE,
                        control = lmerControl(optimizer = "Nelder_Mead", boundary.tol = 1e-3))
-                       # control = lmerControl(optimizer = "Nelder_Mead", 
+                       # control = lmerControl(optimizer = "Nelder_Mead",
                        #              optCtrl = list(maxfun = 100000, # Increase max function evaluations
                        #                             tol = 1e-3),   # Decrease tolerance
                        #              check.conv.grad = .makeCC("warning", tol = 1e-3), # Adjust gradient check
                        #              check.conv.singular = .makeCC("warning", tol = 1e-3) # Adjust singularity check
                        #              ))
-                         #lmerControl(optimizer = "Nelder_Mead", 
+                         #lmerControl(optimizer = "Nelder_Mead",
                           #          optCtrl = list(maxfun = 2e3, tol = 1e-2)))
                        # nAGQ=20)
                        # control=lmerControl(optimizer="Nelder_Mead"))#"nlminbwrap"))
@@ -1709,6 +1737,7 @@ ggplot(clean_merge_df, aes(x = Exp_mdl3, y = NPSpos, color = STIM_linear)) +
   theme_minimal()
 
 ```
+
 ```{r}
 ggplot(clean_merge_df, aes(x = Exp_mdl2, y = NPSpos, color = STIM_linear)) +
   geom_point() +
@@ -1736,7 +1765,7 @@ ggplot(clean_merge_df, aes(x = RATING_expectation, y = NPSpos, color = STIM_line
   theme(strip.text.x = element_text(size = 8),
         axis.text.x = element_text(size = 8),
         axis.text.y = element_text(size = 8),
-        axis.title = element_text(size = 10)) + 
+        axis.title = element_text(size = 10)) +
   theme_minimal()
 
 ```
@@ -1750,12 +1779,10 @@ ggplot(clean_merge_df, aes(x = RATING_outcome, y = NPSpos, color = STIM_linear))
   theme(strip.text.x = element_text(size = 8),
         axis.text.x = element_text(size = 8),
         axis.text.y = element_text(size = 8),
-        axis.title = element_text(size = 10)) + 
+        axis.title = element_text(size = 10)) +
   theme_minimal()
 
 ```
-
-
 
 ```{r}
 ggplot(clean_merge_df, aes(x = EXPlevels, y = NPSpos, color = STIM_linear)) +
@@ -1766,7 +1793,7 @@ ggplot(clean_merge_df, aes(x = EXPlevels, y = NPSpos, color = STIM_linear)) +
   theme(strip.text.x = element_text(size = 8),
         axis.text.x = element_text(size = 8),
         axis.text.y = element_text(size = 8),
-        axis.title = element_text(size = 10)) + 
+        axis.title = element_text(size = 10)) +
   theme_minimal()
 
 ```
@@ -1780,12 +1807,13 @@ model.suggested2 = lmer(NPSpos ~ Exp_mdl2* STIM_linear + Exp_mdl2*STIM_quadratic
 summary(model.suggested2)
 vif(model.suggested2)
 ```
+
 ```{r}
 summary(fm1.all)
 ```
 
+### plots
 
-### plots 
 ```{r}
 ################################################################################
 # bin expectation ratings
@@ -1803,8 +1831,8 @@ clean_merge_df <- k %>%
 palette <- brewer.pal(name = "Reds", n = min(9, length(unique(clean_merge_df$sub))))
 palette <- colorRampPalette(palette)(length(unique(clean_merge_df$sub)))
 df_high = clean_merge_df[clean_merge_df$stimintensity == "high_stim", ]
-plot.PE_high<- ggplot(df_high, aes(x = PE_mdl2_scaled, y = NPSpos)) + 
-  scale_colour_manual(values = palette) + 
+plot.PE_high<- ggplot(df_high, aes(x = PE_mdl2_scaled, y = NPSpos)) +
+  scale_colour_manual(values = palette) +
   geom_point(aes(colour = sub), size = 1, alpha = .2) +  # Points colored by subject
   geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .5, linetype = "dashed", alpha=.5) +  # Subject-wise regression lines
   geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = 2.5, color = "#4A4A49") +  # Group regression line
@@ -1812,7 +1840,7 @@ plot.PE_high<- ggplot(df_high, aes(x = PE_mdl2_scaled, y = NPSpos)) +
   xlim(-5, 5) +
   ggtitle("High intensity") +
   # coord_fixed(ratio = 1) +
-  theme( 
+  theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
     text = element_text(size = 15),
@@ -1822,7 +1850,7 @@ plot.PE_high<- ggplot(df_high, aes(x = PE_mdl2_scaled, y = NPSpos)) +
     legend.position = "none"
   ) +
   xlab("Prediction Error") +
-  ylab("Pain Biomarker (A.U.)") 
+  ylab("Pain Biomarker (A.U.)")
 
 print(plot.PE_high)
 
@@ -1830,8 +1858,8 @@ print(plot.PE_high)
 palette <- brewer.pal(name = "OrRd", n = min(9, length(unique(clean_merge_df$sub))))
 palette <- colorRampPalette(palette)(length(unique(clean_merge_df$sub)))
 df_med = clean_merge_df[clean_merge_df$stimintensity == "med_stim", ]
-plot.PE_med<- ggplot(df_med, aes(x = PE_mdl2_scaled, y = NPSpos)) + 
-  scale_colour_manual(values = palette) + 
+plot.PE_med<- ggplot(df_med, aes(x = PE_mdl2_scaled, y = NPSpos)) +
+  scale_colour_manual(values = palette) +
   geom_point(aes(colour = sub), size = 1, alpha = .2) +  # Points colored by subject
   geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .5, linetype = "dashed", alpha=.5) +  # Subject-wise regression lines
   geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = 2.5, color = "#4A4A49") +  # Group regression line
@@ -1839,7 +1867,7 @@ plot.PE_med<- ggplot(df_med, aes(x = PE_mdl2_scaled, y = NPSpos)) +
   xlim(-5, 5) +
   ggtitle("Medium intensity") +
   # coord_fixed(ratio = 1) +
-  theme( 
+  theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
     text = element_text(size = 15),
@@ -1849,7 +1877,7 @@ plot.PE_med<- ggplot(df_med, aes(x = PE_mdl2_scaled, y = NPSpos)) +
     legend.position = "none"
   ) +
   xlab("Prediction Error") +
-  ylab("Pain Biomarker (A.U.)") 
+  ylab("Pain Biomarker (A.U.)")
 
 print(plot.PE_med)
 
@@ -1857,8 +1885,8 @@ print(plot.PE_med)
 palette <- brewer.pal(name = "Oranges", n = min(9, length(unique(clean_merge_df$sub))))
 palette <- colorRampPalette(palette)(length(unique(clean_merge_df$sub)))
 df_low = clean_merge_df[clean_merge_df$stimintensity == "low_stim", ]
-plot.PE_low<- ggplot(df_low, aes(x = PE_mdl2_scaled, y = NPSpos)) + 
-  scale_colour_manual(values = palette) + 
+plot.PE_low<- ggplot(df_low, aes(x = PE_mdl2_scaled, y = NPSpos)) +
+  scale_colour_manual(values = palette) +
   geom_point(aes(colour = sub), size = 1, alpha = .2) +  # Points colored by subject
   geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .5, linetype = "dashed", alpha=.5) +  # Subject-wise regression lines
   geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = 2.5, color = "#4A4A49") +  # Group regression line
@@ -1866,7 +1894,7 @@ plot.PE_low<- ggplot(df_low, aes(x = PE_mdl2_scaled, y = NPSpos)) +
   xlim(-5, 5) +
   ggtitle("Low intensity") +
   # coord_fixed(ratio = 1) +
-  theme( 
+  theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
     text = element_text(size = 15),
@@ -1876,7 +1904,7 @@ plot.PE_low<- ggplot(df_low, aes(x = PE_mdl2_scaled, y = NPSpos)) +
     legend.position = "none"
   ) +
   xlab("Prediction Error") +
-  ylab("Pain Biomarker (A.U.)") 
+  ylab("Pain Biomarker (A.U.)")
 
 print(plot.PE_low)
 
@@ -1889,8 +1917,8 @@ plots
 ggsave(file.path(analysis_dir, "combined_plots.png"), plots_title, width = 18, height = 5, units = "in")
 ```
 
-
 ## behavioral PE update
+
 ```{r}
 # bin expectation ratings
 iv1 = "RATING_expectation"; iv2 = "RATING_outcome"; levels = 10
@@ -1925,8 +1953,8 @@ clean_merge_df <- k %>%
 palette <- brewer.pal(name = "Reds", n = min(9, length(unique(clean_merge_df$sub))))
 palette <- colorRampPalette(palette)(length(unique(clean_merge_df$sub)))
 df_high = clean_merge_df[clean_merge_df$stimintensity == "high_stim" & clean_merge_df$cue == 'high_cue', ]
-plot.PE_high<- ggplot(df_high, aes(x = PE_mdl2_scaled, y = NPSpos)) + 
-  scale_colour_manual(values = palette) + 
+plot.PE_high<- ggplot(df_high, aes(x = PE_mdl2_scaled, y = NPSpos)) +
+  scale_colour_manual(values = palette) +
   geom_point(aes(colour = sub), size = 1, alpha = .2) +  # Points colored by subject
   geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .5, linetype = "dashed", alpha=.5) +  # Subject-wise regression lines
   geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = 2.5, color = "#4A4A49") +  # Group regression line
@@ -1934,7 +1962,7 @@ plot.PE_high<- ggplot(df_high, aes(x = PE_mdl2_scaled, y = NPSpos)) +
   xlim(-5, 5) +
   ggtitle("High intensity") +
   # coord_fixed(ratio = 1) +
-  theme( 
+  theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
     text = element_text(size = 15),
@@ -1944,7 +1972,7 @@ plot.PE_high<- ggplot(df_high, aes(x = PE_mdl2_scaled, y = NPSpos)) +
     legend.position = "none"
   ) +
   xlab("Expectation") +
-  ylab("Pain rating") 
+  ylab("Pain rating")
 
 
 print(plot.PE_high)
@@ -1953,8 +1981,8 @@ print(plot.PE_high)
 palette <- brewer.pal(name = "OrRd", n = min(9, length(unique(clean_merge_df$sub))))
 palette <- colorRampPalette(palette)(length(unique(clean_merge_df$sub)))
 df_med = clean_merge_df[clean_merge_df$stimintensity == "med_stim" & clean_merge_df$cue == 'high_cue', ]
-plot.PE_med<- ggplot(df_med, aes(x = PE_mdl2_scaled, y = NPSpos)) + 
-  scale_colour_manual(values = palette) + 
+plot.PE_med<- ggplot(df_med, aes(x = PE_mdl2_scaled, y = NPSpos)) +
+  scale_colour_manual(values = palette) +
   geom_point(aes(colour = sub), size = 1, alpha = .2) +  # Points colored by subject
   geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .5, linetype = "dashed", alpha=.5) +  # Subject-wise regression lines
   geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = 2.5, color = "#4A4A49") +  # Group regression line
@@ -1962,7 +1990,7 @@ plot.PE_med<- ggplot(df_med, aes(x = PE_mdl2_scaled, y = NPSpos)) +
   xlim(-5, 5) +
   ggtitle("Medium intensity") +
   # coord_fixed(ratio = 1) +
-  theme( 
+  theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
     text = element_text(size = 15),
@@ -1972,7 +2000,7 @@ plot.PE_med<- ggplot(df_med, aes(x = PE_mdl2_scaled, y = NPSpos)) +
     legend.position = "none"
   ) +
   xlab("Expectation") +
-  ylab("Pain rating") 
+  ylab("Pain rating")
 
 
 print(plot.PE_med)
@@ -1981,8 +2009,8 @@ print(plot.PE_med)
 palette <- brewer.pal(name = "Oranges", n = min(9, length(unique(clean_merge_df$sub))))
 palette <- colorRampPalette(palette)(length(unique(clean_merge_df$sub)))
 df_low = clean_merge_df[clean_merge_df$stimintensity == "low_stim" & clean_merge_df$cue == 'high_cue', ]
-plot.PE_low<- ggplot(df_low, aes(x = PE_mdl2_scaled, y = NPSpos)) + 
-  scale_colour_manual(values = palette) + 
+plot.PE_low<- ggplot(df_low, aes(x = PE_mdl2_scaled, y = NPSpos)) +
+  scale_colour_manual(values = palette) +
   geom_point(aes(colour = sub), size = 1, alpha = .2) +  # Points colored by subject
   geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .5, linetype = "dashed", alpha=.5) +  # Subject-wise regression lines
   geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = 2.5, color = "#4A4A49") +  # Group regression line
@@ -1990,7 +2018,7 @@ plot.PE_low<- ggplot(df_low, aes(x = PE_mdl2_scaled, y = NPSpos)) +
   xlim(-5, 5) +
   ggtitle("Low intensity") +
   # coord_fixed(ratio = 1) +
-  theme( 
+  theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
     text = element_text(size = 15),
@@ -2000,7 +2028,7 @@ plot.PE_low<- ggplot(df_low, aes(x = PE_mdl2_scaled, y = NPSpos)) +
     legend.position = "none"
   ) +
   xlab("Expectation") +
-  ylab("Pain rating") 
+  ylab("Pain rating")
 
 
 print(plot.PE_low)
@@ -2012,8 +2040,8 @@ print(plot.PE_low)
 palette <- brewer.pal(name = "Blues", n = min(9, length(unique(clean_merge_df$sub))))
 palette <- colorRampPalette(palette)(length(unique(clean_merge_df$sub)))
 df_high_lowcue = clean_merge_df[clean_merge_df$stimintensity == "high_stim" & clean_merge_df$cue == 'low_cue', ]
-plot.PE_high_lowcue<- ggplot(df_high_lowcue, aes(x = PE_mdl2_scaled, y = NPSpos)) + 
-  scale_colour_manual(values = palette) + 
+plot.PE_high_lowcue<- ggplot(df_high_lowcue, aes(x = PE_mdl2_scaled, y = NPSpos)) +
+  scale_colour_manual(values = palette) +
   geom_point(aes(colour = sub), size = 1, alpha = .2) +  # Points colored by subject
   geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .5, linetype = "dashed", alpha=.5) +  # Subject-wise regression lines
   geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = 2.5, color = "#4A4A49") +  # Group regression line
@@ -2021,7 +2049,7 @@ plot.PE_high_lowcue<- ggplot(df_high_lowcue, aes(x = PE_mdl2_scaled, y = NPSpos)
   xlim(-5, 5) +
   ggtitle("High intensity") +
   # coord_fixed(ratio = 1) +
-  theme( 
+  theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
     text = element_text(size = 15),
@@ -2031,7 +2059,7 @@ plot.PE_high_lowcue<- ggplot(df_high_lowcue, aes(x = PE_mdl2_scaled, y = NPSpos)
     legend.position = "none"
   ) +
   xlab("Expectation") +
-  ylab("Pain rating") 
+  ylab("Pain rating")
 
 
 print(plot.PE_high_lowcue)
@@ -2040,8 +2068,8 @@ print(plot.PE_high_lowcue)
 palette <- brewer.pal(name = "BuGn", n = min(9, length(unique(clean_merge_df$sub))))
 palette <- colorRampPalette(palette)(length(unique(clean_merge_df$sub)))
 df_med_lowcue = clean_merge_df[clean_merge_df$stimintensity == "med_stim"& clean_merge_df$cue == 'low_cue', ]
-plot.PE_med_lowcue<- ggplot(df_med_lowcue, aes(x = PE_mdl2_scaled, y = NPSpos)) + 
-  scale_colour_manual(values = palette) + 
+plot.PE_med_lowcue<- ggplot(df_med_lowcue, aes(x = PE_mdl2_scaled, y = NPSpos)) +
+  scale_colour_manual(values = palette) +
   geom_point(aes(colour = sub), size = 1, alpha = .2) +  # Points colored by subject
   geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .5, linetype = "dashed", alpha=.5) +  # Subject-wise regression lines
   geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = 2.5, color = "#4A4A49") +  # Group regression line
@@ -2049,7 +2077,7 @@ plot.PE_med_lowcue<- ggplot(df_med_lowcue, aes(x = PE_mdl2_scaled, y = NPSpos)) 
   xlim(-5, 5) +
   ggtitle("Medium intensity") +
   # coord_fixed(ratio = 1) +
-  theme( 
+  theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
     text = element_text(size = 15),
@@ -2059,7 +2087,7 @@ plot.PE_med_lowcue<- ggplot(df_med_lowcue, aes(x = PE_mdl2_scaled, y = NPSpos)) 
     legend.position = "none"
   ) +
   xlab("Expectation") +
-  ylab("Pain rating") 
+  ylab("Pain rating")
 
 print(plot.PE_med_lowcue)
 
@@ -2067,8 +2095,8 @@ print(plot.PE_med_lowcue)
 palette <- brewer.pal(name = "BuPu", n = min(9, length(unique(clean_merge_df$sub))))
 palette <- colorRampPalette(palette)(length(unique(clean_merge_df$sub)))
 df_low_lowcue = clean_merge_df[clean_merge_df$stimintensity == "low_stim"& clean_merge_df$cue == 'low_cue', ]
-plot.PE_low_lowcue<- ggplot(df_low_lowcue, aes(x = PE_mdl2_scaled, y = NPSpos)) + 
-  scale_colour_manual(values = palette) + 
+plot.PE_low_lowcue<- ggplot(df_low_lowcue, aes(x = PE_mdl2_scaled, y = NPSpos)) +
+  scale_colour_manual(values = palette) +
   geom_point(aes(colour = sub), size = 1, alpha = .2) +  # Points colored by subject
   geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .5, linetype = "dashed", alpha=.5) +  # Subject-wise regression lines
   geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = 2.5, color = "#4A4A49") +  # Group regression line
@@ -2076,7 +2104,7 @@ plot.PE_low_lowcue<- ggplot(df_low_lowcue, aes(x = PE_mdl2_scaled, y = NPSpos)) 
   xlim(-3, 3) +
   ggtitle("Low intensity") +
   # coord_fixed(ratio = 1) +
-  theme( 
+  theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
     text = element_text(size = 15),
@@ -2086,7 +2114,7 @@ plot.PE_low_lowcue<- ggplot(df_low_lowcue, aes(x = PE_mdl2_scaled, y = NPSpos)) 
     legend.position = "none"
   ) +
   xlab("Expectation") +
-  ylab("Pain rating") 
+  ylab("Pain rating")
 
 
 print(plot.PE_low_lowcue)
@@ -2100,7 +2128,6 @@ ggsave(file.path(analysis_dir, "combined_plots_behPE.png"), plots_title, width =
 ```
 
 # 6.SfN NPS and expectation as a function of cue and stim
-
 
 ```{r}
 
@@ -2120,8 +2147,8 @@ clean_merge_df <- k %>%
 palette <- brewer.pal(name = "Reds", n = min(9, length(unique(clean_merge_df$sub))))
 palette <- colorRampPalette(palette)(length(unique(clean_merge_df$sub)))
 df_high = clean_merge_df[clean_merge_df$stimintensity == "high_stim" & clean_merge_df$cue == 'high_cue', ]
-plot.PE_high<- ggplot(df_high, aes(x = PE_mdl2_scaled, y = NPSpos)) + 
-  scale_colour_manual(values = palette) + 
+plot.PE_high<- ggplot(df_high, aes(x = PE_mdl2_scaled, y = NPSpos)) +
+  scale_colour_manual(values = palette) +
   geom_point(aes(colour = sub), size = 1, alpha = .2) +  # Points colored by subject
   geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .5, linetype = "dashed", alpha=.5) +  # Subject-wise regression lines
   geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = 2.5, color = "#4A4A49") +  # Group regression line
@@ -2129,7 +2156,7 @@ plot.PE_high<- ggplot(df_high, aes(x = PE_mdl2_scaled, y = NPSpos)) +
   xlim(-5, 5) +
   ggtitle("High intensity") +
   # coord_fixed(ratio = 1) +
-  theme( 
+  theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
     text = element_text(size = 15),
@@ -2139,7 +2166,7 @@ plot.PE_high<- ggplot(df_high, aes(x = PE_mdl2_scaled, y = NPSpos)) +
     legend.position = "none"
   ) +
   xlab("Expectation") +
-  ylab("Pain rating") 
+  ylab("Pain rating")
 
 
 print(plot.PE_high)
@@ -2148,8 +2175,8 @@ print(plot.PE_high)
 palette <- brewer.pal(name = "OrRd", n = min(9, length(unique(clean_merge_df$sub))))
 palette <- colorRampPalette(palette)(length(unique(clean_merge_df$sub)))
 df_med = clean_merge_df[clean_merge_df$stimintensity == "med_stim" & clean_merge_df$cue == 'high_cue', ]
-plot.PE_med<- ggplot(df_med, aes(x = PE_mdl2_scaled, y = NPSpos)) + 
-  scale_colour_manual(values = palette) + 
+plot.PE_med<- ggplot(df_med, aes(x = PE_mdl2_scaled, y = NPSpos)) +
+  scale_colour_manual(values = palette) +
   geom_point(aes(colour = sub), size = 1, alpha = .2) +  # Points colored by subject
   geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .5, linetype = "dashed", alpha=.5) +  # Subject-wise regression lines
   geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = 2.5, color = "#4A4A49") +  # Group regression line
@@ -2157,7 +2184,7 @@ plot.PE_med<- ggplot(df_med, aes(x = PE_mdl2_scaled, y = NPSpos)) +
   xlim(-5, 5) +
   ggtitle("Medium intensity") +
   # coord_fixed(ratio = 1) +
-  theme( 
+  theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
     text = element_text(size = 15),
@@ -2167,7 +2194,7 @@ plot.PE_med<- ggplot(df_med, aes(x = PE_mdl2_scaled, y = NPSpos)) +
     legend.position = "none"
   ) +
   xlab("Expectation") +
-  ylab("Pain rating") 
+  ylab("Pain rating")
 
 
 print(plot.PE_med)
@@ -2176,8 +2203,8 @@ print(plot.PE_med)
 palette <- brewer.pal(name = "Oranges", n = min(9, length(unique(clean_merge_df$sub))))
 palette <- colorRampPalette(palette)(length(unique(clean_merge_df$sub)))
 df_low = clean_merge_df[clean_merge_df$stimintensity == "low_stim" & clean_merge_df$cue == 'high_cue', ]
-plot.PE_low<- ggplot(df_low, aes(x = PE_mdl2_scaled, y = NPSpos)) + 
-  scale_colour_manual(values = palette) + 
+plot.PE_low<- ggplot(df_low, aes(x = PE_mdl2_scaled, y = NPSpos)) +
+  scale_colour_manual(values = palette) +
   geom_point(aes(colour = sub), size = 1, alpha = .2) +  # Points colored by subject
   geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .5, linetype = "dashed", alpha=.5) +  # Subject-wise regression lines
   geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = 2.5, color = "#4A4A49") +  # Group regression line
@@ -2185,7 +2212,7 @@ plot.PE_low<- ggplot(df_low, aes(x = PE_mdl2_scaled, y = NPSpos)) +
   xlim(-5, 5) +
   ggtitle("Low intensity") +
   # coord_fixed(ratio = 1) +
-  theme( 
+  theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
     text = element_text(size = 15),
@@ -2195,7 +2222,7 @@ plot.PE_low<- ggplot(df_low, aes(x = PE_mdl2_scaled, y = NPSpos)) +
     legend.position = "none"
   ) +
   xlab("Expectation") +
-  ylab("Pain rating") 
+  ylab("Pain rating")
 
 
 print(plot.PE_low)
@@ -2207,8 +2234,8 @@ print(plot.PE_low)
 palette <- brewer.pal(name = "Blues", n = min(9, length(unique(clean_merge_df$sub))))
 palette <- colorRampPalette(palette)(length(unique(clean_merge_df$sub)))
 df_high_lowcue = clean_merge_df[clean_merge_df$stimintensity == "high_stim" & clean_merge_df$cue == 'low_cue', ]
-plot.PE_high_lowcue<- ggplot(df_high_lowcue, aes(x = PE_mdl2_scaled, y = NPSpos)) + 
-  scale_colour_manual(values = palette) + 
+plot.PE_high_lowcue<- ggplot(df_high_lowcue, aes(x = PE_mdl2_scaled, y = NPSpos)) +
+  scale_colour_manual(values = palette) +
   geom_point(aes(colour = sub), size = 1, alpha = .2) +  # Points colored by subject
   geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .5, linetype = "dashed", alpha=.5) +  # Subject-wise regression lines
   geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = 2.5, color = "#4A4A49") +  # Group regression line
@@ -2216,7 +2243,7 @@ plot.PE_high_lowcue<- ggplot(df_high_lowcue, aes(x = PE_mdl2_scaled, y = NPSpos)
   xlim(-5, 5) +
   ggtitle("High intensity") +
   # coord_fixed(ratio = 1) +
-  theme( 
+  theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
     text = element_text(size = 15),
@@ -2226,7 +2253,7 @@ plot.PE_high_lowcue<- ggplot(df_high_lowcue, aes(x = PE_mdl2_scaled, y = NPSpos)
     legend.position = "none"
   ) +
   xlab("Expectation") +
-  ylab("Pain rating") 
+  ylab("Pain rating")
 
 
 print(plot.PE_high_lowcue)
@@ -2235,8 +2262,8 @@ print(plot.PE_high_lowcue)
 palette <- brewer.pal(name = "BuGn", n = min(9, length(unique(clean_merge_df$sub))))
 palette <- colorRampPalette(palette)(length(unique(clean_merge_df$sub)))
 df_med_lowcue = clean_merge_df[clean_merge_df$stimintensity == "med_stim"& clean_merge_df$cue == 'low_cue', ]
-plot.PE_med_lowcue<- ggplot(df_med_lowcue, aes(x = PE_mdl2_scaled, y = NPSpos)) + 
-  scale_colour_manual(values = palette) + 
+plot.PE_med_lowcue<- ggplot(df_med_lowcue, aes(x = PE_mdl2_scaled, y = NPSpos)) +
+  scale_colour_manual(values = palette) +
   geom_point(aes(colour = sub), size = 1, alpha = .2) +  # Points colored by subject
   geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .5, linetype = "dashed", alpha=.5) +  # Subject-wise regression lines
   geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = 2.5, color = "#4A4A49") +  # Group regression line
@@ -2244,7 +2271,7 @@ plot.PE_med_lowcue<- ggplot(df_med_lowcue, aes(x = PE_mdl2_scaled, y = NPSpos)) 
   xlim(-5, 5) +
   ggtitle("Medium intensity") +
   # coord_fixed(ratio = 1) +
-  theme( 
+  theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
     text = element_text(size = 15),
@@ -2254,7 +2281,7 @@ plot.PE_med_lowcue<- ggplot(df_med_lowcue, aes(x = PE_mdl2_scaled, y = NPSpos)) 
     legend.position = "none"
   ) +
   xlab("Expectation") +
-  ylab("Pain rating") 
+  ylab("Pain rating")
 
 print(plot.PE_med_lowcue)
 
@@ -2262,8 +2289,8 @@ print(plot.PE_med_lowcue)
 palette <- brewer.pal(name = "BuPu", n = min(9, length(unique(clean_merge_df$sub))))
 palette <- colorRampPalette(palette)(length(unique(clean_merge_df$sub)))
 df_low_lowcue = clean_merge_df[clean_merge_df$stimintensity == "low_stim"& clean_merge_df$cue == 'low_cue', ]
-plot.PE_low_lowcue<- ggplot(df_low_lowcue, aes(x = PE_mdl2_scaled, y = NPSpos)) + 
-  scale_colour_manual(values = palette) + 
+plot.PE_low_lowcue<- ggplot(df_low_lowcue, aes(x = PE_mdl2_scaled, y = NPSpos)) +
+  scale_colour_manual(values = palette) +
   geom_point(aes(colour = sub), size = 1, alpha = .2) +  # Points colored by subject
   geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .5, linetype = "dashed", alpha=.5) +  # Subject-wise regression lines
   geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = 2.5, color = "#4A4A49") +  # Group regression line
@@ -2271,7 +2298,7 @@ plot.PE_low_lowcue<- ggplot(df_low_lowcue, aes(x = PE_mdl2_scaled, y = NPSpos)) 
   xlim(-3, 3) +
   ggtitle("Low intensity") +
   # coord_fixed(ratio = 1) +
-  theme( 
+  theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
     text = element_text(size = 15),
@@ -2281,7 +2308,7 @@ plot.PE_low_lowcue<- ggplot(df_low_lowcue, aes(x = PE_mdl2_scaled, y = NPSpos)) 
     legend.position = "none"
   ) +
   xlab("Expectation") +
-  ylab("Pain rating") 
+  ylab("Pain rating")
 
 
 print(plot.PE_low_lowcue)
@@ -2293,8 +2320,6 @@ plots
 
 ggsave(file.path(analysis_dir, "combined_plots_behPE.png"), plots_title, width = 18, height = 5, units = "in")
 ```
-
-
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 model_iv1 <- "Exp_mdl2_scaled"
@@ -2313,11 +2338,11 @@ PEbinlow_groupwise <- summarySEwithin(
 )
 PEbinlow_groupwise$task <- taskname
 low <- plot_lineplot_twofactor(PEbinlow_groupwise, #taskname = "pain",
-                        iv = model_iv1,  
+                        iv = model_iv1,
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("#5D5C5C", "#941100"), 
-                        ggtitle = paste0( "Stim intensity Low ", " (N = ", length(unique(data_screen$sub)), ")"    ), 
-                        xlab = "PE (binned)", 
+                        color = c("#5D5C5C", "#941100"),
+                        ggtitle = paste0( "Stim intensity Low ", " (N = ", length(unique(data_screen$sub)), ")"    ),
+                        xlab = "PE (binned)",
                         ylab = "NPSpos")
 
 ################################################################################
@@ -2332,11 +2357,11 @@ PEbinmed_groupwise <- summarySEwithin(
 )
 PEbinmed_groupwise$task <- taskname
 med <- plot_lineplot_twofactor(PEbinmed_groupwise, #taskname = "pain",
-                        iv = model_iv1, iv2 = model_iv2, 
+                        iv = model_iv1, iv2 = model_iv2,
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("#5D5C5C", "#941100"), 
-                        ggtitle = paste0( "Stim intensity med ", " (N = ", length(unique(data_screen$sub)), ")"    ), 
-                        xlab = "PE (binned)", 
+                        color = c("#5D5C5C", "#941100"),
+                        ggtitle = paste0( "Stim intensity med ", " (N = ", length(unique(data_screen$sub)), ")"    ),
+                        xlab = "PE (binned)",
                         ylab = "NPSpos")
 
 ################################################################################
@@ -2351,11 +2376,11 @@ PEbinhigh_groupwise <- summarySEwithin(
 )
 PEbinhigh_groupwise$task <- taskname
 high <- plot_lineplot_twofactor(PEbinhigh_groupwise, #taskname = "pain",
-                        iv = model_iv1, iv2 = model_iv2, 
+                        iv = model_iv1, iv2 = model_iv2,
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("#5D5C5C", "#941100"), 
-                        ggtitle = paste0( "Stim intensity High ", " (N = ", length(unique(data_screen$subΩ)), ")"    ), 
-                        xlab = "PE (binned)", 
+                        color = c("#5D5C5C", "#941100"),
+                        ggtitle = paste0( "Stim intensity High ", " (N = ", length(unique(data_screen$subΩ)), ")"    ),
+                        xlab = "PE (binned)",
                         ylab = "NPSpos")
 
 ################################################################################
@@ -2364,8 +2389,8 @@ plots_title <- annotate_figure(plots, top = text_grob("individual differences\n 
 plots
 ```
 
-
 ## NOTE. check for duplicates
+
 ```{r}
 # Assuming your dataframe is called 'df'
 duplicates <- duplicated(clean_merge_df)
@@ -2375,9 +2400,8 @@ any(duplicates)
 
 ```
 
-
-
 ## 7. suggested mediation model
+
 ```{r}
 
 detach_package <- function(pkg, character.only = FALSE)
@@ -2392,16 +2416,16 @@ detach_package <- function(pkg, character.only = FALSE)
     detach(search_item, unload = TRUE, character.only = TRUE)
   }
 }
-# 
-# model.A = lmer(NPSpos ~ cue + (1| sub) , data = clean_merge_df, 
+#
+# model.A = lmer(NPSpos ~ cue + (1| sub) , data = clean_merge_df,
 #                    REML = FALSE, lmerControl(optimizer ="Nelder_Mead"))
-# 
-# model.C = lmer(NPSpos ~ cue + Exp_mdl2 + (1 + Exp_mdl2 + stim| sub) , data = clean_merge_df, 
+#
+# model.C = lmer(NPSpos ~ cue + Exp_mdl2 + (1 + Exp_mdl2 + stim| sub) , data = clean_merge_df,
 #                    REML = FALSE, lmerControl(optimizer ="Nelder_Mead"))
-# 
+#
 # summary(model.suggested)
 # getME(model.suggested,c("theta","beta")
-# Y = 
+# Y =
 # fit.totaleffect <- lmer(Y ~ X1 +(1| ID)  + Xc2 + Xc3, data = df)
 # fit.mediator    <- lmer(M ~ X1 +(1| ID)  + Xc2 + Xc3, data = df)
 # fit.dv          <- lmer(Y ~ M + X1 +(1| ID)  + Xc2 + Xc3, data = df)
@@ -2416,6 +2440,7 @@ results <- mediation::mediate(fit.mediator, fit.dv, treat='CUE_high_gt_low', med
 ```
 
 ## 8. predictive coding
+
 ```{r}
 model.PEcoding <- lmer(Exp_mdl2_scaled ~ PE_mdl2 + (PE_mdl2|sub), data = clean_merge_df)
 summary(model.PEcoding)
@@ -2423,16 +2448,17 @@ summary(model.PEcoding)
 
 ```{r}
 ################################################################################
-model.predictivecoding = lmer(NPSpos ~ Exp_mdl2_scaled + PE_mdl2 + (Exp_mdl2_scaled + PE_mdl2| sub), data = clean_merge_df, 
+model.predictivecoding = lmer(NPSpos ~ Exp_mdl2_scaled + PE_mdl2 + (Exp_mdl2_scaled + PE_mdl2| sub), data = clean_merge_df,
                        control=lmerControl(optimizer="nlminbwrap"))
                    # REML = TRUE) #lmerControl(optimizer ="Nelder_Mead"))
 
 summary(model.predictivecoding)
 
 ```
+
 ```{r}
 model.suggested_augmented = lmer(NPSpos ~ cue + RATING_expectation_scaled + STIM_linear + STIM_quadratic + RATING_outcome_scaled
-                       + (1 + RATING_expectation + STIM_linear + RATING_outcome| sub), data = clean_merge_df, 
+                       + (1 + RATING_expectation + STIM_linear + RATING_outcome| sub), data = clean_merge_df,
                        control=lmerControl(optimizer="nlminbwrap"))
                    # REML = TRUE) #lmerControl(optimizer ="Nelder_Mead"))
 print("\nVIF from model 1\n")
@@ -2440,7 +2466,7 @@ print(vif(model.suggested_augmented))
 # summary(model.suggested_augmented)
 
 model.suggested_augmented2 = lmer(NPSpos ~ cue + RATING_expectation_scaled + STIM_linear + STIM_quadratic + RATING_outcome_scaled
-                       + (1 + RATING_expectation + STIM_linear + RATING_outcome| sub), data = clean_merge_df, 
+                       + (1 + RATING_expectation + STIM_linear + RATING_outcome| sub), data = clean_merge_df,
                        control=lmerControl(optimizer="nlminbwrap"))
                    # REML = TRUE) #lmerControl(optimizer ="Nelder_Mead"))
 print("\nVIF from model\n")
@@ -2449,6 +2475,7 @@ summary(model.suggested_augmented2)
 ```
 
 # write csv
+
 ```{r}
 # Assuming your dataframe is called 'df'
 # And the column you're checking is 'some_column'
@@ -2459,9 +2486,8 @@ df_clean_merge_df <- clean_merge_df[clean_merge_df$sub != 23, ]
 write.csv(df_clean_merge_df , file.path(main_dir, "data", "hlm", 'cleanmerge_NPS_RL.csv'))
 ```
 
-
-
 ##### mediation
+
 ```{r}
 # install.packages("lme4")
 # install.packages("merTools")
@@ -2493,7 +2519,7 @@ boot_ci <- quantile(boot_indirect_effects, probs = c(0.025, 0.975))
 install.packages("semPlot")
 library(semPlot)
 # Assuming you have the following coefficients
-# a1 (EXP -> NPS), a2 (STIM -> NPS), b (NPS -> PAIN), 
+# a1 (EXP -> NPS), a2 (STIM -> NPS), b (NPS -> PAIN),
 # c' (EXP -> PAIN), and c' (STIM -> PAIN) direct effects without mediator
 # c (EXP -> PAIN) and c (STIM -> PAIN) total effects
 a1 <- med.coef_EXP
@@ -2511,7 +2537,7 @@ path_coefficients <- data.frame(
 
 # If you have calculated total effects 'c', you can add them as well
 semPaths(
-  path_coefficients, 
+  path_coefficients,
   whatLabels = "est", # Use estimated coefficients for labels
   edge.label.cex = 0.75, # Adjust the size of the edge labels
   layout = "tree" # Choose a layout that fits your model
@@ -2520,17 +2546,19 @@ semPaths(
 ```
 
 #### mediation 1
-```{r}
-mediationmodel.lmer <- lmer(formula = RATING_outcome ~ 0 + 
-                              NPSpos + RATING_expectation + 
 
-                                (1|sub) 
-                              , 
-                  data=clean_merge_df) 
+```{r}
+mediationmodel.lmer <- lmer(formula = RATING_outcome ~ 0 +
+                              NPSpos + RATING_expectation +
+
+                                (1|sub)
+                              ,
+                  data=clean_merge_df)
 #viewing and putting model summary into an object
 
 (medmodelsummary <- summary(mediationmodel.lmer))
 ```
+
 ```{r}
 # X1, RATING_expect
 # X2, STIM
@@ -2540,7 +2568,7 @@ mediationmodel.lmer <- lmer(formula = RATING_outcome ~ 0 +
 # model layout
 # X1 X2 -> M -> Y
 # M = a1*X1
-# M = a1*X1 + a2*X2 
+# M = a1*X1 + a2*X2
 # Y = c1*X1 + c2*X2 + b1*M
 #################
 myModel <- '
@@ -2548,20 +2576,18 @@ RATING_outcome ~ b1*NPSpos + c1*RATING_expectation + c2*STIM_linear
 NPSpos ~ a1*RATING_expectation + a2*STIM_linear
 #indirect effects
 indirect1:=a1 * b1
-indirect2:= a2 * b1 
+indirect2:= a2 * b1
 # total effect
-total1:=c1 + (a1 * b1) 
+total1:=c1 + (a1 * b1)
 total2:= c2 + (a2 * b1) '
 
 library("lavaan")
-fit <- sem(myModel, 
-    data=clean_merge_df, 
-    se = "bootstrap", 
+fit <- sem(myModel,
+    data=clean_merge_df,
+    se = "bootstrap",
     bootstrap = 1000,
     control = list(optCtrl = list(tol = 1e-3)))
 ```
-
-
 
 ```{r}
 # Y ~ b2 * NPSpos + c2*STIM
@@ -2588,4 +2614,3 @@ total3 := c3 + (a5 * b1) + (a6 * b2)
 # covariates
 M1 ~~ M2
 ```
-

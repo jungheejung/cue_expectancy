@@ -1,6 +1,5 @@
 # [model] NPSsimulation {#ch20_npssimulation}
 
-
 ```{r include=FALSE}
 library(car)
 library(psych)
@@ -28,8 +27,8 @@ devtools::source_url("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff5
 library(r2mlm)
 main_dir <- dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, 'scripts', 'step02_R', 'utils'),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 
@@ -100,7 +99,7 @@ two_factor_lineplot <-
       ylab(ylab) +
       #scale_color_manual(values = color) +
       theme_classic() +
-      
+
       theme(aspect.ratio = .6) +
       expand_limits(x = 3.25) +
       #guides(fill = "none") +
@@ -121,13 +120,13 @@ two_factor_lineplot <-
       ) +
       theme(legend.key = element_rect(fill = "white", colour = "white")) +
       theme_bw()
-    
+
     return(g)
   }
 ```
 
-
 ### NPS data
+
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 
 # Step 1: Common parameters
@@ -163,7 +162,7 @@ for (signature_key in c("NPSpos")) {
              showWarnings = FALSE,
              recursive = TRUE)
   savedir <- analysis_dir
-  
+
   # step 2: load data
   df = read.csv(sig_name)
   sig_df = df %>% separate(
@@ -191,14 +190,14 @@ for (signature_key in c("NPSpos")) {
   pvc$task[pvc$runtype == "runtype-vicarious"] <- "vicarious"
   pvc$task[pvc$runtype == "runtype-cognitive"] <- "cognitive"
   pvc$task <- factor(pvc$task)
-  
-  
+
+
   # step 3: parameters
-  
+
   taskname = "all"
   plot_keyword = "stimulusintensity"
   ggtitle_phrase =  "(3 tasks x 3 stimulus intensity)"
-  
+
   pvc$task = factor(pvc$task)
 
 
@@ -206,6 +205,7 @@ for (signature_key in c("NPSpos")) {
 ```
 
 ### behavioral data
+
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 
 # Load behavioral data
@@ -215,8 +215,8 @@ print(main_dir)
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
 taskname = '*'
 subject_varkey <- "src_subject_id"
-iv <- "param_stimulus_type"; 
-iv_keyword <- "stim"; 
+iv <- "param_stimulus_type";
+iv_keyword <- "stim";
 dv <- "event04_actual_angle"; dv_keyword <- "outcome"
 exclude <- "sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0007|sub-0008|sub-0013|sub-0016|sub-0017|sub-0019|sub-0020|sub-0021|sub-0025|sub-0075"
 #sub-0074|sub-0085|sub-0118|sub-0117|sub-0103|sub-0063
@@ -229,24 +229,24 @@ p.df2= p.df %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number())
-data_p <- p.df2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_p <- p.df2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num))
 
 v.df2= v.df %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number())
-data_v <- v.df2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_v <- v.df2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num))
 
 c.df2= c.df %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number()-1)
-data_c <- c.df2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_c <- c.df2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num) )
 p.sub <- data_p[,c("src_subject_id", "session_id", "param_run_num", "param_task_name", "event02_expect_angle", "param_cue_type", "param_stimulus_type", "event04_actual_angle", "trial_index")]
 v.sub <- data_v[,c("src_subject_id", "session_id", "param_run_num", "param_task_name", "event02_expect_angle", "param_cue_type", "param_stimulus_type", "event04_actual_angle", "trial_index")]
@@ -255,7 +255,7 @@ c.sub <- data_c[,c("src_subject_id", "session_id", "param_run_num", "param_task_
 # src_subject_id, session_id, param_run_num, param_task_name, event02_expect_angle, param_cue_type, param_stimulus_type, event04_actual_angle
 pvc.sub = rbind(p.sub, v.sub, c.sub)
 
-pvc.sub$trial_ind <- pvc.sub$trial_index -1 
+pvc.sub$trial_ind <- pvc.sub$trial_index -1
 pvc.sub$sub <- sprintf("sub-%04d", pvc.sub$src_subject_id)
 pvc.sub$ses <- sprintf("ses-%02d", pvc.sub$session_id)
 pvc.sub$run <- sprintf("run-%02d", pvc.sub$param_run_num)
@@ -267,14 +267,15 @@ pvc.sub[c('stimintensity', 'DEP')]  <- str_split_fixed(pvc.sub$param_stimulus_ty
 
 # merge
 pvc.beh <- pvc.sub[,c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity","event02_expect_angle", "event04_actual_angle")]
-df_merge <- merge(pvc, pvc.beh, 
+df_merge <- merge(pvc, pvc.beh,
                   by.x = c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity"),
                   by.y = c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity")
                   )
-  
+
 ```
 
 ### Q. Within pain task, Does stimulus intenisty level and cue level significantly predict NPS dotproducts? {.unlisted .unnumbered}
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 taskname = "pain"
@@ -286,9 +287,9 @@ h <- 6
 p.sig <- df_merge[df_merge$runtype == "runtype-pain" ,]
 data <- p.sig
 #  _______________________________________ 01. Contrast ________________# nolint
-data$stim[data$stimintensity == "low"] <- -0.5 # 
-data$stim[data$stimintensity == "med"] <- 0 
-data$stim[data$stimintensity == "high"] <-  0.5 
+data$stim[data$stimintensity == "low"] <- -0.5 #
+data$stim[data$stimintensity == "med"] <- 0
+data$stim[data$stimintensity == "high"] <-  0.5
 
 data$STIM <- factor(data$stimintensity)
 
@@ -303,8 +304,8 @@ data$STIM_quadratic[data$stimintensity == "med"] <- 0.66
 data$STIM_quadratic[data$stimintensity == "high"] <- -0.33
 
 # social cude contrast
-data$CUE_high_gt_low[data$cuetype == "cuetype-low"] <-  -0.5 
-data$CUE_high_gt_low[data$cuetype == "cuetype-high"] <-  0.5 
+data$CUE_high_gt_low[data$cuetype == "cuetype-low"] <-  -0.5
+data$CUE_high_gt_low[data$cuetype == "cuetype-high"] <-  0.5
 
 data$EXPECT <- data$event02_expect_angle
 stim_con1 <- "STIM_linear"
@@ -320,7 +321,7 @@ model_savefname <- file.path(
   )
 )
 
-cooksd <- lmer_twofactor_cooksd_fix(
+cooksd <- lmer_twofactor_cooksd(
   data,  taskname,  iv1,  stim_con1,  stim_con2,  dv,  subject,  dv_keyword,  model_savefname,  'random_intercept',
   print_lmer_output = FALSE
 )
@@ -414,19 +415,20 @@ df <- p.sig %>%
   mutate(OUTCOME_cmc = avg_outcome - mean(avg_outcome)) %>%
   mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) %>%
   mutate(NPS_cmc = avg_NPS - mean(avg_NPS))
-  # mutate(E_cmc = avg_E - mean(avg_E)) 
+  # mutate(E_cmc = avg_E - mean(avg_E))
 ```
 
 ### get pain relationship, controlling for cue, cuetype, expect
+
 ```{r echo=TRUE, message=TRUE, warning=TRUE, paged.print=FALSE}
 
-model.stim <- lmer(event04_actual_angle ~ 
-                          STIM_linear + 
+model.stim <- lmer(event04_actual_angle ~
+                          STIM_linear +
                           CUE_high_gt_low + STIM_quadratic+ EXPECT_demean +
                           EXPECT_cmc +
-                          ses + 
+                          ses +
                           (1|sub), data = df
-                    ) 
+                    )
 # CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.stim,
                   title = "Multilevel-modeling: \nlmer(NPSpos ~ CUE + STIM + EXPECT_demean + SES + (1| sub), data = pvc)",
@@ -438,13 +440,13 @@ randEffect_expect <-as.data.frame(ranef(model.stim))
 
 ```{r}
 ntrials = 12
-lowintens = 48;     
+lowintens = 48;
 medintens = 49;
 highintens = 50;
 stim <- 48:50
 painmean = 30      # average pain; arbitrary, on a 0 - 100 scale
 painslope = fixEffect_expect['STIM_linear',1]     # rise in pain per unit change in stim (per degree)
-painslope_stan = 0.33621048	
+painslope_stan = 0.33621048
 stdCoef.merMod <- function(object) {
   sdy <- sd(getME(object,"y"))
   sdx <- apply(getME(object,"X"), 2, sd)
@@ -465,9 +467,9 @@ stdCoef.merMod(model.stim)
 # E <- painslope * (C + rnorm(length(C))) + painmean # pseudo nociception
 # Szscore <- (S - mean(S)) / sd(S)
 
-df$S <- as.numeric(mapvalues(df$stimintensity, 
+df$S <- as.numeric(mapvalues(df$stimintensity,
                                         from = c("low", "med", "high"), c(48, 49, 50)))
-df$C <- as.numeric(mapvalues(df$cuetype, 
+df$C <- as.numeric(mapvalues(df$cuetype,
                                         from = c("cuetype-low", "cuetype-high"), c(-1, 1)))
 df$E <- painslope * (df$C + rnorm(length(df$C))) + painmean
 
@@ -480,7 +482,7 @@ model.stim2pain <- lmer(Pcalib ~ S  + (1|sub), df)
 b_stim2pain = fixef(model.stim2pain)[2] #0.4126089 #36.5757
 
 df$Sprime = df$Szscore * b_stim2pain + painmean # subjective pain experience, converted to a scale of 0-180, in order to match expectation ratings
-# df$Sprime = df$S * b_stim2pain 
+# df$Sprime = df$S * b_stim2pain
 
 df <- df %>%
   group_by(sub) %>%
@@ -490,7 +492,8 @@ df <- df %>%
   mutate(E_cmc = avg_E - mean(avg_E))
 ```
 
-## simulation **
+## simulation \*\*
+
 ```{r}
 w = 0.7
 
@@ -509,26 +512,27 @@ df$P.adapt <- 1
 
 ```
 
-
 ```{r echo=FALSE}
 ggplot(df, aes(x = E, y = P.assim, color = cue_name)) +
-   geom_point() + 
+   geom_point() +
   theme_classic()
 ```
 
 ```{r echo=FALSE}
 ggplot(df, aes(x = E, y = P.pe, color = cue_name)) +
-   geom_point() + 
+   geom_point() +
   theme_classic()
 ```
+
 ```{r echo=FALSE}
 ggplot(df, aes(x = E, y = P.adapt, color = cue_name)) +
-   geom_point() + 
+   geom_point() +
   #ylim(800,1000) +
   theme_classic()
 ```
 
 ## Lineplots Original {.unlisted .unnumbered}
+
 ```{r echo=FALSE}
 Out.stim <- meanSummary(df,
                                       c("sub", "stim_ordered", "cue_name"), "event04_actual_angle")
@@ -539,17 +543,17 @@ Out.group <- summarySEwithin(
   idvar = "sub"
 )
 g <- plot_lineplot_twofactor(Out.group,
-                        iv1 = "stim_ordered", iv2 = "cue_name", 
+                        iv1 = "stim_ordered", iv2 = "cue_name",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low" = "#4575B4", "high" = "#D73027"), 
-                        ggtitle = "Pain rating - original data", 
-                        xlab = "Stimulus intensity", 
+                        color = c("low" = "#4575B4", "high" = "#D73027"),
+                        ggtitle = "Pain rating - original data",
+                        xlab = "Stimulus intensity",
                         ylab = "Outcome Rating (Original data)")
 g + theme(aspect.ratio=.8)
 ```
 
-
 ### Lineplots P.assim {.unlisted .unnumbered}
+
 ```{r echo=FALSE}
 Out.assim <- meanSummary(df,
                                       c("sub", "stim_ordered", "cue_name"), "P.assim")
@@ -560,18 +564,20 @@ Out.assim.group <- summarySEwithin(
   idvar = "sub"
 )
 g <- plot_lineplot_twofactor(Out.assim.group,
-                        iv1 = "stim_ordered", iv2 = "cue_name", 
+                        iv1 = "stim_ordered", iv2 = "cue_name",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low" = "#4575B4", "high" = "#D73027"), ggtitle = "P.assim", 
+                        color = c("low" = "#4575B4", "high" = "#D73027"), ggtitle = "P.assim",
                         xlab = "Stimulus intensity", ylab = "P.assim Outcome ratings")
 g + theme(aspect.ratio=.8)
 ```
-### P.assim ~ demeaned_expect * cue * stim
+
+### P.assim ~ demeaned_expect _ cue _ stim
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 iv1 = "E_demean"; iv2 = "P.assim" # "NPS_demean"
 group = "cuetype"; subject = "sub"
 xlab = "Expectation rating \n(subjectwise mean-centered)"
-ylab = "P.assim" 
+ylab = "P.assim"
 # low stimulus intensity
 demean_low = df[df$stimintensity == "low", ]
 low <-
@@ -579,7 +585,7 @@ low <-
     demean_low, iv1 , iv2,
     group = group, subject = subject,
     ymin=-50, ymax=150, xmin=-50, xmax=50,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     #, " \n(mean-centered)"),
     ggtitle = "Low intensity",
     color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
@@ -593,7 +599,7 @@ med <-
     demean_med, iv1, iv2,
     group = group, subject = subject,
     ymin=-50, ymax=150, xmin=-50, xmax=50,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     ggtitle = "Medium intensity",
     color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
     alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
@@ -606,7 +612,7 @@ high <-
     demean_high, iv1, iv2,
     group = group, subject = subject,
     ymin=-50, ymax=150, xmin=-50, xmax=50,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     ggtitle = "High intensity",
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
     alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
@@ -617,6 +623,7 @@ plots_title
 ```
 
 ### Lineplots P.pe {.unlisted .unnumbered}
+
 ```{r echo=FALSE}
 Out.pe <- meanSummary(df,
                                       c("sub", "stim_ordered", "cue_name"), "P.pe")
@@ -627,19 +634,20 @@ Out.pe.group <- summarySEwithin(
   idvar = "sub"
 )
 g <- plot_lineplot_twofactor(Out.pe.group,
-                        iv1 = "stim_ordered", iv2 = "cue_name", 
+                        iv1 = "stim_ordered", iv2 = "cue_name",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low" = "#4575B4", "high" = "#D73027"), ggtitle = "P.pe", 
+                        color = c("low" = "#4575B4", "high" = "#D73027"), ggtitle = "P.pe",
                         xlab = "Stimulus intensity", ylab = "P.pe Outcome ratings")
 g + theme(aspect.ratio=.8)
 ```
 
-### P.pe ~ demeaned_expect * cue * stim
+### P.pe ~ demeaned_expect _ cue _ stim
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 iv1 = "E"; iv2 = "P.pe" # "NPS_demean"
 group = "cuetype"; subject = "sub"
 xlab = "Expectation rating \n(subjectwise mean-centered)"
-ylab = "P.pe" 
+ylab = "P.pe"
 # low stimulus intensity
 demean_low = df[df$stimintensity == "low", ]
 low <-
@@ -647,7 +655,7 @@ low <-
     demean_low, iv1 , iv2,
     group = group, subject = subject,
     ymin=-150, ymax=150, xmin=-150, xmax=150,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     #, " \n(mean-centered)"),
     ggtitle = "Low intensity",
     color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
@@ -661,7 +669,7 @@ med <-
     demean_med, iv1, iv2,
     group = group, subject = subject,
     ymin=-150, ymax=150, xmin=-150, xmax=150,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     ggtitle = "Medium intensity",
     color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
     alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
@@ -674,7 +682,7 @@ high <-
     demean_high, iv1, iv2,
     group = group, subject = subject,
     ymin=-150, ymax=150, xmin=-150, xmax=150,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     ggtitle = "High intensity",
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
     alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
@@ -684,8 +692,8 @@ plots_title <- annotate_figure(plots, top = text_grob(paste(str_to_title(tasknam
 plots_title
 ```
 
-
 ### Lineplots P.adapt {.unlisted .unnumbered}
+
 ```{r echo=FALSE}
 Out.adapt <- meanSummary(df,
                                       c("sub", "stim_ordered", "cue_name"), "P.adapt")
@@ -696,23 +704,20 @@ Out.adapt.group <- summarySEwithin(
   idvar = "sub"
 )
 g <- plot_lineplot_twofactor(Out.adapt.group,
-                        iv1 = "stim_ordered", iv2 = "cue_name", 
+                        iv1 = "stim_ordered", iv2 = "cue_name",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low" = "#4575B4", "high" = "#D73027"), ggtitle = "P.adapt", 
+                        color = c("low" = "#4575B4", "high" = "#D73027"), ggtitle = "P.adapt",
                         xlab = "Stimulus intensity", ylab = "P.adapt Outcome ratings")
 g + theme(aspect.ratio=.8)
 ```
 
-
-
-
-### P.adapt ~ demeaned_expect * cue * stim
+### P.adapt ~ demeaned_expect _ cue _ stim
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 iv1 = "E_demean"; iv2 = "P.adapt" # "NPS_demean"
 group = "cuetype"; subject = "sub"
 xlab = "Expectation rating \n(demean)"
-ylab = "P.adapt" 
+ylab = "P.adapt"
 # low stimulus intensity
 demean_low = df[df$stimintensity == "low", ]
 low <-
@@ -720,7 +725,7 @@ low <-
     demean_low, iv1 , iv2,
     group = group, subject = subject,
     ymin=-25, ymax=75, xmin=-50, xmax=50,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     #, " \n(mean-centered)"),
     ggtitle = "Low intensity",
     color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
@@ -734,7 +739,7 @@ med <-
     demean_med, iv1, iv2,
     group = group, subject = subject,
     ymin=-25, ymax=75, xmin=-50, xmax=50,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     ggtitle = "Medium intensity",
     color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
     alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
@@ -747,7 +752,7 @@ high <-
     demean_high, iv1, iv2,
     group = group, subject = subject,
     ymin=-25, ymax=75, xmin=-50, xmax=50,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     ggtitle = "High intensity",
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
     alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE

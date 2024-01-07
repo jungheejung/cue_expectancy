@@ -1,12 +1,10 @@
 # [fMRI] NPS ~ singletrial {#ch35_singletrial}
 
-
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
-* Here, I model NPS dot products as a function of cue, stimulus intensity and expectation ratings. 
-* One of the findings is that low cues lead to higher NPS dotproducts in the high intensity group, and that this effect becomes non-significant across sessions. 
-* 03/23/2023: For now, I'm grabbing participants that have complete data, i.e. 18 runs, all three sessions. 
-
+- Here, I model NPS dot products as a function of cue, stimulus intensity and expectation ratings.
+- One of the findings is that low cues lead to higher NPS dotproducts in the high intensity group, and that this effect becomes non-significant across sessions.
+- 03/23/2023: For now, I'm grabbing participants that have complete data, i.e. 18 runs, all three sessions.
 
 ```{r libraries_nps_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(car)
@@ -38,13 +36,12 @@ devtools::source_url("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff5
 library(r2mlm)
 main_dir <- dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, 'scripts', 'step02_R', 'utils'),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 
 ```
-
 
 ```{r function::summary_for_plots_pvc, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 summary_for_plots_PVC <- function(df, groupwise_measurevar, subject_keyword, model_iv1, model_iv2, dv) {
@@ -126,7 +123,7 @@ two_factor_lineplot <-
       ylab(ylab) +
       #scale_color_manual(values = color) +
       theme_classic() +
-      
+
       theme(aspect.ratio = .6) +
       expand_limits(x = 3.25) +
       #guides(fill = "none") +
@@ -147,12 +144,13 @@ two_factor_lineplot <-
       ) +
       theme(legend.key = element_rect(fill = "white", colour = "white")) +
       theme_bw()
-    
+
     return(g)
   }
 ```
 
 ## 1. NPS ~ 3 task x 3 stimulus intensity
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 # Step 1: Common parameters
@@ -188,7 +186,7 @@ for (signature_key in c("NPSpos")) {
              showWarnings = FALSE,
              recursive = TRUE)
   savedir <- analysis_dir
-  
+
   # step 2: load data
   df = read.csv(sig_name)
   sig_df = df %>% separate(
@@ -216,14 +214,14 @@ for (signature_key in c("NPSpos")) {
   pvc$task[pvc$runtype == "runtype-vicarious"] <- "vicarious"
   pvc$task[pvc$runtype == "runtype-cognitive"] <- "cognitive"
   pvc$task <- factor(pvc$task)
-  
-  
+
+
   # step 3: parameters
-  
+
   taskname = "all"
   plot_keyword = "stimulusintensity"
   ggtitle_phrase =  "(3 tasks x 3 stimulus intensity)"
-  
+
   pvc$task = factor(pvc$task)
   plot_keys <- list(
     sub_mean = "mean_per_sub",
@@ -250,7 +248,7 @@ for (signature_key in c("NPSpos")) {
     ylab = paste(signature_key, " (dot product)"),
     ylim = c(-250, 500)
   )
-  
+
   # step 4: within between summary
   groupwise <- data.frame()
   subjectwise <- data.frame()
@@ -272,9 +270,9 @@ for (signature_key in c("NPSpos")) {
   } else {
     plot_keys$color <- c("#4575B4", "#FFA500", "#D73027")
   }
-  
+
   # step 5: plot
-  
+
   iv2 = "stim_ordered"
   iv1 = "task"
   taskname = "all"
@@ -301,7 +299,7 @@ for (signature_key in c("NPSpos")) {
       length(unique(pvc$sub)),
       ")"
     )
-  
+
   title <-
     paste0(str_to_title(dv_keyword),
            " - ",
@@ -353,7 +351,6 @@ p
 p
 ```
 
-
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 
 # Load behavioral data
@@ -363,8 +360,8 @@ print(main_dir)
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
 taskname = '*'
 subject_varkey <- "src_subject_id"
-iv <- "param_stimulus_type"; 
-iv_keyword <- "stim"; 
+iv <- "param_stimulus_type";
+iv_keyword <- "stim";
 dv <- "event04_actual_angle"; dv_keyword <- "outcome"
 exclude <- "sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0007|sub-0008|sub-0013|sub-0016|sub-0017|sub-0019|sub-0020|sub-0021|sub-0025|sub-0075|sub-0009|sub-0117|sub-0119|sub-0081|sub-0060"
 #sub-0074|sub-0085|sub-0118|sub-0117|sub-0103|sub-0063
@@ -380,24 +377,24 @@ p.df2= p.df %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number())
-data_p <- p.df2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_p <- p.df2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num))
 
 v.df2= v.df %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number())
-data_v <- v.df2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_v <- v.df2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num))
 
 c.df2= c.df %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number()-1)
-data_c <- c.df2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_c <- c.df2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num) )
 p.sub <- data_p[,c("src_subject_id", "session_id", "param_run_num", "param_task_name", "event02_expect_angle", "param_cue_type", "param_stimulus_type", "event04_actual_angle", "trial_index")]
 v.sub <- data_v[,c("src_subject_id", "session_id", "param_run_num", "param_task_name", "event02_expect_angle", "param_cue_type", "param_stimulus_type", "event04_actual_angle", "trial_index")]
@@ -406,17 +403,17 @@ c.sub <- data_c[,c("src_subject_id", "session_id", "param_run_num", "param_task_
 # src_subject_id, session_id, param_run_num, param_task_name, event02_expect_angle, param_cue_type, param_stimulus_type, event04_actual_angle
 pvc.sub = rbind(p.sub, v.sub, c.sub)
 
-# data_a3lag <- 
+# data_a3lag <-
 #     pvc.sub %>%
 #     group_by(param_task_name, src_subject_id, session_id, param_run_num) %>%
 #     mutate(lag.04outcomeangle = dplyr::lag(event04_actual_angle, n = 1, default = NA))
 # pvc.sub <- data_a3lag[complete.cases(data_a3lag$lag.04outcomeangle),]
-# 
+#
 
 ```
 
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
-pvc.sub$trial_ind <- pvc.sub$trial_index -1 
+pvc.sub$trial_ind <- pvc.sub$trial_index -1
 pvc.sub$sub <- sprintf("sub-%04d", pvc.sub$src_subject_id)
 pvc.sub$ses <- sprintf("ses-%02d", pvc.sub$session_id)
 pvc.sub$run <- sprintf("run-%02d", pvc.sub$param_run_num)
@@ -428,31 +425,30 @@ pvc.sub[c('stimintensity', 'DEP')]  <- str_split_fixed(pvc.sub$param_stimulus_ty
 
 # merge
 pvc.beh <- pvc.sub[,c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity","event02_expect_angle", "event04_actual_angle")]
-df_merge <- merge(pvc, pvc.beh, 
+df_merge <- merge(pvc, pvc.beh,
                   by.x = c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity"),
                   by.y = c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity")
                   )
-  
+
 ```
 
-
-
 #### Contrast weight table {.unlisted .unnumbered}
+
 ```{r echo=FALSE}
-tab <- matrix(c(0, .5, -.5, 
+tab <- matrix(c(0, .5, -.5,
                 .66, -.34, -.34), ncol=3, byrow=TRUE)
 colnames(tab) <- c('pain','vicarious','cognitive')
 rownames(tab) <- c('task_V_gt_C','task_P_gt_VC')
 kableExtra::kable_styling(
   knitr::kable(
-    tab, caption = "Contrast weights", "html"), 
+    tab, caption = "Contrast weights", "html"),
   "striped", position = "left", font_size = 15)
 ```
-
 
 ## 2. NPS ~ paintask: 2 cue x 3 stimulus_intensity
 
 ### Q. Within pain task, Does stimulus intenisty level and cue level significantly predict NPS dotproducts? {.unlisted .unnumbered}
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 combined_psig <- data.frame()
@@ -509,7 +505,7 @@ model_savefname <- file.path(
   )
 )
 
-cooksd <- lmer_twofactor_cooksd_fix(
+cooksd <- lmer_twofactor_cooksd(
   data,
   taskname,
   iv1,
@@ -608,47 +604,49 @@ g <- plot_halfrainclouds_twofactor(
 )
 g
 ```
+
 ### Lineplots with only low cue {.unlisted .unnumbered}
+
 ```{r echo=FALSE, warning=FALSE}
 subsetNPS <- NPSstimcue_groupwise[NPSstimcue_groupwise$cue_ordered == "low cue",]
-g <- plot_lineplot_twofactor_subset(subsetNPS, taskname = "pain", 
-                        iv1 = "stim_ordered", iv2 = "cue_ordered", 
+g <- plot_lineplot_twofactor_subset(subsetNPS, taskname = "pain",
+                        iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = "#5D5C5C", "#D73027"), ggtitle = "Within pain task: NPS dotproducts as a function of stimulus intensity level and cue", 
+                        color = c("low cue" = "#5D5C5C", "#D73027"), ggtitle = "Within pain task: NPS dotproducts as a function of stimulus intensity level and cue",
                         xlab = "Stimulus intensity", ylab = "NPSpos (dot product)")
 g + theme(aspect.ratio=.8)
 ```
 
 ### Lineplots {.unlisted .unnumbered}
+
 ```{r echo=FALSE, warning=FALSE}
-g <- plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain", 
-                        iv1 = "stim_ordered", iv2 = "cue_ordered", 
+g <- plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain",
+                        iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = "#5D5C5C","high cue" = "#D73027"), ggtitle = "Within pain task: NPS dotproducts as a function of stimulus intensity level and cue", 
+                        color = c("low cue" = "#5D5C5C","high cue" = "#D73027"), ggtitle = "Within pain task: NPS dotproducts as a function of stimulus intensity level and cue",
                         xlab = "Stimulus intensity", ylab = "NPSpos (dot product)")
 g + theme(aspect.ratio=.8)
 ```
 
-
-
-
 ### Lineplots {.unlisted .unnumbered}
+
 ```{r echo=FALSE, warning=FALSE}
 g <- plot_lineplot_twofactor(NPSstimcue_groupwise,
-                        iv2 = "stim_ordered", iv1 = "cue_ordered", 
+                        iv2 = "stim_ordered", iv1 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("high" = "red",
-                                  "med" = "orange", 
-                                  "low" = "yellow"), 
-                        ggtitle = "Within pain task: NPS dotproducts as a function of stimulus intensity level and cue", 
+                                  "med" = "orange",
+                                  "low" = "yellow"),
+                        ggtitle = "Within pain task: NPS dotproducts as a function of stimulus intensity level and cue",
                         xlab = "Stimulus intensity", ylab = "NPSpos (dot product)")
 g + theme(aspect.ratio=.8)
 ```
 
 ### Linear model results (NPS ~ paintask: 2 cue x 3 stimulus_intensity)
+
 ```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
 
-model.npscuestim <- lmer(NPSpos ~ 
+model.npscuestim <- lmer(NPSpos ~
                           CUE_high_gt_low*STIM_linear +CUE_high_gt_low * STIM_quadratic +
                           (CUE_high_gt_low+STIM|sub), data = data_screen
                     )
@@ -658,7 +656,7 @@ sjPlot::tab_model(model.npscuestim,
 ```
 
 ```
-lmer(NPSpos ~ 
+lmer(NPSpos ~
                           CUE_high_gt_low*STIM_linear +CUE_high_gt_low * STIM_quadratic +
                           (CUE_high_gt_low+STIM|sub), data = data_screen
                     )
@@ -668,8 +666,8 @@ lmer(NPSpos ~
 summary(model.npscuestim)
 ```
 
-
 #### Linear model eta-squared {.unlisted .unnumbered}
+
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 kableExtra::kable_styling(
   knitr::kable(
@@ -679,6 +677,7 @@ kableExtra::kable_styling(
 ```
 
 #### Linear model Cohen's d: NPS stimulus_intensity d = 1.16, cue d = 0.45 {.unlisted .unnumbered}
+
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 
 kableExtra::kable_styling(
@@ -687,14 +686,14 @@ kableExtra::kable_styling(
     "html"), "striped", position = "left", font_size = 12)
 ```
 
+## 3. NPS ~ SES _ CUE _ STIM
 
-## 3. NPS ~ SES * CUE * STIM
 ### Q. Is the cue effect on NPS different across sessions? {.unlisted .unnumbered}
 
-> Quick answer: Yes, the cue effect in session 1 (for high intensity group) is significantly different; whereas this different becomes non significant in session 4. 
-> To unpack, a participant was informed to experience a low  stimulus intensity, when in fact they were delivered a high intensity stimulus. This violation presumably leads to a higher NPS response, given that they were delivered a much painful stimulus than expected. The fact that the cue effect is almost non significant during the last session indicates that the cue effects are not just an anchoring effect. 
+> Quick answer: Yes, the cue effect in session 1 (for high intensity group) is significantly different; whereas this different becomes non significant in session 4.
+> To unpack, a participant was informed to experience a low stimulus intensity, when in fact they were delivered a high intensity stimulus. This violation presumably leads to a higher NPS response, given that they were delivered a much painful stimulus than expected. The fact that the cue effect is almost non significant during the last session indicates that the cue effects are not just an anchoring effect.
 
-```{r} 
+```{r}
 
 # code session
 # contrast code 1 linear
@@ -707,22 +706,21 @@ combined_psig$SES_quadratic[combined_psig$ses == "ses-01"] <- -0.33
 combined_psig$SES_quadratic[combined_psig$ses == "ses-03"] <- 0.66
 combined_psig$SES_quadratic[combined_psig$ses == "ses-04"] <- -0.33
 
-model.npsses <- lmer(NPSpos ~ 
-                          CUE_high_gt_low*STIM_linear*SES_linear + 
-                          CUE_high_gt_low*STIM_quadratic*SES_linear + 
-                          CUE_high_gt_low*STIM_linear*SES_quadratic + 
+model.npsses <- lmer(NPSpos ~
+                          CUE_high_gt_low*STIM_linear*SES_linear +
+                          CUE_high_gt_low*STIM_quadratic*SES_linear +
+                          CUE_high_gt_low*STIM_linear*SES_quadratic +
                           CUE_high_gt_low*STIM_quadratic*SES_quadratic +
                           (1|sub), data = combined_psig
-                    ) 
+                    )
 # CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.npsses,
                   title = "Multilevel-modeling: \nlmer(NPSpos ~ CUE * STIM * SES + (1| sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
 ```
 
-
-
 #### eta squared {.unlisted .unnumbered}
+
 ```{r echo=FALSE, warning=TRUE}
 kableExtra::kable_styling(
   knitr::kable(
@@ -731,6 +729,7 @@ kableExtra::kable_styling(
 ```
 
 #### Cohen's d {.unlisted .unnumbered}
+
 ```{r echo=FALSE, warning=TRUE}
 kableExtra::kable_styling(
   knitr::kable(
@@ -739,6 +738,7 @@ kableExtra::kable_styling(
 ```
 
 #### Session wise plots {.unlisted .unnumbered}
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
 combined_se_calc_cooksd <- data.frame()
@@ -788,8 +788,8 @@ data$STIM_quadratic[data$stimintensity == "high"] <- -0.33
             sep = ""
         )
     )
-    
-    cooksd <- lmer_twofactor_cooksd_fix(
+
+    cooksd <- lmer_twofactor_cooksd(
         data, taskname, iv1, stim_con1, stim_con2, dv,
         subject, dv_keyword, model_savefname, 'random_intercept', print_lmer_output = FALSE
     )
@@ -831,9 +831,9 @@ data$STIM_quadratic[data$stimintensity == "high"] <- -0.33
     actual_groupwise$task <- taskname
     actual_groupwise$ses <- sesname
     # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
-    
+
     combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, actual_groupwise)
-   # calculate mean and se  
+   # calculate mean and se
     sub_mean <- "mean_per_sub"
     group_mean <- "mean_per_sub_norm_mean"
     se <- "se"
@@ -867,9 +867,8 @@ print(g)
 }
 ```
 
-
-
 #### session wise line plots {.unlisted .unnumbered}
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 # lineplot per session
 
@@ -883,7 +882,7 @@ MEAN = "mean_per_sub_norm_mean"
 ERROR = "se"
 dv_keyword = "actual"
 p1 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-01",],
-               LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'ses-01', 
+               LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'ses-01',
                ylab = "NPS (dot products)" )
 p2 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-03",],
                LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'ses-03',
@@ -900,12 +899,14 @@ ggsave(plot_filename, width = 8, height = 4)
 
 ---
 
-## 4. [INCORRECT] no cmc NPS ~ CUE * STIM * EXPECT 
-* 2 cue * 3 stimulus_intensity * expectation_rating 
+## 4. [INCORRECT] no cmc NPS ~ CUE _ STIM _ EXPECT
+
+- 2 cue _ 3 stimulus_intensity _ expectation_rating
+
 ```{r echo=TRUE, warning=TRUE}
 
 data_screen$EXPECT <- data_screen$event02_expect_angle
-model.nps3factor <- lmer(NPSpos ~ 
+model.nps3factor <- lmer(NPSpos ~
                           CUE_high_gt_low*STIM_linear*EXPECT +
                            CUE_high_gt_low*STIM_quadratic*EXPECT +
                           (CUE_high_gt_low  |sub), data = data_screen
@@ -916,6 +917,7 @@ sjPlot::tab_model(model.nps3factor,
 ```
 
 #### eta squared {.unlisted .unnumbered}
+
 ```{r echo=FALSE, warning=TRUE}
 kableExtra::kable_styling(
   knitr::kable(
@@ -924,6 +926,7 @@ kableExtra::kable_styling(
 ```
 
 #### Cohen's d {.unlisted .unnumbered}
+
 ```{r echo=FALSE, warning=TRUE}
 kableExtra::kable_styling(
   knitr::kable(
@@ -931,21 +934,13 @@ kableExtra::kable_styling(
     "html"), "striped", position = "left", font_size = 12)
 ```
 
-
-
-
-
-
-
-
-
-
 ---
 
 ## 6. OUTCOME ~ NPS
+
 ### Q. Do higher NPS values indicate higher outcome ratings? (Pain task only) {.unlisted .unnumbered}
 
-> Yes, Higher NPS values are associated with higher outcome ratings. The linear relationship between NPS value and outcome ratings are stronger for conditions where cue level is congruent with stimulus intensity levels. In other words, NPS-outcome rating relationship is stringent in the low cue-low intensity group, as is the case for high cue-ghigh intensity group. 
+> Yes, Higher NPS values are associated with higher outcome ratings. The linear relationship between NPS value and outcome ratings are stronger for conditions where cue level is congruent with stimulus intensity levels. In other words, NPS-outcome rating relationship is stringent in the low cue-low intensity group, as is the case for high cue-ghigh intensity group.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # plot parameters
@@ -998,7 +993,8 @@ g <- ggplot(data = subjectwise_naomit_2dv,
 g
 ```
 
-### 6-1. outcome_rating * cue
+### 6-1. outcome_rating \* cue
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 p.sig <- df_merge[df_merge$runtype == "runtype-pain",]
 iv2 = "event04_actual_angle"; iv1 = "NPSpos"
@@ -1010,18 +1006,16 @@ total <-
     group = "cuetype", subject = "sub",
     ymin=0, ymax=180, xmin=-10, xmax=30,
     ylab = "Outcome rating", xlab = signature_key,
-    ggtitle = "all stimulus intensity", 
-    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"), 
+    ggtitle = "all stimulus intensity",
+    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"),
     alpha = .8, fit_lm = TRUE, lm_method ="lm", identity_line = FALSE
   )
 total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
           )
 ```
 
+### 6-2. outcome_rating _ stimulus_intensity _ cue
 
-
-
-### 6-2. outcome_rating * stimulus_intensity * cue
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 iv2 = "event04_actual_angle"; iv1 = "NPSpos"
 group = "cuetype"; subject = "sub"
@@ -1068,7 +1062,8 @@ plots_title <- annotate_figure(plots, top = text_grob(paste(str_to_title(tasknam
 plots_title
 ```
 
-### 6-3. demeaned outcome rating * cue
+### 6-3. demeaned outcome rating \* cue
+
 ```{r echo=FALSE}
 remove_sub_list = c("sub-0009")
 #, "sub-0117", "sub-0081", "sub-0060", "sub-0063", "sub-0074", "sub-0080", "sub-0085", "sub-0098", "sub-0118", "sub-0129")
@@ -1092,7 +1087,7 @@ mutate(NPS_demean = NPSpos - avg_NPS) %>%
   ungroup %>%
 mutate(OUTCOME_cmc = avg_outcome - mean(avg_outcome)) %>%
 mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) %>%
-mutate(NPS_cmc = avg_NPS - mean(avg_NPS)) 
+mutate(NPS_cmc = avg_NPS - mean(avg_NPS))
 # plot parameters
 iv1 = "NPSpos"
 iv2 = "OUTCOME_demean"
@@ -1112,8 +1107,8 @@ total <-
     group = "cuetype", subject = "sub",
     ymin=-25, ymax=25, xmin=-10, xmax=30,
     ylab,  xlab = paste(signature_key), #, "\n(subjectwise mean-centered)"),
-    ggtitle = "all stimulus intensity", 
-    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"), 
+    ggtitle = "all stimulus intensity",
+    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"),
     alpha = .8, fit_lm = TRUE, lm_method ="lm", identity_line = FALSE
   )
 total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
@@ -1122,6 +1117,7 @@ total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos 
 ```
 
 ### 6-4. demeaned outcome rating ~ demeaned NPS
+
 ```{r echo=FALSE}
 remove_sub_list = c("sub-0009")
 #, "sub-0117", "sub-0081", "sub-0060", "sub-0063", "sub-0074", "sub-0080", "sub-0085", "sub-0098", "sub-0118", "sub-0129")
@@ -1145,7 +1141,7 @@ mutate(NPS_demean = NPSpos - avg_NPS) %>%
   ungroup %>%
 mutate(OUTCOME_cmc = avg_outcome - mean(avg_outcome)) %>%
 mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) %>%
-mutate(NPS_cmc = avg_NPS - mean(avg_NPS)) 
+mutate(NPS_cmc = avg_NPS - mean(avg_NPS))
 # plot parameters
 iv1 = "NPS_demean"
 iv2 = "OUTCOME_demean"
@@ -1165,8 +1161,8 @@ total <-
     group = "cuetype", subject = "sub",
     ymin=-25, ymax=25, xmin=-5, xmax=5,
     ylab,  xlab = paste(signature_key), #, "\n(subjectwise mean-centered)"),
-    ggtitle = "all stimulus intensity", 
-    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"), 
+    ggtitle = "all stimulus intensity",
+    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"),
     alpha = .8, fit_lm = TRUE, lm_method ="lm", identity_line = FALSE
   )
 total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
@@ -1175,13 +1171,14 @@ total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos 
 ```
 
 ### facet wrap
+
 ```{r echo=FALSE}
 
-ggplot(demean_dropna, aes(x = NPSpos, 
-                       y = OUTCOME_demean, 
+ggplot(demean_dropna, aes(x = NPSpos,
+                       y = OUTCOME_demean,
                        col=cuetype,
-                       shape = sub), alpha = .3, size = .3, color = 'gray') + 
-  geom_point(size = .1) + 
+                       shape = sub), alpha = .3, size = .3, color = 'gray') +
+  geom_point(size = .1) +
   # geom_line(aes(col=cuetype)) +
   geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .1, alpha = .3) +
   theme_classic() + theme(legend.position = "none")
@@ -1193,14 +1190,14 @@ iv2 = "OUTCOME_demean"
 subject = "sub"
 ggplot(aes(x=iv1, y=iv2, group = "sub"), data=demean_dropna) +
   geom_smooth(method='lm', se=F, size=0.75) +
-  geom_point(size=0.1) + 
-  facet_wrap(~sub) + 
-  theme(legend.position='none') + 
+  geom_point(size=0.1) +
+  facet_wrap(~sub) +
+  theme(legend.position='none') +
   xlab("relDuration")
 ```
 
+### 6-4. demeaned_outcome_rating _ stimulus_intensity _ cue
 
-### 6-4. demeaned_outcome_rating * stimulus_intensity * cue
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 iv2 = "OUTCOME_demean"; iv1 = "NPSpos" # "NPSpos"
 ylab = "Outcome rating \n(subjectwise mean-centered)"
@@ -1249,8 +1246,6 @@ plots_title <- annotate_figure(plots, top = text_grob(paste(str_to_title(tasknam
 plots_title
 ```
 
-
-
 #### Is 6-4 this statistically significant? (without CMC subjectwise mean) {.unlisted .unnumbered}
 
 ```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
@@ -1263,6 +1258,7 @@ sjPlot::tab_model(model.npsoutcome,
 ```
 
 ### 6-5. OUTCOMEdemean ~ NPSdemean
+
 ```{r echo=FALSE}
 remove_sub_list = c("sub-0009")
 #, "sub-0117", "sub-0081", "sub-0060", "sub-0063", "sub-0074", "sub-0080", "sub-0085", "sub-0098", "sub-0118", "sub-0129")
@@ -1286,7 +1282,7 @@ mutate(NPS_demean = NPSpos - avg_NPS) %>%
   ungroup %>%
 mutate(OUTCOME_cmc = avg_outcome - mean(avg_outcome)) %>%
 mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) %>%
-mutate(NPS_cmc = avg_NPS - mean(avg_NPS)) 
+mutate(NPS_cmc = avg_NPS - mean(avg_NPS))
 # plot parameters
 iv1 = "NPS_demean"
 iv2 = "OUTCOME_demean"
@@ -1306,8 +1302,8 @@ total <-
     group = "cuetype", subject = "sub",
     ymin=-25, ymax=25, xmin=-5, xmax=5,
     ylab,  xlab = xlab, #, "\n(subjectwise mean-centered)"),
-    ggtitle = "all stimulus intensity", 
-    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"), 
+    ggtitle = "all stimulus intensity",
+    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"),
     alpha = .8, fit_lm = TRUE, lm_method ="lm", identity_line = FALSE
   )
 total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
@@ -1315,9 +1311,10 @@ total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos 
 
 ```
 
-### 6-6. demeaned_outcome_rating ~ stimulus_intensity * cue * NPS demean
+### 6-6. demeaned_outcome_rating ~ stimulus_intensity _ cue _ NPS demean
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-iv2 ="event04_actual_angle" #"OUTCOME_demean"; 
+iv2 ="event04_actual_angle" #"OUTCOME_demean";
 iv1 = "NPS_demean" # "NPSpos"
 ylab = "Outcome rating" # \n(subjectwise mean-centered)"
 xlab =  "NPSpos \n(subjectwise mean-centered)"
@@ -1371,13 +1368,15 @@ plots_title
 ---
 
 ## 7. NPS ~ expectation_rating
+
 ### Q. What is the relationship betweeen expectation ratings & NPS? (Pain task only) {.unlisted .unnumbered}
+
 Do we see a linear effect between expectation rating and NPS dot products? Also, does this effect differ as a function of cue and stimulus intensity ratings, as is the case for behavioral ratings?
 
-> Quick answer: Yes, expectation ratings predict NPS dotproducts; Also, there tends to be a different relationship depending on cues, just by looking at the figures, although this needs to be tested statistically. 
+> Quick answer: Yes, expectation ratings predict NPS dotproducts; Also, there tends to be a different relationship depending on cues, just by looking at the figures, although this needs to be tested statistically.
 
+### 7-1. [ correct ] NPS ~ demeaned_expect \* cue {.unlisted .unnumbered}
 
-### 7-1. [ correct ] NPS ~ demeaned_expect * cue {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 remove_sub_list = c("sub-0009") # "sub-0117", "sub-0081", "sub-0060", "sub-0063", "sub-0074", "sub-0085", "sub-0098", "sub-0118")
 df_merge_drop <- subset(df_merge, !(sub %in% remove_sub_list))
@@ -1397,7 +1396,7 @@ p.demean <- subset_ses %>%
   ungroup %>%
   mutate(OUTCOME_cmc = avg_outcome - mean(avg_outcome)) %>%
   mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) %>%
-  mutate(NPS_cmc = avg_NPS - mean(avg_NPS)) 
+  mutate(NPS_cmc = avg_NPS - mean(avg_NPS))
 
 # plot parameters
 
@@ -1417,14 +1416,15 @@ total <-
     group = "cuetype", subject = "sub",
     ymin=-10, ymax=10, xmin=-40, xmax=40,
     xlab ,ylab,
-    ggtitle = "all stimulus intensity", 
-    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"), 
+    ggtitle = "all stimulus intensity",
+    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"),
     alpha = .8, fit_lm = TRUE, lm_method ="lm", identity_line = FALSE
   )
 total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
           )
 
 ```
+
 ```{r}
 # plot parameters
 
@@ -1444,8 +1444,8 @@ total <-
     group = "cuetype", subject = "sub",
     ymin=-10, ymax=10, xmin=-40, xmax=40,
     xlab ,ylab,
-    ggtitle = "all stimulus intensity", 
-    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"), 
+    ggtitle = "all stimulus intensity",
+    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"),
     alpha = .8, fit_lm = TRUE, lm_method ="lm", identity_line = FALSE
   )
 total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
@@ -1454,94 +1454,99 @@ total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos 
 ```
 
 ```{r echo=FALSE}
-ggplot(demean_dropna, aes(x = event02_expect_angle, 
+ggplot(demean_dropna, aes(x = event02_expect_angle,
                        y = event04_actual_angle,
                        col = cuetype,
-                       shape = sub), size = .3, color = 'gray') + 
-  geom_point(size = .1) + 
-  geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .3) +
-  theme_classic() + theme(legend.position = "none")
-```
-```{r echo=FALSE}
-ggplot(demean_dropna, aes(x = event02_expect_angle, 
-                       y = event04_actual_angle,
-                       col = stim_ordered,
-                       shape = sub), size = .3, color = 'gray') + 
-  geom_point(size = .1) + 
-  geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .1) +
-  theme_classic() + theme(legend.position = "none")
-```
-```{r echo=FALSE}
-ggplot(demean_dropna, aes(x = EXPECT_demean, 
-                       y = OUTCOME_demean,
-                       col = stim_ordered,
-                       shape = sub), size = .3, color = 'gray') + 
-  geom_point(size = .1) + 
-  geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .1, alpha = .2) +
-  theme_classic() + theme(legend.position = "none")
-```
-```{r echo=FALSE}
-ggplot(demean_dropna[demean_dropna$stimintensity == 'low',], 
-       aes(x = NPS_demean, 
-                       y = OUTCOME_demean,
-                       col = cuetype,
-                       shape = sub), size = .3, color = 'gray') + 
-  geom_point(size = .1) + 
-  geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .1, alpha = .2) +
-  theme_classic() + theme(legend.position = "none")
-
-ggplot(demean_dropna[demean_dropna$stimintensity == 'high',], 
-       aes(x = NPS_demean, 
-                       y = OUTCOME_demean,
-                       col = cuetype,
-                       shape = sub), size = 3, color = 'gray') + 
-  geom_point(size = .1) + 
-  geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .1, alpha = .2) +
-  theme_classic() + theme(legend.position = "none")
-```
-
-```{r echo=FALSE}
-ggplot(demean_dropna, aes(x = event02_expect_angle, 
-                       y = NPSpos,
-                       col = cuetype,
-                       shape = sub), size = .3, color = 'gray') + 
-  geom_point(size = .1) + 
+                       shape = sub), size = .3, color = 'gray') +
+  geom_point(size = .1) +
   geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .3) +
   theme_classic() + theme(legend.position = "none")
 ```
 
+```{r echo=FALSE}
+ggplot(demean_dropna, aes(x = event02_expect_angle,
+                       y = event04_actual_angle,
+                       col = stim_ordered,
+                       shape = sub), size = .3, color = 'gray') +
+  geom_point(size = .1) +
+  geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .1) +
+  theme_classic() + theme(legend.position = "none")
+```
 
 ```{r echo=FALSE}
-ggplot(demean_dropna, aes(x = STIM_linear, 
+ggplot(demean_dropna, aes(x = EXPECT_demean,
+                       y = OUTCOME_demean,
+                       col = stim_ordered,
+                       shape = sub), size = .3, color = 'gray') +
+  geom_point(size = .1) +
+  geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .1, alpha = .2) +
+  theme_classic() + theme(legend.position = "none")
+```
+
+```{r echo=FALSE}
+ggplot(demean_dropna[demean_dropna$stimintensity == 'low',],
+       aes(x = NPS_demean,
+                       y = OUTCOME_demean,
+                       col = cuetype,
+                       shape = sub), size = .3, color = 'gray') +
+  geom_point(size = .1) +
+  geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .1, alpha = .2) +
+  theme_classic() + theme(legend.position = "none")
+
+ggplot(demean_dropna[demean_dropna$stimintensity == 'high',],
+       aes(x = NPS_demean,
+                       y = OUTCOME_demean,
+                       col = cuetype,
+                       shape = sub), size = 3, color = 'gray') +
+  geom_point(size = .1) +
+  geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .1, alpha = .2) +
+  theme_classic() + theme(legend.position = "none")
+```
+
+```{r echo=FALSE}
+ggplot(demean_dropna, aes(x = event02_expect_angle,
                        y = NPSpos,
                        col = cuetype,
-                       shape = sub), size = .3, color = c('red', 'gray')) + 
-  geom_point(size = .1) + 
+                       shape = sub), size = .3, color = 'gray') +
+  geom_point(size = .1) +
+  geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .3) +
+  theme_classic() + theme(legend.position = "none")
+```
+
+```{r echo=FALSE}
+ggplot(demean_dropna, aes(x = STIM_linear,
+                       y = NPSpos,
+                       col = cuetype,
+                       shape = sub), size = .3, color = c('red', 'gray')) +
+  geom_point(size = .1) +
   geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .1) +
   theme_classic() + theme(legend.position = "none")
 ```
+
 ```{r echo=FALSE}
-ggplot(demean_dropna, aes(x = NPS_demean, 
+ggplot(demean_dropna, aes(x = NPS_demean,
                        y = OUTCOME_demean,
                        col = cuetype,
-                       shape = sub), size = .3, col = c('red', 'gray')) + 
-  geom_point(size = .1) + 
+                       shape = sub), size = .3, col = c('red', 'gray')) +
+  geom_point(size = .1) +
   geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .1) +
   theme_classic() + theme(legend.position = "none")
 
 ```
+
 ```{r echo=FALSE}
-ggplot(demean_dropna[demean_dropna$stimintensity == "low", ], aes(x = NPS_demean, 
+ggplot(demean_dropna[demean_dropna$stimintensity == "low", ], aes(x = NPS_demean,
                        y = OUTCOME_demean,
                        col = cuetype,
-                       shape = sub), size = .3, col = c('red', 'gray')) + 
-  geom_point(size = .1) + 
+                       shape = sub), size = .3, col = c('red', 'gray')) +
+  geom_point(size = .1) +
   geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .1) +
   theme_classic() + theme(legend.position = "none")
 
 ```
 
-### 7-1-2. NPS ~ EXPECT * cue {.unlisted .unnumbered} + CMC
+### 7-1-2. NPS ~ EXPECT \* cue {.unlisted .unnumbered} + CMC
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # plot parameters
 
@@ -1561,8 +1566,8 @@ total <-
     group = "cuetype", subject = "sub",
     ymin=-5, ymax=10, xmin=0, xmax=180,
     xlab ,ylab,
-    ggtitle = "all stimulus intensity", 
-    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"), 
+    ggtitle = "all stimulus intensity",
+    color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"),
     alpha = .8, fit_lm = TRUE, lm_method ="lm", identity_line = FALSE
   )
 total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
@@ -1570,7 +1575,8 @@ total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos 
 
 ```
 
-### 7-2. [ correct ] NPS ~ demeaned_expect * cue * stim {.unlisted .unnumbered}
+### 7-2. [ correct ] NPS ~ demeaned_expect _ cue _ stim {.unlisted .unnumbered}
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 iv1 = "EXPECT_demean"; iv2 = "NPSpos" # "NPS_demean"
 group = "cuetype"; subject = "sub"
@@ -1583,7 +1589,7 @@ low <-
     demean_low, iv1 , iv2,
     group = group, subject = subject,
     ymin=-20, ymax=20, xmin=-50, xmax=50,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     #, " \n(mean-centered)"),
     ggtitle = "Low intensity",
     color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
@@ -1597,7 +1603,7 @@ med <-
     demean_med, iv1, iv2,
     group = group, subject = subject,
     ymin=-20, ymax=20, xmin=-50, xmax=50,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     ggtitle = "Medium intensity",
     color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
     alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
@@ -1610,7 +1616,7 @@ high <-
     demean_high, iv1, iv2,
     group = group, subject = subject,
     ymin=-20, ymax=20, xmin=-50, xmax=50,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     ggtitle = "High intensity",
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
     alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
@@ -1620,7 +1626,8 @@ plots_title <- annotate_figure(plots, top = text_grob(paste(str_to_title(tasknam
 plots_title
 ```
 
-### 7-3. NPS_demean ~ demeaned_expect * cue * stim {.unlisted .unnumbered}
+### 7-3. NPS_demean ~ demeaned_expect _ cue _ stim {.unlisted .unnumbered}
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 iv1 = "EXPECT_demean"; iv2 = "NPS_demean" # "NPS_demean"
 group = "cuetype"; subject = "sub"
@@ -1633,7 +1640,7 @@ low <-
     demean_low, iv1 , iv2,
     group = group, subject = subject,
     ymin=-20, ymax=20, xmin=-50, xmax=50,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     #, " \n(mean-centered)"),
     ggtitle = "Low intensity",
     color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
@@ -1647,7 +1654,7 @@ med <-
     demean_med, iv1, iv2,
     group = group, subject = subject,
     ymin=-20, ymax=20, xmin=-50, xmax=50,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     ggtitle = "Medium intensity",
     color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
     alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
@@ -1660,7 +1667,7 @@ high <-
     demean_high, iv1, iv2,
     group = group, subject = subject,
     ymin=-20, ymax=20, xmin=-50, xmax=50,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     ggtitle = "High intensity",
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
     alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
@@ -1672,21 +1679,22 @@ plots_title
 
 ### 7-3. [ correct ] NPS ~ EXPECTdemean x CUE x STIM + CMC {.unlisted .unnumbered}
 
+                    )
 
-                    ) 
-* https://stats.stackexchange.com/questions/365466/significance-of-slope-different-than-zero-in-triple-interaction-with-factors
-* https://stats.stackexchange.com/questions/586748/calculating-trends-with-emtrends-for-three-way-interaction-model-results-in-sa
-* emtrends(model.npsexpectdemean, var = 'EXPECT_demean', lmer.df = "asymptotic") 
+- https://stats.stackexchange.com/questions/365466/significance-of-slope-different-than-zero-in-triple-interaction-with-factors
+- https://stats.stackexchange.com/questions/586748/calculating-trends-with-emtrends-for-three-way-interaction-model-results-in-sa
+- emtrends(model.npsexpectdemean, var = 'EXPECT_demean', lmer.df = "asymptotic")
 
 CUE*SES*EXPECT
+
 ```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
-model.npsexpectdemean <- lmer(NPSpos ~ 
-                          CUE_high_gt_low*EXPECT_demean*STIM_linear*factor(ses)  + 
+model.npsexpectdemean <- lmer(NPSpos ~
+                          CUE_high_gt_low*EXPECT_demean*STIM_linear*factor(ses)  +
                             CUE_high_gt_low*EXPECT_demean*STIM_quadratic*factor(ses) +  EXPECT_cmc +
                           (1|sub), data = demean_dropna
                     )
-# model.npsexpectdemean <- lmer(NPSpos ~ 
-#                           CUE_high_gt_low*EXPECT_demean*STIM*factor(ses)  + 
+# model.npsexpectdemean <- lmer(NPSpos ~
+#                           CUE_high_gt_low*EXPECT_demean*STIM*factor(ses)  +
 #                             +  EXPECT_cmc +
 #                           (1|sub), data = demean_dropna
 #                     )
@@ -1706,21 +1714,19 @@ compute_icc <- function(lmer_object){
 ```
 
 ### ICC
+
 ```{r}
 compute_icc(model.npsexpectdemean)
 ```
+
 > The ICC of the dependent variable is .30 and thus very close to the value that we wanted to simulate. It means that about 30% of the variance in this variable is explainable by interindividual differences (i.e., person-related characteristics). This also means that a larger part of the variance is potentially explainable by situational characteristics (e.g., by other variables measured on level 1).
 
-
-
-
 ```{r}
-emtrends(model.npsexpectdemean, var = 'EXPECT_demean', lmer.df = "asymptotic") 
+emtrends(model.npsexpectdemean, var = 'EXPECT_demean', lmer.df = "asymptotic")
 ```
 
-
-
 #### eta squared {.unlisted .unnumbered}
+
 ```{r echo=FALSE, warning=TRUE}
 kableExtra::kable_styling(
   knitr::kable(
@@ -1729,6 +1735,7 @@ kableExtra::kable_styling(
 ```
 
 #### Cohen's d {.unlisted .unnumbered}
+
 ```{r echo=FALSE, warning=TRUE}
 kableExtra::kable_styling(
   knitr::kable(
@@ -1737,23 +1744,23 @@ kableExtra::kable_styling(
 ```
 
 ## 7-3 simple slopes when STIM == 'high', EXPECT_demean slope difference between high vs. low cue {.unlisted .unnumbered}
+
 ```{r}
 interactions::sim_slopes(model=model.npsexpectdemean, pred=EXPECT_demean, modx=CUE_high_gt_low, mod2 =STIM_linear, mod2.values = 0.5, centered = 'all', data = demean_dropna)
 
 ```
 
-
 #### emtrneds {.unlisted .unnumbered}
+
 ```{r}
-emt.t <- emtrends(model.npsexpectdemean, ~ STIM_linear | CUE_high_gt_low, 
-         var = "EXPECT_demean", 
+emt.t <- emtrends(model.npsexpectdemean, ~ STIM_linear | CUE_high_gt_low,
+         var = "EXPECT_demean",
          # nuisance = c("EXPECT_cmc"),
          at = list(STIM_linear=c(0.5, 0, -0.5)),
          lmer.df = "asymp")
 pairs(emt.t, simple = "each")
 # contrast(emt.t, "revpairwise")
 ```
-
 
 ```{r eval=FALSE, include=FALSE}
 library(reghelper)
@@ -1762,10 +1769,9 @@ simple_slopes(model.npsexpectdemean,
         CUE_high_gt_low=c(0.5,-0.5, 'sstest')))  # test at specific levels
 ```
 
-
 ## 8. NPS and session effects
 
-```{r} 
+```{r}
 # code session
 # contrast code 1 linear
 demean_dropna$SES_linear[demean_dropna$ses == "ses-01"] <- -0.5
@@ -1779,36 +1785,37 @@ demean_dropna$SES_quadratic[demean_dropna$ses == "ses-04"] <- -0.33
 
 ```
 
-#### 8-1. [ correct ] NPS ~ EXPECT_demean * CUE * STIM + CMC (Session as covariate)
+#### 8-1. [ correct ] NPS ~ EXPECT_demean _ CUE _ STIM + CMC (Session as covariate)
+
 ```{r echo=TRUE, message=TRUE, warning=TRUE, paged.print=FALSE}
 
-model.npsexpectdemean.sescontrol <- lmer(NPSpos ~ 
-                          CUE_high_gt_low*STIM_linear*EXPECT_demean + 
-                          CUE_high_gt_low*STIM_quadratic*EXPECT_demean + 
-                          # CUE_high_gt_low*STIM_linear*EXPECT_demean + 
+model.npsexpectdemean.sescontrol <- lmer(NPSpos ~
+                          CUE_high_gt_low*STIM_linear*EXPECT_demean +
+                          CUE_high_gt_low*STIM_quadratic*EXPECT_demean +
+                          # CUE_high_gt_low*STIM_linear*EXPECT_demean +
                           # CUE_high_gt_low*STIM_quadratic*EXPECT_demean +
                           EXPECT_cmc +
-                          ses + 
+                          ses +
                           (CUE_high_gt_low|sub), data = demean_dropna
-                    ) 
+                    )
 # CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.npsexpectdemean.sescontrol,
                   title = "Multilevel-modeling: \nlmer(NPSpos ~ CUE * STIM * EXPECT_demean + SES + (CUE + EXPECT| sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
 ```
 
+#### 8-2. [ correct ] NPS ~ EXPECT_demean _ CUE _ STIM \* SES + CMC (Session as interaction)
 
-#### 8-2. [ correct ] NPS ~ EXPECT_demean * CUE * STIM * SES + CMC (Session as interaction) 
 ```{r echo=TRUE, message=TRUE, warning=TRUE, paged.print=FALSE}
 
-model.npsexpectdemean.ses <- lmer(NPSpos ~ 
-                          CUE_high_gt_low*STIM_linear*EXPECT_demean*SES_linear + 
-                          CUE_high_gt_low*STIM_quadratic*EXPECT_demean*SES_linear + 
-                          CUE_high_gt_low*STIM_linear*EXPECT_demean*SES_quadratic + 
+model.npsexpectdemean.ses <- lmer(NPSpos ~
+                          CUE_high_gt_low*STIM_linear*EXPECT_demean*SES_linear +
+                          CUE_high_gt_low*STIM_quadratic*EXPECT_demean*SES_linear +
+                          CUE_high_gt_low*STIM_linear*EXPECT_demean*SES_quadratic +
                           CUE_high_gt_low*STIM_quadratic*EXPECT_demean*SES_quadratic +
                           EXPECT_cmc +
                           (CUE_high_gt_low|sub) + (1|ses), data = demean_dropna
-                    ) 
+                    )
 # CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.npsexpectdemean.ses,
                   title = "Multilevel-modeling: \nlmer(NPSpos ~ CUE * STIM * EXPECT_demean * SES + (CUE + EXPECT| sub), data = pvc)",
@@ -1816,6 +1823,7 @@ sjPlot::tab_model(model.npsexpectdemean.ses,
 ```
 
 ## 9. plotly 3 factors
+
 ```{r echo=FALSE}
 # paindf <- data_screen[data_screen$runtype == "runtype-pain",]
 remove_sub_list = c("sub-0009") # "sub-0117", "sub-0081", "sub-0060", "sub-0063", "sub-0074", "sub-0085", "sub-0098", "sub-0118")
@@ -1836,7 +1844,7 @@ p.demean <- subset_ses %>%
   ungroup %>%
   mutate(OUTCOME_cmc = avg_outcome - mean(avg_outcome)) %>%
   mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) %>%
-  mutate(NPS_cmc = avg_NPS - mean(avg_NPS)) 
+  mutate(NPS_cmc = avg_NPS - mean(avg_NPS))
 
 plotly_subjectwise <- meanSummary(
         p.demean,
@@ -1844,18 +1852,16 @@ plotly_subjectwise <- meanSummary(
     )
 ```
 
-
-
 ```{r}
 library(plotly)
 # lmer(NPSpos ~ CUE_high_gt_low*STIM_linear*event02_expect_angle + CUE_high_gt_low*STIM_quadratic*event02_expect_angle + (CUE_high_gt_low|sub), data = data_screen)
 ses1 = p.demean[p.demean$ses == "ses-01",]
 x <- seq_len(nrow(volcano)) + 100
 y <- seq_len(ncol(volcano)) + 500
-fig <- plot_ly(ses1, x = ~cuetype, y = ~EXPECT_demean, z = ~NPSpos) %>% #colors = c('#BF382A','yellow', '#0C4B8E')) 
+fig <- plot_ly(ses1, x = ~cuetype, y = ~EXPECT_demean, z = ~NPSpos) %>% #colors = c('#BF382A','yellow', '#0C4B8E'))
   # group_by(STIM) %>%
-  group_by(STIM_linear) %>% 
-  # add_markers(color = ~STIM_linear) %>% 
+  group_by(STIM_linear) %>%
+  # add_markers(color = ~STIM_linear) %>%
   # group_by(cuetype) %>%
   add_lines(color = ~STIM_linear)
 
@@ -1916,9 +1922,8 @@ test = ses1[, c("sub", "cuetype", "stimintensity", "EXPECT_demean", "NPSpos")]
 write.table(test, file=file.path(analysis_dir, "test.tsv"), quote=FALSE, sep='\t', row.names = FALSE)
 ```
 
-
-
 #### 3x3 plots EXPECT_demean
+
 ```{r}
 iv1 = "EXPECT_demean"; iv2 = "NPSpos" # "NPS_demean"
 group = "cuetype"; subject = "sub"
@@ -1941,7 +1946,7 @@ ses01low <-
     demean_low, iv1 , iv2,
     group = group, subject = subject,
     ymin=-20, ymax=20, xmin=-50, xmax=50,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     #, " \n(mean-centered)"),
     ggtitle = "Low intensity",
     color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
@@ -1955,7 +1960,7 @@ ses01med <-
     demean_med, iv1, iv2,
     group = group, subject = subject,
     ymin=-20, ymax=20, xmin=-50, xmax=50,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     ggtitle = "Medium intensity",
     color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
     alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
@@ -1968,7 +1973,7 @@ ses01high <-
     demean_high, iv1, iv2,
     group = group, subject = subject,
     ymin=-20, ymax=20, xmin=-50, xmax=50,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     ggtitle = "High intensity",
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
     alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
@@ -1980,7 +1985,7 @@ ses03low <-
     demean_low, iv1 , iv2,
     group = group, subject = subject,
     ymin=-20, ymax=20, xmin=-50, xmax=50,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     #, " \n(mean-centered)"),
     ggtitle = "Low intensity",
     color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
@@ -1994,7 +1999,7 @@ ses03med <-
     demean_med, iv1, iv2,
     group = group, subject = subject,
     ymin=-20, ymax=20, xmin=-50, xmax=50,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     ggtitle = "Medium intensity",
     color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
     alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
@@ -2007,7 +2012,7 @@ ses03high <-
     demean_high, iv1, iv2,
     group = group, subject = subject,
     ymin=-20, ymax=20, xmin=-50, xmax=50,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     ggtitle = "High intensity",
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
     alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
@@ -2020,7 +2025,7 @@ ses04low <-
     demean_low, iv1 , iv2,
     group = group, subject = subject,
     ymin=-20, ymax=20, xmin=-50, xmax=50,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     #, " \n(mean-centered)"),
     ggtitle = "Low intensity",
     color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
@@ -2034,7 +2039,7 @@ ses04med <-
     demean_med, iv1, iv2,
     group = group, subject = subject,
     ymin=-20, ymax=20, xmin=-50, xmax=50,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     ggtitle = "Medium intensity",
     color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
     alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
@@ -2047,7 +2052,7 @@ ses04high <-
     demean_high, iv1, iv2,
     group = group, subject = subject,
     ymin=-20, ymax=20, xmin=-50, xmax=50,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     ggtitle = "High intensity",
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
     alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
@@ -2058,10 +2063,10 @@ plots <- ggpubr::ggarrange(ses01low+remove_xy, ses01med+remove_xy, ses01high+rem
                            ncol = 3, nrow = 3, common.legend = TRUE, legend = "bottom",
                            widths = c(1, 1, 1))
 
-plots_title <- annotate_figure(plots, 
-                               top = 
-                                 text_grob(paste(str_to_title(taskname), 
-                                                 "\n NPS/Outcome linear relationship does not differ as a function of stimulus intensity and cue"), 
+plots_title <- annotate_figure(plots,
+                               top =
+                                 text_grob(paste(str_to_title(taskname),
+                                                 "\n NPS/Outcome linear relationship does not differ as a function of stimulus intensity and cue"),
                                            color = "black", face = "bold", size = 12),
                                left = text_grob("NPSpos (dot product)", rot = 90, vjust = 1),
                                bottom = text_grob("Expectation rating\n(subjectwise mean-centering)")
@@ -2069,26 +2074,28 @@ plots_title <- annotate_figure(plots,
 plots_title
 
 ```
+
 ```{r}
 
 fig.height = 50
 fig.width = 10
 ggplot(aes(x=EXPECT_demean, y=NPSpos, color = CUE_high_gt_low, shape =), data=demean_dropna) +
   geom_smooth(method='lm', se=F, size=0.75) +
-  geom_point(size=0.1) + 
-    # geom_abline(intercept = 0, slope = 1, color="green", 
+  geom_point(size=0.1) +
+    # geom_abline(intercept = 0, slope = 1, color="green",
     #              linetype="dashed", size=0.5) +
-  facet_wrap(~ses) + 
-  theme(legend.position='none') + 
+  facet_wrap(~ses) +
+  theme(legend.position='none') +
   xlim(-50,50) + ylim(-50,50) +
-  xlab("raw data from each participant: n-1 lagged outcome angle") + 
-  ylab("n current expectation rating") 
+  xlab("raw data from each participant: n-1 lagged outcome angle") +
+  ylab("n current expectation rating")
 
 ```
 
-#### NPSpos ~ EXPECT_demean * STIM * CUE
+#### NPSpos ~ EXPECT_demean _ STIM _ CUE
+
 ```{r}
-iv1 = "EXPECT_demean" #"event02_expect_angle"; 
+iv1 = "EXPECT_demean" #"event02_expect_angle";
 iv2 = "NPSpos" # "NPS_demean"
 group = "cuetype"; subject = "sub"
 xlab = "Expectation rating \n(subjectwise mean-centered)"
@@ -2128,7 +2135,7 @@ ses01low <-
     demean_low, iv1 , iv2,
     group = group, subject = subject,
     ymin=ymin_val, ymax=ymax_val, xmin=xmin_val, xmax=xmax_val,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     #, " \n(mean-centered)"),
     ggtitle = "Low intensity",
     color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
@@ -2142,7 +2149,7 @@ ses01med <-
     demean_med, iv1, iv2,
     group = group, subject = subject,
     ymin=ymin_val, ymax=ymax_val, xmin=xmin_val, xmax=xmax_val,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     ggtitle = "Medium intensity",
     color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
     alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
@@ -2155,7 +2162,7 @@ ses01high <-
     demean_high, iv1, iv2,
     group = group, subject = subject,
     ymin=ymin_val, ymax=ymax_val, xmin=xmin_val, xmax=xmax_val,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     ggtitle = "High intensity",
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
     alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
@@ -2167,7 +2174,7 @@ ses03low <-
     demean_low, iv1 , iv2,
     group = group, subject = subject,
     ymin=ymin_val, ymax=ymax_val, xmin=xmin_val, xmax=xmax_val,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     #, " \n(mean-centered)"),
     ggtitle = "Low intensity",
     color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
@@ -2181,7 +2188,7 @@ ses03med <-
     demean_med, iv1, iv2,
     group = group, subject = subject,
     ymin=ymin_val, ymax=ymax_val, xmin=xmin_val, xmax=xmax_val,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     ggtitle = "Medium intensity",
     color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
     alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
@@ -2194,7 +2201,7 @@ ses03high <-
     demean_high, iv1, iv2,
     group = group, subject = subject,
     ymin=ymin_val, ymax=ymax_val, xmin=xmin_val, xmax=xmax_val,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     ggtitle = "High intensity",
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
     alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
@@ -2207,7 +2214,7 @@ ses04low <-
     demean_low, iv1 , iv2,
     group = group, subject = subject,
     ymin=ymin_val, ymax=ymax_val, xmin=xmin_val, xmax=xmax_val,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     #, " \n(mean-centered)"),
     ggtitle = "Low intensity",
     color_scheme = c("cuetype-high" ="#FF8800","cuetype-low" =  "#5D5C5C"),
@@ -2221,7 +2228,7 @@ ses04med <-
     demean_med, iv1, iv2,
     group = group, subject = subject,
     ymin=ymin_val, ymax=ymax_val, xmin=xmin_val, xmax=xmax_val,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     ggtitle = "Medium intensity",
     color_scheme = c("cuetype-high" ="#DB6000","cuetype-low" =  "#5D5C5C"),
     alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
@@ -2234,7 +2241,7 @@ ses04high <-
     demean_high, iv1, iv2,
     group = group, subject = subject,
     ymin=ymin_val, ymax=ymax_val, xmin=xmin_val, xmax=xmax_val,
-    xlab = xlab, ylab = ylab, 
+    xlab = xlab, ylab = ylab,
     ggtitle = "High intensity",
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#5D5C5C"),
     alpha = .5, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
@@ -2245,10 +2252,10 @@ plots <- ggpubr::ggarrange(ses01low+remove_x, ses01med+remove_xy, ses01high+remo
                            ncol = 3, nrow = 3, common.legend = TRUE, legend = "bottom",
                            widths = c(1, 1, 1))
 
-plots_title <- annotate_figure(plots, 
-                               top = 
-                                 text_grob(paste(str_to_title(taskname), 
-                                                 "\n NPS/Outcome linear relationship does not differ as a function of stimulus intensity and cue"), 
+plots_title <- annotate_figure(plots,
+                               top =
+                                 text_grob(paste(str_to_title(taskname),
+                                                 "\n NPS/Outcome linear relationship does not differ as a function of stimulus intensity and cue"),
                                            color = "black", face = "bold", size = 12),
                                left = text_grob("NPSpos (dot product)", rot = 90, vjust = 1),
                                bottom = text_grob("Expectation rating\n(subjectwise mean-centering)")
@@ -2257,12 +2264,8 @@ plots_title
 
 ```
 
-
-
-
-
-
 ## 9. NPS ~ trial order
+
 ```{r}
 pvc$run_num = as.numeric(as.factor(pvc$run))
 pvc <- pvc %>%
@@ -2291,7 +2294,8 @@ NPStrialorder$ses_run_trial_num <- as.numeric(as.factor(NPStrialorder$ses_run_tr
 data.frame(table(NPStrialorder$ses_run_trial_num ))
 ```
 
-### trial order * cue
+### trial order \* cue
+
 ```{r}
     model_iv1 <- "stim_ordered"
     model_iv2 <- "cue_ordered"
@@ -2307,18 +2311,18 @@ trialorder_subjectwise_p2
 
 iv1 = "ses_run_trial_num"
 iv2 = "cue_ordered"
-data = 
+data =
 g <- ggplot(
   data = trialorder_subjectwise_p2,
   aes(x = as.numeric(ses_run_trial_num),
-      y = mean_per_sub, 
+      y = mean_per_sub,
       color = cue_ordered,
       # group = rating_type
       # linetype = as.factor(stim_ordered)
       )
   ) +
   geom_smooth(
-    method = "loess", 
+    method = "loess",
     data = trialorder_subjectwise_p2,
     aes(
       # shape = as.character(rating_type),
@@ -2327,7 +2331,7 @@ g <- ggplot(
       # group = rating_type,
       color = cue_ordered,
       # linetype = as.factor(stim_ordered)
-      )) + 
+      )) +
     geom_point(
     data = trialorder_subjectwise_p2,
     aes(
@@ -2343,7 +2347,7 @@ g <- ggplot(
     ) +
   scale_shape_manual(values=c(21, 16))+
 
-  # scale_x_continuous(breaks = seq(0, 72, by = 5)) + 
+  # scale_x_continuous(breaks = seq(0, 72, by = 5)) +
   geom_errorbar(
     data = trialorder_subjectwise_p2,
     aes(
@@ -2355,7 +2359,7 @@ g <- ggplot(
       ymin = mean_per_sub - sd/sqrt(length(unique(NPStrialorder$sub))),
       ymax = mean_per_sub + sd/sqrt(length(unique(NPStrialorder$sub)))), width = .1, size = 0.2
     ) +
-  scale_color_manual(values = c("high" = "red", #"#009411", 
+  scale_color_manual(values = c("high" = "red", #"#009411",
                                 "low" = "blue" #5D5C5C"
                                 )) +
   xlab("No. of trials") +
@@ -2363,12 +2367,13 @@ g <- ggplot(
   labs(title = paste(taskname, "(N = ", length(unique(NPStrialorder$sub)), ")"))+
   ylim(0,25) +
   theme_classic2() +
-theme(aspect.ratio = .7) + geom_vline(xintercept = c(12,24,36,48,60), linetype="dotted", 
+theme(aspect.ratio = .7) + geom_vline(xintercept = c(12,24,36,48,60), linetype="dotted",
                 color = "blue", size=.1)
 g
 ```
 
 ### trial order only
+
 ```{r}
     model_iv1 <- "stim_ordered"
     model_iv2 <- "cue_ordered"
@@ -2385,18 +2390,18 @@ trialorder_subjectwise_p2
 
 iv1 = "ses_run_trial_num"
 iv2 = "cue_ordered"
-data = 
+data =
 g <- ggplot(
   data = trialorder_summary,
   aes(x = as.numeric(ses_run_trial_num),
-      y = mean_per_sub, 
+      y = mean_per_sub,
       # color = cue_ordered,
       # group = rating_type
       # linetype = as.factor(stim_ordered)
       )
   ) +
   geom_smooth(
-    method = "loess", 
+    method = "loess",
     data = trialorder_summary,
     aes(
       # shape = as.character(rating_type),
@@ -2405,7 +2410,7 @@ g <- ggplot(
       # group = rating_type,
       # color = cue_ordered,
       # linetype = as.factor(stim_ordered)
-      )) + 
+      )) +
     geom_point(
     data = trialorder_summary,
     aes(
@@ -2421,7 +2426,7 @@ g <- ggplot(
     ) +
   scale_shape_manual(values=c(21, 16))+
 
-  # scale_x_continuous(breaks = seq(0, 72, by = 5)) + 
+  # scale_x_continuous(breaks = seq(0, 72, by = 5)) +
   geom_errorbar(
     data = trialorder_summary,
     aes(
@@ -2433,7 +2438,7 @@ g <- ggplot(
       ymin = mean_per_sub - sd/sqrt(length(unique(NPStrialorder$sub))),
       ymax = mean_per_sub + sd/sqrt(length(unique(NPStrialorder$sub)))), width = .1, size = 0.2
     ) +
-  scale_color_manual(values = c("high" = "red", #"#009411", 
+  scale_color_manual(values = c("high" = "red", #"#009411",
                                 "low" = "blue" #5D5C5C"
                                 )) +
   xlab("No. of trials") +
@@ -2441,7 +2446,7 @@ g <- ggplot(
   labs(title = paste(taskname, "(N = ", length(unique(NPStrialorder$sub)), ")"))+
   ylim(0,25) +
   theme_classic2() +
-theme(aspect.ratio = .7) + geom_vline(xintercept = c(12,24,36,48,60), linetype="dotted", 
+theme(aspect.ratio = .7) + geom_vline(xintercept = c(12,24,36,48,60), linetype="dotted",
                 color = "blue", size=.1)
 g
 ```
@@ -2451,8 +2456,11 @@ model.trial = lm(NPSpos ~ trial*cuetype, data = NPStrialorder[NPStrialorder$runt
 Anova(model.trial, type = "III")
 summary(model.trial)
 ```
+
 ## vicarious
-### trial order * cue
+
+### trial order \* cue
+
 ```{r}
 taskname = "vicarious"
     model_iv1 <- "stim_ordered"
@@ -2469,18 +2477,18 @@ trialorder_subjectwise_p2
 
 iv1 = "ses_run_trial_num"
 iv2 = "cue_ordered"
-data = 
+data =
 g <- ggplot(
   data = trialorder_subjectwise_p2,
   aes(x = as.numeric(ses_run_trial_num),
-      y = mean_per_sub, 
+      y = mean_per_sub,
       color = cue_ordered,
       # group = rating_type
       # linetype = as.factor(stim_ordered)
       )
   ) +
   geom_smooth(
-    method = "loess", 
+    method = "loess",
     data = trialorder_subjectwise_p2,
     aes(
       # shape = as.character(rating_type),
@@ -2489,7 +2497,7 @@ g <- ggplot(
       # group = rating_type,
       color = cue_ordered,
       # linetype = as.factor(stim_ordered)
-      )) + 
+      )) +
     geom_point(
     data = trialorder_subjectwise_p2,
     aes(
@@ -2505,7 +2513,7 @@ g <- ggplot(
     ) +
   scale_shape_manual(values=c(21, 16))+
 
-  # scale_x_continuous(breaks = seq(0, 72, by = 5)) + 
+  # scale_x_continuous(breaks = seq(0, 72, by = 5)) +
   geom_errorbar(
     data = trialorder_subjectwise_p2,
     aes(
@@ -2517,7 +2525,7 @@ g <- ggplot(
       ymin = mean_per_sub - sd/sqrt(length(unique(NPStrialorder$sub))),
       ymax = mean_per_sub + sd/sqrt(length(unique(NPStrialorder$sub)))), width = .1, size = 0.2
     ) +
-  scale_color_manual(values = c("high" = "red", #"#009411", 
+  scale_color_manual(values = c("high" = "red", #"#009411",
                                 "low" = "blue" #5D5C5C"
                                 )) +
   xlab("No. of trials") +
@@ -2525,12 +2533,13 @@ g <- ggplot(
   labs(title = paste(taskname, "(N = ", length(unique(NPStrialorder$sub)), ")"))+
   ylim(-5,25) +
   theme_classic2() +
-theme(aspect.ratio = .7) + geom_vline(xintercept = c(12,24,36,48,60), linetype="dotted", 
+theme(aspect.ratio = .7) + geom_vline(xintercept = c(12,24,36,48,60), linetype="dotted",
                 color = "blue", size=.1)
 g
 ```
 
 ### trial order only
+
 ```{r}
 taskname = "vicarious"
     model_iv1 <- "stim_ordered"
@@ -2548,18 +2557,18 @@ trialorder_subjectwise_p2
 
 iv1 = "ses_run_trial_num"
 iv2 = "cue_ordered"
-data = 
+data =
 g <- ggplot(
   data = trialorder_summary,
   aes(x = as.numeric(ses_run_trial_num),
-      y = mean_per_sub, 
+      y = mean_per_sub,
       # color = cue_ordered,
       # group = rating_type
       # linetype = as.factor(stim_ordered)
       )
   ) +
   geom_smooth(
-    method = "loess", 
+    method = "loess",
     data = trialorder_summary,
     aes(
       # shape = as.character(rating_type),
@@ -2568,7 +2577,7 @@ g <- ggplot(
       # group = rating_type,
       # color = cue_ordered,
       # linetype = as.factor(stim_ordered)
-      )) + 
+      )) +
     geom_point(
     data = trialorder_summary,
     aes(
@@ -2584,7 +2593,7 @@ g <- ggplot(
     ) +
   scale_shape_manual(values=c(21, 16))+
 
-  # scale_x_continuous(breaks = seq(0, 72, by = 5)) + 
+  # scale_x_continuous(breaks = seq(0, 72, by = 5)) +
   geom_errorbar(
     data = trialorder_summary,
     aes(
@@ -2596,7 +2605,7 @@ g <- ggplot(
       ymin = mean_per_sub - sd/sqrt(length(unique(NPStrialorder$sub))),
       ymax = mean_per_sub + sd/sqrt(length(unique(NPStrialorder$sub)))), width = .1, size = 0.2
     ) +
-  scale_color_manual(values = c("high" = "red", #"#009411", 
+  scale_color_manual(values = c("high" = "red", #"#009411",
                                 "low" = "blue" #5D5C5C"
                                 )) +
   xlab("No. of trials") +
@@ -2604,15 +2613,15 @@ g <- ggplot(
   labs(title = paste(taskname, "(N = ", length(unique(NPStrialorder$sub)), ")"))+
   ylim(-5,25) +
   theme_classic2() +
-theme(aspect.ratio = .7) + geom_vline(xintercept = c(12,24,36,48,60), linetype="dotted", 
+theme(aspect.ratio = .7) + geom_vline(xintercept = c(12,24,36,48,60), linetype="dotted",
                 color = "blue", size=.1)
 g
 ```
-
-
 
 ## cognitive
-### trial order * cue
+
+### trial order \* cue
+
 ```{r}
 taskname = "cognitive"
     model_iv1 <- "stim_ordered"
@@ -2629,18 +2638,18 @@ trialorder_subjectwise_p2
 
 iv1 = "ses_run_trial_num"
 iv2 = "cue_ordered"
-data = 
+data =
 g <- ggplot(
   data = trialorder_subjectwise_p2,
   aes(x = as.numeric(ses_run_trial_num),
-      y = mean_per_sub, 
+      y = mean_per_sub,
       color = cue_ordered,
       # group = rating_type
       # linetype = as.factor(stim_ordered)
       )
   ) +
   geom_smooth(
-    method = "loess", 
+    method = "loess",
     data = trialorder_subjectwise_p2,
     aes(
       # shape = as.character(rating_type),
@@ -2649,7 +2658,7 @@ g <- ggplot(
       # group = rating_type,
       color = cue_ordered,
       # linetype = as.factor(stim_ordered)
-      )) + 
+      )) +
     geom_point(
     data = trialorder_subjectwise_p2,
     aes(
@@ -2665,7 +2674,7 @@ g <- ggplot(
     ) +
   scale_shape_manual(values=c(21, 16))+
 
-  # scale_x_continuous(breaks = seq(0, 72, by = 5)) + 
+  # scale_x_continuous(breaks = seq(0, 72, by = 5)) +
   geom_errorbar(
     data = trialorder_subjectwise_p2,
     aes(
@@ -2677,7 +2686,7 @@ g <- ggplot(
       ymin = mean_per_sub - sd/sqrt(length(unique(NPStrialorder$sub))),
       ymax = mean_per_sub + sd/sqrt(length(unique(NPStrialorder$sub)))), width = .1, size = 0.2
     ) +
-  scale_color_manual(values = c("high" = "red", #"#009411", 
+  scale_color_manual(values = c("high" = "red", #"#009411",
                                 "low" = "blue" #5D5C5C"
                                 )) +
   xlab("No. of trials") +
@@ -2685,12 +2694,13 @@ g <- ggplot(
   labs(title = paste(taskname, "(N = ", length(unique(NPStrialorder$sub)), ")"))+
   ylim(-5,25) +
   theme_classic2() +
-theme(aspect.ratio = .7) + geom_vline(xintercept = c(12,24,36,48,60), linetype="dotted", 
+theme(aspect.ratio = .7) + geom_vline(xintercept = c(12,24,36,48,60), linetype="dotted",
                 color = "blue", size=.1)
 g
 ```
 
 ### trial order only
+
 ```{r}
 taskname = "cognitive"
     model_iv1 <- "stim_ordered"
@@ -2708,18 +2718,18 @@ trialorder_subjectwise_p2
 
 iv1 = "ses_run_trial_num"
 iv2 = "cue_ordered"
-data = 
+data =
 g <- ggplot(
   data = trialorder_summary,
   aes(x = as.numeric(ses_run_trial_num),
-      y = mean_per_sub, 
+      y = mean_per_sub,
       # color = cue_ordered,
       # group = rating_type
       # linetype = as.factor(stim_ordered)
       )
   ) +
   geom_smooth(
-    method = "loess", 
+    method = "loess",
     data = trialorder_summary,
     aes(
       # shape = as.character(rating_type),
@@ -2728,7 +2738,7 @@ g <- ggplot(
       # group = rating_type,
       # color = cue_ordered,
       # linetype = as.factor(stim_ordered)
-      )) + 
+      )) +
     geom_point(
     data = trialorder_summary,
     aes(
@@ -2744,7 +2754,7 @@ g <- ggplot(
     ) +
   scale_shape_manual(values=c(21, 16))+
 
-  # scale_x_continuous(breaks = seq(0, 72, by = 5)) + 
+  # scale_x_continuous(breaks = seq(0, 72, by = 5)) +
   geom_errorbar(
     data = trialorder_summary,
     aes(
@@ -2756,7 +2766,7 @@ g <- ggplot(
       ymin = mean_per_sub - sd/sqrt(length(unique(NPStrialorder$sub))),
       ymax = mean_per_sub + sd/sqrt(length(unique(NPStrialorder$sub)))), width = .1, size = 0.2
     ) +
-  scale_color_manual(values = c("high" = "red", #"#009411", 
+  scale_color_manual(values = c("high" = "red", #"#009411",
                                 "low" = "blue" #5D5C5C"
                                 )) +
   xlab("No. of trials") +
@@ -2764,8 +2774,7 @@ g <- ggplot(
   labs(title = paste(taskname, "(N = ", length(unique(NPStrialorder$sub)), ")"))+
   ylim(-5,25) +
   theme_classic2() +
-theme(aspect.ratio = .7) + geom_vline(xintercept = c(12,24,36,48,60), linetype="dotted", 
+theme(aspect.ratio = .7) + geom_vline(xintercept = c(12,24,36,48,60), linetype="dotted",
                 color = "blue", size=.1)
 g
 ```
-

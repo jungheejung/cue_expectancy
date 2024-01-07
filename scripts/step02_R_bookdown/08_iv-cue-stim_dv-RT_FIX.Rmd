@@ -1,4 +1,4 @@
-# [beh] RT ~ cue * stim {#ch08_RT-cueXstim}
+# [beh] RT ~ cue \* stim {#ch08_RT-cueXstim}
 
 ```
 author: "Heejung Jung"
@@ -8,29 +8,27 @@ output:
     toc: true
     theme: united
     code_folding: hide
-editor_options: 
-  markdown: 
+editor_options:
+  markdown:
     wrap: 72
 ```
 
-
-
-""" 
+"""
 This Rmarkdown tests the cue effect (high vs. low) on Reaction time and performance in the cognitive, mental-rotation tasks. We also test for stimulus intensity effects.
 """
 
 ## Overview model 08 iv-cue dv-RT summary
-* left = diff, right = same
-* model 1: Does RT differ as a function of cue type and stimulus intensity?
-* model 1-1: Does RT differ as a function of cue, ONLY for the correct trials?
-* model 1-2: Does RT differ as a function of cue, ONLY for the incorrect trials?
-* model 2: would log-transforming help? Do we see a cue effect on the log-transformmed RTs?
+
+- left = diff, right = same
+- model 1: Does RT differ as a function of cue type and stimulus intensity?
+- model 1-1: Does RT differ as a function of cue, ONLY for the correct trials?
+- model 1-2: Does RT differ as a function of cue, ONLY for the incorrect trials?
+- model 2: would log-transforming help? Do we see a cue effect on the log-transformmed RTs?
 
 ```{block2, type='rmdnote'}
-TODO: 06/28/2022   
+TODO: 06/28/2022
 * change variable names and two factor code accordingly
 ```
-
 
 ```{r load_libraries_7, message=TRUE, warning=TRUE, include=FALSE, paged.print=TRUE, results='hide'}
 library(psych)
@@ -77,12 +75,11 @@ library(gghalves)
 library(r2mlm)
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 ```
-
 
 ```{r main_directory_7}
 main_dir = dirname(dirname(getwd()))
@@ -91,7 +88,9 @@ datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
 ```
 
 ## Prepare data and preprocess
-### 1) load data  {.unlisted .unnumbered}
+
+### 1) load data {.unlisted .unnumbered}
+
 ```{r load_data_7, include=FALSE}
 # parameters _____________________________________ # nolint
 subject_varkey <- "src_subject_id"
@@ -103,15 +102,17 @@ taskname <- "cognitive"
 ylab <- "ratings (degree)"
 subject <- "subject"
 exclude <- "sub-0999|sub-0001"
-data <- load_task_social_df(datadir, taskname = taskname, 
-                            subject_varkey = subject_varkey, 
+data <- load_task_social_df(datadir, taskname = taskname,
+                            subject_varkey = subject_varkey,
                             iv = iv, exclude = exclude)
 data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
 ```
 
-### 2) plot RT distribution per participant  {.unlisted .unnumbered}
+### 2) plot RT distribution per participant {.unlisted .unnumbered}
+
 - the purpose is to identify whether RTs are distributed from 0-5 sec or not
-- From this, we can also identify the quality of the data and determine if we need to scrub or remove participants. 
+- From this, we can also identify the quality of the data and determine if we need to scrub or remove participants.
+
 ```{r plot_RT_distribution, echo=TRUE, fig.width = 10, fig.height=12}
 ggplot(data, aes(x = event03_RT, group = subject)) +
   geom_histogram(
@@ -125,13 +126,14 @@ ggplot(data, aes(x = event03_RT, group = subject)) +
   xlab("Reaction time for mental rotation task")
 ```
 
-* Some participants may not have responded within time limit.
-* The button may not have registered the correct onset
-* I may have to remove the RTs with 5 sec. 
+- Some participants may not have responded within time limit.
+- The button may not have registered the correct onset
+- I may have to remove the RTs with 5 sec.
 
 ---
 
-### 3) exclude participants with RT of 5 seconds  {.unlisted .unnumbered}
+### 3) exclude participants with RT of 5 seconds {.unlisted .unnumbered}
+
 ```{r include=FALSE}
 # parameters _____________________________________ # nolint
 subject_varkey <- "src_subject_id"
@@ -172,12 +174,13 @@ ggplot(data, aes(x = event03_RT, group = subject)) +
   xlab("Reaction time for mental rotation task")
 ```
 
-
 ## model 1: Does RT differ as a function of cue type and stimulus intensity?
-* IV: cue (high vs. low)
-* DV: RT of the incorrect trials
-* contrast code two factors -- stimulus intensity and cue type
-* plotting all trials (including correct and incorrect trials)
+
+- IV: cue (high vs. low)
+- DV: RT of the incorrect trials
+- contrast code two factors -- stimulus intensity and cue type
+- plotting all trials (including correct and incorrect trials)
+
 ```{r include=FALSE}
 # contrast code 1 linear _____________________________________
 data$stim_con_linear[data$param_stimulus_type == "low_stim"] <- -0.5
@@ -217,7 +220,7 @@ dv_keyword <- "RT"
 xlab <- ""
 taskname <- "cognitive"
 ylim = c(0,5)
-    
+
 # lmer filename ________________________________________________________________
 model_savefname <- file.path(
         analysis_dir,
@@ -235,7 +238,7 @@ data_clean$subject = factor(data_clean$src_subject_id)
 # ------------------------------------------------------------------------------
 #                 lmer modeling
 # ------------------------------------------------------------------------------
-cooksd <- lmer_twofactor_cooksd_fix(data = data_clean,
+cooksd <- lmer_twofactor_cooksd(data = data_clean,
                                      taskname = "cognitive",
                                      iv = "cue_factor",
                                      stim_con1 = "stim_con_linear",
@@ -281,7 +284,7 @@ groupwise <- summarySEwithin(
 subjectwise_mean <- "mean_per_sub";    group_mean <- "mean_per_sub_norm_mean"
 se <- "se";    subject <- "subject"
 ggtitle <- paste(taskname, " - Reaction Time (s)");    title <- paste(taskname, " - RT")
-xlab <- "";    ylab <- "Reaction Time (s)";    
+xlab <- "";    ylab <- "Reaction Time (s)";
 w = 5; h = 3; dv_keyword <- "RT"
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
@@ -335,7 +338,7 @@ new_total <- dplyr::rename(total, subj = grp)
 
 rand_savefname <- file.path(
     analysis_dir,
-    paste("randeffect_task-", taskname, 
+    paste("randeffect_task-", taskname,
           "_iv-", iv_keyword,"_dv-", dv_keyword,
         "_",as.character(Sys.Date()), "_outlier-cooksd.csv",
         sep = ""
@@ -343,9 +346,10 @@ rand_savefname <- file.path(
 )
 write.csv(new_total, rand_savefname, row.names = FALSE)
 ```
+
 ```
 [1] "model:  Rt  ratings -  cognitive"
-event03_RT ~ cue_factor * stim_con_linear + cue_factor * stim_con_quad + 
+event03_RT ~ cue_factor * stim_con_linear + cue_factor * stim_con_quad +
     (1 | subject)
 <environment: 0x7f8725548c80>
 Linear mixed model fit by REML. t-tests use Satterthwaite's method ['lmerModLmerTest']
@@ -354,53 +358,55 @@ Formula: as.formula(model_string)
 
 REML criterion at convergence: 14116
 
-Scaled residuals: 
-    Min      1Q  Median      3Q     Max 
--4.7775 -0.7079 -0.0816  0.6722  3.3218 
+Scaled residuals:
+    Min      1Q  Median      3Q     Max
+-4.7775 -0.7079 -0.0816  0.6722  3.3218
 
 Random effects:
  Groups   Name        Variance Std.Dev.
- subject  (Intercept) 0.1654   0.4066  
- Residual             0.5433   0.7371  
+ subject  (Intercept) 0.1654   0.4066
+ Residual             0.5433   0.7371
 Number of obs: 6189, groups:  subject, 105
 
 Fixed effects:
-                                    Estimate Std. Error         df t value Pr(>|t|)    
+                                    Estimate Std. Error         df t value Pr(>|t|)
 (Intercept)                          3.16931    0.04202  115.33041  75.430  < 2e-16 ***
-cue_factorlow_cue                   -0.02908    0.01875 6080.59279  -1.551   0.1210    
+cue_factorlow_cue                   -0.02908    0.01875 6080.59279  -1.551   0.1210
 stim_con_linear                      0.19877    0.03240 6080.29673   6.134  9.1e-10 ***
-stim_con_quad                        0.05344    0.02842 6080.64300   1.880   0.0602 .  
-cue_factorlow_cue:stim_con_linear    0.07954    0.04587 6080.29621   1.734   0.0829 .  
-cue_factorlow_cue:stim_con_quad     -0.03609    0.04025 6080.52154  -0.897   0.3700    
+stim_con_quad                        0.05344    0.02842 6080.64300   1.880   0.0602 .
+cue_factorlow_cue:stim_con_linear    0.07954    0.04587 6080.29621   1.734   0.0829 .
+cue_factorlow_cue:stim_con_quad     -0.03609    0.04025 6080.52154  -0.897   0.3700
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 Correlation of Fixed Effects:
                     (Intr) c_fct_ stm_cn_l stm_cn_q c_fctrlw_c:stm_cn_l
-cu_fctrlw_c         -0.223                                             
-stim_cn_lnr          0.005 -0.012                                      
-stim_con_qd          0.001 -0.002 -0.012                               
-c_fctrlw_c:stm_cn_l -0.004  0.020 -0.706    0.008                      
-c_fctrlw_c:stm_cn_q -0.001  0.004  0.008   -0.706   -0.014             
-event03_RT ~ cue_factor * stim_con_linear + cue_factor * stim_con_quad + 
+cu_fctrlw_c         -0.223
+stim_cn_lnr          0.005 -0.012
+stim_con_qd          0.001 -0.002 -0.012
+c_fctrlw_c:stm_cn_l -0.004  0.020 -0.706    0.008
+c_fctrlw_c:stm_cn_q -0.001  0.004  0.008   -0.706   -0.014
+event03_RT ~ cue_factor * stim_con_linear + cue_factor * stim_con_quad +
     (1 | subject)
 <environment: 0x7f8725548c80>
 
 ```
+
 ```{block2, type='rmdnote'}
 Model 1 Interim summary
 * Research question: Does RT differ as a function of high vs. low cue across stimulus intensity?
-* Conclusion: linear effect of intensity is significant. 
+* Conclusion: linear effect of intensity is significant.
 * Next step: It's interesting that there is no cue effect on RT, while the cue effect on ratings are robust. We see if this effect is potentially present in only certain type of trials, namely the correct vs. incorrect trials of the mental rotation task
 ```
 
-
 ## model 1-1: Does RT differ as a function of cue, ONLY for the correct trials?
-* IV: 
-    * cue (high vs. low)
-    * stimulus intensity (high vs. medium vs. low)
-* DV: RT of the correct trials
-* Subsetting trials (identical to model 1, except for subsetting correct trials)
+
+- IV:
+  - cue (high vs. low)
+  - stimulus intensity (high vs. medium vs. low)
+- DV: RT of the correct trials
+- Subsetting trials (identical to model 1, except for subsetting correct trials)
+
 ```{r include=FALSE}
 # parameters ___________________________________________________________________
 subject_varkey <- "src_subject_id"
@@ -410,7 +416,7 @@ dv_keyword <- "RT-correct"
 xlab <- ""
 taskname <- "cognitive"
 ylim = c(0,5)
-    
+
 # lmer filename ________________________________________________________________
 model_savefname <- file.path(
         analysis_dir,
@@ -452,8 +458,8 @@ groupwise <- summarySEwithin(
 subjectwise_mean <- "mean_per_sub";    group_mean <- "mean_per_sub_norm_mean"
 se <- "se";    subject <- "subject"
 ggtitle <- paste(taskname, dv_keyword);    title <- paste(taskname, " - RT")
-xlab <- "";    ylab <- "Reaction Time (s)";    
-w = 5; h = 3; 
+xlab <- "";    ylab <- "Reaction Time (s)";
+w = 5; h = 3;
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
@@ -479,16 +485,17 @@ plot_halfrainclouds_onefactor(
 ```{block2, type='rmdnote'}
 Model 1-1 Interim summary (correct trials)
 
-* Research question: Only using correct trials, does RT differ as a function of high vs. low cue? 
+* Research question: Only using correct trials, does RT differ as a function of high vs. low cue?
 * Conclusion: No. Even within the subset of correct trials, RT does not differ as a function of cue.
 * Next step: Is there a cue effect on RT, only for the incorrect trials? Perhaps the cue had an effect on one's expectation, and the mismatch of thee cues led to incorrect performance, reflected in the RTs
 ```
 
 ## model 1-2: Does RT differ as a function of cue, ONLY for the incorrect trials?
 
-* IV: cue (high vs. low)
-* DV: RT of the incorrect trials
-* Subsetting trials (identical to model 1, except for subsetting incorrect trials)
+- IV: cue (high vs. low)
+- DV: RT of the incorrect trials
+- Subsetting trials (identical to model 1, except for subsetting incorrect trials)
+
 ```{r include=FALSE}
 # parameters ___________________________________________________________________
 subject_varkey <- "src_subject_id"
@@ -498,7 +505,7 @@ dv_keyword <- "RT-incorrect"
 xlab <- ""
 taskname <- "cognitive"
 ylim = c(0,5)
-    
+
 # lmer filename ________________________________________________________________
 model_savefname <- file.path(
         analysis_dir,
@@ -537,8 +544,8 @@ groupwise <- summarySEwithin(
 subjectwise_mean <- "mean_per_sub";    group_mean <- "mean_per_sub_norm_mean"
 se <- "se";    subject <- "subject"
 ggtitle <- paste(taskname, dv_keyword);    title <- paste(taskname, " - RT")
-xlab <- "";    ylab <- "Reaction Time (s)";    
-w = 5; h = 3; 
+xlab <- "";    ylab <- "Reaction Time (s)";
+w = 5; h = 3;
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
@@ -562,15 +569,15 @@ plot_halfrainclouds_onefactor(
 
 ```{block2, type='rmdnote'}
 Model 1-2 Interim summary (incorrect trials)
-* Research question: Only using incorrect trials, does RT differ as a function of high vs. low cue? 
+* Research question: Only using incorrect trials, does RT differ as a function of high vs. low cue?
 * Conclusion: No. Even within the subset of incorrect trials, RT does not differ as a function of cue
-* Next step: Reaction times are data points that are non-normal; mostly a skewed distribution. In order to deal with this skewness, we log-transform the data and investigate the same question, whether the cues have a signficant effect on reaction times. 
+* Next step: Reaction times are data points that are non-normal; mostly a skewed distribution. In order to deal with this skewness, we log-transform the data and investigate the same question, whether the cues have a signficant effect on reaction times.
 ```
 
 ## model 2: Log transformation - Do we see a cue effect on the log-transformmed RTs?
 
-* IV: cue (high vs. low)
-* DV: log-transformmed RT
+- IV: cue (high vs. low)
+- DV: log-transformmed RT
 
 ```{r model_2_cue_effect_on_log-RT_7, message=TRUE, warning=TRUE, paged.print=FALSE}
 # parameters ___________________________________________________________________
@@ -581,7 +588,7 @@ dv_keyword <- "RT-log"
 xlab <- ""
 taskname <- "cognitive"
 ylim = c(0,5)
-    
+
 # lmer filename ________________________________________________________________
 model_savefname <- file.path(
         analysis_dir,
@@ -618,10 +625,10 @@ groupwise <- summarySEwithin(
     )
 
 subjectwise_mean <- "mean_per_sub";    group_mean <- "mean_per_sub_norm_mean"
-se <- "se";   
+se <- "se";
 ggtitle <- paste(taskname, dv_keyword);    title <- paste(taskname, " - RT")
-xlab <- "";    ylab <- "Reaction Time (s)";    
-w = 5; h = 3; 
+xlab <- "";    ylab <- "Reaction Time (s)";
+w = 5; h = 3;
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
@@ -684,9 +691,10 @@ write.csv(new_total, rand_savefname, row.names = FALSE)
 ```
 
 ```{block2, type='rmdnote'}
-* Research question: Does log transformming help? After log-transformming RT, does RT differ as a function of high vs. low cue? 
+* Research question: Does log transformming help? After log-transformming RT, does RT differ as a function of high vs. low cue?
 * Conclusion 2: No, log transformmed or not, there is no significant cue effect on RT
 ```
 
 ## Conclusion across model 1 and 2
-* There is no substansive evidence that suggeest cue effects on reaction time. In other words, the time to respond to a rotated figure does not differ as a function of high or low cue. 
+
+- There is no substansive evidence that suggeest cue effects on reaction time. In other words, the time to respond to a rotated figure does not differ as a function of high or low cue.

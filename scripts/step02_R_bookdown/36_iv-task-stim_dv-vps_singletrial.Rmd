@@ -7,10 +7,9 @@ date: "2023-03-23"
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
-* Here, I model vPS dot products as a function of cue, stimulus intensity and expectation ratings. 
-* One of the findings is that low cues lead to higher VPS dotproducts in the high intensity group, and that this effect becomes non-significant across sessions. 
-* 03/23/2023: For now, I'm grabbing participants that have complete data, i.e. 18 runs, all three sessions. N = 65
-
+- Here, I model vPS dot products as a function of cue, stimulus intensity and expectation ratings.
+- One of the findings is that low cues lead to higher VPS dotproducts in the high intensity group, and that this effect becomes non-significant across sessions.
+- 03/23/2023: For now, I'm grabbing participants that have complete data, i.e. 18 runs, all three sessions. N = 65
 
 ```{r libraries_vps_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(car)
@@ -35,12 +34,11 @@ library(sjlabelled)
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 ```
-
 
 ```{r function::summary_for_plots_pvc, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 summary_for_plots_PVC <- function(df, groupwise_measurevar, subject_keyword, model_iv1, model_iv2, dv) {
@@ -122,7 +120,7 @@ two_factor_lineplot <-
       ylab(ylab) +
       #scale_color_manual(values = color) +
       theme_classic() +
-      
+
       theme(aspect.ratio = .6) +
       expand_limits(x = 3.25) +
       #guides(fill = "none") +
@@ -143,11 +141,10 @@ two_factor_lineplot <-
       ) +
       theme(legend.key = element_rect(fill = "white", colour = "white")) +
       theme_bw()
-    
+
     return(g)
   }
 ```
-
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 # step 1: load data
@@ -182,7 +179,7 @@ for (signature_key in c("VPS")) {
              showWarnings = FALSE,
              recursive = TRUE)
   savedir <- analysis_dir
-  
+
   # step 2: load data
   df = read.csv(sig_name)
   sig_df = df %>% separate(
@@ -210,14 +207,14 @@ for (signature_key in c("VPS")) {
   pvc$task[pvc$runtype == "runtype-vicarious"] <- "vicarious"
   pvc$task[pvc$runtype == "runtype-cognitive"] <- "cognitive"
   pvc$task <- factor(pvc$task)
-  
-  
+
+
   # step 3: parameters
-  
+
   taskname = "all"
   plot_keyword = "stimulusintensity"
   ggtitle_phrase =  "(3 tasks x 3 stimulus intensity)"
-  
+
   pvc$task = factor(pvc$task)
   plot_keys <- list(
     sub_mean = "mean_per_sub",
@@ -244,7 +241,7 @@ for (signature_key in c("VPS")) {
     ylab = paste(signature_key, " (dot product)"),
     ylim = c(-250, 500)
   )
-  
+
   # step 4: within between summary
   groupwise <- data.frame()
   subjectwise <- data.frame()
@@ -266,9 +263,9 @@ for (signature_key in c("VPS")) {
   } else {
     plot_keys$color <- c("#4575B4", "#FFA500", "#D73027")
   }
-  
+
   # step 5: plot
-  
+
   iv2 = "stim_ordered"
   iv1 = "task"
   taskname = "all"
@@ -295,7 +292,7 @@ for (signature_key in c("VPS")) {
       length(unique(pvc$sub)),
       ")"
     )
-  
+
   title <-
     paste0(str_to_title(dv_keyword),
            " - ",
@@ -343,15 +340,14 @@ for (signature_key in c("VPS")) {
 }
 ```
 
-
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 main_dir = dirname(dirname(getwd()))
 print(main_dir)
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
 taskname = '*'
 subject_varkey <- "src_subject_id"
-iv <- "param_stimulus_type"; 
-iv_keyword <- "stim"; 
+iv <- "param_stimulus_type";
+iv_keyword <- "stim";
 dv <- "event04_actual_angle"; dv_keyword <- "outcome"
 exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 
@@ -363,24 +359,24 @@ p.df2= p.df %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number())
-data_p <- p.df2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_p <- p.df2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num))
 
 v.df2= v.df %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number())
-data_v <- v.df2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_v <- v.df2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num))
 
 c.df2= c.df %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number()-1)
-data_c <- c.df2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_c <- c.df2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num) )
 p.sub <- data_p[,c("src_subject_id", "session_id", "param_run_num", "param_task_name", "event02_expect_angle", "param_cue_type", "param_stimulus_type", "event04_actual_angle", "trial_index")]
 v.sub <- data_v[,c("src_subject_id", "session_id", "param_run_num", "param_task_name", "event02_expect_angle", "param_cue_type", "param_stimulus_type", "event04_actual_angle", "trial_index")]
@@ -391,7 +387,7 @@ pvc.sub = rbind(p.sub, v.sub, c.sub)
 ```
 
 ```{r warning=FALSE, include=FALSE}
-pvc.sub$trial_ind <- pvc.sub$trial_index -1 
+pvc.sub$trial_ind <- pvc.sub$trial_index -1
 pvc.sub$sub <- sprintf("sub-%04d", pvc.sub$src_subject_id)
 pvc.sub$ses <- sprintf("ses-%02d", pvc.sub$session_id)
 pvc.sub$run <- sprintf("run-%02d", pvc.sub$param_run_num)
@@ -403,31 +399,31 @@ pvc.sub[c('stimintensity', 'DEP')]  <- str_split_fixed(pvc.sub$param_stimulus_ty
 
 # merge
 pvc.beh <- pvc.sub[,c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity","event02_expect_angle", "event04_actual_angle")]
-df_merge <- merge(pvc, pvc.beh, 
+df_merge <- merge(pvc, pvc.beh,
                   by.x = c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity"),
                   by.y = c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity")
                   )
-  
-```
 
+```
 
 ---
 
-## VPS ~ 3 task * 3 stimulus_intensity
+## VPS ~ 3 task \* 3 stimulus_intensity
+
 ### Q. What does the VPS pattern look like for the three tasks? {.unlisted .unnumbered}
 
 #### Contrast weight table {.unlisted .unnumbered}
+
 ```{r echo=FALSE}
-tab <- matrix(c(.5, 0, -.5, 
+tab <- matrix(c(.5, 0, -.5,
                 -.34, -.66, -.34), ncol=3, byrow=TRUE)
 colnames(tab) <- c('pain','vicarious','cognitive')
 rownames(tab) <- c('task_P_gt_C','task_V_gt_PC')
 kableExtra::kable_styling(
   knitr::kable(
-    tab, caption = "Contrast weights", "html"), 
+    tab, caption = "Contrast weights", "html"),
   "striped", position = "left", font_size = 15)
 ```
-
 
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 # contrast code 1 linear
@@ -443,12 +439,13 @@ pvc$task_V_gt_PC[pvc$task == "cognitive"] <- -.34
 
 ```{r echo=TRUE, warning=TRUE, class.output="bg-warning"}
 model.alltask <-
-  lmer(VPS ~ task_P_gt_C*stim_factor + 
+  lmer(VPS ~ task_P_gt_C*stim_factor +
          task_V_gt_PC*stim_factor + (task|sub), data = pvc)
 sjPlot::tab_model(model.alltask)
 ```
 
 #### eta-squared {.unlisted .unnumbered}
+
 ```{r echo=FALSE, warning=TRUE, class.output="bg-warning"}
 kableExtra::kable_styling(
   knitr::kable(
@@ -457,13 +454,13 @@ kableExtra::kable_styling(
 ```
 
 #### Cohen's d {.unlisted .unnumbered}
+
 ```{r echo=FALSE, warning=TRUE, class.output="bg-warning"}
 kableExtra::kable_styling(
   knitr::kable(
     lme.dscore(model.alltask, pvc, type = "lme4"), # MODIFY
     "html"), "striped", position = "left", font_size = 12)
 ```
-
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 plot_halfrainclouds_twofactor(
@@ -482,13 +479,13 @@ plot_halfrainclouds_twofactor(
   color = c( "#1982c4","#ffca3a", "#9a031e"),
   analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model36_VPS")
   save_fname = file.path(analysis_dir, "plot_35.png")
-) 
+)
 ```
-
 
 ## VPS ~ vicarious task: 2 cue x 3 stimulus_intensity
 
 ### Q. Within vicarious task, Does stimulus intenisty level and cue level significantly predict VPS dotproducts? {.unlisted .unnumbered}
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 taskname = "vicarious"
@@ -536,8 +533,8 @@ data <- p.sig
             sep = ""
         )
     )
-    
-    cooksd <- lmer_twofactor_cooksd_fix(
+
+    cooksd <- lmer_twofactor_cooksd(
         data, taskname, iv1, stim_con1, stim_con2, dv,
         subject, dv_keyword, model_savefname, 'random_intercept', print_lmer_output = FALSE
     )
@@ -578,7 +575,7 @@ data <- p.sig
     )
     actual_groupwise$task <- taskname
     # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
-    
+
     combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, actual_groupwise)
     # if(any(startsWith(dv_keyword, c("expect", "Expect")))){color = c( "#1B9E77", "#D95F02")}else{color=c( "#4575B4", "#D73027")} # if keyword starts with
     # print("groupwisemean")
@@ -615,14 +612,15 @@ data <- p.sig
 g
 ```
 
-
 ### Linear model ver 1: VPS ~ stimulus_intensity
+
 ```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
 model.vpsstim <- lmer(VPS ~ stim_con_linear + stim_con_quad +(stim_con_linear + stim_con_quad |sub), data = data_screen)
 sjPlot::tab_model(model.vpsstim)
 ```
 
 #### Linear model ver 1: eta-squared
+
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 kableExtra::kable_styling(
   knitr::kable(
@@ -632,6 +630,7 @@ kableExtra::kable_styling(
 ```
 
 #### Linear model ver 1: Cohen's d VPS stimulus intensity = 0.213 {.unlisted .unnumbered}
+
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 kableExtra::kable_styling(
   knitr::kable(
@@ -639,13 +638,15 @@ kableExtra::kable_styling(
     "html"), "striped", position = "left", font_size = 12)
 ```
 
-### Linear model ver 2: VPS ~ stimulus_intenisy * cue 
+### Linear model ver 2: VPS ~ stimulus_intenisy \* cue
+
 ```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
 model.vpscuestim <- lmer(VPS ~ CUE_high_gt_low*stim_con_linear + CUE_high_gt_low*stim_con_quad + (CUE_high_gt_low+stim_factor|sub), data = data_screen)
 sjPlot::tab_model(model.vpscuestim)
 ```
 
 #### Linear model ver 2: eta-squared {.unlisted .unnumbered}
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 kableExtra::kable_styling(
   knitr::kable(
@@ -654,6 +655,7 @@ kableExtra::kable_styling(
 ```
 
 #### Cohen's d: VPS stimulus intensity d = 0.217, cue level d = 0.013 {.unlisted .unnumbered}
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 kableExtra::kable_styling(
   knitr::kable(
@@ -661,22 +663,22 @@ kableExtra::kable_styling(
     "html"), "striped", position = "left", font_size = 12)
 ```
 
+### Lineplots {.unlisted .unnumbered}
 
-### Lineplots  {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-plot_lineplot_twofactor_subset(actual_groupwise, taskname = "vicarious", 
-                        iv1 = "stim_ordered", iv2 = "cue_ordered", 
+plot_lineplot_twofactor_subset(actual_groupwise, taskname = "vicarious",
+                        iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("#4575B4", "#D73027"), ggtitle = "Within vicarious task: VPS dotproducts as a function of stimulus intensity level and cue", 
+                        color = c("#4575B4", "#D73027"), ggtitle = "Within vicarious task: VPS dotproducts as a function of stimulus intensity level and cue",
                         xlab = "Stimulus intensity", ylab = paste(signature_key, " (dot product)"))
 ```
 
-### 2 Cue x 3 Stimulus intensity x Expectation rating 
+### 2 Cue x 3 Stimulus intensity x Expectation rating
+
 ```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
 model.vps3factor <- lmer(VPS ~ CUE_high_gt_low*stim_con_linear*event02_expect_angle + CUE_high_gt_low*stim_con_quad*event02_expect_angle + (CUE_high_gt_low|sub), data = data_screen)
 sjPlot::tab_model(model.vps3factor)
 ```
-
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
 kableExtra::kable_styling(
@@ -692,13 +694,14 @@ kableExtra::kable_styling(
 
 ---
 
-## VPS ~ session * cue * stimulus_intensity
+## VPS ~ session _ cue _ stimulus_intensity
+
 ### Q. Is the cue effect on VPS different across sessions? {.unlisted .unnumbered}
 
 > Quick answer: Yes, the cue effect in session 1 (for high intensity group) is significantly different; the dirrection flips in session 3; whereas this different becomes non significant in session 4.
 
+### Session 1: 2 cue \* 3 stimulus_intensity {.unlisted .unnumbered}
 
-### Session 1: 2 cue * 3 stimulus_intensity  {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 taskname = "vicarious"
@@ -746,8 +749,8 @@ data$stim_con_quad[data$stimintensity == "high"] <- -0.33
             sep = ""
         )
     )
-    
-    cooksd <- lmer_twofactor_cooksd_fix(
+
+    cooksd <- lmer_twofactor_cooksd(
         data, taskname, iv1, stim_con1, stim_con2, dv,
         subject, dv_keyword, model_savefname, 'random_intercept', print_lmer_output = FALSE
     )
@@ -788,9 +791,9 @@ data$stim_con_quad[data$stimintensity == "high"] <- -0.33
     )
     actual_groupwise$task <- taskname
     # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
-    
+
     combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, actual_groupwise)
-   # calculate mean and se  
+   # calculate mean and se
     sub_mean <- "mean_per_sub"
     group_mean <- "mean_per_sub_norm_mean"
     se <- "se"
@@ -823,9 +826,8 @@ data$stim_con_quad[data$stimintensity == "high"] <- -0.33
 g
 ```
 
+### Session 3: 2 cue \* 3 stimulus_intensity {.unlisted .unnumbered}
 
-
-### Session 3: 2 cue * 3 stimulus_intensity  {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 taskname = "vicarious"
@@ -873,8 +875,8 @@ data$stim_con_quad[data$stimintensity == "high"] <- -0.33
             sep = ""
         )
     )
-    
-    cooksd <- lmer_twofactor_cooksd_fix(
+
+    cooksd <- lmer_twofactor_cooksd(
         data, taskname, iv1, stim_con1, stim_con2, dv,
         subject, dv_keyword, model_savefname, 'random_intercept', print_lmer_output = FALSE
     )
@@ -915,9 +917,9 @@ data$stim_con_quad[data$stimintensity == "high"] <- -0.33
     )
     actual_groupwise$task <- taskname
     # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
-    
+
     combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, actual_groupwise)
-   # calculate mean and se  
+   # calculate mean and se
     sub_mean <- "mean_per_sub"
     group_mean <- "mean_per_sub_norm_mean"
     se <- "se"
@@ -950,8 +952,8 @@ data$stim_con_quad[data$stimintensity == "high"] <- -0.33
 g
 ```
 
+### Session 4: 2 cue \* 3 stimulus_intensity {.unlisted .unnumbered}
 
-### Session 4: 2 cue * 3 stimulus_intensity  {.unlisted .unnumbered}
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 taskname = "vicarious"
@@ -999,8 +1001,8 @@ data$stim_con_quad[data$stimintensity == "high"] <- -0.33
             sep = ""
         )
     )
-    
-    cooksd <- lmer_twofactor_cooksd_fix(
+
+    cooksd <- lmer_twofactor_cooksd(
         data, taskname, iv1, stim_con1, stim_con2, dv,
         subject, dv_keyword, model_savefname, 'random_intercept', print_lmer_output = FALSE
     )
@@ -1041,9 +1043,9 @@ data$stim_con_quad[data$stimintensity == "high"] <- -0.33
     )
     actual_groupwise$task <- taskname
     # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
-    
+
     combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, actual_groupwise)
-   # calculate mean and se  
+   # calculate mean and se
     sub_mean <- "mean_per_sub"
     group_mean <- "mean_per_sub_norm_mean"
     se <- "se"
@@ -1076,14 +1078,13 @@ data$stim_con_quad[data$stimintensity == "high"] <- -0.33
 g
 ```
 
-
 ---
 
 ## VPS ~ outcome_rating
+
 ### Q. Do higher VPS values indicate higher outcome ratings? (Vicarious task only) {.unlisted .unnumbered}
 
 > Yes, Higher VPS values are associated with higher outcome ratings. The pattern is slightly different from the NPS plots, when separated out into three panels of stimulus intensity levels. Neeed to ponder on these results
-
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 # plot parameters
@@ -1133,7 +1134,8 @@ subjectwise_2dv <- meanSummary_2dv(
     g
 ```
 
-### outcome_ratings * cue
+### outcome_ratings \* cue
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 p.sig <- df_merge[df_merge$runtype == "runtype-vicarious",]
 iv2 = "event04_actual_angle"; iv1 = signature_key
@@ -1145,17 +1147,16 @@ total <-
     group = "cuetype", subject = "sub",
     ymin =0, ymax = 100, xmin = -10, xmax = 30,
     ylab = "outcome rating",
-    xlab = signature_key, 
-    ggtitle = "all stimulus intensity", 
-    color_scheme = c("cuetype-high" ="#008F51","cuetype-low" =  "#BBBBBB"), 
+    xlab = signature_key,
+    ggtitle = "all stimulus intensity",
+    color_scheme = c("cuetype-high" ="#008F51","cuetype-low" =  "#BBBBBB"),
     alpha = .8, fit_lm = TRUE, lm_method ="lm", identity_line = FALSE
   )
 total + labs(title =paste0("task-",taskname, "- What is the pattern for VPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n")
           )
 ```
 
-
-### outcome_ratings * stimulus_intensity * cue
+### outcome_ratings _ stimulus_intensity _ cue
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 iv2 = "event04_actual_angle"; iv1 = signature_key
@@ -1203,15 +1204,15 @@ plots_title <- annotate_figure(plots, top = text_grob(paste(str_to_title(tasknam
 plots_title
 ```
 
-
 ---
 
 ## VPS ~ expectation_rating
+
 ### Q. What is the relationship betweeen expectation ratings & VPS? (Vicarious task only) {.unlisted .unnumbered}
+
 Do we see a linear effect between expectation rating and VPS dot products? Also, does this effect differ as a function of cue and stimulus intensity ratings, as is the case for behavioral ratings?
 
-> Quick answer: Kind of, expectation ratings predict VPS dotproducts; almost only in the low cue conditions across all stimulus intensity levels. 
-
+> Quick answer: Kind of, expectation ratings predict VPS dotproducts; almost only in the low cue conditions across all stimulus intensity levels.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 p.sig <- df_merge[df_merge$runtype == "runtype-vicarious",]
@@ -1224,16 +1225,15 @@ total <-
     group = "cuetype", subject = "sub",
     xmin =0, xmax = 100, ymin = -10, ymax = 20,
     xlab = "expectation rating",
-    ylab = signature_key, 
-    ggtitle = "all stimulus intensity", 
-    color_scheme = c("cuetype-high" ="#008F51","cuetype-low" =  "#BBBBBB"), 
+    ylab = signature_key,
+    ggtitle = "all stimulus intensity",
+    color_scheme = c("cuetype-high" ="#008F51","cuetype-low" =  "#BBBBBB"),
     alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = FALSE
   )
 
 
 total + labs(title =paste0("task-",taskname, "- What is the pattern for VPS pos dotproduct and expect ratings? \nHow is does this pattern differ depending on high vs low cues?\n\n"))
 ```
-
 
 ```{r rawoutcome_pain_stimuluswise, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 iv1 = "event02_expect_angle"; iv2 = signature_key
@@ -1280,5 +1280,3 @@ plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = F
 plots_title <- annotate_figure(plots, top = text_grob(paste(str_to_title(taskname), "\n Expect/Outcome linear relationship differs as a function of stimulus intensity and cue"), color = "black", face = "bold", size = 12))
 plots_title
 ```
-
-

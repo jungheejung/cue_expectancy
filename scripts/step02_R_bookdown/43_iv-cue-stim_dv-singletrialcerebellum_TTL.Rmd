@@ -1,12 +1,8 @@
 # [fMRI] singletrial ~ subcortex {#ch43_singletrial_cerebellum}
 
-
-
 title: "singletrial_cerebellum"
 output: html_document
 date: "2023-07-28"
-
-
 
 TODO: run and load for every participant
 TODO: for loop for roi of interest
@@ -26,8 +22,8 @@ source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/f
   # step 1: common parameters _______
 main_dir <- dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, 'scripts', 'step02_R', 'utils'),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 
@@ -35,6 +31,7 @@ sapply(file.sources,source,.GlobalEnv)
 ```
 
 ## Function {.unlisted .unnumbered}
+
 ```{r function::summary_for_plots_pvc, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 summary_for_plots_PVC <- function(df, groupwise_measurevar, subject_keyword, model_iv1, model_iv2, dv) {
     #  [ PLOT ] calculate mean and se  _________________________
@@ -121,7 +118,7 @@ two_factor_lineplot <-
       ylab(ylab) +
       #scale_color_manual(values = color) +
       theme_classic() +
-      
+
       theme(aspect.ratio = .6) +
       expand_limits(x = 3.25) +
       #guides(fill = "none") +
@@ -142,12 +139,13 @@ two_factor_lineplot <-
       ) +
       theme(legend.key = element_rect(fill = "white", colour = "white")) +
       theme_bw()
-    
+
     return(g)
   }
 ```
 
 ## TODO: outline
+
 ```{r}
 taskname <- 'pain'
 # load dataframe
@@ -188,12 +186,12 @@ dir.create(analysis_dir,
 savedir <- analysis_dir
 ```
 
-
 ```{r}
 pvc <- simple_contrasts_singletrial(df)
 ```
 
 ## LMER
+
 ```{r}
 # ----------------------------------------------------------------------
 #                               parameters
@@ -216,7 +214,7 @@ data <- pvc
 data <- pvc[complete.cases(pvc[[dv]]), ]
 
 model_savefname <- file.path(
-  analysis_dir,  
+  analysis_dir,
   paste(
     "lmer_task-",taskname,"_rating-",dv_keyword,"_",as.character(Sys.Date()),"_cooksd.txt",
     sep = ""
@@ -227,7 +225,7 @@ model_savefname <- file.path(
 #                               lmer model
 # ----------------------------------------------------------------------
 
-cooksd <- lmer_twofactor_cooksd_fix(
+cooksd <- lmer_twofactor_cooksd(
   data,  taskname,  iv1,  stim_con1,  stim_con2,  dv,
   subject,  dv_keyword,  model_savefname,
   'random_intercept',  print_lmer_output = FALSE
@@ -312,15 +310,14 @@ g
 print(g)
 
 k <- plot_lineplot_twofactor(NPSstimcue_groupwise,
-                        iv1 = "stim_ordered", iv2 = "cue_ordered", 
+                        iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("high" = "red",
                                   # "med" = "orange",
-                                  "low" = "gray"), 
-                        ggtitle = title, 
+                                  "low" = "gray"),
+                        ggtitle = title,
                         xlab = "Stimulus intensity", ylab = "ROI average activation (A.U.)")
 k <- k + theme(aspect.ratio=.8)
 print(k)
 }
 ```
-

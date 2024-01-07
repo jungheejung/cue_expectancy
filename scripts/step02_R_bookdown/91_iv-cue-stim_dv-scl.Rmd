@@ -1,4 +1,5 @@
-# [physio] scl ~ cue*stim {#scl}
+# [physio] scl ~ cue\*stim {#scl}
+
 ```
 title: "model09_iv-cue-stim_dv-scl"
 author: "Heejung Jung"
@@ -6,17 +7,19 @@ date: '2022-09-17'
 ```
 
 ## overview
+
 TODO:
 split data into task (full -> P, v, c subset)
 push code to git
 create code map
 log transform
-* SCL: mean signal
-* SCR: log transform
+
+- SCL: mean signal
+- SCR: log transform
 
 ## Overview
 
-The purpose of this notebook is to analyze biopac phasic data. 
+The purpose of this notebook is to analyze biopac phasic data.
 Data has been preprocessed with neurokit
 
 We load a dataframe that contains the following outcome measures:
@@ -24,9 +27,7 @@ We load a dataframe that contains the following outcome measures:
 'SCR_Peak_Amplitude_Time', 'SCR_RiseTime', 'SCR_RecoveryTime'
 
 We model this as a function of "cue" and "stimulus intensity",
-while allowing for random effects from participants. 
-
-
+while allowing for random effects from participants.
 
 ```{r load_libraries_51, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
 library(psych)
@@ -63,14 +64,12 @@ library(brms)
 library(r2mlm)
 main_dir <- dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, 'scripts', 'step02_R', 'utils'),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 
 ```
-
-
 
 ```{r load_data_and_exclude_51}
 main_dir = dirname(dirname(getwd()))
@@ -78,6 +77,7 @@ datadir = file.path(main_dir, "analysis", "physio", "physio01_SCL")
 analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model91_physio_iv-cue-stim_dv-scl", as.character(Sys.Date()))
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 ```
+
 ```{r}
 ylab <- "ratings (degree)"
 subject <- "subject"
@@ -103,7 +103,7 @@ filename <- paste0("*_runtype-", taskname,"_epochstart--1_epochend-20_physio-scl
 #     read.csv(files)
 #     }))
 
-  
+
 scl <- do.call("rbind.fill", lapply(filter_path, FUN = function(files) {
     read.csv(files)
     }))
@@ -127,7 +127,6 @@ This is the data that we will use
 scl <- read.csv(file.path(main_dir, "data/physio/sub-all_ses-all_run-all_runtype-cognitive_epochstart--3_epochend-20_samplingrate-25_ttlindex-1_physio-scltimecourse.csv"))
 head(scl)
 ```
-
 
 ```{r contrast_coding_51}
 #contrast code 1 linear
@@ -159,17 +158,16 @@ dv_keyword <- "scl_peak"
 xlab <- ""
 taskname <- "full"
 #ylim = c(-1,1)
-#tonic_task = 
+#tonic_task =
 ```
 
 ### full model with all tasks
+
 ```{r lmer_fullmodel_51, class.source = 'fold-show'}
 fullmodel = lmer(mean_signal ~ 1+ cue_factor*stim_con_linear +cue_factor*stim_con_quad + (1 |src_subject_id), data = scl)
 summary(fullmodel)
 print(summary(fullmodel))
 ```
-
-
 
 ```{r plot_results_pain_51}
 
@@ -200,14 +198,14 @@ groupwise <- summarySEwithin(
         idvar = "subject"
     )
 
-subjectwise_mean <- "mean_per_sub";    
+subjectwise_mean <- "mean_per_sub";
 group_mean <- "mean_per_sub_norm_mean"
-se <- "se";   
-ggtitle <- paste(taskname, dv_keyword);    
+se <- "se";
+ggtitle <- paste(taskname, dv_keyword);
 title <- paste(taskname, " - RT")
-xlab <- "";    
-ylab <- "SCL peak amplitude ";    
-w = 5; h = 3; 
+xlab <- "";
+ylab <- "SCL peak amplitude ";
+w = 5; h = 3;
 ylim = c(-3,3)
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
@@ -231,26 +229,29 @@ plot_rainclouds_twofactor(
 
 ```
 
-
 ### PAIN
+
 ```{r lmer_fullmodel_pain_51, class.source = 'fold-show'}
 pain = lmer(mean_signal ~ 1+ cue_factor + stim_con_linear + stim_con_quad + cue_factor:stim_con_linear + cue_factor:stim_con_quad + (1  |src_subject_id), data = scl[scl$param_task_name == 'pain',])
 summary(pain)
 ```
 
 ### VICARIOUS
+
 ```{r lmer_fullmodel_vicarious_51, class.source = 'fold-show'}
 vicarious = lmer(mean_signal ~ 1+ cue_factor + stim_con_linear + stim_con_quad + cue_factor:stim_con_linear + cue_factor:stim_con_quad + (1  |src_subject_id), data = scl[scl$param_task_name == 'vicarious',])
 summary(vicarious)
 ```
 
 ### COGNITIVE
+
 ```{r lmer_fullmodel_cognitive_51, class.source = 'fold-show'}
 cognitive = lmer(mean_signal ~ 1+ cue_factor + stim_con_linear + stim_con_quad + cue_factor:stim_con_linear + cue_factor:stim_con_quad + (1  |src_subject_id), data = scl[scl$param_task_name == 'cognitive',])
 summary(cognitive)
 ```
 
 ### TASKWISE PLOTS
+
 ```{r}
 combined_se_calc_cooksd = data.frame()
 for (taskname in c( "pain", "vicarious", "cognitive")) { #"pain",
@@ -300,8 +301,8 @@ for (taskname in c( "pain", "vicarious", "cognitive")) { #"pain",
             sep = ""
         )
     )
-    
-    cooksd <- lmer_twofactor_cooksd_fix(
+
+    cooksd <- lmer_twofactor_cooksd(
         data = data, taskname = taskname, iv = iv1, stim_con1 = stim_con1, stim_con2 = stim_con2, dv = dv,
         subject_keyword = "subject", dv_keyword = dv_keyword, model_savefname = model_savefname, effects = 'random_intercept', print_lmer_output = TRUE
     )
@@ -378,22 +379,22 @@ for (taskname in c( "pain", "vicarious", "cognitive")) { #"pain",
     )
     g
 
-    
+
     # ggsave(plot_savefname, width = w, height = h)
 
-    
-    
+
+
 
     # save fixed random effects _______________________________
     # randEffect$newcoef <- mapvalues(randEffect$term,
-    #     from = c("(Intercept)", "data[, iv]", 
-    #              "data[, stim_con1]", "data[, stim_con2]", 
-    #              "data[, iv]:data[, stim_con1]", 
+    #     from = c("(Intercept)", "data[, iv]",
+    #              "data[, stim_con1]", "data[, stim_con2]",
+    #              "data[, iv]:data[, stim_con1]",
     #              "data[, iv]:data[, stim_con2]"),
-    #     to = c("rand_intercept", "rand_cue", "rand_stimlin", 
+    #     to = c("rand_intercept", "rand_cue", "rand_stimlin",
     #            "rand_stimquad", "rand_int_cue_stimlin", "rand_int_cue_stimquad")
     # )
-    # 
+    #
     # #
     # # # The arguments to spread():
     # # # - data: Data object
@@ -412,21 +413,21 @@ for (taskname in c( "pain", "vicarious", "cognitive")) { #"pain",
     # )
     # rownames(wide_fix) <- NULL
     # new_wide_fix <- dplyr::rename(wide_fix,
-    #     fix_intercept = `(Intercept)`, 
+    #     fix_intercept = `(Intercept)`,
     #     fix_cue = `data[, iv]`,
     #     fix_stimulus_linear = `data[, stim_con1]`,
-    #     fix_stimulus_quad = `data[, stim_con2]`, 
+    #     fix_stimulus_quad = `data[, stim_con2]`,
     #     fix_int_cue_stimlin = `data[, iv]:data[, stim_con1]`,
     #     fix_int_cue_stimquad = `data[, iv]:data[, stim_con2]`
     # )
-    # 
+    #
     # total <- cbind(wide_rand, new_wide_fix)
     # total$task <- taskname
     # new_total <- total %>% dplyr::select(task, everything())
     # new_total <- dplyr::rename(total, subj = grp)
-    # 
-    # plot_savefname <- file.path(analysis_dir, 
-    #                             paste("randeffect_task-", taskname, 
+    #
+    # plot_savefname <- file.path(analysis_dir,
+    #                             paste("randeffect_task-", taskname,
     #                                   "_", as.character(Sys.Date()), "_outlier-cooksd.csv", sep = ""))
     # write.csv(new_total, plot_savefname, row.names = FALSE)
 }
@@ -443,7 +444,7 @@ LINEIV2 = "cue_ordered"
 MEAN = "mean_per_sub_norm_mean"
 ERROR = "ci"
 dv_keyword = "actual"
-    
+
     g <- ggplot(data = DATA, aes(
         x = stim_ordered,
         y = mean_per_sub_norm_mean,
@@ -480,11 +481,11 @@ LINEIV2 = "cue_ordered"
 MEAN = "mean_per_sub_norm_mean"
 ERROR = "ci"
 dv_keyword = "eda-mean-peak-amplitude"
-p1 = plot_lineplot_twofactor_subset(DATA, 'pain', 
+p1 = plot_lineplot_twofactor_subset(DATA, 'pain',
                LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'pain' )
-p2 = plot_lineplot_twofactor_subset(DATA,'vicarious', 
+p2 = plot_lineplot_twofactor_subset(DATA,'vicarious',
                LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = 'vicarious')
-p3 = plot_lineplot_twofactor_subset(DATA, 'cognitive', 
+p3 = plot_lineplot_twofactor_subset(DATA, 'cognitive',
                LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = 'cognitive')
 #grid.arrange(p1, p2, p3, ncol=3 , common.legend = TRUE)
 ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")

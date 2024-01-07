@@ -1,9 +1,10 @@
-# [fMRI] ROI ~ cue * stim {#ch41_painpathway}
+# [fMRI] ROI ~ cue \* stim {#ch41_painpathway}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
-* Here, I model NPS dot products as a function of cue, stimulus intensity and expectation ratings.
-* One of the findings is that low cues lead to higher NPS dotproducts in the high intensity group, and that this effect becomes non-significant across sessions.
-* 03/23/2023: For now, I'm grabbing participants that have complete data, i.e. 18 runs, all three sessions.
+
+- Here, I model NPS dot products as a function of cue, stimulus intensity and expectation ratings.
+- One of the findings is that low cues lead to higher NPS dotproducts in the high intensity group, and that this effect becomes non-significant across sessions.
+- 03/23/2023: For now, I'm grabbing participants that have complete data, i.e. 18 runs, all three sessions.
 
 ```{r include=FALSE}
 library(car)
@@ -32,19 +33,19 @@ library(raincloudplots)
 devtools::source_url("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 ```
+
 ## common parameters
+
 ```{r}
 main_dir = dirname(dirname(getwd()))
 print(main_dir)
 exclude_list <- "sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0007|sub-0008|sub-0013|sub-0016|sub-0017|sub-0019|sub-0020|sub-0021|sub-0025|sub-0075"
 ```
-
-
 
 ```{r}
 ## load brain extracted values {.unlisted .unnumbered}
@@ -56,15 +57,15 @@ head(brain.df)
 beh.df <- load_pvc_beh(datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc'),
              subject_varkey = "src_subject_id",
              iv = "param_stimulus_type",
-             dv = "event04_actual_angle", 
+             dv = "event04_actual_angle",
              exclude = exclude_list)
 ```
 
-
 ## merge two dataframes {.unlisted .unnumbered}
+
 ```{r}
 beh.df.sub <- beh.df[,c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity","event02_expect_angle", "event04_actual_angle")]
-pvc <- merge(brain.df, beh.df.sub, 
+pvc <- merge(brain.df, beh.df.sub,
                   by.x = c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity"),
                   by.y = c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity")
                   )
@@ -72,6 +73,7 @@ pvc.df <- simple_contrast_singletrial(pvc)
 ```
 
 ## plot task x intensity
+
 ```{r echo=FALSE}
 
 taskname = "all"
@@ -88,7 +90,7 @@ for (extract_key in c("Thal_VPLM_R","Thal_VPLM_L", "Thal_MD", "dpIns_L", "dpIns_
   PLOT_KEYS <- list(
     iv1 = "task", iv2 = "stim_ordered", dv = extract_key,
     sub = "sub", sub_mean = "mean_per_sub",  group_mean = "mean_per_sub_norm_mean",
-    dv_keyword = extract_key, legend_keyword = "stimulus intensity",  error = "se",  
+    dv_keyword = extract_key, legend_keyword = "stimulus intensity",  error = "se",
     ggtitle = paste0(
       str_to_title(extract_key), " dot product: ", str_to_title(taskname), ' ', ggtitle_phrase, " (N = ", length(unique(pvc$sub)), ")"
     ),
@@ -104,6 +106,7 @@ for (extract_key in c("Thal_VPLM_R","Thal_VPLM_L", "Thal_MD", "dpIns_L", "dpIns_
 ```
 
 ## plot cue x intensity
+
 ```{r echo=FALSE}
 
 taskname = "all"
@@ -117,7 +120,7 @@ for (extract_key in c("Thal_VPLM_R","Thal_VPLM_L", "Thal_MD", "dpIns_L", "dpIns_
 PLOT_KEYS <- list(
     iv1 = "stim_ordered", iv2 = "cue_ordered", dv = extract_key,
     sub = "sub", sub_mean = "mean_per_sub",  group_mean = "mean_per_sub_norm_mean",
-    dv_keyword = extract_key, legend_keyword = "cue",  error = "se",  
+    dv_keyword = extract_key, legend_keyword = "cue",  error = "se",
     ggtitle = paste0(
       str_to_title(extract_key), " dot product: ", str_to_title(taskname), ' ', ggtitle_phrase, " (N = ", length(unique(pvc$sub)), ")"
     ),
@@ -142,7 +145,7 @@ model_savefname <- file.path(
   )
 )
 
-cooksd <- lmer_twofactor_cooksd_fix(
+cooksd <- lmer_twofactor_cooksd(
   pvc.df,
   taskname,
   "cue_ordered",
@@ -160,7 +163,6 @@ cooksd <- lmer_twofactor_cooksd_fix(
 
   g <- plot_signature_twolineplot(signature_key = extract_key, plot_keys = PLOT_KEYS, df = pvc.df[pvc.df$task == "pain",])
   print(g)
-  
+
 }
 ```
-
