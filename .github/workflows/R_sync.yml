@@ -1,0 +1,17 @@
+name: Sync to R Package Repo
+
+on:
+  push:
+    branches:
+      - main  # or your default branch
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Repository Dispatch
+      uses: peter-evans/repository-dispatch@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        repository: USER/Rpackage  # Replace with your R package repo
+        event-type: update-r-scripts
