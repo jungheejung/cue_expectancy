@@ -68,9 +68,3 @@ calculate_font_sizes <- function(font_size_base_dict, figure_width, figure_heigh
   
   return(scaled_font_sizes)
 }
-
-# font_size_base_dict <- list(
-#   AXIS_FONTSIZE_BASE = 10,
-#   COMMONAXIS_FONTSIZE_BASE = 15,
-#   TITLE_FONTSIZE_BASE = 20
-# )
