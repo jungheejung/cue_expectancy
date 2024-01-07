@@ -1,10 +1,11 @@
 
 summaryplotPVC <- function(df, groupwise_measurevar, subject_keyword, model_iv1, model_iv2, dv) {
-    file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
-                            pattern="*.R", 
-                            full.names=TRUE, 
-                            ignore.case=TRUE)
-    sapply(file.sources,source,.GlobalEnv)
+    # Get the directory of the currently running script
+    script_dir <- dirname(sys.frame(1)$ofile)
+
+    # List and source files from the utils directory
+    file.sources <- list.files(script_dir, pattern="*.R", full.names=TRUE, ignore.case=TRUE)
+    sapply(file.sources, source, .GlobalEnv)
     #  [ PLOT ] calculate mean and se  _________________________
     subjectwise <- meanSummary(
         df,
