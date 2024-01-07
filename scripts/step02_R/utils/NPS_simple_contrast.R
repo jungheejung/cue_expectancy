@@ -1,6 +1,29 @@
+#' NPS Simple Contrasts
+#'
+#' This function computes simple contrasts for the "stim" and "cue" variables in a data frame.
+#'
+#' @param df A data frame containing the variables "stim" and "cue".
+#' @return The data frame with additional columns for simple contrasts.
+#'
+#' @details
+#' This function calculates two types of contrasts for the "stim" variable: linear and quadratic.
+#' It also calculates a contrast for the "cue" variable.
+#'
+#' The linear contrast for "stim" assigns -0.5 to "lowstim," 0 to "medstim," and 0.5 to "highstim."
+#' The quadratic contrast for "stim" assigns -0.33 to "lowstim," 0.66 to "medstim," and -0.33 to "highstim."
+#' The cue contrast assigns -0.5 to "lowcue" and 0.5 to "highcue."
+#'
+#' @examples
+#' # Create a sample data frame
+#' df <- data.frame(stim = c("lowstim", "medstim", "highstim"),
+#'                  cue = c("lowcue", "highcue", "lowcue"))
+#'
+#' # Calculate simple contrasts
+#' result <- NPS_simple_contrasts(df)
+#'
+#' @export
 NPS_simple_contrasts <- function(df) {
-# [ CONTRASTS ]  ________________________________________________________________________________ # nolint
-# contrast code ________________________________________
+
 df$stim_factor <- factor(df$stim)
 
 # contrast code 1 linear
