@@ -1,5 +1,15 @@
 simple_contrast_beh <- function(df) {
 
+    df$subject <- NA
+    df$stim_factor <- NA
+    df$STIM_con_linear <- NA
+    df$STIM_con_quad <- NA
+    df$CUE_high_gt_low <- NA
+    df$stim_ordered <- NA
+    df$cue_name <- NA
+    df$cue_ordered <- NA
+
+
     # Given that the behavioral file has a fixed structure,
     # we'll create contrast codes directly based on its name.
     df$subject <- factor(df$src_subject_id)
