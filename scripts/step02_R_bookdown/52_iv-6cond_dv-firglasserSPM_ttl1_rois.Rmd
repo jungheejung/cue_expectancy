@@ -1,21 +1,17 @@
-# [fMRI] FIR ~ task TTL1 {#ch52_timeseries}
-
----
-title: "52_ROI TTL1"
-output: html_document
-date: "2023-08-14"
----
+# fMRI :: FIR ~ task TTL1 {#fmritimeseries_tt1}
 
 The purpose of this notebook is to plot the BOLD timeseries from SPM FIR model.
 TODO
-* load tsv
-* concatenate 
-* per time column, calculate mean and variance
-* plot
+
+- load tsv
+- concatenate
+- per time column, calculate mean and variance
+- plot
 
 ## references
+
 https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
-    
+
 ```{r libraries_52, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(car)
 library(psych)
@@ -47,7 +43,7 @@ sapply(file.sources, source, .GlobalEnv)
 plot_timeseries_onefactor <-
   function(df, iv1, mean, error, xlab, ylab, ggtitle, color) {
     n_points <- 100 # Number of points for interpolation
-    
+
     g <- ggplot(
       data = df,
       aes(
@@ -86,20 +82,19 @@ plot_timeseries_onefactor <-
       # ) +
       # theme(legend.key = element_rect(fill = "white", colour = "white")) +
       theme_bw()
-    
+
     return(g)
   }
 ```
 
-
 ```{r}
-plot_timeseries_bar_SANDBOX <- 
+plot_timeseries_bar_SANDBOX <-
   function(df, iv1, iv2, mean, error, xlab, ylab, ggtitle, color) {
     n_points <- 100 # Number of points for interpolation
-    
+
     ## Removing "tr" from the column values
     df[[iv1]] <- as.numeric(sub("tr", "", df[[iv1]]))
-    
+
     g <- ggplot(
       data = df,
       aes(
@@ -143,14 +138,13 @@ plot_timeseries_bar_SANDBOX <-
       ) +
       theme(legend.key = element_rect(fill = "white", colour = "white")) +
       theme_bw()
-    
+
     return(g)
   }
 ```
 
-
-
 ### parameters {.unlisted .unnumbered}
+
 ```{r message=FALSE, warning=FALSE}
 main_dir <- dirname(dirname(getwd()))
 datadir <- file.path(main_dir, "analysis/fmri/nilearn/glm/fir")
@@ -167,10 +161,11 @@ dir.create(analysis_dir,
 save_dir <- analysis_dir
 ```
 
-
 ## taskwise stim effect
+
 Here, I have a list of ROIs. Per ROI, I have FIR values for pain, vicarious, cognitive tasks.
 We'll aggregate data per ROI and plot the time series for the 3 tasks.
+
 ```{r}
 roi_list <- c("dACC", "PHG", "V1", "SM", "MT", "RSC", "LOC", "FFC", "PIT", "pSTS", "AIP", "premotor") # 'rINS', 'TPJ',
 run_types <- c("pain", "vicarious", "cognitive")
@@ -187,7 +182,7 @@ for (ROI in roi_list) {
   common_path <- Sys.glob(file.path(datadir, "sub-*", filename))
   filter_path <-
     common_path[!str_detect(common_path, pattern = exclude)]
-  
+
   df <-
     do.call("rbind.fill", lapply(
       filter_path,
@@ -195,13 +190,13 @@ for (ROI in roi_list) {
         read.table(files, header = TRUE, sep = ",")
       }
     ))
-  
+
   for (run_type in run_types) {
     print(run_type)
     filtered_df <-
       df[!(df$condition == "rating" |
              df$condition == "cue" | df$runtype != run_type),]
-    
+
     parsed_df <- filtered_df %>%
       separate(
         condition,
@@ -219,8 +214,8 @@ for (ROI in roi_list) {
         names_to = "tr_num",
         values_to = "tr_value"
       )
-    
-    
+
+
     # --------------------------------------------------------------------------
     #                           1) clean factor
     # --------------------------------------------------------------------------
@@ -249,7 +244,7 @@ for (ROI in roi_list) {
     dv_keyword <- "actual"
     sorted_indices <- order(groupwise$tr_ordered)
     groupwise_sorted <- groupwise[sorted_indices,]
-    
+
     # --------------------------------------------------------------------------
     #                             3) plot per run
     # --------------------------------------------------------------------------
@@ -283,9 +278,9 @@ for (ROI in roi_list) {
         alpha = 0.2
       )
     plot_list[[run_type]] <- p1 + theme_classic()
-    
+
   }
-  
+
   # --------------------------------------------------------------------------
   #                             4) plot three tasks per ROI
   # --------------------------------------------------------------------------
@@ -316,19 +311,12 @@ for (ROI in roi_list) {
 }
 ```
 
-
 ```{r}
 p1 + annotate("rect", xmin = 0, xmax = 10, ymin = min(df[[MEAN]], na.rm = TRUE) - 5, ymax = max(df[[MEAN]], na.rm = TRUE) + 5, fill = "grey", alpha = 0.2)
 ```
 
-
-
-
-
-
-
-
 ### PCA subjectwise
+
 ```{r}
 
 run_types <- c("pain")
@@ -337,7 +325,7 @@ for (run_type in run_types) {
   filtered_df <-
     df[!(df$condition == "rating" |
            df$condition == "cue" | df$runtype != run_type),]
-  
+
   parsed_df <- filtered_df %>%
     separate(
       condition,
@@ -355,7 +343,7 @@ for (run_type in run_types) {
       names_to = "tr_num",
       values_to = "tr_value"
     )
-  
+
   # ------------------------------------------------------------------------------
   #                             clean factor
   # ------------------------------------------------------------------------------
@@ -363,29 +351,29 @@ for (run_type in run_types) {
                                levels = c(paste0("tr", 1:TR_length)))
   df_long$stim_ordered <- factor(df_long$stim,
                                  levels = c("stimH", "stimM", "stimL"))
-  
+
   # ------------------------------------------------------------------------------
   #                            summary stats
   # ------------------------------------------------------------------------------
   subjectwise <- meanSummary(df_long,
                              c("sub", "tr_ordered", "stim_ordered"), "tr_value")
-  
-  
+
+
   # ------------------------------------------------------------------------------
   #                             convert dataframe long to wide
   # ------------------------------------------------------------------------------
-  
+
   df_wide <- pivot_wider(
     subjectwise,
     id_cols = c("tr_ordered", "stim_ordered"),
     names_from = c("sub"),
     values_from = "mean_per_sub"
   )
-  
+
   stim_high.df <- df_wide[df_wide$stim_ordered == "stimH",]
   stim_med.df <- df_wide[df_wide$stim_ordered == "stimM",]
   stim_low.df <- df_wide[df_wide$stim_ordered == "stimL",]
-  
+
   meanhighdf <-
     data.frame(subset(stim_high.df, select = 3:(ncol(stim_high.df) - 1)))
   high.pca_result <- prcomp(meanhighdf)
@@ -396,12 +384,12 @@ for (run_type in run_types) {
   plot(high.variance_explained)
   # Access the standard deviations of each principal component
   high.stdev <- high.pca_result$sdev
-  
+
   meanmeddf <-
     data.frame(subset(stim_med.df, select = 3:(ncol(stim_med.df) - 1)))
   med.pca <- prcomp(meanmeddf)
   med.pca_scores <- as.data.frame(med.pca$x)
-  
+
   meanlowdf <-
     data.frame(subset(stim_low.df, select = 3:(ncol(stim_low.df) - 1)))
   low.pca <- prcomp(meanlowdf)
@@ -409,12 +397,12 @@ for (run_type in run_types) {
 
   combined_pca_scores <-
     rbind(high.pca_scores, med.pca_scores, low.pca_scores)
-  
+
   # Add a new column to indicate the stim_ordered category (high_stim or low_stim)
   combined_pca_scores$stim_ordered <- c(rep("high_stim", nrow(high.pca_scores)),
                                         rep("med_stim", nrow(med.pca_scores)),
                                         rep("low_stim", nrow(low.pca_scores)))
-  
+
   # ------------------------------------------------------------------------------
   #                             3d PCA plot
   # ------------------------------------------------------------------------------
@@ -442,8 +430,8 @@ plot_ly(
 )
 ```
 
-
 ### PCA groupwise
+
 ```{r}
 # ------------------------------------------------------------------------------
 #                       data formatting
@@ -525,7 +513,6 @@ ggplot(combined_pca,
   theme_bw()
 ```
 
-
 ```{r}
 
 # Create the plot
@@ -562,10 +549,8 @@ ggplot(groupwise, aes(x = tr_ordered, y = mean_per_sub_mean)) +
   theme_minimal()
 ```
 
-
-
-
 ## taskwise cue effect
+
 ```{r warning=FALSE}
 roi_list <- c("dACC", "PHG", "V1", "SM", "MT", "RSC", "LOC", "FFC", "PIT", "pSTS", "AIP", "premotor") # 'rINS', 'TPJ',
 for (ROI in roi_list) {
@@ -576,7 +561,7 @@ for (ROI in roi_list) {
   common_path <- Sys.glob(file.path(datadir, "sub-*", filename))
   filter_path <-
     common_path[!str_detect(common_path, pattern = exclude)]
-  
+
   df <-
     do.call("rbind.fill", lapply(
       filter_path,
@@ -584,8 +569,8 @@ for (ROI in roi_list) {
         read.table(files, header = TRUE, sep = ",")
       }
     ))
-  
-  
+
+
   run_types <- c("pain", "vicarious", "cognitive")
   plot_list <- list()
   TR_length <- 42
@@ -593,7 +578,7 @@ for (ROI in roi_list) {
     filtered_df <-
       df[!(df$condition == "rating" |
              df$condition == "cue" | df$runtype != run_type),]
-    
+
     parsed_df <- filtered_df %>%
       separate(
         condition,
@@ -601,7 +586,7 @@ for (ROI in roi_list) {
         sep = "_",
         remove = FALSE
       )
-    
+
     # --------------------------------------------------------------------------
     #                        subset regions based on ROI
     # --------------------------------------------------------------------------
@@ -612,8 +597,8 @@ for (ROI in roi_list) {
         names_to = "tr_num",
         values_to = "tr_value"
       )
-    
-    
+
+
     # --------------------------------------------------------------------------
     #                             clean factor
     # --------------------------------------------------------------------------
@@ -621,11 +606,11 @@ for (ROI in roi_list) {
                                  levels = c(paste0("tr", 1:TR_length)))
     df_long$cue_ordered <- factor(df_long$cue,
                                   levels = c("cueH", "cueL"))
-    
-    
+
+
     # --------------------------------------------------------------------------
-    #                             summary statistics 
-    # --------------------------------------------------------------------------    
+    #                             summary statistics
+    # --------------------------------------------------------------------------
     subjectwise <- meanSummary(df_long,
                                c("sub", "tr_ordered", "cue_ordered"), "tr_value")
     groupwise <- summarySEwithin(
@@ -659,10 +644,10 @@ for (ROI in roi_list) {
 
     plot_list[[run_type]] <- p1 + theme_classic()
   }
-  
+
   # ----------------------------------------------------------------------------
   #                             plot three tasks
-  # ----------------------------------------------------------------------------  
+  # ----------------------------------------------------------------------------
   library(gridExtra)
   plot_list <- lapply(plot_list, function(plot) {
     plot + theme(plot.margin = margin(5, 5, 5, 5)) # Adjust plot margins if needed
@@ -680,7 +665,7 @@ for (ROI in roi_list) {
       heights = c(.5, .5, .5),
       align = "v"
     )
-  
+
   print(combined_plot)
   ggsave(file.path(
     save_dir,
@@ -692,26 +677,25 @@ for (ROI in roi_list) {
 }
 ```
 
-
-
 ### epoch: stim, rating
+
 ```{r eval=FALSE, include=FALSE}
 # # ------------------------------------------------------------------------------
 # #                       epoch stim, high cue vs low cue
 # # ------------------------------------------------------------------------------
 # # --------------------- subset regions based on ROI ----------------------------
-# 
-# 
+#
+#
 # parsed_df <- df[(df$condition == "rating"), ]
 # TR_length <- 42
 # df_rating <- pivot_longer(parsed_df, cols = starts_with("tr"), names_to = "tr_num", values_to = "tr_value")
-# 
+#
 # # ----------------------------- clean factor -----------------------------------
 # df_rating$tr_ordered <- factor(
 #   df_rating$tr_num,
 #   levels = c(paste0("tr", 1:TR_length))
 # )
-# 
+#
 # # --------------------------- summary statistics -------------------------------
 # subjectwise <- meanSummary(
 #   df_rating,
@@ -725,11 +709,11 @@ for (ROI in roi_list) {
 # )
 # groupwise$task <- taskname
 # # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
-# 
-# 
-# 
+#
+#
+#
 # # Assuming your data frame is named "time_series_data"
-# 
+#
 # # Create the ggplot
 # gg <- ggplot(groupwise, aes(x = tr_ordered, y = mean_per_sub_norm_mean, group = 1)) +
 #   geom_line() +
@@ -740,7 +724,7 @@ for (ROI in roi_list) {
 #   theme_bw()
 # # Print the ggplot
 # print(gg)
-# 
+#
 # # --------------------------------- plot ---------------------------------------
 # LINEIV1 <- "tr_ordered"
 # # LINEIV2 = "cue_ordered"
@@ -758,16 +742,8 @@ for (ROI in roi_list) {
 # p2 + theme_classic()
 ```
 
-
-
-
-
-
-
-
-
-
 ## MAIN SANDBOX: 6 condition in three panels. per task. per ROI
+
 ```{r}
 # A function to plot data
 plot_data <- function(groupwise, iv1, iv2, mean, error, xlab, ylab, ggtitle, run_type, colors) {
@@ -786,7 +762,6 @@ plot_data <- function(groupwise, iv1, iv2, mean, error, xlab, ylab, ggtitle, run
   p + theme_classic()
 }
 ```
-
 
 ```{r}
 #' Calculate Point Size Proportionally
@@ -841,7 +816,7 @@ for (roi in c("dACC", "PHG")) {
           df$runtype != run_type | df$ROI == roi
       ),]
     plot_list <- list()
-    
+
     parsed_df <- filtered_df %>%
       separate(
         condition,
@@ -857,7 +832,7 @@ for (roi in c("dACC", "PHG")) {
         names_to = "tr_num",
         values_to = "tr_value"
       )
-    
+
     # ----------------------------------------------------------------------------
     #                             clean factor
     # ----------------------------------------------------------------------------
@@ -867,7 +842,7 @@ for (roi in c("dACC", "PHG")) {
                                   levels = c("cueH", "cueL"))
     df_long$stim_ordered <- factor(df_long$stim,
                                    levels = c("stimH", "stimM", "stimL"))
-    
+
     df_long$sixcond <- factor(
       df_long$condition,
       levels = c(
@@ -879,7 +854,7 @@ for (roi in c("dACC", "PHG")) {
         "cueL_stimL"
       )
     )
-    
+
     # ------------------------------------------------------------------------------
     #                             summary statistics
     # ------------------------------------------------------------------------------
@@ -892,8 +867,8 @@ for (roi in c("dACC", "PHG")) {
       idvar = "sub"
     )
     groupwise$task <- taskname
-    
-    
+
+
     # ----------------------------------------------------------------------------
     #                             plot parameters
     # ----------------------------------------------------------------------------
@@ -902,7 +877,7 @@ for (roi in c("dACC", "PHG")) {
       as.numeric(sub("tr", "", as.character(groupwise$tr_ordered)))
     tr_sequence <- (tr_numbers - 1) * 0.46
     groupwise$tr_sequence <- tr_sequence
-    
+
     LINEIV1 <- "tr_sequence"
     LINEIV2 <- "sixcond"
     MEAN <- "mean_per_sub_norm_mean"
@@ -957,10 +932,10 @@ for (roi in c("dACC", "PHG")) {
       YLAB,
       ggtitle = paste0(tools::toTitleCase(run_type), "\n High intensity (N = ", unique(groupwise$N), ")"),
       color_mapping = HIGHSTIM_COLOR,
-      show_legend = FALSE, 
+      show_legend = FALSE,
       geompoint_size = GEOMPOINT_SIZE
     )
-    
+
     # Assuming tr_sequence is correct and has been added to groupwise
     # Calculate breaks to show every 10th TR
     breaks_to_show <-
@@ -973,7 +948,7 @@ for (roi in c("dACC", "PHG")) {
       # Assuming you want to keep all the breaks and just adjust the labels
       labels_to_show <- labels_to_show[seq_along(breaks_to_show)]
     }
-    
+
     # High intensity
     plot_list[["H"]] <- p3H +
       scale_x_continuous(
@@ -984,7 +959,7 @@ for (roi in c("dACC", "PHG")) {
         limits = range(groupwise$tr_sequence)  # Set the limits based on the sequence
       ) +
       theme_classic()
-    
+
     # Medium intensity
     p3M <- plot_timeseries_bar(
       groupwise,
@@ -1011,7 +986,7 @@ for (roi in c("dACC", "PHG")) {
         limits = range(groupwise$tr_sequence)  # Set the limits based on the sequence
       ) +
       theme_classic()
-    
+
     # Low intensity
     p3L <- plot_timeseries_bar(
       groupwise,
@@ -1035,11 +1010,11 @@ for (roi in c("dACC", "PHG")) {
         limits = range(groupwise$tr_sequence)  # Set the limits based on the sequence
       ) +
       theme_classic()
-    
+
     # ----------------------------------------------------------------------------
     #                   combine three tasks in one panel per ROI
     # ----------------------------------------------------------------------------
-    
+
     library(gridExtra)
     plot_list <- lapply(plot_list, function(plot) {
       plot +
@@ -1064,11 +1039,11 @@ for (roi in c("dACC", "PHG")) {
         heights = c(.5, .5, .5),
         align = "v"
       )
-    
+
     # Add the combined plot for this run type to the list for the current ROI
     plot_list_per_roi[[run_type]] <- combined_plot_per_run
-    
-    
+
+
   } # end of run loop
 
   # ----------------------------------------------------------------------------
@@ -1088,7 +1063,7 @@ for (roi in c("dACC", "PHG")) {
     color = c("red", "#5f0f40", "#bc3908", "#f6aa1c", "#2541b2", "#00a6fb"),
     stringsAsFactors = FALSE
   )
-  
+
   legend_plot <-
     ggplot(legend_data, aes(x = sixcond, y = 1, color = sixcond)) +
     geom_point() +
@@ -1096,7 +1071,7 @@ for (roi in c("dACC", "PHG")) {
     theme_void() +
     theme(legend.position = "bottom") +
     guides(color = guide_legend(title = "Condition"))
-  
+
   legend_grob <-
     ggplotGrob(legend_plot)$grobs[[which(sapply(ggplotGrob(legend_plot)$grobs, function(x)
       x$name) == "guide-box")]]
@@ -1129,7 +1104,7 @@ for (roi in c("dACC", "PHG")) {
       roi_combined_plot,
      x_axis_label,
       legend_grob,
-      
+
       ncol = 1,
       heights = c(11,.5, 1)
     ),
@@ -1141,7 +1116,7 @@ for (roi in c("dACC", "PHG")) {
   )
   grid.draw(final_plot)
 
-  
+
   # ----------------------------------------------------------------------------
   #                 save all plots
   # ----------------------------------------------------------------------------
@@ -1157,7 +1132,3 @@ for (roi in c("dACC", "PHG")) {
 }
 
 ```
-
-
-
-

@@ -1,37 +1,37 @@
-# [beh] Mediation outcome ~ cue * stim * expectrating * n-1outcomerating  {#ch17_mediation}
+# beh :: Mediation {#mediation}
 
-
-helpful resources
-https://nmmichalak.github.io/nicholas_michalak/blog_entries/2018/nrg01/nrg01.html
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
-Here, I model the outcome ratings as a function of cue, stimulus intensity, expectation ratings, N-1 outcome rating. 
-* As opposed to notebook 15, I want to check if the demeaning process should be for runs as opposed to subjects. 
-* In other words, calculate the average within run and subtract ratings 
-* Main model: `lmer(outcome_rating ~ cue * stim * expectation rating + N-1 outcomerating)` 
-* Main question: What constitutes a reported outcome rating? 
-* Sub questions:
+
+Here, I model the outcome ratings as a function of cue, stimulus intensity, expectation ratings, N-1 outcome rating.
+
+- As opposed to notebook 15, I want to check if the demeaning process should be for runs as opposed to subjects.
+- In other words, calculate the average within run and subtract ratings
+- Main model: `lmer(outcome_rating ~ cue * stim * expectation rating + N-1 outcomerating)`
+- Main question: What constitutes a reported outcome rating?
+- Sub questions:
+
   - If there is a linear relationship between expectation rating and outcome rating, does this differ as a function of cue?
-  - How does a N-1 outcome rating affect current expectation ratings? 
+  - How does a N-1 outcome rating affect current expectation ratings?
   - Later, is this effect different across tasks or are they similar?
 
-* IV: 
+- IV:
   stim (high / med / low)
   cue (high / low)
   expectation rating (continuous)
   N-1 outcome rating (continuous)
-* DV: outcome rating
+- DV: outcome rating
 
 ### Some thoughts, TODOs {.unlisted .unnumbered}
 
-* Standardized coefficients
-* Slope difference? Intercept difference? ( cue and expectantion rating)
-* Correct for the range (within participant)
-hypothesis:
+- Standardized coefficients
+- Slope difference? Intercept difference? ( cue and expectantion rating)
+- Correct for the range (within participant)
+  hypothesis:
+
 1. Larger expectation leads to prediction error
 2. Individual differences in ratings
 3. Outcome experience, based on behavioral experience
-What are the brain maps associated with each component.  
-
+   What are the brain maps associated with each component.
 
 ```{r load_libraries_17, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
 library(psych)
@@ -56,7 +56,7 @@ library(lme4)
 library(gghalves)
 library(effectsize)
 library(devtools)
-library(visibly) # 
+library(visibly) #
 library(plotly) #plot
 library(scico) # plot
 library(emmeans) # v. 1.7.0
@@ -66,8 +66,8 @@ library(magrittr) # v. 2.0.1
 library(r2mlm)
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 ```
@@ -101,27 +101,27 @@ dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 summary(data[, c("event02_expect_RT", "event04_actual_RT", "event02_expect_angle", "event04_actual_angle")])
 ```
 
-
-
 ### Covariance matrix: ratings and RT {.unlisted .unnumbered}
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # data(data, package = 'visibly')
 
-myvars <- names(data) %in% 
+myvars <- names(data) %in%
   c( "event02_expect_angle", "event02_expect_RT", "event04_actual_angle", "event04_actual_RT", "event01_cue_onset")
 newdata <- data[myvars]
-# numdata  <- unlist(lapply(data, is.numeric), use.names = FALSE) 
+# numdata  <- unlist(lapply(data, is.numeric), use.names = FALSE)
 data_naomit <- na.omit(newdata)
 cor_matrix = cor(data_naomit)
 corr_heat(cor_matrix)
 ```
 
 ### Covariance matrix: fixation durations (e.g. ISIs) {.unlisted .unnumbered}
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-ISIvars <- names(data) %in% 
+ISIvars <- names(data) %in%
   c( "ISI01_duration", "ISI02_duration", "ISI03_duration")
 ISIdata <- data[ISIvars]
-# numdata  <- unlist(lapply(data, is.numeric), use.names = FALSE) 
+# numdata  <- unlist(lapply(data, is.numeric), use.names = FALSE)
 ISIdata_naomit <- na.omit(ISIdata)
 ISIcor_matrix = cor(ISIdata_naomit)
 corr_heat(ISIcor_matrix)
@@ -168,11 +168,11 @@ data_p2= data %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number())
-data_a3 <- data_p2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_a3 <- data_p2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num))
 
-data_a3lag <- 
+data_a3lag <-
     data_a3 %>%
     group_by(src_subject_id, session_id, param_run_num) %>%
     mutate(lag.04outcomeangle = dplyr::lag(event04_actual_angle, n = 1, default = NA))
@@ -185,9 +185,11 @@ pvc <- simple_contrasts_beh(df)
 ## mediation
 
 ```{r}
-psych::mediate(event04_actual_angle ~ CUE_high_gt_low*stim_con_linear+ event02_expect_angle + lag.04outcomeangle, data = pvc, n.iter = 1000) %>% print(short = FALSE) 
+psych::mediate(event04_actual_angle ~ CUE_high_gt_low*stim_con_linear+ event02_expect_angle + lag.04outcomeangle, data = pvc, n.iter = 1000) %>% print(short = FALSE)
 ```
+
 ## mediation 2
+
 ```{r}
 mod1 <- "# a path
          #thirst ~ a * room_temp
@@ -196,11 +198,11 @@ mod1 <- "# a path
          # b path
          #consume ~ b * thirst
          event04_actual_angle ~ b* event02_expect_angle
-         
-         # c prime path 
+
+         # c prime path
          #consume ~ cp * room_temp
          event04_actual_angle ~ cp * CUE_high_gt_low
-         
+
          # indirect and total effects
          ab := a * b
          total := cp + ab"
@@ -210,30 +212,32 @@ mod1 <- "# a path
 library(lavaan)
 fsem1 <- sem(mod1, data = pvc, se = "bootstrap", bootstrap = 1000)
 summary(fsem1, standardized = TRUE)
-parameterestimates(fsem1, boot.ci.type = "bca.simple", standardized = TRUE) %>% 
+parameterestimates(fsem1, boot.ci.type = "bca.simple", standardized = TRUE) %>%
   kable()
 
 ```
+
 ```{r eval=FALSE, warning=TRUE, include=FALSE}
-with(pvc, MBESS::mediation.effect.plot(x = CUE_high_gt_low, 
-                                mediator = event02_expect_angle, 
-                                dv = event04_actual_angle, 
+with(pvc, MBESS::mediation.effect.plot(x = CUE_high_gt_low,
+                                mediator = event02_expect_angle,
+                                dv = event04_actual_angle,
                                 ylab = "outcome rating", xlab = "expectation rating"))
 ```
 
-
 ## mediation 3: Test same model using mediation() from MBESS
+
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 library(mediation)
 library(brms)
 library(MBESS)
 library(bayestestR)
-with(pvc, MBESS::mediation(x = CUE_high_gt_low, 
-                    mediator = event02_expect_angle, 
+with(pvc, MBESS::mediation(x = CUE_high_gt_low,
+                    mediator = event02_expect_angle,
                     dv = event04_actual_angle, bootstrap = TRUE, which.boot = "BCa", B = 100))
 ```
 
 ## mediation 4: Test library mediation
+
 ```{r eval=FALSE, include=FALSE}
 library(mediation)
 library(brms)
@@ -253,4 +257,7 @@ results <- mediation::mediate(
 summary(results)
 ```
 
+:::: {.refbox}
 
+- https://nmmichalak.github.io/nicholas_michalak/blog_entries/2018/nrg01/nrg01.html
+  ::::

@@ -1,12 +1,15 @@
-# [fMRI] single trial QC {#ch39_singletrialqc}
+# fMRI :: single trial QC {#singletrialqc}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
-* I started this analysis because the single trial models and the univariate maps seemed different. The NPS extracted values are non-significant for the dummy univariate maps; the single trials are significant. Also, the activation for the pain dummy contrast between high and low stimulus intensity is almost non-significant.  ~/social_influence_analysis/scripts/step04_SPM/6conditions/6cond_stimlinear_dummy.html
-* Here, I test whether the order of single trials and session order are significantly different in terms of NPS values. If so, this systematic difference may indicate a modeling difference across runs. 
 
-## Reference {.unlisted .unnumbered}
-https://aosmith.rbind.io/2019/04/15/custom-contrasts-emmeans/
-https://aosmith.rbind.io/2019/04/15/custom-contrasts-emmeans/#:~:text=Building%20a%20custom%20contrast%20involves,0%20to%20the%20other%20groups.
+- I started this analysis because the single trial models and the univariate maps seemed different. The NPS extracted values are non-significant for the dummy univariate maps; the single trials are significant. Also, the activation for the pain dummy contrast between high and low stimulus intensity is almost non-significant. ~/social_influence_analysis/scripts/step04_SPM/6conditions/6cond_stimlinear_dummy.html
+- Here, I test whether the order of single trials and session order are significantly different in terms of NPS values. If so, this systematic difference may indicate a modeling difference across runs.
+
+:::: {.refbox}
+
+- https://aosmith.rbind.io/2019/04/15/custom-contrasts-emmeans/
+- https://aosmith.rbind.io/2019/04/15/custom-contrasts-emmeans#:~:text=Building%20a%20custom%20contrast%20involves,0%20to%20the%20other%20groups.
+  ::::
 
 ```{r, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(car)
@@ -37,8 +40,8 @@ library(raincloudplots)
 devtools::source_url("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 # file.sources = list.files(c("https://raw.githubusercontent.com/jungheejung/cue_expectancy/main/scripts/step02_R/utils"), pattern="*.R", full.names=TRUE, ignore.case=TRUE)
@@ -127,7 +130,7 @@ two_factor_lineplot <-
       ylab(ylab) +
       #scale_color_manual(values = color) +
       theme_classic() +
-      
+
       theme(aspect.ratio = .6) +
       expand_limits(x = 3.25) +
       #guides(fill = "none") +
@@ -148,13 +151,13 @@ two_factor_lineplot <-
       ) +
       theme(legend.key = element_rect(fill = "white", colour = "white")) +
       theme_bw()
-    
+
     return(g)
   }
 ```
 
-
 ## load data {.unlisted .unnumbered}
+
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 
 # Load behavioral data
@@ -163,8 +166,8 @@ print(main_dir)
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
 taskname = '*'
 subject_varkey <- "src_subject_id"
-iv <- "param_stimulus_type"; 
-iv_keyword <- "stim"; 
+iv <- "param_stimulus_type";
+iv_keyword <- "stim";
 dv <- "event04_actual_angle"; dv_keyword <- "outcome"
 exclude <- "sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0007|sub-0008|sub-0013|sub-0016|sub-0017|sub-0019|sub-0020|sub-0021|sub-0025|sub-0075"
 
@@ -176,24 +179,24 @@ p.df2= p.df %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number())
-data_p <- p.df2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_p <- p.df2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num))
 
 v.df2= v.df %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number())
-data_v <- v.df2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_v <- v.df2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num))
 
 c.df2= c.df %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number()-1)
-data_c <- c.df2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_c <- c.df2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num) )
 
 p.sub <- data_p[,c("src_subject_id", "session_id", "param_run_num", "param_task_name", "event02_expect_angle", "param_cue_type", "param_stimulus_type", "event04_actual_angle", "trial_index")]
@@ -206,7 +209,7 @@ pvc.sub = rbind(p.sub, v.sub, c.sub)
 ```
 
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
-pvc.sub$trial_ind <- pvc.sub$trial_index -1 
+pvc.sub$trial_ind <- pvc.sub$trial_index -1
 pvc.sub$sub <- sprintf("sub-%04d", pvc.sub$src_subject_id)
 pvc.sub$ses <- sprintf("ses-%02d", pvc.sub$session_id)
 pvc.sub$run <- sprintf("run-%02d", pvc.sub$param_run_num)
@@ -218,19 +221,17 @@ pvc.sub[c('stimintensity', 'DEP')]  <- str_split_fixed(pvc.sub$param_stimulus_ty
 
 # merge
 pvc.beh <- pvc.sub[,c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity","event02_expect_angle", "event04_actual_angle")]
-df_merge <- merge(pvc.sub, pvc.beh, 
+df_merge <- merge(pvc.sub, pvc.beh,
                   by.x = c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity"),
                   by.y = c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity")
                   )
-  
+
 ```
 
-
-
-
 ## trial-order wise {.unlisted .unnumbered}
-The purpose is to check whether trial orders have a systematic differences in average BOLD intensity, or more specifically, average NPS responses. 
-As we can see, the first trials always have higher NPS responses. 
+
+The purpose is to check whether trial orders have a systematic differences in average BOLD intensity, or more specifically, average NPS responses.
+As we can see, the first trials always have higher NPS responses.
 TODO: run a stats test to see if there a significant difference
 
 ```{r message=FALSE, warning=FALSE, include=FALSE}
@@ -268,7 +269,7 @@ for (signature_key in c("NPSpos")) {
              showWarnings = FALSE,
              recursive = TRUE)
   savedir <- analysis_dir
-  
+
   # step 2: load data
   df = read.csv(sig_name)
   sig_df = df %>% separate(
@@ -296,14 +297,14 @@ for (signature_key in c("NPSpos")) {
   pvc$task[pvc$runtype == "runtype-vicarious"] <- "vicarious"
   pvc$task[pvc$runtype == "runtype-cognitive"] <- "cognitive"
   pvc$task <- factor(pvc$task)
-  
-  
+
+
   # step 3: parameters
-  
+
   taskname = "all"
   plot_keyword = "stimulusintensity"
   ggtitle_phrase =  "(3 tasks x 3 trial order)"
-  
+
   pvc$task = factor(pvc$task)
   plot_keys <- list(
     sub_mean = "mean_per_sub",
@@ -330,7 +331,7 @@ for (signature_key in c("NPSpos")) {
     ylab = paste(signature_key, " (dot product)"),
     ylim = c(-250, 500)
   )
-  
+
   # step 4: within between summary
   groupwise <- data.frame()
   subjectwise <- data.frame()
@@ -352,9 +353,9 @@ for (signature_key in c("NPSpos")) {
   } else {
     plot_keys$color <- c("#FF2A00","#E82817","#D1252E","#B92346","#A2215D","#8B1F74","#741C8B","#5D1AA2","#4618B9","#2E16D1","#1713E8","#0011FF")
   }
-  
+
   # step 5: plot
-  
+
   iv2 = "trial"
   iv1 = "task"
   taskname = "all"
@@ -381,7 +382,7 @@ for (signature_key in c("NPSpos")) {
       length(unique(pvc$sub)),
       ")"
     )
-  
+
   title <-
     paste0(str_to_title(dv_keyword),
            " - ",
@@ -415,33 +416,35 @@ for (signature_key in c("NPSpos")) {
     ylim,    w = 20,    h = 6,
     dv_keyword,    color,    plot2_savefname
   )
-  
- 
+
+
   p
 }
 ```
+
 ```{r}
 p
 ```
+
 ### line plots {.unlisted .unnumbered}
+
 ```{r echo=FALSE, warning=FALSE}
 
 g <- plot_lineplot_twofactor(groupwise,
-                        iv1 = "trial", iv2 = "task", 
+                        iv1 = "trial", iv2 = "task",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c( 'pain' = "#941100", 'cognitive' = "#110094", 'vicarious' = '#009411'), ggtitle = "NPS (positive weights) & single trial dotproduct \nas a function of task and trial order", 
+                        color = c( 'pain' = "#941100", 'cognitive' = "#110094", 'vicarious' = '#009411'), ggtitle = "NPS (positive weights) & single trial dotproduct \nas a function of task and trial order",
                         xlab = "Trial order", ylab = "NPSpos (dot product)")
 g +  theme(legend.position = "bottom")
 g
 ```
-
 
 ```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 addSmallLegend <- function(myPlot, pointSize = 0.5, textSize = 3, spaceLegend = 0.1) {
     myPlot +
         guides(shape = guide_legend(override.aes = list(size = pointSize)),
                color = guide_legend(override.aes = list(size = pointSize))) +
-        theme(legend.title = element_text(size = textSize), 
+        theme(legend.title = element_text(size = textSize),
               legend.text  = element_text(size = textSize),
               legend.key.size = unit(spaceLegend, "lines"))
 }
@@ -450,18 +453,17 @@ addSmallLegend <- function(myPlot, pointSize = 0.5, textSize = 3, spaceLegend = 
 addSmallLegend(p)
 ```
 
+### linear model:
 
-
-### linear model: 
-Q. Is this trial effect only prominent in the pain task? 
+Q. Is this trial effect only prominent in the pain task?
 Q. Is this trial effect only present for the first trial of the run?
-
 
 ```{r}
 pvc$trial_num <- as.numeric(as.factor(pvc$trial))
 model <-  lmer(NPSpos ~ task * trial_num + (1|sub), data = pvc)
 Anova(model, type = "III")
 ```
+
 ```{r eval=FALSE, include=FALSE}
 # Assuming you have a model object named 'model' resulting from your analysis
 # Assuming your categorical variable is named 'your_categorical_variable'
@@ -470,30 +472,31 @@ Anova(model, type = "III")
 # custom_contrast <- c(11, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
 # pvc$trial <- as.numeric(as.factor(pvc$trial))
 # # Apply the custom contrast using emmeans
-# emmeans_results <- emmeans(model, ~ trial_con, 
+# emmeans_results <- emmeans(model, ~ trial_con,
 #                            at = list(trial = custom_contrast))
-# 
+#
 # # Print the emmeans results
 # print(emmeans_results)
 
 ```
-
 
 ```{r echo=TRUE}
 pain = pvc[pvc$runtype == 'runtype-pain',]
 pain$trialorder = as.numeric(factor(pain$trial))
 
 # helmert_contrasts
-pain$trialorder_levels <- factor(pain$trialorder, 
+pain$trialorder_levels <- factor(pain$trialorder,
                                    levels=c(1,2,3,4,5,6,7,8,9,10,11,12))
 pain$trial_con  = factor(pain$trialorder_levels)
 
 # contrasts(pain$trial_con) <- contrast_list
 model = lmer(NPSpos ~ trial_con + (trial_con|sub), data = pain) #, contrasts = (trial_con = contrast_list))
 summary(model)
-    
+
 ```
+
 ### trial order emmeans
+
 ```{r echo=FALSE}
 # https://aosmith.rbind.io/2019/04/15/custom-contrasts-emmeans/
 emm_options(pbkrtest.limit = 6024, lmerTest.limit = 6024)
@@ -549,9 +552,9 @@ contrast(emm, method = list("first trial vs others" = t1 - tother,
                             "9th trial vs others" = t9 - tother9,
                             "10th trial vs others" = t10 - tother10,
                             "11th trial vs 12th trial" = t11 - tother11,
-                            "1st trial vs 2nd trial" = t1 - t2, 
+                            "1st trial vs 2nd trial" = t1 - t2,
                             "12trial vs 2-11th trial" = t12-tother12),
-         adjust = "mvt") 
+         adjust = "mvt")
 # %>%
   # confint()
 # contrast(emm, method =  "helmert",  adjust = "bonferroni")
@@ -560,15 +563,10 @@ contrast(emm, method = list("first trial vs others" = t1 - tother,
 ```
 Discussion:
 * 1st trial has high NPS values compared to other consecutive trials, across participants (t(262) = 7.197, p < .0001)
-* The next thought was that there would be a linear trend. However, note that 2nd trial is not significantly different from the other trials, t(294) = -0.232, N.S. In other words, there is not linear detrending effect across trials. 
+* The next thought was that there would be a linear trend. However, note that 2nd trial is not significantly different from the other trials, t(294) = -0.232, N.S. In other words, there is not linear detrending effect across trials.
 * The last and 2nd-to-last trial (11th trial and 12th trial) are significantly different, t(104) = 9.645, p < .0001.
 * However, it's not like the last trial is different from all others. 12th trial is not significantly different from the average of 2-11 trials, t(531) = -1.983, N.S.
 ```
-
-
-
-
-
 
 ## run wise {.unlisted .unnumbered}
 
@@ -607,7 +605,7 @@ for (signature_key in c("NPSpos")) {
              showWarnings = FALSE,
              recursive = TRUE)
   savedir <- analysis_dir
-  
+
   # step 2: load data
   df = read.csv(sig_name)
   sig_df = df %>% separate(
@@ -646,11 +644,11 @@ for (signature_key in c("NPSpos")) {
   pvc$ses_run <- interaction( pvc$formerlatter_run, pvc$ses,sep = "_")
 
   # step 3: parameters _________________________________________________________
-  
+
   taskname = "all"
   plot_keyword = "stimulusintensity"
   ggtitle_phrase =  "(3 tasks x 3 stimulus intensity)"
-  
+
   pvc$task = factor(pvc$task)
   plot_keys <- list(
     sub_mean = "mean_per_sub", group_mean = "mean_per_sub_norm_mean",
@@ -666,7 +664,7 @@ for (signature_key in c("NPSpos")) {
     ylab = paste(signature_key, " (dot product)"),
     ylim = c(-250, 500)
   )
-  
+
   # step 4: within between summary
   groupwise <- data.frame()
   subjectwise <- data.frame()
@@ -685,9 +683,9 @@ for (signature_key in c("NPSpos")) {
   } else {
     plot_keys$color <- c("#FFD500","#D3A33C","#7C02FF","#490098","#D618B4","#A40086")
   }
-  
+
   # step 5: plot
-  
+
   iv2 = "ses_run"
   iv1 = "task"
   taskname = "all"
@@ -710,7 +708,7 @@ for (signature_key in c("NPSpos")) {
       ' ',ggtitle_phrase," (N = ",length(unique(pvc$sub)),
       ")"
     )
-  
+
   title <-
     paste0(str_to_title(dv_keyword),
            " - ",
@@ -753,6 +751,7 @@ for (signature_key in c("NPSpos")) {
   s
 }
 ```
+
 ```{r echo=FALSE, warning=TRUE}
 s
 ```
@@ -760,17 +759,20 @@ s
 ```{r echo=FALSE, warning=FALSE}
 
 g <- plot_lineplot_twofactor(groupwise,
-                        iv1 = "ses_run", iv2 = "task", 
+                        iv1 = "ses_run", iv2 = "task",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c( 'pain' = "#941100", 'cognitive' = "#110094", 'vicarious' = '#009411'), ggtitle = "NPS (positive weights) & single trial dotproduct \nas a function of task and trial order", 
+                        color = c( 'pain' = "#941100", 'cognitive' = "#110094", 'vicarious' = '#009411'), ggtitle = "NPS (positive weights) & single trial dotproduct \nas a function of task and trial order",
                         xlab = "Session and Run order", ylab = "NPSpos (dot product)")
 g +  theme(legend.position = "bottom")
 g
 ```
+
 ### linear model: run/ses wise
+
 ```
 lmer(NPSpos ~ task*ses_run_con + (task|sub), data = pvc)
 ```
+
 ```{r}
 pvc$ses_run_con <- as.factor(pvc$ses_run)
 contrasts(pvc$ses_run_con) = contr.poly(6)
@@ -780,6 +782,7 @@ Anova(model_run, type = "III")
 ```
 
 ### emmeans run wise
+
 ```{r}
 # https://aosmith.rbind.io/2019/04/15/custom-contrasts-emmeans/
 emm_options(pbkrtest.limit = 12000, lmerTest.limit = 12000)
@@ -788,6 +791,5 @@ emm <- emmeans(model_run,specs = ~task:ses_run_con, pbkrtest.limit = 12000)
 painLinear = c(0,0,0,0,0,0,-0.5976143,-0.3585686, -0.1195229,0.1195229,0.3585686,0.5976143,0,0,0,0,0,0)
 
 contrast(emm, method = list("painlinear" = painLinear),
-         adjust = "mvt") 
+         adjust = "mvt")
 ```
-

@@ -1,14 +1,14 @@
-# [beh] outcome ~ stimulus_intensity {#ch04_outcome-stim}
+# beh :: outcome ~ stim {#beh-outcome-stim}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
-Here, I plot the outcome ratings as a function of stimulus intensity 
+Here, I plot the outcome ratings as a function of stimulus intensity
 
-* Main model: `lmer(outcome_rating ~ stim)` 
-* Main question: do outcome ratings differ as a function of stimulus intensity? We should expect to see a linear effect of stimulus intensity.
-* If there is a main effect of cue on expectation ratings, does this cue effect differ depending on task type?
-* IV: stim (high / med / low)
-* DV: outcome rating
+- Main model: `lmer(outcome_rating ~ stim)`
+- Main question: do outcome ratings differ as a function of stimulus intensity? We should expect to see a linear effect of stimulus intensity.
+- If there is a main effect of cue on expectation ratings, does this cue effect differ depending on task type?
+- IV: stim (high / med / low)
+- DV: outcome rating
 
 FIX: plot statistics in random effect plot - what is broken?
 
@@ -49,8 +49,8 @@ library(gghalves)
 library(ggpubr)
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 ```
@@ -82,27 +82,27 @@ dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
 ```{r ggplotfunction_3, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 ggplot_onefactor_pertask <- function(taskname, subject_varkey, subject, exclude,
-                                     analysis_dir, iv, iv_keyword, dv, dv_keyword, 
+                                     analysis_dir, iv, iv_keyword, dv, dv_keyword,
                                      subjectwise_mean, group_mean, se,color_scheme,
                                      xlab, ylim, ylab, ggtitle_phrase, print_lmer_output) {
     ## designate where the lmer output lives
     model_savefname <- file.path(
         analysis_dir,paste("lmer_task-", taskname,"_iv-", iv_keyword, "_dv-rating-", dv_keyword,"_", as.character(Sys.Date()), ".txt",
             sep = ""))
-      
+
     ## load data, run model, and exclude outliers
     data <- load_task_social_df(datadir, taskname, subject_varkey, iv, dv, exclude)
     data$subject = factor(data$src_subject_id)
     data = data[!is.na(data[, dv] ),] # removing NA values
     #print(length(unique(data$subject)))
     data <- data %>%
-    mutate(ordered_iv = fct_relevel(.data[[iv]], 
+    mutate(ordered_iv = fct_relevel(.data[[iv]],
             "low_stim", "med_stim", "high_stim"))
     cooksd <- lmer_onefactor_cooksd(data, taskname, "ordered_iv", dv, subject, dv_keyword, model_savefname, print_lmer_output) # run lmer
     influential <- as.numeric(names(cooksd)[
     (cooksd > (4 / as.numeric(length(unique(data$subject)))))])
     data_screen <- data[-influential, ]
-    
+
     ## summary statistics
     subjectwise <- meanSummary(data_screen, c(subject, "ordered_iv"), dv)
     groupwise <- summarySEwithin(
@@ -111,16 +111,16 @@ ggplot_onefactor_pertask <- function(taskname, subject_varkey, subject, exclude,
         withinvars = c("ordered_iv"), # iv
         idvar = "subject"
     )
-    
+
     ## designate plot save location
-    ggtitle <- paste0(str_to_title(taskname), ggtitle_phrase, " N = (", length(unique(data$subject)), ")");  
+    ggtitle <- paste0(str_to_title(taskname), ggtitle_phrase, " N = (", length(unique(data$subject)), ")");
     title <- paste0(str_to_title(taskname), " - ", str_to_title(dv_keyword))
-    w = 5; h = 3; 
+    w = 5; h = 3;
     plot_savefname <- file.path(analysis_dir,
                                 paste0("raincloud_task", taskname,"_iv-", iv_keyword, "_dv-rating-", dv_keyword,"_", as.character(Sys.Date()), ".png")
                                 )
 
-    
+
     # plot_rainclouds_onefactor
     p1 <- plot_halfrainclouds_onefactor(
         subjectwise, groupwise,
@@ -128,26 +128,26 @@ ggplot_onefactor_pertask <- function(taskname, subject_varkey, subject, exclude,
         ggtitle, title, xlab, ylab, task_name,ylim,
         w, h, dv_keyword, color_scheme, plot_savefname
     )
-    
-    p1 <-   p1 + 
-      geom_hline(yintercept = 0, size = 0.1, linetype = "dashed") + 
+
+    p1 <-   p1 +
+      geom_hline(yintercept = 0, size = 0.1, linetype = "dashed") +
       geom_label(x = 3.5, y = 0, label = c("no sensation"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 3, size = 0.1, linetype = "dashed") + 
+      geom_hline(yintercept = 3, size = 0.1, linetype = "dashed") +
       geom_label(x = 3.5, y = 3, label = c("barely detectable"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 10, size = 0.1, linetype = "dashed") + 
+      geom_hline(yintercept = 10, size = 0.1, linetype = "dashed") +
       geom_label(x = 3.5, y = 10, label = c("weak"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 30, size = 0.1, linetype = "dashed") + 
+      geom_hline(yintercept = 30, size = 0.1, linetype = "dashed") +
       geom_label(x = 3.5, y = 30, label = c("moderate"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 65, size = 0.1, linetype = "dashed") + 
+      geom_hline(yintercept = 65, size = 0.1, linetype = "dashed") +
       geom_label(x = 3.5, y = 65, label = c("strong"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 95, size = 0.1, linetype = "dashed") + 
+      geom_hline(yintercept = 95, size = 0.1, linetype = "dashed") +
       geom_label(x = 3.5, y = 95, label = c("very strong"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 180, size = 0.1, linetype = "dashed") + 
+      geom_hline(yintercept = 180, size = 0.1, linetype = "dashed") +
       geom_label(x = 3.5, y = 180, label = c("strongest imaginable"), hjust = 0, nudge_x = 0.1, size = 3) +
       coord_cartesian(clip = 'off')+
-      theme_classic() + 
-      theme(legend.position = "none") 
-    
+      theme_classic() +
+      theme(legend.position = "none")
+
     return(p1)
 # randEffect$newcoef <- mapvalues(randEffect$term,
 #     from = c(as.character(unique(randEffect$term)[1]),
@@ -155,10 +155,10 @@ ggplot_onefactor_pertask <- function(taskname, subject_varkey, subject, exclude,
 #              ),
 #     to = c("rand_intercept", paste0("rand_", iv_keyword))
 # )
-# 
+#
 # rand_subset <- subset(randEffect, select = -c(grpvar, term, condsd))
 # wide_rand <- spread(rand_subset, key = newcoef, value = condval)
-# 
+#
 # wide_fix <- do.call(
 #     "rbind",
 #     replicate(nrow(wide_rand),
@@ -171,12 +171,12 @@ ggplot_onefactor_pertask <- function(taskname, subject_varkey, subject, exclude,
 #     fix_intercept = colnames(wide_fix)[1],
 #     fix_reg = colnames(wide_fix)[2],
 # )
-# 
+#
 # total <- cbind(wide_rand, new_wide_fix)
 # total$task <- taskname
 # new_total <- total %>% dplyr::select(task, everything())
 # new_total <- dplyr::rename(total, subj = grp)
-# 
+#
 # rand_savefname <- file.path(
 #     analysis_dir,
 #     paste("randeffect_task-", taskname, "_",
@@ -192,36 +192,44 @@ ggplot_onefactor_pertask <- function(taskname, subject_varkey, subject, exclude,
 ## Pain
 
 ### For the pain task, what is the effect of stimulus intensity on outcome ratings? {.unlisted .unnumbered}
+
 [ INSERT DESCRIPTION ]
+
 ```{r pain_iv-stim_dv-outcome, echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 taskname = 'pain'
 color_scheme = c("#FFA79A", "#CA5C4D", "#941100")
 ggplot_onefactor_pertask(taskname, subject_varkey, subject, exclude,
-                                     analysis_dir, iv, iv_keyword, dv, dv_keyword, 
+                                     analysis_dir, iv, iv_keyword, dv, dv_keyword,
                                      subjectwise_mean, group_mean, se, color_scheme,
                                      xlab, ylim, ylab, ggtitle_phrase, print_lmer_output)
 ```
 
 ## Vicarious
+
 ### For the vicarious task, what is the effect of stimulus intensity on outcome ratings? {.unlisted .unnumbered}
+
 [ INSERT DESCRIPTION ]
+
 ```{r vicarious_iv-stim_dv-outcome, echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 taskname = 'vicarious'
 color_scheme = c("#C6FF8A", "#63C76E", "#008F51")
 ggplot_onefactor_pertask(taskname, subject_varkey, subject, exclude,
-                                     analysis_dir, iv, iv_keyword, dv, dv_keyword, 
+                                     analysis_dir, iv, iv_keyword, dv, dv_keyword,
                                      subjectwise_mean, group_mean, se, color_scheme,
                                      xlab, ylim, ylab, ggtitle_phrase, print_lmer_output)
 ```
 
 ## Cognitive
+
 ### For the cognitive task, what is the effect of stimulus intensity on outcome ratings? {.unlisted .unnumbered}
+
 [ INSERT DESCRIPTION ]
+
 ```{r cognitive_iv-stim_dv-outcome, echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 taskname = 'cognitive'
 color_scheme = c("#8EA1FF", "#485DC8", "#011891")
 ggplot_onefactor_pertask(taskname, subject_varkey, subject, exclude,
-                                     analysis_dir, iv, iv_keyword, dv, dv_keyword, 
+                                     analysis_dir, iv, iv_keyword, dv, dv_keyword,
                                      subjectwise_mean, group_mean, se, color_scheme,
                                      xlab, ylim, ylab, ggtitle_phrase, print_lmer_output)
 ```
@@ -256,6 +264,7 @@ write.csv(pvc, save_fname, row.names = FALSE)
 ```
 
 ## for loop
+
 ```{r echo=FALSE}
 combined_se_calc_cooksd <- data.frame()
 analysis_dir <- file.path(
@@ -273,10 +282,10 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     title <- paste(taskname, " - actual")
     subject <- "src_subject_id"
     subject_varkey <- "src_subject_id"
-    data <- load_task_social_df(datadir, 
+    data <- load_task_social_df(datadir,
         taskname = taskname,
         subject_varkey = "src_subject_id",
-        
+
         iv = "param_cue_type",
         dv = "event04_actual_angle",
         exclude = "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
@@ -389,39 +398,39 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
         w, h, dv_keyword, color, plot_savefname
     )
 
-    g <- g + 
-      geom_hline(yintercept = 0, size = 0.1, linetype = "dashed") + 
+    g <- g +
+      geom_hline(yintercept = 0, size = 0.1, linetype = "dashed") +
       geom_label(x = 3.5, y = 0, label = c("no sensation"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 3, size = 0.1, linetype = "dashed") + 
+      geom_hline(yintercept = 3, size = 0.1, linetype = "dashed") +
       geom_label(x = 3.5, y = 3, label = c("barely detectable"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 10, size = 0.1, linetype = "dashed") + 
+      geom_hline(yintercept = 10, size = 0.1, linetype = "dashed") +
       geom_label(x = 3.5, y = 10, label = c("weak"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 30, size = 0.1, linetype = "dashed") + 
+      geom_hline(yintercept = 30, size = 0.1, linetype = "dashed") +
       geom_label(x = 3.5, y = 30, label = c("moderate"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 65, size = 0.1, linetype = "dashed") + 
+      geom_hline(yintercept = 65, size = 0.1, linetype = "dashed") +
       geom_label(x = 3.5, y = 65, label = c("strong"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 95, size = 0.1, linetype = "dashed") + 
+      geom_hline(yintercept = 95, size = 0.1, linetype = "dashed") +
       geom_label(x = 3.5, y = 95, label = c("very strong"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 180, size = 0.1, linetype = "dashed") + 
+      geom_hline(yintercept = 180, size = 0.1, linetype = "dashed") +
       geom_label(x = 3.5, y = 180, label = c("strongest imaginable"), hjust = 0, nudge_x = 0.1, size = 3) +
       coord_cartesian(clip = 'off')+
-      theme_classic() + 
-      theme(legend.position = "none") 
-    
+      theme_classic() +
+      theme(legend.position = "none")
+
     ggsave(plot_savefname, width = w, height = h)
-    
-  print(g)  
+
+  print(g)
 
     # save fixed random effects _______________________________
 #     randEffect$newcoef <- mapvalues(randEffect$term,
-#         from = c("(Intercept)", "data[, iv]", 
-#                  "data[, stim_con1]", "data[, stim_con2]", 
-#                  "data[, iv]:data[, stim_con1]", 
+#         from = c("(Intercept)", "data[, iv]",
+#                  "data[, stim_con1]", "data[, stim_con2]",
+#                  "data[, iv]:data[, stim_con1]",
 #                  "data[, iv]:data[, stim_con2]"),
-#         to = c("rand_intercept", "rand_cue", "rand_stimlin", 
+#         to = c("rand_intercept", "rand_cue", "rand_stimlin",
 #                "rand_stimquad", "rand_int_cue_stimlin", #"rand_int_cue_stimquad")
 #     )
-# 
+#
 #     #
 #     # # The arguments to spread():
 #     # # - data: Data object
@@ -440,29 +449,30 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
 #     )
 #     rownames(wide_fix) <- NULL
 #     new_wide_fix <- dplyr::rename(wide_fix,
-#         fix_intercept = `(Intercept)`, 
+#         fix_intercept = `(Intercept)`,
 #         fix_cue = `social_cue`, # `data[, iv]`,
 #         fix_stimulus_linear = `stim_con_linear`, # `data[, stim_con1]`,
-#         fix_stimulus_quad = `stim_con_quad`, #`data[, stim_con2]`, 
+#         fix_stimulus_quad = `stim_con_quad`, #`data[, stim_con2]`,
 #         fix_int_cue_stimlin = `social_cue:stim_con_linear`, #`data[, iv]:data[, stim_con1]`,
 #         fix_int_cue_stimquad = `social_cue:stim_con_quad` #`data[, iv]:data[, stim_con2]`
 #     )
-# 
+#
 #     total <- cbind(wide_rand, new_wide_fix)
 #     total$task <- taskname
 #     new_total <- total %>% dplyr::select(task, everything())
 #     new_total <- dplyr::rename(total, subj = grp)
-# 
-#     plot_savefname <- file.path(analysis_dir, 
-#                                 paste("randeffect_task-", taskname, 
+#
+#     plot_savefname <- file.path(analysis_dir,
+#                                 paste("randeffect_task-", taskname,
 #                                       "_", as.character(Sys.Date()), #"_outlier-cooksd.csv", sep = ""))
 #     write.csv(new_total, plot_savefname, row.names = FALSE)
-# 
+#
 }
 
 ```
 
 ## Lineplot
+
 ```{r}
 library(ggpubr)
 DATA = as.data.frame(combined_se_calc_cooksd)
@@ -472,11 +482,11 @@ LINEIV2 = "cue_ordered"
 MEAN = "mean_per_sub_norm_mean"
 ERROR = "se"
 dv_keyword = "actual"
-p1 = plot_lineplot_onefactor(DATA, 'pain', 
+p1 = plot_lineplot_onefactor(DATA, 'pain',
                LINEIV1, MEAN, ERROR, color, xlab = "Stimulus intensity" , ylab= "Outcome rating", ggtitle = 'pain' )
-p2 = plot_lineplot_onefactor(DATA,'vicarious', 
+p2 = plot_lineplot_onefactor(DATA,'vicarious',
                LINEIV1, MEAN, ERROR, color,xlab = "Stimulus intensity" , ylab= "Outcome rating",ggtitle = 'vicarious')
-p3 = plot_lineplot_onefactor(DATA, 'cognitive', 
+p3 = plot_lineplot_onefactor(DATA, 'cognitive',
                LINEIV1, MEAN, ERROR, color,xlab = "Stimulus intensity" , ylab= "Outcome rating",ggtitle = 'cognitive')
 #grid.arrange(p1, p2, p3, ncol=3 , common.legend = TRUE)
 ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
@@ -485,10 +495,10 @@ plot_filename = file.path(analysis_dir,
 ggsave(plot_filename, width = 15, height = 6)
 ```
 
-
-## individual differences in outcome rating cue effect 
+## individual differences in outcome rating cue effect
 
 [ INSERT DESCRIPTION ]
+
 ```{r random_effects_scatter_plot_3, eval=FALSE, message=FALSE, warning=TRUE, include=FALSE}
 pvc_rand_subset <- subset(pvc, select = c(task, subj, rand_stim))
 pvc_rand <- spread(pvc_rand_subset, key = task, value = rand_stim)
@@ -503,7 +513,7 @@ plots_title <- annotate_figure(plots, top = text_grob(paste0("individual differe
 print(plots)
 save_plotname <- file.path(
     analysis_dir,
-    paste("randeffect_scatterplot_task-all_", 
+    paste("randeffect_scatterplot_task-all_",
         as.character(Sys.Date()), ".png",
         sep = ""
     )
@@ -511,4 +521,3 @@ save_plotname <- file.path(
 ggsave(save_plotname, width = 10, height = 3)
 
 ```
-

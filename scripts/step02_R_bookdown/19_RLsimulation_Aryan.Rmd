@@ -1,12 +1,12 @@
-# [beh] RL simulation Aryan {#ch18_simulation_aryan}
+# RL :: simulation Aryan {#simulation_aryan}
 
 ---
-output: rmdformats::downcute
----
+
+## output: rmdformats::downcute
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
-* Here, I model Aryans model fitted results, using the same scheme as my behavioral analysis (15*.Rmd)
 
+- Here, I model Aryans model fitted results, using the same scheme as my behavioral analysis (15\*.Rmd)
 
 ```{r load_libraries_5, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
 library(psych)
@@ -52,7 +52,7 @@ library(lme4)
 library(effectsize)
 library(brms)
 library(devtools)
-library(visibly) # 
+library(visibly) #
 library(plotly) #plot
 library(scico) # plot
 # source("https://gist.github.com/benmarwick/2a1bb0133ff568cbe28d/geom_flat_violin.R")
@@ -60,8 +60,8 @@ library(scico) # plot
 library(r2mlm)
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 ```
@@ -89,9 +89,6 @@ data <- read.csv(file.path(main_dir, 'data/simulated/model_ver04_0508/table_pain
 analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model19_RLsimulationplot", as.character(Sys.Date()))
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 ```
-
-
-
 
 ```{r function::simple_contrasts_beh, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 simple_contrasts_beh <- function(df) {
@@ -129,6 +126,7 @@ return(df)
 ```
 
 ## Plot the relationship between expectation and outcome rating using model 4 simulations (Jepma)
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # convert column names _________________________________________________________
 data$event04_actual_angle <- data$Pain_mdl4
@@ -150,26 +148,25 @@ data_p2 <- maindata %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number())
 
-data_a3 <- data_p2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_a3 <- data_p2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num))
 
 # calculate lag score (N-1 outcome score_) _____________________________________
-data_a3lag <- 
+data_a3lag <-
     data_a3 %>%
     group_by(src_subject_id, session_id, param_run_num) %>%
     mutate(lag.demean_outcome = dplyr::lag(demean_outcome, n = 1, default = NA))
 
 # calculate subject level average score ________________________________________
 data_a3lag <- data_a3lag %>%
-  mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) 
+  mutate(EXPECT_cmc = avg_expect - mean(avg_expect))
 data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.demean_outcome),]
 
 # compute contrasts ____________________________________________________________
 df <- data_a3lag_omit
 pvc <- simple_contrasts_beh(df)
 ```
-
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # plot expectation and outcome rating
@@ -184,14 +181,13 @@ total <-
     subject = "src_subject_id",
     xmin=-50, xmax=50, ymin=-50, ymax=50,
     xlab = "expectation rating",
-    ylab = "outcome rating", 
-    ggtitle = "all stimulus intensity", 
+    ylab = "outcome rating",
+    ggtitle = "all stimulus intensity",
     color_scheme = c("high_cue" ="#941100","low_cue" =  "#5D5C5C"),
     alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
   )
 total
 ```
-
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # only keep rows that both have expectation and outcome ratings
@@ -255,22 +251,21 @@ data_p2= maindata %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number())
-data_a3 <- data_p2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_a3 <- data_p2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num))
 
-data_a3lag <- 
+data_a3lag <-
     data_a3 %>%
     group_by(src_subject_id, session_id, param_run_num) %>%
     mutate(lag.demean_outcome = dplyr::lag(demean_outcome, n = 1, default = NA))
 data_a3lag <- data_a3lag %>%
-  mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) 
+  mutate(EXPECT_cmc = avg_expect - mean(avg_expect))
 data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.demean_outcome),]
 
 df <- data_a3lag_omit
 pvc <- simple_contrasts_beh(df)
 ```
-
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 df_dropna <-
@@ -284,8 +279,8 @@ total <-
     subject = "src_subject_id",
     xmin=-50, xmax=50, ymin=-50, ymax=50,
     xlab = "expectation rating",
-    ylab = "outcome rating", 
-    ggtitle = "all stimulus intensity", 
+    ylab = "outcome rating",
+    ggtitle = "all stimulus intensity",
     color_scheme = c("high_cue" ="#941100","low_cue" =  "#5D5C5C"),
     alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
   )
@@ -334,66 +329,68 @@ plots_title <- annotate_figure(plots, top = text_grob("model fitted data Jepma v
 plots_title
 ```
 
-
 ### model fits from model 2. expectation ratings (Jepma model)
+
 ```{r}
 main_dir = dirname(dirname(getwd()))
 data <- read.csv(file.path(main_dir, 'data/simulated/model_ver04_0508/table_pain_new.csv'))
-subjectwise_2dv <- meanSummary_2dv(data, c("src_subject_id"), 
+subjectwise_2dv <- meanSummary_2dv(data, c("src_subject_id"),
                                    "event02_expect_angle", "Exp_mdl2" )
-ggplot(data = subjectwise_2dv, 
-       aes(x = .data[["DV1_mean_per_sub"]], 
+ggplot(data = subjectwise_2dv,
+       aes(x = .data[["DV1_mean_per_sub"]],
            y = .data[["DV2_mean_per_sub"]],
            size = .5
            )) +
-  geom_point(size = 2, alpha = .5  ) + 
-  ylim(0,180) + 
+  geom_point(size = 2, alpha = .5  ) +
+  ylim(0,180) +
   xlim(0,180) +
   coord_fixed() +
-  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) + 
-  xlab("Observed\nexpectation rating") + 
+  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) +
+  xlab("Observed\nexpectation rating") +
   ylab("Model-fitted \nexpectation rating")+
   theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
-    plot.subtitle = ggtext::element_textbox_simple(size = 1), 
+    plot.subtitle = ggtext::element_textbox_simple(size = 1),
     axis.text.x = element_text(size = 10),
     axis.text.y = element_text(size = 10),
     axis.title.x = element_text(size = 15),
     axis.title.y = element_text(size = 15)
-      
+
   )
 ```
 
 ### model fits from model 2. outcome ratings (Jepma model)
+
 ```{r}
-subjectwise_2dv <- meanSummary_2dv(data, c("src_subject_id"), 
+subjectwise_2dv <- meanSummary_2dv(data, c("src_subject_id"),
                                    "event04_actual_angle", "Pain_mdl2" )
-ggplot(data = subjectwise_2dv, 
-       aes(x = .data[["DV1_mean_per_sub"]], 
+ggplot(data = subjectwise_2dv,
+       aes(x = .data[["DV1_mean_per_sub"]],
            y = .data[["DV2_mean_per_sub"]],
            size = .5
            )) +
-  geom_point(size = 2, alpha = .5  ) + 
-  ylim(0,180) + 
+  geom_point(size = 2, alpha = .5  ) +
+  ylim(0,180) +
   xlim(0,180) +
   coord_fixed() +
-  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) + 
-  xlab("Observed\noutcome rating") + 
+  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) +
+  xlab("Observed\noutcome rating") +
   ylab("Model-fitted \noutcome rating")+
   theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
-    plot.subtitle = ggtext::element_textbox_simple(size = 1), 
+    plot.subtitle = ggtext::element_textbox_simple(size = 1),
     axis.text.x = element_text(size = 15),
     axis.text.y = element_text(size = 15),
     axis.title.x = element_text(size = 20),
     axis.title.y = element_text(size = 20)
-      
+
   )
 ```
 
 ## correlation betweeen alpha_incongruent and cue trial slope (randome effects of cue)
+
 ```{r echo=FALSE}
 # load dataframe
 cue_trial <- data.frame(read.csv(file.path(main_dir, 'data/RL/cue_trial_ranef_pain.csv')))
@@ -406,31 +403,32 @@ merged_df <- merge(cue_trial, model_param, by.x = "sub", by.y = "subj_num_new_pa
 # plot ggplot
 # run lmer
 merged_df$alpha_c_gt_i <- merged_df$alpha_c - merged_df$alpha_i
-merged_2dv <- meanSummary_2dv(merged_df, c("sub"), 
+merged_2dv <- meanSummary_2dv(merged_df, c("sub"),
                                    "cue_randomslope", "pain_err" )
-ggplot(data = merged_df, 
-       aes(x = .data[["cue_randomslope"]], 
+ggplot(data = merged_df,
+       aes(x = .data[["cue_randomslope"]],
            y = .data[["alpha_c_gt_i"]],
            size = .5
            )) +
-  geom_point(size = 2, alpha = .5  ) + 
-  ylim(-10,10) + 
+  geom_point(size = 2, alpha = .5  ) +
+  ylim(-10,10) +
   xlim(-10,10) +
   coord_fixed() +
-  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) + 
-  xlab("Cue random slopes") + 
+  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) +
+  xlab("Cue random slopes") +
   ylab("Alpha \n(congruent > incongruent)")+
   theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
-    plot.subtitle = ggtext::element_textbox_simple(size = 1), 
+    plot.subtitle = ggtext::element_textbox_simple(size = 1),
     axis.text.x = element_text(size = 15),
     axis.text.y = element_text(size = 15),
     axis.title.x = element_text(size = 20),
     axis.title.y = element_text(size = 20)
-      
+
   )
 ```
+
 ```{r echo=FALSE}
 # load dataframe
 cue_trial <- data.frame(read.csv(file.path(main_dir, 'data/RL/cue_trial_ranef_vicarious.csv')))
@@ -443,29 +441,29 @@ merged_df <- merge(cue_trial, model_param, by.x = "sub", by.y = "subj_num_new_vi
 # plot ggplot
 # run lmer
 merged_df$alpha_c_gt_i <- merged_df$alpha_c - merged_df$alpha_i
-merged_2dv <- meanSummary_2dv(merged_df, c("sub"), 
+merged_2dv <- meanSummary_2dv(merged_df, c("sub"),
                                    "cue_randomslope", "pain_err" )
-ggplot(data = merged_df, 
-       aes(x = .data[["cue_randomslope"]], 
+ggplot(data = merged_df,
+       aes(x = .data[["cue_randomslope"]],
            y = .data[["alpha_c_gt_i"]],
            size = .5
            )) +
-  geom_point(size = 2, alpha = .5  ) + 
-  ylim(-10,10) + 
+  geom_point(size = 2, alpha = .5  ) +
+  ylim(-10,10) +
   xlim(-10,10) +
   coord_fixed() +
-  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) + 
-  xlab("Cue random slopes") + 
+  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) +
+  xlab("Cue random slopes") +
   ylab("Alpha \n(congruent > incongruent)")+
   theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
-    plot.subtitle = ggtext::element_textbox_simple(size = 1), 
+    plot.subtitle = ggtext::element_textbox_simple(size = 1),
     axis.text.x = element_text(size = 15),
     axis.text.y = element_text(size = 15),
     axis.title.x = element_text(size = 20),
     axis.title.y = element_text(size = 20)
-      
+
   )
 ```
 
@@ -481,34 +479,34 @@ merged_df <- merge(cue_trial, model_param, by.x = "sub", by.y = "subj_num_new_co
 # plot ggplot
 # run lmer
 merged_df$alpha_c_gt_i <- merged_df$alpha_c - merged_df$alpha_i
-merged_2dv <- meanSummary_2dv(merged_df, c("sub"), 
+merged_2dv <- meanSummary_2dv(merged_df, c("sub"),
                                    "cue_randomslope", "pain_err" )
-ggplot(data = merged_df, 
-       aes(x = .data[["cue_randomslope"]], 
+ggplot(data = merged_df,
+       aes(x = .data[["cue_randomslope"]],
            y = .data[["alpha_c_gt_i"]],
            size = .5
            )) +
-  geom_point(size = 2, alpha = .5  ) + 
-  ylim(-10,10) + 
+  geom_point(size = 2, alpha = .5  ) +
+  ylim(-10,10) +
   xlim(-10,10) +
   coord_fixed() +
-  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) + 
-  xlab("Cue random slopes") + 
+  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) +
+  xlab("Cue random slopes") +
   ylab("Alpha \n(congruent > incongruent)")+
   theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
-    plot.subtitle = ggtext::element_textbox_simple(size = 1), 
+    plot.subtitle = ggtext::element_textbox_simple(size = 1),
     axis.text.x = element_text(size = 15),
     axis.text.y = element_text(size = 15),
     axis.title.x = element_text(size = 20),
     axis.title.y = element_text(size = 20)
-      
+
   )
 ```
 
-
 ## correlation betweeen alpha_incongruent and NPS
+
 ```{r}
 # load dataframe
 NPS <- data.frame(read.csv(file.path(main_dir, 'data/NPS_curated.csv')))
@@ -536,27 +534,27 @@ merged_NPS$alpha_c_gt_i <- merged_NPS$alpha_c - merged_NPS$alpha_i
 # grab cue slope
 # grab intersection of subject ids
 # plot ggplot
-ggplot(data = merged_NPS, 
-       aes(x = .data[["avg_diff"]], 
+ggplot(data = merged_NPS,
+       aes(x = .data[["avg_diff"]],
            y = .data[["alpha_c_gt_i"]],
            size = .5
            )) +
-  geom_point(size = 2, alpha = .5  ) + 
-  ylim(-10,10) + 
+  geom_point(size = 2, alpha = .5  ) +
+  ylim(-10,10) +
   xlim(-10,10) +
   coord_fixed() +
-  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) + 
-  xlab("NPS \n(congruent > incongruent)") + 
+  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) +
+  xlab("NPS \n(congruent > incongruent)") +
   ylab("Alpha \n(congruent > incongruent)")+
   theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
-    plot.subtitle = ggtext::element_textbox_simple(size = 1), 
+    plot.subtitle = ggtext::element_textbox_simple(size = 1),
     axis.text.x = element_text(size = 15),
     axis.text.y = element_text(size = 15),
     axis.title.x = element_text(size = 20),
     axis.title.y = element_text(size = 20)
-      
+
   )
 # run lmer
 
@@ -579,35 +577,34 @@ PEdf <- PEdf %>%
 merged_NPSpe <- merge(NPS, PEdf, by = c("sub", "ses", "run", "trial"))
 
 
-subjectwise_2dv <- meanSummary_2dv(merged_NPSpe, c("src_subject_id","stimintensity", "cuetype"), 
+subjectwise_2dv <- meanSummary_2dv(merged_NPSpe, c("src_subject_id","stimintensity", "cuetype"),
                                    "PE_mdl2", "NPSpos" )
-ggplot(data = subjectwise_2dv, 
-       aes(x = .data[["DV1_mean_per_sub"]], 
+ggplot(data = subjectwise_2dv,
+       aes(x = .data[["DV1_mean_per_sub"]],
            y = .data[["DV2_mean_per_sub"]],
            color = .data[["cuetype"]],
            # shape = .data[["stimintensity"]],
            # size = .5
            )) +
-  geom_point(size = 2, alpha = .5  ) + 
-  ylim(-50,50) + 
+  geom_point(size = 2, alpha = .5  ) +
+  ylim(-50,50) +
   xlim(-50,50) +
   coord_fixed() +
   scale_color_manual(values = c("cuetype-high" ="red","cuetype-low" =  "#5D5C5C"))+
-  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) + 
-  xlab("PE") + 
+  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) +
+  xlab("PE") +
   ylab("NPSpos")+
   theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
-    plot.subtitle = ggtext::element_textbox_simple(size = 1), 
+    plot.subtitle = ggtext::element_textbox_simple(size = 1),
     axis.text.x = element_text(size = 15),
     axis.text.y = element_text(size = 15),
     axis.title.x = element_text(size = 20),
     axis.title.y = element_text(size = 20)
-      
+
   )
 ```
-
 
 ```{r}
 model.25 <- lmer(merged_NPSpe$NPSpos ~ merged_NPSpe$PE_mdl2 + (1|sub), data = merged_NPSpe)
@@ -615,40 +612,43 @@ summary(model.25)
 ```
 
 ### test relationship between PE and cue type and stimintensity (06/16/2023)
+
 ```{r}
 model.PENPS <- lmer(NPSpos ~ PE_mdl2*cuetype*stimintensity + (1|sub), data = merged_NPSpe)
 summary(model.PENPS)
 ```
 
 ### plot the relationship between PE and NPS as a function of cue
+
 ```{r}
-ggplot(data = merged_NPSpe, 
-       aes(x = .data[["PE_mdl2"]], 
+ggplot(data = merged_NPSpe,
+       aes(x = .data[["PE_mdl2"]],
            y = .data[["NPSpos"]],
            color = .data[["cuetype"]],
            size = .5
            )) +
-  geom_point(size = 2, alpha = .5  ) + 
-  ylim(-150,150) + 
+  geom_point(size = 2, alpha = .5  ) +
+  ylim(-150,150) +
   xlim(-150,150) +
   coord_fixed() +
   scale_color_manual(values = c("cuetype-high" ="red","cuetype-low" =  "#5D5C5C"))+
-  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) + 
-  xlab("PE") + 
+  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) +
+  xlab("PE") +
   ylab("NPSpos")+
   theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
-    plot.subtitle = ggtext::element_textbox_simple(size = 1), 
+    plot.subtitle = ggtext::element_textbox_simple(size = 1),
     axis.text.x = element_text(size = 15),
     axis.text.y = element_text(size = 15),
     axis.title.x = element_text(size = 20),
     axis.title.y = element_text(size = 20)
-      
+
   )
 ```
 
 ### plot the relationship between PE and NPS as a function of cue and stimulus intensity
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
 df_low = merged_NPSpe[merged_NPSpe$stimintensity == "low", ]

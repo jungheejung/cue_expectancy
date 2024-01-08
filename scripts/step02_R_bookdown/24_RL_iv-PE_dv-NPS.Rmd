@@ -1,13 +1,9 @@
-# PE and NPS {#ch24_RL_PE_NPS}
----
-title: "24_RL_iv-PE_dv-NPS"
-output: html_document
-date: "2023-11-05"
----
+# RL :: PE and NPS {#RL-PE-NPS}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
+
 Here, I investigate the relationship between prediction errors and NPS extracted values.
-The question we ask is, whether the cue-expectancy effects of NPS are driven by prediction errors. 
+The question we ask is, whether the cue-expectancy effects of NPS are driven by prediction errors.
 
 ```{r include=FALSE}
 library(car)
@@ -36,14 +32,12 @@ devtools::source_url("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff5
 library(r2mlm)
 main_dir <- dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, 'scripts', 'step02_R', 'utils'),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 
 ```
-
-
 
 ```{r}
 
@@ -72,8 +66,8 @@ NPSsplit <- NPSdf %>%
     param_cue_type = case_when(
       str_detect(cuetype, "low") ~ "low_cue",
       str_detect(cuetype, "high") ~ "high_cue"
-    ), 
-    param_task_name = str_replace(runtype, "runtype-", ""), 
+    ),
+    param_task_name = str_replace(runtype, "runtype-", ""),
     param_stimulus_type = case_when(
       stimintensity == "stimintensity-low" ~ "low_stim",
       stimintensity == "stimintensity-med" ~ "med_stim",
@@ -81,7 +75,7 @@ NPSsplit <- NPSdf %>%
       TRUE ~ stimintensity  # Retain original value if neither "low" nor "high"
     )
   ) %>%
-  
+
   # Select and rename the necessary columns
   select(
     src_subject_id,
@@ -98,6 +92,7 @@ NPSsplit <- NPSdf %>%
 ```
 
 merge the two dataframes
+
 ```{r}
 
 merge_df <- inner_join(NPSsplit, RLdf, by = c("src_subject_id",
@@ -110,6 +105,7 @@ merge_df <- inner_join(NPSsplit, RLdf, by = c("src_subject_id",
 ```
 
 ## scatter plot
+
 ```{r}
 merge_df$sub <- factor(merge_df$src_subject_id)
 model.NPSRL = lmer(NPSpos ~ PE_mdl3 + (PE_mdl3 | sub) + (1|session_id), data = merge_df)
@@ -118,12 +114,13 @@ summary(model.NPSRL)
 
 structure: sub, NPS, PE
 subjectwise correlations
+
 ```{r}
 
-ggplot(merge_df, aes(y = NPSpos, 
-                       x = PE_mdl2, 
-                       colour = src_subject_id), size = .3, color = 'gray') + 
-  geom_point(size = .1) + 
+ggplot(merge_df, aes(y = NPSpos,
+                       x = PE_mdl2,
+                       colour = src_subject_id), size = .3, color = 'gray') +
+  geom_point(size = .1) +
   geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .3) +
   theme_bw()
 ```
@@ -172,6 +169,6 @@ ggplot(df, aes(x = NPS, y = PE)) +
 
 ```
 
-
 ## re-run brain results from `XX.md`
+
 ## re-run behavioral results from `XX.Rmd`

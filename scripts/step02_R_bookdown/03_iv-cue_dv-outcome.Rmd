@@ -1,14 +1,14 @@
-# beh :: outcome ~ cue {#beh_outcome_cue}
+# beh :: outcome ~ cue {#beh-outcome-cue}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
-Here, I plot the outcome ratings as a function of cue. 
+Here, I plot the outcome ratings as a function of cue.
 
-* Main model: `lmer(outcome_rating ~ cue)` 
-* Main question: do outcome ratings differ as a function of cue type? 
-* If there is a main effect of cue on outcome ratings, does this cue effect differ depending on task type?
-* IV: cue (high / low)
-* DV: outcome rating
+- Main model: `lmer(outcome_rating ~ cue)`
+- Main question: do outcome ratings differ as a function of cue type?
+- If there is a main effect of cue on outcome ratings, does this cue effect differ depending on task type?
+- IV: cue (high / low)
+- DV: outcome rating
 
 FIX: plot statistics in random effect plot - what is broken?
 
@@ -51,8 +51,8 @@ library(ggpubr)
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 ```
@@ -84,14 +84,14 @@ dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
 ```{r ggplotfunction_2, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 ggplot_onefactor_pertask <- function(taskname, subject_varkey, subject, exclude,
-                                     analysis_dir, iv, iv_keyword, dv, dv_keyword, 
+                                     analysis_dir, iv, iv_keyword, dv, dv_keyword,
                                      subjectwise_mean, group_mean, se,
                                      xlab, ylim, ylab, ggtitle_phrase, print_lmer_output) {
     ## designate where the lmer output lives
     model_savefname <- file.path(
         analysis_dir,paste("lmer_task-", taskname,"_iv-", iv_keyword, "_dv-rating-", dv_keyword,"_", as.character(Sys.Date()), ".txt",
             sep = ""))
-      
+
     ## load data, run model, and exclude outliers
     data <- load_task_social_df(datadir, taskname, subject_varkey, iv, dv, exclude)
     data$subject = factor(data$src_subject_id)
@@ -102,7 +102,7 @@ ggplot_onefactor_pertask <- function(taskname, subject_varkey, subject, exclude,
     influential <- as.numeric(names(cooksd)[
     (cooksd > (4 / as.numeric(length(unique(data$subject)))))])
     data_screen <- data[-influential, ]
-    
+
     ## summary statistics
     subjectwise <- meanSummary(data_screen, c(subject, iv), dv)
     groupwise <- summarySEwithin(
@@ -111,15 +111,15 @@ ggplot_onefactor_pertask <- function(taskname, subject_varkey, subject, exclude,
         withinvars = c(iv), # iv
         idvar = "subject"
     )
-    
+
     ## designate plot save location
-    ggtitle <- paste0(str_to_title(taskname), ggtitle_phrase, " N = (", length(unique(data$subject)), ")");  
+    ggtitle <- paste0(str_to_title(taskname), ggtitle_phrase, " N = (", length(unique(data$subject)), ")");
     title <- paste0(str_to_title(taskname), " - ", str_to_title(dv_keyword))
-    w = 5; h = 3; 
+    w = 5; h = 3;
     plot_savefname <- file.path(analysis_dir,
                                 paste0("raincloud_task", taskname,"iv-", iv_keyword, "_dv-rating-", dv_keyword,"_", as.character(Sys.Date()), ".png")
                                 )
-    
+
     # plot_rainclouds_onefactor
     p1 <- plot_halfrainclouds_onefactor(
         subjectwise, groupwise,
@@ -168,34 +168,43 @@ return(p1)
 ```
 
 ## Pain
+
 ### For the vicarious task, what is the effect of cue on outcome ratings? {.unlisted .unnumbered}
+
 [ INSERT DESCRIPTION ]
+
 ```{r pain_iv-cue_dv-outcome, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 taskname = 'pain'
 ggplot_onefactor_pertask(taskname, subject_varkey, subject, exclude,
-                                     analysis_dir, iv, iv_keyword, dv, dv_keyword, 
+                                     analysis_dir, iv, iv_keyword, dv, dv_keyword,
                                      subjectwise_mean, group_mean, se,
                                      xlab, ylim, ylab, ggtitle_phrase, print_lmer_output)
 ```
 
 ## Vicarious
+
 ### For the vicarious task, what is the effect of cue on outcome ratings? {.unlisted .unnumbered}
+
 [ INSERT DESCRIPTION ]
+
 ```{r vicarious_iv-cue_dv-outcome, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 taskname = 'vicarious'
 ggplot_onefactor_pertask(taskname, subject_varkey, subject, exclude,
-                                     analysis_dir, iv, iv_keyword, dv, dv_keyword, 
+                                     analysis_dir, iv, iv_keyword, dv, dv_keyword,
                                      subjectwise_mean, group_mean, se,
                                      xlab, ylim, ylab, ggtitle_phrase, print_lmer_output)
 ```
 
 ## Cognitive
+
 ### For the cognitive task, what is the effect of cue on outcome ratings? {.unlisted .unnumbered}
+
 [ INSERT DESCRIPTION ]
+
 ```{r cognitive_iv-cue_dv-outcome, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 taskname = 'cognitive'
 ggplot_onefactor_pertask(taskname, subject_varkey, subject, exclude,
-                                     analysis_dir, iv, iv_keyword, dv, dv_keyword, 
+                                     analysis_dir, iv, iv_keyword, dv, dv_keyword,
                                      subjectwise_mean, group_mean, se,
                                      xlab, ylim, ylab, ggtitle_phrase, print_lmer_output)
 ```
@@ -229,13 +238,12 @@ save_fname <- file.path(
 write.csv(pvc, save_fname, row.names = FALSE)
 ```
 
-
 ## Individual differences analysis: random cue effects
-Using the random effects from the mixed effects model, I'm plotting the random effect of cue types per task. 
 
-
+Using the random effects from the mixed effects model, I'm plotting the random effect of cue types per task.
 
 [ INSERT DESCRIPTION ]
+
 ```{r random_cue_scatter_plot_2, echo=FALSE, message=FALSE, warning=FALSE}
 pvc_rand_cue_subset <- subset(pvc, select = c(task, subj, rand_cue))
 pvc_rand_cue <- spread(pvc_rand_cue_subset, key = task, value = rand_cue)
@@ -250,7 +258,7 @@ plots_title <- annotate_figure(plots, top = text_grob("individual differences\n 
 
 save_plotname <- file.path(
     analysis_dir,
-    paste("randcueonly_scatterplot_task-all_", 
+    paste("randcueonly_scatterplot_task-all_",
         as.character(Sys.Date()), ".png",
         sep = ""
     )
@@ -261,13 +269,15 @@ plots
 ```
 
 Note:
-* Pain: Warning: Removed 2 rows containing non-finite values (`stat_cor()`).
-* Vicarious: Warning: Removed 1 rows containing non-finite values (`stat_cor()`).
-* Cognitive: Warning: Removed 2 rows containing non-finite values (`stat_cor()`).
 
+- Pain: Warning: Removed 2 rows containing non-finite values (`stat_cor()`).
+- Vicarious: Warning: Removed 1 rows containing non-finite values (`stat_cor()`).
+- Cognitive: Warning: Removed 2 rows containing non-finite values (`stat_cor()`).
 
 ## Individual differences analysis 2: random intercept + random slopes of cue effect
+
 based on Tor's suggestion, plotting the random efects with the random intercepts as well. not just the cue effects
+
 ```{r random_effects_scatter_plot_2, echo=FALSE, message=FALSE, warning=FALSE}
 pvc$rand = pvc$rand_intercept + pvc$rand_cue
 pvc_rand_cue_subset <- subset(pvc, select = c(task, subj, rand))
@@ -283,7 +293,7 @@ plots_title <- annotate_figure(plots, top = text_grob("individual differences\n 
 
 save_plotname <- file.path(
     analysis_dir,
-    paste("randeffect_scatterplot_task-all_", 
+    paste("randeffect_scatterplot_task-all_",
         as.character(Sys.Date()), ".png",
         sep = ""
     )
@@ -294,6 +304,7 @@ plots
 ```
 
 Note:
-* Pain: Warning: Removed 49 rows containing non-finite values (`stat_cor()`).
-* Vicarious: Removed 8 rows containing non-finite values (`stat_cor()`).
-* Cognitive: Removed 52 rows containing non-finite values (`stat_cor()`).
+
+- Pain: Warning: Removed 49 rows containing non-finite values (`stat_cor()`).
+- Vicarious: Removed 8 rows containing non-finite values (`stat_cor()`).
+- Cognitive: Removed 52 rows containing non-finite values (`stat_cor()`).

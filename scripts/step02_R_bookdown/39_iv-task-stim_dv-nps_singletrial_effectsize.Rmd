@@ -1,10 +1,4 @@
-# [fMRI] Signature effect size ~ single trial {#ch39_signature_effectsize}
-
-```
-author: "Heejung Jung"
-date: "2023-03-04"
-```
-
+# fMRI :: Signature effect size {#signature_effectsize}
 
 ```{r libraries_nps_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(car)
@@ -20,13 +14,14 @@ library(gghalves)
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 ```
 
 ## Function {.unlisted .unnumbered}
+
 ```{r function::summary_for_plots_pvc, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 summary_for_plots_PVC <- function(df, groupwise_measurevar, subject_keyword, model_iv1, model_iv2, dv) {
     #  [ PLOT ] calculate mean and se  _________________________
@@ -107,7 +102,7 @@ two_factor_lineplot <-
       ylab(ylab) +
       #scale_color_manual(values = color) +
       theme_classic() +
-      
+
       theme(aspect.ratio = .6) +
       expand_limits(x = 3.25) +
       #guides(fill = "none") +
@@ -128,12 +123,13 @@ two_factor_lineplot <-
       ) +
       theme(legend.key = element_rect(fill = "white", colour = "white")) +
       theme_bw()
-    
+
     return(g)
   }
 ```
 
 ## Step 1: Common parameters {.unlisted .unnumbered}
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
 
@@ -169,7 +165,7 @@ for (signature_key in c("NPSpos")) {
              showWarnings = FALSE,
              recursive = TRUE)
   savedir <- analysis_dir
-  
+
   # step 2: load data
   df = read.csv(sig_name)
   sig_df = df %>% separate(
@@ -197,14 +193,14 @@ for (signature_key in c("NPSpos")) {
   pvc$task[pvc$runtype == "runtype-vicarious"] <- "vicarious"
   pvc$task[pvc$runtype == "runtype-cognitive"] <- "cognitive"
   pvc$task <- factor(pvc$task)
-  
-  
+
+
   # step 3: parameters
-  
+
   taskname = "all"
   plot_keyword = "stimulusintensity"
   ggtitle_phrase =  "(3 tasks x 3 stimulus intensity)"
-  
+
   pvc$task = factor(pvc$task)
   plot_keys <- list(
     sub_mean = "mean_per_sub",
@@ -231,7 +227,7 @@ for (signature_key in c("NPSpos")) {
     ylab = paste(signature_key, " (dot product)"),
     ylim = c(-250, 500)
   )
-  
+
   # step 4: within between summary
   groupwise <- data.frame()
   subjectwise <- data.frame()
@@ -253,9 +249,9 @@ for (signature_key in c("NPSpos")) {
   } else {
     plot_keys$color <- c("#4575B4", "#FFA500", "#D73027")
   }
-  
+
   # step 5: plot
-  
+
   iv2 = "stim_ordered"
   iv1 = "task"
   taskname = "all"
@@ -282,7 +278,7 @@ for (signature_key in c("NPSpos")) {
       length(unique(pvc$sub)),
       ")"
     )
-  
+
   title <-
     paste0(str_to_title(dv_keyword),
            " - ",
@@ -340,8 +336,8 @@ emm1 = emmeans(model, specs = pairwise ~ stimintensity:task)
 emm1
 ```
 
-
 ## contrastt (stim intensity)
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 library(dplyr)
 library(plyr)
@@ -405,12 +401,12 @@ pvc_diff <- j[j$stimintensity == 'high',]
     ylab = paste(signature_key, " (dot product)"),
     ylim = c(-250, 500)
   )
-  
+
   # step 4: within between summary
   groupwise <- data.frame()
   subjectwise <- data.frame()
-  
-  
+
+
     subjectwise <- meanSummary(
         pvc_diff,
         c("sub", "task"), "sub_diff"
@@ -438,9 +434,9 @@ pvc_diff <- j[j$stimintensity == 'high',]
   } else {
     plot_keys$color <- c("#4575B4", "#FFA500", "#D73027")
   }
-  
+
   # step 5: plot
-  
+
   iv2 = "stim_ordered"
   iv1 = "task"
   taskname = "all"
@@ -463,7 +459,7 @@ pvc_diff <- j[j$stimintensity == 'high',]
       length(unique(pvc$sub)),
       ")"
     )
-  
+
   title <-
     paste0(str_to_title(dv_keyword),
            " - ",
@@ -489,15 +485,13 @@ pvc_diff <- j[j$stimintensity == 'high',]
   contrast <- plot_halfrainclouds_onefactor(subjectwise, groupwise, iv = "task",
                                       subjectwise_mean, group_mean, se, subject,
                                       ggtitle, title, xlab, ylab, taskname, ylim,
-                                      w = 10, h = 5, dv_keyword, color, save_fname = plot2_savefname) 
- 
+                                      w = 10, h = 5, dv_keyword, color, save_fname = plot2_savefname)
+
   contrast
 
 ```
 
 ## layer in metadata
+
 plot expectation rating, cue, stimulus intensity, N-1 outcome rating
 predict NPS response
-
-
-

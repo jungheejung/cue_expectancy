@@ -1,11 +1,12 @@
 # [CCN] SCL {#ch100_CCNsupplementary}
+
 ---
+
 title: "CCNfigures"
 output: html_document
 date: "2023-08-16"
+
 ---
-
-
 
 ```{r load_libraries_5, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
 library(psych)
@@ -53,7 +54,7 @@ library(effectsize)
 library(brms)
 library(devtools)
 library(gghalves)
-library(visibly) # 
+library(visibly) #
 library(plotly) #plot
 library(scico) # plot
 
@@ -62,13 +63,14 @@ library(scico) # plot
 library(r2mlm)
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 ```
 
 ## empirical
+
 ```{r}
 # STEP
 # * load csv
@@ -118,7 +120,7 @@ taskname <- "pain"
 
 
 # * cooks d lmer
-cooksd <- lmer_twofactor_cooksd_fix(
+cooksd <- lmer_twofactor_cooksd(
   data,  taskname,  iv1,  stim_con1,  stim_con2,  dv,  subject = "sub",  dv_keyword,  model_savefname,  'random_intercept',
   print_lmer_output = TRUE
 )
@@ -138,12 +140,12 @@ maindata <- data_screen %>%
   mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
   mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
   mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
-  mutate(demean_expect = event02_expect_angle - avg_expect) 
+  mutate(demean_expect = event02_expect_angle - avg_expect)
   # ungroup() %>%
 
 cmc <- maindata %>%
 mutate(OUTCOME_cmc = avg_outcome - mean(avg_outcome)) %>%
-mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) 
+mutate(EXPECT_cmc = avg_expect - mean(avg_expect))
 
 
 maindata$OUTCOME_cmc <- maindata$avg_outcome - mean(maindata$avg_outcome)
@@ -153,10 +155,10 @@ data_p2= maindata %>%
   arrange(sub ) %>%
   group_by(sub) %>%
   mutate(trial_index = row_number())
-data_a3 <- data_p2 %>% 
-  group_by(sub, ses, run) %>% 
+data_a3 <- data_p2 %>%
+  group_by(sub, ses, run) %>%
   mutate(trial_index = row_number(run))
-data_a3lag <- 
+data_a3lag <-
     data_a3 %>%
     group_by(sub, ses, run) %>%
     mutate(lag.04outcomeangle = dplyr::lag(event04_actual_angle, n = 1, default = NA))
@@ -166,9 +168,9 @@ main.df <- data_a3lag
 # %% main lmer
 main.df$EXPECT_demean <- main.df$demean_expect
 main.df$OUTCOME_demean <- main.df$demean_outcome
-model.behexpectdemean <- lmer(OUTCOME_demean ~ 
+model.behexpectdemean <- lmer(OUTCOME_demean ~
                           CUE_high_gt_low*STIM_linear*EXPECT_demean +
-                          CUE_high_gt_low*STIM_quadratic*EXPECT_demean + #EXPECT_cmc + 
+                          CUE_high_gt_low*STIM_quadratic*EXPECT_demean + #EXPECT_cmc +
                           (CUE_high_gt_low|sub), data = main.df, REML = FALSE,  control = lmerControl(optimizer ="Nelder_Mead"))  # lag.04outcomeangle +
 summary(model.behexpectdemean)
 # print(model.behexpectdemean, correlation=TRUE)
@@ -179,8 +181,6 @@ sjPlot::tab_model(model.behexpectdemean,
 
 # * report stats
 ```
-
-
 
 ## model fit
 
@@ -233,7 +233,7 @@ taskname <- "pain"
 
 
 # * cooks d lmer
-cooksd <- lmer_twofactor_cooksd_fix(
+cooksd <- lmer_twofactor_cooksd(
   data,  taskname,  iv1,  stim_con1,  stim_con2,  dv,  subject = "sub",  dv_keyword,  model_savefname,  'random_intercept',
   print_lmer_output = TRUE
 )
@@ -253,12 +253,12 @@ maindata <- data_screen %>%
   mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
   mutate(demean_outcome = event04_actual_angle - avg_outcome) %>%
   mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
-  mutate(demean_expect = event02_expect_angle - avg_expect) 
+  mutate(demean_expect = event02_expect_angle - avg_expect)
   # ungroup() %>%
 
 cmc <- maindata %>%
 mutate(OUTCOME_cmc = avg_outcome - mean(avg_outcome)) %>%
-mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) 
+mutate(EXPECT_cmc = avg_expect - mean(avg_expect))
 
 maindata$OUTCOME_cmc <- maindata$avg_outcome - mean(maindata$avg_outcome)
 maindata$EXPECT_cmc <- maindata$avg_expect - mean(maindata$avg_expect)
@@ -268,10 +268,10 @@ data_p2= maindata %>%
   arrange(sub ) %>%
   group_by(sub) %>%
   mutate(trial_index = row_number())
-data_a3 <- data_p2 %>% 
-  group_by(sub, ses, run) %>% 
+data_a3 <- data_p2 %>%
+  group_by(sub, ses, run) %>%
   mutate(trial_index = row_number(run))
-data_a3lag <- 
+data_a3lag <-
     data_a3 %>%
     group_by(sub, ses, run) %>%
     mutate(lag.04outcomeangle = dplyr::lag(event04_actual_angle, n = 1, default = NA))
@@ -279,9 +279,9 @@ data_a3lag <-
 main.df <- data_a3lag
 
 # %% main lmer
-main.df$EXPECT_demean <- main.df$demean_expect; 
+main.df$EXPECT_demean <- main.df$demean_expect;
 main.df$OUTCOME_demean <- main.df$demean_outcome
-model.behexpectdemean <- lmer(OUTCOME_demean ~ 
+model.behexpectdemean <- lmer(OUTCOME_demean ~
                           CUE_high_gt_low*STIM_linear*EXPECT_demean +
                           CUE_high_gt_low*STIM_quadratic*EXPECT_demean +
                           # EXPECT_cmc + # lag.04outcomeangle +
@@ -295,31 +295,30 @@ sjPlot::tab_model(model.behexpectdemean,
 # * report stats
 ```
 
-
 ```{r}
 df_lowClowS <- main.df[(main.df$STIM == "low_stim") & (main.df$param_cue_type == "low_cue"), ]
 
 ggplot(
-  df_lowClowS, 
+  df_lowClowS,
   aes(
     x = EXPECT_demean,
     y = OUTCOME_demean,
     colour = src_subject_id
   )
-) + 
+) +
 geom_point() + # Add more layers or adjustments as needed
 geom_smooth(method = 'lm', formula= y ~ x, se = FALSE)
 
 df_medClowS <- main.df[(main.df$STIM == "med_stim") & (main.df$param_cue_type == "low_cue"), ]
 
 ggplot(
-  df_medClowS, 
+  df_medClowS,
   aes(
     x = EXPECT_demean,
     y = OUTCOME_demean,
     colour = src_subject_id
   )
-) + 
+) +
 geom_point() + # Add more layers or adjustments as needed
 geom_smooth(method = 'lm', formula= y ~ x, se = FALSE)
 
@@ -327,13 +326,13 @@ geom_smooth(method = 'lm', formula= y ~ x, se = FALSE)
 df_highClowS <- main.df[(main.df$STIM == "high_stim") & (main.df$param_cue_type == "low_cue"), ]
 
 ggplot(
-  df_highClowS, 
+  df_highClowS,
   aes(
     x = EXPECT_demean,
     y = OUTCOME_demean,
     colour = src_subject_id
   )
-) + 
+) +
 geom_point() + # Add more layers or adjustments as needed
 geom_smooth(method = 'lm', formula= y ~ x, se = FALSE)
 
@@ -379,7 +378,6 @@ geom_smooth(method = 'lm', formula= y ~ x, se = FALSE)
 <!--     facet_wrap(~ STIM_linear, ncol = 3) + -->
 <!--     geom_line(data = cue_high, color = "red") -->
 
-
 <!-- # group slope  -->
 
 <!-- # ggplot( -->
@@ -392,7 +390,6 @@ geom_smooth(method = 'lm', formula= y ~ x, se = FALSE)
 <!-- # ) +  -->
 <!-- # geom_point() + # Add more layers or adjustments as needed -->
 <!-- # geom_smooth(method = 'lm', formula= y ~ x, se = FALSE) -->
-
 
 <!-- cue_high <- main.df[ (main.df$param_cue_type == "high_cue"), ] -->
 <!-- ggplot(cue_high, aes(x = EXPECT, y = OUTCOME, -->
@@ -417,7 +414,6 @@ geom_smooth(method = 'lm', formula= y ~ x, se = FALSE)
 <!-- #     facet_wrap(~ STIM_linear, ncol = 3) -->
 <!-- cue_low <- main.df[ (main.df$param_cue_type == "low_cue"), ] -->
 
-
 <!-- ggplot(cue_low, aes(x = EXPECT, y = OUTCOME_demean, -->
 <!--                  group = sub, colour = CUE_high_gt_low)) + -->
 <!--     geom_line() + -->
@@ -431,6 +427,3 @@ geom_smooth(method = 'lm', formula= y ~ x, se = FALSE)
 <!-- #     facet_wrap(~ STIM_linear, ncol = 3) + -->
 <!-- #     geom_line(data = cue_high, color = "red") -->
 <!-- ``` -->
-
-
-

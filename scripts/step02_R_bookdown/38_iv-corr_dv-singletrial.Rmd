@@ -1,4 +1,4 @@
-# [fMRI] Single trial correlation between cue and stim {#ch38_singletrial_corr}
+# fMRI :: Single trial correlation {#singletrial_corr}
 
 ```
 author: "Heejung Jung"
@@ -7,9 +7,8 @@ date: "2023-03-04"
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
-* Identify the correlation between cue and stimulus phase single trial nifti files
-* On discovery, I've calculated the correlation via script: `scripts/step10_nilearn/singletrialLSS/step07_corr_cue_stim.py`
-
+- Identify the correlation between cue and stimulus phase single trial nifti files
+- On discovery, I've calculated the correlation via script: `scripts/step10_nilearn/singletrialLSS/step07_corr_cue_stim.py`
 
 ```{r libraries_nps_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(car)
@@ -26,12 +25,11 @@ library(gghalves)
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 ```
-
 
 ```{r function::summary_for_plots_pvc, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 summary_for_plots_PVC <- function(df, groupwise_measurevar, subject_keyword, model_iv1, model_iv2, dv) {
@@ -113,7 +111,7 @@ two_factor_lineplot <-
       ylab(ylab) +
       #scale_color_manual(values = color) +
       theme_classic() +
-      
+
       theme(aspect.ratio = .6) +
       expand_limits(x = 3.25) +
       #guides(fill = "none") +
@@ -134,7 +132,7 @@ two_factor_lineplot <-
       ) +
       theme(legend.key = element_rect(fill = "white", colour = "white")) +
       theme_bw()
-    
+
     return(g)
   }
 ```
@@ -143,7 +141,6 @@ two_factor_lineplot <-
 main_dir = dirname(dirname(getwd()))
 single_trial_dir = file.path(main_dir, 'analysis/fmri/nilearn/deriv04_corrcuestim')
 ```
-
 
 ```{r include=FALSE}
 combined_se_calc_cooksd <- data.frame()
@@ -196,8 +193,8 @@ combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, groupwise)
 
 ## plot correlation (one-sample-t)
 
-
 ## Lineplot
+
 ```{r echo=FALSE}
 library(ggpubr)
 DATA = as.data.frame(combined_se_calc_cooksd)
@@ -207,14 +204,12 @@ LINEIV2 = "cue_ordered"
 MEAN = "mean_per_sub_norm_mean"
 ERROR = "se"
 dv_keyword = "actual"
-p1 = plot_lineplot_onefactor(DATA, 'pain', 
+p1 = plot_lineplot_onefactor(DATA, 'pain',
                LINEIV1, MEAN, ERROR, color, xlab = "Runs" , ylab= "Correlation between \ncue and stimulus", ggtitle = 'pain' )
-p2 = plot_lineplot_onefactor(DATA,'vicarious', 
+p2 = plot_lineplot_onefactor(DATA,'vicarious',
                LINEIV1, MEAN, ERROR, color,xlab = "Runs" , ylab= "Correlation between \ncue and stimulus",ggtitle = 'vicarious')
-p3 = plot_lineplot_onefactor(DATA, 'cognitive', 
+p3 = plot_lineplot_onefactor(DATA, 'cognitive',
                LINEIV1, MEAN, ERROR, color,xlab = "Runs" , ylab= "Correlation between \ncue and stimulus",ggtitle = 'cognitive')
 ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
 
 ```
-
-
