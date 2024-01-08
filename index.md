@@ -1,7 +1,7 @@
---- 
+---
 title: "Analysis logbook: task-cue-expectancy"
 author: "Heejung Jung"
-date: '07 January, 2024'
+date: '08 January, 2024'
 site: bookdown::bookdown_site
 documentclass: book
 output:
@@ -9,16 +9,16 @@ output:
     repo: https://github.com/jungheejung/cue_expectancy
     css: docute.css
     theme:
-      primary: "#0d6efd"   
-      # base_font: 
-      #   google: 
+      primary: "#0d6efd"
+      # base_font:
+      #   google:
       #     family: Lato
       # heading_font:
       #   google:
       #     family: Lato
       #     wght: 200
       # code_font:
-      #   google: 
+      #   google:
       #     family: Oxygen Mono
       #     local: false
   bookdown::gitbook:
@@ -30,7 +30,7 @@ output:
         after: null
       toolbar:
         position: fixed
-      edit : null
+      edit: null
       download: null
       search:
         engine: lunr
@@ -51,18 +51,22 @@ biblio-style: apalike
 description: "This is a logbook of all the mixed model analyses in one setting."
 link-citations: yes
 github-repo: "jungheejung/cue_expectancy"
-editor_options: 
-  markdown: 
+editor_options:
+  markdown:
     wrap: 72
 ---
 
 # About
 
-This is an analysis book written in Markdown. The purpose is to keep track of analyses and summarize findings, while decluttering from result vs. code. 
+This is an analysis book written in Markdown. The purpose is to keep track of analyses and summarize findings, while decluttering from result vs. code.
 
-## Usage 
+## Usage
 
-Each bookdown chapter is an .Rmd file. This .Rmd is migrated from the git repository cue-expectancy and specifically from the folder **step02_R**. Each .Rmd file was developed as a standalone analysis pipeline. Once validated, the identical .Rmd is migrated to the bookdown folder and edited for bookdown compiling. 
+Each bookdown chapter is an .Rmd file. This .Rmd is migrated from the git repository cue-expectancy [cue-expectancy](https://github.com/jungheejung/cue_expectancy) and specifically from the folder [**step02_R**](https://github.com/jungheejung/cue_expectancy/tree/main/scripts/step02_R/utils). Each .Rmd file was developed as a standalone analysis pipeline. Once validated, the identical .Rmd is migrated to the bookdown folder and edited for bookdown compiling.
 
+## Order
 
-
+- Behavioral analysis
+- Reinforcement learning simulations
+- fMRI analysis (signatures)
+- fMRI FIR time series analysis

@@ -1,12 +1,15 @@
-# [beh] RL simulation {#ch18_simulation}
+# RL :: simulation {#simulation}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
-* Here, Aryan simulated behavioral outcome ratings using a reinforcement learning model. 
+
+- Here, Aryan simulated behavioral outcome ratings using a reinforcement learning model.
 
 ## load data {.unlisted .unnumbered}
 
 
+
 ## function
+
 
 ```r
 # summarize dataframe __________________________________________________________
@@ -72,7 +75,7 @@ xlab, ylab, ggtitle, color_scheme, alpha, fit_lm, lm_method = NULL, identity_lin
     if (isTRUE(identity_line)) {
         g <- g + geom_abline(
             intercept = 0, slope = 1, color = "#373737", # color = "green"
-            linetype = "dashed", 
+            linetype = "dashed",
             linewidth = .5
         )
     } else {
@@ -90,9 +93,10 @@ xlab, ylab, ggtitle, color_scheme, alpha, fit_lm, lm_method = NULL, identity_lin
 
 ## plot data {.unlisted .unnumbered}
 
+
 ```r
 group = "cue"
-   
+
     iv1 = "demean_expect"
     iv2 = "demean_outcome"
 
@@ -144,7 +148,7 @@ group = "cue"
     if (isTRUE(identity_line)) {
         g <- g + geom_abline(
             intercept = 0, slope = 1, color = "#373737", # color = "green"
-            linetype = "dashed", 
+            linetype = "dashed",
             linewidth = .5
         )
     } else {
@@ -167,11 +171,10 @@ g
 
 <img src="18_RLsimulation_files/figure-html/unnamed-chunk-6-1.png" width="672" />
 
-
 <img src="18_RLsimulation_files/figure-html/unnamed-chunk-7-1.png" width="672" />
+
 <img src="18_RLsimulation_files/figure-html/unnamed-chunk-8-1.png" width="672" />
 
-
-
 ### model 04 4-4 lineplot
+
 <img src="18_RLsimulation_files/figure-html/unnamed-chunk-9-1.png" width="672" />

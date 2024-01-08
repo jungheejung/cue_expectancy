@@ -1,19 +1,16 @@
-# [beh] RL simulation Aryan {#ch18_simulation_aryan}
+# RL :: simulation Aryan {#simulation_aryan}
 
 ---
-output: rmdformats::downcute
----
+
+## output: rmdformats::downcute
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
-* Here, I model Aryans model fitted results, using the same scheme as my behavioral analysis (15*.Rmd)
 
+- Here, I model Aryans model fitted results, using the same scheme as my behavioral analysis (15\*.Rmd)
 
 
 
 ## load data {.unlisted .unnumbered}
-
-
-
 
 
 
@@ -25,11 +22,9 @@ output: rmdformats::downcute
 
 <img src="19_RLsimulation_Aryan_files/figure-html/unnamed-chunk-2-1.png" width="672" />
 
-
 <img src="19_RLsimulation_Aryan_files/figure-html/unnamed-chunk-3-1.png" width="672" />
 
 ## Plot the relationship between expectation and outcome rating using model 2 simulations (Jepma)
-
 
 
 
@@ -37,35 +32,35 @@ output: rmdformats::downcute
 
 <img src="19_RLsimulation_Aryan_files/figure-html/unnamed-chunk-6-1.png" width="672" />
 
-
 ### model fits from model 2. expectation ratings (Jepma model)
+
 
 ```r
 main_dir = dirname(dirname(getwd()))
 data <- read.csv(file.path(main_dir, 'data/simulated/model_ver04_0508/table_pain_new.csv'))
-subjectwise_2dv <- meanSummary_2dv(data, c("src_subject_id"), 
+subjectwise_2dv <- meanSummary_2dv(data, c("src_subject_id"),
                                    "event02_expect_angle", "Exp_mdl2" )
-ggplot(data = subjectwise_2dv, 
-       aes(x = .data[["DV1_mean_per_sub"]], 
+ggplot(data = subjectwise_2dv,
+       aes(x = .data[["DV1_mean_per_sub"]],
            y = .data[["DV2_mean_per_sub"]],
            size = .5
            )) +
-  geom_point(size = 2, alpha = .5  ) + 
-  ylim(0,180) + 
+  geom_point(size = 2, alpha = .5  ) +
+  ylim(0,180) +
   xlim(0,180) +
   coord_fixed() +
-  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) + 
-  xlab("Observed\nexpectation rating") + 
+  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) +
+  xlab("Observed\nexpectation rating") +
   ylab("Model-fitted \nexpectation rating")+
   theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
-    plot.subtitle = ggtext::element_textbox_simple(size = 1), 
+    plot.subtitle = ggtext::element_textbox_simple(size = 1),
     axis.text.x = element_text(size = 10),
     axis.text.y = element_text(size = 10),
     axis.title.x = element_text(size = 15),
     axis.title.y = element_text(size = 15)
-      
+
   )
 ```
 
@@ -73,30 +68,31 @@ ggplot(data = subjectwise_2dv,
 
 ### model fits from model 2. outcome ratings (Jepma model)
 
+
 ```r
-subjectwise_2dv <- meanSummary_2dv(data, c("src_subject_id"), 
+subjectwise_2dv <- meanSummary_2dv(data, c("src_subject_id"),
                                    "event04_actual_angle", "Pain_mdl2" )
-ggplot(data = subjectwise_2dv, 
-       aes(x = .data[["DV1_mean_per_sub"]], 
+ggplot(data = subjectwise_2dv,
+       aes(x = .data[["DV1_mean_per_sub"]],
            y = .data[["DV2_mean_per_sub"]],
            size = .5
            )) +
-  geom_point(size = 2, alpha = .5  ) + 
-  ylim(0,180) + 
+  geom_point(size = 2, alpha = .5  ) +
+  ylim(0,180) +
   xlim(0,180) +
   coord_fixed() +
-  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) + 
-  xlab("Observed\noutcome rating") + 
+  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) +
+  xlab("Observed\noutcome rating") +
   ylab("Model-fitted \noutcome rating")+
   theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
-    plot.subtitle = ggtext::element_textbox_simple(size = 1), 
+    plot.subtitle = ggtext::element_textbox_simple(size = 1),
     axis.text.x = element_text(size = 15),
     axis.text.y = element_text(size = 15),
     axis.title.x = element_text(size = 20),
     axis.title.y = element_text(size = 20)
-      
+
   )
 ```
 
@@ -104,11 +100,13 @@ ggplot(data = subjectwise_2dv,
 
 ## correlation betweeen alpha_incongruent and cue trial slope (randome effects of cue)
 
+
 ```
 ## Warning: Removed 3 rows containing missing values (`geom_point()`).
 ```
 
 <img src="19_RLsimulation_Aryan_files/figure-html/unnamed-chunk-9-1.png" width="672" />
+
 <img src="19_RLsimulation_Aryan_files/figure-html/unnamed-chunk-10-1.png" width="672" />
 
 
@@ -118,8 +116,8 @@ ggplot(data = subjectwise_2dv,
 
 <img src="19_RLsimulation_Aryan_files/figure-html/unnamed-chunk-11-1.png" width="672" />
 
-
 ## correlation betweeen alpha_incongruent and NPS
+
 
 ```r
 # load dataframe
@@ -148,27 +146,27 @@ merged_NPS$alpha_c_gt_i <- merged_NPS$alpha_c - merged_NPS$alpha_i
 # grab cue slope
 # grab intersection of subject ids
 # plot ggplot
-ggplot(data = merged_NPS, 
-       aes(x = .data[["avg_diff"]], 
+ggplot(data = merged_NPS,
+       aes(x = .data[["avg_diff"]],
            y = .data[["alpha_c_gt_i"]],
            size = .5
            )) +
-  geom_point(size = 2, alpha = .5  ) + 
-  ylim(-10,10) + 
+  geom_point(size = 2, alpha = .5  ) +
+  ylim(-10,10) +
   xlim(-10,10) +
   coord_fixed() +
-  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) + 
-  xlab("NPS \n(congruent > incongruent)") + 
+  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) +
+  xlab("NPS \n(congruent > incongruent)") +
   ylab("Alpha \n(congruent > incongruent)")+
   theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
-    plot.subtitle = ggtext::element_textbox_simple(size = 1), 
+    plot.subtitle = ggtext::element_textbox_simple(size = 1),
     axis.text.x = element_text(size = 15),
     axis.text.y = element_text(size = 15),
     axis.title.x = element_text(size = 20),
     axis.title.y = element_text(size = 20)
-      
+
   )
 ```
 
@@ -196,32 +194,32 @@ PEdf <- PEdf %>%
 merged_NPSpe <- merge(NPS, PEdf, by = c("sub", "ses", "run", "trial"))
 
 
-subjectwise_2dv <- meanSummary_2dv(merged_NPSpe, c("src_subject_id","stimintensity", "cuetype"), 
+subjectwise_2dv <- meanSummary_2dv(merged_NPSpe, c("src_subject_id","stimintensity", "cuetype"),
                                    "PE_mdl2", "NPSpos" )
-ggplot(data = subjectwise_2dv, 
-       aes(x = .data[["DV1_mean_per_sub"]], 
+ggplot(data = subjectwise_2dv,
+       aes(x = .data[["DV1_mean_per_sub"]],
            y = .data[["DV2_mean_per_sub"]],
            color = .data[["cuetype"]],
            # shape = .data[["stimintensity"]],
            # size = .5
            )) +
-  geom_point(size = 2, alpha = .5  ) + 
-  ylim(-50,50) + 
+  geom_point(size = 2, alpha = .5  ) +
+  ylim(-50,50) +
   xlim(-50,50) +
   coord_fixed() +
   scale_color_manual(values = c("cuetype-high" ="red","cuetype-low" =  "#5D5C5C"))+
-  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) + 
-  xlab("PE") + 
+  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) +
+  xlab("PE") +
   ylab("NPSpos")+
   theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
-    plot.subtitle = ggtext::element_textbox_simple(size = 1), 
+    plot.subtitle = ggtext::element_textbox_simple(size = 1),
     axis.text.x = element_text(size = 15),
     axis.text.y = element_text(size = 15),
     axis.title.x = element_text(size = 20),
     axis.title.y = element_text(size = 20)
-      
+
   )
 ```
 
@@ -230,7 +228,6 @@ ggplot(data = subjectwise_2dv,
 ```
 
 <img src="19_RLsimulation_Aryan_files/figure-html/unnamed-chunk-13-1.png" width="672" />
-
 
 
 ```r
@@ -269,6 +266,7 @@ summary(model.25)
 ```
 
 ### test relationship between PE and cue type and stimintensity (06/16/2023)
+
 
 ```r
 model.PENPS <- lmer(NPSpos ~ PE_mdl2*cuetype*stimintensity + (1|sub), data = merged_NPSpe)
@@ -376,34 +374,36 @@ summary(model.PENPS)
 
 ### plot the relationship between PE and NPS as a function of cue
 
+
 ```r
-ggplot(data = merged_NPSpe, 
-       aes(x = .data[["PE_mdl2"]], 
+ggplot(data = merged_NPSpe,
+       aes(x = .data[["PE_mdl2"]],
            y = .data[["NPSpos"]],
            color = .data[["cuetype"]],
            size = .5
            )) +
-  geom_point(size = 2, alpha = .5  ) + 
-  ylim(-150,150) + 
+  geom_point(size = 2, alpha = .5  ) +
+  ylim(-150,150) +
   xlim(-150,150) +
   coord_fixed() +
   scale_color_manual(values = c("cuetype-high" ="red","cuetype-low" =  "#5D5C5C"))+
-  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) + 
-  xlab("PE") + 
+  geom_abline(intercept = 0, slope = 1, color = "#373737", linetype = "dashed", linewidth = .5) +
+  xlab("PE") +
   ylab("NPSpos")+
   theme(
     axis.line = element_line(colour = "grey50"),
     panel.background = element_blank(),
-    plot.subtitle = ggtext::element_textbox_simple(size = 1), 
+    plot.subtitle = ggtext::element_textbox_simple(size = 1),
     axis.text.x = element_text(size = 15),
     axis.text.y = element_text(size = 15),
     axis.title.x = element_text(size = 20),
     axis.title.y = element_text(size = 20)
-      
+
   )
 ```
 
 <img src="19_RLsimulation_Aryan_files/figure-html/unnamed-chunk-16-1.png" width="672" />
 
 ### plot the relationship between PE and NPS as a function of cue and stimulus intensity
+
 <img src="19_RLsimulation_Aryan_files/figure-html/unnamed-chunk-17-1.png" width="672" />

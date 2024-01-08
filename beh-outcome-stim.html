@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 4 beh :: outcome ~ stim | Analysis logbook: task-cue-expectancy</title>
+<meta name="author" content="Heejung Jung">
+<meta name="description" content="What is the purpose of this notebook? Here, I plot the outcome ratings as a function of stimulus intensity Main model: lmer(outcome_rating ~ stim) Main question: do outcome ratings differ as a...">
+<meta name="generator" content="bookdown 0.37 with bs4_book()">
+<meta property="og:title" content="Chapter 4 beh :: outcome ~ stim | Analysis logbook: task-cue-expectancy">
+<meta property="og:type" content="book">
+<meta property="og:description" content="What is the purpose of this notebook? Here, I plot the outcome ratings as a function of stimulus intensity Main model: lmer(outcome_rating ~ stim) Main question: do outcome ratings differ as a...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 4 beh :: outcome ~ stim | Analysis logbook: task-cue-expectancy">
+<meta name="twitter:description" content="What is the purpose of this notebook? Here, I plot the outcome ratings as a function of stimulus intensity Main model: lmer(outcome_rating ~ stim) Main question: do outcome ratings differ as a...">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.6.1/transition.js"></script><script src="libs/bs3compat-0.6.1/tabs.js"></script><script src="libs/bs3compat-0.6.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/htmlwidgets-1.6.4/htmlwidgets.js"></script><script src="libs/plotly-binding-4.10.3/plotly.js"></script><script src="libs/typedarray-0.1/typedarray.min.js"></script><link href="libs/crosstalk-1.2.1/css/crosstalk.min.css" rel="stylesheet">
+<script src="libs/crosstalk-1.2.1/js/crosstalk.min.js"></script><link href="libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet">
+<script src="libs/plotly-main-2.11.1/plotly-latest.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<link rel="stylesheet" href="docute.css">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">Analysis logbook: task-cue-expectancy</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html"><span class="header-section-number">1</span> About</a></li>
+<li class="book-part">Behavioral</li>
+<li><a class="" href="beh-intro.html">Behavioral Rating analysis</a></li>
+<li><a class="" href="beh-expect-cue.html"><span class="header-section-number">2</span> beh :: expectation ~ cue</a></li>
+<li><a class="" href="beh-outcome-cue.html"><span class="header-section-number">3</span> beh :: outcome ~ cue</a></li>
+<li><a class="active" href="beh-outcome-stim.html"><span class="header-section-number">4</span> beh :: outcome ~ stim</a></li>
+<li><a class="" href="beh-outcome-cueXstim.html"><span class="header-section-number">5</span> beh :: outcome ~ cue * stim</a></li>
+<li><a class="" href="jepma.html"><span class="header-section-number">6</span> beh :: expect-outcome ~ cue * trial</a></li>
+<li><a class="" href="demean-per-sub-n1.html"><span class="header-section-number">7</span> beh :: outcome_demean ~ cue * stim * expect * n-1outcome</a></li>
+<li><a class="" href="mediation.html"><span class="header-section-number">8</span> beh :: Mediation</a></li>
+<li><a class="" href="simulation.html"><span class="header-section-number">9</span> RL :: simulation</a></li>
+<li><a class="" href="simulation_aryan.html"><span class="header-section-number">10</span> RL :: simulation Aryan</a></li>
+<li><a class="" href="ch20_npssimulation.html"><span class="header-section-number">11</span> [model] NPSsimulation</a></li>
+<li class="book-part">fMRI timeseries</li>
+<li><a class="" href="fmri_time.html">fMRI timeseries</a></li>
+<li><a class="" href="fir_ttl2.html"><span class="header-section-number">12</span> fMRI :: FIR ~ task</a></li>
+<li><a class="" href="taskwise-stim-effect.html"><span class="header-section-number">13</span> taskwise stim effect</a></li>
+<li><a class="" href="taskwise-6-cond-effect.html"><span class="header-section-number">14</span> taskwise 6 cond effect</a></li>
+<li><a class="" href="fmritimeseries_tt1.html"><span class="header-section-number">15</span> fMRI :: FIR ~ task TTL1</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/jungheejung/cue_expectancy">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="beh-outcome-stim" class="section level1" number="4">
+<h1>
+<span class="header-section-number">4</span> beh :: outcome ~ stim<a class="anchor" aria-label="anchor" href="#beh-outcome-stim"><i class="fas fa-link"></i></a>
+</h1>
+<div id="what-is-the-purpose-of-this-notebook-2" class="section level2 unlisted unnumbered">
+<h2>What is the purpose of this notebook?<a class="anchor" aria-label="anchor" href="#what-is-the-purpose-of-this-notebook-2"><i class="fas fa-link"></i></a>
+</h2>
+<p>Here, I plot the outcome ratings as a function of stimulus intensity</p>
+<ul>
+<li>Main model: <code>lmer(outcome_rating ~ stim)</code>
+</li>
+<li>Main question: do outcome ratings differ as a function of stimulus intensity? We should expect to see a linear effect of stimulus intensity.</li>
+<li>If there is a main effect of cue on expectation ratings, does this cue effect differ depending on task type?</li>
+<li>IV: stim (high / med / low)</li>
+<li>DV: outcome rating</li>
+</ul>
+<p>FIX: plot statistics in random effect plot - what is broken?</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># parameters _____________________________________ # nolint</span></span>
+<span><span class="va">subject_varkey</span> <span class="op">&lt;-</span> <span class="st">"src_subject_id"</span></span>
+<span><span class="va">iv</span> <span class="op">&lt;-</span> <span class="st">"param_stimulus_type"</span>; <span class="va">iv_keyword</span> <span class="op">&lt;-</span> <span class="st">"stim"</span>; <span class="va">dv</span> <span class="op">&lt;-</span> <span class="st">"event04_actual_angle"</span>; <span class="va">dv_keyword</span> <span class="op">&lt;-</span> <span class="st">"outcome"</span></span>
+<span><span class="va">xlab</span> <span class="op">&lt;-</span> <span class="st">""</span>; <span class="va">ylim</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">180</span><span class="op">)</span>; <span class="va">ylab</span> <span class="op">&lt;-</span> <span class="st">"ratings (degree)"</span></span>
+<span><span class="va">subject</span> <span class="op">&lt;-</span> <span class="st">"subject"</span></span>
+<span><span class="va">exclude</span> <span class="op">&lt;-</span> <span class="st">"sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"</span></span>
+<span><span class="va">subjectwise_mean</span> <span class="op">&lt;-</span> <span class="st">"mean_per_sub"</span>; <span class="va">group_mean</span> <span class="op">&lt;-</span> <span class="st">"mean_per_sub_norm_mean"</span>; <span class="va">se</span> <span class="op">&lt;-</span> <span class="st">"se"</span></span>
+<span><span class="va">color_scheme</span> <span class="op">&lt;-</span>     <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/any.html">any</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/startsWith.html">startsWith</a></span><span class="op">(</span><span class="va">dv_keyword</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"expect"</span>, <span class="st">"Expect"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>        <span class="va">color_scheme</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"#1B9E77"</span>, <span class="st">"#D95F02"</span><span class="op">)</span></span>
+<span>    <span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>        <span class="va">color_scheme</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"#4575B4"</span>, <span class="st">"#D73027"</span><span class="op">)</span></span>
+<span>    <span class="op">}</span></span>
+<span><span class="va">print_lmer_output</span> <span class="op">&lt;-</span> <span class="cn">FALSE</span></span>
+<span><span class="va">ggtitle_phrase</span> <span class="op">&lt;-</span> <span class="st">" - Outcome Rating (degree)"</span></span>
+<span><span class="va">analysis_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">main_dir</span>, <span class="st">"analysis"</span>, <span class="st">"mixedeffect"</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"model04_iv-"</span>,<span class="va">iv_keyword</span>,<span class="st">"_dv-"</span>,<span class="va">dv_keyword</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html">Sys.Date</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/files2.html">dir.create</a></span><span class="op">(</span><span class="va">analysis_dir</span>, showWarnings <span class="op">=</span> <span class="cn">FALSE</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div id="pain-2" class="section level2" number="4.1">
+<h2>
+<span class="header-section-number">4.1</span> Pain<a class="anchor" aria-label="anchor" href="#pain-2"><i class="fas fa-link"></i></a>
+</h2>
+<div id="for-the-pain-task-what-is-the-effect-of-stimulus-intensity-on-outcome-ratings" class="section level3 unlisted unnumbered">
+<h3>For the pain task, what is the effect of stimulus intensity on outcome ratings?<a class="anchor" aria-label="anchor" href="#for-the-pain-task-what-is-the-effect-of-stimulus-intensity-on-outcome-ratings"><i class="fas fa-link"></i></a>
+</h3>
+<p>[ INSERT DESCRIPTION ]</p>
+<pre><code>## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
+## as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill</code></pre>
+<pre><code>## Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+## ℹ Please use `linewidth` instead.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.</code></pre>
+<div class="inline-figure"><img src="04_iv-stim_dv-outcome_files/figure-html/pain_iv-stim_dv-outcome-1.png" width="672"></div>
+</div>
+</div>
+<div id="vicarious-2" class="section level2" number="4.2">
+<h2>
+<span class="header-section-number">4.2</span> Vicarious<a class="anchor" aria-label="anchor" href="#vicarious-2"><i class="fas fa-link"></i></a>
+</h2>
+<div id="for-the-vicarious-task-what-is-the-effect-of-stimulus-intensity-on-outcome-ratings" class="section level3 unlisted unnumbered">
+<h3>For the vicarious task, what is the effect of stimulus intensity on outcome ratings?<a class="anchor" aria-label="anchor" href="#for-the-vicarious-task-what-is-the-effect-of-stimulus-intensity-on-outcome-ratings"><i class="fas fa-link"></i></a>
+</h3>
+<p>[ INSERT DESCRIPTION ]</p>
+<pre><code>## Warning: Model failed to converge with 1 negative eigenvalue: -8.5e+01</code></pre>
+<pre><code>## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
+## as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill</code></pre>
+<div class="inline-figure"><img src="04_iv-stim_dv-outcome_files/figure-html/vicarious_iv-stim_dv-outcome-1.png" width="672"></div>
+</div>
+</div>
+<div id="cognitive-2" class="section level2" number="4.3">
+<h2>
+<span class="header-section-number">4.3</span> Cognitive<a class="anchor" aria-label="anchor" href="#cognitive-2"><i class="fas fa-link"></i></a>
+</h2>
+<div id="for-the-cognitive-task-what-is-the-effect-of-stimulus-intensity-on-outcome-ratings" class="section level3 unlisted unnumbered">
+<h3>For the cognitive task, what is the effect of stimulus intensity on outcome ratings?<a class="anchor" aria-label="anchor" href="#for-the-cognitive-task-what-is-the-effect-of-stimulus-intensity-on-outcome-ratings"><i class="fas fa-link"></i></a>
+</h3>
+<p>[ INSERT DESCRIPTION ]</p>
+<pre><code>## Warning: Model failed to converge with 1 negative eigenvalue: -1.1e+02</code></pre>
+<pre><code>## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
+## as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill</code></pre>
+<div class="inline-figure"><img src="04_iv-stim_dv-outcome_files/figure-html/cognitive_iv-stim_dv-outcome-1.png" width="672"></div>
+</div>
+</div>
+<div id="for-loop" class="section level2" number="4.4">
+<h2>
+<span class="header-section-number">4.4</span> for loop<a class="anchor" aria-label="anchor" href="#for-loop"><i class="fas fa-link"></i></a>
+</h2>
+<pre><code>## boundary (singular) fit: see help('isSingular')</code></pre>
+<pre><code>## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+## lmerModLmerTest]
+## Formula: 
+## as.formula(reformulate(c(iv, sprintf("(%s|%s)", iv, subject_keyword)),  
+##     response = dv))
+##    Data: df
+## 
+## REML criterion at convergence: 52938.5
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -4.5365 -0.5608 -0.0002  0.5695  4.6143 
+## 
+## Random effects:
+##  Groups         Name                        Variance Std.Dev. Corr       
+##  src_subject_id (Intercept)                 952.46   30.862              
+##                 param_stimulus_typelow_stim 127.22   11.279   -0.47      
+##                 param_stimulus_typemed_stim  29.79    5.458   -0.24  0.97
+##  Residual                                   448.14   21.169              
+## Number of obs: 5851, groups:  src_subject_id, 110
+## 
+## Fixed effects:
+##                             Estimate Std. Error       df t value Pr(&gt;|t|)    
+## (Intercept)                  80.3242     2.9886 109.1411   26.88   &lt;2e-16 ***
+## param_stimulus_typelow_stim -29.2521     1.2974 107.5783  -22.55   &lt;2e-16 ***
+## param_stimulus_typemed_stim -13.7621     0.8652 148.5592  -15.90   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Correlation of Fixed Effects:
+##                 (Intr) prm_stmls_typl_
+## prm_stmls_typl_ -0.455                
+## prm_stmls_typm_ -0.236  0.718         
+## optimizer (nloptwrap) convergence code: 0 (OK)
+## boundary (singular) fit: see help('isSingular')</code></pre>
+<pre><code>## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
+## as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill</code></pre>
+<pre><code>## Coordinate system already present. Adding new coordinate system, which will
+## replace the existing one.
+## boundary (singular) fit: see help('isSingular')</code></pre>
+<pre><code>## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+## lmerModLmerTest]
+## Formula: 
+## as.formula(reformulate(c(iv, sprintf("(%s|%s)", iv, subject_keyword)),  
+##     response = dv))
+##    Data: df
+## 
+## REML criterion at convergence: 56882.7
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -5.5482 -0.5779 -0.1812  0.4475  6.1884 
+## 
+## Random effects:
+##  Groups         Name                        Variance Std.Dev. Corr       
+##  src_subject_id (Intercept)                 283.44   16.836              
+##                 param_stimulus_typelow_stim 172.13   13.120   -0.88      
+##                 param_stimulus_typemed_stim  98.63    9.931   -0.85  1.00
+##  Residual                                   448.25   21.172              
+## Number of obs: 6313, groups:  src_subject_id, 110
+## 
+## Fixed effects:
+##                             Estimate Std. Error      df t value Pr(&gt;|t|)    
+## (Intercept)                   40.822      1.681 108.598   24.29   &lt;2e-16 ***
+## param_stimulus_typelow_stim  -24.936      1.426 109.210  -17.49   &lt;2e-16 ***
+## param_stimulus_typemed_stim  -17.614      1.162 114.541  -15.15   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Correlation of Fixed Effects:
+##                 (Intr) prm_stmls_typl_
+## prm_stmls_typl_ -0.837                
+## prm_stmls_typm_ -0.784  0.862         
+## optimizer (nloptwrap) convergence code: 0 (OK)
+## boundary (singular) fit: see help('isSingular')</code></pre>
+<pre><code>## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
+## as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill</code></pre>
+<pre><code>## Coordinate system already present. Adding new coordinate system, which will
+## replace the existing one.</code></pre>
+<div class="inline-figure"><img src="04_iv-stim_dv-outcome_files/figure-html/unnamed-chunk-1-1.png" width="672"></div>
+<pre><code>## boundary (singular) fit: see help('isSingular')</code></pre>
+<pre><code>## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+## lmerModLmerTest]
+## Formula: 
+## as.formula(reformulate(c(iv, sprintf("(%s|%s)", iv, subject_keyword)),  
+##     response = dv))
+##    Data: df
+## 
+## REML criterion at convergence: 54866.8
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -3.7173 -0.6283 -0.1660  0.4545  7.0548 
+## 
+## Random effects:
+##  Groups         Name                        Variance Std.Dev. Corr       
+##  src_subject_id (Intercept)                 176.9233 13.3013             
+##                 param_stimulus_typelow_stim   8.2230  2.8676  -0.75      
+##                 param_stimulus_typemed_stim   0.4181  0.6466   0.37  0.33
+##  Residual                                   374.7596 19.3587             
+## Number of obs: 6220, groups:  src_subject_id, 110
+## 
+## Fixed effects:
+##                             Estimate Std. Error       df t value Pr(&gt;|t|)    
+## (Intercept)                  31.4642     1.3417 109.5625  23.451   &lt;2e-16 ***
+## param_stimulus_typelow_stim  -8.1551     0.6623 106.7910 -12.313   &lt;2e-16 ***
+## param_stimulus_typemed_stim  -1.0096     0.6056 718.4229  -1.667   0.0959 .  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Correlation of Fixed Effects:
+##                 (Intr) prm_stmls_typl_
+## prm_stmls_typl_ -0.500                
+## prm_stmls_typm_ -0.186  0.465         
+## optimizer (nloptwrap) convergence code: 0 (OK)
+## boundary (singular) fit: see help('isSingular')</code></pre>
+<pre><code>## Warning in geom_line(data = subjectwise, aes(group = .data[[subject]], x =
+## as.numeric(as.factor(.data[[iv]])) - : Ignoring unknown aesthetics: fill</code></pre>
+<pre><code>## Coordinate system already present. Adding new coordinate system, which will
+## replace the existing one.</code></pre>
+<p><img src="04_iv-stim_dv-outcome_files/figure-html/unnamed-chunk-1-2.png" width="672"><img src="04_iv-stim_dv-outcome_files/figure-html/unnamed-chunk-1-3.png" width="672"></p>
+</div>
+<div id="lineplot" class="section level2" number="4.5">
+<h2>
+<span class="header-section-number">4.5</span> Lineplot<a class="anchor" aria-label="anchor" href="#lineplot"><i class="fas fa-link"></i></a>
+</h2>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://rpkgs.datanovia.com/ggpubr/">ggpubr</a></span><span class="op">)</span></span>
+<span><span class="va">DATA</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">combined_se_calc_cooksd</span><span class="op">)</span></span>
+<span><span class="va">color</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span> <span class="st">"#4575B4"</span>, <span class="st">"#D73027"</span><span class="op">)</span></span>
+<span><span class="va">LINEIV1</span> <span class="op">=</span> <span class="st">"stim_ordered"</span></span>
+<span><span class="va">LINEIV2</span> <span class="op">=</span> <span class="st">"cue_ordered"</span></span>
+<span><span class="va">MEAN</span> <span class="op">=</span> <span class="st">"mean_per_sub_norm_mean"</span></span>
+<span><span class="va">ERROR</span> <span class="op">=</span> <span class="st">"se"</span></span>
+<span><span class="va">dv_keyword</span> <span class="op">=</span> <span class="st">"actual"</span></span>
+<span><span class="va">p1</span> <span class="op">=</span> <span class="fu">plot_lineplot_onefactor</span><span class="op">(</span><span class="va">DATA</span>, <span class="st">'pain'</span>,</span>
+<span>               <span class="va">LINEIV1</span>, <span class="va">MEAN</span>, <span class="va">ERROR</span>, <span class="va">color</span>, xlab <span class="op">=</span> <span class="st">"Stimulus intensity"</span> , ylab<span class="op">=</span> <span class="st">"Outcome rating"</span>, ggtitle <span class="op">=</span> <span class="st">'pain'</span> <span class="op">)</span></span>
+<span><span class="va">p2</span> <span class="op">=</span> <span class="fu">plot_lineplot_onefactor</span><span class="op">(</span><span class="va">DATA</span>,<span class="st">'vicarious'</span>,</span>
+<span>               <span class="va">LINEIV1</span>, <span class="va">MEAN</span>, <span class="va">ERROR</span>, <span class="va">color</span>,xlab <span class="op">=</span> <span class="st">"Stimulus intensity"</span> , ylab<span class="op">=</span> <span class="st">"Outcome rating"</span>,ggtitle <span class="op">=</span> <span class="st">'vicarious'</span><span class="op">)</span></span>
+<span><span class="va">p3</span> <span class="op">=</span> <span class="fu">plot_lineplot_onefactor</span><span class="op">(</span><span class="va">DATA</span>, <span class="st">'cognitive'</span>,</span>
+<span>               <span class="va">LINEIV1</span>, <span class="va">MEAN</span>, <span class="va">ERROR</span>, <span class="va">color</span>,xlab <span class="op">=</span> <span class="st">"Stimulus intensity"</span> , ylab<span class="op">=</span> <span class="st">"Outcome rating"</span>,ggtitle <span class="op">=</span> <span class="st">'cognitive'</span><span class="op">)</span></span>
+<span><span class="co">#grid.arrange(p1, p2, p3, ncol=3 , common.legend = TRUE)</span></span>
+<span><span class="fu">ggpubr</span><span class="fu">::</span><span class="fu"><a href="https://rpkgs.datanovia.com/ggpubr/reference/ggarrange.html">ggarrange</a></span><span class="op">(</span><span class="va">p1</span>,<span class="va">p2</span>,<span class="va">p3</span>,ncol <span class="op">=</span> <span class="fl">3</span>, nrow <span class="op">=</span> <span class="fl">1</span>, common.legend <span class="op">=</span> <span class="cn">TRUE</span>,legend <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="04_iv-stim_dv-outcome_files/figure-html/unnamed-chunk-2-1.png" width="672"></div>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">plot_filename</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">analysis_dir</span>,</span>
+<span>                          <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="st">'lineplot_task-all_rating-'</span>,<span class="va">dv_keyword</span>,<span class="st">'.png'</span>, sep <span class="op">=</span> <span class="st">""</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html">ggsave</a></span><span class="op">(</span><span class="va">plot_filename</span>, width <span class="op">=</span> <span class="fl">15</span>, height <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div id="individual-differences-in-outcome-rating-cue-effect" class="section level2" number="4.6">
+<h2>
+<span class="header-section-number">4.6</span> individual differences in outcome rating cue effect<a class="anchor" aria-label="anchor" href="#individual-differences-in-outcome-rating-cue-effect"><i class="fas fa-link"></i></a>
+</h2>
+<p>[ INSERT DESCRIPTION ]</p>
+
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="beh-outcome-cue.html"><span class="header-section-number">3</span> beh :: outcome ~ cue</a></div>
+<div class="next"><a href="beh-outcome-cueXstim.html"><span class="header-section-number">5</span> beh :: outcome ~ cue * stim</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#beh-outcome-stim"><span class="header-section-number">4</span> beh :: outcome ~ stim</a></li>
+<li><a class="nav-link" href="#what-is-the-purpose-of-this-notebook-2">What is the purpose of this notebook?</a></li>
+<li>
+<a class="nav-link" href="#pain-2"><span class="header-section-number">4.1</span> Pain</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#for-the-pain-task-what-is-the-effect-of-stimulus-intensity-on-outcome-ratings">For the pain task, what is the effect of stimulus intensity on outcome ratings?</a></li></ul>
+</li>
+<li>
+<a class="nav-link" href="#vicarious-2"><span class="header-section-number">4.2</span> Vicarious</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#for-the-vicarious-task-what-is-the-effect-of-stimulus-intensity-on-outcome-ratings">For the vicarious task, what is the effect of stimulus intensity on outcome ratings?</a></li></ul>
+</li>
+<li>
+<a class="nav-link" href="#cognitive-2"><span class="header-section-number">4.3</span> Cognitive</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#for-the-cognitive-task-what-is-the-effect-of-stimulus-intensity-on-outcome-ratings">For the cognitive task, what is the effect of stimulus intensity on outcome ratings?</a></li></ul>
+</li>
+<li><a class="nav-link" href="#for-loop"><span class="header-section-number">4.4</span> for loop</a></li>
+<li><a class="nav-link" href="#lineplot"><span class="header-section-number">4.5</span> Lineplot</a></li>
+<li><a class="nav-link" href="#individual-differences-in-outcome-rating-cue-effect"><span class="header-section-number">4.6</span> individual differences in outcome rating cue effect</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/jungheejung/cue_expectancy/blob/master/04_iv-stim_dv-outcome.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/jungheejung/cue_expectancy/edit/master/04_iv-stim_dv-outcome.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>Analysis logbook: task-cue-expectancy</strong>" was written by Heejung Jung. It was last built on 08 January, 2024.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer>
+</body>
+</html>

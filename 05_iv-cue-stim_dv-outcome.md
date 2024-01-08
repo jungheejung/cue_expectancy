@@ -1,4 +1,4 @@
-# beh :: outcome ~ cue \* stim {#beh_outcome-cueXstim}
+# beh :: outcome ~ cue \* stim {#beh-outcome-cueXstim}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
@@ -17,14 +17,12 @@ Here, I plot the outcome ratings as a function of cue and stimulus intensity.
 
 
 
-
-
-
-
 ## Cue contrasts
+
 `lmer(Outcome ~ Cue_contrast)`
-* IV: Stim X Cue_contrast
-* DV: Outcome rating
+
+- IV: Stim X Cue_contrast
+- DV: Outcome rating
 
 <img src="05_iv-cue-stim_dv-outcome_files/figure-html/common_parameters_4-1.png" width="672" /><img src="05_iv-cue-stim_dv-outcome_files/figure-html/common_parameters_4-2.png" width="672" /><img src="05_iv-cue-stim_dv-outcome_files/figure-html/common_parameters_4-3.png" width="672" /><img src="05_iv-cue-stim_dv-outcome_files/figure-html/common_parameters_4-4.png" width="672" /><img src="05_iv-cue-stim_dv-outcome_files/figure-html/common_parameters_4-5.png" width="672" /><img src="05_iv-cue-stim_dv-outcome_files/figure-html/common_parameters_4-6.png" width="672" />
 
@@ -34,9 +32,10 @@ Here, I plot the outcome ratings as a function of cue and stimulus intensity.
 
 
 
-## Cue X Stim Raincloud plots 
-* IV: Cue x stim
-* DV: Outcome rating
+## Cue X Stim Raincloud plots
+
+- IV: Cue x stim
+- DV: Outcome rating
 
 
 ```
@@ -110,11 +109,11 @@ fullmodel <-
 
 ```r
 # TODO:: troubleshoot
-# m <- glmmTMB(OUTCOME ~ CUE_high_gt_low * STIM_linear + ( CUE_high_gt_low * STIM_linear  | subject),   
+# m <- glmmTMB(OUTCOME ~ CUE_high_gt_low * STIM_linear + ( CUE_high_gt_low * STIM_linear  | subject),
 #              data = df,
 #              control = glmmTMBControl(rank_check = "adjust"))
 #              #start = start_values,
-#    
+#
 # summary(m)
 
 sjPlot::tab_model(fullmodel,
@@ -214,10 +213,10 @@ lmer(OUTCOME ~ CUE * STIM + (CUE * STIM | sub), data = pvc)</caption>
 
 <img src="05_iv-cue-stim_dv-outcome_files/figure-html/unnamed-chunk-4-1.png" width="672" />
 
-## Cue X Stim Lineplot 
+## Cue X Stim Lineplot
 
 Instead of the rain cloud plots, here, I plot the lines and confidence interval
-for each cue x stim combination. Plotted per task. 
+for each cue x stim combination. Plotted per task.
 
 <img src="05_iv-cue-stim_dv-outcome_files/figure-html/unnamed-chunk-5-1.png" width="672" />
 
@@ -271,10 +270,8 @@ for each cue x stim combination. Plotted per task.
 ## [1] "high"             "49.3940294143433" "1.73640570707356"
 ```
 
-
 :::: {.refbox}
 
-* https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+- https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
 
 ::::
-

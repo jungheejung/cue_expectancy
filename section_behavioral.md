@@ -1,32 +1,35 @@
 # (PART\*) Behavioral {.unnumbered}
 
-# Behavioral Rating analysis {#action-intro .unnumbered}
+# Behavioral Rating analysis {#beh-intro .unnumbered}
 
-The following chapters give you a grab bag of useful techniques.
-I think everyone should start with Chapter , because it gives you important tools for developing and debugging apps, and getting help when you're stuck.
+The following chapters analyze the behavioral ratings -- expectation and outcome ratings -- as a function of experimental variables. I first build the analyses with each factor: cue and stimulus intensity. Then, I include analysis such as shifting trials and analyzing the impact of previous trial ratings on the current rating
 
-After that, there's no prescribed order and relatively few connections between the chapters: I'd suggest quickly skimming to get the lay of the land (and so you might remember these tools if related problems crop up in the future), and otherwise only deeply reading the bits that you currently need.
-Here's a quick run down of the main topics:
+- Chapter \@ref(beh-expect-cue) details the cue effect on expectation ratings.
 
--   Chapter \@ref(ch2_expect) details the various ways you can layout input and output components on a page, and how you can customise their appearance with themes.
+- Chapter \@ref(beh-outcome-cue) examines the cue effect on outcome ratings
 
--   Chapter \@ref(ch03_cue) shows you how to add direct interaction to your plot and how to display images generated in other ways.
+- Chapter \@ref(beh-outcome-cueXstim) examines the interaction of cue and stimulus intensity on outcome ratings.
 
+- Chapter \@ref(demean-per-sub-n1) examines the outcome rating as a function of cue, stimulus intensity, expectation ratings, N-1 outcome rating.
+
+## Check if this one produces a line {#beh-sub .unnumbered}
 
 Let's begin by working on your workflow for developing apps.
 
-## Check if this one produces a line
-I wonder why this doesn't produce a line
-Let's also check the block quotes
+> this is a text. Let's see if this wraps around\nwill this lead to a line
 
-> this is a text
+:::: {.infobox}
+Include the actual content here. here are my thoughts
+::::
 
-```
-this is also a text
-```
+:::: {.todolist}
+
+- convert ratings
+- zscore ratings
+- calculate relationship
+  ::::
 
 
 ```r
-#and let me check my code
+# and let me check my code
 ```
-

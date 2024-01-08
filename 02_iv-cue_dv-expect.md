@@ -1,20 +1,22 @@
-# beh :: expectation ~ cue {#beh_expect_cue}
+# beh :: expectation ~ cue {#beh-expect-cue}
 
 ---
-output: 
-  rmdformats::downcute:
-    use_bookdown: true
+
+output:
+rmdformats::downcute:
+use_bookdown: true
+
 ---
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
-Here, I plot the expectation ratings as a function of cue. 
+Here, I plot the expectation ratings as a function of cue.
 
-* Main model: `lmer(expect_rating ~ cue)` 
-* Main question: do expectations ratings differ as a function of cue type? 
-* If there is a main effect of cue on expectation ratings, does this cue effect differ depending on task type?
-* IV: cue (high / low) 
-* DV: expectation rating
+- Main model: `lmer(expect_rating ~ cue)`
+- Main question: do expectations ratings differ as a function of cue type?
+- If there is a main effect of cue on expectation ratings, does this cue effect differ depending on task type?
+- IV: cue (high / low)
+- DV: expectation rating
 
 
 
@@ -40,7 +42,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     exclude <- "sub-0001|sub-0999"
     # load data, run model, and exclude outliers
     data <- load_task_social_df(datadir, taskname, subject_varkey, iv, dv, exclude)
-    
+
     data$subject = factor(data$src_subject_id)
     data$stim_name[data$param_stimulus_type == "high_stim"] <- "high"
     data$stim_name[data$param_stimulus_type == "med_stim"] <- "med"
@@ -49,14 +51,14 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     data$stimlin[data$param_stimulus_type == "high_stim"] <- 0.5
     data$stimlin[data$param_stimulus_type == "med_stim"] <- 0
     data$stimlin[data$param_stimulus_type == "low_stim"] <- -0.5
-    
+
     data$stimquad[data$param_stimulus_type == "high_stim"] <- -0.34
     data$stimquad[data$param_stimulus_type == "med_stim"] <- 0.66
     data$stimquad[data$param_stimulus_type == "low_stim"] <- -0.34
-    
+
         data$cue_name[data$param_cue_type == "high_cue"] <- "high"
     data$cue_name[data$param_cue_type == "low_cue"] <- "low"
-    
+
             data$cue_con[data$param_cue_type == "high_cue"] <- 0.5
     data$cue_con[data$param_cue_type == "low_cue"] <- -0.5
     # DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
@@ -163,7 +165,6 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
 
 
 
-
 ```r
 # parameters _____________________________________ # nolint
 subject_varkey <- "src_subject_id"
@@ -186,6 +187,7 @@ dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
 
 ## Pain
+
 ### For the pain task, what is the effect of cue on expectation ratings? {.unlisted .unnumbered}
 
 [ INSERT DESCRIPTION ]
@@ -193,6 +195,7 @@ dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 <img src="02_iv-cue_dv-expect_files/figure-html/pain_iv-cue_dv-expect-1.png" width="672" />
 
 ## Vicarious
+
 ### For the vicarious task, what is the effect of cue on expectation ratings? {.unlisted .unnumbered}
 
 [ INSERT DESCRIPTION ]
@@ -200,6 +203,7 @@ dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 <img src="02_iv-cue_dv-expect_files/figure-html/vicarious_iv-cue_dv-expect-1.png" width="672" />
 
 ## Cognitive
+
 ### For the cognitive task, what is the effect of cue on expectation ratings? {.unlisted .unnumbered}
 
 [ INSERT DESCRIPTION ]
@@ -209,16 +213,17 @@ dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
 
 ## Individual difference analysis
+
 ### Are cue effects (on expectation ratings) similar across tasks? {.unlisted .unnumbered}
 
 > Using the random slopes of cue effects, here we plot them side by side
-with all three tasks of pain, cognitive, vicarious. As we can see, there
-is a high correlation across the random effects of cue across
-pain-cognitive, pain-vicarious, and cognitive-vicarious. These plots
-suggest a universal mechansim in the cue-expectancy effect, although
-some may critic that the cues were identical across tasks, thereby the
-cue effects are identical due to the stimuli itself, not necessarily a
-domain-general expectation process.
+> with all three tasks of pain, cognitive, vicarious. As we can see, there
+> is a high correlation across the random effects of cue across
+> pain-cognitive, pain-vicarious, and cognitive-vicarious. These plots
+> suggest a universal mechansim in the cue-expectancy effect, although
+> some may critic that the cues were identical across tasks, thereby the
+> cue effects are identical due to the stimuli itself, not necessarily a
+> domain-general expectation process.
 
 
 ```
@@ -246,5 +251,3 @@ domain-general expectation process.
 ```
 
 <img src="02_iv-cue_dv-expect_files/figure-html/random effects scatter plot-1.png" width="672" />
-
-
