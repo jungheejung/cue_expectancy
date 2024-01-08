@@ -1,6 +1,8 @@
 # [beh] RL simulation Aryan {#ch18_simulation_aryan}
 
-
+---
+output: rmdformats::downcute
+---
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 * Here, I model Aryans model fitted results, using the same scheme as my behavioral analysis (15*.Rmd)

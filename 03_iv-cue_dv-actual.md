@@ -1,4 +1,4 @@
-# [beh] outcome ~ cue {#ch03_cue}
+# beh :: outcome ~ cue {#beh_outcome_cue}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 

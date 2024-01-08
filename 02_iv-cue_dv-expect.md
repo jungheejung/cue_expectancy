@@ -1,4 +1,10 @@
-# [beh] expectation ~ cue {#ch2_expect}
+# beh :: expectation ~ cue {#beh_expect_cue}
+
+---
+output: 
+  rmdformats::downcute:
+    use_bookdown: true
+---
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
@@ -214,9 +220,31 @@ some may critic that the cues were identical across tasks, thereby the
 cue effects are identical due to the stimuli itself, not necessarily a
 domain-general expectation process.
 
+
+```
+## Warning: Removed 3 rows containing non-finite values (`stat_cor()`).
+```
+
+```
+## Warning: Removed 3 rows containing missing values (`geom_point()`).
+```
+
+```
+## Warning: Removed 1 rows containing non-finite values (`stat_cor()`).
+```
+
+```
+## Warning: Removed 1 rows containing missing values (`geom_point()`).
+```
+
+```
+## Warning: Removed 3 rows containing non-finite values (`stat_cor()`).
+```
+
+```
+## Warning: Removed 3 rows containing missing values (`geom_point()`).
+```
+
 <img src="02_iv-cue_dv-expect_files/figure-html/random effects scatter plot-1.png" width="672" />
 
-Note: 
-pain Warning: Removed 3 rows containing missing values (`geom_point()`).
-vicarious Warning: Removed 1 rows containing missing values (`geom_point()`).
-cognitive: Removed 3 rows containing missing values (`geom_point()`).
+

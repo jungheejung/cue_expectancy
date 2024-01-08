@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 5 beh :: outcome ~ cue * stim | 52_ROI TTL1</title>
+<meta name="author" content="Heejung Jung">
+<meta name="description" content="What is the purpose of this notebook? Here, I plot the outcome ratings as a function of cue and stimulus intensity. Main model: lmer(outcome_rating ~ cue * stim) Main question: do outcome ratings...">
+<meta name="generator" content="bookdown 0.37 with bs4_book()">
+<meta property="og:title" content="Chapter 5 beh :: outcome ~ cue * stim | 52_ROI TTL1">
+<meta property="og:type" content="book">
+<meta property="og:description" content="What is the purpose of this notebook? Here, I plot the outcome ratings as a function of cue and stimulus intensity. Main model: lmer(outcome_rating ~ cue * stim) Main question: do outcome ratings...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 5 beh :: outcome ~ cue * stim | 52_ROI TTL1">
+<meta name="twitter:description" content="What is the purpose of this notebook? Here, I plot the outcome ratings as a function of cue and stimulus intensity. Main model: lmer(outcome_rating ~ cue * stim) Main question: do outcome ratings...">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.6.1/transition.js"></script><script src="libs/bs3compat-0.6.1/tabs.js"></script><script src="libs/bs3compat-0.6.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/htmlwidgets-1.6.4/htmlwidgets.js"></script><script src="libs/plotly-binding-4.10.3/plotly.js"></script><script src="libs/typedarray-0.1/typedarray.min.js"></script><link href="libs/crosstalk-1.2.1/css/crosstalk.min.css" rel="stylesheet">
+<script src="libs/crosstalk-1.2.1/js/crosstalk.min.js"></script><link href="libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet">
+<script src="libs/plotly-main-2.11.1/plotly-latest.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<link rel="stylesheet" href="docute.css">
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">52_ROI TTL1</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html"><span class="header-section-number">1</span> About</a></li>
+<li class="book-part">Behavioral</li>
+<li><a class="" href="action-intro.html">Behavioral Rating analysis</a></li>
+<li><a class="" href="beh_expect_cue.html"><span class="header-section-number">2</span> beh :: expectation ~ cue</a></li>
+<li><a class="" href="beh_outcome_cue.html"><span class="header-section-number">3</span> beh :: outcome ~ cue</a></li>
+<li><a class="" href="ch04_outcome-stim.html"><span class="header-section-number">4</span> [beh] outcome ~ stimulus_intensity</a></li>
+<li><a class="active" href="beh_outcome-cueXstim.html"><span class="header-section-number">5</span> beh :: outcome ~ cue * stim</a></li>
+<li><a class="" href="ch06_Jepma.html"><span class="header-section-number">6</span> expect-actual ~ cue * trial</a></li>
+<li><a class="" href="demean_per_sub_n1.html"><span class="header-section-number">7</span> beh :: outcome_demean ~ cue * stim * expect * n-1outcome</a></li>
+<li><a class="" href="ch17_mediation.html"><span class="header-section-number">8</span> [beh] Mediation outcome ~ cue * stim * expectrating * n-1outcomerating</a></li>
+<li><a class="" href="ch18_simulation.html"><span class="header-section-number">9</span> [beh] RL simulation</a></li>
+<li><a class="" href="ch18_simulation_aryan.html"><span class="header-section-number">10</span> [beh] RL simulation Aryan</a></li>
+<li><a class="" href="ch20_npssimulation.html"><span class="header-section-number">11</span> [model] NPSsimulation</a></li>
+<li class="book-part">fMRI timeseries</li>
+<li><a class="" href="fmri_time.html">fMRI timeseries</a></li>
+<li><a class="" href="ch51_fir_glasserTPJttl2.html"><span class="header-section-number">12</span> [fMRI] FIR ~ task</a></li>
+<li><a class="" href="taskwise-stim-effect.html"><span class="header-section-number">13</span> taskwise stim effect</a></li>
+<li><a class="" href="taskwise-6-cond-effect.html"><span class="header-section-number">14</span> taskwise 6 cond effect</a></li>
+<li><a class="" href="ch52_timeseries.html"><span class="header-section-number">15</span> [fMRI] FIR ~ task TTL1</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/jungheejung/cue_expectancy">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="beh_outcome-cueXstim" class="section level1" number="5">
+<h1>
+<span class="header-section-number">5</span> beh :: outcome ~ cue * stim<a class="anchor" aria-label="anchor" href="#beh_outcome-cueXstim"><i class="fas fa-link"></i></a>
+</h1>
+<div id="what-is-the-purpose-of-this-notebook-3" class="section level2 unlisted unnumbered">
+<h2>What is the purpose of this notebook?<a class="anchor" aria-label="anchor" href="#what-is-the-purpose-of-this-notebook-3"><i class="fas fa-link"></i></a>
+</h2>
+<p>Here, I plot the outcome ratings as a function of cue and stimulus intensity.</p>
+<ul>
+<li>Main model: <code>lmer(outcome_rating ~ cue * stim)</code>
+</li>
+<li>Main question: do outcome ratings differ as a function of cue type and stimulus intensity?</li>
+<li>If there is a main effect of cue on outcome ratings, does this cue effect differ depending on task type?</li>
+<li>Is there an interaction between the two factors?</li>
+<li>IV:
+<ul>
+<li>cue (high / low)</li>
+<li>stim (high / med / low)</li>
+</ul>
+</li>
+<li>DV: outcome rating</li>
+</ul>
+</div>
+<div id="cue-contrasts" class="section level2" number="5.1">
+<h2>
+<span class="header-section-number">5.1</span> Cue contrasts<a class="anchor" aria-label="anchor" href="#cue-contrasts"><i class="fas fa-link"></i></a>
+</h2>
+<p><code>lmer(Outcome ~ Cue_contrast)</code>
+* IV: Stim X Cue_contrast
+* DV: Outcome rating</p>
+<p><img src="05_iv-cue-stim_dv-outcome_files/figure-html/common_parameters_4-1.png" width="672"><img src="05_iv-cue-stim_dv-outcome_files/figure-html/common_parameters_4-2.png" width="672"><img src="05_iv-cue-stim_dv-outcome_files/figure-html/common_parameters_4-3.png" width="672"><img src="05_iv-cue-stim_dv-outcome_files/figure-html/common_parameters_4-4.png" width="672"><img src="05_iv-cue-stim_dv-outcome_files/figure-html/common_parameters_4-5.png" width="672"><img src="05_iv-cue-stim_dv-outcome_files/figure-html/common_parameters_4-6.png" width="672"></p>
+</div>
+<div id="todo-model-03-3-2.-individual-differences" class="section level2" number="5.2">
+<h2>
+<span class="header-section-number">5.2</span> TODO: model 03 3-2. individual differences<a class="anchor" aria-label="anchor" href="#todo-model-03-3-2.-individual-differences"><i class="fas fa-link"></i></a>
+</h2>
+<div id="delete-after-sandbox" class="section level3" number="5.2.1">
+<h3>
+<span class="header-section-number">5.2.1</span> DELETE AFTER SANDBOX<a class="anchor" aria-label="anchor" href="#delete-after-sandbox"><i class="fas fa-link"></i></a>
+</h3>
+</div>
+</div>
+<div id="cue-x-stim-raincloud-plots" class="section level2" number="5.3">
+<h2>
+<span class="header-section-number">5.3</span> Cue X Stim Raincloud plots<a class="anchor" aria-label="anchor" href="#cue-x-stim-raincloud-plots"><i class="fas fa-link"></i></a>
+</h2>
+<ul>
+<li>IV: Cue x stim</li>
+<li>DV: Outcome rating</li>
+</ul>
+<pre><code>## TableGrob (1 x 2) "arrange": 2 grobs
+##   z     cells    name              grob
+## 1 1 (1-1,1-1) arrange    gtable[layout]
+## 2 2 (1-1,2-2) arrange gtable[guide-box]</code></pre>
+<div class="inline-figure"><img src="05_iv-cue-stim_dv-outcome_files/figure-html/unnamed-chunk-2-1.png" width="672"></div>
+<pre><code>## TableGrob (1 x 2) "arrange": 2 grobs
+##   z     cells    name              grob
+## 1 1 (1-1,1-1) arrange    gtable[layout]
+## 2 2 (1-1,2-2) arrange gtable[guide-box]</code></pre>
+<div class="inline-figure"><img src="05_iv-cue-stim_dv-outcome_files/figure-html/unnamed-chunk-2-2.png" width="672"></div>
+<pre><code>## TableGrob (1 x 2) "arrange": 2 grobs
+##   z     cells    name              grob
+## 1 1 (1-1,1-1) arrange    gtable[layout]
+## 2 2 (1-1,2-2) arrange gtable[guide-box]</code></pre>
+<div class="inline-figure"><img src="05_iv-cue-stim_dv-outcome_files/figure-html/unnamed-chunk-2-3.png" width="672"></div>
+<div id="cue-x-stim-linear-model" class="section level3" number="5.3.1">
+<h3>
+<span class="header-section-number">5.3.1</span> Cue X Stim linear model<a class="anchor" aria-label="anchor" href="#cue-x-stim-linear-model"><i class="fas fa-link"></i></a>
+</h3>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span>    <span class="co"># stim_con1 &lt;- "STIM_linear"</span></span>
+<span>    <span class="co"># stim_con2 &lt;- "STIM_quadratic"</span></span>
+<span>    <span class="co"># iv1 &lt;- "CUE_high_gt_low"</span></span>
+<span>    <span class="co"># dv &lt;- "OUTCOME"</span></span>
+<span></span>
+<span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://Matrix.R-forge.R-project.org">Matrix</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/glmmTMB/glmmTMB">glmmTMB</a></span><span class="op">)</span></span></code></pre></div>
+<pre><code>## Warning in checkDepPackageVersion(dep_pkg = "TMB"): Package version inconsistency detected.
+## glmmTMB was built with TMB version 1.9.6
+## Current TMB version is 1.9.10
+## Please re-install glmmTMB from source or restore original 'TMB' package (see '?reinstalling' for more information)</code></pre>
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/kaskr/adcomp/wiki">TMB</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/RcppCore/RcppEigen">RcppEigen</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="va">data</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">OUTCOME</span><span class="op">)</span>, <span class="op">]</span></span>
+<span></span>
+<span><span class="va">fullmodel</span> <span class="op">&lt;-</span></span>
+<span>  <span class="fu">lmer</span><span class="op">(</span></span>
+<span>    <span class="va">OUTCOME</span> <span class="op">~</span> <span class="va">CUE_high_gt_low</span> <span class="op">*</span> <span class="va">STIM_linear</span> <span class="op">+</span> <span class="op">(</span></span>
+<span>      <span class="va">CUE_high_gt_low</span> <span class="op">*</span> <span class="va">STIM_linear</span>  <span class="op">|</span></span>
+<span>        <span class="va">subject</span></span>
+<span>    <span class="op">)</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">df</span></span>
+<span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
+<pre><code>## boundary (singular) fit: see help('isSingular')</code></pre>
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># TODO:: troubleshoot</span></span>
+<span><span class="co"># m &lt;- glmmTMB(OUTCOME ~ CUE_high_gt_low * STIM_linear + ( CUE_high_gt_low * STIM_linear  | subject),   </span></span>
+<span><span class="co">#              data = df,</span></span>
+<span><span class="co">#              control = glmmTMBControl(rank_check = "adjust"))</span></span>
+<span><span class="co">#              #start = start_values,</span></span>
+<span><span class="co">#    </span></span>
+<span><span class="co"># summary(m)</span></span>
+<span></span>
+<span><span class="fu">sjPlot</span><span class="fu">::</span><span class="fu"><a href="https://strengejacke.github.io/sjPlot/reference/tab_model.html">tab_model</a></span><span class="op">(</span><span class="va">fullmodel</span>,</span>
+<span>                  title <span class="op">=</span> <span class="st">"Multilevel-modeling: \nlmer(OUTCOME ~ CUE * STIM + (CUE * STIM | sub), data = pvc)"</span>,</span>
+<span>                  CSS <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>css.table <span class="op">=</span> <span class="st">'+font-size: 12;'</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-table"><table style="border-collapse:collapse; border:none;font-size: 12;" class="table table-sm">
+<caption style="font-weight: bold; text-align:left;">
+Multilevel-modeling:
+lmer(OUTCOME ~ CUE * STIM + (CUE * STIM | sub), data = pvc)
+</caption>
+<tr>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; text-align:left; ">
+ 
+</th>
+<th colspan="3" style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black;">
+OUTCOME
+</th>
+</tr>
+<tr>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal; border-bottom:1px solid black; text-align:left; ">
+Predictors
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal; border-bottom:1px solid black; ">
+Estimates
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal; border-bottom:1px solid black; ">
+CI
+</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal; border-bottom:1px solid black; ">
+p
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+(Intercept)
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+28.40
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+25.98 – 30.82
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+<strong>&lt;0.001</strong>
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+CUE high gt low
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+8.06
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+6.69 – 9.44
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+<strong>&lt;0.001</strong>
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+STIM linear
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+8.16
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+6.86 – 9.46
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+<strong>&lt;0.001</strong>
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">
+CUE high gt low × STIM<br>linear
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+2.60
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+0.29 – 4.91
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">
+<strong>0.027</strong>
+</td>
+</tr>
+<tr>
+<td colspan="4" style="font-weight:bold; text-align:left; padding-top:.8em;">
+Random Effects
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+σ<sup>2</sup>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center;" colspan="3">
+352.77
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+τ<sub>00</sub><sub>subject</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center;" colspan="3">
+160.46
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+τ<sub>11</sub><sub>subject.CUE_high_gt_low</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center;" colspan="3">
+27.66
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+τ<sub>11</sub><sub>subject.STIM_linear</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center;" colspan="3">
+10.75
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+τ<sub>11</sub><sub>subject.CUE_high_gt_low:STIM_linear</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center;" colspan="3">
+3.11
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+ρ<sub>01</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center;" colspan="3">
+0.37
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center;" colspan="3">
+0.61
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center;" colspan="3">
+-0.28
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+N <sub>subject</sub>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center;" colspan="3">
+110
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">
+Observations
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center; border-top:1px solid;" colspan="3">
+6220
+</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">
+Marginal R<sup>2</sup> / Conditional R<sup>2</sup>
+</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center;" colspan="3">
+0.073 / NA
+</td>
+</tr>
+</table></div>
+</div>
+</div>
+<div id="individual-differences-in-cue-effects" class="section level2" number="5.4">
+<h2>
+<span class="header-section-number">5.4</span> Individual differences in cue effects<a class="anchor" aria-label="anchor" href="#individual-differences-in-cue-effects"><i class="fas fa-link"></i></a>
+</h2>
+<div class="inline-figure"><img src="05_iv-cue-stim_dv-outcome_files/figure-html/unnamed-chunk-4-1.png" width="672"></div>
+</div>
+<div id="cue-x-stim-lineplot" class="section level2" number="5.5">
+<h2>
+<span class="header-section-number">5.5</span> Cue X Stim Lineplot<a class="anchor" aria-label="anchor" href="#cue-x-stim-lineplot"><i class="fas fa-link"></i></a>
+</h2>
+<p>Instead of the rain cloud plots, here, I plot the lines and confidence interval
+for each cue x stim combination. Plotted per task.</p>
+<div class="inline-figure"><img src="05_iv-cue-stim_dv-outcome_files/figure-html/unnamed-chunk-5-1.png" width="672"></div>
+</div>
+<div id="clinical-trials" class="section level2" number="5.6">
+<h2>
+<span class="header-section-number">5.6</span> Clinical trials<a class="anchor" aria-label="anchor" href="#clinical-trials"><i class="fas fa-link"></i></a>
+</h2>
+</div>
+<div id="cue-contrast-average-across-intensity" class="section level2" number="5.7">
+<h2>
+<span class="header-section-number">5.7</span> cue contrast average across intensity<a class="anchor" aria-label="anchor" href="#cue-contrast-average-across-intensity"><i class="fas fa-link"></i></a>
+</h2>
+<pre><code>## [1] "pain"
+## [1] 8.203947
+## [1] 0.8871599
+## [1] "high vs. low cue"
+## [1] "low"              "61.6884121864272" "2.860880140792"  
+## [1] "high"             "70.2234946843967" "2.85365310068339"
+## [1] "vicarious"
+## [1] 7.69279
+## [1] 0.6584873
+## [1] "high vs. low cue"
+## [1] "low"              "22.7808026788692" "1.0440409512757" 
+## [1] "high"             "30.636407755966"  "1.20480098494488"
+## [1] "cognitive"
+## [1] 8.019356
+## [1] 0.7038933
+## [1] "high vs. low cue"
+## [1] "low"              "24.308987672219"  "1.19373008209444"
+## [1] "high"             "32.34623546235"   "1.37653031156445"</code></pre>
+</div>
+<div id="cue-contrast-average-across-expectation" class="section level2" number="5.8">
+<h2>
+<span class="header-section-number">5.8</span> cue contrast average across expectation<a class="anchor" aria-label="anchor" href="#cue-contrast-average-across-expectation"><i class="fas fa-link"></i></a>
+</h2>
+<pre><code>## [1] "pain"
+## [1] 35.05694
+## [1] 1.989724
+## [1] "high vs. low cue"
+## [1] "low"              "44.6580941421071" "3.02430373086043"
+## [1] "high"             "79.4644108331637" "2.85584321656255"
+## [1] "vicarious"
+## [1] 33.25123
+## [1] 1.503149
+## [1] "high vs. low cue"
+## [1] "low"              "14.9314711535258" "1.00860750130232"
+## [1] "high"             "48.146271174259"  "1.54236667339445"
+## [1] "cognitive"
+## [1] 30.7638
+## [1] 1.53046
+## [1] "high vs. low cue"
+## [1] "low"              "18.5956241315907" "1.20836045474955"
+## [1] "high"             "49.3940294143433" "1.73640570707356"</code></pre>
+<div class="refbox">
+<ul>
+<li><a href="https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402" class="uri">https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402</a></li>
+</ul>
+</div>
+
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="ch04_outcome-stim.html"><span class="header-section-number">4</span> [beh] outcome ~ stimulus_intensity</a></div>
+<div class="next"><a href="ch06_Jepma.html"><span class="header-section-number">6</span> expect-actual ~ cue * trial</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#beh_outcome-cueXstim"><span class="header-section-number">5</span> beh :: outcome ~ cue * stim</a></li>
+<li><a class="nav-link" href="#what-is-the-purpose-of-this-notebook-3">What is the purpose of this notebook?</a></li>
+<li><a class="nav-link" href="#cue-contrasts"><span class="header-section-number">5.1</span> Cue contrasts</a></li>
+<li>
+<a class="nav-link" href="#todo-model-03-3-2.-individual-differences"><span class="header-section-number">5.2</span> TODO: model 03 3-2. individual differences</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#delete-after-sandbox"><span class="header-section-number">5.2.1</span> DELETE AFTER SANDBOX</a></li></ul>
+</li>
+<li>
+<a class="nav-link" href="#cue-x-stim-raincloud-plots"><span class="header-section-number">5.3</span> Cue X Stim Raincloud plots</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#cue-x-stim-linear-model"><span class="header-section-number">5.3.1</span> Cue X Stim linear model</a></li></ul>
+</li>
+<li><a class="nav-link" href="#individual-differences-in-cue-effects"><span class="header-section-number">5.4</span> Individual differences in cue effects</a></li>
+<li><a class="nav-link" href="#cue-x-stim-lineplot"><span class="header-section-number">5.5</span> Cue X Stim Lineplot</a></li>
+<li><a class="nav-link" href="#clinical-trials"><span class="header-section-number">5.6</span> Clinical trials</a></li>
+<li><a class="nav-link" href="#cue-contrast-average-across-intensity"><span class="header-section-number">5.7</span> cue contrast average across intensity</a></li>
+<li><a class="nav-link" href="#cue-contrast-average-across-expectation"><span class="header-section-number">5.8</span> cue contrast average across expectation</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/jungheejung/cue_expectancy/blob/master/05_iv-cue-stim_dv-outcome.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/jungheejung/cue_expectancy/edit/master/05_iv-cue-stim_dv-outcome.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>52_ROI TTL1</strong>" was written by Heejung Jung. It was last built on 2023-08-14.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer>
+</body>
+</html>

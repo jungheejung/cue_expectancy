@@ -2,9 +2,7 @@
 
 
 
-
 ### Function
-
 
 
 
@@ -13,24 +11,28 @@
 ### NPS data
 
 
+
 ### behavioral data
 
 
+
 ### Q. Within pain task, Does stimulus intenisty level and cue level significantly predict NPS dotproducts? {.unlisted .unnumbered}
+
 <img src="20_NPS_simulation_files/figure-html/unnamed-chunk-4-1.png" width="672" />
 
 
 
 ### get pain relationship, controlling for cue, cuetype, expect
 
+
 ```r
-model.stim <- lmer(event04_actual_angle ~ 
-                          STIM_linear + 
+model.stim <- lmer(event04_actual_angle ~
+                          STIM_linear +
                           CUE_high_gt_low + STIM_quadratic+ EXPECT_demean +
                           EXPECT_cmc +
-                          ses + 
+                          ses +
                           (1|sub), data = df
-                    ) 
+                    )
 # CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.stim,
                   title = "Multilevel-modeling: \nlmer(NPSpos ~ CUE + STIM + EXPECT_demean + SES + (1| sub), data = pvc)",
@@ -138,13 +140,13 @@ randEffect_expect <-as.data.frame(ranef(model.stim))
 
 ```r
 ntrials = 12
-lowintens = 48;     
+lowintens = 48;
 medintens = 49;
 highintens = 50;
 stim <- 48:50
 painmean = 30      # average pain; arbitrary, on a 0 - 100 scale
 painslope = fixEffect_expect['STIM_linear',1]     # rise in pain per unit change in stim (per degree)
-painslope_stan = 0.33621048	
+painslope_stan = 0.33621048
 stdCoef.merMod <- function(object) {
   sdy <- sd(getME(object,"y"))
   sdx <- apply(getME(object,"X"), 2, sd)
@@ -177,9 +179,9 @@ stdCoef.merMod(model.stim)
 # E <- painslope * (C + rnorm(length(C))) + painmean # pseudo nociception
 # Szscore <- (S - mean(S)) / sd(S)
 
-df$S <- as.numeric(mapvalues(df$stimintensity, 
+df$S <- as.numeric(mapvalues(df$stimintensity,
                                         from = c("low", "med", "high"), c(48, 49, 50)))
-df$C <- as.numeric(mapvalues(df$cuetype, 
+df$C <- as.numeric(mapvalues(df$cuetype,
                                         from = c("cuetype-low", "cuetype-high"), c(-1, 1)))
 df$E <- painslope * (df$C + rnorm(length(df$C))) + painmean
 
@@ -192,7 +194,7 @@ model.stim2pain <- lmer(Pcalib ~ S  + (1|sub), df)
 b_stim2pain = fixef(model.stim2pain)[2] #0.4126089 #36.5757
 
 df$Sprime = df$Szscore * b_stim2pain + painmean # subjective pain experience, converted to a scale of 0-180, in order to match expectation ratings
-# df$Sprime = df$S * b_stim2pain 
+# df$Sprime = df$S * b_stim2pain
 
 df <- df %>%
   group_by(sub) %>%
@@ -202,7 +204,8 @@ df <- df %>%
   mutate(E_cmc = avg_E - mean(avg_E))
 ```
 
-## simulation **
+## simulation \*\*
+
 
 ```r
 w = 0.7
@@ -221,13 +224,14 @@ df$P.adapt <- 1
   df$P.adapt[large.diff] <- w * df$Sprime[large.diff]  + error[large.diff]
 ```
 
-
 <img src="20_NPS_simulation_files/figure-html/unnamed-chunk-10-1.png" width="672" />
 
 <img src="20_NPS_simulation_files/figure-html/unnamed-chunk-11-1.png" width="672" />
+
 <img src="20_NPS_simulation_files/figure-html/unnamed-chunk-12-1.png" width="672" />
 
 ## Lineplots Original {.unlisted .unnumbered}
+
 
 ```
 ## Automatically converting the following non-factors to factors: cue_name
@@ -235,18 +239,21 @@ df$P.adapt <- 1
 
 <img src="20_NPS_simulation_files/figure-html/unnamed-chunk-13-1.png" width="672" />
 
-
 ### Lineplots P.assim {.unlisted .unnumbered}
+
 
 ```
 ## Automatically converting the following non-factors to factors: cue_name
 ```
 
 <img src="20_NPS_simulation_files/figure-html/unnamed-chunk-14-1.png" width="672" />
-### P.assim ~ demeaned_expect * cue * stim
+
+### P.assim ~ demeaned_expect _ cue _ stim
+
 <img src="20_NPS_simulation_files/figure-html/unnamed-chunk-15-1.png" width="672" />
 
 ### Lineplots P.pe {.unlisted .unnumbered}
+
 
 ```
 ## Automatically converting the following non-factors to factors: cue_name
@@ -254,11 +261,12 @@ df$P.adapt <- 1
 
 <img src="20_NPS_simulation_files/figure-html/unnamed-chunk-16-1.png" width="672" />
 
-### P.pe ~ demeaned_expect * cue * stim
+### P.pe ~ demeaned_expect _ cue _ stim
+
 <img src="20_NPS_simulation_files/figure-html/unnamed-chunk-17-1.png" width="672" />
 
-
 ### Lineplots P.adapt {.unlisted .unnumbered}
+
 
 ```
 ## Automatically converting the following non-factors to factors: cue_name
@@ -266,9 +274,6 @@ df$P.adapt <- 1
 
 <img src="20_NPS_simulation_files/figure-html/unnamed-chunk-18-1.png" width="672" />
 
-
-
-
-### P.adapt ~ demeaned_expect * cue * stim
+### P.adapt ~ demeaned_expect _ cue _ stim
 
 <img src="20_NPS_simulation_files/figure-html/unnamed-chunk-19-1.png" width="672" />

@@ -1,45 +1,107 @@
-# [beh] outcome_rating ~ cue * stim {#ch05_outcome-cueXstim}
+# beh :: outcome ~ cue \* stim {#beh_outcome-cueXstim}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
-Here, I plot the outcome ratings as a function of cue and stimulus intensity. 
+Here, I plot the outcome ratings as a function of cue and stimulus intensity.
 
-* Main model: `lmer(outcome_rating ~ cue * stim)` 
-* Main question: do outcome ratings differ as a function of cue type and stimulus intensity? 
-* If there is a main effect of cue on outcome ratings, does this cue effect differ depending on task type?
-* Is there an interaction between the two factors?
-* IV: 
+- Main model: `lmer(outcome_rating ~ cue * stim)`
+- Main question: do outcome ratings differ as a function of cue type and stimulus intensity?
+- If there is a main effect of cue on outcome ratings, does this cue effect differ depending on task type?
+- Is there an interaction between the two factors?
+- IV:
   - cue (high / low)
   - stim (high / med / low)
-* DV: outcome rating
+- DV: outcome rating
 
 
 
 
 
-## model 03 iv-cuecontrast dv-outcome
+
+
+
+
+## Cue contrasts
+`lmer(Outcome ~ Cue_contrast)`
+* IV: Stim X Cue_contrast
+* DV: Outcome rating
+
 <img src="05_iv-cue-stim_dv-outcome_files/figure-html/common_parameters_4-1.png" width="672" /><img src="05_iv-cue-stim_dv-outcome_files/figure-html/common_parameters_4-2.png" width="672" /><img src="05_iv-cue-stim_dv-outcome_files/figure-html/common_parameters_4-3.png" width="672" /><img src="05_iv-cue-stim_dv-outcome_files/figure-html/common_parameters_4-4.png" width="672" /><img src="05_iv-cue-stim_dv-outcome_files/figure-html/common_parameters_4-5.png" width="672" /><img src="05_iv-cue-stim_dv-outcome_files/figure-html/common_parameters_4-6.png" width="672" />
 
+## TODO: model 03 3-2. individual differences
+
+### DELETE AFTER SANDBOX
 
 
 
+## Cue X Stim Raincloud plots 
+* IV: Cue x stim
+* DV: Outcome rating
 
-### model 03 3-2. individual difference
 
+```
+## TableGrob (1 x 2) "arrange": 2 grobs
+##   z     cells    name              grob
+## 1 1 (1-1,1-1) arrange    gtable[layout]
+## 2 2 (1-1,2-2) arrange gtable[guide-box]
+```
 
-### model 04 iv-cue-stim dv-outcome
-<img src="05_iv-cue-stim_dv-outcome_files/figure-html/unnamed-chunk-1-1.png" width="672" /><img src="05_iv-cue-stim_dv-outcome_files/figure-html/unnamed-chunk-1-2.png" width="672" /><img src="05_iv-cue-stim_dv-outcome_files/figure-html/unnamed-chunk-1-3.png" width="672" />
+<img src="05_iv-cue-stim_dv-outcome_files/figure-html/unnamed-chunk-2-1.png" width="672" />
 
-### Nov 17 lmer
+```
+## TableGrob (1 x 2) "arrange": 2 grobs
+##   z     cells    name              grob
+## 1 1 (1-1,1-1) arrange    gtable[layout]
+## 2 2 (1-1,2-2) arrange gtable[guide-box]
+```
+
+<img src="05_iv-cue-stim_dv-outcome_files/figure-html/unnamed-chunk-2-2.png" width="672" />
+
+```
+## TableGrob (1 x 2) "arrange": 2 grobs
+##   z     cells    name              grob
+## 1 1 (1-1,1-1) arrange    gtable[layout]
+## 2 2 (1-1,2-2) arrange gtable[guide-box]
+```
+
+<img src="05_iv-cue-stim_dv-outcome_files/figure-html/unnamed-chunk-2-3.png" width="672" />
+
+### Cue X Stim linear model
+
 
 ```r
-    # stim_con1 <- "stim_con_linear"
-    # stim_con2 <- "stim_con_quad"
-    # iv1 <- "social_cue"
-    # dv <- "event04_actual_angle"
+    # stim_con1 <- "STIM_linear"
+    # stim_con2 <- "STIM_quadratic"
+    # iv1 <- "CUE_high_gt_low"
+    # dv <- "OUTCOME"
 
-fullmodel <- lmer(event04_actual_angle ~ 1+ social_cue + stim_con_linear + stim_con_quad + social_cue:stim_con_linear + social_cue:stim_con_quad
-     + (1+ social_cue + stim_con_linear + stim_con_quad+ social_cue:stim_con_linear  | src_subject_id), data=data)
+
+library(Matrix)
+library(glmmTMB)
+```
+
+```
+## Warning in checkDepPackageVersion(dep_pkg = "TMB"): Package version inconsistency detected.
+## glmmTMB was built with TMB version 1.9.6
+## Current TMB version is 1.9.10
+## Please re-install glmmTMB from source or restore original 'TMB' package (see '?reinstalling' for more information)
+```
+
+```r
+library(TMB)
+library(RcppEigen)
+
+df <- data[!is.na(data$OUTCOME), ]
+
+fullmodel <-
+  lmer(
+    OUTCOME ~ CUE_high_gt_low * STIM_linear + (
+      CUE_high_gt_low * STIM_linear  |
+        subject
+    ),
+    data = df
+
+  )
 ```
 
 ```
@@ -47,78 +109,122 @@ fullmodel <- lmer(event04_actual_angle ~ 1+ social_cue + stim_con_linear + stim_
 ```
 
 ```r
-summary(fullmodel)
+# TODO:: troubleshoot
+# m <- glmmTMB(OUTCOME ~ CUE_high_gt_low * STIM_linear + ( CUE_high_gt_low * STIM_linear  | subject),   
+#              data = df,
+#              control = glmmTMBControl(rank_check = "adjust"))
+#              #start = start_values,
+#    
+# summary(m)
+
+sjPlot::tab_model(fullmodel,
+                  title = "Multilevel-modeling: \nlmer(OUTCOME ~ CUE * STIM + (CUE * STIM | sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
 ```
 
-```
-## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
-## lmerModLmerTest]
-## Formula: 
-## event04_actual_angle ~ 1 + social_cue + stim_con_linear + stim_con_quad +  
-##     social_cue:stim_con_linear + social_cue:stim_con_quad + (1 +  
-##     social_cue + stim_con_linear + stim_con_quad + social_cue:stim_con_linear |  
-##     src_subject_id)
-##    Data: data
-## 
-## REML criterion at convergence: 54523.3
-## 
-## Scaled residuals: 
-##     Min      1Q  Median      3Q     Max 
-## -3.4932 -0.6227 -0.1494  0.4685  7.0856 
-## 
-## Random effects:
-##  Groups         Name                       Variance Std.Dev. Corr             
-##  src_subject_id (Intercept)                160.757  12.679                    
-##                 social_cue                  27.920   5.284    0.37            
-##                 stim_con_linear             11.126   3.336    0.60 -0.04      
-##                 stim_con_quad                2.765   1.663    0.79  0.24  0.72
-##                 social_cue:stim_con_linear   3.197   1.788   -0.29  0.68 -0.08
-##  Residual                                  349.846  18.704                    
-##       
-##       
-##       
-##       
-##       
-##  -0.15
-##       
-## Number of obs: 6220, groups:  src_subject_id, 110
-## 
-## Fixed effects:
-##                             Estimate Std. Error        df t value Pr(>|t|)    
-## (Intercept)                  28.4134     1.2360  109.1664  22.988  < 2e-16 ***
-## social_cue                    8.0490     0.7017  106.1701  11.470  < 2e-16 ***
-## stim_con_linear               8.1671     0.6657  106.6467  12.268  < 2e-16 ***
-## stim_con_quad                 3.0904     0.5350  111.0283   5.777 7.05e-08 ***
-## social_cue:stim_con_linear    2.5872     1.1738 1373.9978   2.204   0.0277 *  
-## social_cue:stim_con_quad     -1.6740     1.0200 5843.5215  -1.641   0.1008    
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Correlation of Fixed Effects:
-##                (Intr) socl_c stm_cn_l stm_cn_q scl_c:stm_cn_l
-## social_cue      0.262                                        
-## stim_cn_lnr     0.284 -0.015                                 
-## stim_con_qd     0.232  0.049  0.106                          
-## scl_c:stm_cn_l -0.041  0.074 -0.002   -0.008                 
-## scl_c:stm_cn_q -0.001  0.004 -0.002    0.000    0.001        
-## optimizer (nloptwrap) convergence code: 0 (OK)
-## boundary (singular) fit: see help('isSingular')
-```
+<table style="border-collapse:collapse; border:none;font-size: 12;">
+<caption style="font-weight: bold; text-align:left;">Multilevel-modeling: 
+lmer(OUTCOME ~ CUE * STIM + (CUE * STIM | sub), data = pvc)</caption>
+<tr>
+<th style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black; text-align:left; ">&nbsp;</th>
+<th colspan="3" style="border-top: double; text-align:center; font-style:italic; font-weight:normal; padding:0.2cm; border-bottom:1px solid black;">OUTCOME</th>
+</tr>
+<tr>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal; border-bottom:1px solid black; text-align:left; ">Predictors</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal; border-bottom:1px solid black; ">Estimates</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal; border-bottom:1px solid black; ">CI</td>
+<td style=" text-align:center; border-bottom:1px solid; font-style:italic; font-weight:normal; border-bottom:1px solid black; ">p</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">(Intercept)</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">28.40</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">25.98&nbsp;&ndash;&nbsp;30.82</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">CUE high gt low</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">8.06</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">6.69&nbsp;&ndash;&nbsp;9.44</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">STIM linear</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">8.16</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">6.86&nbsp;&ndash;&nbsp;9.46</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>&lt;0.001</strong></td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; ">CUE high gt low × STIM<br>linear</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">2.60</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  ">0.29&nbsp;&ndash;&nbsp;4.91</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:center;  "><strong>0.027</strong></td>
+</tr>
+<tr>
+<td colspan="4" style="font-weight:bold; text-align:left; padding-top:.8em;">Random Effects</td>
+</tr>
 
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">&sigma;<sup>2</sup></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center;" colspan="3">352.77</td>
+</tr>
 
-### model 04 4-2 individual differences in cue effects
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">&tau;<sub>00</sub> <sub>subject</sub></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center;" colspan="3">160.46</td>
 
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">&tau;<sub>11</sub> <sub>subject.CUE_high_gt_low</sub></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center;" colspan="3">27.66</td>
 
-### model 04 4-3 scatter plot
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">&tau;<sub>11</sub> <sub>subject.STIM_linear</sub></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center;" colspan="3">10.75</td>
+
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">&tau;<sub>11</sub> <sub>subject.CUE_high_gt_low:STIM_linear</sub></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center;" colspan="3">3.11</td>
+
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">&rho;<sub>01</sub></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center;" colspan="3">0.37</td>
+
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;"></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center;" colspan="3">0.61</td>
+
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;"></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center;" colspan="3">-0.28</td>
+
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">N <sub>subject</sub></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center;" colspan="3">110</td>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm; border-top:1px solid;">Observations</td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center; border-top:1px solid;" colspan="3">6220</td>
+</tr>
+<tr>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; text-align:left; padding-top:0.1cm; padding-bottom:0.1cm;">Marginal R<sup>2</sup> / Conditional R<sup>2</sup></td>
+<td style=" padding:0.2cm; text-align:left; vertical-align:top; padding-top:0.1cm; padding-bottom:0.1cm; text-align:center;" colspan="3">0.073 / NA</td>
+</tr>
+
+</table>
+
+## Individual differences in cue effects
+
 <img src="05_iv-cue-stim_dv-outcome_files/figure-html/unnamed-chunk-4-1.png" width="672" />
 
-### model 04 4-4 lineplot
+## Cue X Stim Lineplot 
+
+Instead of the rain cloud plots, here, I plot the lines and confidence interval
+for each cue x stim combination. Plotted per task. 
+
 <img src="05_iv-cue-stim_dv-outcome_files/figure-html/unnamed-chunk-5-1.png" width="672" />
 
+## Clinical trials
 
-
-# Clinical trials
 ## cue contrast average across intensity
+
 
 ```
 ## [1] "pain"
@@ -143,6 +249,7 @@ summary(fullmodel)
 
 ## cue contrast average across expectation
 
+
 ```
 ## [1] "pain"
 ## [1] 35.05694
@@ -163,3 +270,11 @@ summary(fullmodel)
 ## [1] "low"              "18.5956241315907" "1.20836045474955"
 ## [1] "high"             "49.3940294143433" "1.73640570707356"
 ```
+
+
+:::: {.refbox}
+
+* https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+
+::::
+
