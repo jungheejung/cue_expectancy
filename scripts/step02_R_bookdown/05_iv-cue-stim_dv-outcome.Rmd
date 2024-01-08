@@ -1,4 +1,4 @@
-# beh :: outcome ~ cue \* stim {#beh_outcome-cueXstim}
+# beh :: outcome ~ cue \* stim {#beh-outcome-cueXstim}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
@@ -55,10 +55,6 @@ file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
 sapply(file.sources,source,.GlobalEnv)
 ```
 
-
-
-
-
 ```{r parameters_4, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 main_dir = dirname(dirname(getwd()))
 print(main_dir)
@@ -71,9 +67,11 @@ dir.create(analysis_dir, recursive = TRUE, showWarnings = FALSE)
 ```
 
 ## Cue contrasts
+
 `lmer(Outcome ~ Cue_contrast)`
-* IV: Stim X Cue_contrast
-* DV: Outcome rating
+
+- IV: Stim X Cue_contrast
+- DV: Outcome rating
 
 ```{r common_parameters_4, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
@@ -99,17 +97,17 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     )
 
     # 1. load data _____________________________________________________________
-    df <- load_task_social_df(datadir, taskname, subject_varkey, 
+    df <- load_task_social_df(datadir, taskname, subject_varkey,
                               iv = "param_cue_type", dv = "event04_actual_angle", exclude)
     unique(df$src_subject_id)
     df$subject <- factor(df$src_subject_id)
     # ___ 1-1. rename column ___________________________________________________
-    column_mapping <- c("event04_actual_angle" = "OUTCOME", 
-                        "event02_expect_angle" = "EXPECT", 
+    column_mapping <- c("event04_actual_angle" = "OUTCOME",
+                        "event02_expect_angle" = "EXPECT",
                         "session_id" = "SES",
                         "param_run_num" = "RUN",
                         "param_task_name" = "RUNTYPE",
-                        "event02_expect_RT" = "EXPECT_RT", 
+                        "event02_expect_RT" = "EXPECT_RT",
                         "event04_actual_RT" = "OUTCOME_RT",
                         "param_stimulus_type" = "STIM",
                         "param_cue_type" = "CUE")
@@ -244,6 +242,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
 ## TODO: model 03 3-2. individual differences
 
 ### DELETE AFTER SANDBOX
+
 ```{r eval=FALSE, include=FALSE}
 count_and_plot_na_ratings <- function(DF, TASKNAME, COLUMN) {
 
@@ -254,7 +253,7 @@ count_and_plot_na_ratings <- function(DF, TASKNAME, COLUMN) {
 
   DF_expect_NA <- aggregate(DF[[COLUMN]], list(DF$subject), function(x) sum(is.na(x)))
   TITLE <- paste(TASKNAME, " task - Expectation ratings", sep = "")
-  
+
   library(ggplot2)
   ggplot(DF_expect_NA, aes(x = Group.1, y = x)) +
     geom_bar(stat = "identity", position = "identity") +
@@ -271,10 +270,10 @@ count_and_plot_na_ratings <- function(DF, TASKNAME, COLUMN) {
 count_and_plot_na_ratings(df, TASKNAME="Pain", COLUMN="OUTCOME")
 ```
 
+## Cue X Stim Raincloud plots
 
-## Cue X Stim Raincloud plots 
-* IV: Cue x stim
-* DV: Outcome rating
+- IV: Cue x stim
+- DV: Outcome rating
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 combined_se_calc_cooksd <- data.frame()
@@ -285,7 +284,7 @@ analysis_dir <- file.path(
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
 
-# 1. data parameters ___________________________________________________________ 
+# 1. data parameters ___________________________________________________________
 dv_keyword <- "outcome"
 xlab <- ""
 ylab <- "judgment (degree)"
@@ -305,20 +304,20 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     )
 
     # ___ 1-1. rename column ___________________________________________________
-    column_mapping <- c("event04_actual_angle" = "OUTCOME", 
-                        "event02_expect_angle" = "EXPECT", 
+    column_mapping <- c("event04_actual_angle" = "OUTCOME",
+                        "event02_expect_angle" = "EXPECT",
                         "session_id" = "SES",
                         "param_run_num" = "RUN",
                         "param_task_name" = "RUNTYPE",
-                        "event02_expect_RT" = "EXPECT_RT", 
+                        "event02_expect_RT" = "EXPECT_RT",
                         "event04_actual_RT" = "OUTCOME_RT",
                         "param_stimulus_type" = "STIM",
                         "param_cue_type" = "CUE")
     data <- df_rename_columns(data, column_mapping)
     # 2. contrasts codes _______________________________________________________
-    data$stim[data$STIM == "low_stim"] <- -0.5 
-    data$stim[data$STIM == "med_stim"] <- 0 
-    data$stim[data$STIM == "high_stim"] <- 0.5 
+    data$stim[data$STIM == "low_stim"] <- -0.5
+    data$stim[data$STIM == "med_stim"] <- 0
+    data$stim[data$STIM == "high_stim"] <- 0.5
 
     data$stim_factor <- factor(data$STIM)
 
@@ -333,15 +332,15 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     data$STIM_quadratic[data$STIM == "high_stim"] <- -0.33
 
     # ___ 2-3. social cude contrast ____________________________________________
-    data$CUE_high_gt_low[data$CUE == "low_cue"] <- -0.5 
-    data$CUE_high_gt_low[data$CUE == "high_cue"] <- 0.5 
+    data$CUE_high_gt_low[data$CUE == "low_cue"] <- -0.5
+    data$CUE_high_gt_low[data$CUE == "high_cue"] <- 0.5
 
     stim_con1 <- "STIM_linear"
     stim_con2 <- "STIM_quadratic"
     iv1 <- "CUE_high_gt_low"
     dv <- "OUTCOME"
 
-    
+
     # 3. mixed models __________________________________________________________
     model_savefname <- file.path(
         analysis_dir,
@@ -359,8 +358,8 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
         (cooksd > (4 / as.numeric(length(unique(data$src_subject_id)))))
     ])
     data_screen <- data[-influential, ]
-    
-    
+
+
     # 4. prep for plots ________________________________________________________
     data_screen$cue_name[data_screen$CUE == "high_cue"] <- "high cue"
     data_screen$cue_name[data_screen$CUE == "low_cue"] <- "low cue"
@@ -468,13 +467,13 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
         fix_int_cue_stimlin = `CUE_high_gt_low:STIM_linear`, #`data[, iv]:data[, stim_con1]`,
         fix_int_cue_stimquad = `CUE_high_gt_low:STIM_quadratic` #`data[, iv]:data[, stim_con2]`
     )
-    
+
     # ___ 8-2. combine fixed and random effects ________________________________
     total <- cbind(wide_rand, new_wide_fix)
     total$task <- taskname
     new_total <- total %>% dplyr::select(task, everything())
     new_total <- dplyr::rename(total, subj = grp)
-    
+
     # ___ 8-3. save fixed/random effects _______________________________________
     coef_savefname <- file.path(analysis_dir,
                                 paste("randeffect_task-", taskname,
@@ -510,11 +509,11 @@ fullmodel <-
 
   )
 # TODO:: troubleshoot
-# m <- glmmTMB(OUTCOME ~ CUE_high_gt_low * STIM_linear + ( CUE_high_gt_low * STIM_linear  | subject),   
+# m <- glmmTMB(OUTCOME ~ CUE_high_gt_low * STIM_linear + ( CUE_high_gt_low * STIM_linear  | subject),
 #              data = df,
 #              control = glmmTMBControl(rank_check = "adjust"))
 #              #start = start_values,
-#    
+#
 # summary(m)
 
 sjPlot::tab_model(fullmodel,
@@ -562,10 +561,10 @@ plots
 ggsave(save_plotname, width = 10, height = 3)
 ```
 
-## Cue X Stim Lineplot 
+## Cue X Stim Lineplot
 
 Instead of the rain cloud plots, here, I plot the lines and confidence interval
-for each cue x stim combination. Plotted per task. 
+for each cue x stim combination. Plotted per task.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
@@ -780,10 +779,8 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
 }
 ```
 
-
 :::: {.refbox}
 
-* https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+- https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
 
 ::::
-

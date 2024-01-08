@@ -1,33 +1,38 @@
-# beh :: outcome_demean ~ cue * stim * expect * n-1outcome {#demean_per_sub_n1}
+# beh :: outcome_demean ~ cue \* stim \* expect \* n-1outcome {#demean-per-sub-n1}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
+
 Here, I model the outcome ratings as a function of cue, stimulus intensity, expectation ratings, N-1 outcome rating.
-* As opposed to notebook 14, I demean the ratings within participants
-* In other words, calculate the average within subjects and subtract ratings 
-* Main model: `lmer(outcome_rating ~ cue * stim * expectation rating + N-1 outcomerating)` 
-* Main question: What constitutes a reported outcome rating? 
-* Sub questions:
+
+- As opposed to notebook 14, I demean the ratings within participants
+- In other words, calculate the average within subjects and subtract ratings
+- Main model: `lmer(outcome_rating ~ cue * stim * expectation rating + N-1 outcomerating)`
+- Main question: What constitutes a reported outcome rating?
+- Sub questions:
+
   - If there is a linear relationship between expectation rating and outcome rating, does this differ as a function of cue?
-  - How does a N-1 outcome rating affect current expectation ratings? 
+  - How does a N-1 outcome rating affect current expectation ratings?
   - Later, is this effect different across tasks or are they similar?
 
-* IV: 
+- IV:
   stim (high / med / low)
   cue (high / low)
   expectation rating (continuous)
   N-1 outcome rating (continuous)
-* DV: outcome rating
+- DV: outcome rating
 
 ### TODOs {.unlisted .unnumbered}
->* Standardized coefficients
-* Slope difference? Intercept difference? ( cue and expectation rating)
-* Correct for the range (within participant)
-hypothesis:
+
+> - Standardized coefficients
+
+- Slope difference? Intercept difference? ( cue and expectation rating)
+- Correct for the range (within participant)
+  hypothesis:
+
 1. Larger expectation leads to prediction error
 2. Individual differences in ratings
 3. Outcome experience, based on behavioral experience
-What are the brain maps associated with each component.  
-
+   What are the brain maps associated with each component.
 
 ```{r load_libraries_15, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
 library(psych)
@@ -61,8 +66,8 @@ library(magrittr) # v. 2.0.1
 library(r2mlm)
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 
@@ -92,10 +97,10 @@ exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 # ------------------------------------------------------------------------------
 #                                 load data
 # ------------------------------------------------------------------------------
-data <- load_task_social_df(datadir, 
-                            taskname = taskname, 
-                            subject_varkey = subject_varkey, 
-                            iv = iv, 
+data <- load_task_social_df(datadir,
+                            taskname = taskname,
+                            subject_varkey = subject_varkey,
+                            iv = iv,
                             exclude = exclude)
 data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
 
@@ -108,7 +113,7 @@ summary(data[, c("event02_expect_RT", "event04_actual_RT", "event02_expect_angle
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # data(data, package = 'visibly')
 
-myvars <- names(data) %in% 
+myvars <- names(data) %in%
   c( "event02_expect_angle", "event02_expect_RT", "event04_actual_angle", "event04_actual_RT", "event01_cue_onset")
 newdata <- data[myvars]
 data_naomit <- na.omit(newdata)
@@ -118,10 +123,10 @@ corr_heat(cor_matrix)
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
-ISIvars <- names(data) %in% 
+ISIvars <- names(data) %in%
   c( "ISI01_duration", "ISI02_duration", "ISI03_duration")
 ISIdata <- data[ISIvars]
-# numdata  <- unlist(lapply(data, is.numeric), use.names = FALSE) 
+# numdata  <- unlist(lapply(data, is.numeric), use.names = FALSE)
 ISIdata_naomit <- na.omit(ISIdata)
 ISIcor_matrix = cor(ISIdata_naomit)
 corr_heat(ISIcor_matrix)
@@ -165,6 +170,7 @@ return(df)
 ```
 
 ### groupby subject and average
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
 
@@ -181,16 +187,16 @@ data_p2= maindata %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number())
-data_a3 <- data_p2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_a3 <- data_p2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num))
 
-data_a3lag <- 
+data_a3lag <-
     data_a3 %>%
     group_by(src_subject_id, session_id, param_run_num) %>%
     mutate(lag.demean_outcome = dplyr::lag(demean_outcome, n = 1, default = NA))
 data_a3lag <- data_a3lag %>%
-  mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) 
+  mutate(EXPECT_cmc = avg_expect - mean(avg_expect))
 data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.demean_outcome),]
 
 df <- data_a3lag_omit
@@ -198,11 +204,12 @@ pvc <- simple_contrasts_beh(df)
 ```
 
 ## linear model 0508
+
 ```{r}
 # model.factorize_demean = lmer(demean_outcome~ CUE_high_gt_low*stim_factor*demean_expect +EXPECT_cmc+ lag.demean_outcome+(1|src_subject_id), data = pvc)
 # summary(model.factorize_demean)
 
-model.factorize_demean = lmer(demean_outcome~ CUE_high_gt_low*stim_con_linear*demean_expect + 
+model.factorize_demean = lmer(demean_outcome~ CUE_high_gt_low*stim_con_linear*demean_expect +
                                 CUE_high_gt_low*stim_con_quad*demean_expect +
                                 EXPECT_cmc + (1|src_subject_id), data = pvc)
 summary(model.factorize_demean)
@@ -212,50 +219,51 @@ summary(model.factorize_demean)
 ```
 
 ## linear model
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 model.factorize_demean = lmer(demean_outcome~ CUE_high_gt_low*stim_factor*demean_expect +lag.demean_outcome+ (1|src_subject_id), data = pvc)
 summary(model.factorize_demean)
 ```
 
 ## Q. Are those overestimating for high cues also underestimators for low cues?
+
 y axis: outcome rating
 x axis: high cue
 
 distance from 1:1 line
 Using ODR, we can test whether different cues lead to different distances from the identity line
+
 ```{r echo=FALSE, warning=TRUE}
 
 pvc$odr_expectoutcome = abs(pvc$demean_expect + pvc$demean_outcome) / sqrt(2)
 
-cooksd <- lmer_onefactor_cooksd(pvc, 
-                               taskname = "pain", 
-                               iv = "cue_name", 
-                               dv = "odr_expectoutcome", 
+cooksd <- lmer_onefactor_cooksd(pvc,
+                               taskname = "pain",
+                               iv = "cue_name",
+                               dv = "odr_expectoutcome",
                                subject_keyword = "src_subject_id",
-                               dv_keyword = "distance from 1:1", 
-                               model_savefname = file.path(analysis_dir, "TEST.txt"), 
-                               print_lmer_output = TRUE) 
+                               dv_keyword = "distance from 1:1",
+                               model_savefname = file.path(analysis_dir, "TEST.txt"),
+                               print_lmer_output = TRUE)
 ```
 
-## TODO: Can you test if the slopes are the same? That might tell us something about whether, expectancies translate into outcomes with the same efficacy across all three tasks. 
-
-
+## TODO: Can you test if the slopes are the same? That might tell us something about whether, expectancies translate into outcomes with the same efficacy across all three tasks.
 
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 pvc$odr_expectoutcome = abs(pvc$demean_expect + pvc$demean_outcome) / sqrt(2)
-cooksd = lmer_onefactor_cooksd(pvc, 
-                               "pain", 
-                               iv = "cue_name", 
-                               dv= "odr_expectoutcome", 
+cooksd = lmer_onefactor_cooksd(pvc,
+                               "pain",
+                               iv = "cue_name",
+                               dv= "odr_expectoutcome",
                                subject_keyword = "src_subject_id",
-                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TEST.txt"), print_lmer_output = TRUE) 
+                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TEST.txt"), print_lmer_output = TRUE)
 
 subject_keyword <- "src_subject_id"
 model_iv1 <- "cue_name"
 dv <- "odr_expectoutcome"
 groupwise_measurevar <- "mean_per_sub"
 
-iv <- "cue_name"; iv_keyword <- "cue"; 
+iv <- "cue_name"; iv_keyword <- "cue";
 dv <- "odr_expectoutcome"; dv_keyword <- "odr_expectoutcome"
 xlab <- ""; ylim = c(-90,90); ylab <- "Distance from 1:1 baseline"
 subject <- "src_subject_id"
@@ -263,7 +271,7 @@ exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 subjectwise_mean <- "mean_per_sub"; group_mean <- "mean_per_sub_norm_mean"; se <- "se"
 subjectwise <- meanSummary(
         pvc,
-        c(subject_keyword, model_iv1), dv 
+        c(subject_keyword, model_iv1), dv
     )
 groupwise <- summarySEwithin(
         data = subjectwise,
@@ -287,10 +295,8 @@ p <- plot_halfrainclouds_onefactor(subjectwise, groupwise, iv,
 p
 ```
 
-
-
-
 ## pain run, collapsed across stimulus intensity
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 df_dropna <-
   pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
@@ -303,8 +309,8 @@ total <-
     subject = "src_subject_id",
     xmin=-50, xmax=50, ymin=-50, ymax=50,
     xlab = "expectation rating",
-    ylab = "outcome rating", 
-    ggtitle = "all stimulus intensity", 
+    ylab = "outcome rating",
+    ggtitle = "all stimulus intensity",
     color_scheme = c("high_cue" ="#941100","low_cue" =  "#5D5C5C"),
     alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
   )
@@ -354,6 +360,7 @@ plots
 ```
 
 ## vicarious
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 main_dir = dirname(dirname(getwd()))
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
@@ -385,16 +392,16 @@ data_p2= maindata %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number())
-data_a3 <- data_p2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_a3 <- data_p2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num))
 
-data_a3lag <- 
+data_a3lag <-
     data_a3 %>%
     group_by(src_subject_id, session_id, param_run_num) %>%
     mutate(lag.demean_outcome = dplyr::lag(demean_outcome, n = 1, default = NA))
 data_a3lag <- data_a3lag %>%
-  mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) 
+  mutate(EXPECT_cmc = avg_expect - mean(avg_expect))
 data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.demean_outcome),]
 
 df <- data_a3lag_omit
@@ -402,6 +409,7 @@ pvc <- simple_contrasts_beh(df)
 
 
 ```
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 df_dropna <-
   pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
@@ -414,15 +422,16 @@ total <-
     subject = "src_subject_id",
     xmin=-50, xmax=50, ymin=-50, ymax=50,
     xlab = "expectation rating",
-    ylab = "outcome rating", 
+    ylab = "outcome rating",
     ggtitle = paste(taskname, "all stimulus intensity"),
     color_scheme = c("high_cue" ="#009411","low_cue" =  "#5D5C5C"),
     alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE, size = 1
   )
 total
 ```
+
 ```{r}
-model.factorize_demean = lmer(demean_outcome~ CUE_high_gt_low*stim_con_linear*demean_expect + 
+model.factorize_demean = lmer(demean_outcome~ CUE_high_gt_low*stim_con_linear*demean_expect +
                                 CUE_high_gt_low*stim_con_quad*demean_expect +
                                 EXPECT_cmc + (1|src_subject_id), data = pvc)
 summary(model.factorize_demean)
@@ -469,11 +478,12 @@ vic_plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend
 plots_title <- annotate_figure(vic_plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
 vic_plots
 ```
+
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 pvc$odr_expectoutcome = abs(pvc$demean_expect + pvc$demean_outcome) / sqrt(2)
 
 cooksd <- lmer_onefactor_cooksd(pvc, "pain", iv = "cue_name", dv= "odr_expectoutcome", subject_keyword = "src_subject_id",
-                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TEST.txt"), print_lmer_output = TRUE) 
+                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TEST.txt"), print_lmer_output = TRUE)
 
 subject_keyword = "src_subject_id"
 model_iv1 = "cue_name"
@@ -487,7 +497,7 @@ exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 subjectwise_mean <- "mean_per_sub"; group_mean <- "mean_per_sub_norm_mean"; se <- "se"
 subjectwise <- meanSummary(
         pvc,
-        c(subject_keyword, model_iv1), dv 
+        c(subject_keyword, model_iv1), dv
     )
 groupwise <- summarySEwithin(
         data = subjectwise,
@@ -513,6 +523,7 @@ p
 ```
 
 ## cognitive
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 main_dir = dirname(dirname(getwd()))
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
@@ -544,29 +555,29 @@ data_p2= maindata %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number())
-data_a3 <- data_p2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_a3 <- data_p2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num))
 
-data_a3lag <- 
+data_a3lag <-
     data_a3 %>%
     group_by(src_subject_id, session_id, param_run_num) %>%
     mutate(lag.demean_outcome = dplyr::lag(demean_outcome, n = 1, default = NA))
 data_a3lag <- data_a3lag %>%
-  mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) 
+  mutate(EXPECT_cmc = avg_expect - mean(avg_expect))
 data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.demean_outcome),]
 
 df <- data_a3lag_omit
 pvc <- simple_contrasts_beh(df)
 ```
 
-
 ## linear model 0508
+
 ```{r}
 # model.factorize_demean = lmer(demean_outcome~ CUE_high_gt_low*stim_factor*demean_expect +EXPECT_cmc+ lag.demean_outcome+(1|src_subject_id), data = pvc)
 # summary(model.factorize_demean)
 
-model.factorize_demean = lmer(demean_outcome~ CUE_high_gt_low*stim_con_linear*demean_expect + 
+model.factorize_demean = lmer(demean_outcome~ CUE_high_gt_low*stim_con_linear*demean_expect +
                                 CUE_high_gt_low*stim_con_quad*demean_expect +
                                 EXPECT_cmc + (1|src_subject_id), data = pvc)
 summary(model.factorize_demean)
@@ -588,7 +599,7 @@ total <-
     subject = "src_subject_id",
     xmin=-50, xmax=50, ymin=-50, ymax=50,
     xlab = "expectation rating",
-    ylab = "outcome rating", 
+    ylab = "outcome rating",
     ggtitle = "all stimulus intensity",
     color_scheme = c("high_cue" ="#110094","low_cue" =  "#5D5C5C"),
     alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line = TRUE
@@ -638,11 +649,10 @@ plots_title <- annotate_figure(vic_plots, top = text_grob("individual difference
 vic_plots
 ```
 
-
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 pvc$odr_expectoutcome = abs(pvc$demean_expect + pvc$demean_outcome) / sqrt(2)
 cooksd = lmer_onefactor_cooksd(pvc, "pain", iv = "cue_name", dv= "odr_expectoutcome", subject_keyword = "src_subject_id",
-                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TESTcog.txt"), print_lmer_output = TRUE) 
+                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TESTcog.txt"), print_lmer_output = TRUE)
 
 subject_keyword = "src_subject_id"
 model_iv1 = "cue_name"
@@ -656,7 +666,7 @@ exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 subjectwise_mean <- "mean_per_sub"; group_mean <- "mean_per_sub_norm_mean"; se <- "se"
 subjectwise <- meanSummary(
         pvc,
-        c(subject_keyword, model_iv1), dv 
+        c(subject_keyword, model_iv1), dv
     )
 groupwise <- summarySEwithin(
         data = subjectwise,
@@ -680,27 +690,32 @@ p <- plot_halfrainclouds_onefactor(subjectwise, groupwise, iv,
                                       w = 10, h = 10, dv_keyword, color =color_scheme, save_fname)
 p
 ```
+
 ```{r}
 # library(plotly)
 # plot_ly(x=subjectwise_naomit_2dv$param_cue_type, y=subjectwise_naomit_2dv$DV1_mean_per_sub, z=subjectwise_naomit_2dv$DV2_mean_per_sub, type="scatter3d", mode="markers", color=subjectwise_naomit_2dv$param_cue_type)
 ```
 
-## across tasks (PVC), is the  slope for (highvslow cue) the same?Tor question
-* Adding "participant" as random effects leads to a singular boundary issue. The reason is because there is no random effects variance across participants. 
-1) If I add task as a random effect, in other words, allowing for differences across tasks, I get the following results: 
-* expectancy-outcome relationship differs across tasks, taskname_lin:demean_expect, t(14130) = 4.317, p < .001
-* expectancy-outcome relationship differs across cue and tasks, "taskname_lin:CUE_high_gt_low:demean_expect", t(14130) = 5.758, p < .001
-taskname_lin:CUE_high_gt_low                -3.790e+00  1.448e+00  1.413e+04  -2.618  0.00886 ** 
-++ taskname_lin:demean_expect           9.854e-02  2.283e-02  1.413e+04   4.317 1.59e-05 ***
-CUE_high_gt_low:demean_expect               -9.077e-02  1.987e-02  1.413e+04  -4.569 4.95e-06 ***
-CUE_high_gt_low:taskname_quad                5.352e+00  1.334e+00  1.413e+04   4.012 6.04e-05 ***
-demean_expect:taskname_quad         -1.596e-01  2.253e-02  1.413e+04  -7.084 1.47e-12 ***
-taskname_lin:CUE_high_gt_low:demean_expect   2.629e-01  4.565e-02  1.413e+04   5.758 8.67e-09 ***
-CUE_high_gt_low:demean_expect:taskname_quad -1.021e-01  4.505e-02  1.413e+04  -2.266  0.02348 *  
+## across tasks (PVC), is the slope for (highvslow cue) the same?Tor question
 
-2) If I add sub as random effect and ignore singular. Plus, if I remove the cue contrast...
-* expectancy-outcome relationship differs across tasks, factor(param_task_name):demean_expect, F(2, 14136) = 54.765, p < .001
- 
+- Adding "participant" as random effects leads to a singular boundary issue. The reason is because there is no random effects variance across participants.
+
+1. If I add task as a random effect, in other words, allowing for differences across tasks, I get the following results:
+
+- expectancy-outcome relationship differs across tasks, taskname_lin:demean_expect, t(14130) = 4.317, p < .001
+- expectancy-outcome relationship differs across cue and tasks, "taskname*lin:CUE_high_gt_low:demean_expect", t(14130) = 5.758, p < .001
+  taskname_lin:CUE_high_gt_low -3.790e+00 1.448e+00 1.413e+04 -2.618 0.00886 **
+  ++ taskname_lin:demean_expect 9.854e-02 2.283e-02 1.413e+04 4.317 1.59e-05 \***
+  CUE_high_gt_low:demean_expect -9.077e-02 1.987e-02 1.413e+04 -4.569 4.95e-06 \*\**
+  CUE*high_gt_low:taskname_quad 5.352e+00 1.334e+00 1.413e+04 4.012 6.04e-05 ***
+  demean_expect:taskname_quad -1.596e-01 2.253e-02 1.413e+04 -7.084 1.47e-12 **_
+  taskname_lin:CUE_high_gt_low:demean_expect 2.629e-01 4.565e-02 1.413e+04 5.758 8.67e-09 _\*\*
+  CUE_high_gt_low:demean_expect:taskname_quad -1.021e-01 4.505e-02 1.413e+04 -2.266 0.02348 \*
+
+2. If I add sub as random effect and ignore singular. Plus, if I remove the cue contrast...
+
+- expectancy-outcome relationship differs across tasks, factor(param_task_name):demean_expect, F(2, 14136) = 54.765, p < .001
+
 ```{r}
 p <- load_task_social_df(datadir, taskname = 'pain', subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 v <- load_task_social_df(datadir, taskname = 'vicarious', subject_varkey = subject_varkey, iv = iv, exclude = exclude)
@@ -710,6 +725,7 @@ v_sub <- v[, c("param_task_name", "param_cue_type", "src_subject_id","session_id
 c_sub <- c[, c("param_task_name", "param_cue_type", "src_subject_id", "session_id", "param_run_num","param_stimulus_type", "event04_actual_angle", "event02_expect_angle")]
 pvc_sub <- do.call("rbind", list(p_sub, v_sub, c_sub))
 ```
+
 ```{r}
 maindata <- pvc_sub %>%
 group_by(src_subject_id) %>%
@@ -724,11 +740,11 @@ data_p2= maindata %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number())
-data_a3 <- data_p2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_a3 <- data_p2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num))
 
-data_a3lag <- 
+data_a3lag <-
     data_a3 %>%
     group_by(src_subject_id, session_id, param_run_num) %>%
     mutate(lag.demean_outcome = dplyr::lag(demean_outcome, n = 1, default = NA))
@@ -776,8 +792,9 @@ library(emmeans)
 ```
 
 ## Alireza congruent incongruent (PE)
-* categorize based on congruent, incongruent
-* split dataframe
+
+- categorize based on congruent, incongruent
+- split dataframe
 
 ```{r}
 # %% -------------------------------------------------------------------------
@@ -816,16 +833,16 @@ data_p2= maindata %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number())
-data_a3 <- data_p2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_a3 <- data_p2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num))
 
-data_a3lag <- 
+data_a3lag <-
     data_a3 %>%
     group_by(src_subject_id, session_id, param_run_num) %>%
     mutate(lag.demean_outcome = dplyr::lag(demean_outcome, n = 1, default = NA))
 data_a3lag <- data_a3lag %>%
-  mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) 
+  mutate(EXPECT_cmc = avg_expect - mean(avg_expect))
 data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.demean_outcome),]
 
 df <- data_a3lag_omit
@@ -833,6 +850,7 @@ pvc <- simple_contrasts_beh(df)
 ```
 
 ### archive this cell
+
 ```{r}
 
 # previous_congruency <- is_congruent(param_cue_type[previous_index], param_stimulus_type[previous_index])
@@ -856,7 +874,6 @@ is_congruent <- function(cue, stim) {
 }
 ```
 
-
 ```{r}
 
 pvc.pain <- pvc[pvc$param_task_name == "pain",]
@@ -872,7 +889,7 @@ pvc.pain$congruency[(pvc.pain$param_cue_type == "high_cue") & (pvc.pain$pe < 0)]
 
 library(dplyr)
 
-# definition: current cue level (high, low). 
+# definition: current cue level (high, low).
 # Find N-1 trial where cue level matches current trial
 # populate that as "congruency_vector"
 pvc.pain <- pvc.pain %>%
@@ -881,33 +898,31 @@ pvc.pain <- pvc.pain %>%
   mutate(
     congruency_status = {
       congruency_vector <- vector("character", n())
-      
+
       for (i in 1:n()) {
         # get the current cue. find the trial indices with the same cue level as current trial `matching_indices`
         current_cue <- param_cue_type[i]
         # identifying all existing trials that matches the current cue level
         matching_indices <- which(param_cue_type[1:(i - 1)] == current_cue)
         if (length(matching_indices) > 0) {
-          # from matching_indices, grab the largest number. 
+          # from matching_indices, grab the largest number.
           # this maximum number would be the most recent N-1 cue trial, based on matching_indices
           previous_index <- max(matching_indices)
           # populate congruency_vector with previous N-1 trial's congruency value. (NOTE: must match current cue level)
-          congruency_vector[i] <- congruency[previous_index] 
+          congruency_vector[i] <- congruency[previous_index]
         } else {
           congruency_vector[i] <- NA
         }
       }
       congruency_vector
     }
-  ) 
+  )
   # ungroup() %>%
   # mutate(
   #   congruency_status = ifelse(is.na(congruency_status), pvc$congruency, congruency_status)
   # )
 
 ```
-
-
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 con.pvc <- pvc.pain[pvc.pain$congruency_status == "congruent", ]
@@ -953,7 +968,6 @@ plots_title <- annotate_figure(plots, top = text_grob("individual differences\n 
 plots
 ```
 
-
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 incon.pvc <- pvc.pain[pvc.pain$congruency_status == "incongruent", ]
 
@@ -998,13 +1012,13 @@ plots_title <- annotate_figure(plots, top = text_grob("individual differences\n 
 plots
 ```
 
-
-
 ## Alireza congruent incongruent (incorrect)
-* categorize based on congruent, incongruent
-* split dataframe
+
+- categorize based on congruent, incongruent
+- split dataframe
 
 ### archive this cell
+
 ```{r}
 
 # previous_congruency <- is_congruent(param_cue_type[previous_index], param_stimulus_type[previous_index])
@@ -1028,7 +1042,6 @@ is_congruent <- function(cue, stim) {
 }
 ```
 
-
 ```{r}
 
 pvc <- pvc[pvc$param_task_name == "pain",]
@@ -1046,7 +1059,7 @@ pvc.pain$congruency2[(pvc.pain$param_cue_type == "high_cue") & (pvc.pain$param_s
 
 library(dplyr)
 
-# definition: current cue level (high, low). 
+# definition: current cue level (high, low).
 # Find N-1 trial where cue level matches current trial
 # populate that as "congruency_vector"
 pvc.pain <- pvc.pain %>%
@@ -1055,33 +1068,31 @@ pvc.pain <- pvc.pain %>%
   mutate(
     congruency_status2 = {
       congruency_vector <- vector("character", n())
-      
+
       for (i in 1:n()) {
         # get the current cue. find the trial indices with the same cue level as current trial `matching_indices`
         current_cue <- param_cue_type[i]
         # identifying all existing trials that matches the current cue level
         matching_indices <- which(param_cue_type[1:(i - 1)] == current_cue)
         if (length(matching_indices) > 0) {
-          # from matching_indices, grab the largest number. 
+          # from matching_indices, grab the largest number.
           # this maximum number would be the most recent N-1 cue trial, based on matching_indices
           previous_index <- max(matching_indices)
           # populate congruency_vector with previous N-1 trial's congruency value. (NOTE: must match current cue level)
-          congruency_vector[i] <- congruency2[previous_index] 
+          congruency_vector[i] <- congruency2[previous_index]
         } else {
           congruency_vector[i] <- NA
         }
       }
       congruency_vector
     }
-  ) 
+  )
   # ungroup() %>%
   # mutate(
   #   congruency_status2 = ifelse(is.na(congruency_status2), pvc$congruency2, congruency_status2)
   # )
 
 ```
-
-
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 con.pvc <- pvc.pain[pvc.pain$congruency_status2 == "congruent", ]
@@ -1126,7 +1137,6 @@ plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = F
 plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
 plots
 ```
-
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 incon.pvc <- pvc.pain[pvc.pain$congruency_status2 == "incongruent", ]
