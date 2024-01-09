@@ -97,7 +97,7 @@ exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 # ------------------------------------------------------------------------------
 #                                 load data
 # ------------------------------------------------------------------------------
-data <- load_task_social_df(datadir,
+data <- df_load_beh(datadir,
                             taskname = taskname,
                             subject_varkey = subject_varkey,
                             iv = iv,
@@ -372,7 +372,7 @@ ylab <- "ratings (degree)"
 subject <- "subject"
 data = data.frame()
 exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
-data <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+data <- df_load_beh(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
 
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
@@ -535,7 +535,7 @@ ylab <- "ratings (degree)"
 subject <- "subject"
 exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 data = data.frame()
-data <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+data <- df_load_beh(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
 
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
@@ -717,9 +717,9 @@ p
 - expectancy-outcome relationship differs across tasks, factor(param_task_name):demean_expect, F(2, 14136) = 54.765, p < .001
 
 ```{r}
-p <- load_task_social_df(datadir, taskname = 'pain', subject_varkey = subject_varkey, iv = iv, exclude = exclude)
-v <- load_task_social_df(datadir, taskname = 'vicarious', subject_varkey = subject_varkey, iv = iv, exclude = exclude)
-c <- load_task_social_df(datadir, taskname = 'cognitive', subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+p <- df_load_beh(datadir, taskname = 'pain', subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+v <- df_load_beh(datadir, taskname = 'vicarious', subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+c <- df_load_beh(datadir, taskname = 'cognitive', subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 p_sub <- p[, c("param_task_name", "param_cue_type", "src_subject_id","session_id", "param_run_num", "param_stimulus_type", "event04_actual_angle", "event02_expect_angle")]
 v_sub <- v[, c("param_task_name", "param_cue_type", "src_subject_id","session_id", "param_run_num", "param_stimulus_type", "event04_actual_angle", "event02_expect_angle")]
 c_sub <- c[, c("param_task_name", "param_cue_type", "src_subject_id", "session_id", "param_run_num","param_stimulus_type", "event04_actual_angle", "event02_expect_angle")]
@@ -811,7 +811,7 @@ ylab <- "ratings (degree)"
 subject <- "subject"
 exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 data = data.frame()
-data <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+data <- df_load_beh(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
 
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)

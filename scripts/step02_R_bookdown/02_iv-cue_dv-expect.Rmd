@@ -83,7 +83,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     print_lmer_output = TRUE
     exclude <- "sub-0001|sub-0999"
     # load data, run model, and exclude outliers
-    data <- load_task_social_df(datadir, taskname, subject_varkey, iv, dv, exclude)
+    data <- df_load_beh(datadir, taskname, subject_varkey, iv, dv, exclude)
 
     data$subject = factor(data$src_subject_id)
     data$stim_name[data$param_stimulus_type == "high_stim"] <- "high"
@@ -130,7 +130,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     iv = "param_stimulus_type"
     print_lmer_output = TRUE
     # load data, run model, and exclude outliers
-    data <- load_task_social_df(datadir, taskname, subject_varkey, iv, dv, exclude)
+    data <- df_load_beh(datadir, taskname, subject_varkey, iv, dv, exclude)
 
 
 
@@ -270,7 +270,7 @@ ggplot_onefactor_pertask <- function(taskname, subject_varkey, subject, exclude,
         analysis_dir, paste("lmer_task-", taskname,"_iv-", iv_keyword, "_dv-rating-", dv_keyword,"_", as.character(Sys.Date()), ".txt",
             sep = ""))
     ## load data, run model, and exclude outliers
-    data <- load_task_social_df(datadir, taskname, subject_varkey, iv, dv, exclude)
+    data <- df_load_beh(datadir, taskname, subject_varkey, iv, dv, exclude)
     data$subject = factor(data$src_subject_id)
     data = data[!is.na(data[, dv] ),] # removing NA values
     #print(length(unique(data$subject)))

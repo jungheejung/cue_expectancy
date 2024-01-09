@@ -94,7 +94,7 @@ subject <- "subject"
 exclude <- "sub-0999|sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0007|sub-0008|sub-0009|sub-0010|sub-0011"
 
 # load data _____________________________________
-data <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+data <- df_load_beh(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
 # data['event03_RT'], data.event03_RT - pandas
 analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model11_iv-cue-trial_dv-expect-actualN1", as.character(Sys.Date()))
@@ -164,7 +164,7 @@ bbmle::AICtab(model.lagoutcome, nm1b)
 
 
 ```{r include=FALSE}
-meanSummary_2dv <- function(DATA, GROUP, DV1, DV2) {
+meanSummary_2continuous <- function(DATA, GROUP, DV1, DV2) {
     z <- ddply(DATA, GROUP, .fun = function(xx) {
         c(
             DV1_mean_per_sub = mean(xx[, DV1], na.rm = TRUE),
@@ -178,7 +178,7 @@ meanSummary_2dv <- function(DATA, GROUP, DV1, DV2) {
 ```
 
 ```{r include=FALSE}
-subjectwise_2dv = meanSummary_2dv(data_a3lag_omit,
+subjectwise_2dv = meanSummary_2continuous(data_a3lag_omit,
         c("src_subject_id", "trial_index"), 
         "lag.04outcomeangle", "event02_expect_angle")
 
@@ -285,7 +285,7 @@ sjPlot::tab_model(model.lag_cue)
 ```
 
 ```{r include=FALSE}
-meanSummary_2dv <- function(DATA, GROUP, DV1, DV2) {
+meanSummary_2continuous <- function(DATA, GROUP, DV1, DV2) {
     z <- ddply(DATA, GROUP, .fun = function(xx) {
         c(
             DV1_mean_per_sub = mean(xx[, DV1], na.rm = TRUE),
@@ -299,7 +299,7 @@ meanSummary_2dv <- function(DATA, GROUP, DV1, DV2) {
 ```
 
 ```{r include=FALSE}
-subjectwise_cuetype = meanSummary_2dv(data_a3lag_omit,
+subjectwise_cuetype = meanSummary_2continuous(data_a3lag_omit,
         c("src_subject_id", "trial_index", "param_cue_type"), 
         "lag.04outcomeangle", "event02_expect_angle")
 

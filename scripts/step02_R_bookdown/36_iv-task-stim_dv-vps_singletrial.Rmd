@@ -351,9 +351,9 @@ iv_keyword <- "stim";
 dv <- "event04_actual_angle"; dv_keyword <- "outcome"
 exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 
-p.df <- load_task_social_df(datadir, taskname = "pain", subject_varkey, iv, dv, exclude)
-v.df <- load_task_social_df(datadir, taskname = "vicarious", subject_varkey, iv, dv, exclude)
-c.df <- load_task_social_df(datadir, taskname = "cognitive", subject_varkey, iv, dv, exclude)
+p.df <- df_load_beh(datadir, taskname = "pain", subject_varkey, iv, dv, exclude)
+v.df <- df_load_beh(datadir, taskname = "vicarious", subject_varkey, iv, dv, exclude)
+c.df <- df_load_beh(datadir, taskname = "cognitive", subject_varkey, iv, dv, exclude)
 
 p.df2= p.df %>%
   arrange(src_subject_id ) %>%
@@ -1095,7 +1095,7 @@ ggtitle = "All stimulus intensity"
 alpha = 0.8; lm_method = "lm"
 p.sig <- df_merge[df_merge$runtype == "runtype-vicarious",]
 df_dropna <- p.sig[!is.na(p.sig[, iv1]) & !is.na(p.sig[, iv2]), ]
-subjectwise_2dv <- meanSummary_2dv(
+subjectwise_2dv <- meanSummary_2continuous(
         df_dropna,
         c(subject),
         iv1, iv2

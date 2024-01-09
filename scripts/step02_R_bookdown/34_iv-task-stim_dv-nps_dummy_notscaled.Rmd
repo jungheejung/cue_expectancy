@@ -27,7 +27,7 @@ sapply(file.sources,source,.GlobalEnv)
 
 
 ```{r function::simple_contrasts_nonscaled_34, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
-NPS_simple_contrasts <- function(df) {
+simple_contrast_NPS <- function(df) {
 # [ CONTRASTS ]  ________________________________________________________________________________ # nolint
 # contrast code ________________________________________
 df$stim_factor <- factor(df$stim)
@@ -118,12 +118,12 @@ pain_keys <- list(contrast_name = "P_simple", taskname = "pain",con_list = c(32,
 vicarious_keys <- list(contrast_name = "V_simple", taskname = "vicarious",con_list = c(38,39,40,41,42,43), npsdir = npsdir)
 cog_keys <- list(contrast_name = "C_simple", taskname = "cognitive", con_list = c(44,45,46,47,48,49), npsdir = npsdir)
 
-p = NPS_load_df(pain_keys)
-v = NPS_load_df(vicarious_keys)
-c = NPS_load_df(cog_keys)
+p = df_load_NPS(pain_keys)
+v = df_load_NPS(vicarious_keys)
+c = df_load_NPS(cog_keys)
 pvc <- reshape::merge_recurse(list(p,v,c))
 
-pvc <- NPS_simple_contrasts(pvc)
+pvc <- simple_contrast_NPS(pvc)
 
 subject_varkey <- "subject"
 iv1 <- "task"
@@ -167,7 +167,7 @@ plot_keys <- list(sub_mean = "mean_per_sub",group_mean = "mean_per_sub_norm_mean
 ```
 
 ```{r include=FALSE}
-summary <- NPS_summary_for_plots(df = pvc, 
+summary <- compute_summary_NPS(df = pvc, 
                              
                              groupwise_measurevar = "mean_per_sub",
                              subject_keyword = "subject",
