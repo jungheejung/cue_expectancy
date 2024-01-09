@@ -1,0 +1,160 @@
+# beh :: within / between subject effect {#scaling}
+
+## What is the purpose of this notebook? {.unlisted .unnumbered}
+
+cue effect with raw score, conflated with scale artifact and also common domain general expectation mechanisms.
+Q. what about task-specific components?
+
+Here, we want to examine the between and within subject effects of subjective ratings. 
+There are scale usage differences across individuals. It's evident in our behavioral data. 
+These scale usage differences do not really reflecting the underlying experience, but compresses the scale.
+This is one of the reasons why including the between subject term improves the performance of the mediation model. 
+It's also in line with Enders and Tofighi's illustration of centering in multilevel models. 
+
+The logic is that there are multiple components that go into subjective ratings
+the way that an individual uses a scale ("between-subject effect")
+and the fact that the rating does reflect the subjective experience ("within-subject effect")
+We want to rid of the between subject effect and focus on the subjective experience. 
+
+One way to resolve this is by z-scoring.
+
+Hypothesis: After z-scoring, if we see a high correlation across tasks in terms of their cue effects, then we can safely conclude that the way that people think of expectations are highly domain general
+
+Some thoughts:
+* if scaling artifact is a big driving factor, that pain to brain is going to lead to a weak signal.
+* within person pain effects. only weakly tracks individual differences.
+
+
+* Main model: `lmer( OUTCOME ~ EXPECT)` vs. `lmer( OUTCOME ~ zscoreEXPECT)`
+* Main question: {{ INSERT YOUR QUESTION }}? 
+* {{ HYPOTHESES/EXPECTED OUTCOME }}
+* 
+* IV: 
+  - {{ FACTOR NAME }} ( {{ LEVELS}} )
+* DV: {{ DV }}
+
+
+::::{.refbox}
+* [Enders, C. K., & Tofighi, D. (2007). Centering predictor variables in cross-sectional multilevel models: A new look at an old issue. Psychological Methods, 12(2), 121–138.](https://doi.org/10.1037/1082-989X.12.2.121)
+::::
+
+
+### TODO: 
+```
+zscore the ratings (ignore sessions)
+predict outcome ratings
+model compare zscore vs just raw score
+include between subject level scores as covariates. AS ALWAYS
+```
+
+
+### load libraries {.unlisted .unnumbered}
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(car)
+library(psych)
+library(lme4)
+library(plyr); library(dplyr)
+library(cueR)
+library(ggplot2)
+```
+
+```{r}
+# parameters ___________________________________________________________________
+main_dir <- dirname(dirname(getwd()))
+datadir <- file.path(main_dir, 'data', 'beh', 'beh02_preproc')
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model09_scaling", as.character(Sys.Date()))
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+subject_varkey <- "src_subject_id"
+iv <- "param_cue_type"
+dv <- "event03_RT"
+dv_keyword <- "RT"
+xlab <- ""
+taskname <- "pain"
+ylab <- "ratings (degree)"
+subject <- "subject"
+exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
+# 1. load data _________________________________________________________________
+data <- cueR::df_load_beh(datadir,
+                            taskname = taskname,
+                            subject_varkey = subject_varkey,
+                            iv = iv,
+                            exclude = exclude)
+# processed_data <- cueR::compute_enderstofighi(data, sub="src_subject_id",
+#                                     outcome = "event04_actual_angle",expect= "event02_expect_angle",
+#                                     ses = "session_id", run = "param_run_num")
+```
+
+```{r}
+  maindata <- data %>%
+    group_by(!!sym("src_subject_id")) %>%
+    mutate(OUTCOME = as.numeric(!!sym("event04_actual_angle"))) %>%
+    mutate(EXPECT = as.numeric(!!sym("event02_expect_angle"))) %>%
+    mutate(OUTCOME_avg = mean(OUTCOME, na.rm = TRUE)) %>%
+    mutate(OUTCOME_demean = OUTCOME - OUTCOME_avg) %>%
+    mutate(EXPECT_avg = mean(EXPECT, na.rm = TRUE)) %>%
+    mutate(EXPECT_demean = EXPECT - EXPECT_avg)
+  
+  data_p2 <- maindata %>%
+    arrange(!!sym("src_subject_id")) %>%
+    group_by(!!sym("src_subject_id")) %>%
+    mutate(trial_index = row_number())
+  
+  data_a3 <- data_p2 %>%
+    group_by(!!sym("src_subject_id"), !!sym("session_id"), !!sym("param_run_num")) %>%
+    mutate(trial_index = row_number(!!sym("param_run_num")))
+  
+  data_a3lag <- data_a3 %>%
+    group_by(!!sym("src_subject_id"), !!sym("session_id"), !!sym("param_run_num")) %>%
+    mutate(lag.OUTCOME_demean = dplyr::lag(OUTCOME_demean, n = 1, default = NA))
+  
+  data_a3lag <- data_a3lag %>%
+    mutate(EXPECT_cmc = EXPECT_avg - mean(EXPECT_avg))
+  
+  data_centered <- data_a3lag[complete.cases(data_a3lag$lag.OUTCOME_demean),]
+  
+```
+
+
+```{r}
+data_centered
+```
+
+
+### display distribution of data
+Let's look at the distribution of the data. X axis: Y axis: 
+```{r paged.print=TRUE, fig.width=10, fig.height=5}
+# remove NA values first
+data_centered_NA <- data_centered %>% filter(!is.na(OUTCOME))  # Remove NA values
+
+g<- ggplot(data_centered_NA, aes(x = subject, y = OUTCOME, fill = subject)) +
+  geom_boxplot() +  
+  theme_classic() +
+  labs(x = "Subject", y = "Outcome Rating") +
+  theme(legend.position = "none",
+        aspect.ratio = 0.5) 
+
+g <- ggplot_largetext(g)
+g
+
+```
+> Summary: 
+
+### plot {.unlisted .unnumbered}
+We'll plot Y as a function of A and B
+X axis: 
+Y axis:
+Each data point indicates ... 
+```{r fig.height=10, fig.width=10}
+
+```
+> Conclusion:
+
+
+:::: {.infobox}
+Include the actual content here. here are my thoughts
+::::
+
+:::: {.refbox}
+Include the actual content here. here are my thoughts
+::::
+
