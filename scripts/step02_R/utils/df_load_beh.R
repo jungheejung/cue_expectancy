@@ -27,14 +27,14 @@
 #' # df <- df_load_beh(datadir = "path/to/data", taskname = "pain",
 #' #                  subject_varkey = "subjectID", iv = "independentVar", 
 #' #                  dv = "dependentVar", exclude = c("criteria1", "criteria2"))
-#'
+#' @importFrom stringr str_detect
 #' @export
 df_load_beh <- function(datadir, taskname, subject_varkey, iv, dv, exclude) {
   # 1. load data ______________________________________________________________
   filename <- paste("*_task-social_*-", taskname, "_beh.csv", sep = "")
   common_path <- Sys.glob(file.path(datadir, "sub-*", "ses-*", filename
   ))
-  filter_path <- common_path[!str_detect(common_path, pattern = exclude)]
+  filter_path <- common_path[!stringr::str_detect(common_path, pattern = exclude)]
 
   df <- do.call("rbind", lapply(filter_path, FUN = function(files) {
     as.data.frame(read.csv(files))
