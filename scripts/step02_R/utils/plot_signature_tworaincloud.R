@@ -1,3 +1,33 @@
+#' Plot Signature with Two-Factor Raincloud Plots
+#'
+#' This function creates raincloud plots for a specified signature key with data
+#' grouped by two factors. It first computes summary statistics and then uses these
+#' to generate the plots.
+#'
+#' @param signature_key (Optional) A key or identifier for the signature being plotted.
+#' @param plot_keys A list of keys specifying the plotting parameters and variables to be used.
+#'   This includes variables for mean per subject, subject identification, independent
+#'   variables, dependent variable, plot titles, labels, and other plotting parameters.
+#'   
+#'   Important keys include:
+#'   - `sub_mean`: Mean value per subject.
+#'   - `iv1`: First independent variable.
+#'   - `iv2`: Second independent variable.
+#'   - `dv`: Dependent variable.
+#'   - `ggtitle`: Title for the plot.
+#'   (additional keys can be found in the documentation for `plot_halfrainclouds_twofactor`)
+#'   
+#' @param df A dataframe containing the data to be plotted.
+#'
+#' @return A ggplot object representing the two-factor raincloud plot.
+#'
+#' @examples
+#' # Assuming appropriate data and plot_keys
+#' # p <- plot_signature_tworaincloud(signature_key = "signature1",
+#' #                                  plot_keys = list_of_keys, df = mydata)
+#'
+#' @export
+
 plot_signature_tworaincloud <- function(signature_key = NULL, plot_keys = NULL, df = NULL) {
     # feed in signature keyword # signature_key = "NPSpos"
 
@@ -10,7 +40,7 @@ plot_signature_tworaincloud <- function(signature_key = NULL, plot_keys = NULL, 
     # summry statistics
     groupwise <- data.frame()
     subjectwise <- data.frame()
-    summary <- summaryplotPVC(
+    summary <- compute_summary_twofactor(
         df,
         groupwise_measurevar = plot_keys$sub_mean, # "mean_per_sub",
         subject_keyword = plot_keys$sub, # "sub",

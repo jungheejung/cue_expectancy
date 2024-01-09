@@ -1,14 +1,16 @@
 simple_contrast_beh <- function(df) {
 
-    df$subject <- NA
-    df$stim_factor <- NA
-    df$STIM_con_linear <- NA
-    df$STIM_con_quad <- NA
-    df$CUE_high_gt_low <- NA
-    df$stim_ordered <- NA
-    df$cue_name <- NA
-    df$cue_ordered <- NA
+    # List of new columns to be added
+    new_columns <- c(
+        "subject", "stim_factor", "STIM_con_linear",
+        "STIM_con_quad", "CUE_high_gt_low",
+        "stim_ordered", "cue_name", "cue_ordered"
+    )
 
+    # Loop through the new columns and initialize each with NA
+    for (col in new_columns) {
+        df[[col]] <- NA
+    }
 
     # Given that the behavioral file has a fixed structure,
     # we'll create contrast codes directly based on its name.
@@ -43,17 +45,17 @@ simple_contrast_beh <- function(df) {
     )
 
     print(paste(
-    "new contrast names include:\n",
-    "\t* STIM_con_linear\n",
-    "\t* STIM_con_quad\n",
-    "\t* CUE_high_gt_low\n",
-    "Also included are ordered categoricals:\n ",
-    "\t* stim_ordered\n",
-    "\t* cue_ordered\n",
-    "The following variables are factorized:\n",
-    "\t* subject\n",
-    "\tstim-factor",
-    sep = ""
+        "new contrast names include:\n",
+        "\t* STIM_con_linear\n",
+        "\t* STIM_con_quad\n",
+        "\t* CUE_high_gt_low\n",
+        "Also included are ordered categoricals:\n ",
+        "\t* stim_ordered\n",
+        "\t* cue_ordered\n",
+        "The following variables are factorized:\n",
+        "\t* subject\n",
+        "\tstim-factor",
+        sep = ""
     ))
 
     return(df)
