@@ -1,13 +1,47 @@
+#' Plot Error Bars
+#'
+#' Creates a plot with error bars and points, based on subject-wise and group-wise data.
+#' The plot is customized with various aesthetic parameters and saved to a file.
+#'
+#' @param subjectwise Data frame containing subject-wise data.
+#' @param groupwise Data frame containing group-wise summary data.
+#' @param iv Name of the independent variable in the data frames.
+#' @param sub_iv Sub independent variable in the data frames (unused in current implementation).
+#' @param group_by Grouping variable name used in the data frames.
+#' @param subjectwise_mean Name of the subject-wise mean variable in `subjectwise`.
+#' @param group_mean Name of the group mean variable in `groupwise`.
+#' @param se Name of the standard error variable in `groupwise`.
+#' @param subject Subject identifier variable in the data frames (unused in current implementation).
+#' @param ggtitle Title for the ggplot.
+#' @param title Title for the legend.
+#' @param xlab Label for the x-axis.
+#' @param ylab Label for the y-axis.
+#' @param taskname Task name (unused in current implementation).
+#' @param ylim Vector of two numbers for y-axis limits.
+#' @param w Width of the saved plot.
+#' @param h Height of the saved plot.
+#' @param dv_keyword Dependent variable keyword (unused in current implementation).
+#' @param color Vector of colors for the plot.
+#' @param level_num Number of levels for the independent variable.
+#' @param save_fname File name to save the plot.
+#'
+#' @return A ggplot object representing the error bars plot.
+#'
+#' @examples
+#' # Assuming subjectwise and groupwise are appropriately structured data frames:
+#' plot_errorbar(subjectwise, groupwise, "iv", "sub_iv", "group_by",
+#'               "mean_var", "group_mean_var", "se", "subject",
+#'               "Title", "Legend Title", "X-axis Label", "Y-axis Label",
+#'               "taskname", c(-10, 10), 8, 6, "keyword", c("blue", "red"), 5, "output.png")
+#'  
+#' [Example](https://github.com/jungheejung/cueR/blob/main/man/figures/example_plot_binned_rating.png)
+#' @import ggplot2
+#' @export
 plot_errorbar <- function(subjectwise, groupwise, iv, sub_iv, group_by,
                           subjectwise_mean, group_mean, se, subject,
                           ggtitle, title, xlab, ylab, taskname, ylim,
                           w, h, dv_keyword, color, level_num, save_fname) {
     library(ggplot2)
-    # file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
-    #                       pattern="*.R", 
-    #                       full.names=TRUE, 
-    #                       ignore.case=TRUE)
-    # sapply(file.sources,source,.GlobalEnv)
     g <- ggplot(
         data = subjectwise,
         aes(
