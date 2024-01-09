@@ -14,7 +14,7 @@
 #' # summary_stats <- meanSummary_2continuous(DATA, c("Group1", "Group2"),
 #' #                                         "Variable1", "Variable2")
 #'
-#' @import plyr
+#' @importFrom plyr ddply
 #' @export
 meanSummary_2continuous <- function(DATA, GROUP, DV1, DV2) {
   z <- plyr::ddply(DATA, GROUP, .fun = function(xx) {
