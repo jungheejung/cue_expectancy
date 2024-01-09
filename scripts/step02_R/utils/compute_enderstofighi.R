@@ -42,7 +42,7 @@
 #' @export
 #' 
 #' 
-computer_enderstofighi <- function(data, sub, outcome, expect, ses, run) {
+compute_enderstofighi <- function(data, sub, outcome, expect, ses, run) {
   maindata <- data %>%
     group_by(!!sym(sub)) %>%
     mutate(OUTCOME = as.numeric(!!sym(outcome))) %>%
