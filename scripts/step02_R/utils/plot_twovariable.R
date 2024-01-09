@@ -11,7 +11,7 @@ xlab, ylab, ggtitle, color_scheme, alpha, fit_lm, lm_method = NULL, identity_lin
     library(ggplot2)
 
     df_dropna <- df[!is.na(df[, iv1]) & !is.na(df[, iv2]), ]
-    subjectwise_2dv <- meanSummary_2dv(
+    subjectwise_2dv <- meanSummary_2continuous(
         df_dropna,
         c(subject, group),
         iv1, iv2

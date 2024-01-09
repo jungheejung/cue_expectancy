@@ -10,7 +10,7 @@ plot_signature_twolineplot <- function(signature_key = NULL, plot_keys = NULL, d
     groupwise <- data.frame()
     subjectwise <- data.frame()
     print(plot_keys$iv1)
-    summary <- summaryplotPVC(
+    summary <- compute_summary_twofactor(
         df,
         groupwise_measurevar = plot_keys$sub_mean, # "mean_per_sub",
         subject_keyword = plot_keys$sub, # "sub",
