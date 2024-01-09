@@ -50,7 +50,9 @@ compute_enderstofighi <- function(data, sub, outcome, expect, ses, run) {
     mutate(OUTCOME_avg = mean(OUTCOME, na.rm = TRUE)) %>%
     mutate(OUTCOME_demean = OUTCOME - OUTCOME_avg) %>%
     mutate(EXPECT_avg = mean(EXPECT, na.rm = TRUE)) %>%
-    mutate(EXPECT_demean = EXPECT - EXPECT_avg)
+    mutate(EXPECT_demean = EXPECT - EXPECT_avg) %>%
+    mutate(OUTCOME_zscore = as.numeric(scale(OUTCOME, center = TRUE, scale = TRUE)[, 1])) %>%
+    mutate(EXPECT_zscore = as.numeric(scale(EXPECT, center = TRUE, scale = TRUE)[, 1])) 
   
   data_p2 <- maindata %>%
     arrange(!!sym(sub)) %>%
@@ -65,10 +67,18 @@ compute_enderstofighi <- function(data, sub, outcome, expect, ses, run) {
     group_by(!!sym(sub), !!sym(ses), !!sym(run)) %>%
     mutate(lag.OUTCOME_demean = dplyr::lag(OUTCOME_demean, n = 1, default = NA))
   
-  data_a3lag <- data_a3lag %>%
-    mutate(EXPECT_cmc = EXPECT_avg - mean(EXPECT_avg))
+  # Create Subjectwise Mean, centered in relation to the group mean
+  data_a3cmc <- data_a3lag %>%
+    ungroup %>%
+    mutate(EXPECT_cmc = EXPECT_cm - mean(EXPECT_cm, na.rm=TRUE)) %>%
+    mutate(OUTCOME_cmc = OUTCOME_cm - mean(OUTCOME_cm, na.rm=TRUE))
   
-  data_a3lag_omit <- data_a3lag[complete.cases(data_a3lag$lag.OUTCOME_demean),]
   
-  return(data_a3lag_omit)
+  # Remove NA values ___________________________________________________________
+  data_centered_NA <- data_a3cmc %>% 
+    filter(!is.na(OUTCOME)) %>% # Remove NA values
+    filter(!is.na(EXPECT))
+
+  return(data_centered_NA)
+  
 }
