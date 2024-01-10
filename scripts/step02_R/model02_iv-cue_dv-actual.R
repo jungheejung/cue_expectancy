@@ -24,7 +24,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
             sep = ""
         )
     )
-    data <- load_task_social_df(datadir, taskname, subject_varkey, iv, dv, exclude)
+    data <- df_load_beh(datadir, taskname, subject_varkey, iv, dv, exclude)
     data$subject <- factor(data$src_subject_id)
     cooksd <- lmer_onefactor_cooksd(
         data, taskname, iv, dv, subject, dv_keyword, model_savefname

@@ -20,7 +20,7 @@
 #' @import gridExtra
 #'
 #' @export
-plot_prettifylegend <- function(ggplot_obj, factor_level, factor_color, geom_point_size = 3, legend_position = c(-0.1, 0.9), legend_widths = c(4, 1)) {
+ggplot_prettifylegend <- function(ggplot_obj, factor_level, factor_color, geom_point_size = 3, legend_position = c(-0.1, 0.9), legend_widths = c(4, 1)) {
   legend_data <- data.frame(
     factorlevel = factor(factor_level),
     color = factor_color,

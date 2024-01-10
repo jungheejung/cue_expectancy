@@ -1120,7 +1120,7 @@ summary(model.PENPS)
 
 ```{r}
 
-subjectwise_2dv <- meanSummary_2dv(clean_merge_df, c("sub","stimintensity", "cue"),
+subjectwise_2dv <- meanSummary_2continuous(clean_merge_df, c("sub","stimintensity", "cue"),
                                    "PE_mdl2", "NPSpos" )
 plot.SfN_PE_NPS <- ggplot(data = subjectwise_2dv,
        aes(x = .data[["DV1_mean_per_sub"]],
@@ -1196,7 +1196,7 @@ plots
 ## 4. Manipulation check: bin the Jepma PE levels and look at the relationship with behavioral PE
 
 ```{r echo=FALSE}
-# df <- load_task_social_df(datadir,taskname = taskname,subject_varkey = subject_varkey,iv = iv,exclude = exclude  )
+# df <- df_load_beh(datadir,taskname = taskname,subject_varkey = subject_varkey,iv = iv,exclude = exclude  )
 iv2 = "beh_PE"; levels = 10
 iv1 = "PE_mdl2";
 df_dropna <- clean_merge_df[!is.na(clean_merge_df[, iv1]) & !is.na(clean_merge_df[, iv2]), ]

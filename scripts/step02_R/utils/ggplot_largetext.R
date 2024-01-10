@@ -10,14 +10,14 @@
 #' @examples
 #' # Apply the custom theme with default sizes
 #' my_ggplot <- ggplot(mtcars, aes(mpg, wt)) + geom_point()
-#' my_ggplot <- plot_largetext(my_ggplot)
+#' my_ggplot <- ggplot_largetext(my_ggplot)
 #'
 #' # Apply the custom theme with specified text and subtitle sizes
-#' my_ggplot <- plot_largetext(my_ggplot, text_size = 12, subtitle_size = 9)
+#' my_ggplot <- ggplot_largetext(my_ggplot, text_size = 12, subtitle_size = 9)
 #' @export
 #' @importFrom ggplot2 theme element_text element_blank
 #' @importFrom ggtext element_textbox_simple
-plot_largetext <- function(ggplot_obj, text_size = 15, subtitle_size = 11) {
+ggplot_largetext <- function(ggplot_obj, text_size = 15, subtitle_size = 11) {
   ggplot_obj <- ggplot_obj +
     theme(
       text = element_text(size = text_size),

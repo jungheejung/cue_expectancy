@@ -402,7 +402,7 @@ dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 ``lmer(outcome ~ cue * expectation + (1|participant))``
 ```{r echo=FALSE}
 taskname = "pain"
-df <- load_task_social_df(datadir,taskname = taskname,subject_varkey = subject_varkey,iv = iv,exclude = exclude  )
+df <- df_load_beh(datadir,taskname = taskname,subject_varkey = subject_varkey,iv = iv,exclude = exclude  )
 df_dropna <- df[!is.na(df$event02_expect_angle) & !is.na(df$event04_actual_angle),]
 model.expectoutcome = lmer(event04_actual_angle ~ param_cue_type*event02_expect_angle + (1 | src_subject_id)  , data = df_dropna)
 summary(model.expectoutcome)
@@ -418,7 +418,7 @@ summary(model.expectoutcome)
 # summarize dataframe __________________________________________________________
 iv1 = "event02_expect_angle"; iv2 = "event04_actual_angle"
 df_dropna <- df[!is.na(df[, iv1]) & !is.na(df[, iv2]), ]
-subjectwise_2dv = meanSummary_2dv(df_dropna,
+subjectwise_2dv = meanSummary_2continuous(df_dropna,
         c("src_subject_id", "param_cue_type"), 
           "event02_expect_angle", "event04_actual_angle")
 subjectwise_naomit_2dv <- na.omit(subjectwise_2dv)
@@ -496,7 +496,7 @@ knitr::kable(dset1, format = "html")
 What is the pattern of expectation rating and outcome rating, per participant? 
 Do we see a linear effect? We should also plot the data as a sigmoidal fit
 ```{r echo=FALSE}
-df <- load_task_social_df(datadir,taskname = taskname,subject_varkey = subject_varkey,iv = iv,exclude = exclude  )
+df <- df_load_beh(datadir,taskname = taskname,subject_varkey = subject_varkey,iv = iv,exclude = exclude  )
 iv1 = "event02_expect_angle"; iv2 = "event04_actual_angle"; levels = 10
 df_dropna <- df[!is.na(df[, iv1]) & !is.na(df[, iv2]), ]
 k <-df_dropna %>% group_by(src_subject_id) %>% filter(n()>= 5) %>% ungroup()
@@ -540,7 +540,7 @@ swp +  labs(title =paste0("task-",taskname, "- Subjectwise pattern for outcome a
 
 ```{r pain_discrete_10bin_cue_13, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 taskname = "pain"
-df <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+df <- df_load_beh(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 plot_binned_rating(df, taskname, iv1 = "event02_expect_angle", iv2 = "event04_actual_angle", xlab = "expectation ratings",
                                ylab = "outcome ratings", levels = 10) 
 ```
@@ -550,7 +550,7 @@ plot_binned_rating(df, taskname, iv1 = "event02_expect_angle", iv2 = "event04_ac
 
 ```{r pain_discrete_10bin_lowcue_13, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 taskname = "pain"
-df <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+df <- df_load_beh(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 subsetdf <- df[df$param_cue_type == 'low_cue',]
 pain_low <- plot_binned_rating(subsetdf, taskname, iv1 = "event02_expect_angle", iv2 = "event04_actual_angle", xlab = "expectation ratings",
                                ylab = "outcome ratings", levels = 10) 
@@ -558,7 +558,7 @@ pain_low <- plot_binned_rating(subsetdf, taskname, iv1 = "event02_expect_angle",
 
 ```{r pain_discrete_10bin_highcue_13, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 taskname = "pain"
-df <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+df <- df_load_beh(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 subsetdf <- df[df$param_cue_type == 'high_cue',]
 pain_high <- plot_binned_rating(subsetdf, taskname, iv1 = "event02_expect_angle", iv2 = "event04_actual_angle", xlab = "expectation ratings",
                                ylab = "outcome ratings", levels = 10) 
@@ -574,7 +574,7 @@ plots_title
 * checked warnings: None
 ```{r vicarious_discrete_10bin_cue_13, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 taskname = "vicarious"
-df <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+df <- df_load_beh(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 plot_binned_rating(df, taskname, iv1 = "event02_expect_angle", iv2 = "event04_actual_angle", xlab = "expectation ratings",
                                ylab = "outcome ratings", levels = 10) 
 ```
@@ -582,7 +582,7 @@ plot_binned_rating(df, taskname, iv1 = "event02_expect_angle", iv2 = "event04_ac
 ### Cognitive: binned expectation ratings
 ```{r cognitive_discrete_10bin_cue_13, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 taskname = "cognitive"
-df <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+df <- df_load_beh(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 plot_binned_rating(df, taskname, iv1 = "event02_expect_angle", iv2 = "event04_actual_angle", xlab = "expectation ratings",
                                ylab = "outcome ratings", levels = 10) 
 ```
@@ -596,7 +596,7 @@ Warning in qt(conf.interval/2 + 0.5, datac$N - 1): NaNs produced
 * checked warnings: None
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 taskname = "pain"; levels = 10
-df <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+df <- df_load_beh(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 df_dropna <- df[!is.na(df$event02_expect_angle) & !is.na(df$event04_actual_angle),]
 k <-df_dropna %>% group_by(src_subject_id) %>% filter(n()>= 5) %>% ungroup()
 df_discrete = k %>%
@@ -668,7 +668,7 @@ https://groups.google.com/g/ggplot2/c/csPNfSLKkco
 
 ```{r archive_plot_full_code, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 # taskname = "vicarious"
-# df <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+# df <- df_load_beh(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 # 
 # df_dropna <- df[!is.na(df$event02_expect_angle) & !is.na(df$event04_actual_angle),]
 # 

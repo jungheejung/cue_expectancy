@@ -619,9 +619,9 @@ dv <- "event04_actual_angle"; dv_keyword <- "outcome"
 exclude <- "sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0007|sub-0008|sub-0013|sub-0016|sub-0017|sub-0019|sub-0020|sub-0021|sub-0025|sub-0075|sub-0009|sub-0117|sub-0119|sub-0081|sub-0060"
 #sub-0074|sub-0085|sub-0118|sub-0117|sub-0103|sub-0063
 
-p.df <- load_task_social_df(datadir, taskname = "pain", subject_varkey, iv, dv, exclude)
-v.df <- load_task_social_df(datadir, taskname = "vicarious", subject_varkey, iv, dv, exclude)
-c.df <- load_task_social_df(datadir, taskname = "cognitive", subject_varkey, iv, dv, exclude)
+p.df <- df_load_beh(datadir, taskname = "pain", subject_varkey, iv, dv, exclude)
+v.df <- df_load_beh(datadir, taskname = "vicarious", subject_varkey, iv, dv, exclude)
+c.df <- df_load_beh(datadir, taskname = "cognitive", subject_varkey, iv, dv, exclude)
 
 p.df2= p.df %>%
   arrange(src_subject_id ) %>%
@@ -1274,7 +1274,7 @@ alpha = 0.8
 lm_method = "lm"
 p.sig <- df_merge[df_merge$runtype == "runtype-pain",]
 df_dropna <- p.sig[!is.na(p.sig[, iv1]) & !is.na(p.sig[, iv2]),]
-subjectwise_2dv <- meanSummary_2dv(df_dropna,
+subjectwise_2dv <- meanSummary_2continuous(df_dropna,
                                    c(subject),
                                    iv1, iv2)
 subjectwise_naomit_2dv <- na.omit(subjectwise_2dv)

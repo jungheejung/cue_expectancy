@@ -39,27 +39,48 @@
 #' @import ggplot2
 #' @import gridExtra
 #'
+#' @examples
+#' # Example usage:
+#'     g <- plot_cueexpectancy_twofactor(
+#'         outcome_subjectwise, outcome_groupwise, model_iv1, model_iv2,
+#'         sub_mean, group_mean, se, subject, ggtitle, title,
+#'         xlab, ylab, taskname, ylim,
+#'         w, h, dv_keyword, color, plot_savefname,
+#'         x_hline_position = 3.5,
+#'         x_hline_linetype = "dashed",
+#'         x_hline_nudge_x = 0.1,
+#'         x_hline_textsize = 3,
+#'         legend_factor_levels = c("High cue", "Low cue"),
+#'         legend_factor_colors = c("#D73027", "#4575B4"),
+#'         legend_geom_point_size = 4,
+#'         legend_position = c(-0.1, 0.9),
+#'         legend_widths = c(4, 1)
+#'         )
+#'         print(g)
+#'         ggsave(plot_savefname, width = w, height = h)
+#'
+#' ![Example Plot](https://github.com/jungheejung/cueR/blob/main/man/figures/example_plot_cueexpectancy_twofactor.png)
 #' @export
 #' 
 #' 
 
 plot_cueexpectancy_twofactor <- function(
-  subjectwise, groupwise, model_iv1, model_iv2,
-  sub_mean, group_mean, se, subject,
-  ggtitle, title, xlab, ylab, taskname, ylim,
-  w, h, dv_keyword, color, plot_savefname,
-  expand_x = TRUE,
-  xlim = c(NA, 3),
-  x_scale_expansion = c(0, 0.5),
-  x_hline_position = 3.5,
-  x_hline_linetype = "dashed",
-  x_hline_nudge_x = 0.1,
-  x_hline_textsize = 3,
-  legend_factor_levels = c("High cue", "Low cue"),
-  legend_factor_colors = c("#D73027", "#4575B4"),
-  legend_geom_point_size = 3,
-  legend_position = c(-0.1, 0.9),
-  legend_widths = c(4, 1)
+    subjectwise, groupwise, model_iv1, model_iv2,
+    sub_mean, group_mean, se, subject,
+    ggtitle, title, xlab, ylab, taskname, ylim,
+    w, h, dv_keyword, color, plot_savefname,
+    expand_x = TRUE,
+    xlim = c(NA, 3),
+    x_scale_expansion = c(0, 0.5),
+    x_hline_position = 3.5,
+    x_hline_linetype = "dashed",
+    x_hline_nudge_x = 0.1,
+    x_hline_textsize = 3,
+    legend_factor_levels = c("High cue", "Low cue"),
+    legend_factor_colors = c("#D73027", "#4575B4"),
+    legend_geom_point_size = 3,
+    legend_position = c(-0.1, 0.9),
+    legend_widths = c(4, 1)
 ) {
   # Generate the main plot
   g <- plot_halfrainclouds_twofactor(
@@ -83,17 +104,17 @@ plot_cueexpectancy_twofactor <- function(
   g <- plot_largetext(g)
   
   # Create the legend data frame
-
+  
   
   # Use grid.arrange to put them together
   combined_plot <- plot_prettifylegend(
-      g,
-      factor_level = legend_factor_levels,
-      factor_color = legend_factor_colors,
-      geom_point_size = legend_geom_point_size,
-      legend_position = legend_position,
-      legend_widths = legend_widths
-    )
+    g,
+    factor_level = legend_factor_levels,
+    factor_color = legend_factor_colors,
+    geom_point_size = legend_geom_point_size,
+    legend_position = legend_position,
+    legend_widths = legend_widths
+  )
   
   return(combined_plot)
 }

@@ -346,14 +346,14 @@ plot_lineplot_twofactor(groupwise, model_iv1, model_iv2, "mean_per_sub_norm_mean
 
 ```
 library(plyr)
-subjectwise_cuetype = meanSummary_2dv(DATA=df_jepma,
+subjectwise_cuetype = meanSummary_2continuous(DATA=df_jepma,
         GROUP = c("sub", "trialindex", "IV_cuelevel"), DV1 = "PE", DV2 = "EXPECTUPDATE")
 plot_twovariable(subjectwise_cuetype, iv1 = "DV1_mean_per_sub", iv2 = "DV2_mean_per_sub", group = "IV_cuelevel", subject = "sub", xmin=-50, xmax=50, ymin=-50,ymax=50,
 xlab="PE", ylab="Expectation update", ggtitle="", color_scheme=c( high_cue = "#D73027", low_cue = "#4575B4"), alpha=.8, fit_lm=TRUE, lm_method = "lm", identity_line=TRUE, size=NULL)
 
 ```
 ```{r}
-subjectwise_cuetype_groupby = meanSummary_2dv(DATA=df_jepma,
+subjectwise_cuetype_groupby = meanSummary_2continuous(DATA=df_jepma,
         GROUP = c("sub", "IV_cuelevel"), DV1 = "PE", DV2 = "EXPECTUPDATE_NEXT")
 plot_twovariable(df_jepma, iv1 = "PE", iv2 = "EXPECTUPDATE_NEXT", group = "IV_cuelevel", subject = "sub", xmin=-50, xmax=50, ymin=-50,ymax=50,
 xlab="PE", ylab="Expectation update", ggtitle="", color_scheme=c( high_cue = "#D73027", low_cue = "#4575B4"), alpha=.8, fit_lm=TRUE, lm_method = "lm", identity_line=TRUE, size=NULL)
@@ -373,7 +373,7 @@ plot_model(model.l, type = "pred", terms = c("PE", "IV_cuelevel"))
 
 
 # ```{r}
-# subjectwise_cuetype_groupby = meanSummary_2dv(DATA=df_jepma,
+# subjectwise_cuetype_groupby = meanSummary_2continuous(DATA=df_jepma,
 #         GROUP = c("sub", "IV_cuelevel"), DV1 = "PE", DV2 = "EXPECTUPDATE_PREV_JEPMA")
 # plot_twovariable(df_jepma, iv1 = "PE", iv2 = "EXPECTUPDATE_PREV_JEPMA", group = "IV_cuelevel", subject = "sub", xmin=-50, xmax=50, ymin=-50,ymax=50,
 # xlab="PE", ylab="Expectation update", ggtitle="", color_scheme=c( high_cue = "#D73027", low_cue = "#4575B4"), alpha=.8, fit_lm=TRUE, lm_method = "lm", identity_line=TRUE, size=NULL)
@@ -413,7 +413,7 @@ ggplot(df_jepma, aes(x = PE, y = EXPECTUPDATE_NEXT, color = IV_cuelevel)) +
 
 
 ```{r}
-# subjectwise_cuetype_groupby = meanSummary_2dv(DATA=df_jepma,
+# subjectwise_cuetype_groupby = meanSummary_2continuous(DATA=df_jepma,
 #         GROUP = c("sub", "IV_cuelevel"), DV1 = "PE", DV2 = "EXPECTUPDATE_JEPMA")
 # plot_twovariable(df_jepma, iv1 = "PE", iv2 = "EXPECTUPDATE", group = "IV_cuelevel", subject = "sub", xmin=-50, xmax=50, ymin=-50,ymax=50,
 # xlab="PE", ylab="Expectation update", ggtitle="", color_scheme=c( high_cue = "#D73027", low_cue = "#4575B4"), alpha=.8, fit_lm=TRUE, lm_method = "lm", identity_line=TRUE, size=NULL)
@@ -465,7 +465,7 @@ knitr::kable(dset1, format = "html")
 What is the pattern of expectation rating and outcome rating, per participant? 
 Do we see a linear effect? We should also plot the data as a sigmoidal fit
 ```{r echo=FALSE}
-# df <- load_task_social_df(datadir,taskname = taskname,subject_varkey = subject_varkey,iv = iv,exclude = exclude  )
+# df <- df_load_beh(datadir,taskname = taskname,subject_varkey = subject_varkey,iv = iv,exclude = exclude  )
 iv2 = "EXPECTUPDATE_NEXT"; levels = 10
 iv1 = "PE"; 
 df_dropna <- df_jepma[!is.na(df_jepma[, iv1]) & !is.na(df_jepma[, iv2]), ]
@@ -506,7 +506,7 @@ swp +  labs(title =paste0("task-",taskname, "- Subjectwise pattern for outcome a
 What is the pattern of expectation rating and outcome rating, per participant? 
 Do we see a linear effect? We should also plot the data as a sigmoidal fit
 ```{r echo=FALSE}
-# df <- load_task_social_df(datadir,taskname = taskname,subject_varkey = subject_varkey,iv = iv,exclude = exclude  )
+# df <- df_load_beh(datadir,taskname = taskname,subject_varkey = subject_varkey,iv = iv,exclude = exclude  )
 iv2 = "EXPECTUPDATE_NEXT"; levels = 10
 iv1 = "PE"; 
 df_dropna <- df_jepma[!is.na(df_jepma[, iv1]) & !is.na(df_jepma[, iv2]), ]
@@ -544,7 +544,7 @@ swp +  labs(title =paste0("task-",taskname, "- Subjectwise pattern for outcome a
 
 ## Demeaned cue
 ```{r}
-# df <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+# df <- df_load_beh(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 taskname = 'pain'
 plot_binned_rating_pe(df_dropna, taskname, iv1 = "PE", iv2 = "EXPECTUPDATE_NEXT", group = "IV_cuelevel", xlab = "PE",
                                ylab = "Expectation Update", levels = 10, participant="sub", ylim = c(-20, 20)) 
@@ -614,7 +614,7 @@ g
 ```
 ## Non-Demeaned cue
 ```{r}
-# df <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+# df <- df_load_beh(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 taskname = 'pain'
 plot_binned_rating_pe(df_dropna, taskname, iv1 = "PE", iv2 = "EXPECTUPDATE_NEXT", group = "IV_cuelevel", xlab = "PE",
                                ylab = "Expectation Update", levels = 10, participant="sub", ylim = c(-100, 100)) 

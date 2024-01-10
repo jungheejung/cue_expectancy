@@ -91,7 +91,7 @@ ggplot_onefactor_pertask <- function(taskname, subject_varkey, subject, exclude,
             sep = ""))
 
     ## load data, run model, and exclude outliers
-    data <- load_task_social_df(datadir, taskname, subject_varkey, iv, dv, exclude)
+    data <- df_load_beh(datadir, taskname, subject_varkey, iv, dv, exclude)
     data$subject = factor(data$src_subject_id)
     data = data[!is.na(data[, dv] ),] # removing NA values
     #print(length(unique(data$subject)))
@@ -282,7 +282,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     title <- paste(taskname, " - actual")
     subject <- "src_subject_id"
     subject_varkey <- "src_subject_id"
-    data <- load_task_social_df(datadir,
+    data <- df_load_beh(datadir,
         taskname = taskname,
         subject_varkey = "src_subject_id",
 

@@ -165,7 +165,7 @@ exclude <- "sub-0001"
 # ------------------------------------------------------------------------------
 #                 load data
 # ------------------------------------------------------------------------------
-df <- load_task_social_df(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
+df <- df_load_beh(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 data.2= df %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
@@ -175,8 +175,8 @@ sessions_per_subject <- aggregate(session_id ~ src_subject_id, data = data.2, FU
 subset_N <- df_with_trial_number %>%
   inner_join(sessions_per_subject, by = "src_subject_id") %>%
   filter(trial_number > 50, session_id == 3)
-# TODO: FIX scripts/step02_R/utils/filter_df_ses_trial.R
-# df_summary <- filter_df_ses_trial(data, session_colname = "session_id", subject_colname = "src_subject_id", session_threshold = 3, trial_threshold = 50)
+# TODO: FIX scripts/step02_R/utils/df_filter_ses_trial.R
+# df_summary <- df_filter_ses_trial(data, session_colname = "session_id", subject_colname = "src_subject_id", session_threshold = 3, trial_threshold = 50)
 data <- df %>%
 semi_join(subset_N, by = "src_subject_id")
 
@@ -219,7 +219,7 @@ pvc <- simple_contrasts_beh(df)
 # ------------------------------------------------------------------------------
 iv1 = "event02_expect_angle"; iv2 = "event04_actual_angle"
 df_dropna <- pvc[!is.na(pvc[, iv1]) & !is.na(pvc[, iv2]), ]
-subjectwise_2dv = meanSummary_2dv(df_dropna,
+subjectwise_2dv = meanSummary_2continuous(df_dropna,
         c("src_subject_id", "param_cue_type"),
           "event02_expect_angle", "event04_actual_angle")
 subjectwise_naomit_2dv <- na.omit(subjectwise_2dv)
@@ -691,9 +691,9 @@ exclude <- "sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0007|sub-0008|sub-0
   # "sub-0001|sub-0002|sub-0003|sub-0004|sub-0005|sub-0006|sub-0007|sub-0008|sub-0013|sub-0015|sub-0016|sub-0017|sub-0018|sub-0019|sub-0020|sub-0021|sub-0023|sub-0024|sub-0025|sub-0075|sub-0009|sub-0052|sub-0117|sub-0119|sub-0087|sub-0083|sub-0091|sub-0112"
 #sub-0074|sub-0085|sub-0118|sub-0117|sub-0103|sub-0063
 
-p.df <- load_task_social_df(datadir, taskname = "pain", subject_varkey, iv, dv, exclude)
-v.df <- load_task_social_df(datadir, taskname = "vicarious", subject_varkey, iv, dv, exclude)
-c.df <- load_task_social_df(datadir, taskname = "cognitive", subject_varkey, iv, dv, exclude)
+p.df <- df_load_beh(datadir, taskname = "pain", subject_varkey, iv, dv, exclude)
+v.df <- df_load_beh(datadir, taskname = "vicarious", subject_varkey, iv, dv, exclude)
+c.df <- df_load_beh(datadir, taskname = "cognitive", subject_varkey, iv, dv, exclude)
 
 
 
@@ -781,8 +781,8 @@ subset_N <- df_with_trial_number %>%
   inner_join(sessions_per_subject, by = "sub") %>%
   filter(trial_number > 9)
 
-# TODO: FIX scripts/step02_R/utils/filter_df_ses_trial.R
-# df_summary <- filter_df_ses_trial(data, session_colname = "session_id", subject_colname = "src_subject_id", session_threshold = 3, trial_threshold = 50)
+# TODO: FIX scripts/step02_R/utils/df_filter_ses_trial.R
+# df_summary <- df_filter_ses_trial(data, session_colname = "session_id", subject_colname = "src_subject_id", session_threshold = 3, trial_threshold = 50)
 nps.subset <- df_merge %>%
 semi_join(subset_N, by = "sub")
 
@@ -1773,7 +1773,7 @@ pvc <-df #simple_contrasts_beh(df)
 # summarize dataframe __________________________________________________________ # nolint
 iv1 = "Exp_mdl2"; iv2 = "Pain_mdl2"
 df_dropna <- pvc[!is.na(pvc[, iv1]) & !is.na(pvc[, iv2]), ]
-subjectwise_2dv = meanSummary_2dv(df_dropna,
+subjectwise_2dv = meanSummary_2continuous(df_dropna,
         c("src_subject_id", "param_cue_type"),
           "Exp_mdl2", "Pain_mdl2")
 subjectwise_naomit_2dv <- na.omit(subjectwise_2dv)
@@ -2061,7 +2061,7 @@ pvc <-df #simple_contrasts_beh(df)
 # summarize dataframe __________________________________________________________ # nolint
 iv1 = "Exp_mdl3"; iv2 = "Pain_mdl3"
 df_dropna <- pvc[!is.na(pvc[, iv1]) & !is.na(pvc[, iv2]), ]
-subjectwise_2dv = meanSummary_2dv(df_dropna,
+subjectwise_2dv = meanSummary_2continuous(df_dropna,
         c("src_subject_id", "param_cue_type"),
           "Exp_mdl2", "Pain_mdl2")
 subjectwise_naomit_2dv <- na.omit(subjectwise_2dv)

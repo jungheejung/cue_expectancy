@@ -334,7 +334,7 @@ plots_title
 ```{r}
 main_dir = dirname(dirname(getwd()))
 data <- read.csv(file.path(main_dir, 'data/simulated/model_ver04_0508/table_pain_new.csv'))
-subjectwise_2dv <- meanSummary_2dv(data, c("src_subject_id"),
+subjectwise_2dv <- meanSummary_2continuous(data, c("src_subject_id"),
                                    "event02_expect_angle", "Exp_mdl2" )
 ggplot(data = subjectwise_2dv,
        aes(x = .data[["DV1_mean_per_sub"]],
@@ -363,7 +363,7 @@ ggplot(data = subjectwise_2dv,
 ### model fits from model 2. outcome ratings (Jepma model)
 
 ```{r}
-subjectwise_2dv <- meanSummary_2dv(data, c("src_subject_id"),
+subjectwise_2dv <- meanSummary_2continuous(data, c("src_subject_id"),
                                    "event04_actual_angle", "Pain_mdl2" )
 ggplot(data = subjectwise_2dv,
        aes(x = .data[["DV1_mean_per_sub"]],
@@ -403,7 +403,7 @@ merged_df <- merge(cue_trial, model_param, by.x = "sub", by.y = "subj_num_new_pa
 # plot ggplot
 # run lmer
 merged_df$alpha_c_gt_i <- merged_df$alpha_c - merged_df$alpha_i
-merged_2dv <- meanSummary_2dv(merged_df, c("sub"),
+merged_2dv <- meanSummary_2continuous(merged_df, c("sub"),
                                    "cue_randomslope", "pain_err" )
 ggplot(data = merged_df,
        aes(x = .data[["cue_randomslope"]],
@@ -441,7 +441,7 @@ merged_df <- merge(cue_trial, model_param, by.x = "sub", by.y = "subj_num_new_vi
 # plot ggplot
 # run lmer
 merged_df$alpha_c_gt_i <- merged_df$alpha_c - merged_df$alpha_i
-merged_2dv <- meanSummary_2dv(merged_df, c("sub"),
+merged_2dv <- meanSummary_2continuous(merged_df, c("sub"),
                                    "cue_randomslope", "pain_err" )
 ggplot(data = merged_df,
        aes(x = .data[["cue_randomslope"]],
@@ -479,7 +479,7 @@ merged_df <- merge(cue_trial, model_param, by.x = "sub", by.y = "subj_num_new_co
 # plot ggplot
 # run lmer
 merged_df$alpha_c_gt_i <- merged_df$alpha_c - merged_df$alpha_i
-merged_2dv <- meanSummary_2dv(merged_df, c("sub"),
+merged_2dv <- meanSummary_2continuous(merged_df, c("sub"),
                                    "cue_randomslope", "pain_err" )
 ggplot(data = merged_df,
        aes(x = .data[["cue_randomslope"]],
@@ -577,7 +577,7 @@ PEdf <- PEdf %>%
 merged_NPSpe <- merge(NPS, PEdf, by = c("sub", "ses", "run", "trial"))
 
 
-subjectwise_2dv <- meanSummary_2dv(merged_NPSpe, c("src_subject_id","stimintensity", "cuetype"),
+subjectwise_2dv <- meanSummary_2continuous(merged_NPSpe, c("src_subject_id","stimintensity", "cuetype"),
                                    "PE_mdl2", "NPSpos" )
 ggplot(data = subjectwise_2dv,
        aes(x = .data[["DV1_mean_per_sub"]],

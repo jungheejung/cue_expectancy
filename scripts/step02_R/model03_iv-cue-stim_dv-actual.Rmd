@@ -93,7 +93,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
         )
     )
     # load data, run model, and exclude outliers
-    data <- load_task_social_df(datadir, taskname, subject_varkey, iv, dv, exclude)
+    data <- df_load_beh(datadir, taskname, subject_varkey, iv, dv, exclude)
     data$subject = factor(data$src_subject_id)
     cooksd <- lmer_onefactor_cooksd(
         data, taskname, iv, dv, subject, dv_keyword, model_savefname
@@ -288,7 +288,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
             sep = ""
         )
     )
-    data <- load_task_social_df(datadir, taskname, subject_varkey, iv, dv, exclude)
+    data <- df_load_beh(datadir, taskname, subject_varkey, iv, dv, exclude)
     data$subject <- factor(data$src_subject_id)
 
     data$cue_factor = factor(data$param_cue_type)
@@ -370,7 +370,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
         )
     )
     # ___ 1) load data _______________________________________________________________ # nolint
-    data <- load_task_social_df(datadir, taskname, subject_varkey, iv, dv, exclude)
+    data <- df_load_beh(datadir, taskname, subject_varkey, iv, dv, exclude)
     unique(data$src_subject_id)
     data$subject <- factor(data$src_subject_id)
     # modeliv1 <- "stim_ordered"
@@ -511,7 +511,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     title <- paste(taskname, " - actual")
     subject <- "subject"
 
-    data <- load_task_social_df(datadir,
+    data <- df_load_beh(datadir,
         taskname = taskname,
         subject_varkey = "src_subject_id",
         iv = "param_cue_type",
