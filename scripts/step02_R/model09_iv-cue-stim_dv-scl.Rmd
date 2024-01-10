@@ -1,14 +1,14 @@
 ---
 title: "model09_iv-cue-stim_dv-scl"
 author: "Heejung Jung"
-date: '2022-09-17'
+date: "2022-09-17"
 output:
   html_document:
     toc: true
     theme: united
     code_folding: hide
-editor_options: 
-  markdown: 
+editor_options:
+  markdown:
     wrap: 72
 ---
 
@@ -17,11 +17,13 @@ split data into task (full -> P, v, c subset)
 push code to git
 create code map
 log transform
-* SCL: mean signal
-* SCR: log transform
+
+- SCL: mean signal
+- SCR: log transform
+
 # Overview
 
-The purpose of this notebook is to analyze biopac phasic data. 
+The purpose of this notebook is to analyze biopac phasic data.
 Data has been preprocessed with neurokit
 
 We load a dataframe that contains the following outcome measures:
@@ -29,14 +31,14 @@ We load a dataframe that contains the following outcome measures:
 'SCR_Peak_Amplitude_Time', 'SCR_RiseTime', 'SCR_RecoveryTime'
 
 We model this as a function of "cue" and "stimulus intensity",
-while allowing for random effects from participants. 
+while allowing for random effects from participants.
 
-------------------------------------------------------------------------
+---
 
 # Why use multilevel models?
 
--   content copied from
-    <http://www.bristol.ac.uk/cmm/learning/multilevel-models/what-why.html>
+- content copied from
+  <http://www.bristol.ac.uk/cmm/learning/multilevel-models/what-why.html>
 
 > There are a number of reasons for using multilevel models:
 >
@@ -75,7 +77,7 @@ while allowing for random effects from participants.
 >     population of groups. Using a fixed effects model, inferences
 >     cannot be made beyond the groups in the sample.
 
-------------------------------------------------------------------------
+---
 
 load libraries
 
@@ -132,8 +134,8 @@ library(brms)
 library(r2mlm)
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                         pattern="*.R", 
-                          full.names=TRUE, 
+                         pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 ```
@@ -142,37 +144,37 @@ sapply(file.sources,source,.GlobalEnv)
 
 factor
 
-:   In experimental designs, factor is the equivalent of independent
-    variable. In R, one can factorize a categorical variable by using
-    the `factor` function. Thereby we interchangeably use the term
-    factor in lieu of independent variable.
+: In experimental designs, factor is the equivalent of independent
+variable. In R, one can factorize a categorical variable by using
+the `factor` function. Thereby we interchangeably use the term
+factor in lieu of independent variable.
 
     From this, the term `factorial design` originates.
 
 level
 
-:   within each independent variable, a researcher may determine
-    different levels. Since the purpose of linear models is to compare
-    at least one condition to another, a factor contains more than one
-    level.
+: within each independent variable, a researcher may determine
+different levels. Since the purpose of linear models is to compare
+at least one condition to another, a factor contains more than one
+level.
 
 group variable
 
-:   Unit of analysis. In most fMRI experiments that collect individual
-    data, the group variable would be the individual participant.
-    However, in other research questions, the group variable could
-    easily be more than one individual. For instance, a dyad of
-    participants that carry out conversations, multiple patients that
-    see an identical doctor, a classroom full of individuals, or voting
-    districts could serve as a grouping variable, depending on the
-    research question.
+: Unit of analysis. In most fMRI experiments that collect individual
+data, the group variable would be the individual participant.
+However, in other research questions, the group variable could
+easily be more than one individual. For instance, a dyad of
+participants that carry out conversations, multiple patients that
+see an identical doctor, a classroom full of individuals, or voting
+districts could serve as a grouping variable, depending on the
+research question.
 
--   <div>
+- <div>
 
-        factor:
-        group
+      factor:
+      group
 
-    </div>
+  </div>
 
 # Model versions {.tabset}
 
@@ -180,27 +182,29 @@ group variable
 
 ### Method 1: repeated measures and `one-sample t-tests`
 
--   Data Matrix: Wide form
-    -   row (83 subject)
-    -   column (6 conditions: highCue x highStim, highCue x medStim,
-        highCue x lowStim, lowCue x highStim,lowCue x medStim, lowCue x
-        lowStim)
--   Model: Use "lm". One-sample t-test
--   Effect size (cohen's d): mean / sd (intersubject slope) \> use
-    degrees of freedom.
+- Data Matrix: Wide form
+  - row (83 subject)
+  - column (6 conditions: highCue x highStim, highCue x medStim,
+    highCue x lowStim, lowCue x highStim,lowCue x medStim, lowCue x
+    lowStim)
+- Model: Use "lm". One-sample t-test
+- Effect size (cohen's d): mean / sd (intersubject slope) \> use
+  degrees of freedom.
 
-### 
+###
+
 load data and combine participant data
+
 ```{r}
 analysis_dir
 ```
-
 
 ```{r load data and exclude}
 main_dir = dirname(dirname(getwd()))
 analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model09_iv-cue-stim_dv-scl", as.character(Sys.Date()))
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 ```
+
 ```{r}
 # parameters _____________________________________ # nolint
 # phasic = read.csv("/Volumes/spacetop_projects_social/data/physio/physio02_preproc/group_epochstart-0_epochend-9_physio-phasic.csv")
@@ -213,25 +217,24 @@ This is the data that we will use
 head(tonic)
 ```
 
-
 ## Method 3 multilevel modeling
 
 ### Method 3 multilevel modeling
 
--   Data Matrix: Long form
-    -   Row (5412: 83 subject \* 2 cue \* 3 stimulus intensity \* 12 trials)
-    -   Columns (4: subject, session, task type, run_num, cue type, stimulus intensity type,
-        EDA metrics)
--   Model: Use "lmer" multilevel-modeling
-    -   grouping variable: subjects (i.e. src_subject_id)
-    -   fixed effects - cue (2 levels, contrast-coded [high, low: 1,
-        -1]) - stim_linear (3 levels, [low, med, high: -1, 0, 1]) -
-        stim_quadratic (3 levels, [low, med, high: -1, 2, -1])
-    -   random effects - cue - stim_linear - cue\*stim_linear
-    -   NOTE: due to convergence failure, cue\*stim_quadratic term was
-        removed
--   Effect size (cohen's d): beta_coefficient/ sqrt(sum of all random
-    variance)
+- Data Matrix: Long form
+  - Row (5412: 83 subject \* 2 cue \* 3 stimulus intensity \* 12 trials)
+  - Columns (4: subject, session, task type, run_num, cue type, stimulus intensity type,
+    EDA metrics)
+- Model: Use "lmer" multilevel-modeling
+  - grouping variable: subjects (i.e. src_subject_id)
+  - fixed effects - cue (2 levels, contrast-coded [high, low: 1,
+    -1]) - stim_linear (3 levels, [low, med, high: -1, 0, 1]) -
+    stim_quadratic (3 levels, [low, med, high: -1, 2, -1])
+  - random effects - cue - stim_linear - cue\*stim_linear
+  - NOTE: due to convergence failure, cue\*stim_quadratic term was
+    removed
+- Effect size (cohen's d): beta_coefficient/ sqrt(sum of all random
+  variance)
 
 contrast-coding for multi-level modeling (code-hidden)
 
@@ -265,7 +268,7 @@ dv_keyword <- "scl_peak"
 xlab <- ""
 taskname <- "full"
 #ylim = c(-1,1)
-#tonic_task = 
+#tonic_task =
 ```
 
 multi-level modeling using **lmer**
@@ -277,8 +280,6 @@ fullmodel = lmer(mean_signal ~ 1+ cue_factor + stim_con_linear + stim_con_quad +
 summary(fullmodel)
 
 ```
-
-
 
 ```{r plot results}
 
@@ -309,14 +310,14 @@ groupwise <- summarySEwithin(
         idvar = "subject"
     )
 
-subjectwise_mean <- "mean_per_sub";    
+subjectwise_mean <- "mean_per_sub";
 group_mean <- "mean_per_sub_norm_mean"
-se <- "se";   
-ggtitle <- paste(taskname, dv_keyword);    
+se <- "se";
+ggtitle <- paste(taskname, dv_keyword);
 title <- paste(taskname, " - RT")
-xlab <- "";    
-ylab <- "SCL peak amplitude ";    
-w = 5; h = 3; 
+xlab <- "";
+ylab <- "SCL peak amplitude ";
+w = 5; h = 3;
 ylim = c(-1,3)
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
@@ -339,7 +340,9 @@ plot_rainclouds_twofactor(
     )
 
 ```
+
 # COGNITIVE
+
 ```{r lmer fullmodel cognitive, class.source = 'fold-show'}
 cognitive = lmer(mean_signal ~ 1+ cue_factor + stim_con_linear + stim_con_quad + cue_factor:stim_con_linear + cue_factor:stim_con_quad + (1  |subject), data = tonic[tonic$param_task_name == 'cognitive',])
 
@@ -347,7 +350,9 @@ cognitive = lmer(mean_signal ~ 1+ cue_factor + stim_con_linear + stim_con_quad +
 summary(cognitive)
 
 ```
+
 # VICARIOUS
+
 ```{r lmer fullmodel, class.source = 'fold-show'}
 vicarious = lmer(mean_signal ~ 1+ cue_factor + stim_con_linear + stim_con_quad + cue_factor:stim_con_linear + cue_factor:stim_con_quad + (1  |subject), data = tonic[tonic$param_task_name == 'vicarious',])
 
@@ -357,6 +362,7 @@ summary(vicarious)
 ```
 
 # PAIN
+
 ```{r lmer fullmodel cognitive, class.source = 'fold-show'}
 pain = lmer(mean_signal ~ 1+ cue_factor + stim_con_linear + stim_con_quad + cue_factor:stim_con_linear + cue_factor:stim_con_quad + (1  |subject), data = tonic[tonic$param_task_name == 'pain',])
 
@@ -366,13 +372,14 @@ summary(pain)
 ```
 
 ### TASKWISE
+
 ```{r}
 for (taskname in c( "vicarious", "cognitive")) { #"pain"
     ggtitle <- paste(taskname, " - SCR tonic signal")
     title <- paste(taskname, " - EDA")
     subject <- "subject"
     #data <- tonic
-    
+
     data = tonic[tonic$param_task_name == taskname,]
     w <- 10
     h <- 6
@@ -415,7 +422,7 @@ for (taskname in c( "vicarious", "cognitive")) { #"pain"
             sep = ""
         )
     )
-    cooksd <- lmer_twofactor_cooksd_fix(
+    cooksd <- lmer_twofactor_cooksd(
         data, taskname, iv1, stim_con1, stim_con2, dv,
         subject, dv_keyword, model_savefname, 'random_slopes'
     )
@@ -491,22 +498,22 @@ for (taskname in c( "vicarious", "cognitive")) { #"pain"
     )
     g
 
-    
+
     # ggsave(plot_savefname, width = w, height = h)
 
-    
-    
+
+
 
     # save fixed random effects _______________________________
     # randEffect$newcoef <- mapvalues(randEffect$term,
-    #     from = c("(Intercept)", "data[, iv]", 
-    #              "data[, stim_con1]", "data[, stim_con2]", 
-    #              "data[, iv]:data[, stim_con1]", 
+    #     from = c("(Intercept)", "data[, iv]",
+    #              "data[, stim_con1]", "data[, stim_con2]",
+    #              "data[, iv]:data[, stim_con1]",
     #              "data[, iv]:data[, stim_con2]"),
-    #     to = c("rand_intercept", "rand_cue", "rand_stimlin", 
+    #     to = c("rand_intercept", "rand_cue", "rand_stimlin",
     #            "rand_stimquad", "rand_int_cue_stimlin", "rand_int_cue_stimquad")
     # )
-    # 
+    #
     # #
     # # # The arguments to spread():
     # # # - data: Data object
@@ -525,21 +532,21 @@ for (taskname in c( "vicarious", "cognitive")) { #"pain"
     # )
     # rownames(wide_fix) <- NULL
     # new_wide_fix <- dplyr::rename(wide_fix,
-    #     fix_intercept = `(Intercept)`, 
+    #     fix_intercept = `(Intercept)`,
     #     fix_cue = `data[, iv]`,
     #     fix_stimulus_linear = `data[, stim_con1]`,
-    #     fix_stimulus_quad = `data[, stim_con2]`, 
+    #     fix_stimulus_quad = `data[, stim_con2]`,
     #     fix_int_cue_stimlin = `data[, iv]:data[, stim_con1]`,
     #     fix_int_cue_stimquad = `data[, iv]:data[, stim_con2]`
     # )
-    # 
+    #
     # total <- cbind(wide_rand, new_wide_fix)
     # total$task <- taskname
     # new_total <- total %>% dplyr::select(task, everything())
     # new_total <- dplyr::rename(total, subj = grp)
-    # 
-    # plot_savefname <- file.path(analysis_dir, 
-    #                             paste("randeffect_task-", taskname, 
+    #
+    # plot_savefname <- file.path(analysis_dir,
+    #                             paste("randeffect_task-", taskname,
     #                                   "_", as.character(Sys.Date()), "_outlier-cooksd.csv", sep = ""))
     # write.csv(new_total, plot_savefname, row.names = FALSE)
 }
@@ -556,7 +563,7 @@ LINEIV2 = "cue_ordered"
 MEAN = "mean_per_sub_norm_mean"
 ERROR = "ci"
 dv_keyword = "actual"
-    
+
     g <- ggplot(data = DATA, aes(
         x = stim_ordered,
         y = mean_per_sub_norm_mean,
@@ -580,12 +587,12 @@ dv_keyword = "actual"
         theme(legend.position = "none") +
         theme(aspect.ratio = .6)
 g
-# 
-# p1 = plot_lineplot_twofactor_subset(DATA, 'pain', 
+#
+# p1 = plot_lineplot_twofactor_subset(DATA, 'pain',
 #                LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'pain' )
-# p2 = plot_lineplot_twofactor_subset(DATA,'vicarious', 
+# p2 = plot_lineplot_twofactor_subset(DATA,'vicarious',
 #                LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = 'vicarious')
-# p3 = plot_lineplot_twofactor_subset(DATA, 'cognitive', 
+# p3 = plot_lineplot_twofactor_subset(DATA, 'cognitive',
 #                LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = 'cognitive')
 # #grid.arrange(p1, p2, p3, ncol=3 , common.legend = TRUE)
 # ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
@@ -604,11 +611,11 @@ LINEIV2 = "cue_ordered"
 MEAN = "mean_per_sub_norm_mean"
 ERROR = "ci"
 dv_keyword = "eda-mean-peak-amplitude"
-p1 = plot_lineplot_twofactor_subset(DATA, 'pain', 
+p1 = plot_lineplot_twofactor_subset(DATA, 'pain',
                LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'pain' )
-p2 = plot_lineplot_twofactor_subset(DATA,'vicarious', 
+p2 = plot_lineplot_twofactor_subset(DATA,'vicarious',
                LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = 'vicarious')
-p3 = plot_lineplot_twofactor_subset(DATA, 'cognitive', 
+p3 = plot_lineplot_twofactor_subset(DATA, 'cognitive',
                LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = 'cognitive')
 #grid.arrange(p1, p2, p3, ncol=3 , common.legend = TRUE)
 ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
@@ -616,13 +623,14 @@ plot_filename = file.path(analysis_dir,
                           paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
 ggsave(plot_filename, width = 8, height = 4)
 ```
-```
+
+````
 
 
 # ______ modify accordingly - brute copy pasted
 ```{r}
 fixef(Method3_fullmodel)
-```
+````
 
 ```{r}
 sd_raw_pre_t <- filter(tonic, cue_factor ==  "0.5") %>% summarise(s = sd(tradeoff)) %>% pull()  # treatment baseline SD
@@ -643,7 +651,7 @@ effects)
 
 ```{r, class.source = 'fold-show'}
 #https://www.journalofcognition.org/articles/10.5334/joc.10/
-cat(paste("effectsize of lmer cue effect:", 
+cat(paste("effectsize of lmer cue effect:",
           0.0658 / sqrt(sum(0.0000,0.6077,1.1785,4.0424,0.8779))))
 
 #0.0658 / sqrt(sum(0.1519,0.6078,2.0258,4.0428,0.8779))
@@ -652,7 +660,6 @@ cat(paste("effectsize of lmer cue effect:",
 #cohen_f = 0.02540844**2 / (2*2)
 #cohen_f
 ```
-
 
 ## Method 3 plotting
 
@@ -676,7 +683,7 @@ equatiomatic::extract_eq(fullmodel)
 
 ## Conclusion: Method 1 vs Method 3 {.unnumbered}
 
--   TODO: find a way to plot the results side-by-side
+- TODO: find a way to plot the results side-by-side
 
 ```{r}
 #sjPlot::sjt.lmer(Method3_fullmodel)
@@ -692,58 +699,58 @@ the beta coefficients
 
 #### 1) Statistics of Cue effect
 
--   **Method 1 onesample-t version**: *b* = -0.1974, *se* = 0.3597,
-    *t*(82) = -0.549, *p* = .585
+- **Method 1 onesample-t version**: _b_ = -0.1974, _se_ = 0.3597,
+  _t_(82) = -0.549, _p_ = .585
 
 <!-- -->
 
--   **Method 3 lmer version**: *b* = 0.06580, *se* = 0.11989, *t*(81.99)
-    = 0.549, *p* = .5846
+- **Method 3 lmer version**: _b_ = 0.06580, _se_ = 0.11989, _t_(81.99)
+  = 0.549, _p_ = .5846
 
 #### 4) Interaction effect
 
--   **Method 1 onesample-t version:** *b* = 0.7858, *se* = 0.3017,
-    *t*(82) = 2.605, *p* = 0.0109
+- **Method 1 onesample-t version:** _b_ = 0.7858, _se_ = 0.3017,
+  _t_(82) = 2.605, _p_ = 0.0109
 
--   **Method 3 lmer version**: *b* = -0.78582, *se* = 0.30170,
-    *t*(81.99944) = -2.605, *p* = .0109
+- **Method 3 lmer version**: _b_ = -0.78582, _se_ = 0.30170,
+  _t_(81.99944) = -2.605, _p_ = .0109
 
 ### In otherwords, the results are identical.
 
-------------------------------------------------------------------------
+---
 
 # References
 
--   multilevel modelling ::
-    <http://www.bristol.ac.uk/cmm/learning/multilevel-models/what-why.html>
--   multilevel modelling :: df
-    <https://bbolker.github.io/mixedmodels-misc/glmmFAQ.html#why-doesnt-lme4-display-denominator-degrees-of-freedomp-values-what-other-options-do-i-have>
--   multilevel modelling :: <https://m-clark.github.io/>
--   [Fixed vs random effects models for fMRI meta
-    analysis](https://biblio.ugent.be/publication/5775681/file/5775705.pdf)
--   <https://rpsychologist.com/d3/ci/>
--   power analysis :: <https://jakewestfall.shinyapps.io/crossedpower/>
--   power analysis in lmm glmm ::
-    <https://lkumle.github.io/power_notebooks/>
--   sjPlot :: <https://github.com/strengejacke/sjPlot/issues/311>
--   sjPlot :: <https://strengejacke.wordpress.com/2017/10/23/one-function-to-rule-them-all-visualization-of-regression-models-in-rstats-w-sjplot/>
+- multilevel modelling ::
+  <http://www.bristol.ac.uk/cmm/learning/multilevel-models/what-why.html>
+- multilevel modelling :: df
+  <https://bbolker.github.io/mixedmodels-misc/glmmFAQ.html#why-doesnt-lme4-display-denominator-degrees-of-freedomp-values-what-other-options-do-i-have>
+- multilevel modelling :: <https://m-clark.github.io/>
+- [Fixed vs random effects models for fMRI meta
+  analysis](https://biblio.ugent.be/publication/5775681/file/5775705.pdf)
+- <https://rpsychologist.com/d3/ci/>
+- power analysis :: <https://jakewestfall.shinyapps.io/crossedpower/>
+- power analysis in lmm glmm ::
+  <https://lkumle.github.io/power_notebooks/>
+- sjPlot :: <https://github.com/strengejacke/sjPlot/issues/311>
+- sjPlot :: <https://strengejacke.wordpress.com/2017/10/23/one-function-to-rule-them-all-visualization-of-regression-models-in-rstats-w-sjplot/>
 
 # Other links
 
--   Markdown formatting ::
-    <https://bookdown.org/yihui/rmarkdown-cookbook/embed-rmd.html>
--   CANlab glmfit_multilevel ::
-    <https://github.com/canlab/CanlabCore/blob/master/CanlabCore/Statistics_tools/glmfit_multilevel.m>
--   lmer results formatting ::
-    <http://www.strengejacke.de/sjPlot/articles/sjtlmer.html>
--   lmer results formatting ::
-    <https://stats.stackexchange.com/questions/173335/two-regression-outputs-side-by-side-in-r>
--   lmer and formulas :: <https://rpubs.com/rslbliss/r_mlm_ws>
--   repeated measures using aov in R ::
-    <https://stackoverflow.com/questions/5694664/repeated-measures-within-subjects-anova-in-r>
--   Matthew McCurdy anova using afex in R
-    <https://ademos.people.uic.edu/Chapter21.html>
--   error term in repeated measures R ::
-    <https://stats.stackexchange.com/questions/247582/repeated-measures-anova-in-r-errorsubject-vs-errorsubject-day>
--   effect sizes in anova R ::
-    <https://cran.r-project.org/web/packages/effectsize/vignettes/anovaES.html>
+- Markdown formatting ::
+  <https://bookdown.org/yihui/rmarkdown-cookbook/embed-rmd.html>
+- CANlab glmfit_multilevel ::
+  <https://github.com/canlab/CanlabCore/blob/master/CanlabCore/Statistics_tools/glmfit_multilevel.m>
+- lmer results formatting ::
+  <http://www.strengejacke.de/sjPlot/articles/sjtlmer.html>
+- lmer results formatting ::
+  <https://stats.stackexchange.com/questions/173335/two-regression-outputs-side-by-side-in-r>
+- lmer and formulas :: <https://rpubs.com/rslbliss/r_mlm_ws>
+- repeated measures using aov in R ::
+  <https://stackoverflow.com/questions/5694664/repeated-measures-within-subjects-anova-in-r>
+- Matthew McCurdy anova using afex in R
+  <https://ademos.people.uic.edu/Chapter21.html>
+- error term in repeated measures R ::
+  <https://stats.stackexchange.com/questions/247582/repeated-measures-anova-in-r-errorsubject-vs-errorsubject-day>
+- effect sizes in anova R ::
+  <https://cran.r-project.org/web/packages/effectsize/vignettes/anovaES.html>

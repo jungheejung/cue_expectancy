@@ -6,6 +6,7 @@ output:
 ---
 
 # load libraries
+
 ```{r include=FALSE}
 library(psych)
 library(car)
@@ -46,13 +47,14 @@ source('http://psych.colorado.edu/~jclab/R/mcSummaryLm.R')
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 ```
 
 # parameters
+
 ```{r echo=TRUE}
 main_dir = dirname(dirname(getwd()))
 print(main_dir)
@@ -60,10 +62,12 @@ datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
 ```
 
 # model 01 iv-cue dv-expect
-* Do expectations ratings differ as a function of cue type?
-* If there is a main effect of cue on expectation ratings, does htis differ depending on task type?
+
+- Do expectations ratings differ as a function of cue type?
+- If there is a main effect of cue on expectation ratings, does htis differ depending on task type?
 
 ## 1) lmer
+
 ```{r}
 # parameters _____________________________________ # nolint
 subject_varkey <- "src_subject_id"
@@ -109,7 +113,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     subjectwise_mean <- "mean_per_sub";    group_mean <- "mean_per_sub_norm_mean"
     se <- "se";    subject <- "subject"
     ggtitle <- paste(taskname, " - Expectation Rating (degree)");    title <- paste(taskname, " - Expect")
-    xlab <- "";    ylab <- "ratings (degree)";    
+    xlab <- "";    ylab <- "ratings (degree)";
     w = 5; h = 3; dv_keyword <- "expect"
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
@@ -131,7 +135,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
         w, h, dv_keyword, color, plot_savefname
     )
 randEffect$newcoef <- mapvalues(randEffect$term,
-    from = c("(Intercept)", 
+    from = c("(Intercept)",
              "data[, iv]low_cue"
              ),
     to = c("rand_intercept", "rand_cue")
@@ -169,7 +173,8 @@ write.csv(new_total, rand_savefname, row.names = FALSE)
 }
 ```
 
-# 1-2. individual differences in expectation rating cue effect 
+# 1-2. individual differences in expectation rating cue effect
+
 ```{r}
 # test function
 rand_dir <- file.path(main_dir, "analysis", "mixedeffect", "model01_iv-cue_dv-expect", as.character(Sys.Date()))
@@ -200,6 +205,7 @@ write.csv(pvc, save_fname, row.names = FALSE)
 ```
 
 # random effects scatter plot
+
 ```{r}
 pvc_rand_cue_subset <- subset(pvc, select = c(task, subj, rand_cue))
 pvc_rand_cue <- spread(pvc_rand_cue_subset, key = task, value = rand_cue)
@@ -212,7 +218,7 @@ plots <- ggpubr::ggarrange(pv, vc, cp, ncol = 3, nrow = 1, common.legend = FALSE
 plots_title <- annotate_figure(plots,top = text_grob("individual differences\n - cue effects from expectation ratings", color = "black", face = "bold", size = 20))
 save_plotname <- file.path(
     analysis_dir,
-    paste("randeffect_scatterplot_task-all_", 
+    paste("randeffect_scatterplot_task-all_",
         as.character(Sys.Date()), ".png",
         sep = ""
     )
@@ -224,32 +230,34 @@ ggsave(save_plotname, width = 10, height = 3)
 ```{r TODO}
 # # ICC(pvc_rand_cue[,c("vicarious", "pain")])
 # vp_icc = icc(
-#   pvc_rand_cue[,c("vicarious", "pain")], model = "twoway", 
+#   pvc_rand_cue[,c("vicarious", "pain")], model = "twoway",
 #   type = "agreement", unit = "single"
 #   )
 # vp_icc
-# 
+#
 # # ICC(pvc_rand_cue[,c("cognitive", "vicarious")])
 # cv_icc = icc(
-#   pvc_rand_cue[,c("cognitive", "vicarious")], model = "twoway", 
+#   pvc_rand_cue[,c("cognitive", "vicarious")], model = "twoway",
 #   type = "agreement", unit = "single"
 #   )
 # cv_icc
-# 
+#
 # # ICC(pvc_rand_cue[,c("pain", "cognitive")])
 # pc_icc = icc(
-#   pvc_rand_cue[,c("pain", "cognitive")], model = "twoway", 
+#   pvc_rand_cue[,c("pain", "cognitive")], model = "twoway",
 #   type = "agreement", unit = "single"
 #   )
 # pc_icc
 ```
 
+---
 
---------------------------------
-# model 02 iv-cue dv-actual 
---------------------------------
+# model 02 iv-cue dv-actual
+
+---
 
 ## 1) lmer
+
 ```{r}
 subject_varkey <- "src_subject_id"
 iv <- "param_cue_type"
@@ -292,7 +300,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
         (cooksd > (4 / as.numeric(length(unique(data$subject)))))
     ])
     data_screen <- data[-influential, ]
-    
+
 
     # summary stats
     subjectwise <- meanSummary(data_screen, c(subject, iv), dv)
@@ -325,16 +333,15 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
         )
     )
     plot_rainclouds_onefactor(
-      subjectwise, groupwise, iv, 
-      subject_mean, group_mean, se, subject, 
+      subjectwise, groupwise, iv,
+      subject_mean, group_mean, se, subject,
       ggtitle, title, xlab, ylab, taskname, ylim,
       w, h, dv_keyword, color, plot2_savefname)
 }
 ```
 
-
-
 # model 03 iv-cuecontrast dv-actual
+
 ```{r}
 
 
@@ -480,12 +487,13 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
 ```
 
 ## 3-2. individual difference
+
 ```{r}
 
 ```
 
-
 # model04 iv-cue-stim dv-actual
+
 ```{r}
 combined_se_calc_cooksd <- data.frame()
 analysis_dir <- file.path(
@@ -503,7 +511,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     title <- paste(taskname, " - actual")
     subject <- "subject"
 
-    data <- load_task_social_df(datadir, 
+    data <- load_task_social_df(datadir,
         taskname = taskname,
         subject_varkey = "src_subject_id",
         iv = "param_cue_type",
@@ -552,7 +560,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
             sep = ""
         )
     )
-    cooksd <- lmer_twofactor_cooksd_fix(
+    cooksd <- lmer_twofactor_cooksd(
         data, taskname, iv1, stim_con1, stim_con2, dv,
         subject, dv_keyword, model_savefname, 'random_slopes', TRUE
     )
@@ -626,38 +634,38 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
         ggtitle, title, xlab, ylab, taskname,ylim,
         w, h, dv_keyword, color, plot_savefname
     )
-    g <- g + 
-      geom_hline(yintercept = 0, size = 0.1, linetype = "dashed") + 
+    g <- g +
+      geom_hline(yintercept = 0, size = 0.1, linetype = "dashed") +
       geom_label(x = 3.5, y = 0, label = c("no sensation"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 3, size = 0.1, linetype = "dashed") + 
+      geom_hline(yintercept = 3, size = 0.1, linetype = "dashed") +
       geom_label(x = 3.5, y = 3, label = c("barely detectable"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 10, size = 0.1, linetype = "dashed") + 
+      geom_hline(yintercept = 10, size = 0.1, linetype = "dashed") +
       geom_label(x = 3.5, y = 10, label = c("weak"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 30, size = 0.1, linetype = "dashed") + 
+      geom_hline(yintercept = 30, size = 0.1, linetype = "dashed") +
       geom_label(x = 3.5, y = 30, label = c("moderate"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 65, size = 0.1, linetype = "dashed") + 
+      geom_hline(yintercept = 65, size = 0.1, linetype = "dashed") +
       geom_label(x = 3.5, y = 65, label = c("strong"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 95, size = 0.1, linetype = "dashed") + 
+      geom_hline(yintercept = 95, size = 0.1, linetype = "dashed") +
       geom_label(x = 3.5, y = 95, label = c("very strong"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 180, size = 0.1, linetype = "dashed") + 
+      geom_hline(yintercept = 180, size = 0.1, linetype = "dashed") +
       geom_label(x = 3.5, y = 180, label = c("strongest imaginable"), hjust = 0, nudge_x = 0.1, size = 3) +
       coord_cartesian(clip = 'off')+
-      theme_classic() + 
-      theme(legend.position = "none") 
-    
-    
+      theme_classic() +
+      theme(legend.position = "none")
+
+
     ggsave(plot_savefname, width = w, height = h)
 
-    
-    
+
+
 
     # save fixed random effects _______________________________
     randEffect$newcoef <- mapvalues(randEffect$term,
-        from = c("(Intercept)", "data[, iv]", 
-                 "data[, stim_con1]", "data[, stim_con2]", 
-                 "data[, iv]:data[, stim_con1]", 
+        from = c("(Intercept)", "data[, iv]",
+                 "data[, stim_con1]", "data[, stim_con2]",
+                 "data[, iv]:data[, stim_con1]",
                  "data[, iv]:data[, stim_con2]"),
-        to = c("rand_intercept", "rand_cue", "rand_stimlin", 
+        to = c("rand_intercept", "rand_cue", "rand_stimlin",
                "rand_stimquad", "rand_int_cue_stimlin", "rand_int_cue_stimquad")
     )
 
@@ -679,10 +687,10 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     )
     rownames(wide_fix) <- NULL
     new_wide_fix <- dplyr::rename(wide_fix,
-        fix_intercept = `(Intercept)`, 
+        fix_intercept = `(Intercept)`,
         fix_cue = `social_cue`, # `data[, iv]`,
         fix_stimulus_linear = `stim_con_linear`, # `data[, stim_con1]`,
-        fix_stimulus_quad = `stim_con_quad`, #`data[, stim_con2]`, 
+        fix_stimulus_quad = `stim_con_quad`, #`data[, stim_con2]`,
         fix_int_cue_stimlin = `social_cue:stim_con_linear`, #`data[, iv]:data[, stim_con1]`,
         fix_int_cue_stimquad = `social_cue:stim_con_quad` #`data[, iv]:data[, stim_con2]`
     )
@@ -692,14 +700,16 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     new_total <- total %>% dplyr::select(task, everything())
     new_total <- dplyr::rename(total, subj = grp)
 
-    plot_savefname <- file.path(analysis_dir, 
-                                paste("randeffect_task-", taskname, 
+    plot_savefname <- file.path(analysis_dir,
+                                paste("randeffect_task-", taskname,
                                       "_", as.character(Sys.Date()), "_outlier-cooksd.csv", sep = ""))
     write.csv(new_total, plot_savefname, row.names = FALSE)
 }
 
 ```
+
 # 4-2 individual differences in cue effects
+
 ```{r lineplot}
 
 # stack task- .csv
@@ -726,7 +736,7 @@ plots <- ggpubr::ggarrange(pv, vc, cp, ncol = 3, nrow = 1, common.legend = FALSE
 plots_title <- annotate_figure(plots,top = text_grob("individual differences\n - cue effects from expectation ratings", color = "black", face = "bold", size = 10 ))
 save_plotname <- file.path(
     analysis_dir,
-    paste("randeffect_scatterplot_task-all_", 
+    paste("randeffect_scatterplot_task-all_",
         as.character(Sys.Date()), ".png",
         sep = ""
     )
@@ -734,7 +744,9 @@ save_plotname <- file.path(
 plots
 ggsave(save_plotname, width = 10, height = 3)
 ```
+
 # 4-3 lineplot
+
 ```{r}
 library(ggpubr)
 DATA = as.data.frame(combined_se_calc_cooksd)
@@ -744,11 +756,11 @@ LINEIV2 = "cue_ordered"
 MEAN = "mean_per_sub_norm_mean"
 ERROR = "ci"
 dv_keyword = "actual"
-p1 = plot_lineplot_twofactor_subset(DATA, 'pain', 
+p1 = plot_lineplot_twofactor_subset(DATA, 'pain',
                LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'pain' )
-p2 = plot_lineplot_twofactor_subset(DATA,'vicarious', 
+p2 = plot_lineplot_twofactor_subset(DATA,'vicarious',
                LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = 'vicarious')
-p3 = plot_lineplot_twofactor_subset(DATA, 'cognitive', 
+p3 = plot_lineplot_twofactor_subset(DATA, 'cognitive',
                LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = 'cognitive')
 #grid.arrange(p1, p2, p3, ncol=3 , common.legend = TRUE)
 ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
@@ -757,5 +769,6 @@ plot_filename = file.path(analysis_dir,
 ggsave(plot_filename, width = 8, height = 4)
 ```
 
-# 2-4. 
+# 2-4.
+
 # 2-5. ICC of cue effect

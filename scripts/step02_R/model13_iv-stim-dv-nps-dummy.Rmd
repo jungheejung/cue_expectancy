@@ -1,6 +1,5 @@
 # nps_dummy ~ stim
 
-
 <!-- --- -->
 <!-- title: "nps_dummy ~ stim" -->
 <!-- author: "Heejung Jung" -->
@@ -9,26 +8,30 @@
 <!-- --- -->
 
 ## TODO
-* stack all stimulus dummy files
-* treat it like a within subjct analysis
-* need to use NPS separately
+
+- stack all stimulus dummy files
+- treat it like a within subjct analysis
+- need to use NPS separately
 
 ## regressors and contrasts
+
 ### What regressors were used in the neural model and how did you create contrasts? {.unlisted .unnumbered}
-This Rmd is based on the univariate analysis mainly using 2 factors (cue x stimulus intensity). 
 
-* The 6 regressors of interest are 
-  1. high-cue_high-stim 
-  1. high-cue_med-stim 
+This Rmd is based on the univariate analysis mainly using 2 factors (cue x stimulus intensity).
+
+- The 6 regressors of interest are
+
+  1. high-cue_high-stim
+  1. high-cue_med-stim
   1. high-cue_low-stim
-  1. low-cue_high-stim 
+  1. low-cue_high-stim
   1. low-cue_med-stim
-  1. low-cue_low-stim. 
-  If interested, the variable of interest is coded "`onset03_stim`" in the behavioral data. 
+  1. low-cue_low-stim.
+     If interested, the variable of interest is coded "`onset03_stim`" in the behavioral data.
 
-* Additional regressors include 7) cue_onset "`onset01_cue`", 8) onset of the expectation rating phase "`onset02_ratingexpect`" convolved with the reaction time of the expectation rating "`pmod_expectRT`", and 9) onset of the outcome rating phase "`onset04_ratingoutcome`", convolved with the reaction time of the outcome rating "`pmod_outcomeRT`". 
-* Motion covariates include a) csf, b) 24 DOF head motion variables, and c) spikes derived using a FD-spike-threshold of 0.9mm. Participants with a motion spike of more than 20 per run is excluded from the analysis. 
-For the 6 regressors of interest, I build 5 contrasts that capture the cue effect, the stimulus intensity effect, and the interaction of these two factors.
+- Additional regressors include 7) cue_onset "`onset01_cue`", 8) onset of the expectation rating phase "`onset02_ratingexpect`" convolved with the reaction time of the expectation rating "`pmod_expectRT`", and 9) onset of the outcome rating phase "`onset04_ratingoutcome`", convolved with the reaction time of the outcome rating "`pmod_outcomeRT`".
+- Motion covariates include a) csf, b) 24 DOF head motion variables, and c) spikes derived using a FD-spike-threshold of 0.9mm. Participants with a motion spike of more than 20 per run is excluded from the analysis.
+  For the 6 regressors of interest, I build 5 contrasts that capture the cue effect, the stimulus intensity effect, and the interaction of these two factors.
 
 ```{r load_libraries_13, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(psych)
@@ -44,8 +47,8 @@ library(lmerTest)
 
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 sapply(file.sources,source,.GlobalEnv)
@@ -75,7 +78,9 @@ color_scheme <- c("Pain > VC" = "#941100",
 ```
 
 ## Pain
-* from con_0032 ~ con_0037
+
+- from con_0032 ~ con_0037
+
 ```{r v_stack}
 df = data.frame()
 contrast_df = data.frame()
@@ -137,7 +142,7 @@ model_savefname <- file.path(
   )
 )
 
-cooksd <- lmer_twofactor_cooksd_fix(
+cooksd <- lmer_twofactor_cooksd(
   df,  taskname,  iv1,  stim_con1,  stim_con2,  dv,  subject_keyword = "subject",  dv_keyword,  model_savefname,
   effects = 'random_intercept', print_lmer_output = "TRUE")
 influential <- as.numeric(names(cooksd)[(cooksd > (4 / as.numeric(length(
@@ -218,6 +223,7 @@ data_screen <- df[-influential,]
 
 g
 ```
+
 ```{r}
     g <- plot_rainclouds_twofactor(
         actual_subjectwise, actual_groupwise, model_iv1, model_iv2,
@@ -229,20 +235,20 @@ g
 g
 ```
 
-
 ```{r}
 # classwise <- meanSummary(merge_df,
 #                          c(subject_keyword, iv), dv)
 # groupwise <- summarySEwithin(data = classwise,
 #                              measurevar = subjectwise_mean,
 #                              withinvars = c(iv))
-# 
+#
 # subjectwise = subset(classwise, select = -c(sd))
 ```
 
-
 ## Vicarious
-* from con_0038 ~ con_0043
+
+- from con_0038 ~ con_0043
 
 ## Cognitivee
-* from con_0044 ~ con_0049
+
+- from con_0044 ~ con_0049

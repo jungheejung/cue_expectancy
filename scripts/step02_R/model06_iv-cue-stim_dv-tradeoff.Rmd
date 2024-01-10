@@ -4,20 +4,21 @@ author: "Heejung Jung"
 date: "06/27/2022"
 output: html_document
 ---
-""" 
+
+"""
 This Rmarkdown tests the cue effect (high vs. low) on **reaction time** and **task performance** in the cognitive, mental-rotation tasks. We also test for stimulus intensity effects (high vs. medium vs. low) on **reaction time** and **task performance**.
 """
 
 # model 05 iv-cue-stim dv-tradeoff
 
-* create a tradeoff measure
+- create a tradeoff measure
 
 # TODO 06/29/2022
+
 I may have done this complete incorrectly
 I need to scale within each participant, not across paritcipants
 stack accuracy values per condition
 z score within each individual?
-
 
 ```{r load libraries, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
 library(psych)
@@ -69,20 +70,21 @@ source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/f
 library(r2mlm)
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 ```
 
-
 # parameters
+
 ```{r main directory, include=FALSE}
 main_dir = dirname(dirname(getwd()))
 print(main_dir)
 ```
 
 ## 1) plot RT data
+
 ```{r load data, echo=TRUE}
 # parameters _____________________________________ # nolint
 subject_varkey <- "src_subject_id"
@@ -100,21 +102,24 @@ data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus
 ```
 
 # plot RT distribution per participant
+
 - the purpose is to identify whether RTs are distributed from 0-5 sec or not
+
 ```{r plot RT distribution, echo=TRUE}
 ggplot(data,aes(x=event03_RT, group = subject)) +
-  geom_histogram(color="darkblue", fill="lightblue", binwidth=0.25, bins = 20) + 
-  facet_wrap(~subject, ncol = 10) + 
+  geom_histogram(color="darkblue", fill="lightblue", binwidth=0.25, bins = 20) +
+  facet_wrap(~subject, ncol = 10) +
   theme(axis.text=element_text(size=5),text=element_text(size=6))
 ```
 
-* some participants may not have responded within time limit
-* the button may not have registered the correct onset
-* I may have to remove the RTs with 5 sec. 
+- some participants may not have responded within time limit
+- the button may not have registered the correct onset
+- I may have to remove the RTs with 5 sec.
 
 ---
 
 # exclude participants with RT of 5 seconds
+
 ```{r}
 # parameters _____________________________________ # nolint
 subject_varkey <- "src_subject_id"
@@ -144,45 +149,43 @@ data$event03_correct <- ifelse(data$event03_C_stim_match == data$event03_respons
 
 # zscore performance per condition
 
-```{r}
+````{r}
 
 # data_perf <- data %>%
 #   # calculate performance and percentage wise performance (this is because there are some trials where participants did not respond)
 #   group_by(src_subject_id, param_cue_type, param_stimulus_type, .add = TRUE) %>%
 #   summarise(
-#     accuracy = sum(as.numeric(event03_correct), na.rm = TRUE), 
+#     accuracy = sum(as.numeric(event03_correct), na.rm = TRUE),
 #     count = sum(!is.na(as.numeric(event03_correct))),
 #     .groups = 'drop') %>%
-# 
+#
 #   group_by(src_subject_id, param_cue_type, param_stimulus_type) %>%
 #   mutate(percentage = 100 * accuracy/count) %>%
-#   
+#
 #   # calculate Z score using the group average across subjects
 #   ungroup() %>%
 #   group_by(param_cue_type, param_stimulus_type) %>%
 #   mutate(mean_acc = mean(as.numeric(accuracy), na.rm = TRUE),
 #          sd_acc = sd(as.numeric(accuracy), na.rm = TRUE),
-#          zscore_acc = (as.numeric(accuracy)-mean_acc) / sd_acc) 
-#   
+#          zscore_acc = (as.numeric(accuracy)-mean_acc) / sd_acc)
+#
 #   # calculate average RT within subject, for each condition type
 # data_RT <- data %>%
 #   group_by(src_subject_id, param_cue_type, param_stimulus_type) %>%
 #   dplyr::summarise(subjectwise_RT = mean(as.numeric(event03_RT), na.rm = TRUE), .groups = 'drop') %>%
-# 
+#
 #   ungroup() %>%
-# 
+#
 #   group_by(param_cue_type, param_stimulus_type) %>%
 #   mutate(mean_RT = mean(as.numeric(subjectwise_RT), na.rm = TRUE),
 #          sd_RT = sd(as.numeric(subjectwise_RT), na.rm = TRUE),
 #          zscore_RT = (as.numeric(subjectwise_RT)-mean_RT) / sd_RT)
-# 
+#
 # df_tradeoff = merge(x = data_RT, y = data_perf, by = c("src_subject_id", "param_cue_type", "param_stimulus_type"), all = TRUE)
 # ```
 # ```{r}
 # df_tradeoff$tradeoff = df_tradeoff$zscore_acc - df_tradeoff$zscore_RT
-```
-
-
+````
 
 # zscore fix attempt 2
 
@@ -212,10 +215,13 @@ df_tradeoff = merge(x = data_RT, y = data_perf, by = c("src_subject_id", "param_
 ```{r}
 df_tradeoff$tradeoff = df_tradeoff$zscore_acc - df_tradeoff$zscore_RT
 ```
-# model 1: 
-* plotting all of the code
-* Does RT differ as a function of high vs. low cue?
-* conclusion: No. RT does not differ as a function of cue
+
+# model 1:
+
+- plotting all of the code
+- Does RT differ as a function of high vs. low cue?
+- conclusion: No. RT does not differ as a function of cue
+
 ```{r model 1 contrast coding}
 #contrast code 1 linear
 df_tradeoff$stim_con_linear[df_tradeoff$param_stimulus_type == "low_stim"] <- -0.5
@@ -245,7 +251,7 @@ dv_keyword <- "RT-accuracy-tradeoff"
 xlab <- ""
 taskname <- "cognitive"
 ylim = c(0,5)
-    
+
 # lmer filename ________________________________
 model_savefname <- file.path(
         analysis_dir,
@@ -264,10 +270,10 @@ df_tradeoff$subject = factor(df_tradeoff$src_subject_id)
 m1 = lmer(tradeoff ~ cue_factor*stim_con_linear + cue_factor*stim_con_quad + (1|src_subject_id), data = df_tradeoff)
 
 fm1 <- lme(tradeoff ~ cue_factor*stim_con_linear + cue_factor*stim_con_quad, random = ~ 1  | src_subject_id,
-           data = df_tradeoff) 
+           data = df_tradeoff)
 
 
-cooksd <- lmer_twofactor_cooksd_fix(data = df_tradeoff,
+cooksd <- lmer_twofactor_cooksd(data = df_tradeoff,
                                      taskname = "cognitive",
                                      iv = "cue_factor",
                                      stim_con1 = "stim_con_linear",
@@ -281,6 +287,7 @@ influential <- as.numeric(names(cooksd)[
     (cooksd > (4 / as.numeric(length(unique(df_tradeoff$subject)))))])
 data_screen <- df_tradeoff[-influential, ]
 ```
+
 ```{r}
 # reordering for plots ----------------------------------------------------------------------------
 df_tradeoff$cue_name[df_tradeoff$param_cue_type == "high_cue"] <- "high cue"
@@ -306,8 +313,8 @@ groupwise <- summarySEwithin(
 subjectwise_mean <- "mean_per_sub";    group_mean <- "mean_per_sub_norm_mean"
 se <- "se";    subject <- "subject"
 ggtitle <- paste(taskname, " - z(accuracy)-z(RT)");    title <- paste(taskname, " - z(accuracy)-z(RT)")
-xlab <- "";    ylab <- "z(accuracy)-z(RT)";    
-w = 5; h = 3; 
+xlab <- "";    ylab <- "z(accuracy)-z(RT)";
+w = 5; h = 3;
 ylim = c(-5,5)
 dv <- "tradeoff"
 iv_keyword <- "cue-stim"
@@ -336,7 +343,7 @@ plot_rainclouds_twofactor(
 # randEffect <- as.data.frame(ranef(model_onefactor))
 # fixEffect <- as.data.frame(fixef(model_onefactor))
 randEffect$newcoef <- mapvalues(randEffect$term,
-    from = c("(Intercept)", 
+    from = c("(Intercept)",
              "param_cue_typelow_cue"
              ),
     to = c("rand_intercept", "rand_cue")
@@ -373,11 +380,12 @@ rand_savefname <- file.path(
 write.csv(new_total, rand_savefname, row.names = FALSE)
 ```
 
-
 # model 1-1
-* omitting code (identical to model 1, except for subsetting correct trials)
-* Only using correct trials, does RT differ as a function of high vs. low cue? 
-* conclusion 1-1: No. Even within the subset of correct trials, RT does not differ as a function of cue
+
+- omitting code (identical to model 1, except for subsetting correct trials)
+- Only using correct trials, does RT differ as a function of high vs. low cue?
+- conclusion 1-1: No. Even within the subset of correct trials, RT does not differ as a function of cue
+
 ```{r model 1-1 correct trials only, echo=FALSE}
 # parameters ________________________________
 subject_varkey <- "src_subject_id"
@@ -387,7 +395,7 @@ dv_keyword <- "RT-correct"
 xlab <- ""
 taskname <- "cognitive"
 ylim = c(-5,5)
-    
+
 # lmer filename ________________________________
 model_savefname <- file.path(
         analysis_dir,
@@ -405,7 +413,7 @@ data_c = data[data_clean$event03_correct == 1,]
 data_c$subject = factor(data_c$src_subject_id)
 
 # lmer model ________________________________
-cooksd <- lmer_twofactor_cooksd_fix(data = data_clean,
+cooksd <- lmer_twofactor_cooksd(data = data_clean,
                                      taskname = "cognitive",
                                      iv = "cue_factor",
                                      stim_con1 = "stim_con_linear",
@@ -431,8 +439,8 @@ groupwise <- summarySEwithin(
 subjectwise_mean <- "mean_per_sub";    group_mean <- "mean_per_sub_norm_mean"
 se <- "se";    subject <- "subject"
 ggtitle <- paste(taskname, dv_keyword);    title <- paste(taskname, " - RT")
-xlab <- "";    ylab <- "Reaction Time (s)";    
-w = 5; h = 3; 
+xlab <- "";    ylab <- "Reaction Time (s)";
+w = 5; h = 3;
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
@@ -457,7 +465,7 @@ plot_rainclouds_onefactor(
 fixEffect_correct <- as.data.frame(fixef(model_onefactor_correct))
 randEffect_correct <- as.data.frame(ranef(model_onefactor_correct))
 randEffect_correct$newcoef <- mapvalues(randEffect_correct$term,
-    from = c("(Intercept)", 
+    from = c("(Intercept)",
              "param_cue_typelow_cue"
              ),
     to = c("rand_intercept", "rand_cue")
@@ -495,12 +503,12 @@ rand_savefname <- file.path(
 write.csv(new_total, rand_savefname, row.names = FALSE)
 ```
 
+# model 1-2:
 
+- omitting code (identical to model 1, except for subsetting incorrect trials)
+- Only using incorrect trials, does RT differ as a function of high vs. low cue?
+- conclusion 1-2: no. Even within the subset of incorrect trials, RT does not differ as a function of cue
 
-# model 1-2: 
-* omitting code (identical to model 1, except for subsetting incorrect trials)
-* Only using incorrect trials, does RT differ as a function of high vs. low cue? 
-* conclusion 1-2: no. Even within the subset of incorrect trials, RT does not differ as a function of cue
 ```{r model 1-2 incorrect trials only, echo=FALSE}
 # parameters ________________________________
 subject_varkey <- "src_subject_id"
@@ -510,7 +518,7 @@ dv_keyword <- "RT-incorrect"
 xlab <- ""
 taskname <- "cognitive"
 ylim = c(0,5)
-    
+
 # lmer filename ________________________________
 model_savefname <- file.path(
         analysis_dir,
@@ -528,7 +536,7 @@ data_i = data[data_clean$event03_correct == 0,]
 data_i$subject = factor(data_i$src_subject_id)
 
 # lmer model ________________________________
-cooksd <- lmer_twofactor_cooksd_fix(data = data_clean,
+cooksd <- lmer_twofactor_cooksd(data = data_clean,
                                      taskname = "cognitive",
                                      iv = "cue_factor",
                                      stim_con1 = "stim_con_linear",
@@ -554,8 +562,8 @@ groupwise <- summarySEwithin(
 subjectwise_mean <- "mean_per_sub";    group_mean <- "mean_per_sub_norm_mean"
 se <- "se";    subject <- "subject"
 ggtitle <- paste(taskname, dv_keyword);    title <- paste(taskname, " - RT")
-xlab <- "";    ylab <- "Reaction Time (s)";    
-w = 5; h = 3; 
+xlab <- "";    ylab <- "Reaction Time (s)";
+w = 5; h = 3;
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
@@ -580,7 +588,7 @@ plot_rainclouds_onefactor(
 fixEffect_incorrect <- as.data.frame(fixef(model_onefactor_incorrect))
 randEffect_incorrect <- as.data.frame(ranef(model_onefactor_incorrect))
 randEffect_incorrect$newcoef <- mapvalues(randEffect_incorrect$term,
-    from = c("(Intercept)", 
+    from = c("(Intercept)",
              "param_cue_typelow_cue"
              ),
     to = c("rand_intercept", "rand_cue")
@@ -618,10 +626,12 @@ rand_savefname <- file.path(
 write.csv(new_total, rand_savefname, row.names = FALSE)
 ```
 
-# model 2: 
-* omitting code (identical to model 1, except for log-transformming RT)
-* Does log transformming help? After log-transformming RT, does RT differ as a function of high vs. low cue? 
-* conclusion 2: No, log transformmed or not, there is no significant cue effect on RT
+# model 2:
+
+- omitting code (identical to model 1, except for log-transformming RT)
+- Does log transformming help? After log-transformming RT, does RT differ as a function of high vs. low cue?
+- conclusion 2: No, log transformmed or not, there is no significant cue effect on RT
+
 ```{r model 2 cue effect on log-RT, echo=FALSE}
 # parameters ________________________________
 subject_varkey <- "src_subject_id"
@@ -631,7 +641,7 @@ dv_keyword <- "RT-log"
 xlab <- ""
 taskname <- "cognitive"
 ylim = c(0,5)
-    
+
 # lmer filename ________________________________
 model_savefname <- file.path(
         analysis_dir,
@@ -671,10 +681,10 @@ groupwise <- summarySEwithin(
     )
 
 subjectwise_mean <- "mean_per_sub";    group_mean <- "mean_per_sub_norm_mean"
-se <- "se";   
+se <- "se";
 ggtitle <- paste(taskname, dv_keyword);    title <- paste(taskname, " - RT")
-xlab <- "";    ylab <- "Reaction Time (s)";    
-w = 5; h = 3; 
+xlab <- "";    ylab <- "Reaction Time (s)";
+w = 5; h = 3;
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
@@ -699,7 +709,7 @@ plot_rainclouds_onefactor(
 fixEffect <- as.data.frame(fixef(model_onefactor_log))
 randEffect <- as.data.frame(ranef(model_onefactor_log))
 randEffect$newcoef <- mapvalues(randEffect$term,
-    from = c("(Intercept)", 
+    from = c("(Intercept)",
              "param_cue_typelow_cue"
              ),
     to = c("rand_intercept", "rand_cue")
@@ -735,4 +745,3 @@ rand_savefname <- file.path(
 )
 write.csv(new_total, rand_savefname, row.names = FALSE)
 ```
-
