@@ -79,7 +79,8 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     exclude <- "sub-0001|sub-0999"
     # load data, run model, and exclude outliers
     data <- df_load_beh(datadir, taskname, subject_varkey, iv, dv, exclude)
-
+    ############################################################################
+    # TODO: substitue with cueR::simple_contrast_beh(data)  right before iv <-"stim_ordered"
     data$subject = factor(data$src_subject_id)
     data$stim_name[data$param_stimulus_type == "high_stim"] <- "high"
     data$stim_name[data$param_stimulus_type == "med_stim"] <- "med"
@@ -104,6 +105,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
         data$stim_name,
         levels = c("low", "med", "high")
     )
+    ############################################################################
     iv <- "stim_ordered"
     dv <- "event02_expect_angle"
     print(taskname)
