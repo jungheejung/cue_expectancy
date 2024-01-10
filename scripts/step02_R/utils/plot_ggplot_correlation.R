@@ -14,12 +14,30 @@
 #' @param limit_max The maximum limit for both x and y axes.
 #' @param label_position The position of the correlation coefficient label on the y-axis.
 #' @return A ggplot object representing the scatter plot with correlation coefficient.
+#' 
 #' @examples
 #' data <- data.frame(x = rnorm(100), y = rnorm(100))
 #' plot_ggplot_correlation(data, "x", "y", "0.01", "0.01", -3, 3, 2)
+#' pv <- cueR::plot_ggplot_correlation(data = pvc_rand_cue, x = 'vicarious', y = 'pain', 
+#'                                     p_acc = 0.001, r_acc = 0.01, 
+#'                                     limit_min = -.75, limit_max = .75, label_position = .6)
+#' pvc_rand_cue dataframe structure:
+#' * we have a subj column
+#' * The other columns are tasks where we have the random effects store in long format. 
+#'         subj     cognitive          pain    vicarious
+#' 1   sub-0131 -0.0689888509  4.036147e-02  0.377622250
+#' 2   sub-0063            NA  7.072555e-02           NA
+#' 3   sub-0104 -0.1153836400  1.836190e-01 -0.095720170
+#' @import ggplot2
+#' @importFrom ggpubr stat_cor
 #' @export
 plot_ggplot_correlation <- function(data, x, y, p_acc, r_acc,
                                     limit_min, limit_max, label_position) {
+
+    # Drop NA values in the specified columns
+    data_clean <- na.omit(data, cols = c(x, y))
+
+    # Create the plot                                
     g <- ggplot(
         data = data,
         aes(x = .data[[x]], y = .data[[y]]),
@@ -28,7 +46,7 @@ plot_ggplot_correlation <- function(data, x, y, p_acc, r_acc,
         geom_point() +
         theme_classic() +
         theme(aspect.ratio = 1) +
-        stat_cor(
+        ggpubr::stat_cor(
             p.accuracy = p_acc,
             r.accuracy = r_acc,
             method = "pearson",

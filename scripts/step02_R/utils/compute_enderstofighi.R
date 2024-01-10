@@ -14,9 +14,9 @@
 #' @return A dataframe processed with added statistical measures.
 #'   - `OUTCOME`: Numeric version of the outcome column.
 #'   - `EXPECT`: Numeric version of the expect column.
-#'   - `OUTCOME_avg`: Mean of `OUTCOME` for each subject.
+#'   - `OUTCOME_cm`: Mean of `OUTCOME` for each subject.
 #'   - `OUTCOME_demean`: `OUTCOME` demeaned for each data point.
-#'   - `EXPECT_avg`: Mean of `EXPECT` for each subject.
+#'   - `EXPECT_cm`: Mean of `EXPECT` for each subject.
 #'   - `EXPECT_demean`: `EXPECT` demeaned for each data point.
 #'   - `trial_index`: Sequential trial number for each subject.
 #'   - `lag.OUTCOME_demean`: Lagged version of `OUTCOME_demean`.
@@ -47,10 +47,10 @@ compute_enderstofighi <- function(data, sub, outcome, expect, ses, run) {
     group_by(!!sym(sub)) %>%
     mutate(OUTCOME = as.numeric(!!sym(outcome))) %>%
     mutate(EXPECT = as.numeric(!!sym(expect))) %>%
-    mutate(OUTCOME_avg = mean(OUTCOME, na.rm = TRUE)) %>%
-    mutate(OUTCOME_demean = OUTCOME - OUTCOME_avg) %>%
-    mutate(EXPECT_avg = mean(EXPECT, na.rm = TRUE)) %>%
-    mutate(EXPECT_demean = EXPECT - EXPECT_avg) %>%
+    mutate(OUTCOME_cm = mean(OUTCOME, na.rm = TRUE)) %>%
+    mutate(OUTCOME_demean = OUTCOME - OUTCOME_cm) %>%
+    mutate(EXPECT_cm = mean(EXPECT, na.rm = TRUE)) %>%
+    mutate(EXPECT_demean = EXPECT - EXPECT_cm) %>%
     mutate(OUTCOME_zscore = as.numeric(scale(OUTCOME, center = TRUE, scale = TRUE)[, 1])) %>%
     mutate(EXPECT_zscore = as.numeric(scale(EXPECT, center = TRUE, scale = TRUE)[, 1])) 
   

@@ -1,19 +1,13 @@
 
-# example
-# plot_binned_rating(df, taskname, iv1 = "event02_expect_angle", iv2 = "event04_actual_angle", xlab = "expectation ratings",
+#' @example 
+#' # plot_binned_rating(df, taskname, iv1 = "event02_expect_angle", iv2 = "event04_actual_angle", xlab = "expectation ratings",
 #                    ylab = "outcome ratings", levels = 10)
-
-plot_binned_rating <- function(df, taskname, iv1, iv2, xlab = "expectation ratings",
+#' [Example](https://github.com/jungheejung/cueR/blob/main/man/figures/example_plot_binned_rating.png)
+plot_binned_rating <- function(df, taskname, iv1, iv2, subject = "src_subject_id", xlab = "expectation ratings",
                                ylab = "outcome ratings", levels = 10) {
     library(ggplot2)
     library(dplyr)
-    file.sources = list.files(c("/Users/h/Dropbox/projects_dropbox/social_influence_analysis/scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
-                          ignore.case=TRUE)
-    sapply(file.sources,source,.GlobalEnv)
-    # IV1 <- enquo(iv1)
-    # IV2 <- enquo(iv2)
+
 
     if (any(startsWith(taskname, c("pain", "Expect")))) {
         color_palette <- c("#941100", "#000000")
