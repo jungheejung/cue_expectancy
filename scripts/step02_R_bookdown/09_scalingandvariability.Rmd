@@ -1,0 +1,294 @@
+# beh :: rating variability {#variability}
+
+Those with greater variability have greater placebo effects. 
+::::{.refbox}
+*
+*
+*
+::::
+### load libraries {.unlisted .unnumbered}
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(car)
+library(psych)
+library(lme4); library(lmerTest)
+library(glmmTMB)
+library(plyr)
+library(dplyr)
+library(cueR)
+library(ggplot2)
+library(plotly)
+library(gridExtra)
+library(broom.mixed)
+library(knitr)
+library(grid)
+library(ggpubr)
+
+```
+
+
+
+```{r}
+# parameters ___________________________________________________________________
+main_dir <- dirname(dirname(getwd()))
+datadir <- file.path(main_dir, 'data', 'beh', 'beh02_preproc')
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model09_var", as.character(Sys.Date()))
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+subject_varkey <- "src_subject_id"
+iv <- "param_cue_type"
+dv <- "event03_RT"
+dv_keyword <- "RT"
+xlab <- ""
+taskname <- "pain"
+ylab <- "ratings (degree)"
+subject <- "subject"
+exclude <- "sub-0001"
+# 1. load data _________________________________________________________________
+data <- cueR::df_load_beh(datadir,
+                            taskname = taskname,
+                            subject_varkey = subject_varkey,
+                            iv = iv,
+                            exclude = exclude)
+
+column_mapping <- c("src_subject_id" = "subject", 
+                    "session_id" = "ses", 
+                    "param_run_num" = "run", 
+                    "param_task_name" = "runtype",
+                    "param_cue_type" = "cue", 
+                    "param_stimulus_type" = "stimintensity")
+data <- df_rename_columns(data, column_mapping)
+data_centered <- cueR::compute_enderstofighi(data, sub="subject",
+                                    outcome = "event04_actual_angle",expect= "event02_expect_angle",
+                                    ses = "ses", run = "run")
+
+```
+
+
+
+
+
+
+## Analysis 1: Pain display distribution of data
+Let's look at the distribution of the data. X axis: Y axis: 
+```{r paged.print=TRUE, fig.width=10}
+# remove NA values first
+df.centered_NA <- data_centered %>% filter(!is.na(OUTCOME))  # Remove NA values
+head(df.centered_NA)
+```
+
+
+### Sort based on Median Outcome rating order
+```{r}
+# Sort the data by median "outcome" in ascending order
+sorted_data <- df.centered_NA %>%
+  group_by(subject) %>%
+  summarize(median_outcome = median(OUTCOME, na.rm = TRUE)) %>%
+  arrange(median_outcome) %>%
+  select(subject)
+
+# Reorder the "subject" factor based on the sorted order
+df.centered_NA$subject <- factor(df.centered_NA$subject, levels = sorted_data$subject)
+
+# Create the ggplot
+g <- ggplot(df.centered_NA, aes(x = subject, y = OUTCOME, fill = subject)) +
+  geom_boxplot(outlier.shape = NA, width = 1.2, position = position_dodge(2)) +  
+  geom_jitter(width = .1, alpha = 0, size = 1) +
+  labs(x = "Subject", y = "Pain Outcome Rating") +
+  theme_classic() +
+  theme(legend.position = "none") +
+  scale_x_discrete(breaks = NULL) 
+
+# Convert ggplot object to a plotly object with hover information
+g_plotly <- ggplotly(ggplot_largetext(g), tooltip = c("x", "y"))
+g_plotly
+
+```
+
+
+## calculate cue effect
+## Q. Do those who use the scale widely show greater cue effects?
+```{r}
+
+df.centered_NA$run_order <- NA
+dv <- "OUTCOME"
+
+  # 3. calculate difference scores and summarize _____________________________
+df.centered_NA$run_order[df.centered_NA$run > 3] <- "a"
+df.centered_NA$run_order[df.centered_NA$run <= 3] <- "b"
+sub_diff <- subset(df.centered_NA, select = c(
+    "subject", "ses", "run",
+    "runtype", "cue",
+    "stimintensity", dv
+))
+
+# drop NA
+sub_diff_NA <- sub_diff %>% filter(!is.na(dv)) 
+subjectwise <- meanSummary(sub_diff_NA, c(
+    "subject", "ses", "run",
+    "runtype", "cue",
+    "stimintensity"), dv)
+
+mean_outcome <- subjectwise[1:(length(subjectwise) - 1)]
+wide <- mean_outcome %>%
+    tidyr::spread(cue, mean_per_sub)
+wide$stim_name <- NA
+wide$diff <- wide$high_cue - wide$low_cue
+wide$stim_name[wide$stimintensity == "high_stim"] <- "high"
+wide$stim_name[wide$stimintensity == "med_stim"] <- "med"
+wide$stim_name[wide$stimintensity == "low_stim"] <- "low"
+wide$stim_ordered <- factor(wide$stim_name,
+    levels = c("low", "med", "high")
+)
+
+
+subjectwise_diff <- meanSummary(wide, c("subject"), "diff")
+# subjectwise_diff$stim_ordered <- factor(subjectwise_diff$stim_ordered,
+#     levels = c("low", "med", "high")
+# )
+subjectwise_NA <- subjectwise_diff %>% filter(!is.na(sd))
+groupwise_diff <- summarySE(
+    data = subjectwise_NA,
+    measurevar = "mean_per_sub", # variable created from above
+    #withinvars = c("stim_ordered"), # iv
+    #idvar = "subject"
+)
+
+# per stim _____________________________________________________________________
+# subjectwise_diff <- meanSummary(wide, c("subject", "stim_ordered"), "diff")
+# subjectwise_diff$stim_ordered <- factor(subjectwise_diff$stim_ordered,
+#     levels = c("low", "med", "high")
+# )
+# subjectwise_NA <- subjectwise_diff %>% filter(!is.na(sd)) 
+# groupwise_diff <- summarySEwithin(
+#     data = subjectwise_NA,
+#     measurevar = "mean_per_sub", # variable created from above
+#     withinvars = c("stim_ordered"), # iv
+#     idvar = "subject"
+# )
+```
+
+```{r}
+cue.iqr <- df.centered_NA %>%
+  group_by(subject, cue) %>%
+  summarize(IQR = IQR(EXPECT, na.rm = TRUE)) %>%
+  arrange(IQR)
+model.iqr <- lm(IQR ~ cue, data = cue.iqr)
+summary(model.iqr)
+```
+> our design is conflated with variability and the placebo effect, because the high cues have more variability.
+but actually no! IQR does not differ as a function of cue leve. 
+There's more to it!
+
+```{r}
+expect.iqr <- df.centered_NA %>%
+  group_by(subject) %>%
+  summarize(IQR = IQR(EXPECT, na.rm = TRUE)) %>%
+  arrange(IQR)
+
+colnames(expect.iqr)
+colnames(subjectwise_NA)
+merge_cueeffect_IQR <- merge(subjectwise_NA, expect.iqr, by = "subject")
+head(merge_cueeffect_IQR)
+
+
+range(merge_cueeffect_IQR$mean_per_sub)
+range(merge_cueeffect_IQR$IQR)
+g<- cueR::plot_ggplot_correlation(data = merge_cueeffect_IQR, 
+                              x = 'mean_per_sub', y = 'IQR', 
+                                    p_acc = 0.001, r_acc = 0.01, 
+                                    limit_min = -40, limit_max = 200, label_position = .6)
+g + xlab("cue effect (high vs. low cue OUTCOME)") + ylab("EXPECT IQR") + ylim(0,150) + xlim(-50, 50)
+```
+
+> pretty obvious now that i think about it. those with larger cue effects wil have larger IQRs.
+in order for one to have a cue effect, you do need to report your outcome ratings drastically different depending on the cue presented. 
+
+
+
+## Here I plot the expectation rating distribution, BUT sorted based on one's cue effect difference
+
+```{r}
+merge_df_cue <- merge(subjectwise_NA, df.centered_NA, by = "subject")
+head(merge_df_cue)
+
+# validate _____________________________________________________________________
+# sorted_data <- merge_df_cue %>%
+#   group_by(subject) %>%
+#   arrange(mean_per_sub)
+
+# Reorder the "subject" factor based on the sorted order
+g <- ggplot(merge_df_cue, aes(x = reorder(subject, mean_per_sub), y = EXPECT, fill = subject)) +
+  geom_boxplot(outlier.shape = NA, width = 1.2, position = position_dodge(2)) +  
+  geom_jitter(width = .1, alpha = 0, size = 1) +
+  labs(x = "Subject (sorted based on Cue effect size (High vs. Low Outcome rating)", y = "Pain Expect Rating") +
+  theme_classic() +
+  theme(legend.position = "none") +
+  scale_x_discrete(breaks = NULL) 
+
+# Convert ggplot object to a plotly object with hover information
+g_plotly <- ggplotly(ggplot_largetext(g), tooltip = c("x", "y"))
+g_plotly
+```
+
+
+## those who use the scale widely will have greater cue effects, simply because they use the scale widely!
+But that doesn't necessarily indicate that their expectation and cue correlations should be high
+Those with grater scale use, also susceiptible to cues?
+wider IQR -> greater correlation with expectation and outcome ratings?
+> The more wider the scale you use, the more likely your expectation and outcome ratings are corerlated
+this makes sense, because if you have anchoring bias, your expectation will follow the cue, and thereby the scale might be wider? compared to those who ignore the cue? I'm not sure. 
+
+```{r}
+# expect.iqr <- df.centered_NA %>%
+#   group_by(subject) %>%
+#   summarize(IQR = IQR(EXPECT, na.rm = TRUE)) %>%
+#   arrange(IQR)
+head(df.centered_NA)
+corr_n_iqr <- df.centered_NA %>%
+  dplyr::group_by(subject) %>%
+  dplyr::summarise(
+    correlation = cor(EXPECT, OUTCOME, use = "complete.obs"),
+    IQR = IQR(EXPECT, na.rm = TRUE)
+  )
+
+ggplot(corr_n_iqr, aes(x = correlation, y = IQR)) +
+  geom_point() +  # This adds the scatter plot points
+  theme_classic() +  # Optional: Adds a minimal theme to the plot
+  # coord_fixed(aspect.ratio = 1) +
+  labs(
+    title = "Scatter Plot of Correlation vs. IQR",
+    x = "Correlation",
+    y = "IQR"
+  )
+cueR::plot_ggplot_correlation(data = corr_n_iqr, x = 'correlation', y = 'IQR',
+                                    p_acc = 0.001, r_acc = 0.01,
+                                    limit_min = -40, limit_max = 200, label_position = .6)
+
+```
+
+
+
+
+
+
+### Sort based on IQR
+```{r}
+sorted_data <- df.centered_NA %>%
+  group_by(subject) %>%
+  summarize(IQR = IQR(OUTCOME, na.rm = TRUE)) %>%
+  arrange(IQR)
+# Reorder the "subject" factor based on the sorted order
+df.centered_NA$subject <- factor(df.centered_NA$subject, levels = sorted_data$subject)
+
+# Create the ggplot
+g <- ggplot(df.centered_NA, aes(x = subject, y = OUTCOME, fill = subject)) +
+  geom_boxplot(outlier.shape = NA, width = 1.2, position = position_dodge(2)) +  
+  geom_jitter(width = .1, alpha = 0, size = 1) +
+  labs(x = "Subject", y = "Pain Outcome Rating") +
+  theme_classic() +
+  theme(legend.position = "none") +
+  scale_x_discrete(breaks = NULL) 
+
+# Convert ggplot object to a plotly object with hover information
+g_plotly <- ggplotly(ggplot_largetext(g), tooltip = c("x", "y"))
+g_plotly
+```
