@@ -101,7 +101,7 @@ plot_cueexpectancy_twofactor <- function(
     guides(shape = guide_legend(override.aes = list(shape = c(16, 17)))) +
     theme(legend.position = "none")
   
-  g <- plot_largetext(g)
+  g <- ggplot_largetext(g)
   
   # Create the legend data frame
   
