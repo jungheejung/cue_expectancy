@@ -4,8 +4,9 @@
 # https://github.com/hadley/ggplot2/blob/master/R/geom-violin.r
 
 library(ggplot2)
-library(dplyr)
 library(plyr)
+library(dplyr)
+
 
 "%||%" <- function(a, b) {
   if (!is.null(a)) a else b
