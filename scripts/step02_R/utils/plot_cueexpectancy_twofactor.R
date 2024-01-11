@@ -107,7 +107,7 @@ plot_cueexpectancy_twofactor <- function(
   
   
   # Use grid.arrange to put them together
-  combined_plot <- plot_prettifylegend(
+  combined_plot <- ggplot_prettifylegend(
     g,
     factor_level = legend_factor_levels,
     factor_color = legend_factor_colors,
