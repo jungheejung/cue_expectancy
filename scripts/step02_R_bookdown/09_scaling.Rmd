@@ -129,7 +129,7 @@ head(df.centered_NA)
 
 ### Plot Outcome rating distribution
 Ratings are sorted based on Median values of Outcome rating
-```{r}
+```{r include=FALSE}
 # Sort the data by median "outcome" in ascending order
 sorted_data <- df.centered_NA %>%
   group_by(subject) %>%
@@ -229,7 +229,7 @@ anova(model.z, model.nonz)
 
 ### plot :: subjectwise slopes of Zscore and nonZscore
 TODO: change color scheme and increase figure size
-```{r}
+```{r include=FALSE}
 
 g.rawscore <- ggplot(df.centered_NA, aes(y = OUTCOME,
                        x = EXPECT,
@@ -260,7 +260,7 @@ gridExtra::grid.arrange(g.rawscore, g.zscore, ncol = 2,
 
 ## Analysis 3: across PVC, Are these expectation effects domain-general or domain-specific?
 ### load entire data of pain,vicarious,cognitive {.unlisted .unnumbered}
-```{r eval=FALSE, include=FALSE}
+```{r include=FALSE}
 dataPVC <- cueR::df_load_pvc_beh(datadir,
                               subject_varkey = "src_subject_id",
                             iv = iv,
@@ -337,7 +337,7 @@ anova(model.pain_z, model.pain_raw)
 # print(all_tidy_effects)
 ```
 
-
+### check lmer CMC model
 ```{r}
 sjPlot::tab_model(model.pain_cmc, p.val = "kr", show.df = TRUE)
 ```
@@ -345,7 +345,7 @@ sjPlot::tab_model(model.pain_cmc, p.val = "kr", show.df = TRUE)
 
 ### lmer combined coefficients into table
 Since there are multiple models, I combine the coefficients (within subject expectation effects) into one table
-```{r}
+```{r include=FALSE}
 
 library(dplyr)
 library(broom.mixed)
@@ -836,9 +836,10 @@ write.csv(new_total, rand_savefname, row.names = FALSE)
 
 
 ## Analysis 6: create raw/zscore cue effect
+TODO: create new Rmd
 
 ```{r}
-df.PVC_center
+head(df.PVC_center)
 ```
 
 ```{r}
@@ -875,7 +876,7 @@ head(groupwise_diff)
 sorted_df <- subjectwise_diff %>%
   dplyr::arrange(task) %>%
   dplyr::rename(cue_contrast_high_gt_low = mean_per_sub)
-write.csv(sorted_df, file = file.path(main_dir,"analysis", "mixedeffect", "dataframes", "beh_cueeffect_rawoutcome.csv"), row.names = FALSE)
+# write.csv(sorted_df, file = file.path(main_dir,"analysis", "mixedeffect", "dataframes", "beh_cueeffect_rawoutcome.csv"), row.names = FALSE)
 
 # TODO: create json file for describing file metadata. BIDS format please
 # column_metadata <- list(
