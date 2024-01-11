@@ -1,0 +1,251 @@
+# beh ::  Different scaling methods ~  Cue effects {#cueeffects}
+
+## What is the purpose of this notebook? {.unlisted .unnumbered}
+
+Here, we want to... extract the cue effects across different types of ratings
+* raw outcome rating
+* z-scored outcome rating
+* cue effects / stim effect using raw outcome rating
+* cue effects / stim effects using z score ratings
+* regularized cue effects +1 / stim effect +1 using raw outcome rating
+* regularized cue effects / stim effects using z score ratings
+
+* Main model: `lmer( {{ INSERT YOUR MODEL }})` 
+* Main question: {{ INSERT YOUR QUESTION }}? 
+* {{ HYPOTHESES/EXPECTED OUTCOME }}
+* 
+* IV: 
+  - {{ FACTOR NAME }} ( {{ LEVELS}} )
+* DV: {{ DV }}
+
+
+### TODO: 
+```
+INSERT HERE
+```
+
+### References : Once note book is complete, add at the bottom of Rmd
+```
+INSERT HERE
+```
+
+### load libraries {.unlisted .unnumbered}
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(car)
+library(psych)
+library(lme4); library(lmerTest)
+library(glmmTMB)
+library(plyr)
+library(dplyr)
+library(cueR)
+library(ggplot2)
+library(plotly)
+library(gridExtra)
+library(broom.mixed)
+library(knitr)
+library(grid)
+library(ggpubr)
+
+library(dplyr)
+library(broom.mixed)
+library(effectsize)
+```
+
+```{r eval=FALSE, include=FALSE}
+main_dir <- dirname(dirname(getwd()))
+datadir <- file.path(main_dir, 'data', 'beh', 'beh02_preproc')
+# analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model09_var", as.character(Sys.Date()))
+# dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+filter_string = "sub-0001"
+dataPVC <- cueR::df_load_pvc_beh(datadir,
+                              subject_varkey = "src_subject_id",
+                            iv = iv,
+                            dv = "event04_actual_angle",
+                            exclude = filter_string)
+# center data
+df.PVC_center <- cueR::compute_enderstofighi(dataPVC, sub="sub",
+                                    outcome = "event04_actual_angle",expect= "event02_expect_angle",
+                                    ses = "ses", run = "run")
+```
+
+### display distribution of data
+Let's look at the distribution of the data. X axis: Y axis: 
+```{r paged.print=TRUE}
+head(df.PVC_center)
+colnames(df.PVC_center)
+```
+> Summary: 
+
+
+## function: compute cue effects
+```{r}
+#' Compute Cue Effect
+#'
+#' This function processes a dataframe to compute the cue effect. It involves 
+#' subsetting and filtering the data, summarizing conditions, calculating 
+#' difference scores, and calculating group-wise contrast. The function also 
+#' allows renaming of the resultant columns.
+#'
+#' @param df A dataframe containing the relevant data.
+#' @param dv The name of the dependent variable in the dataframe.
+#' @param new_col_name The new name for the column that will be created as a result 
+#'        of computing the cue effect.
+#' @return A dataframe with the computed cue effect, sorted by task, with a new 
+#'         column for the cue effect and its standard deviation, renamed as specified.
+#' @import dplyr
+#' @import tidyr
+#' @import Rmisc
+#' @export
+#' @examples
+#' # Assuming df is a dataframe with the necessary structure and "OUTCOME" is your dependent variable:
+#' result <- computed_cueeffect(df, "OUTCOME", "new_cue_effect")
+computed_cueeffect <- function(df, dv, new_col_name) {
+  library(dplyr)
+  library(tidyr)
+  library(Rmisc)
+
+  # 1) Subset and filter data __________________________________________________
+  sub_diff <- subset(df, select = c("sub", "ses", "run", "task", "stimintensity", "cuetype", dv))
+  sub_diff_NA <- sub_diff %>% filter(!is.na(dv))
+  sub_diff$task <- factor(sub_diff$task)
+  # 2) Summarize each condition and spread out columns _________________________
+  subjectwise <- meanSummary(sub_diff_NA, c("sub", "ses", "run", "task", "cuetype", "stimintensity"), dv)
+  mean_outcome <- subjectwise[1:(length(subjectwise) - 1)]
+  wide <- mean_outcome %>% tidyr::spread(cuetype, mean_per_sub)
+
+  # 3) Calculate difference score ______________________________________________
+  wide$diff <- wide$`cuetype-high` - wide$`cuetype-low`
+  subjectwise_diff <- meanSummary(wide, c("sub", "task"), "diff")
+  subjectwise_NA <- subjectwise_diff %>% filter(!is.na(sd))
+
+  # 4) Calculate group wise contrast ___________________________________________
+  groupwise_diff <- summarySEwithin(data = subjectwise_NA, measurevar = "mean_per_sub", withinvars = "task", idvar = "sub")
+  sd_col <- paste0(new_col_name, "_sd")
+  # sort data based on task and rename _________________________________________
+  sorted_df <- subjectwise_diff %>%
+    arrange(task) %>%
+    rename(!!new_col_name := mean_per_sub, 
+           !!sd_col := sd
+           )
+
+  return(sorted_df)
+}
+
+```
+
+## function: compute stim effects
+## TODO: update this for generic purpose
+* feed in a clean dataframe, that way we don't need to do subset
+* indicate what the within subject effects are for the "wide" dataframe
+```{r}
+#' Compute Stimulus Effect
+#'
+#' This function calculates the stimulus effect based on the provided dataframe.
+#' It filters the data, computes summary statistics, calculates difference scores,
+#' and optionally renames the resulting columns.
+#'
+#' @param df Dataframe containing the data to be analyzed.
+#' @param dv Name of the dependent variable column in `df`.
+#' @param new_col_name New column name for the renamed mean_per_sub column.
+#' @return A dataframe with the computed stimulus effect, sorted by task, 
+#'         and with columns optionally renamed.
+#' @import dplyr
+#' @import tidyr
+#' @import Rmisc
+#' @export
+#' @examples
+#' # Assuming df is your dataframe and "OUTCOME" is your dependent variable:
+#' result <- computed_stimeffect(df, "OUTCOME", "new_mean_outcome")
+computed_stimeffect <- function(df, dv, new_col_name) {
+  # 1) Subset and filter data __________________________________________________
+  sub_diff <- subset(df, select = c("sub", "ses", "run", "task", "stimintensity", "cuetype", dv))
+  sub_diff_NA <- sub_diff %>% filter(!is.na(dv))
+  sub_diff$task <- factor(sub_diff$task)
+ 
+  # 2) Summarize each condition and spread out columns _________________________
+  subjectwise <- meanSummary(sub_diff_NA, c("sub", "ses", "run", "task", "cuetype", "stimintensity"), dv)
+  mean_outcome <- subjectwise[1:(length(subjectwise) - 1)]
+  wide <- mean_outcome %>% tidyr::spread(stimintensity, mean_per_sub)
+
+  # 3) Calculate difference score ______________________________________________
+  wide$diff <- wide$high - wide$low
+  subjectwise_diff <- meanSummary(wide, c("sub", "task"), "diff")
+  subjectwise_NA <- subjectwise_diff %>% filter(!is.na(sd))
+  # 
+  # # 4) Calculate group wise contrast _________________________________________
+  groupwise_diff <- Rmisc::summarySEwithin(data = subjectwise_NA, measurevar = "mean_per_sub", withinvars = "task", idvar = "sub")
+  # 
+  sd_col <- paste0(new_col_name, "_sd")
+  # sort data based on task and rename _________________________________________
+  sorted_df <- subjectwise_diff %>%
+    arrange(task) %>%
+    rename(!!new_col_name := mean_per_sub, 
+           !!sd_col := sd
+           )
+  return(sorted_df)
+} 
+```
+
+
+### plot {.unlisted .unnumbered}
+We'll plot Y as a function of A and B
+X axis: 
+Y axis:
+Each data point indicates ... 
+
+
+```{r}
+raw_outcome <- computed_cueeffect(df.PVC_center, dv = "OUTCOME", new_col_name = "raw_outcome_cue")
+z_outcome <- computed_cueeffect(df.PVC_center, dv = "OUTCOME", new_col_name = "z_outcome_cue")
+raw_expect <- computed_cueeffect(df.PVC_center, dv = "EXPECT", new_col_name = "raw_expect_cue")
+z_expect <- computed_cueeffect(df.PVC_center, dv = "EXPECT", new_col_name = "z_expect_cue")
+
+rawstim_outcome <- computed_stimeffect(df.PVC_center, dv = "OUTCOME", new_col_name = "raw_outcome_stim")
+zstim_outcome <- computed_stimeffect(df.PVC_center, dv = "OUTCOME", new_col_name = "z_outcome_stim")
+rawstim_expect <- computed_stimeffect(df.PVC_center, dv = "EXPECT", new_col_name = "raw_expect_stim")
+zstim_expect <- computed_stimeffect(df.PVC_center, dv = "EXPECT", new_col_name = "z_expect_stim")
+
+
+# Merging all dataframes _______________________________________________________
+merged_df <- raw_outcome %>%
+  full_join(z_outcome, by = c("sub", "task")) %>%
+  full_join(raw_expect, by = c("sub", "task")) %>%
+  full_join(z_expect, by = c("sub", "task")) %>%
+  full_join(rawstim_outcome, by = c("sub", "task")) %>%
+  full_join(zstim_outcome, by = c("sub", "task")) %>%
+  full_join(rawstim_expect, by = c("sub", "task")) %>%
+  full_join(zstim_expect, by = c("sub", "task"))
+
+# calculate cue vs stim effect ratio ___________________________________________
+merged_df$cuestim_raw_outcome <- merged_df$raw_outcome_cue/merged_df$raw_outcome_stim
+merged_df$cuestim_raw_outcome_reg <- (merged_df$raw_outcome_cue+1)/(merged_df$raw_outcome_stim+1)
+
+merged_df$cuestim_z_outcome <- merged_df$z_outcome_cue/merged_df$z_outcome_stim
+merged_df$cuestim_z_outcome_reg <- (merged_df$z_outcome_cue+1)/(merged_df$z_outcome_stim+1)
+
+merged_df$cuestim_raw_expect <- merged_df$raw_expect_cue/merged_df$raw_expect_stim
+merged_df$cuestim_raw_expect_reg <- (merged_df$raw_expect_cue+1)/(merged_df$raw_expect_stim+1)
+
+merged_df$cuestim_z_expect <- merged_df$z_expect_cue/merged_df$z_expect_stim
+merged_df$cuestim_z_expect_reg <- (merged_df$z_expect_cue+1)/(merged_df$z_expect_stim+1)
+
+write.csv(merged_df, file = file.path(main_dir, "analysis", "mixedeffect", "dataframes", "beh_cueeffect_rawoutcome.csv"), row.names = FALSE)
+```
+```{r}
+head(merged_df)
+colnames(merged_df)
+```
+
+
+
+> Conclusion:
+
+
+:::: {.infobox}
+Include the actual content here. here are my thoughts
+::::
+
+:::: {.refbox}
+Include the actual content here. here are my thoughts
+::::
+

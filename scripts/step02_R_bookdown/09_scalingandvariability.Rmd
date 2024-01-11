@@ -169,9 +169,9 @@ groupwise_diff <- summarySE(
 ```{r}
 cue.iqr <- df.centered_NA %>%
   group_by(subject, cue) %>%
-  summarize(IQR = IQR(EXPECT, na.rm = TRUE)) %>%
+  summarize(IQR = IQR(OUTCOME, na.rm = TRUE)) %>%
   arrange(IQR)
-model.iqr <- lm(IQR ~ cue, data = cue.iqr)
+model.iqr <- lmer(IQR ~ cue + (1|subject), data = cue.iqr)
 summary(model.iqr)
 ```
 > our design is conflated with variability and the placebo effect, because the high cues have more variability.
