@@ -65,11 +65,11 @@ df_load_pvc_beh <- function(datadir, subject_varkey, iv, dv, exclude) {
       task = as.character(param_task_name), # Assuming task name is a character string
       trial_sub = trial_count_sub,
       trial = sprintf("trial-%03d", trial_ind),
-      cue = str_split_fixed(param_cue_type, '_', 2)[, 1],
+      cue = stringr::str_split_fixed(param_cue_type, '_', 2)[, 1],
       cuetype = sprintf("cuetype-%s", cue),
-      stimintensity = str_split_fixed(param_stimulus_type, '_', 2)[, 1],
-      DEPc = str_split_fixed(param_cue_type, '_', 2)[, 2],
-      DEP = str_split_fixed(param_stimulus_type, '_', 2)[, 2]
+      stimintensity = stringr::str_split_fixed(param_stimulus_type, '_', 2)[, 1],
+      DEPc = stringr::str_split_fixed(param_cue_type, '_', 2)[, 2],
+      DEP = stringr::str_split_fixed(param_stimulus_type, '_', 2)[, 2]
     ) %>%
     select(-cue) # Remove the intermediate 'cue' column
   
