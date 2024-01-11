@@ -32,6 +32,16 @@ Some thoughts:
 * IV: 
   - {{ FACTOR NAME }} ( {{ LEVELS}} )
 * DV: {{ DV }}
+---
+title: "Your Document Title"
+author: "Your Name"
+output: 
+  bookdown::html_document2:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+    theme: united
+---
 
 
 ::::{.refbox}
@@ -633,7 +643,7 @@ cor(df.PVC_center[df.PVC_center$runtype == "runtype-vicarious", c("OUTCOME", "EX
 cueR::print_dash("Correlation Cognitive")
 cor(df.PVC_center[df.PVC_center$runtype == "runtype-cognitive", c("OUTCOME", "EXPECT_demean", "EXPECT_cmc")])
 
-model.pain_cmc <- glmmTMB(OUTCOME ~ EXPECT_demean + EXPECT_cmc + (EXPECT_demean|sub), df.PVC_center[df.PVC_center$runtype == "runtype-pain", ], )
+model.pain_cmc <- lmer(OUTCOME ~ EXPECT_demean + EXPECT_cmc + (EXPECT_demean|sub), df.PVC_center[df.PVC_center$runtype == "runtype-pain", ], )
 model.vic_cmc <- lmer(OUTCOME ~ EXPECT_demean + EXPECT_cmc + (EXPECT_demean|sub), df.PVC_center[df.PVC_center$runtype == "runtype-vicarious", ])
 model.cog_cmc <- lmer(OUTCOME ~ EXPECT_demean + EXPECT_cmc + (EXPECT_demean|sub), df.PVC_center[df.PVC_center$runtype == "runtype-cognitive", ])
 cueR::print_dash("lmer Pain")
@@ -761,7 +771,7 @@ ggplot(long_data, aes(x = expectation_randomeffects, fill = task)) +
 #         sep = ""
 #     )
 # )
-write.csv(new_total, rand_savefname, row.names = FALSE)
+# write.csv(new_total, rand_savefname, row.names = FALSE)
 
 ###################################### reference
     cooksd <- lmer_onefactor_cooksd(data, taskname, iv, dv, subject, dv_keyword, model_savefname, print_lmer_output) # run lmer
