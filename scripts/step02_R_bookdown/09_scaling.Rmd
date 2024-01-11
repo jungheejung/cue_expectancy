@@ -37,20 +37,126 @@ Some thoughts:
 ::::{.refbox}
 * [Enders, C. K., & Tofighi, D. (2007). Centering predictor variables in cross-sectional multilevel models: A new look at an old issue. Psychological Methods, 12(2), 121–138.](https://doi.org/10.1037/1082-989X.12.2.121)
 * https://philippmasur.de/2018/05/23/how-to-center-in-multilevel-models/
+* displaying lmer in html tables: https://strengejacke.github.io/sjPlot/articles/tab_mixed.html
 ::::
 
 
-### TODO: 
+## TODO: 
 ```
-zscore the ratings (ignore sessions)
-predict outcome ratings
-model compare zscore vs just raw score
-include between subject level scores as covariates. AS ALWAYS
+- [x] zscore the ratings (ignore sessions)
+- [x] predict outcome ratings
+- [x] model compare zscore vs just raw score
+- [x] include between subject level scores as covariates. AS ALWAYS
+- [ ]identify why model doesn't converge for OUTCOME ~ EXPECT + (EXPECT|SUB)
+It might be the zero ratings 
+- [ ] Drop trials with ratings of 0. 
+- [ ] raw cue effect, raw stim effect, raw cue/stimeffect, raw cue/stim + 1 effect
+```
+
+### load libraries {.unlisted .unnumbered}
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(car)
+library(psych)
+library(lme4); library(lmerTest)
+library(glmmTMB)
+library(plyr)
+library(dplyr)
+library(cueR)
+library(ggplot2)
+library(plotly)
+library(gridExtra)
+library(broom.mixed)
+library(knitr)
+library(grid)
+library(ggpubr)
+
+library(dplyr)
+library(broom.mixed)
+library(effectsize)
 ```
 
 
+
+```{r include=FALSE}
+# parameters ___________________________________________________________________
+main_dir <- dirname(dirname(getwd()))
+datadir <- file.path(main_dir, 'data', 'beh', 'beh02_preproc')
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model09_var", as.character(Sys.Date()))
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+subject_varkey <- "src_subject_id"
+iv <- "param_cue_type"
+dv <- "event03_RT"
+dv_keyword <- "RT"
+xlab <- ""
+taskname <- "pain"
+ylab <- "ratings (degree)"
+subject <- "subject"
+exclude <- "sub-0001"
+# 1. load data _________________________________________________________________
+data <- cueR::df_load_beh(datadir,
+                            taskname = taskname,
+                            subject_varkey = subject_varkey,
+                            iv = iv,
+                            exclude = exclude)
+
+column_mapping <- c("src_subject_id" = "subject", 
+                    "session_id" = "ses", 
+                    "param_run_num" = "run", 
+                    "param_task_name" = "runtype",
+                    "param_cue_type" = "cue", 
+                    "param_stimulus_type" = "stimintensity")
+data <- df_rename_columns(data, column_mapping)
+data_centered <- cueR::compute_enderstofighi(data, sub="subject",
+                                    outcome = "event04_actual_angle",expect= "event02_expect_angle",
+                                    ses = "ses", run = "run")
+
+```
+
+
+
+
+
+
+## Analysis 1: Pain display distribution of data
+Let's look at the distribution of the data. X axis: Y axis: 
+Here's the loaded dataset, filtered if Outcome Ratings have NA
+```{r fig.width=10, paged.print=TRUE}
+# remove NA values first
+df.centered_NA <- data_centered %>% filter(!is.na(OUTCOME))  # Remove NA values
+head(df.centered_NA)
+```
+
+
+### Plot Outcome rating distribution
+Ratings are sorted based on Median values of Outcome rating
+```{r}
+# Sort the data by median "outcome" in ascending order
+sorted_data <- df.centered_NA %>%
+  group_by(subject) %>%
+  summarize(median_outcome = median(OUTCOME, na.rm = TRUE)) %>%
+  arrange(median_outcome) %>%
+  select(subject)
+
+# Reorder the "subject" factor based on the sorted order
+df.centered_NA$subject <- factor(df.centered_NA$subject, levels = sorted_data$subject)
+
+# Create the ggplot
+g <- ggplot(df.centered_NA, aes(x = subject, y = OUTCOME, fill = subject)) +
+  geom_boxplot(outlier.shape = NA, width = 1.2, position = position_dodge(2)) +  
+  geom_jitter(width = .1, alpha = 0, size = 1) +
+  labs(x = "Subject", y = "Pain Outcome Rating") +
+  theme_classic() +
+  theme(legend.position = "none") +
+  scale_x_discrete(breaks = NULL) 
+
+# Convert ggplot object to a plotly object with hover information
+g_plotly <- ggplotly(ggplot_largetext(g), tooltip = c("x", "y"))
+g_plotly
+
+```
 
 ### Identify subjects with narrow IQR
+I plan to use this to filter out participants
 ```{r}
 library(dplyr)
 
@@ -85,8 +191,7 @@ narrowest_iqr_string <- paste0('"', as.character(head(iqr_data)$subject), '"', c
 cat("Subjects with the Narrowest IQRs:\n", narrowest_iqr_string, "\n")
 
 # head(iqr_data)$subject
-```
-```{r}
+
 # Create filter string based on narrow variability
 subject_ids <- as.character(head(iqr_data)$subject)
 formatted_subjects <- paste0("sub-", sprintf("%04d", as.numeric(subject_ids)))
@@ -98,7 +203,9 @@ cat("Filter String: ", filter_string, "\n")
 ```
 
 ## Analysis 2: Z score vs. not model comparison
-### lmer model compare z score vs nonzscore
+### lmer model compare z score vs nonzscore {-}
+
+Q. how do the coefficients change as a function of Z scoring vs not? 
 ```{r}
 model.z <- lmer(OUTCOME ~ EXPECT_zscore + (EXPECT_zscore|subject), df.centered_NA)
 model.nonz <- lmer(OUTCOME ~ EXPECT + (EXPECT|subject), df.centered_NA)
@@ -121,6 +228,7 @@ anova(model.z, model.nonz)
 
 
 ### plot :: subjectwise slopes of Zscore and nonZscore
+TODO: change color scheme and increase figure size
 ```{r}
 
 g.rawscore <- ggplot(df.centered_NA, aes(y = OUTCOME,
@@ -151,16 +259,14 @@ gridExtra::grid.arrange(g.rawscore, g.zscore, ncol = 2,
 
 
 ## Analysis 3: across PVC, Are these expectation effects domain-general or domain-specific?
-
+### load entire data of pain,vicarious,cognitive {.unlisted .unnumbered}
 ```{r eval=FALSE, include=FALSE}
 dataPVC <- cueR::df_load_pvc_beh(datadir,
                               subject_varkey = "src_subject_id",
                             iv = iv,
                             dv = "event04_actual_angle",
                             exclude = filter_string)
-```
-
-```{r}
+# center data
 df.PVC_center <- cueR::compute_enderstofighi(dataPVC, sub="sub",
                                     outcome = "event04_actual_angle",expect= "event02_expect_angle",
                                     ses = "ses", run = "run")
@@ -169,26 +275,29 @@ df.PVC_center <- cueR::compute_enderstofighi(dataPVC, sub="sub",
 
 ### lmer model compare z score vs nonzscore
 ```{r}
-model.pain_z <- lmer(OUTCOME ~ EXPECT_zscore + (EXPECT_zscore|sub), df.PVC_center[df.PVC_center$runtype == "runtype-pain", ])
-model.vic_z <- lmer(OUTCOME ~ EXPECT_zscore + (EXPECT_zscore|sub), df.PVC_center[df.PVC_center$runtype == "runtype-vicarious", ])
-model.cog_z <- lmer(OUTCOME ~ EXPECT_zscore + (EXPECT_zscore|sub), df.PVC_center[df.PVC_center$runtype == "runtype-cognitive", ])
-model.pain_raw <- lmer(OUTCOME ~ EXPECT + (EXPECT|sub), df.PVC_center[df.PVC_center$runtype == "runtype-pain", ])
-model.vic_raw <- lmer(OUTCOME ~ EXPECT + (EXPECT|sub), df.PVC_center[df.PVC_center$runtype == "runtype-vicarious", ])
-model.cog_raw <- lmer(OUTCOME ~ EXPECT + (EXPECT|sub), df.PVC_center[df.PVC_center$runtype == "runtype-cognitive", ])
-model.pain_cmc <- lmer(OUTCOME ~ EXPECT_demean + EXPECT_cmc + (1|sub), df.PVC_center[df.PVC_center$runtype == "runtype-pain", ])
-model.vic_cmc <- lmer(OUTCOME ~ EXPECT_demean + EXPECT_cmc + (1|sub), df.PVC_center[df.PVC_center$runtype == "runtype-vicarious", ])
-model.cog_cmc <- lmer(OUTCOME ~ EXPECT_demean + EXPECT_cmc + (1|sub), df.PVC_center[df.PVC_center$runtype == "runtype-cognitive", ])
+pain.df <- df.PVC_center[df.PVC_center$runtype == "runtype-pain", ]
+vic.df <- df.PVC_center[df.PVC_center$runtype == "runtype-vicarious", ]
+cog.df <- df.PVC_center[df.PVC_center$runtype == "runtype-cognitive", ]
+model.pain_z <- lmer(OUTCOME ~ EXPECT_zscore + (EXPECT_zscore|sub), pain.df)
+model.vic_z <- lmer(OUTCOME ~ EXPECT_zscore + (EXPECT_zscore|sub), vic.df)
+model.cog_z <- lmer(OUTCOME ~ EXPECT_zscore + (EXPECT_zscore|sub), cog.df)
+model.pain_raw <- lmer(OUTCOME ~ EXPECT + (EXPECT|sub), pain.df)
+model.vic_raw <- lmer(OUTCOME ~ EXPECT + (EXPECT|sub),  vic.df)
+model.cog_raw <- lmer(OUTCOME ~ EXPECT + (EXPECT|sub), cog.df)
+model.pain_cmc <- lmer(OUTCOME ~ EXPECT_demean + EXPECT_cmc + (1|sub), pain.df)
+model.vic_cmc <- lmer(OUTCOME ~ EXPECT_demean + EXPECT_cmc + (1|sub),  vic.df)
+model.cog_cmc <- lmer(OUTCOME ~ EXPECT_demean + EXPECT_cmc + (1|sub), cog.df)
 
 
-model.pain_z <- lmer(OUTCOME ~ EXPECT_zscore + (EXPECT_zscore|sub), df.PVC_center[df.PVC_center$runtype == "runtype-pain", ])
-model.pain_bothz <- lmer(OUTCOME_zscore ~ EXPECT_zscore + (EXPECT_zscore|sub), df.PVC_center[df.PVC_center$runtype == "runtype-pain", ])
-model.pain_bothCM <- lmer(OUTCOME_demean ~ EXPECT_demean + (EXPECT_demean|sub), df.PVC_center[df.PVC_center$runtype == "runtype-pain", ])
-model.pain_CM <- lmer(OUTCOME ~ EXPECT_demean + (EXPECT_demean|sub), df.PVC_center[df.PVC_center$runtype == "runtype-pain", ])
+model.pain_z <- lmer(OUTCOME ~ EXPECT_zscore + (EXPECT_zscore|sub), pain.df)
+model.pain_bothz <- lmer(OUTCOME_zscore ~ EXPECT_zscore + (EXPECT_zscore|sub), pain.df)
+model.pain_bothCM <- lmer(OUTCOME_demean ~ EXPECT_demean + (EXPECT_demean|sub), pain.df)
+model.pain_CM <- lmer(OUTCOME ~ EXPECT_demean + (EXPECT_demean|sub), pain.df)
 
 print_dash("model with Z scores :: Pain")
 summary(model.pain_z)
 
-print_dash("model with Z scores :: Cognitive")
+print_dash("model with Z scores :: Vicarious")
 summary(model.vic_z)
 
 print_dash("model with Z scores :: Cognitive")
@@ -197,15 +306,15 @@ summary(model.cog_z)
 print_dash("model with raw scores, i.e. non Zscores :: Pain")
 summary(model.pain_raw)
 
-print_dash("model with raw scores, i.e. non Zscores :: Pain")
+print_dash("model with raw scores, i.e. non Zscores :: Vicarious")
 summary(model.vic_raw)
 
-print_dash("model with raw scores, i.e. non Zscores :: Pain")
+print_dash("model with raw scores, i.e. non Zscores :: Cognitive")
 summary(model.cog_raw)
 
-print_dash("model with raw scores CMC and CWC")
-summary(model.pain_cmc)
-
+print_dash("model with raw Pain scores CMC and CWC")
+# summary(model.pain_cmc)
+sjPlot::tab_model(model.pain_cmc, p.val = "kr", show.df = TRUE)
 print_dash("model comparison")
 anova(model.pain_z, model.pain_raw)
 
@@ -226,28 +335,17 @@ anova(model.pain_z, model.pain_raw)
 # 
 # # Print the combined tidied model summaries
 # print(all_tidy_effects)
+```
 
+
+```{r}
+sjPlot::tab_model(model.pain_cmc, p.val = "kr", show.df = TRUE)
 ```
 
 
 ### lmer combined coefficients into table
-
-
+Since there are multiple models, I combine the coefficients (within subject expectation effects) into one table
 ```{r}
-
-
-tidy_model_with_name <- function(model, model_name, task) {
-  
-  X <- effectsize::standardize_parameters(model, method = "pseudo")
-  beta_std <- X$Std_Coefficient[2]
-  broom.mixed::tidy(model) %>%
-    filter(effect == "fixed", term != "(Intercept)") %>%
-    select(term, estimate, p.value) %>%
-    mutate(model = model_name,
-           estimate_standardized = beta_std) %>%
-    select(model, term, estimate,estimate_standardized, p.value)
-}
-#### SANDBOX 2
 
 library(dplyr)
 library(broom.mixed)
@@ -255,31 +353,31 @@ library(effectsize)
 
 tidy_model_with_name <- function(model, model_name) {
   
-  # Standardize parameters
+  # Standardize parameters _____________________________________________________
   X <- effectsize::standardize_parameters(model, method = "pseudo")
 
-  # Exclude the intercept and grab all other standardized coefficients
+  # Exclude the intercept and grab all other standardized coefficients _________
   beta_stds <- X$Std_Coefficient[X$Parameter != "(Intercept)"]
 
-  # Tidy the model, filter out intercept, and add standardized coefficients
+  # Tidy the model, filter out intercept, and add standardized coefficients ____
   tidy_data <- broom.mixed::tidy(model) %>%
     filter(effect == "fixed", term != "(Intercept)") %>%
     select(term, estimate, p.value) %>%
     mutate(model = model_name)
 
-  # Add the standardized coefficients to the tidy data
+  # Add the standardized coefficients to the tidy data _________________________
   # Assuming the order of terms in tidy_data matches the order in X
   tidy_data$beta_std <- beta_stds
   tidy_data$task <- strsplit(model_name, " ")[[1]][1]
   
-  # Reorder columns as desired
+  # Reorder columns as desired _________________________________________________
   tidy_data <- tidy_data %>%
     select(task, model, term, estimate, beta_std, p.value)
 
   return(tidy_data)
 }
 
-
+# 
 tidy_model.pain_z <- tidy_model_with_name(model.pain_z, "Pain Outcome ~ ExpectZ")
 tidy_model.vic_z <- tidy_model_with_name(model.vic_z, "Vicarious Outcome ~ ExpectZ")
 tidy_model.cog_z <- tidy_model_with_name(model.cog_z, "Cognitive Outcome ~ ExpectZ")
@@ -298,7 +396,7 @@ tidy_model.pain_bothCM <- tidy_model_with_name(model.pain_bothCM, "Pain Outcome_
 tidy_model.pain_CM <- tidy_model_with_name(model.pain_CM, "Pain Outcome ~ Expect_demean")
 
 
-# bind all extracted values
+# bind all extracted values ____________________________________________________
 all_fixed_effects <- bind_rows(
   tidy_model.pain_z,
   tidy_model.vic_z,
@@ -319,7 +417,7 @@ all_fixed_effects <- bind_rows(
 
 ```{r}
 library(DT)
-# # Print or use kable/DT for a nicer table in R Markdown
+# Print or use kable/DT for a nicer table in R Markdown ________________________
 DT::datatable(all_fixed_effects,
                             options = list(
                               pageLength = 25,
@@ -344,7 +442,7 @@ DT::datatable(all_fixed_effects,
 library(ggplot2)
 library(gridExtra)
 library(grid)
-# scale_colour_gradient(low = "red", high = "darkred") +
+
 plot_endertofighi <- function(data, taskname, color_low="gray", color_high="black") {
   runtype_filter <- paste0("runtype-", taskname)
   data$sub_numeric <- as.numeric(as.factor(data$sub))
@@ -474,16 +572,17 @@ plot_endertofighi <- function(data, taskname, color_low="gray", color_high="blac
 #plot_endertofighi(df.PVC_center[df.PVC_center$runtype == "runtype-pain", ], "pain")
 ```
 
-```{r, fig.width=10, fig.height=5}
-plot_endertofighi(df.PVC_center[df.PVC_center$runtype == "runtype-pain", ], "pain", color_low = "red", color_high = "darkred")
+```{r echo=FALSE, fig.height=5, fig.width=10}
+cueR::plot_endertofighi(df.PVC_center[df.PVC_center$runtype == "runtype-pain", ], "pain", color_low = "red", color_high = "darkred")
 
-plot_endertofighi(df.PVC_center[df.PVC_center$runtype == "runtype-vicarious", ], "vicarious",color_low = "#5bba6f", color_high = "#054a29" )
+cueR::plot_endertofighi(df.PVC_center[df.PVC_center$runtype == "runtype-vicarious", ], "vicarious",color_low = "#5bba6f", color_high = "#054a29" )
 
-plot_endertofighi(df.PVC_center[df.PVC_center$runtype == "runtype-cognitive", ], "cognitive", color_low = "#caf0f8", color_high = "#03045e")
+cueR::plot_endertofighi(df.PVC_center[df.PVC_center$runtype == "runtype-cognitive", ], "cognitive", color_low = "#caf0f8", color_high = "#03045e")
 ```
 
 > Demeaning has a similar efect as zscoring, the only difference is that the mean is forced to 0 and the standard deviation 1 for the zscore. 
 in a sense, both are removing the between subject effects and homing in onthe within subject effects. 
+
 
 ## Analysis 4: Random effects of Expectation. extract subjectwise coefficients. see if they are similar across tasks. 
 #### function; extract random effect of expectation
@@ -734,6 +833,73 @@ write.csv(new_total, rand_savefname, row.names = FALSE)
 
 
 ## Analysis 5: Buchel. plot the distribution of stimulus intensity as a function of pain sensitivity people
+
+
+## Analysis 6: create raw/zscore cue effect
+
+```{r}
+df.PVC_center
+```
+
+```{r}
+
+dv <- "OUTCOME"
+
+# 3. calculate difference scores and summarize _____________________________
+sub_diff <- subset(df.PVC_center,
+                   select = c("sub", "ses", "run", "task", "stimintensity", "cuetype", dv))
+head(sub_diff)
+sub_diff_NA <- sub_diff %>% filter(!is.na(dv))  # drop NA
+# ___ 1) first, summarize each condition _______________________________________
+subjectwise <- meanSummary(sub_diff_NA, c(
+    "sub", "ses", "run",
+    "task", "cuetype",
+    "stimintensity"), dv)
+# ___ 2) spread out high and low cue columns ___________________________________
+mean_outcome <- subjectwise[1:(length(subjectwise) - 1)]
+wide <- mean_outcome %>%
+    tidyr::spread(cuetype, mean_per_sub)
+# ___ 3) calculate difference score "cue effect" _______________________________
+wide$diff <- wide$`cuetype-high` - wide$`cuetype-low`
+subjectwise_diff <- meanSummary(wide, c("sub", "task"), "diff")
+subjectwise_NA <- subjectwise_diff %>% filter(!is.na(sd)) # drop na values
+# ___ 4) calculate group wise contrast  _______________________________________
+groupwise_diff <- Rmisc::summarySEwithin(
+    data = subjectwise_NA,
+    measurevar = "mean_per_sub", # variable created from above
+    withinvars = "task", # iv
+    idvar = "sub"
+)
+head(groupwise_diff)
+# save dataframe _______________________________________________________________
+sorted_df <- subjectwise_diff %>%
+  dplyr::arrange(task) %>%
+  dplyr::rename(cue_contrast_high_gt_low = mean_per_sub)
+write.csv(sorted_df, file = file.path(main_dir,"analysis", "mixedeffect", "dataframes", "beh_cueeffect_rawoutcome.csv"), row.names = FALSE)
+
+# TODO: create json file for describing file metadata. BIDS format please
+# column_metadata <- list(
+#   sub = list(
+# description = "subject id in BIDS formats"
+# labels = "sub-%04d"
+# ),
+#   task = list(
+#     description = "Task performed by the subject in cue expectancy task",
+#     generation_info = "counter balanced across runs. However number of runs performed are included in computations. Subjects may have different frequencies of tasks performed. Some may have completed 6 pain runs, whereas other may have completed 2 pain runs, depending on how many sessions they attended. ",
+#     labels = c("pain", "vicarious", "cognitive")
+#   ),
+#   cue_contrast_high_gt_low = list(
+#     description = "Mean cue difference (high vs. low cue) per subject",
+#     generation_info = "Calculated as the mean of cue effects across participants, per task ",
+#   ),
+#   sd = list(
+#     description = "Standard deviasion",
+#     generation_info = "How column3 was generated",
+#     labels = c("Label1", "Label2", "Label3")
+#   )
+# )
+
+```
 
 
 > Summary: 
