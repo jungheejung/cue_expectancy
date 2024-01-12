@@ -2,36 +2,37 @@
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
-cue effect with raw score, conflated with scale artifact and also common domain general expectation mechanisms.
-Q. what about task-specific components?
-
-Here, we want to examine the between and within subject effects of subjective ratings. 
+> Here, we want to examine the between and within subject effects of subjective ratings. 
 There are scale usage differences across individuals. It's evident in our behavioral data. 
 These scale usage differences do not really reflecting the underlying experience, but compresses the scale.
-This is one of the reasons why including the between subject term improves the performance of the mediation model. 
+This is one of the reasons why including the between-subject term improves the performance of the mediation model. 
 It's also in line with Enders and Tofighi's illustration of centering in multilevel models. 
-
+\n
 The logic is that there are multiple components that go into subjective ratings
 the way that an individual uses a scale ("between-subject effect")
 and the fact that the rating does reflect the subjective experience ("within-subject effect")
 We want to rid of the between subject effect and focus on the subjective experience. 
-
+\n
 One way to resolve this is by z-scoring.
-
+\n
 Hypothesis: After z-scoring, if we see a high correlation across tasks in terms of their cue effects, then we can safely conclude that the way that people think of expectations are highly domain general
-
+\n
+The cue effect from raw scores can be conflated with scale artifact and also common domain general expectation mechanisms.
+Q. what about task-specific components?
+\n
 Some thoughts:
 * if scaling artifact is a big driving factor, that pain to brain is going to lead to a weak signal.
 * within person pain effects. only weakly tracks individual differences.
-
-
+/n
 * Main model: `lmer( OUTCOME ~ EXPECT)` vs. `lmer( OUTCOME ~ zscoreEXPECT)`
-* Main question: {{ INSERT YOUR QUESTION }}? 
+* Main question: Does Z-scoring lead to an improvement in predicting pain? Does the effect shrink, indicating that most pain ratings are a byproduct of participants using the scale differently? 
 * {{ HYPOTHESES/EXPECTED OUTCOME }}
-* 
+* If slopes increase after z-scoring, effects
 * IV: 
-  - {{ FACTOR NAME }} ( {{ LEVELS}} )
-* DV: {{ DV }}
+  - {{ Zscore }} ( {{ LEVELS}} )
+* DV: {{ Outcome }}
+
+
 ---
 title: "Your Document Title"
 author: "Your Name"
@@ -85,6 +86,52 @@ library(broom.mixed)
 library(effectsize)
 ```
 
+## computed_enderstofighi
+```{r}
+compute_enderstofighi <- function(data, sub, outcome, expect, ses, run) {
+  maindata <- data %>%
+    group_by(!!sym(sub)) %>%
+    mutate(OUTCOME = as.numeric(!!sym(outcome))) %>%
+    mutate(EXPECT = as.numeric(!!sym(expect))) %>%
+    mutate(OUTCOME_cm = mean(OUTCOME, na.rm = TRUE)) %>%
+    mutate(OUTCOME_demean = OUTCOME - OUTCOME_cm) %>%
+    mutate(EXPECT_cm = mean(EXPECT, na.rm = TRUE)) %>%
+    mutate(EXPECT_demean = EXPECT - EXPECT_cm) %>%
+    #mutate(OUTCOME_zscore = as.numeric(scale(OUTCOME, center = TRUE, scale = TRUE)[, 1])) %>%
+    #mutate(EXPECT_zscore = as.numeric(scale(EXPECT, center = TRUE, scale = TRUE)[, 1])) 
+    mutate(OUTCOME_zscore = (OUTCOME - mean(OUTCOME, na.rm = TRUE))/sd(OUTCOME, na.rm = TRUE)) %>% #as.numeric(scale(OUTCOME, center = TRUE, scale = TRUE)[, 1])) %>%
+    mutate(EXPECT_zscore = (EXPECT - mean(EXPECT, na.rm = TRUE))/sd(EXPECT, na.rm = TRUE)) #as.numeric(scale(EXPECT, center = TRUE, scale = TRUE)[, 1])) 
+  
+  data_p2 <- maindata %>%
+    arrange(!!sym(sub)) %>%
+    group_by(!!sym(sub)) %>%
+    mutate(trial_index = row_number())
+  
+  data_a3 <- data_p2 %>%
+    group_by(!!sym(sub), !!sym(ses), !!sym(run)) %>%
+    mutate(trial_index = row_number(!!sym(run)))
+  
+  data_a3lag <- data_a3 %>%
+    group_by(!!sym(sub), !!sym(ses), !!sym(run)) %>%
+    mutate(lag.OUTCOME_demean = dplyr::lag(OUTCOME_demean, n = 1, default = NA))
+  
+  # Create Subjectwise Mean, centered in relation to the group mean
+  data_a3cmc <- data_a3lag %>%
+    ungroup %>%
+    mutate(EXPECT_cmc = EXPECT_cm - mean(EXPECT_cm, na.rm=TRUE)) %>%
+    mutate(OUTCOME_cmc = OUTCOME_cm - mean(OUTCOME_cm, na.rm=TRUE))
+  
+  
+  # Remove NA values ___________________________________________________________
+  data_centered_NA <- data_a3cmc %>% 
+    filter(!is.na(OUTCOME)) %>% # Remove NA values
+    filter(!is.na(EXPECT))
+
+  return(data_centered_NA)
+  
+}
+
+```
 
 
 ```{r include=FALSE}
@@ -115,6 +162,7 @@ column_mapping <- c("src_subject_id" = "subject",
                     "param_task_name" = "runtype",
                     "param_cue_type" = "cue", 
                     "param_stimulus_type" = "stimintensity")
+
 data <- df_rename_columns(data, column_mapping)
 data_centered <- cueR::compute_enderstofighi(data, sub="subject",
                                     outcome = "event04_actual_angle",expect= "event02_expect_angle",
@@ -277,10 +325,106 @@ dataPVC <- cueR::df_load_pvc_beh(datadir,
                             dv = "event04_actual_angle",
                             exclude = filter_string)
 # center data
-df.PVC_center <- cueR::compute_enderstofighi(dataPVC, sub="sub",
+df.PVC_center <- compute_enderstofighi(dataPVC, sub="sub",
                                     outcome = "event04_actual_angle",expect= "event02_expect_angle",
                                     ses = "ses", run = "run")
 ```
+
+##  Validate: correlation matrix across centered variables
+
+::::{.todolist}The zscores do not seem to be scaled within participant. 
+Let's check what's going on.
+The mean value should be 0 for all participants
+::::
+
+```{r}
+library(dplyr)
+head(df.PVC_center)
+# Assuming df is your dataframe, and 'participant', 'col1', 'col2', 'col3' are your column names
+df.PVC_center$subject <- factor(df.PVC_center$sub)
+df.PVC_center$OUTCOME <- as.numeric(df.PVC_center$OUTCOME)
+df.PVC_center$EXPECT_cmc <- as.numeric(df.PVC_center$EXPECT_cmc)
+df.PVC_center$EXPECT_demean <- as.numeric(df.PVC_center$EXPECT_demean)
+correlation_matrix_per_participant <- df.PVC_center %>%
+  group_by(sub) %>%
+  summarize(
+    cor_matrix = list(cor(.[, c("OUTCOME", "EXPECT_cmc", "EXPECT_demean", "EXPECT_zscore")], 
+                        use = "complete.obs"))
+  )
+# To view the correlation matrix for the first participant
+# correlation_matrix_per_participant$cor_matrix[[1]]
+
+# plot correlatin matrix _______________________________________________________
+library(ggplot2)
+library(reshape2)
+library(dplyr)
+
+# Assuming correlation_matrix_per_participant is the result from the previous step
+for(i in 1:nrow(correlation_matrix_per_participant)) {
+  participant_id <- correlation_matrix_per_participant$sub[i]
+  cor_matrix <- correlation_matrix_per_participant$cor_matrix[[i]]
+
+  # Convert the correlation matrix to long format
+  long_cor_matrix <- melt(cor_matrix)
+  names(long_cor_matrix) <- c("Var1", "Var2", "value")
+
+  # Plotting
+  p <- ggplot(long_cor_matrix, aes(Var1, Var2, fill = value)) +
+    geom_tile() +
+    scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+                         midpoint = 0, limit = c(-1, 1), space = "Lab", 
+                         name="Correlation") +
+    theme_minimal() +
+    ggtitle(paste("Correlation Matrix for Participant", participant_id))
+
+  print(p)
+}
+
+```
+
+
+### plot per participant. Outcome, Expect, demean
+```{r}
+pain.df <- df.PVC_center[df.PVC_center$runtype == "runtype-pain", ]
+sub_0063pain.df <- pain.df[pain.df$sub == "sub-0060",]
+head(sub_0063pain.df)
+# hist(sub_0063pain.df$EXPECT)
+# hist(sub_0063pain.df$EXPECT_zscore)
+# hist(sub_0063pain.df$EXPECT_cm)
+# hist(sub_0063pain.df$EXPECT_demean)
+
+plot(sub_0063pain.df$EXPECT_demean, sub_0063pain.df$OUTCOME)
+plot(sub_0063pain.df$EXPECT_zscore, sub_0063pain.df$OUTCOME)
+
+r <- ggplot(sub_0063pain.df, aes(x = EXPECT)) + 
+  geom_histogram(bins = 30, fill = "blue", alpha = 0.7) +
+  labs(title = "Histogram of Variable", x = "Expect (Raw)", y = "Outcome")+
+  theme_classic()
+
+z <- ggplot(sub_0063pain.df, aes(x = EXPECT_zscore)) + 
+  geom_histogram(bins = 30, fill = "blue", alpha = 0.7) +
+  labs(title = "Histogram of Variable", x = "Expect (Z)", y = "Outcome")+
+  theme_classic()
+
+cmc <- ggplot(sub_0063pain.df, aes(x = EXPECT_cm)) + 
+  geom_histogram(bins = 30, fill = "blue", alpha = 0.7) +
+  labs(title = "Histogram of Variable", x = "Expect (CMC)", y = "Outcome") +
+  theme_classic()
+arranged_plots <- (ggpubr::ggarrange(
+        r, z, cmc,
+        common.legend = FALSE,
+        legend = "none",
+        ncol = 3,
+        nrow = 1,
+        widths = c(1,1,1),
+        heights = c(1),
+        align = "v"
+      ))
+grid.draw(arranged_plots)
+```
+
+
+## Analysis 3
 
 
 ### lmer model compare z score vs nonzscore
@@ -488,10 +632,10 @@ plot_endertofighi <- function(data, taskname, color_low="gray", color_high="blac
     # Plot for Cluster-wise means ________________________________________________
   g.Ocm <- ggplot(data, 
                  aes(y = OUTCOME, x = EXPECT_cm, colour = sub_numeric, group = sub), size = .3, color = 'gray') +
-    geom_point(size = .1, alpha = .1) +
-          stat_summary(
-    fun.y = mean, geom = "point",
-    aes(group =sub_numeric), #EXPECT_cm),
+    #geom_point(size = .1, alpha = .1) +
+  stat_summary(
+    fun = mean, geom = "point",
+    aes(group = sub), # Group by subject
     size = 1
   ) +
     scale_colour_gradient(low = color_low, high = color_high) +
@@ -560,11 +704,52 @@ plot_endertofighi <- function(data, taskname, color_low="gray", color_high="blac
   #                         widths = c(1,  1, 1), heights = c(1, 1, 1), 
   #                         top = title_grob
   # ))
+  
+  
+    # Plot for Cluster-wise means ________________________________________________
+  g.cmc <- ggplot(data, 
+                 aes(y = OUTCOME_cmc, x = EXPECT_cmc, colour = sub_numeric, group = sub), size = .3, color = 'gray') +
+      stat_summary(
+    fun.y = mean, geom = "point",
+    aes(group =sub_numeric), #EXPECT_cm),
+    size = 1
+  ) +
+   geom_point(size = .1, alpha = .1) +
+    scale_colour_gradient(low = color_low, high = color_high) +
+    geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = color_low) +  # Add the identity line
+    geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = 1) + #size = .3) +
+    theme_classic() + 
+        theme(legend.position = "none",
+              plot.margin = margin(t = .3, r = .1, b = .1, l = .1, unit = "pt")) + 
+    coord_fixed(ratio = 1) +
+    ylim(-10,200)
+  g.cmc <- ggplot_largetext(g.cmc)  # Assuming ggplot_largetext is a defined function
+  
+      # Plot for raw means ________________________________________________
+  g.raw <- ggplot(data, 
+                 aes(y = OUTCOME, x = EXPECT, colour = sub_numeric, group = sub), size = .3, color = 'gray') +
+  #     stat_summary(
+  #   fun.y = mean, geom = "point",
+  #   aes(group =sub_numeric), #EXPECT_cm),
+  #   size = .1, alpha = .1
+  # ) +
+   geom_point(size = .1, alpha = .1) +
+    scale_colour_gradient(low = color_low, high = color_high) +
+    geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = color_low) +  # Add the identity line
+    geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = .3) + #size = .3) +
+    theme_classic() + 
+        theme(legend.position = "none",
+              plot.margin = margin(t = .3, r = .1, b = .1, l = .1, unit = "pt")) + 
+    coord_fixed(ratio = 1) +
+    ylim(-10,200)
+  g.raw <- ggplot_largetext(g.raw)  # Assuming ggplot_largetext is a defined function
+  
+  
   arranged_plots <- (ggpubr::ggarrange(
-        g.demean, g.Ocm, g.cm, g.z, g.z2, g.Odemean, 
+        g.demean, g.Ocm, g.cm, g.z, g.z2, g.Odemean, g.cmc, g.raw,
         common.legend = FALSE,
         legend = "none",
-        ncol = 3,
+        ncol = 4,
         nrow = 2,
         widths = c(1,1,1),
         heights = c(1,1),
@@ -589,6 +774,63 @@ cueR::plot_endertofighi(df.PVC_center[df.PVC_center$runtype == "runtype-vicariou
 
 cueR::plot_endertofighi(df.PVC_center[df.PVC_center$runtype == "runtype-cognitive", ], "cognitive", color_low = "#caf0f8", color_high = "#03045e")
 ```
+
+
+```{r}
+subjectwise <- meanSummary_2continuous(df.PVC_center[df.PVC_center$runtype == "runtype-pain", ], 
+                                            c("sub"),"OUTCOME", "EXPECT")
+subjectwise$EXPECT_cm <- subjectwise$DV2_mean_per_sub
+subjectwise$OUTCOME_cm <- subjectwise$DV1_mean_per_sub
+color_low = "red"; color_high = "darkred"
+    # Plot for Cluster-wise means ________________________________________________
+# cueR::plot_ggplot_correlation(subjectwise, y = DV1_mean_per_sub, x = DV2_mean_per_sub,
+#                         p_acc = 0.001, r_acc = 0.001, limit_min = 0, limit_max = 200, label_position = 180)
+subjectwise$sub_numeric <- as.numeric((subjectwise$sub))
+g.manualOcm <- ggplot(subjectwise,
+                 aes(y = OUTCOME_cm, x = EXPECT_cm, colour = sub_numeric, group = sub), size = .3, color = ) +
+    geom_point(size = 2, alpha = 1, color = "red") +
+  # stat_summary(
+  #   fun.y = mean, geom = "point",
+  #   aes(group = sub), # Group by subject
+  #   size = 1
+  # ) +
+    scale_colour_gradient(low = color_low, high = color_high) +
+    geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = color_low) +  # Add the identity line
+    #geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = 1) + #size = .3) +
+    theme_classic() +
+        theme(legend.position = "none",
+              plot.margin = margin(t = .3, r = .1, b = .1, l = .1, unit = "pt")) +
+    coord_fixed(ratio = 1) +
+    ylim(0,200)
+  g.manualOcm <- ggplot_largetext(g.manualOcm)  # Assuming ggplot_largetext is a defined function
+  g.manualOcm
+
+  #### TODO: DEBUG WHY?
+  mean_xy <- function(x, y) {
+  data.frame(x = mean(x, na.rm = TRUE), y = mean(y, na.rm = TRUE))
+}
+df.PVC_center$sub_numeric <- as.numeric(df.PVC_center$sub)
+    g.Ocm <- ggplot(df.PVC_center[df.PVC_center$runtype == "runtype-pain", ], 
+                 aes(y = OUTCOME, x = EXPECT_cm, colour = sub_numeric, group = sub), size = .3, color = 'gray') +
+    #geom_point(size = .1, alpha = .1) +
+  stat_summary(
+    fun.data = mean_xy, geom = "point",
+    aes(group = sub), # Group by subject
+    size = 1
+  ) +
+    scale_colour_gradient(low = color_low, high = color_high) +
+    geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = color_low) +  # Add the identity line
+    geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = 1) + #size = .3) +
+    theme_classic() + 
+        theme(legend.position = "none",
+              plot.margin = margin(t = .3, r = .1, b = .1, l = .1, unit = "pt")) + 
+    coord_fixed(ratio = 1) +
+    ylim(0,200)
+  g.Ocm <- ggplot_largetext(g.Ocm)  # Assuming ggplot_largetext is a defined function
+  g.Ocm
+  
+```
+
 
 > Demeaning has a similar efect as zscoring, the only difference is that the mean is forced to 0 and the standard deviation 1 for the zscore. 
 in a sense, both are removing the between subject effects and homing in onthe within subject effects. 
@@ -637,11 +879,11 @@ return(new_total)
 range(df.PVC_center[df.PVC_center$runtype == "runtype-pain", "EXPECT_cmc"])
 range(df.PVC_center[df.PVC_center$runtype == "runtype-pain", "EXPECT_demean"])
 cueR::print_dash("Correlation Pain")
-cor(df.PVC_center[df.PVC_center$runtype == "runtype-pain", c("OUTCOME", "EXPECT_demean", "EXPECT_cmc")])
+cor(df.PVC_center[df.PVC_center$runtype == "runtype-pain", c("OUTCOME", "EXPECT_demean","EXPECT_cm", "EXPECT_cmc")])
 cueR::print_dash("Correlation Vicarious")
-cor(df.PVC_center[df.PVC_center$runtype == "runtype-vicarious", c("OUTCOME", "EXPECT_demean", "EXPECT_cmc")])
+cor(df.PVC_center[df.PVC_center$runtype == "runtype-vicarious", c("OUTCOME", "EXPECT_demean","EXPECT_cm", "EXPECT_cmc")])
 cueR::print_dash("Correlation Cognitive")
-cor(df.PVC_center[df.PVC_center$runtype == "runtype-cognitive", c("OUTCOME", "EXPECT_demean", "EXPECT_cmc")])
+cor(df.PVC_center[df.PVC_center$runtype == "runtype-cognitive", c("OUTCOME", "EXPECT_demean","EXPECT_cm", "EXPECT_cmc")])
 
 model.pain_cmc <- lmer(OUTCOME ~ EXPECT_demean + EXPECT_cmc + (EXPECT_demean|sub), df.PVC_center[df.PVC_center$runtype == "runtype-pain", ], )
 model.vic_cmc <- lmer(OUTCOME ~ EXPECT_demean + EXPECT_cmc + (EXPECT_demean|sub), df.PVC_center[df.PVC_center$runtype == "runtype-vicarious", ])
