@@ -1,6 +1,30 @@
+#' Apply Simple Contrasts to Single Trial Data
+#'
+#' This function applies simple linear and quadratic contrasts to single trial data based on stimulus intensity and cue type. It modifies the input dataframe by adding several new columns representing these contrasts.
+#'
+#' @param df A data frame containing the single trial data. 
+#'           It must have columns 'stimintensity' and 'cuetype'.
+#'
+#' @return The modified data frame with added columns for contrasts:
+#'         - `STIM` as a factor based on 'stim'.
+#'         - `STIM_linear` for linear contrast coding based on 'stimintensity'.
+#'         - `STIM_quadratic` for quadratic contrast coding based on 'stimintensity'.
+#'         - `CUE_high_gt_low` for cue contrast between high and low cue types.
+#'         - `stim_ordered` as an ordered factor for 'stimintensity'.
+#'         - `cue_name` and `cue_ordered` as factors for 'cuetype'.
+#'
+#' @examples
+#' df <- data.frame(
+#'     stim = c("A", "B", "C"),
+#'     stimintensity = c("low", "med", "high"),
+#'     cuetype = c("cuetype-low", "cuetype-med", "cuetype-high")
+#' )
+#' df <- simple_contrast_singletrial(df)
+#'
+#' @export
+
 simple_contrast_singletrial <- function(df) {
-# [ CONTRASTS ]  ________________________________________________________________________________ # nolint
-# contrast code ________________________________________
+
 df$STIM <- factor(df$stim)
 
 # contrast code 1 linear
