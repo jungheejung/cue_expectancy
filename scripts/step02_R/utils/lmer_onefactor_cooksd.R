@@ -1,24 +1,28 @@
+#' LMER Analysis with One Factor and Cook's Distance Calculation
+#'
+#' This function performs a linear mixed-effects regression using the lme4 package,
+#' calculates Cook's distance, and optionally prints the model output. It is
+#' designed for analyses involving one fixed effect and one random effect.
+#'
+#' @param df A data frame containing the data to be analyzed.
+#' @param taskname A string representing the task name, used in the filename.
+#' @param iv The column name in `df` that contains the independent variable.
+#' @param dv The dependent variable for the LMER model.
+#' @param subject_keyword The keyword identifying the random effect subject.
+#' @param dv_keyword A string describing the dependent variable, used in output.
+#' @param model_savefname Filename where the model output will be saved.
+#' @param print_lmer_output Logical; if TRUE, prints the summary of the LMER model.
+#'
+#' @return Returns Cook's distance for the fitted model.
+#'
+#' @import lme4
+#' @export
+#'
+#' @examples
+#' # Example usage:
+#' # lmer_onefactor_cooksd(df, "task1", "time", "score", "subject", "Score", "model_output.txt", TRUE)
 lmer_onefactor_cooksd <- function(df, taskname, iv, dv, subject_keyword,
                                   dv_keyword, model_savefname, print_lmer_output) {
-
-      #   """
-      #   Parameters
-      #   ----------
-      #   data:
-      #         a data frame
-      #   taskname:
-      #         a string of the task. will be saved in filename
-      #   iv:
-      #         the column name that contains the variable to be summariezed
-      #   dv:
-      #         a vector containing that are between-subjects column names
-      #   random_factor:
-      #         random effects
-      #   dv_keyword:
-      #         a string of the dependent variable
-      #   model_savefname:
-      #         model save filename
-      #   """
       library(lme4)
       model_onefactor <- lmer(as.formula(reformulate(c(iv,sprintf("(%s|%s)",iv,subject_keyword)),response=dv)), data = df) #nolint
       sink(file = model_savefname)
