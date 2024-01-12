@@ -805,30 +805,40 @@ g.manualOcm <- ggplot(subjectwise,
   g.manualOcm <- ggplot_largetext(g.manualOcm)  # Assuming ggplot_largetext is a defined function
   g.manualOcm
 
-  #### TODO: DEBUG WHY?
+#### TODO: DEBUG WHY?
   mean_xy <- function(x, y) {
   data.frame(x = mean(x, na.rm = TRUE), y = mean(y, na.rm = TRUE))
 }
 df.PVC_center$sub_numeric <- as.numeric(df.PVC_center$sub)
-    g.Ocm <- ggplot(df.PVC_center[df.PVC_center$runtype == "runtype-pain", ], 
-                 aes(y = OUTCOME, x = EXPECT_cm, colour = sub_numeric, group = sub), size = .3, color = 'gray') +
+    g.Ocm <- ggplot(df.PVC_center[df.PVC_center$runtype == "runtype-pain", ],
+                 aes(y = OUTCOME, x = EXPECT_cm, colour = sub_numeric, group = as.factor(sub)), size = .3, color = 'gray') +
     #geom_point(size = .1, alpha = .1) +
   stat_summary(
     fun.data = mean_xy, geom = "point",
-    aes(group = sub), # Group by subject
+    aes(group = as.factor(sub)), # Group by subject
     size = 1
   ) +
     scale_colour_gradient(low = color_low, high = color_high) +
     geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = color_low) +  # Add the identity line
     geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = 1) + #size = .3) +
-    theme_classic() + 
+    theme_classic() +
         theme(legend.position = "none",
-              plot.margin = margin(t = .3, r = .1, b = .1, l = .1, unit = "pt")) + 
+              plot.margin = margin(t = .3, r = .1, b = .1, l = .1, unit = "pt")) +
     coord_fixed(ratio = 1) +
     ylim(0,200)
   g.Ocm <- ggplot_largetext(g.Ocm)  # Assuming ggplot_largetext is a defined function
   g.Ocm
+
   
+# Checks
+library(dplyr)
+group_counts <- df.PVC_center %>% count(sub)
+print(group_counts)
+
+# plot
+ggplot(df.PVC_center, aes(x = EXPECT_cm, y = OUTCOME, color = as.factor(sub))) +
+  geom_point() + theme(legend.position = "none")
+
 ```
 
 
