@@ -51,8 +51,10 @@ compute_enderstofighi <- function(data, sub, outcome, expect, ses, run) {
     mutate(OUTCOME_demean = OUTCOME - OUTCOME_cm) %>%
     mutate(EXPECT_cm = mean(EXPECT, na.rm = TRUE)) %>%
     mutate(EXPECT_demean = EXPECT - EXPECT_cm) %>%
-    mutate(OUTCOME_zscore = as.numeric(scale(OUTCOME, center = TRUE, scale = TRUE)[, 1])) %>%
-    mutate(EXPECT_zscore = as.numeric(scale(EXPECT, center = TRUE, scale = TRUE)[, 1])) 
+    #mutate(OUTCOME_zscore = as.numeric(scale(OUTCOME, center = TRUE, scale = TRUE)[, 1])) %>%
+    #mutate(EXPECT_zscore = as.numeric(scale(EXPECT, center = TRUE, scale = TRUE)[, 1])) 
+    mutate(OUTCOME_zscore = (OUTCOME - mean(OUTCOME, na.rm = TRUE))/sd(OUTCOME, na.rm = TRUE)) %>% #as.numeric(scale(OUTCOME, center = TRUE, scale = TRUE)[, 1])) %>%
+    mutate(EXPECT_zscore = (EXPECT - mean(EXPECT, na.rm = TRUE))/sd(EXPECT, na.rm = TRUE)) #as.numeric(scale(EXPECT, center = TRUE, scale = TRUE)[, 1])) 
   
   data_p2 <- maindata %>%
     arrange(!!sym(sub)) %>%
