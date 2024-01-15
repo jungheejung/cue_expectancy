@@ -2,35 +2,19 @@
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
-Here, we want to... extract the cue effects across different types of ratings
-* raw outcome rating
-* z-scored outcome rating
-* cue effects / stim effect using raw outcome rating
-* cue effects / stim effects using z score ratings
-* regularized cue effects +1 / stim effect +1 using raw outcome rating
-* regularized cue effects / stim effects using z score ratings
+Here, we extract the cue effects across different types of ratings
+* cue effects of raw outcome rating ("cue_raw_outcome")
+* cue effects of z-scored outcome rating ("cue_z_outcome")
+* stim effects of raw outcome rating ("stim_raw_outcome")
+* stim effects of z-scored outcome rating ("stim_z_outcome")
+* cue effects / stim effect using raw outcome rating ("cuestim_raw_outcome")
+* cue effects / stim effects using z score ratings  ("cuestim_z_outcome")
+* regularized cue effects +1 / stim effect +1 using raw outcome rating ("cuestim_raw_outcome_reg")
+* regularized cue effects / stim effects using z score ratings ("cuestim_z_outcome_reg")
 
-* Main model: `lmer( {{ INSERT YOUR MODEL }})` 
-* Main question: {{ INSERT YOUR QUESTION }}? 
-* {{ HYPOTHESES/EXPECTED OUTCOME }}
-* 
-* IV: 
-  - {{ FACTOR NAME }} ( {{ LEVELS}} )
-* DV: {{ DV }}
-
-
-### TODO: 
-```
-INSERT HERE
-```
-
-### References : Once note book is complete, add at the bottom of Rmd
-```
-INSERT HERE
-```
 
 ### load libraries {.unlisted .unnumbered}
-```{r message=FALSE, warning=FALSE, include=FALSE}
+```{r message=FALSE, warning=FALSE}
 library(car)
 library(psych)
 library(lme4); library(lmerTest)
@@ -49,13 +33,58 @@ library(ggpubr)
 library(dplyr)
 library(broom.mixed)
 library(effectsize)
+library(corrplot)
+```
+
+
+```{r}
+compute_enderstofighi <- function(data, sub, outcome, expect, ses, run) {
+  maindata <- data %>%
+    group_by(!!sym(sub)) %>%
+    mutate(OUTCOME = as.numeric(!!sym(outcome))) %>%
+    mutate(EXPECT = as.numeric(!!sym(expect))) %>%
+    mutate(OUTCOME_cm = mean(OUTCOME, na.rm = TRUE)) %>%
+    mutate(OUTCOME_demean = OUTCOME - OUTCOME_cm) %>%
+    mutate(EXPECT_cm = mean(EXPECT, na.rm = TRUE)) %>%
+    mutate(EXPECT_demean = EXPECT - EXPECT_cm) %>%
+    #mutate(OUTCOME_zscore = as.numeric(scale(OUTCOME, center = TRUE, scale = TRUE)[, 1])) %>%
+    #mutate(EXPECT_zscore = as.numeric(scale(EXPECT, center = TRUE, scale = TRUE)[, 1])) 
+    mutate(OUTCOME_zscore = (OUTCOME - mean(OUTCOME, na.rm = TRUE))/sd(OUTCOME, na.rm = TRUE)) %>% #as.numeric(scale(OUTCOME, center = TRUE, scale = TRUE)[, 1])) %>%
+    mutate(EXPECT_zscore = (EXPECT - mean(EXPECT, na.rm = TRUE))/sd(EXPECT, na.rm = TRUE)) #as.numeric(scale(EXPECT, center = TRUE, scale = TRUE)[, 1])) 
+  
+  data_p2 <- maindata %>%
+    arrange(!!sym(sub)) %>%
+    group_by(!!sym(sub)) %>%
+    mutate(trial_index = row_number())
+  
+  data_a3 <- data_p2 %>%
+    group_by(!!sym(sub), !!sym(ses), !!sym(run)) %>%
+    mutate(trial_index = row_number(!!sym(run)))
+  
+  data_a3lag <- data_a3 %>%
+    group_by(!!sym(sub), !!sym(ses), !!sym(run)) %>%
+    mutate(lag.OUTCOME_demean = dplyr::lag(OUTCOME_demean, n = 1, default = NA))
+  
+  # Create Subjectwise Mean, centered in relation to the group mean
+  data_a3cmc <- data_a3lag %>%
+    ungroup %>%
+    mutate(EXPECT_cmc = EXPECT_cm - mean(EXPECT_cm, na.rm=TRUE)) %>%
+    mutate(OUTCOME_cmc = OUTCOME_cm - mean(OUTCOME_cm, na.rm=TRUE))
+  
+  
+  # Remove NA values ___________________________________________________________
+  data_centered_NA <- data_a3cmc %>% 
+    filter(!is.na(OUTCOME)) %>% # Remove NA values
+    filter(!is.na(EXPECT))
+
+  return(data_centered_NA)
+  
+}
 ```
 
 ```{r include=FALSE}
 main_dir <- dirname(dirname(getwd()))
 datadir <- file.path(main_dir, 'data', 'beh', 'beh02_preproc')
-# analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model09_var", as.character(Sys.Date()))
-# dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 filter_string = "sub-0001"
 dataPVC <- cueR::df_load_pvc_beh(datadir,
                               subject_varkey = "src_subject_id",
@@ -63,7 +92,7 @@ dataPVC <- cueR::df_load_pvc_beh(datadir,
                             dv = "event04_actual_angle",
                             exclude = filter_string)
 # center data
-df.PVC_center <- cueR::compute_enderstofighi(dataPVC, sub="sub",
+df.PVC_center <- compute_enderstofighi(dataPVC, sub="sub",
                                     outcome = "event04_actual_angle",expect= "event02_expect_angle",
                                     ses = "ses", run = "run")
 ```
@@ -72,7 +101,7 @@ df.PVC_center <- cueR::compute_enderstofighi(dataPVC, sub="sub",
 Let's look at the distribution of the data. X axis: Y axis: 
 ```{r paged.print=TRUE}
 head(df.PVC_center)
-colnames(df.PVC_center)
+#colnames(df.PVC_center)
 ```
 > Summary: 
 
@@ -98,16 +127,17 @@ colnames(df.PVC_center)
 #' @export
 #' @examples
 #' # Assuming df is a dataframe with the necessary structure and "OUTCOME" is your dependent variable:
-#' result <- computed_cueeffect(df, "OUTCOME", "new_cue_effect")
-computed_cueeffect <- function(df, dv, new_col_name) {
+#' result <- compute_cueeffect(df, "OUTCOME", "new_cue_effect")
+compute_cueeffect <- function(df, dv, new_col_name) {
   library(dplyr)
   library(tidyr)
   library(Rmisc)
 
   # 1) Subset and filter data __________________________________________________
+  df$task <- factor(df$task)
   sub_diff <- subset(df, select = c("sub", "ses", "run", "task", "stimintensity", "cuetype", dv))
   sub_diff_NA <- sub_diff %>% filter(!is.na(dv))
-  sub_diff$task <- factor(sub_diff$task)
+
   # 2) Summarize each condition and spread out columns _________________________
   subjectwise <- meanSummary(sub_diff_NA, c("sub", "ses", "run", "task", "cuetype", "stimintensity"), dv)
   mean_outcome <- subjectwise[1:(length(subjectwise) - 1)]
@@ -134,9 +164,6 @@ computed_cueeffect <- function(df, dv, new_col_name) {
 ```
 
 ## function: compute stim effects
-## TODO: update this for generic purpose
-* feed in a clean dataframe, that way we don't need to do subset
-* indicate what the within subject effects are for the "wide" dataframe
 ```{r}
 #' Compute Stimulus Effect
 #'
@@ -155,12 +182,13 @@ computed_cueeffect <- function(df, dv, new_col_name) {
 #' @export
 #' @examples
 #' # Assuming df is your dataframe and "OUTCOME" is your dependent variable:
-#' result <- computed_stimeffect(df, "OUTCOME", "new_mean_outcome")
-computed_stimeffect <- function(df, dv, new_col_name) {
+#' result <- compute_stimeffect(df, "OUTCOME", "new_mean_outcome")
+compute_stimeffect <- function(df, dv, new_col_name) {
   # 1) Subset and filter data __________________________________________________
+  df$task <- factor(df$task)
   sub_diff <- subset(df, select = c("sub", "ses", "run", "task", "stimintensity", "cuetype", dv))
   sub_diff_NA <- sub_diff %>% filter(!is.na(dv))
-  sub_diff$task <- factor(sub_diff$task)
+
  
   # 2) Summarize each condition and spread out columns _________________________
   subjectwise <- meanSummary(sub_diff_NA, c("sub", "ses", "run", "task", "cuetype", "stimintensity"), dv)
@@ -173,7 +201,10 @@ computed_stimeffect <- function(df, dv, new_col_name) {
   subjectwise_NA <- subjectwise_diff %>% filter(!is.na(sd))
   # 
   # # 4) Calculate group wise contrast _________________________________________
-  groupwise_diff <- Rmisc::summarySEwithin(data = subjectwise_NA, measurevar = "mean_per_sub", withinvars = "task", idvar = "sub")
+  groupwise_diff <- Rmisc::summarySEwithin(data = subjectwise_NA, 
+                                           measurevar = "mean_per_sub", 
+                                           withinvars = "task", 
+                                           idvar = "sub")
   # 
   sd_col <- paste0(new_col_name, "_sd")
   # sort data based on task and rename _________________________________________
@@ -187,65 +218,126 @@ computed_stimeffect <- function(df, dv, new_col_name) {
 ```
 
 
-### plot {.unlisted .unnumbered}
-We'll plot Y as a function of A and B
-X axis: 
-Y axis:
-Each data point indicates ... 
+## compute the cue and stim effects for further analysis {.unlisted .unnumbered}
 
 
 ```{r}
-raw_outcome <- computed_cueeffect(df.PVC_center, dv = "OUTCOME", new_col_name = "raw_outcome_cue")
-z_outcome <- computed_cueeffect(df.PVC_center, dv = "OUTCOME", new_col_name = "z_outcome_cue")
-raw_expect <- computed_cueeffect(df.PVC_center, dv = "EXPECT", new_col_name = "raw_expect_cue")
-z_expect <- computed_cueeffect(df.PVC_center, dv = "EXPECT", new_col_name = "z_expect_cue")
+# calculate cue & stim effects per participant and rename column _______________
+cue_raw_outcome <- compute_cueeffect(df.PVC_center, dv = "OUTCOME", new_col_name = "cue_raw_outcome")
+cue_z_outcome <- compute_cueeffect(df.PVC_center, dv = "OUTCOME_zscore", new_col_name = "cue_z_outcome")
+cue_raw_expect <- compute_cueeffect(df.PVC_center, dv = "EXPECT", new_col_name = "cue_raw_expect")
+cue_z_expect <- compute_cueeffect(df.PVC_center, dv = "EXPECT_zscore", new_col_name = "cue_z_expect")
 
-rawstim_outcome <- computed_stimeffect(df.PVC_center, dv = "OUTCOME", new_col_name = "raw_outcome_stim")
-zstim_outcome <- computed_stimeffect(df.PVC_center, dv = "OUTCOME", new_col_name = "z_outcome_stim")
-rawstim_expect <- computed_stimeffect(df.PVC_center, dv = "EXPECT", new_col_name = "raw_expect_stim")
-zstim_expect <- computed_stimeffect(df.PVC_center, dv = "EXPECT", new_col_name = "z_expect_stim")
+rawstim_outcome <- compute_stimeffect(df.PVC_center, dv = "OUTCOME", new_col_name = "stim_raw_outcome")
+zstim_outcome <- compute_stimeffect(df.PVC_center, dv = "OUTCOME_zscore", new_col_name = "stim_z_outcome")
+rawstim_expect <- compute_stimeffect(df.PVC_center, dv = "EXPECT", new_col_name = "stim_raw_expect")
+zstim_expect <- compute_stimeffect(df.PVC_center, dv = "EXPECT_zscore", new_col_name = "stim_z_expect")
 
 
 # Merging all dataframes _______________________________________________________
-merged_df <- raw_outcome %>%
-  full_join(z_outcome, by = c("sub", "task")) %>%
-  full_join(raw_expect, by = c("sub", "task")) %>%
-  full_join(z_expect, by = c("sub", "task")) %>%
+merged_df <- cue_raw_outcome %>%
+  full_join(cue_z_outcome, by = c("sub", "task")) %>%
+  full_join(cue_raw_expect, by = c("sub", "task")) %>%
+  full_join(cue_z_expect, by = c("sub", "task")) %>%
   full_join(rawstim_outcome, by = c("sub", "task")) %>%
   full_join(zstim_outcome, by = c("sub", "task")) %>%
   full_join(rawstim_expect, by = c("sub", "task")) %>%
   full_join(zstim_expect, by = c("sub", "task"))
 
 # calculate cue vs stim effect ratio ___________________________________________
-merged_df$cuestim_raw_outcome <- merged_df$raw_outcome_cue/merged_df$raw_outcome_stim
-merged_df$cuestim_raw_outcome_reg <- (merged_df$raw_outcome_cue+1)/(merged_df$raw_outcome_stim+1)
+merged_df$cuestim_raw_outcome <- merged_df$cue_raw_outcome/merged_df$stim_raw_outcome
+merged_df$cuestim_raw_outcome_reg <- (merged_df$cue_raw_outcome+1)/(merged_df$stim_raw_outcome+1)
 
-merged_df$cuestim_z_outcome <- merged_df$z_outcome_cue/merged_df$z_outcome_stim
-merged_df$cuestim_z_outcome_reg <- (merged_df$z_outcome_cue+1)/(merged_df$z_outcome_stim+1)
+merged_df$cuestim_z_outcome <- merged_df$cue_z_outcome/merged_df$stim_z_outcome
+merged_df$cuestim_z_outcome_reg <- (merged_df$cue_z_outcome+1)/(merged_df$stim_z_outcome+1)
 
-merged_df$cuestim_raw_expect <- merged_df$raw_expect_cue/merged_df$raw_expect_stim
-merged_df$cuestim_raw_expect_reg <- (merged_df$raw_expect_cue+1)/(merged_df$raw_expect_stim+1)
 
-merged_df$cuestim_z_expect <- merged_df$z_expect_cue/merged_df$z_expect_stim
-merged_df$cuestim_z_expect_reg <- (merged_df$z_expect_cue+1)/(merged_df$z_expect_stim+1)
-
-#write.csv(merged_df, file = file.path(main_dir, "analysis", "mixedeffect", "dataframes", "beh_cueeffect_rawoutcome.csv"), row.names = FALSE)
+write.csv(merged_df, file.path(main_dir, "data", "hlm", "cue_stim_effects_scaling.csv"), row.names = FALSE)
 ```
 ```{r}
+# Let's check what the cue & stim effects look like ____________________________
 head(merged_df)
-colnames(merged_df)
 ```
 
 
+```{r, fig.height=6}
+pain.df <-merged_df[merged_df$task == 'pain', ]
+cor(pain.df$cue_raw_outcome, pain.df$cue_z_outcome, use = "complete.obs")
 
-> Conclusion:
+# Reshape the dataframe to a long format _______________________________________
+pain.long_df <- pivot_longer(pain.df, 
+                        cols = c("cue_raw_outcome", "cue_z_outcome", 
+                                 "cue_raw_expect", "cue_z_expect", 
+                                 "stim_raw_outcome", "stim_z_outcome", 
+                                 "stim_raw_expect", "stim_z_expect",
+                                 
+                                 "cuestim_raw_outcome", "cuestim_raw_outcome_reg",
+                                 "cuestim_z_outcome", "cuestim_z_outcome_reg"
+                                 ), 
+                        names_to = "variable", 
+                        values_to = "value")
 
+pain_heatmap <- pain.long_df[, c("sub", "variable", "value")]
+# Create the heatmap ___________________________________________________________
+ggplotly(ggplot(pain_heatmap, aes(x = variable, y = sub, fill = value)) +
+  geom_tile() +
+  scale_fill_gradient(low = "blue", high = "red") +
+  #facet_grid(rows = vars(sub)) +
+  theme_minimal() +
+  coord_fixed(ratio = .1) +
+  labs(x = "Variable", y = "Subject", fill = "Value") +
+   theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.text.y = element_text(angle = 45, vjust = 1)))
 
-:::: {.infobox}
-Include the actual content here. here are my thoughts
-::::
+# correlation matrix ___________________________________________________________
+pain.df.subset <- pain.df[, c("cue_raw_outcome", "cue_z_outcome", 
+                                 "cue_raw_expect", "cue_z_expect", 
+                                 "stim_raw_outcome", "stim_z_outcome", 
+                                 "stim_raw_expect", "stim_z_expect",
+                                 
+                                 "cuestim_raw_outcome", "cuestim_raw_outcome_reg",
+                                 "cuestim_z_outcome", "cuestim_z_outcome_reg")]
+                                 #"cuestim_raw_expect", "cuestim_raw_expect_reg",
+                                 #"cuestim_z_expect", "cuestim_z_expect_reg")]
 
-:::: {.refbox}
-Include the actual content here. here are my thoughts
-::::
+M <- cor(as.matrix(pain.df.subset), use ="complete.obs")
+#round(M, 2)
+testRes = cor.mtest(M, conf.level = 0.95)
+corrplot(M, p.mat = testRes$p, method = 'color', diag = TRUE, 
+         sig.level = c( 0.05), pch.cex = 0.7,
+         tl.cex = 0.6,
+         insig = 'label_sig', pch.col = 'grey20')#, order = 'AOE')
+```
+## Illustration of the plot labels
+The variable names indicate `{effect}_{raw/z}_{ratings}`
+
+* `effect` illustrates which contrasts we compute, cue effects or stim effects
+    - `cue`: high cue vs. low cue average values per participant
+    - `stim`: high stim vs. low stim average values per participant
+* `raw/z`: 
+    - `raw`: use the raw behavioral ratings (per participant) to compute the aforementioned effects, or 
+    - `z`: use the z scores (per participant) to compute the aforementioned effects
+* `ratings`
+    - `outcome`: outcome ratings
+    - `expect`: expectation ratings
+    
+* example: `cue_raw_outcome` illustrate the cue effect, calculated based on raw outcome ratings. It is the average outcome rating difference between high vs. low cues, calculated per participant.
+    
+ 
+## Summary:
+* Given that these cue-effect scores are between subject measures, the Z scored version and the raw scored version will have the same variance structure across participants. 
+* Taking a look at the correlation matrix,
+* 1) we know what raw and z scores of the same effects will have a significant correlation.
+* Validation: 
+    * 2) expectation ratings as a function of cue ("cue_raw_expect") are highly correlated with outcome ratings as a function of cue ("cue_raw_outcome"). 
+    * 3) Stimulus effects have no correlation with the cue effects (i.e. there is no significant corerlation of "stim_raw_outcome" & "cue_raw_outcome" ). 
+* 4) Question: cue effect proportional to the stim effect ("cuestim_raw_outcome") is correlated with the stim effect, but not the cue effect. why?
+
+```{r}
+rand_norms_100 <- rnorm(n = 100, mean = 100, sd = 25)
+rand_norms_100.Z <- (rand_norms_100-mean(rand_norms_100))/sd(rand_norms_100)
+cor(rand_norms_100, rand_norms_100.Z)
+rand_norms_100.demean <- (rand_norms_100-mean(rand_norms_100))
+cor(rand_norms_100, rand_norms_100.demean)
+```
 
