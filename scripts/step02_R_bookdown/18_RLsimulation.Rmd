@@ -1,5 +1,10 @@
 # RL :: simulation {#simulation}
 
+---
+title: "Your Document Title"
+output: html_notebook
+---
+
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
 - Here, Aryan simulated behavioral outcome ratings using a reinforcement learning model.
@@ -105,14 +110,9 @@ expect = read.csv(expect_fname)
 outcome = read.csv(outcome_fname)
 ```
 
-```{r include=FALSE}
-# # create a sequence from 1 to 50
-# my_seq <- 1:50
-# # repeat the sequence 10 times
-# my_seq_repeated <- rep(1:50, each = 10)
-# # print the result
-# my_seq_repeated
 
+```{r include=FALSE}
+# tidy the dataframes by renaming "expect" _____________________________________
 expect$sub <- rep(1:250, each = 2)
 expect_long <- expect %>%
   pivot_longer(
@@ -135,7 +135,7 @@ E.df <- expect_long %>%
     )
 E.df$expectation <- E.df$value
 
-# outcome
+# outcome ______________________________________________________________________
 outcome$sub <- rep(1:250, each = 2) #1:nrow(outcome)
 outcome_long <- outcome %>%
   pivot_longer(
@@ -164,76 +164,83 @@ merged_df <- merge(E.df, O.df, by = c("sub", "cue", "stimulusintensity"))
 merge.df <- data.frame(merged_df)
 ```
 
-## plot data {.unlisted .unnumbered}
-
+## plot expectation and outcome ratings per cue X stim {.unlisted .unnumbered}
 ```{r}
-group = "cue"
+group <- "cue"
 
-    iv1 = "demean_expect"
-    iv2 = "demean_outcome"
+iv1 <- "demean_expect"
+iv2 <- "demean_outcome"
 
-    subject = "sub"
-    xmin=48; xmax=50; ymin=48; ymax=50
-    xlab = "expectation rating"
-    ylab = "outcome rating"
-    ggtitle = "all stimulus intensity"
-    color_scheme = c("high_cue" ="#941100","low_cue" =  "#5D5C5C")
-    alpha = .8; fit_lm = TRUE; lm_method = "lm"; identity_line=TRUE; size=NULL
-    g <- ggplot(
-        data = merged_df,
-        aes(
-            x = .data[["expectation"]],
-            y = .data[["outcome"]],
-            color = .data[[group]],
-            size = size
-        )
-    ) +
-        geom_point(
-            aes(shape = .data[[group]],
-            color = .data[[group]]),
-            size = 2,
-            alpha = alpha) +
+subject <- "sub"
+xmin <- 48;xmax <- 50
+ymin <- 48;ymax <- 50
+xlab <- "expectation rating"
+ylab <- "outcome rating"
+ggtitle <- "all stimulus intensity"
+color_scheme <- c("high_cue" = "#941100", "low_cue" =  "#5D5C5C")
+alpha <- .8
+fit_lm <- TRUE
+lm_method <- "lm"
+identity_line <- TRUE
+size <- NULL
+g <- ggplot(data = merged_df,
+            aes(
+              x = .data[["expectation"]],
+              y = .data[["outcome"]],
+              color = .data[[group]],
+              size = size
+            )) +
+  geom_point(aes(shape = .data[[group]],
+                 color = .data[[group]]),
+             size = 2,
+             alpha = alpha) +
+  theme(aspect.ratio = 1) +
+  scale_color_manual(values = color_scheme) +
+  scale_shape_manual(values = c(16, 3)) +
+  xlab(xlab) +
+  ylab(ylab) +
+  ylim(ymin, ymax) +
+  xlim(xmin, xmax) +
+  ggtitle(ggtitle) +
+  theme(
+    axis.line = element_line(colour = "grey50"),
+    panel.background = element_blank(),
+    plot.subtitle = ggtext::element_textbox_simple(size = 11)
+  )
 
-        theme(aspect.ratio = 1) +
-        scale_color_manual(values = color_scheme) +
-        scale_shape_manual(values = c(16, 3)) +
-        xlab(xlab) +
-        ylab(ylab) +
-        ylim(ymin,ymax) +
-        xlim(xmin,xmax) +
-        ggtitle(ggtitle) +
-        theme(
-            axis.line = element_line(colour = "grey50"),
-            panel.background = element_blank(),
-            plot.subtitle = ggtext::element_textbox_simple(size = 11)
-        )
 
+if (isTRUE(fit_lm)) {
+  g <- g +
+    geom_line(
+      stat = "smooth",
+      method = lm_method,
+      se = FALSE,
+      alpha = 0.8,
+      linewidth = 1.5
+    )
+} else {
+  g
+}
 
-    if (isTRUE(fit_lm)) {
-        g <- g +
-        # geom_ribbon(stat = "smooth", method = lm_method, se = FALSE, alpha = 0.1,
-        #       aes(color = NULL, group = factor(group))) +
-        geom_line(stat = "smooth", method = lm_method, se = FALSE, alpha = 0.8, linewidth = 1.5)
-    } else {
-        g
-    }
-
-    if (isTRUE(identity_line)) {
-        g <- g + geom_abline(
-            intercept = 0, slope = 1, color = "#373737", # color = "green"
-            linetype = "dashed",
-            linewidth = .5
-        )
-    } else {
-        g
-    }
+if (isTRUE(identity_line)) {
+  g <- g + geom_abline(
+    intercept = 0,
+    slope = 1,
+    color = "#373737",
+    # color = "green"
+    linetype = "dashed",
+    linewidth = .5
+  )
+} else {
+  g
+}
 g
 ```
 
+> The curvature resembles the demeaned ratings that we observed. 
+
+## plot expectation and outcome, collapsing across all stimulus intesnity
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-# df_dropna <-
-  # pvc[!is.na(pvc$demean_expect) & !is.na(pvc$event02_expect_angle),] # demean_outcome
-# event02_expect_angle
 clean.df <- merge.df[,c("sub", "cue", "stimulusintensity", "expectation", "outcome")]
 total <-
   plot_twovariable(
@@ -251,11 +258,14 @@ total <-
   )
 total
 ```
+> Given both ratings are demeaned, the intercept is the mean of the intensity ratings (49 C).
 
+
+## Plot Outcome as a function of stim X cue X Expectation rating
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
 iv1 = "expectation";    iv2 = "outcome"
-# low stimulus intensity
+# low stimulus intensity _______________________________________________________
 df_low = clean.df[clean.df$stimulusintensity == "low_stim", ]
 low <-
   plot_twovariable(
@@ -269,8 +279,8 @@ low <-
     alpha = .5, fit_lm = FALSE, lm_method = "lm", identity_line=FALSE, size=NULL
   )
 
-# med stimulus intensity
-df_med = clean.df[clean.df$stimulusintensity == "med_stim", ]
+# med stimulus intensity _______________________________________________________
+df_med <- clean.df[clean.df$stimulusintensity == "med_stim", ]
 med <-
   plot_twovariable(
     df_med, iv1, iv2,
@@ -283,7 +293,7 @@ med <-
     alpha = .5, fit_lm = FALSE, lm_method = "lm", identity_line=FALSE, size=NULL
   )
 
-# high stimulus intensity
+# high stimulus intensity _______________________________________________________
 df_high = clean.df[clean.df$stimulusintensity == "high_stim", ]
 high <-
   plot_twovariable(
@@ -296,16 +306,9 @@ high <-
     color_scheme = c("high_cue" ="#5C29BA","low_cue" =  "#5D5C5C"),
     alpha = .5, fit_lm = FALSE, lm_method = "lm", identity_line=FALSE, size=NULL
   )
-integer_breaks <- function(n = 3, ...) {
-  fxn <- function(x) {
-    breaks <- floor(pretty(x, n, ...))
-    names(breaks) <- attr(breaks, "labels")
-    breaks
-  }
-  return(fxn)
-}
+
+# combine plots ________________________________________________________________
 low <- low + theme(text = element_text(size = 13)) + theme(aspect.ratio=1)+ scale_x_continuous(breaks = seq(48, 50))
-  # scale_y_continuous(breaks= pretty_breaks())
 med <- med + theme(text = element_text(size = 13)) + theme(aspect.ratio=1) + scale_x_continuous(breaks = seq(48, 50))
 high <- high + theme(text = element_text(size = 13)) + theme(aspect.ratio=1) +scale_x_continuous(breaks = seq(48, 50))
 
@@ -313,11 +316,10 @@ plots <- ggpubr::ggarrange(low, med, high, ncol = 3, nrow = 1, common.legend = F
 plots_title <- annotate_figure(plots, top = text_grob("individual differences\n - cue effects from outcome ratings", color = "black", face = "bold", size = 15))
 plots
 
-ggsave(file.path(main_dir, 'analysis/mixedeffect/CCNfigures/figD.png'), plots)
+# ggsave(file.path(main_dir, 'analysis/mixedeffect/CCNfigures/figD.png'), plots)
 ```
 
-### model 04 4-4 lineplot
-
+### plot cue and 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 clean.df$stim_name[clean.df$stimulusintensity == "low_stim"] <- "low"
 clean.df$stim_name[clean.df$stimulusintensity == "med_stim"] <- "med"
@@ -336,44 +338,67 @@ clean.df$cue_ordered <- factor(
         levels = c("low", "high")
     )
 # DATA = as.data.frame(combined_se_calc_cooksd)
-color = c( "#4575B4", "#D73027")
-iv1 = "stim_ordered"
-iv2 = "cue_ordered"
-dv= "outcome"
-mean = "mean_per_sub_norm_mean"
-error = "ci"
-dv_keyword = "outcome"
+color <- c( "#4575B4", "#D73027")
+iv1 <- "stim_ordered"
+iv2 <- "cue_ordered"
+xlab <- "Stimulus Intensity"
+ylab <- "Outcome Rating"
+dv <- "outcome"
+mean <- "mean_per_sub_norm_mean"
+error <- "ci"
+dv_keyword <- "outcome"
 
-    actual_subjectwise <- meanSummary(
-        clean.df,
-        c(subject, iv1, iv2), dv
-    )
-    actual_groupwise <- summarySEwithin(
-        data = actual_subjectwise,
-        measurevar = "mean_per_sub",
-        withinvars = c(iv1, iv2), idvar = subject
-    )
-    g <- ggplot(data = actual_groupwise, aes(
-        x = .data[[iv1]],
-        y = .data[[mean]],
-        group = as.factor(.data[[iv2]]),
-        color = as.factor(.data[[iv2]])
-    ), cex.lab = 1.5, cex.axis = 2, cex.main = 1.5, cex.sub = 1.5) +
-        geom_errorbar(aes(
-            ymin = (.data[[mean]] - .data[[error]]),
-            ymax = (.data[[mean]] + .data[[error]])
-        ), width = .1) +
-        geom_line() +
-        geom_point() +
-        # scale_x_continuous(breaks = seq(-3, +3, by = 1)) +
-        # scale_y_continuous(breaks = seq(0, 90, by=30), limits=c(0,90)) +
-        ggtitle(ggtitle) +
-        xlab(xlab) +
-        ylab(ylab) +
-        # guides(fill=guide_legend(title="Social Endorsement Position")) +
-        scale_color_manual(values = color) +
-        theme_classic() +
-        theme(legend.position = "none") +
-        theme(aspect.ratio = .6)
-    g
+actual_subjectwise <- meanSummary(clean.df,
+                                  c(subject, iv1, iv2), dv)
+actual_groupwise <- summarySEwithin(
+  data = actual_subjectwise,
+  measurevar = "mean_per_sub",
+  withinvars = c(iv1, iv2),
+  idvar = subject
+)
+
+# plot lineplot ________________________________________________________________
+
+DATA = as.data.frame(actual_groupwise)
+color = c( "#4575B4", "#D73027")
+LINEIV1 = "stim_ordered"
+LINEIV2 = "cue_ordered"
+MEAN = "mean_per_sub_norm_mean"
+ERROR = "ci"
+dv_keyword = "outcome"
+actual_groupwise$taskname <- "pain"
+p1 <- plot_lineplot_twofactor_subset(actual_groupwise, 'pain',
+               LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = tools::toTitleCase('pain') )
+p1
+
+# 
+# g <- ggplot(
+#   data = actual_groupwise,
+#   aes(
+#     x = .data[[iv1]],
+#     y = .data[[mean]],
+#     group = as.factor(.data[[iv2]]),
+#     color = as.factor(.data[[iv2]])
+#   ),
+#   cex.lab = 1.5,
+#   cex.axis = 2,
+#   cex.main = 1.5,
+#   cex.sub = 1.5
+# ) +
+#   geom_errorbar(aes(
+#     ymin = (.data[[mean]] - .data[[error]]),
+#     ymax = (.data[[mean]] + .data[[error]])
+#   ), width = .1) +
+#   geom_line() +
+#   geom_point() +
+#   ggtitle(ggtitle) +
+#   xlab(xlab) +
+#   ylab(ylab) +
+#   scale_color_manual(values = color) +
+#   theme_classic() +
+#   theme(legend.position = "none") +
+#   theme(aspect.ratio = .6)
+# g
 ```
+
+> The cue and stim effects are signficiant, but the mid range is different. The behaviorla data shows that the medium intensity has smaller cue effects compared to the high and low cues, whereas the current simulations show the opposite trend. Not sure if we should read too much into this. 
