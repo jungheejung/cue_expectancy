@@ -1,8 +1,10 @@
 # RL :: simulation {#simulation}
 
 ---
+
 title: "Your Document Title"
 output: html_notebook
+
 ---
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
@@ -14,6 +16,7 @@ output: html_notebook
 ```{r include=FALSE}
 library(tidyr)
 library(dplyr)
+library(plyr)
 library(ggpubr)
 library(r2mlm)
 main_dir = dirname(dirname(getwd()))
@@ -110,7 +113,6 @@ expect = read.csv(expect_fname)
 outcome = read.csv(outcome_fname)
 ```
 
-
 ```{r include=FALSE}
 # tidy the dataframes by renaming "expect" _____________________________________
 expect$sub <- rep(1:250, each = 2)
@@ -165,6 +167,7 @@ merge.df <- data.frame(merged_df)
 ```
 
 ## plot expectation and outcome ratings per cue X stim {.unlisted .unnumbered}
+
 ```{r}
 group <- "cue"
 
@@ -237,9 +240,10 @@ if (isTRUE(identity_line)) {
 g
 ```
 
-> The curvature resembles the demeaned ratings that we observed. 
+> The curvature resembles the demeaned ratings that we observed.
 
 ## plot expectation and outcome, collapsing across all stimulus intesnity
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 clean.df <- merge.df[,c("sub", "cue", "stimulusintensity", "expectation", "outcome")]
 total <-
@@ -258,10 +262,11 @@ total <-
   )
 total
 ```
+
 > Given both ratings are demeaned, the intercept is the mean of the intensity ratings (49 C).
 
-
 ## Plot Outcome as a function of stim X cue X Expectation rating
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
 iv1 = "expectation";    iv2 = "outcome"
@@ -319,7 +324,8 @@ plots
 # ggsave(file.path(main_dir, 'analysis/mixedeffect/CCNfigures/figD.png'), plots)
 ```
 
-### plot cue and 
+### plot cue and
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 clean.df$stim_name[clean.df$stimulusintensity == "low_stim"] <- "low"
 clean.df$stim_name[clean.df$stimulusintensity == "med_stim"] <- "med"
@@ -371,7 +377,7 @@ p1 <- plot_lineplot_twofactor_subset(actual_groupwise, 'pain',
                LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = tools::toTitleCase('pain') )
 p1
 
-# 
+#
 # g <- ggplot(
 #   data = actual_groupwise,
 #   aes(
@@ -401,4 +407,4 @@ p1
 # g
 ```
 
-> The cue and stim effects are signficiant, but the mid range is different. The behaviorla data shows that the medium intensity has smaller cue effects compared to the high and low cues, whereas the current simulations show the opposite trend. Not sure if we should read too much into this. 
+> The cue and stim effects are signficiant, but the mid range is different. The behaviorla data shows that the medium intensity has smaller cue effects compared to the high and low cues, whereas the current simulations show the opposite trend. Not sure if we should read too much into this.
