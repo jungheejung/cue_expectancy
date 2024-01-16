@@ -1,12 +1,5 @@
 # beh :: expectation ~ cue {#beh-expect-cue}
 
----
-
-output:
-rmdformats::downcute:
-use_bookdown: true
-
----
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
@@ -17,6 +10,12 @@ Here, I plot the expectation ratings as a function of cue.
 - If there is a main effect of cue on expectation ratings, does this cue effect differ depending on task type?
 - IV: cue (high / low)
 - DV: expectation rating
+
+Also, Do those who have larger IQRs for expectation ratings also show greater cue effects?
+Steps:
+calculate cue effects per pariticpant (high vs. low cue average)
+calculate IQR per participant
+check correlation
 
 
 
@@ -41,8 +40,9 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     print_lmer_output = TRUE
     exclude <- "sub-0001|sub-0999"
     # load data, run model, and exclude outliers
-    data <- load_task_social_df(datadir, taskname, subject_varkey, iv, dv, exclude)
-
+    data <- df_load_beh(datadir, taskname, subject_varkey, iv, dv, exclude)
+    ############################################################################
+    # TODO: substitue with cueR::simple_contrast_beh(data)  right before iv <-"stim_ordered"
     data$subject = factor(data$src_subject_id)
     data$stim_name[data$param_stimulus_type == "high_stim"] <- "high"
     data$stim_name[data$param_stimulus_type == "med_stim"] <- "med"
@@ -67,6 +67,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
         data$stim_name,
         levels = c("low", "med", "high")
     )
+    ############################################################################
     iv <- "stim_ordered"
     dv <- "event02_expect_angle"
     print(taskname)

@@ -1,7 +1,7 @@
 ---
 title: "Analysis logbook: task-cue-expectancy"
 author: "Heejung Jung"
-date: '08 January, 2024'
+date: '16 January, 2024'
 site: bookdown::bookdown_site
 documentclass: book
 output:
@@ -70,3 +70,7 @@ Each bookdown chapter is an .Rmd file. This .Rmd is migrated from the git reposi
 - Reinforcement learning simulations
 - fMRI analysis (signatures)
 - fMRI FIR time series analysis
+
+## TODO
+- [ ] create behavioral file - tedious and not reproducible to compile a dataframe everytime
+- [ ] create script for converting column names

@@ -38,7 +38,7 @@
 ```r
 main_dir = dirname(dirname(getwd()))
 data <- read.csv(file.path(main_dir, 'data/simulated/model_ver04_0508/table_pain_new.csv'))
-subjectwise_2dv <- meanSummary_2dv(data, c("src_subject_id"),
+subjectwise_2dv <- meanSummary_2continuous(data, c("src_subject_id"),
                                    "event02_expect_angle", "Exp_mdl2" )
 ggplot(data = subjectwise_2dv,
        aes(x = .data[["DV1_mean_per_sub"]],
@@ -70,7 +70,7 @@ ggplot(data = subjectwise_2dv,
 
 
 ```r
-subjectwise_2dv <- meanSummary_2dv(data, c("src_subject_id"),
+subjectwise_2dv <- meanSummary_2continuous(data, c("src_subject_id"),
                                    "event04_actual_angle", "Pain_mdl2" )
 ggplot(data = subjectwise_2dv,
        aes(x = .data[["DV1_mean_per_sub"]],
@@ -194,7 +194,7 @@ PEdf <- PEdf %>%
 merged_NPSpe <- merge(NPS, PEdf, by = c("sub", "ses", "run", "trial"))
 
 
-subjectwise_2dv <- meanSummary_2dv(merged_NPSpe, c("src_subject_id","stimintensity", "cuetype"),
+subjectwise_2dv <- meanSummary_2continuous(merged_NPSpe, c("src_subject_id","stimintensity", "cuetype"),
                                    "PE_mdl2", "NPSpos" )
 ggplot(data = subjectwise_2dv,
        aes(x = .data[["DV1_mean_per_sub"]],
