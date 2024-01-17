@@ -14,8 +14,7 @@
 #'
 #' @return cooks d distance
 #' @export
-#'
-#' @examples
+
 lmer_twofactor_cooksd <- function(data, taskname,
                                        iv, stim_con1, stim_con2, dv,
                                        subject_keyword, dv_keyword, model_savefname, effects, print_lmer_output) {

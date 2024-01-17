@@ -7,7 +7,7 @@
 #' @param trial_threshold int: bare minimum number of trials that each participant should have.
 #'
 #' @return dataframe with filtered participants that match trial_threshold, session_threshold criterion
-df_filter_ses_trial <- function(data, session_colname, subject_colname, session_threshold, trial_threshold) {
+filter_df_ses_trial <- function(data, session_colname, subject_colname, session_threshold, trial_threshold) {
 
   data.2 <- data %>%
     arrange({{subject_colname}}) %>%

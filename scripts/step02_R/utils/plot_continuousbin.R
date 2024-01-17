@@ -1,13 +1,29 @@
-
-#' @example 
-#' # plot_binned_rating(df, taskname, iv1 = "event02_expect_angle", iv2 = "event04_actual_angle", xlab = "expectation ratings",
-#                    ylab = "outcome ratings", levels = 10)
-#' [Example](https://github.com/jungheejung/cueR/blob/main/man/figures/example_plot_binned_rating.png)
-plot_binned_rating <- function(df, taskname, iv1, iv2, subject = "src_subject_id", xlab = "expectation ratings",
-                               ylab = "outcome ratings", levels = 10) {
-    library(ggplot2)
-    library(dplyr)
-
+#' Plot Binned Ratings
+#'
+#' This function generates plots for binned ratings in a specified task, with options for customizing
+#' color gradients and labels. It supports different task types with distinct color palettes. The function
+#' assumes specific column names in the data and uses custom ggplot formatting functions.
+#'
+#' @param df A dataframe containing the data to be plotted.
+#' @param taskname A character string specifying the task name, used for filtering data and generating plot titles.
+#' @param iv1 The name of the first independent variable column in `df`.
+#' @param iv2 The name of the second independent variable column in `df`.
+#' @param subject The name of the subject identifier column in `df` (default is "src_subject_id").
+#' @param xlab The label for the x-axis (default is "expectation ratings").
+#' @param ylab The label for the y-axis (default is "outcome ratings").
+#' @param levels The number of levels for binning the independent variable (default is 10).
+#'
+#' @return A ggplot object representing the binned rating plot.
+#'
+#' @examples
+#' # Example usage
+#' plot_binned_rating(df, "pain", "event02_expect_angle", "event04_actual_angle",
+#'                    "src_subject_id", "expectation ratings", "outcome ratings", 10)
+#' # Note: `df` should be a properly formatted dataframe as required by the function.
+#' #### [Example](https://github.com/jungheejung/cueR/blob/main/man/figures/example_plot_binned_rating.png)
+#' @export
+plot_binned_rating <- function(df, taskname, iv1, iv2, subject = "src_subject_id",
+                               xlab = "expectation ratings", ylab = "outcome ratings", levels = 10) {
 
     if (any(startsWith(taskname, c("pain", "Expect")))) {
         color_palette <- c("#941100", "#000000")
@@ -18,13 +34,13 @@ plot_binned_rating <- function(df, taskname, iv1, iv2, subject = "src_subject_id
     }
 
     df_dropna <- df[!is.na(df[, iv1]) & !is.na(df[, iv2]), ]
-    # step01 :: If a participant has less than 5 trials, then drop participant
+    # 1. If a participant has less than 5 trials, then drop participant ________
     k <- df_dropna %>%
         dplyr::group_by(.data[["src_subject_id"]]) %>%
         filter(n() >= 5) %>%
         ungroup()
 
-    # step02 :: demean and discretize data
+    # 2. demean and discretize data ____________________________________________
     df_discrete <- k %>%
         dplyr::group_by(.data[["src_subject_id"]]) %>%
         select(everything())  %>%
