@@ -12,6 +12,10 @@ Here, I plot the outcome ratings as a function of stimulus intensity
 
 FIX: plot statistics in random effect plot - what is broken?
 
+::::{.refbox}
+* https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+::::
+
 ```{r load_libraries_3, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(psych)
 library(car)
@@ -59,465 +63,356 @@ sapply(file.sources,source,.GlobalEnv)
 main_dir = dirname(dirname(getwd()))
 print(main_dir)
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
-```
-
-```{r common_parameters_3, message=FALSE, warning=FALSE, paged.print=FALSE}
-# parameters _____________________________________ # nolint
-subject_varkey <- "src_subject_id"
-iv <- "param_stimulus_type"; iv_keyword <- "stim"; dv <- "event04_actual_angle"; dv_keyword <- "outcome"
-xlab <- ""; ylim = c(0,180); ylab <- "ratings (degree)"
-subject <- "subject"
-exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
-subjectwise_mean <- "mean_per_sub"; group_mean <- "mean_per_sub_norm_mean"; se <- "se"
-color_scheme <-     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
-        color_scheme <- c("#1B9E77", "#D95F02")
-    } else {
-        color_scheme <- c("#4575B4", "#D73027")
-    }
-print_lmer_output <- FALSE
-ggtitle_phrase <- " - Outcome Rating (degree)"
-analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", paste0("model04_iv-",iv_keyword,"_dv-",dv_keyword), as.character(Sys.Date()))
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", paste0("model04_iv-stim_dv-outcome"), as.character(Sys.Date()))
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 ```
 
-```{r ggplotfunction_3, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
-ggplot_onefactor_pertask <- function(taskname, subject_varkey, subject, exclude,
-                                     analysis_dir, iv, iv_keyword, dv, dv_keyword,
-                                     subjectwise_mean, group_mean, se,color_scheme,
-                                     xlab, ylim, ylab, ggtitle_phrase, print_lmer_output) {
-    ## designate where the lmer output lives
-    model_savefname <- file.path(
-        analysis_dir,paste("lmer_task-", taskname,"_iv-", iv_keyword, "_dv-rating-", dv_keyword,"_", as.character(Sys.Date()), ".txt",
-            sep = ""))
 
-    ## load data, run model, and exclude outliers
-    data <- df_load_beh(datadir, taskname, subject_varkey, iv, dv, exclude)
-    data$subject = factor(data$src_subject_id)
-    data = data[!is.na(data[, dv] ),] # removing NA values
-    #print(length(unique(data$subject)))
-    data <- data %>%
-    mutate(ordered_iv = fct_relevel(.data[[iv]],
-            "low_stim", "med_stim", "high_stim"))
-    cooksd <- lmer_onefactor_cooksd(data, taskname, "ordered_iv", dv, subject, dv_keyword, model_savefname, print_lmer_output) # run lmer
-    influential <- as.numeric(names(cooksd)[
-    (cooksd > (4 / as.numeric(length(unique(data$subject)))))])
-    data_screen <- data[-influential, ]
+### Load data across tasks and designate common plot variables {.unlisted .unnumbered}
+```{r}
+# 1. load data and rename columns ______________________________________________
+pvc <- cueR::df_load_pvc_beh(datadir, subject_varkey = "src_subject_id", iv = "param_cue_type", dv = "event02_expect_angle", exclude = "sub-0001")
 
-    ## summary statistics
-    subjectwise <- meanSummary(data_screen, c(subject, "ordered_iv"), dv)
-    groupwise <- summarySEwithin(
-        data = subjectwise,
-        measurevar = subjectwise_mean, # variable created from above
-        withinvars = c("ordered_iv"), # iv
-        idvar = "subject"
-    )
+pvc <- cueR::simple_contrast_beh(pvc)
 
-    ## designate plot save location
-    ggtitle <- paste0(str_to_title(taskname), ggtitle_phrase, " N = (", length(unique(data$subject)), ")");
-    title <- paste0(str_to_title(taskname), " - ", str_to_title(dv_keyword))
-    w = 5; h = 3;
-    plot_savefname <- file.path(analysis_dir,
-                                paste0("raincloud_task", taskname,"_iv-", iv_keyword, "_dv-rating-", dv_keyword,"_", as.character(Sys.Date()), ".png")
-                                )
+column_mapping <- c("event04_actual_angle" = "OUTCOME", 
+                    "event02_expect_angle" = "EXPECT", 
+                    "src_subject_id" = "sub")
+pvc <- cueR::df_rename_columns(pvc, column_mapping)
+# dropping NA values
+pvc <- pvc[!is.na(pvc$OUTCOME), ]
+
+```
 
 
-    # plot_rainclouds_onefactor
-    p1 <- plot_halfrainclouds_onefactor(
-        subjectwise, groupwise,
-        "ordered_iv", subjectwise_mean, group_mean, se, subject,
-        ggtitle, title, xlab, ylab, task_name,ylim,
-        w, h, dv_keyword, color_scheme, plot_savefname
-    )
 
-    p1 <-   p1 +
-      geom_hline(yintercept = 0, size = 0.1, linetype = "dashed") +
-      geom_label(x = 3.5, y = 0, label = c("no sensation"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 3, size = 0.1, linetype = "dashed") +
-      geom_label(x = 3.5, y = 3, label = c("barely detectable"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 10, size = 0.1, linetype = "dashed") +
-      geom_label(x = 3.5, y = 10, label = c("weak"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 30, size = 0.1, linetype = "dashed") +
-      geom_label(x = 3.5, y = 30, label = c("moderate"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 65, size = 0.1, linetype = "dashed") +
-      geom_label(x = 3.5, y = 65, label = c("strong"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 95, size = 0.1, linetype = "dashed") +
-      geom_label(x = 3.5, y = 95, label = c("very strong"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 180, size = 0.1, linetype = "dashed") +
-      geom_label(x = 3.5, y = 180, label = c("strongest imaginable"), hjust = 0, nudge_x = 0.1, size = 3) +
-      coord_cartesian(clip = 'off')+
-      theme_classic() +
-      theme(legend.position = "none")
-
-    return(p1)
-# randEffect$newcoef <- mapvalues(randEffect$term,
-#     from = c(as.character(unique(randEffect$term)[1]),
-#              as.character(unique(randEffect$term)[2])
-#              ),
-#     to = c("rand_intercept", paste0("rand_", iv_keyword))
-# )
-#
-# rand_subset <- subset(randEffect, select = -c(grpvar, term, condsd))
-# wide_rand <- spread(rand_subset, key = newcoef, value = condval)
-#
-# wide_fix <- do.call(
-#     "rbind",
-#     replicate(nrow(wide_rand),
-#         as.data.frame(t(as.matrix(fixEffect))),
-#         simplify = FALSE
-#     )
-# )
-# rownames(wide_fix) <- NULL
-# new_wide_fix <- dplyr::rename(wide_fix,
-#     fix_intercept = colnames(wide_fix)[1],
-#     fix_reg = colnames(wide_fix)[2],
-# )
-#
-# total <- cbind(wide_rand, new_wide_fix)
-# total$task <- taskname
-# new_total <- total %>% dplyr::select(task, everything())
-# new_total <- dplyr::rename(total, subj = grp)
-#
-# rand_savefname <- file.path(
-#     analysis_dir,
-#     paste("randeffect_task-", taskname, "_",
-#         as.character(Sys.Date()), "_outlier-cooksd.csv",
-#         sep = ""
-#     )
-# )
-# write.csv(new_total, rand_savefname, row.names = FALSE)
-
-}
+```{r}
+combined_summary <- data.frame()
 ```
 
 ## Pain
 
 ### For the pain task, what is the effect of stimulus intensity on outcome ratings? {.unlisted .unnumbered}
 
-[ INSERT DESCRIPTION ]
+> Stimulus intensity effect is significant. What's also evident is that there is wide variablity in terms of indviduals differences
+The linear effect is reassuring and is similar to that of C-fiber profiles from 
 
-```{r pain_iv-stim_dv-outcome, echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
-taskname = 'pain'
-color_scheme = c("#FFA79A", "#CA5C4D", "#941100")
-ggplot_onefactor_pertask(taskname, subject_varkey, subject, exclude,
-                                     analysis_dir, iv, iv_keyword, dv, dv_keyword,
-                                     subjectwise_mean, group_mean, se, color_scheme,
-                                     xlab, ylim, ylab, ggtitle_phrase, print_lmer_output)
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+taskname <- 'pain'
+
+
+# 0. Summary and plot related keywords _________________________________________
+subject <- "sub";
+iv <- "stim_ordered";              dv <- "OUTCOME"
+sub_mean <- "mean_per_sub";       group_mean <- "mean_per_sub_norm_mean"
+se <- "se"
+iv_keyword <- "stim";              dv_keyword <- "outcome"
+ggtitle_phrase <- " - Outcome Rating"
+ggtitle <- paste0(tools::toTitleCase(taskname), ggtitle_phrase, " (N = ", length(unique(data$sub)), ")");
+title <- paste0(tools::toTitleCase(taskname), " - ", tools::toTitleCase(dv_keyword))
+xlab <- "Stimulus Intensity type";               ylab <- "Outcome Ratings (degree)"
+ylim <- c(-10,190);               w = 5; h = 3;
+plot_savefname <- file.path(analysis_dir,
+                            paste0("raincloud_task-", taskname,"_iv-", iv_keyword, 
+                                   "_dv-rating-", dv_keyword,"_", as.character(Sys.Date()), ".png")
+                            )
+color <- c("#FFA79A", "#CA5C4D", "#941100") #c("#4575B4", "#D73027")
+
+
+data <- pvc[pvc$task==taskname, ]
+
+
+# 1. summary stats _____________________________________________________________
+outcome_subjectwise <- meanSummary(data, c(subject, iv), dv)
+outcome_groupwise <- cueR::summarySEwithin(
+    data = outcome_subjectwise,
+    measurevar = sub_mean, # variable created from above
+    withinvars = c(iv), # iv
+    idvar = subject
+)
+
+outcome_groupwise$task <- taskname
+combined_summary <- rbind(combined_summary, outcome_groupwise)
+
+
+# 2. plot parameters _____________________________________________________________
+g <- cueR::plot_cueexpectancy_onefactor(
+        outcome_subjectwise, outcome_groupwise, iv,
+        sub_mean, group_mean, se, subject, ggtitle, title, 
+        xlab="", ylab, taskname, 
+        w, h, dv_keyword, color, plot_savefname,
+        expand_x = TRUE,
+        xlim = c(NA, 3), ylim = c(-20, 200),
+        x_scale_expansion = c(0, 0.5),
+        x_hline_position = 3.5,
+        x_hline_linetype = "dashed",
+        x_hline_nudge_x = 0.1,
+        x_hline_textsize = 3,
+        legend_factor_levels = c("High stim", "Med stim", "Low stim"),
+        legend_factor_colors = c(  "#941100", "#CA5C4D","#FFA79A" ),
+        legend_geom_point_size = 4,
+        legend_position = c(-0.1, 0.7),
+        legend_widths = c(5, 1)
+      )
+grid::grid.draw(g)
+
+
+# 3. mixed effects model _______________________________________________________
+model.painexpect <- lmer(OUTCOME ~ STIM_con_linear + STIM_con_quad + (STIM_con_linear|sub), data = data)
+sjPlot::tab_model(model.painexpect,
+              title = paste0(tools::toTitleCase(taskname), ": \nlmer(OUTCOME ~ STIM + (STIM| sub), data = pvc)"),
+              CSS = list(css.table = '+font-size: 12;'))
+
+
+# 4. compute random effects and save for compiling across PVC tasks ____________
+rand_savefname <- file.path(
+    analysis_dir,
+    paste("randeffect_task-", taskname, "_",
+        as.character(Sys.Date()), ".csv",
+        sep = ""
+    ))
+randeffect.P <- compute_randomeffects(model.painexpect, rand_savefname = rand_savefname, taskname,
+                                      new_rand_names = c("rand_intercept", "rand_stimlinear"),
+                                      new_fix_names =  c("fix_intercept", "fix_stimlinear", "fix_stimquad"))
 ```
+
 
 ## Vicarious
 
 ### For the vicarious task, what is the effect of stimulus intensity on outcome ratings? {.unlisted .unnumbered}
 
-[ INSERT DESCRIPTION ]
+> Stimulus intensity effects are signficant. This is a great manipulation check, as the video of the vicarious pain condition are categorized in the low/med/high based on a combination of patient ratings and observer ratings. 
 
 ```{r vicarious_iv-stim_dv-outcome, echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
-taskname = 'vicarious'
-color_scheme = c("#C6FF8A", "#63C76E", "#008F51")
-ggplot_onefactor_pertask(taskname, subject_varkey, subject, exclude,
-                                     analysis_dir, iv, iv_keyword, dv, dv_keyword,
-                                     subjectwise_mean, group_mean, se, color_scheme,
-                                     xlab, ylim, ylab, ggtitle_phrase, print_lmer_output)
+taskname <- 'vicarious'
+
+# 0. Summary and plot related keywords _________________________________________
+subject <- "sub";
+iv <- "stim_ordered";              dv <- "OUTCOME"
+sub_mean <- "mean_per_sub";       group_mean <- "mean_per_sub_norm_mean"
+se <- "se"
+iv_keyword <- "stim";              dv_keyword <- "outcome"
+ggtitle_phrase <- " - Outcome Rating"
+ggtitle <- paste0(tools::toTitleCase(taskname), ggtitle_phrase, " (N = ", length(unique(data$sub)), ")");
+title <- paste0(tools::toTitleCase(taskname), " - ", tools::toTitleCase(dv_keyword))
+xlab <- "Stimulus Intensity type";               ylab <- "Outcome Ratings (degree)"
+ylim <- c(-10,190);               w = 5; h = 3;
+plot_savefname <- file.path(analysis_dir,
+                            paste0("raincloud_task-", taskname,"_iv-", iv_keyword, 
+                                   "_dv-rating-", dv_keyword,"_", as.character(Sys.Date()), ".png")
+                            )
+color <- c("#C6FF8A", "#63C76E", "#008F51")
+
+
+data <- pvc[pvc$task==taskname, ]
+
+
+# 1. summary stats _____________________________________________________________
+outcome_subjectwise <- meanSummary(data, c(subject, iv), dv)
+outcome_groupwise <- cueR::summarySEwithin(
+    data = outcome_subjectwise,
+    measurevar = sub_mean, # variable created from above
+    withinvars = c(iv), # iv
+    idvar = subject
+)
+
+outcome_groupwise$task <- taskname
+combined_summary <- rbind(combined_summary, outcome_groupwise)
+
+
+# 2. plot parameters _____________________________________________________________
+g <- cueR::plot_cueexpectancy_onefactor(
+        outcome_subjectwise, outcome_groupwise, iv,
+        sub_mean, group_mean, se, subject, ggtitle, title, 
+        xlab="", ylab, taskname, 
+        w, h, dv_keyword, color, plot_savefname,
+        expand_x = TRUE,
+        xlim = c(NA, 3), ylim = c(-20, 200),
+        x_scale_expansion = c(0, 0.5),
+        x_hline_position = 3.5,
+        x_hline_linetype = "dashed",
+        x_hline_nudge_x = 0.1,
+        x_hline_textsize = 3,
+        legend_factor_levels = c("High stim", "Med stim", "Low stim"),
+        legend_factor_colors = c( "#008F51", "#63C76E", "#C6FF8A" ),
+        legend_geom_point_size = 4,
+        legend_position = c(-0.1, 0.7),
+        legend_widths = c(5, 1)
+      )
+grid::grid.draw(g)
+
+
+# 3. mixed effects model _______________________________________________________
+model.vicexpect <- lmer(OUTCOME ~ STIM_con_linear + STIM_con_quad + (STIM_con_linear|sub), data = data)
+sjPlot::tab_model(model.vicexpect,
+              title = paste0(tools::toTitleCase(taskname), ": \nlmer(OUTCOME ~ STIM + (STIM| sub), data = pvc)"),
+              CSS = list(css.table = '+font-size: 12;'))
+
+
+# 4. compute random effects and save for compiling across PVC tasks ____________
+rand_savefname <- file.path(
+    analysis_dir,
+    paste("randeffect_task-", taskname, "_",
+        as.character(Sys.Date()), ".csv",
+        sep = ""
+    ))
+randeffect.V <- compute_randomeffects(model.vicexpect, rand_savefname = rand_savefname, taskname,
+                                      new_rand_names = c("rand_intercept", "rand_stimlinear"),
+                                      new_fix_names =  c("fix_intercept", "fix_stimlinear", "fix_stimquad"))
 ```
 
 ## Cognitive
 
 ### For the cognitive task, what is the effect of stimulus intensity on outcome ratings? {.unlisted .unnumbered}
 
-[ INSERT DESCRIPTION ]
+> Stimulus intensity effects, both linear and quadratic effects, are signfiicant. However, the plots indicate that the medium and high levels are almost similarly processed, except for that one participant that has a linear trend. 
 
-```{r cognitive_iv-stim_dv-outcome, echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
-taskname = 'cognitive'
-color_scheme = c("#8EA1FF", "#485DC8", "#011891")
-ggplot_onefactor_pertask(taskname, subject_varkey, subject, exclude,
-                                     analysis_dir, iv, iv_keyword, dv, dv_keyword,
-                                     subjectwise_mean, group_mean, se, color_scheme,
-                                     xlab, ylim, ylab, ggtitle_phrase, print_lmer_output)
-```
+```{r cognitive_iv-stim_dv-outcome, echo=FALSE, message=TRUE, warning=TRUE, paged.print=FALSE}
 
-```{r random_effects_3, eval=FALSE, message=FALSE, warning=TRUE, include=FALSE, paged.print=FALSE}
-# test function
-rand_dir <- analysis_dir
-dir.create(rand_dir, showWarnings = FALSE, recursive = TRUE)
-dfP <- read.csv(file.path(
-    rand_dir,
-    paste("randeffect_task-pain", "_", as.character(Sys.Date()), "_outlier-cooksd.csv", sep = "")
-))
-dfV <- read.csv(file.path(
-    rand_dir,
-    paste("randeffect_task-vicarious", "_", as.character(Sys.Date()), "_outlier-cooksd.csv", sep = "")
-))
-dfC <- read.csv(file.path(
-    rand_dir,
-    paste("randeffect_task-cognitive", "_", as.character(Sys.Date()), "_outlier-cooksd.csv", sep = "")
-))
+taskname <- 'cognitive'
 
-pvc <- merge_recurse(list(dfP, dfV, dfC))
+# 0. Summary and plot related keywords _________________________________________
+subject <- "sub";
+iv <- "stim_ordered";              dv <- "OUTCOME"
+sub_mean <- "mean_per_sub";       group_mean <- "mean_per_sub_norm_mean"
+se <- "se"
+iv_keyword <- "stim";              dv_keyword <- "outcome"
+ggtitle_phrase <- " - Outcome Rating"
+ggtitle <- paste0(tools::toTitleCase(taskname), ggtitle_phrase, " (N = ", length(unique(data$sub)), ")");
+title <- paste0(tools::toTitleCase(taskname), " - ", tools::toTitleCase(dv_keyword))
+xlab <- "Stimulus Intensity type";               ylab <- "Outcome Ratings (degree)"
+ylim <- c(-10,190);               w = 5; h = 3;
+plot_savefname <- file.path(analysis_dir,
+                            paste0("raincloud_task-", taskname,"_iv-", iv_keyword, 
+                                   "_dv-rating-", dv_keyword,"_", as.character(Sys.Date()), ".png")
+                            )
+color <- c("#8EA1FF", "#485DC8", "#011891")
 
-save_fname <- file.path(
+
+data <- pvc[pvc$task==taskname, ]
+
+
+# 1. summary stats _____________________________________________________________
+outcome_subjectwise <- meanSummary(data, c(subject, iv), dv)
+outcome_groupwise <- cueR::summarySEwithin(
+    data = outcome_subjectwise,
+    measurevar = sub_mean, # variable created from above
+    withinvars = c(iv), # iv
+    idvar = subject
+)
+
+outcome_groupwise$task <- taskname
+combined_summary <- rbind(combined_summary, outcome_groupwise)
+
+
+# 2. plot parameters _____________________________________________________________
+g <- cueR::plot_cueexpectancy_onefactor(
+        outcome_subjectwise, outcome_groupwise, iv,
+        sub_mean, group_mean, se, subject, ggtitle, title, 
+        xlab="", ylab, taskname, 
+        w, h, dv_keyword, color, plot_savefname,
+        expand_x = TRUE,
+        xlim = c(NA, 3), ylim = c(-20, 200),
+        x_scale_expansion = c(0, 0.5),
+        x_hline_position = 3.5,
+        x_hline_linetype = "dashed",
+        x_hline_nudge_x = 0.1,
+        x_hline_textsize = 3,
+        legend_factor_levels = c("High stim", "Med stim", "Low stim"),
+        legend_factor_colors = c(  "#011891","#485DC8","#8EA1FF"),
+        legend_geom_point_size = 4,
+        legend_position = c(-0.1, 0.7),
+        legend_widths = c(5, 1)
+      )
+grid::grid.draw(g)
+
+
+# 3. mixed effects model _______________________________________________________
+model.cogexpect <- lmer(OUTCOME ~ STIM_con_linear + STIM_con_quad + (STIM_con_linear|sub), data = data)
+sjPlot::tab_model(model.cogexpect,
+              title = paste0(tools::toTitleCase(taskname), ": \nlmer(OUTCOME ~ STIM + (STIM| sub), data = pvc)"),
+              CSS = list(css.table = '+font-size: 12;'))
+
+
+# 4. compute random effects and save for compiling across PVC tasks ____________
+rand_savefname <- file.path(
     analysis_dir,
-    paste("randeffect_task-all_",
+    paste("randeffect_task-", taskname, "_",
         as.character(Sys.Date()), ".csv",
         sep = ""
-    )
-)
-write.csv(pvc, save_fname, row.names = FALSE)
+    ))
+randeffect.C <- compute_randomeffects(model.cogexpect, rand_savefname = rand_savefname, taskname,
+                                      new_rand_names = c("rand_intercept", "rand_stimlinear"),
+                                      new_fix_names =  c("fix_intercept", "fix_stimlinear", "fix_stimquad"))
 ```
 
-## for loop
 
-```{r echo=FALSE}
-combined_se_calc_cooksd <- data.frame()
-analysis_dir <- file.path(
-        main_dir,
-        "analysis", "mixedeffect", "model04_iv-stim_dv-actual",as.character(Sys.Date())
-    )
-dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
-
-# 1. [ PARAMETERS ]  __________________________________________________ # nolint
-dv_keyword <- "actual"
-xlab <- ""
-ylab <- "judgment (degree)"
-for (taskname in c("pain", "vicarious", "cognitive")) {
-    ggtitle <- paste(taskname, " - actual judgment (degree)")
-    title <- paste(taskname, " - actual")
-    subject <- "src_subject_id"
-    subject_varkey <- "src_subject_id"
-    data <- df_load_beh(datadir,
-        taskname = taskname,
-        subject_varkey = "src_subject_id",
-
-        iv = "param_cue_type",
-        dv = "event04_actual_angle",
-        exclude = "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
-    )
-
-    w <- 10
-    h <- 6
-
-    # [ CONTRASTS ]  ________________________________________________________________________________ # nolint
-    # contrast code ________________________________________
-    data$stim[data$event03_stimulus_type == "low_stim"] <- -0.5 # social influence task
-    data$stim[data$event03_stimulus_type == "med_stim"] <- 0 # no influence task
-    data$stim[data$event03_stimulus_type == "high_stim"] <- 0.5 # no influence task
-
-    data$stim_factor <- factor(data$event03_stimulus_type)
-
-    # contrast code 1 linear
-    data$stim_con_linear[data$event03_stimulus_type == "low_stim"] <- -0.5
-    data$stim_con_linear[data$event03_stimulus_type == "med_stim"] <- 0
-    data$stim_con_linear[data$event03_stimulus_type == "high_stim"] <- 0.5
-
-    # contrast code 2 quadratic
-    data$stim_con_quad[data$event03_stimulus_type == "low_stim"] <- -0.33
-    data$stim_con_quad[data$event03_stimulus_type == "med_stim"] <- 0.66
-    data$stim_con_quad[data$event03_stimulus_type == "high_stim"] <- -0.33
-
-    # social cude contrast
-    data$social_cue[data$param_cue_type == "low_cue"] <- -0.5 # social influence task
-    data$social_cue[data$param_cue_type == "high_cue"] <- 0.5 # no influence task
-
-    stim_con1 <- "stim_con_linear"
-    stim_con2 <- "stim_con_quad"
-    iv1 <- "param_cue_type"
-    #iv1 <- "social_cue"
-    dv <- "event04_actual_angle"
-
-    # [ MODEL ] _________________________________________________ # nolint
-    model_savefname <- file.path(
-        analysis_dir,
-        paste("lmer_task-", taskname,
-            "_rating-", dv_keyword,
-            "_", as.character(Sys.Date()), "_cooksd.txt",
-            sep = ""
-        )
-    )
-    cooksd <- lmer_onefactor_cooksd(
-        data, taskname, iv, dv,
-        subject, dv_keyword, model_savefname, print_lmer_output = TRUE
-    )
-    influential <- as.numeric(names(cooksd)[
-        (cooksd > (4 / as.numeric(length(unique(data$src_subject_id)))))
-    ])
-    data_screen <- data[-influential, ]
-    # [ PLOT ] reordering for plots _________________________ # nolint
-    data_screen$stim_name[data_screen$param_stimulus_type == "high_stim"] <- "high"
-    data_screen$stim_name[data_screen$param_stimulus_type == "med_stim"] <- "med"
-    data_screen$stim_name[data_screen$param_stimulus_type == "low_stim"] <- "low"
-
-    # DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
-
-    data_screen$stim_ordered <- factor(
-        data_screen$stim_name,
-        levels = c("low", "med", "high")
-    )
-    model_iv1 <- "stim_ordered"
-    #model_iv2 <- "cue_ordered"
-
-    #  [ PLOT ] calculate mean and se  _________________________
-    actual_subjectwise <- meanSummary(
-        data_screen,
-        c("src_subject_id", model_iv1), dv
-    )
-    actual_groupwise <- summarySEwithin(
-        data = actual_subjectwise,
-        measurevar = "mean_per_sub",
-        withinvars = c(model_iv1), idvar = "src_subject_id"
-    )
-    actual_groupwise$task <- taskname
-    # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
-    combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, actual_groupwise)
-
-    #  [ PLOT ] calculate mean and se  ----------------------------------------------------------------------------
-    sub_mean <- "mean_per_sub"
-    group_mean <- "mean_per_sub_norm_mean"
-    se <- "se"
-    subject <- "src_subject_id"
-    ggtitle <- paste(taskname, " - Actual Rating (degree) Cooksd removed")
-    title <- paste(taskname, " - Actual")
-    xlab <- ""
-    ylab <- "ratings (degree)"
-    ylim <- c(-10,190)
-    dv_keyword <- "actual"
-    if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
-        color <- c("#1B9E77", "#D95F02", "#D95F02")
-    } else {
-        color <- c("#4575B4", "#D73027", "#D95F02" )
-    } # if keyword starts with
-    plot_savefname <- file.path(
-        analysis_dir,
-        paste("raincloud_task-", taskname,
-            "_rating-", dv_keyword,
-            "_", as.character(Sys.Date()), "_cooksd.png",
-            sep = ""
-        )
-    )
-    g <- plot_halfrainclouds_onefactor(
-        actual_subjectwise, actual_groupwise, model_iv1,
-        sub_mean, group_mean, se, subject,
-        ggtitle, title, xlab, ylab, taskname,ylim,
-        w, h, dv_keyword, color, plot_savefname
-    )
-
-    g <- g +
-      geom_hline(yintercept = 0, size = 0.1, linetype = "dashed") +
-      geom_label(x = 3.5, y = 0, label = c("no sensation"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 3, size = 0.1, linetype = "dashed") +
-      geom_label(x = 3.5, y = 3, label = c("barely detectable"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 10, size = 0.1, linetype = "dashed") +
-      geom_label(x = 3.5, y = 10, label = c("weak"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 30, size = 0.1, linetype = "dashed") +
-      geom_label(x = 3.5, y = 30, label = c("moderate"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 65, size = 0.1, linetype = "dashed") +
-      geom_label(x = 3.5, y = 65, label = c("strong"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 95, size = 0.1, linetype = "dashed") +
-      geom_label(x = 3.5, y = 95, label = c("very strong"), hjust = 0, nudge_x = 0.1, size = 3) +
-      geom_hline(yintercept = 180, size = 0.1, linetype = "dashed") +
-      geom_label(x = 3.5, y = 180, label = c("strongest imaginable"), hjust = 0, nudge_x = 0.1, size = 3) +
-      coord_cartesian(clip = 'off')+
-      theme_classic() +
-      theme(legend.position = "none")
-
-    ggsave(plot_savefname, width = w, height = h)
-
-  print(g)
-
-    # save fixed random effects _______________________________
-#     randEffect$newcoef <- mapvalues(randEffect$term,
-#         from = c("(Intercept)", "data[, iv]",
-#                  "data[, stim_con1]", "data[, stim_con2]",
-#                  "data[, iv]:data[, stim_con1]",
-#                  "data[, iv]:data[, stim_con2]"),
-#         to = c("rand_intercept", "rand_cue", "rand_stimlin",
-#                "rand_stimquad", "rand_int_cue_stimlin", #"rand_int_cue_stimquad")
-#     )
-#
-#     #
-#     # # The arguments to spread():
-#     # # - data: Data object
-#     # # - key: Name of column containing the new column names
-#     # # - value: Name of column containing values
-#     #
-#     # # TODO: add fixed effects
-#     #
-#     rand_subset <- subset(randEffect, select = -c(grpvar, term, condsd))
-#     wide_rand <- spread(rand_subset, key = newcoef, value = condval)
-#     wide_fix <- do.call(
-#         "rbind",
-#         replicate(nrow(wide_rand), #as.data.frame(t(as.matrix(fixEffect))),
-#             simplify = FALSE
-#         )
-#     )
-#     rownames(wide_fix) <- NULL
-#     new_wide_fix <- dplyr::rename(wide_fix,
-#         fix_intercept = `(Intercept)`,
-#         fix_cue = `social_cue`, # `data[, iv]`,
-#         fix_stimulus_linear = `stim_con_linear`, # `data[, stim_con1]`,
-#         fix_stimulus_quad = `stim_con_quad`, #`data[, stim_con2]`,
-#         fix_int_cue_stimlin = `social_cue:stim_con_linear`, #`data[, iv]:data[, stim_con1]`,
-#         fix_int_cue_stimquad = `social_cue:stim_con_quad` #`data[, iv]:data[, stim_con2]`
-#     )
-#
-#     total <- cbind(wide_rand, new_wide_fix)
-#     total$task <- taskname
-#     new_total <- total %>% dplyr::select(task, everything())
-#     new_total <- dplyr::rename(total, subj = grp)
-#
-#     plot_savefname <- file.path(analysis_dir,
-#                                 paste("randeffect_task-", taskname,
-#                                       "_", as.character(Sys.Date()), #"_outlier-cooksd.csv", sep = ""))
-#     write.csv(new_total, plot_savefname, row.names = FALSE)
-#
-}
-
-```
 
 ## Lineplot
 
-```{r}
+> plotting line plots; identical to raincloud plots above, just different form
+> little errors bars are within-subject standard errors.
+
+```{r echo=FALSE}
 library(ggpubr)
-DATA = as.data.frame(combined_se_calc_cooksd)
-color = c( "#4575B4", "#D73027")
-LINEIV1 = "stim_ordered"
-LINEIV2 = "cue_ordered"
-MEAN = "mean_per_sub_norm_mean"
-ERROR = "se"
-dv_keyword = "actual"
+DATA <- as.data.frame(combined_summary)
+color <- c( "#4575B4", "#D73027")
+LINEIV1 <- "stim_ordered"
+MEAN <- "mean_per_sub_norm_mean"
+ERROR <- "se"
+dv_keyword = "outcome"
+
+
 p1 = plot_lineplot_onefactor(DATA, 'pain',
                LINEIV1, MEAN, ERROR, color, xlab = "Stimulus intensity" , ylab= "Outcome rating", ggtitle = 'pain' )
 p2 = plot_lineplot_onefactor(DATA,'vicarious',
                LINEIV1, MEAN, ERROR, color,xlab = "Stimulus intensity" , ylab= "Outcome rating",ggtitle = 'vicarious')
 p3 = plot_lineplot_onefactor(DATA, 'cognitive',
                LINEIV1, MEAN, ERROR, color,xlab = "Stimulus intensity" , ylab= "Outcome rating",ggtitle = 'cognitive')
-#grid.arrange(p1, p2, p3, ncol=3 , common.legend = TRUE)
+
 ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
-plot_filename = file.path(analysis_dir,
-                          paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
-ggsave(plot_filename, width = 15, height = 6)
+# plot_filename = file.path(analysis_dir,
+#                           paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
+# ggsave(plot_filename, width = 15, height = 6)
 ```
 
-## individual differences in outcome rating cue effect
 
-[ INSERT DESCRIPTION ]
+## individual differences in outcome rating stim effect
 
-```{r random_effects_scatter_plot_3, eval=FALSE, message=FALSE, warning=TRUE, include=FALSE}
-pvc_rand_subset <- subset(pvc, select = c(task, subj, rand_stim))
-pvc_rand <- spread(pvc_rand_subset, key = task, value = rand_stim)
-# plot individually
-# limit_min = -40, limit_max = 40,
-pv <- plot_ggplot_correlation(data = pvc_rand, x = 'vicarious', y = 'pain', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 20, label_position = 38)
-vc <- plot_ggplot_correlation(data = pvc_rand, x = 'cognitive', y = 'vicarious', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 20,  label_position = 38)
-cp <- plot_ggplot_correlation(data = pvc_rand, x = 'pain', y = 'cognitive', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 20, label_position = 38)
-# combine plots and add title
+> random effects of stimulus intensity effects across tasks. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# combine randome effects across tasks _________________________________________
+pvc.rand <- rbind(randeffect.P, randeffect.V, randeffect.C)
+pvc_rand_subset <- subset(pvc.rand, select = c(task, subj, rand_stimlinear))
+pvc_rand <- spread(pvc_rand_subset, key = task, value = rand_stimlinear)
+# filter dataframe: some pariticpant do not have data in other tasks, thereby they have missing values across PVC tasks
+# Assuming df is your dataframe
+# Replace col1, col2, col3 with your actual column names
+pvc_rand.filter <- pvc_rand %>% filter(!is.na(pain) & !is.na(cognitive) & !is.na(vicarious))
+
+
+pv <- plot_ggplot_correlation(data = pvc_rand.filter, x = 'vicarious', y = 'pain', p_acc = 0.001, r_acc = 0.01, limit_min = -70, limit_max = 70, label_position = 60)
+vc <- plot_ggplot_correlation(data = pvc_rand.filter, x = 'cognitive', y = 'vicarious', p_acc = 0.001, r_acc = 0.01, limit_min = -70, limit_max = 70,  label_position = 100)
+cp <- plot_ggplot_correlation(data = pvc_rand.filter, x = 'pain', y = 'cognitive', p_acc = 0.001, r_acc = 0.01, limit_min = -30, limit_max = 30, label_position =60)
+
+
+# combine plots and add title __________________________________________________
 plots <- ggpubr::ggarrange(pv, vc, cp, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
 plots_title <- annotate_figure(plots, top = text_grob(paste0("individual differences\n - ", iv_keyword, " effects from ",dv_keyword," ratings"), color = "black", face = "bold", size = 15))
-print(plots)
-save_plotname <- file.path(
-    analysis_dir,
-    paste("randeffect_scatterplot_task-all_",
-        as.character(Sys.Date()), ".png",
-        sep = ""
-    )
-)
-ggsave(save_plotname, width = 10, height = 3)
+plots_title
+
+
+# save plots ___________________________________________________________________
+# save_plotname <- file.path(
+#     analysis_dir,
+#     paste("randeffect_scatterplot_task-all_",
+#         as.character(Sys.Date()), ".png",
+#         sep = ""
+#     )
+# )
+# ggsave(save_plotname, width = 10, height = 3)
 
 ```
