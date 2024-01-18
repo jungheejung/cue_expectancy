@@ -62,7 +62,6 @@ library(lme4); library(lmerTest)
 library(glmmTMB)
 library(dplyr)
 library(plyr)
-
 library(cueR)
 library(ggplot2)
 library(plotly)
@@ -188,17 +187,21 @@ kable(df_head, format = "html") %>%
 Ratings are sorted based on Median values of Outcome rating
 
 ```{r echo=FALSE}
-subject <- "subject"
+subject_key <- "subject"
+dv <- "OUTCOME"
+library(rlang)
+library(dplyr)
 # Sort the data by median "outcome" in ascending order
 sorted_data <- df.centered_NA %>%
-  dplyr::group_by(!!sym(subject)) %>%
-  summarize(median_outcome = median(OUTCOME, na.rm = TRUE)) %>%
-  arrange(median_outcome) %>%
-  select(!!sym(subject))
-
+  dplyr::group_by(subject) %>%
+  dplyr::summarize(median_outcome = median(OUTCOME, na.rm = TRUE)) %>%
+  dplyr::arrange(median_outcome) 
+  
+# sorted_subjects <- sorted_data %>%
+#   dplyr::select(!!rlang::sym(subject_key))
 # Reorder the "subject" factor based on the sorted order
+# df.centered_NA$subject <- factor(df.centered_NA$subject, levels = sorted_data$subject)
 df.centered_NA$subject <- factor(df.centered_NA$subject, levels = sorted_data$subject)
-
 # Create the ggplot
 g <- ggplot(df.centered_NA, aes(x = subject, y = OUTCOME, fill = subject)) +
   geom_boxplot(outlier.shape = NA, width = 1.2) + #, position = position_dodge(0.1)) +  
@@ -206,7 +209,8 @@ g <- ggplot(df.centered_NA, aes(x = subject, y = OUTCOME, fill = subject)) +
   labs(x = "Subject", y = "Pain Outcome Rating") +
   theme_classic() +
   theme(legend.position = "none") +
-  scale_x_discrete(breaks = NULL) 
+  scale_x_discrete(breaks = NULL) +
+  scale_fill_viridis_d()
 
 # Convert ggplot object to a plotly object with hover information
 g_plotly <- ggplotly(ggplot_largetext(g), tooltip = c("x", "y"))
@@ -329,13 +333,14 @@ gridExtra::grid.arrange(g.rawscore, g.zscore, ncol = 2,
 ## Analysis 3: across PVC, Are these expectation effects domain-general or domain-specific?
 ### load entire data of pain,vicarious,cognitive {.unlisted .unnumbered}
 ```{r include=FALSE}
+filter_string = "sub-0001"
 dataPVC <- cueR::df_load_pvc_beh(datadir,
-                              subject_varkey = "src_subject_id",
+                            subject_varkey = "src_subject_id",
                             iv = iv,
                             dv = "event04_actual_angle",
                             exclude = filter_string)
 # center data
-df.PVC_center <- compute_enderstofighi(dataPVC, sub="sub",
+df.PVC_center <- cueR::compute_enderstofighi(dataPVC, sub="sub",
                                     outcome = "event04_actual_angle",expect= "event02_expect_angle",
                                     ses = "ses", run = "run")
 ```
