@@ -1,17 +1,11 @@
-# RL :: simulation {#simulation}
+# RL :: simulation {#RLsimulation}
 
----
-
-title: "Your Document Title"
-output: html_notebook
-
----
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
 - Here, Aryan simulated behavioral outcome ratings using a reinforcement learning model.
+- TODO: link this notebook with Aryan's matlab script. In other words, which code generated `data/simulated/0409/table_exp.csv`?
 
-## load data {.unlisted .unnumbered}
 
 ```{r include=FALSE}
 library(tidyr)
@@ -19,17 +13,12 @@ library(dplyr)
 library(plyr)
 library(ggpubr)
 library(r2mlm)
-main_dir = dirname(dirname(getwd()))
-file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R",
-                          full.names=TRUE,
-                          ignore.case=TRUE)
-sapply(file.sources,source,.GlobalEnv)
+library(cueR)
 ```
 
 ## function
 
-```{r}
+```{r include=FALSE}
 # summarize dataframe __________________________________________________________
 plot_twovariable <- function(df, iv1, iv2, group, subject, xmin, xmax, ymin,ymax,
 xlab, ylab, ggtitle, color_scheme, alpha, fit_lm, lm_method = NULL, identity_line=TRUE, size=NULL) {
@@ -111,6 +100,9 @@ expect_fname = file.path(main_dir, 'data/simulated/0409/table_exp.csv')
 outcome_fname = file.path(main_dir, 'data/simulated/0409/table_pain.csv')
 expect = read.csv(expect_fname)
 outcome = read.csv(outcome_fname)
+
+head(expect)
+head(outcome)
 ```
 
 ```{r include=FALSE}
@@ -168,6 +160,13 @@ merge.df <- data.frame(merged_df)
 
 ## plot expectation and outcome ratings per cue X stim {.unlisted .unnumbered}
 
+<<<<<<< HEAD
+=======
+> Here, I plot the simulated values as a function of expectation and outcome rating
+Different stimulus intensities and cue levels are plotted.
+The simulated data does mimic the behavioral data in terms of the demeaned outcome/expectation ratings.
+
+>>>>>>> c84646cee (DOC: clean up comments)
 ```{r}
 group <- "cue"
 
@@ -324,7 +323,12 @@ plots
 # ggsave(file.path(main_dir, 'analysis/mixedeffect/CCNfigures/figD.png'), plots)
 ```
 
+<<<<<<< HEAD
 ### plot cue and
+=======
+### plot cue and stim using line plots
+> The cue and stim effects are signficiant, but the mid range is different. The behaviorla data shows that the medium intensity has smaller cue effects compared to the high and low cues, whereas the current simulations show the opposite trend. Not sure if we should read too much into this. 
+>>>>>>> c84646cee (DOC: clean up comments)
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 clean.df$stim_name[clean.df$stimulusintensity == "low_stim"] <- "low"
@@ -377,6 +381,7 @@ p1 <- plot_lineplot_twofactor_subset(actual_groupwise, 'pain',
                LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = tools::toTitleCase('pain') )
 p1
 
+<<<<<<< HEAD
 #
 # g <- ggplot(
 #   data = actual_groupwise,
@@ -408,3 +413,7 @@ p1
 ```
 
 > The cue and stim effects are signficiant, but the mid range is different. The behaviorla data shows that the medium intensity has smaller cue effects compared to the high and low cues, whereas the current simulations show the opposite trend. Not sure if we should read too much into this.
+=======
+```
+
+>>>>>>> c84646cee (DOC: clean up comments)
