@@ -111,7 +111,7 @@ plot_timeseries_bar_SANDBOX <-
       geom_errorbar(aes(
         ymin = (.data[[mean]] - .data[[error]]),
         ymax = (.data[[mean]] + .data[[error]]),
-        fill =  factor(.data[[iv2]])
+        #fill =  factor(.data[[iv2]])
       ),
       width = .1,
       alpha = 0.8) +
@@ -677,72 +677,12 @@ for (ROI in roi_list) {
 }
 ```
 
-### epoch: stim, rating
 
-```{r eval=FALSE, include=FALSE}
-# # ------------------------------------------------------------------------------
-# #                       epoch stim, high cue vs low cue
-# # ------------------------------------------------------------------------------
-# # --------------------- subset regions based on ROI ----------------------------
-#
-#
-# parsed_df <- df[(df$condition == "rating"), ]
-# TR_length <- 42
-# df_rating <- pivot_longer(parsed_df, cols = starts_with("tr"), names_to = "tr_num", values_to = "tr_value")
-#
-# # ----------------------------- clean factor -----------------------------------
-# df_rating$tr_ordered <- factor(
-#   df_rating$tr_num,
-#   levels = c(paste0("tr", 1:TR_length))
-# )
-#
-# # --------------------------- summary statistics -------------------------------
-# subjectwise <- meanSummary(
-#   df_rating,
-#   c("sub", "tr_ordered"), "tr_value"
-# )
-# groupwise <- summarySEwithin(
-#   data = subjectwise,
-#   measurevar = "mean_per_sub",
-#   withinvars = c("tr_ordered"),
-#   idvar = "sub"
-# )
-# groupwise$task <- taskname
-# # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
-#
-#
-#
-# # Assuming your data frame is named "time_series_data"
-#
-# # Create the ggplot
-# gg <- ggplot(groupwise, aes(x = tr_ordered, y = mean_per_sub_norm_mean, group = 1)) +
-#   geom_line() +
-#   geom_point() +
-#   geom_errorbar(aes(ymin = mean_per_sub_norm_mean - se, ymax = mean_per_sub_norm_mean + se), width = 0.2) +
-#   labs(x = "Time", y = "Amplitude", title = "Time Series Data with Error Bars")
-# gg <- gg + theme_classic() + theme(legend.key = element_rect(fill = "white", colour = "white")) +
-#   theme_bw()
-# # Print the ggplot
-# print(gg)
-#
-# # --------------------------------- plot ---------------------------------------
-# LINEIV1 <- "tr_ordered"
-# # LINEIV2 = "cue_ordered"
-# MEAN <- "mean_per_sub_norm_mean"
-# ERROR <- "se"
-# dv_keyword <- "actual"
-# sorted_indices <- order(groupwise$tr_ordered)
-# groupwise_sorted <- groupwise[sorted_indices, ]
-# p2 <- plot_timeseries_onefactor(groupwise_sorted,
-#   LINEIV1, MEAN, ERROR,
-#   xlab = "Runs", ylab = "Epoch: stimulus, High cue vs. Low cue", ggtitle = "time_series", color = "red"
-# )
-# time_points <- seq(1, 0.46 * TR_length, 0.46)
-# p2 + scale_x_discrete(labels = setNames(time_points, colnames(df_long)[7:7 + TR_length])) + theme_classic()
-# p2 + theme_classic()
-```
 
-## MAIN SANDBOX: 6 condition in three panels. per task. per ROI
+## Cue X Stim effect
+
+Here, I plot 6 condition in three panels, high/med/low intensity, as a function of cue. 
+I do this iteratively for the three tasks domains across ROIs.
 
 ```{r}
 # A function to plot data
