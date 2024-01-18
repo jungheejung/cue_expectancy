@@ -154,16 +154,15 @@ plot_per_trial <-
 load data and combine participant data
 
 ```{r load_data_and_exclude_m1}
-# main_dir = dirname(dirname(getwd()))
-# datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
-# analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model06_iv-cue-trial_dv-expect-actual", as.character(Sys.Date()))
-# dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
-# subject_varkey <- "src_subject_id"
-# iv <- "param_cue_type"
-# taskname <- "pain"
-# exclude <- "sub-0001"
+main_dir = dirname(dirname(getwd()))
+datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model06_iv-cue-trial_dv-expect-actual", as.character(Sys.Date()))
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+subject_varkey <- "src_subject_id"
+iv <- "param_cue_type"
+taskname <- "pain"
+exclude <- "sub-0001"
 # data <- cueR::df_load_beh(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
-# data$event03_RT <- data$event03_stimulusC_reseponseonset - data$event03_stimulus_displayonset
 ```
 
 
@@ -171,6 +170,7 @@ load data and combine participant data
 
 ```{r}
 # 1. load data and rename columns ______________________________________________
+taskname <- "pain"
 df <- cueR::df_load_beh(datadir, taskname = taskname, subject_varkey = "src_subject_id", iv = "param_cue_type", dv = "event02_expect_angle", exclude = "sub-0001")
 df <- cueR::simple_contrast_beh(df)
 
