@@ -1,4 +1,4 @@
-# within / between subject effect and Scaling {#scaling}
+# Scaling {#beh-scaling}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
@@ -7,23 +7,22 @@ There are scale usage differences across individuals. It's evident in our behavi
 These scale usage differences do not really reflecting the underlying experience, but compresses the scale.
 This is one of the reasons why including the between-subject term improves the performance of the mediation model. 
 It's also in line with Enders and Tofighi's illustration of centering in multilevel models. 
-\n
-The logic is that there are multiple components that go into subjective ratings
+
+>The logic is that there are multiple components that go into subjective ratings
 the way that an individual uses a scale ("between-subject effect")
 and the fact that the rating does reflect the subjective experience ("within-subject effect")
 We want to rid of the between subject effect and focus on the subjective experience. 
-\n
-One way to resolve this is by z-scoring.
-\n
-Hypothesis: After z-scoring, if we see a high correlation across tasks in terms of their cue effects, then we can safely conclude that the way that people think of expectations are highly domain general
-\n
-The cue effect from raw scores can be conflated with scale artifact and also common domain general expectation mechanisms.
-Q. what about task-specific components?
+> One way to resolve this is by z-scoring.
+> Hypothesis: After z-scoring, if we see a high correlation across tasks in terms of their cue effects, then we can safely conclude that the way that people think of expectations are highly domain general
+> The cue effect from raw scores can be conflated with scale artifact and also common domain general expectation mechanisms.
+> what about task-specific components?
 \n
 Some thoughts:
 * if scaling artifact is a big driving factor, that pain to brain is going to lead to a weak signal.
 * within person pain effects. only weakly tracks individual differences.
 /n
+
+
 * Main model: `lmer( OUTCOME ~ EXPECT)` vs. `lmer( OUTCOME ~ zscoreEXPECT)`
 * Main question: Does Z-scoring lead to an improvement in predicting pain? Does the effect shrink, indicating that most pain ratings are a byproduct of participants using the scale differently? 
 * {{ HYPOTHESES/EXPECTED OUTCOME }}
@@ -33,16 +32,7 @@ Some thoughts:
 * DV: {{ Outcome }}
 
 
----
-title: "Your Document Title"
-author: "Your Name"
-output: 
-  bookdown::html_document2:
-    toc: true
-    toc_depth: 2
-    number_sections: true
-    theme: united
----
+
 
 
 ::::{.refbox}
@@ -70,8 +60,9 @@ library(car)
 library(psych)
 library(lme4); library(lmerTest)
 library(glmmTMB)
-library(plyr)
 library(dplyr)
+library(plyr)
+
 library(cueR)
 library(ggplot2)
 library(plotly)
@@ -81,9 +72,6 @@ library(knitr)
 library(grid)
 library(ggpubr)
 
-library(dplyr)
-library(broom.mixed)
-library(effectsize)
 ```
 
 ## computed_enderstofighi
@@ -161,11 +149,13 @@ column_mapping <- c("src_subject_id" = "subject",
                     "param_run_num" = "run", 
                     "param_task_name" = "runtype",
                     "param_cue_type" = "cue", 
-                    "param_stimulus_type" = "stimintensity")
+                    "param_stimulus_type" = "stimintensity", 
+                    "event04_actual_angle" = "OUTCOME", 
+                    "event02_expect_angle" = "EXPECT")
 
 data <- df_rename_columns(data, column_mapping)
 data_centered <- cueR::compute_enderstofighi(data, sub="subject",
-                                    outcome = "event04_actual_angle",expect= "event02_expect_angle",
+                                    outcome = "OUTCOME",expect= "EXPECT",
                                     ses = "ses", run = "run")
 
 ```
@@ -178,29 +168,40 @@ data_centered <- cueR::compute_enderstofighi(data, sub="subject",
 ## Analysis 1: Pain display distribution of data
 Let's look at the distribution of the data. X axis: Y axis: 
 Here's the loaded dataset, filtered if Outcome Ratings have NA
+
 ```{r fig.width=10, paged.print=TRUE}
 # remove NA values first
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(kableExtra)
 df.centered_NA <- data_centered %>% filter(!is.na(OUTCOME))  # Remove NA values
-head(df.centered_NA)
+# head(df.centered_NA)
+
+df_head <- head(df.centered_NA)  # Example with the mtcars dataset
+kable(df_head, format = "html") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
 ```
 
 
 ### Plot Outcome rating distribution
 Ratings are sorted based on Median values of Outcome rating
-```{r include=FALSE}
+
+```{r echo=FALSE}
+subject <- "subject"
 # Sort the data by median "outcome" in ascending order
 sorted_data <- df.centered_NA %>%
-  group_by(subject) %>%
+  dplyr::group_by(!!sym(subject)) %>%
   summarize(median_outcome = median(OUTCOME, na.rm = TRUE)) %>%
   arrange(median_outcome) %>%
-  select(subject)
+  select(!!sym(subject))
 
 # Reorder the "subject" factor based on the sorted order
 df.centered_NA$subject <- factor(df.centered_NA$subject, levels = sorted_data$subject)
 
 # Create the ggplot
 g <- ggplot(df.centered_NA, aes(x = subject, y = OUTCOME, fill = subject)) +
-  geom_boxplot(outlier.shape = NA, width = 1.2, position = position_dodge(2)) +  
+  geom_boxplot(outlier.shape = NA, width = 1.2) + #, position = position_dodge(0.1)) +  
   geom_jitter(width = .1, alpha = 0, size = 1) +
   labs(x = "Subject", y = "Pain Outcome Rating") +
   theme_classic() +
@@ -215,7 +216,7 @@ g_plotly
 
 ### Identify subjects with narrow IQR
 I plan to use this to filter out participants
-```{r}
+```{r echo=FALSE}
 library(dplyr)
 
 # Assuming df.centered_NA is your dataframe and it's already loaded
@@ -248,7 +249,6 @@ cat("Subjects with the Narrowest IQRs:\n", toString(as.character(head(iqr_data)$
 narrowest_iqr_string <- paste0('"', as.character(head(iqr_data)$subject), '"', collapse = ", ")
 cat("Subjects with the Narrowest IQRs:\n", narrowest_iqr_string, "\n")
 
-# head(iqr_data)$subject
 
 # Create filter string based on narrow variability
 subject_ids <- as.character(head(iqr_data)$subject)
@@ -264,19 +264,29 @@ cat("Filter String: ", filter_string, "\n")
 ### lmer model compare z score vs nonzscore {-}
 
 Q. how do the coefficients change as a function of Z scoring vs not? 
-```{r}
+```{r echo=FALSE}
 model.z <- lmer(OUTCOME ~ EXPECT_zscore + (EXPECT_zscore|subject), df.centered_NA)
 model.nonz <- lmer(OUTCOME ~ EXPECT + (EXPECT|subject), df.centered_NA)
 model.cmc <- lmer(OUTCOME ~ EXPECT_demean + EXPECT_cmc + (1|subject), df.centered_NA)
 
 print_dash("model with Z scores")
-summary(model.z)
+# summary(model.z)
+sjPlot::tab_model(model.z,
+              title = paste0(tools::toTitleCase(taskname), ": \nlmer(OUTCOME ~ EXPECT_Z + (EXPECT_Z | sub), data = pvc)"),
+              CSS = list(css.table = '+font-size: 12;'))
 
 print_dash("model with raw scores, i.e. non Zscores")
-summary(model.nonz)
+# summary(model.nonz)
+sjPlot::tab_model(model.nonz,
+              title = paste0(tools::toTitleCase(taskname), ": \nlmer(OUTCOME ~ EXPECT_raw + (EXPECT_raw | sub), data = pvc)"),
+              CSS = list(css.table = '+font-size: 12;'))
 
 print_dash("model with raw scores CMC and CWC")
-summary(model.cmc)
+# summary(model.cmc)
+sjPlot::tab_model(model.cmc,
+              title = paste0(tools::toTitleCase(taskname), ": \nlmer(OUTCOME ~ EXPECT_demean + EXPECT_cmc + (1 | sub), data = pvc)"),
+              CSS = list(css.table = '+font-size: 12;'))
+
 
 print_dash("model comparison")
 anova(model.z, model.nonz)
@@ -337,7 +347,11 @@ Let's check what's going on.
 The mean value should be 0 for all participants
 ::::
 
-```{r}
+
+## This looks at the correlation matrix across participants for
+"OUTCOME", "EXPECT_cmc", "EXPECT_demean", "EXPECT_zscore"
+Only run within Rmd for Quality Control, it generates 100 plots
+```{r include=FALSE}
 library(dplyr)
 head(df.PVC_center)
 # Assuming df is your dataframe, and 'participant', 'col1', 'col2', 'col3' are your column names
@@ -383,7 +397,10 @@ for(i in 1:nrow(correlation_matrix_per_participant)) {
 ```
 
 
-### plot per participant. Outcome, Expect, demean
+### Plot per participant. Outcome, Expect, demean
+
+> Pattern betwen the two plots should be the same
+
 ```{r}
 pain.df <- df.PVC_center[df.PVC_center$runtype == "runtype-pain", ]
 sub_0063pain.df <- pain.df[pain.df$sub == "sub-0060",]
@@ -424,11 +441,11 @@ grid.draw(arranged_plots)
 ```
 
 
-## Analysis 3
+## Analysis 4
 
 
 ### lmer model compare z score vs nonzscore
-```{r}
+```{r echo=FALSE}
 pain.df <- df.PVC_center[df.PVC_center$runtype == "runtype-pain", ]
 vic.df <- df.PVC_center[df.PVC_center$runtype == "runtype-vicarious", ]
 cog.df <- df.PVC_center[df.PVC_center$runtype == "runtype-cognitive", ]
@@ -472,23 +489,6 @@ sjPlot::tab_model(model.pain_cmc, p.val = "kr", show.df = TRUE)
 print_dash("model comparison")
 anova(model.pain_z, model.pain_raw)
 
-# _______________________________________________________
-# # Example using broom to get a tidied summary
-# library(broom)
-# 
-# tidy_model_pain_z <- tidy(model.pain_z)
-# tidy_model_vic_z <- tidy(model.vic_z)
-# # ... and so on for the other models
-# 
-# # Combine tidied summaries into one data frame
-# all_tidy_effects <- bind_rows(
-#   tidy_model_pain_z %>% mutate(model = "Pain Z"),
-#   tidy_model_vic_z %>% mutate(model = "Vicarious Z"),
-#   # ... and so on for the other models
-# )
-# 
-# # Print the combined tidied model summaries
-# print(all_tidy_effects)
 ```
 
 ### check lmer CMC model
@@ -501,9 +501,7 @@ sjPlot::tab_model(model.pain_cmc, p.val = "kr", show.df = TRUE)
 Since there are multiple models, I combine the coefficients (within subject expectation effects) into one table
 ```{r include=FALSE}
 
-library(dplyr)
-library(broom.mixed)
-library(effectsize)
+
 
 tidy_model_with_name <- function(model, model_name) {
   
@@ -566,10 +564,7 @@ all_fixed_effects <- bind_rows(
   tidy_model.pain_bothCM, 
   tidy_model.pain_CM
 )
-```
 
-
-```{r}
 library(DT)
 # Print or use kable/DT for a nicer table in R Markdown ________________________
 DT::datatable(all_fixed_effects,
@@ -592,7 +587,7 @@ DT::datatable(all_fixed_effects,
 
 ### plot how much of the CMCs predict outcome ratings
 ### plot how much of the demeans predict outcome ratings
-```{r}
+```{r echo=FALSE}
 library(ggplot2)
 library(gridExtra)
 library(grid)
@@ -848,7 +843,7 @@ in a sense, both are removing the between subject effects and homing in onthe wi
 
 ## Analysis 4: Random effects of Expectation. extract subjectwise coefficients. see if they are similar across tasks. 
 #### function; extract random effect of expectation
-```{r}
+```{r include=FALSE}
 extract_fix_rand_effect <- function(model, taskname){
 fixEffect <<- as.data.frame(fixef(model))
 randEffect <<- as.data.frame(ranef(model))
@@ -885,9 +880,16 @@ return(new_total)
 }
 ```
 
-```{r}
-range(df.PVC_center[df.PVC_center$runtype == "runtype-pain", "EXPECT_cmc"])
-range(df.PVC_center[df.PVC_center$runtype == "runtype-pain", "EXPECT_demean"])
+
+### lmer results across models
+ 
+> As we can see... 
+ 
+```{r echo=FALSE}
+print("range of CMC values" , range(df.PVC_center[df.PVC_center$runtype == "runtype-pain", "EXPECT_cmc"]))
+print("range of demean values" , range(df.PVC_center[df.PVC_center$runtype == "runtype-pain", "EXPECT_demean"]))
+
+
 cueR::print_dash("Correlation Pain")
 cor(df.PVC_center[df.PVC_center$runtype == "runtype-pain", c("OUTCOME", "EXPECT_demean","EXPECT_cm", "EXPECT_cmc")])
 cueR::print_dash("Correlation Vicarious")
@@ -898,15 +900,34 @@ cor(df.PVC_center[df.PVC_center$runtype == "runtype-cognitive", c("OUTCOME", "EX
 model.pain_cmc <- lmer(OUTCOME ~ EXPECT_demean + EXPECT_cmc + (EXPECT_demean|sub), df.PVC_center[df.PVC_center$runtype == "runtype-pain", ], )
 model.vic_cmc <- lmer(OUTCOME ~ EXPECT_demean + EXPECT_cmc + (EXPECT_demean|sub), df.PVC_center[df.PVC_center$runtype == "runtype-vicarious", ])
 model.cog_cmc <- lmer(OUTCOME ~ EXPECT_demean + EXPECT_cmc + (EXPECT_demean|sub), df.PVC_center[df.PVC_center$runtype == "runtype-cognitive", ])
+
+# plot lmer results
 cueR::print_dash("lmer Pain")
 summary(model.pain_cmc)
+sjPlot::tab_model(model.pain_cmc,
+              title = paste0(tools::toTitleCase("pain"), ": \nlmer(OUTCOME ~ EXPECT_demean + EXPECT_cmc + (EXPECT_demean | sub), data = pvc)"),
+              CSS = list(css.table = '+font-size: 12;'))
+
 cueR::print_dash("lmer Vicarious")
-summary(model.vic_cmc)
+# summary(model.vic_cmc)
+sjPlot::tab_model(model.vic_cmc,
+              title = paste0(tools::toTitleCase("vicarious"), ": \nlmer(OUTCOME ~ EXPECT_demean + EXPECT_cmc + (EXPECT_demean | sub), data = pvc)"),
+              CSS = list(css.table = '+font-size: 12;'))
+
 cueR::print_dash("lmer Cognitive")
-summary(model.cog_cmc)
+# summary(model.cog_cmc)
+sjPlot::tab_model(model.cog_cmc,
+              title = paste0(tools::toTitleCase("cognitive"), ": \nlmer(OUTCOME ~ EXPECT_demean + EXPECT_cmc + (EXPECT_demean | sub), data = pvc)"),
+              CSS = list(css.table = '+font-size: 12;'))
+
 ```
 
-```{r}
+### plot random effects across tasks 
+
+> The random effects of expectation effects are domain general.
+> They are highly correlated across tasks, although, I wonder how much of this is driven by seeming outliers
+
+```{r echo=FALSE}
 # stack random effects across pain, vicarious, cognitive task __________________
 dfP <- extract_fix_rand_effect(model.pain_cmc, "pain")
 dfV <- extract_fix_rand_effect(model.vic_cmc, "vicarious")
@@ -949,8 +970,17 @@ plots_title <- annotate_figure(plots, top = title_grob)
 plots_title
 ```
 
+
 ## Random effect distribution
-```{r}
+
+Here, I plot the random effects in a histogram form, and cross compare across tasks
+the code creates two types of visualizations for the random effects of expectation ratings across different tasks: one with separate panels for each task and another with all distributions overlaid in one plot. These visualizations help in comparing the distributions of random effects across different tasks.
+
+> The random effects of expectations are highly similar across tasks, 
+where the overlap of the distributions deliver the point
+
+
+```{r echo=FALSE}
 library(tidyr)
 library(ggplot2)
 
@@ -982,187 +1012,9 @@ ggplot(long_data, aes(x = expectation_randomeffects, fill = task)) +
 ```
 
 
-```{r}
-# Random effect ________________________________________________________________
-# fixEffect <<- as.data.frame(fixef(model.pain_cmc))
-# randEffect <<- as.data.frame(ranef(model.pain_cmc))
-# 
-# 
-# randEffect$newcoef <- mapvalues(randEffect$term,
-#     from = c(as.character(unique(randEffect$term)[1]),
-#              as.character(unique(randEffect$term)[2])
-#              ),
-#     to = c("rand_intercept", "rand_withinexpect" )
-# )
-# 
-# rand_subset <- subset(randEffect, select = -c(grpvar, term, condsd))
-# wide_rand <- tidyr::spread(rand_subset, key = newcoef, value = condval)
-# 
-# wide_fix <- do.call(
-#     "rbind",
-#     replicate(nrow(wide_rand),
-#         as.data.frame(t(as.matrix(fixEffect))),
-#         simplify = FALSE
-#     )
-# )
-# rownames(wide_fix) <- NULL
-# new_wide_fix <- dplyr::rename(wide_fix,
-#     fix_intercept = colnames(wide_fix)[1],
-#     fix_withinexpect = colnames(wide_fix)[2],
-# )
-# 
-# total <- cbind(wide_rand, new_wide_fix)
-# total$task <- taskname
-# new_total <- total %>% dplyr::select(task, everything())
-# new_total <- dplyr::rename(total, subj = grp)
-# 
-# rand_savefname <- file.path(
-#     analysis_dir,
-#     paste("randeffect_task-", taskname, "_",
-#         as.character(Sys.Date()), "_outlier-cooksd.csv",
-#         sep = ""
-#     )
-# )
-# write.csv(new_total, rand_savefname, row.names = FALSE)
-
-###################################### reference
-#     cooksd <- cueR::lmer_onefactor_cooksd(data, taskname, iv, dv, subject, dv_keyword, model_savefname, print_lmer_output) # run lmer
-#     influential <- as.numeric(names(cooksd)[
-#     (cooksd > (4 / as.numeric(length(unique(data$subject)))))])
-#     data_screen <- data[-influential, ]
-# 
-#     ## summary statistics
-#     subjectwise <- meanSummary(data_screen, c(subject, iv), dv)
-#     groupwise <- summarySEwithin(
-#         data = subjectwise,
-#         measurevar = subjectwise_mean, # variable created from above
-#         withinvars = c(iv), # iv
-#         idvar = "subject"
-#     )
-# 
-#     ## designate plot save location
-#     ggtitle <- paste0(str_to_title(taskname), ggtitle_phrase, " N = (", length(unique(data$subject)), ")");
-#     title <- paste0(str_to_title(taskname), " - ", str_to_title(dv_keyword))
-#     w = 5; h = 3;
-#     plot_savefname <- file.path(analysis_dir,
-#                                 paste0("raincloud_task", taskname,"iv-", iv_keyword, "_dv-rating-", dv_keyword,"_", as.character(Sys.Date()), ".png")
-#                                 )
-# 
-#     # plot_rainclouds_onefactor
-#     p1 <- plot_halfrainclouds_onefactor(
-#         subjectwise, groupwise,
-#         iv, subjectwise_mean, group_mean, se, subject,
-#         ggtitle, title, xlab, ylab, task_name,ylim,
-#         w, h, dv_keyword, color_scheme, plot_savefname
-#     )
-# randEffect$newcoef <- mapvalues(randEffect$term,
-#     from = c(as.character(unique(randEffect$term)[1]),
-#              as.character(unique(randEffect$term)[2])
-#              ),
-#     to = c("rand_intercept", "rand_cue")
-# )
-# 
-# rand_subset <- subset(randEffect, select = -c(grpvar, term, condsd))
-# wide_rand <- spread(rand_subset, key = newcoef, value = condval)
-# 
-# wide_fix <- do.call(
-#     "rbind",
-#     replicate(nrow(wide_rand),
-#         as.data.frame(t(as.matrix(fixEffect))),
-#         simplify = FALSE
-#     )
-# )
-# rownames(wide_fix) <- NULL
-# new_wide_fix <- dplyr::rename(wide_fix,
-#     fix_intercept = colnames(wide_fix)[1],
-#     fix_cue = colnames(wide_fix)[2],
-# )
-# 
-# total <- cbind(wide_rand, new_wide_fix)
-# total$task <- taskname
-# new_total <- total %>% dplyr::select(task, everything())
-# new_total <- dplyr::rename(total, subj = grp)
-# 
-# rand_savefname <- file.path(
-#     analysis_dir,
-#     paste("randeffect_task-", taskname, "_",
-#         as.character(Sys.Date()), "_outlier-cooksd.csv",
-#         sep = ""
-#     )
-# )
-# write.csv(new_total, rand_savefname, row.names = FALSE)
-```
-
 
 ## Analysis 5: Buchel. plot the distribution of stimulus intensity as a function of pain sensitivity people
 
-
-## Analysis 6: create raw/zscore cue effect
-TODO: create new Rmd
-
-```{r}
-head(df.PVC_center)
-```
-
-```{r}
-
-dv <- "OUTCOME"
-
-# 3. calculate difference scores and summarize _____________________________
-sub_diff <- subset(df.PVC_center,
-                   select = c("sub", "ses", "run", "task", "stimintensity", "cuetype", dv))
-head(sub_diff)
-sub_diff_NA <- sub_diff %>% filter(!is.na(dv))  # drop NA
-# ___ 1) first, summarize each condition _______________________________________
-subjectwise <- meanSummary(sub_diff_NA, c(
-    "sub", "ses", "run",
-    "task", "cuetype",
-    "stimintensity"), dv)
-# ___ 2) spread out high and low cue columns ___________________________________
-mean_outcome <- subjectwise[1:(length(subjectwise) - 1)]
-wide <- mean_outcome %>%
-    tidyr::spread(cuetype, mean_per_sub)
-# ___ 3) calculate difference score "cue effect" _______________________________
-wide$diff <- wide$`cuetype-high` - wide$`cuetype-low`
-subjectwise_diff <- meanSummary(wide, c("sub", "task"), "diff")
-subjectwise_NA <- subjectwise_diff %>% filter(!is.na(sd)) # drop na values
-# ___ 4) calculate group wise contrast  _______________________________________
-groupwise_diff <- Rmisc::summarySEwithin(
-    data = subjectwise_NA,
-    measurevar = "mean_per_sub", # variable created from above
-    withinvars = "task", # iv
-    idvar = "sub"
-)
-head(groupwise_diff)
-# save dataframe _______________________________________________________________
-sorted_df <- subjectwise_diff %>%
-  dplyr::arrange(task) %>%
-  dplyr::rename(cue_contrast_high_gt_low = mean_per_sub)
-# write.csv(sorted_df, file = file.path(main_dir,"analysis", "mixedeffect", "dataframes", "beh_cueeffect_rawoutcome.csv"), row.names = FALSE)
-
-# TODO: create json file for describing file metadata. BIDS format please
-# column_metadata <- list(
-#   sub = list(
-# description = "subject id in BIDS formats"
-# labels = "sub-%04d"
-# ),
-#   task = list(
-#     description = "Task performed by the subject in cue expectancy task",
-#     generation_info = "counter balanced across runs. However number of runs performed are included in computations. Subjects may have different frequencies of tasks performed. Some may have completed 6 pain runs, whereas other may have completed 2 pain runs, depending on how many sessions they attended. ",
-#     labels = c("pain", "vicarious", "cognitive")
-#   ),
-#   cue_contrast_high_gt_low = list(
-#     description = "Mean cue difference (high vs. low cue) per subject",
-#     generation_info = "Calculated as the mean of cue effects across participants, per task ",
-#   ),
-#   sd = list(
-#     description = "Standard deviasion",
-#     generation_info = "How column3 was generated",
-#     labels = c("Label1", "Label2", "Label3")
-#   )
-# )
-
-```
 
 
 > Summary: 
