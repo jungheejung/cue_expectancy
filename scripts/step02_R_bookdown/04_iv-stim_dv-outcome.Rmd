@@ -47,6 +47,7 @@ library(rmarkdown)
 library(stringr)
 library(ICC)
 library(gghalves)
+library(cueR)
 ## library(extraoperators)
 ##library(JWileymisc)
 ##library(multilevelTools)
@@ -109,7 +110,7 @@ sub_mean <- "mean_per_sub";       group_mean <- "mean_per_sub_norm_mean"
 se <- "se"
 iv_keyword <- "stim";              dv_keyword <- "outcome"
 ggtitle_phrase <- " - Outcome Rating"
-ggtitle <- paste0(tools::toTitleCase(taskname), ggtitle_phrase, " (N = ", length(unique(data$sub)), ")");
+ggtitle <- paste0(tools::toTitleCase(taskname), ggtitle_phrase, " (N = ", length(unique(pvc$sub)), ")");
 title <- paste0(tools::toTitleCase(taskname), " - ", tools::toTitleCase(dv_keyword))
 xlab <- "Stimulus Intensity type";               ylab <- "Outcome Ratings (degree)"
 ylim <- c(-10,190);               w = 5; h = 3;
@@ -172,7 +173,7 @@ rand_savefname <- file.path(
         as.character(Sys.Date()), ".csv",
         sep = ""
     ))
-randeffect.P <- compute_randomeffects(model.painexpect, rand_savefname = rand_savefname, taskname,
+randeffect.P <- cueR::compute_randomeffects(model.painexpect, rand_savefname = rand_savefname, taskname,
                                       new_rand_names = c("rand_intercept", "rand_stimlinear"),
                                       new_fix_names =  c("fix_intercept", "fix_stimlinear", "fix_stimquad"))
 ```
@@ -194,7 +195,7 @@ sub_mean <- "mean_per_sub";       group_mean <- "mean_per_sub_norm_mean"
 se <- "se"
 iv_keyword <- "stim";              dv_keyword <- "outcome"
 ggtitle_phrase <- " - Outcome Rating"
-ggtitle <- paste0(tools::toTitleCase(taskname), ggtitle_phrase, " (N = ", length(unique(data$sub)), ")");
+ggtitle <- paste0(tools::toTitleCase(taskname), ggtitle_phrase, " (N = ", length(unique(pvc$sub)), ")");
 title <- paste0(tools::toTitleCase(taskname), " - ", tools::toTitleCase(dv_keyword))
 xlab <- "Stimulus Intensity type";               ylab <- "Outcome Ratings (degree)"
 ylim <- c(-10,190);               w = 5; h = 3;
@@ -257,7 +258,7 @@ rand_savefname <- file.path(
         as.character(Sys.Date()), ".csv",
         sep = ""
     ))
-randeffect.V <- compute_randomeffects(model.vicexpect, rand_savefname = rand_savefname, taskname,
+randeffect.V <- cueR::compute_randomeffects(model.vicexpect, rand_savefname = rand_savefname, taskname,
                                       new_rand_names = c("rand_intercept", "rand_stimlinear"),
                                       new_fix_names =  c("fix_intercept", "fix_stimlinear", "fix_stimquad"))
 ```
@@ -279,7 +280,7 @@ sub_mean <- "mean_per_sub";       group_mean <- "mean_per_sub_norm_mean"
 se <- "se"
 iv_keyword <- "stim";              dv_keyword <- "outcome"
 ggtitle_phrase <- " - Outcome Rating"
-ggtitle <- paste0(tools::toTitleCase(taskname), ggtitle_phrase, " (N = ", length(unique(data$sub)), ")");
+ggtitle <- paste0(tools::toTitleCase(taskname), ggtitle_phrase, " (N = ", length(unique(pvc$sub)), ")");
 title <- paste0(tools::toTitleCase(taskname), " - ", tools::toTitleCase(dv_keyword))
 xlab <- "Stimulus Intensity type";               ylab <- "Outcome Ratings (degree)"
 ylim <- c(-10,190);               w = 5; h = 3;
@@ -342,7 +343,7 @@ rand_savefname <- file.path(
         as.character(Sys.Date()), ".csv",
         sep = ""
     ))
-randeffect.C <- compute_randomeffects(model.cogexpect, rand_savefname = rand_savefname, taskname,
+randeffect.C <- cueR::compute_randomeffects(model.cogexpect, rand_savefname = rand_savefname, taskname,
                                       new_rand_names = c("rand_intercept", "rand_stimlinear"),
                                       new_fix_names =  c("fix_intercept", "fix_stimlinear", "fix_stimquad"))
 ```
