@@ -15,8 +15,8 @@ library(car)
 library(psych)
 library(lme4); library(lmerTest)
 library(glmmTMB)
-library(plyr)
 library(dplyr)
+library(plyr)
 library(cueR)
 library(ggplot2)
 library(plotly)
@@ -25,7 +25,7 @@ library(broom.mixed)
 library(knitr)
 library(grid)
 library(ggpubr)
-
+library(kableExtra)
 ```
 
 
@@ -43,7 +43,7 @@ dv_keyword <- "RT"
 xlab <- ""
 taskname <- "pain"
 ylab <- "ratings (degree)"
-subject <- "subject"
+subject <- "sub"
 exclude <- "sub-0001"
 # 1. load data _________________________________________________________________
 data <- cueR::df_load_beh(datadir,
@@ -52,15 +52,17 @@ data <- cueR::df_load_beh(datadir,
                             iv = iv,
                             exclude = exclude)
 
-column_mapping <- c("src_subject_id" = "subject", 
+column_mapping <- c("src_subject_id" = "sub", 
                     "session_id" = "ses", 
                     "param_run_num" = "run", 
                     "param_task_name" = "runtype",
                     "param_cue_type" = "cue", 
-                    "param_stimulus_type" = "stimintensity")
-data <- df_rename_columns(data, column_mapping)
-data_centered <- cueR::compute_enderstofighi(data, sub="subject",
-                                    outcome = "event04_actual_angle",expect= "event02_expect_angle",
+                    "param_stimulus_type" = "stimintensity", 
+                    "event04_actual_angle" = "OUTCOME", 
+                    "event02_expect_angle" = "EXPECT")
+data <- cueR::df_rename_columns(data, column_mapping)
+data_centered <- cueR::compute_enderstofighi(data, sub="sub",
+                                    outcome = "OUTCOME",expect= "EXPECT",
                                     ses = "ses", run = "run")
 
 ```
@@ -72,24 +74,35 @@ data_centered <- cueR::compute_enderstofighi(data, sub="subject",
 
 ## Analysis 1: Pain display distribution of data
 Let's look at the distribution of the data. X axis: Y axis: 
-```{r paged.print=TRUE, fig.width=10}
+```{r fig.width=10, paged.print=TRUE}
 # remove NA values first
 df.centered_NA <- data_centered %>% filter(!is.na(OUTCOME))  # Remove NA values
 head(df.centered_NA)
+
+kable(df.centered_NA, "html") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
 ```
 
 
 ### Sort based on Median Outcome rating order
-```{r}
-# Sort the data by median "outcome" in ascending order
+```{r echo=FALSE}
+# Sort the data by median "outcome" in ascending order _________________________
+dv<- "OUTCOME"
+subject <- "sub"
 sorted_data <- df.centered_NA %>%
-  group_by(subject) %>%
-  summarize(median_outcome = median(OUTCOME, na.rm = TRUE)) %>%
-  arrange(median_outcome) %>%
-  select(subject)
+  dplyr::group_by(!!rlang::sym(subject) ) %>%
+  dplyr::summarize(median_outcome = median( !!rlang::sym(dv) , na.rm = TRUE)) %>%
+  dplyr::arrange(median_outcome) #%>%
+  # dplyr::select(!!rlang::sym(subject) )
+sorted_subjects <- sorted_data %>%
+  dplyr::select(!!rlang::sym(subject))
 
 # Reorder the "subject" factor based on the sorted order
-df.centered_NA$subject <- factor(df.centered_NA$subject, levels = sorted_data$subject)
+# df.centered_NA$subject <- factor(df.centered_NA$subject, levels = sorted_data$subject)
+# sorted_subjects <- sorted_data$subject
+
+# Reorder the 'subject' factor in df.centered_NA based on the sorted order
+df.centered_NA$subject <- factor(df.centered_NA$subject, levels = sorted_subjects)
 
 # Create the ggplot
 g <- ggplot(df.centered_NA, aes(x = subject, y = OUTCOME, fill = subject)) +
@@ -98,11 +111,27 @@ g <- ggplot(df.centered_NA, aes(x = subject, y = OUTCOME, fill = subject)) +
   labs(x = "Subject", y = "Pain Outcome Rating") +
   theme_classic() +
   theme(legend.position = "none") +
-  scale_x_discrete(breaks = NULL) 
-
+  scale_x_discrete(breaks = NULL) +
+scale_fill_viridis_d()
 # Convert ggplot object to a plotly object with hover information
 g_plotly <- ggplotly(ggplot_largetext(g), tooltip = c("x", "y"))
 g_plotly
+# Reorder the "subject" factor based on the sorted order _______________________
+# df.centered_NA$subject <- factor(df.centered_NA$subject, levels = sorted_data$subject)
+# 
+# 
+# # Create the ggplot ____________________________________________________________
+# g <- ggplot2::ggplot(df.centered_NA, aes(x = subject, y = OUTCOME, fill = subject)) +
+#   geom_boxplot(outlier.shape = NA, width = 1.2, position = position_dodge(1)) +  
+#   geom_jitter(width = .1, alpha = 0, size = 1) +
+#   labs(x = "Subject", y = "Pain Outcome Rating") +
+#   theme_classic() +
+#   theme(legend.position = "none") +
+#   scale_x_continuous(breaks = NULL) + 
+#   scale_fill_brewer(palette = "Set3")
+# 
+# g_plotly <- ggplotly(g, tooltip = c("x", "y"))
+# g_plotly
 
 ```
 
