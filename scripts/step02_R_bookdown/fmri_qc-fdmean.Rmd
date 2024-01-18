@@ -1,4 +1,4 @@
-# [QC] fdmean {#ch98_QCfdmean}
+# QC :: fdmean {#QCfdmean}
 
 ---
 title: "fdmean"
@@ -6,63 +6,54 @@ output: html_document
 date: "2023-07-18"
 ---
 
+## Does FD differ as a function of task (pain/vicarious/cognitive)?
+> Framewise displacement does differ as a function. comparing Pain vs. non-pain tasks, the FD means are significantly differ. 
+However, as we can see, this effect is driven by a handful of participants
+
+## Method: where do the FEmean values come from?
+They are from mriqc. The analysis to compile all the framewise displacement values live here: [ INSERT LINK ]
+
 ```{r warning=FALSE, include=FALSE}
 library(car)
 library(psych)
 library(reshape)
-library(plyr); library(dplyr)
+library(dplyr)
+library(plyr)
 library(tidyselect)
 library(tidyr)
 library(stringr)
 library(lmerTest)
 library(gghalves)
-source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+library(cueR)
+```
+
+
+
+
+```{r echo=FALSE}
 main_dir = dirname(dirname(getwd()))
-file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
-                          ignore.case=TRUE)
-sapply(file.sources,source,.GlobalEnv)
-```
 
-
-```{r}
-# load in the dataframe
-# create contrasts for pain vs non-pain runs
-# summary statistics for each subject
-# group wise statistics
-# plot
-```
-
-
-```{r}
-# ------------------------------------------------------------------------------
-#                          load in the dataframe
-# ------------------------------------------------------------------------------
+# 1. load in the dataframe _____________________________________________________
 fdmeandf <- read.table(file = file.path(main_dir, "resources/qcreports/fdmean_run_type.tsv"), sep = '\t', header = TRUE)
 
 
-# ------------------------------------------------------------------------------
-#                  create contrasts for pain vs non-pain runs
-# ------------------------------------------------------------------------------
+
+# 2. create contrasts for pain vs non-pain runs ________________________________
 fdmeandf$PAIN_NOPAIN[fdmeandf$run_type == "pain"] <- 0.5
 fdmeandf$PAIN_NOPAIN[fdmeandf$run_type == "vicarious"] <- -0.5
 fdmeandf$PAIN_NOPAIN[fdmeandf$run_type == "cognitive"] <- -0.5
 df <- fdmeandf %>% drop_na(PAIN_NOPAIN)
 
 
-# ------------------------------------------------------------------------------
-#                            linear model
-# ------------------------------------------------------------------------------
-df$sub_factor <- factor(df$sub)
-model.fdmean <- lmer(fd_mean ~ PAIN_NOPAIN + (1|sub_factor), data=df)
-summary(model.fdmean)
-```
 
-```{r}
-# ------------------------------------------------------------------------------
-#                  plot :: generate summary stats for each subject
-# ------------------------------------------------------------------------------
+# 3. linear model ______________________________________________________________
+df$sub_factor <- factor(df$sub)
+model.fdmean <- lmer(fd_mean ~ PAIN_NOPAIN + (PAIN_NOPAIN|sub_factor), data=df)
+summary(model.fdmean)
+
+
+
+# 4. generate summary stats for each subject ___________________________________
 df$run_name[df$run_type == "pain"] <- "pain"
 df$run_name[df$run_type == "vicarious"] <- "non-pain"
 df$run_name[df$run_type == "cognitive"] <- "non-pain"
@@ -84,10 +75,10 @@ groupwise <- summarySEwithin(
   idvar = subject
 )
 
-```{r}
+
+
+# 5. plot parameters ___________________________________________________________
 analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model98_fdmean", as.character(Sys.Date()))
-# combined_se_calc_cooksd <-NPSstimcue_groupwise
-# calculate mean and se
 sub_mean <- "mean_per_sub"
 group_mean <- "mean_per_sub_norm_mean"
 se <- "se"
@@ -96,7 +87,6 @@ ggtitle <- paste( dv)
 title <- paste( dv)
 xlab <- ""
 ylab <- "FD mean (mm)"
-
 dv_keyword <- "fdmean"
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
@@ -111,16 +101,9 @@ plot_savefname <- file.path(
   )
 )
 
-# ----------------------------------------------------------------------
-#                            raincloudplots
-# ----------------------------------------------------------------------
-# TODO: 
-# * change the range of the figure
-# * change the x-axis
-# * drop the NA conditions
-# * change theme
-# * adjust the box plots
 
+
+# 6. raincloud plot ____________________________________________________________
 ylim <- c(0,.6)
 taskname = "all"
 w <- 10; h <- 5
@@ -148,18 +131,18 @@ g <- g + theme_bw() + theme_classic()
 print(g)
 
 
-k <- plot_lineplot_twofactor(groupwise,
-                        iv1 = "stim_ordered", iv2 = "cue_ordered",
-                        mean = "mean_per_sub_norm_mean", error = "se",
+
+# 7. lineplot __________________________________________________________________
+k <- cueR::plot_lineplot_onefactor(groupwise,
+                        iv = "pain_ordered",
+                        mean = "mean_per_sub_norm_mean", 
+                        error = "se",
                         color = c("pain" = "red",
                                   "non-pain" = "gray"),
+                        xlab = "tasktype",
+                        ylab = "FD mean (mm)",
                         ggtitle="fdmean pain vs nonpain")
                                   # "med" = "orange",
-
-```
-
-```{r}
-df_example <- tibble(x = c(1,2,NA), y = c("a", NA, "b"))
-df_example %>% drop_na(x)
+print(k)
 ```
 
