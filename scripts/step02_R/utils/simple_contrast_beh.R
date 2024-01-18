@@ -62,17 +62,17 @@ simple_contrast_beh <- function(df) {
     )
 
     print(paste(
-        "new contrast names include:\n",
-        "\t* STIM_con_linear\n",
-        "\t* STIM_con_quad\n",
-        "\t* CUE_high_gt_low\n",
-        "Also included are ordered categoricals:\n ",
-        "\t* stim_ordered\n",
-        "\t* cue_ordered\n",
-        "The following variables are factorized:\n",
-        "\t* subject\n",
-        "\tstim-factor",
-        sep = ""
+      "New contrast names include:",
+      "\n  * STIM_con_linear",
+      "\n  * STIM_con_quad",
+      "\n  * CUE_high_gt_low",
+      "\n\nAlso included are ordered categoricals:",
+      "\n  * stim_ordered",
+      "\n  * cue_ordered",
+      "\n\nThe following variables are factorized:",
+      "\n  * subject",
+      "\n  * stim-factor",  # Assuming "stim-factor" is correct
+      sep = ""
     ))
 
     return(df)
