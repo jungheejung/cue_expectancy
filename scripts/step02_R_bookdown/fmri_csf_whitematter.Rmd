@@ -1,0 +1,450 @@
+# QC :: white matter csf {#whitematter-csf}
+
+
+The method I use is 
+../scripts/step10_nilearn/whitematter_csf/whitematter_csf.m 
+I extract white matter csf per single trial and compare the values
+
+```{r include=FALSE}
+library(car)
+library(psych)
+library(reshape)
+library(plyr); library(dplyr)
+library(tidyselect)
+library(tidyr)
+library(stringr)
+library(lmerTest)
+library(gghalves)
+library(cueR)
+```
+
+```{r}
+# parameters
+main_dir <- dirname(dirname(getwd()))
+analysis_folder  = paste0("model96_iv-cue-stim_dv-nuissance")
+analysis_dir <-
+  file.path(main_dir, "analysis", "mixedeffect", analysis_folder,
+            as.character(Sys.Date())) # nolint
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+savedir <- analysis_dir
+```
+
+
+
+```{r}
+# 1. load data _________________________________________________________________
+df <- read.csv(file.path(main_dir, 'scripts/step10_nilearn/whitematter_csf/whitematter_csf_pain.csv' ))
+
+# 2. rename columns _______________________________________________________________
+myData <- separate(df, fname, into = c("sub", "ses", "run", "runtype","event", "trial", "cuetype", "stimintensity"), sep = "_", remove = FALSE)
+myData$sub <- sub("_.*", "", myData$sub)
+myData$ses <- sub("_.*", "", myData$ses)
+myData$run <- sub("_.*", "", myData$run)
+myData$runtype <- str_extract(myData$runtype, "(?<=runtype-).*")
+myData$event <- sub("_.*", "", myData$event)
+myData$trial <- sub("_.*", "", myData$trial)
+myData$cue <- str_extract(myData$cuetype, "(?<=cuetype-).*")
+myData$stim <- str_extract(myData$stimintensity, "(?<=stimintensity-)[^.]+")
+```
+
+## whitematter
+
+> There is a signficiant effect of cue and stim on white matter
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+
+# 0. set parameters _______________________________________________________________
+combined_se_calc_cooksd <- data.frame()
+combined_psig <- data.frame()
+taskname = "pain"
+ggtitle <- paste(taskname, " - NPS (degree)")
+title <- paste(taskname, " - outcome")
+subject <- "sub"
+w <- 10
+h <- 6
+dv_keyword <- "whitematter"
+
+data <- myData
+data$STIM <- factor(data$stim)
+
+
+
+# 1. contrast codes _______________________________________________________________
+# ___ contrast code 1 linear
+data$STIM_linear[data$stim == "low"] <- -0.5
+data$STIM_linear[data$stim == "med"] <- 0
+data$STIM_linear[data$stim == "high"] <- 0.5
+
+# ___ contrast code 2 quadratic
+data$STIM_quadratic[data$stim == "low"] <- -0.33
+data$STIM_quadratic[data$stim == "med"] <- 0.66
+data$STIM_quadratic[data$stim == "high"] <- -0.33
+
+# ___ social cude contrast
+data$CUE_high_gt_low[data$cuetype == "cuetype-low"] <-  -0.5 # social influence task
+data$CUE_high_gt_low[data$cuetype == "cuetype-high"] <-  0.5 # no influence task
+
+
+# 2. model parameters _______________________________________________________________
+stim_con1 <- "STIM_linear"
+stim_con2 <- "STIM_quadratic"
+iv1 <- "CUE_high_gt_low"
+dv <- "whitematter"
+model_savefname <- file.path(
+  analysis_dir,
+  paste(
+    "lmer_task-",
+    taskname,
+    "_rating-",
+    dv_keyword,
+    "_",
+    as.character(Sys.Date()),
+    "_cooksd.txt",
+    sep = ""
+  )
+)
+
+
+
+# 3. reordering for plots _______________________________________________________________
+data$cue_name[data$cuetype == "cuetype-high"] <-  "high cue"
+data$cue_name[data$cuetype == "cuetype-low"] <-  "low cue"
+
+data$stim_name[data$stim == "high"] <-  "high"
+data$stim_name[data$stim == "med"] <-  "med"
+data$stim_name[data$stim == "low"] <-  "low"
+
+data$stim_ordered <- factor(data$stim_name,
+                                   levels = c("low", "med", "high"))
+data$cue_ordered <- factor(data$cue_name,
+                                  levels = c("low cue", "high cue"))
+model_iv1 <- "stim_ordered"
+model_iv2 <- "cue_ordered"
+
+
+
+# 4. summary stats: calculate mean and se  _____________________________________
+NPSstimcue_subjectwise <- meanSummary(data,
+                                      c(subject, model_iv1, model_iv2), dv)
+NPSstimcue_groupwise <- summarySEwithin(
+  data = NPSstimcue_subjectwise,
+  measurevar = "mean_per_sub",
+  withinvars = c(model_iv1, model_iv2),
+  idvar = subject
+)
+NPSstimcue_groupwise$task <- taskname
+# https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+
+
+
+# 5. plot parameters _______________________________________________________________
+sub_mean <- "mean_per_sub"
+group_mean <- "mean_per_sub_norm_mean"
+se <- "se"
+subject <- "sub"
+ggtitle <- paste(taskname, " - NPSpos Cooksd removed")
+title <- paste(taskname, " - NPSpos")
+xlab <- ""
+ylab <- "NPSpos (degree)"
+ylim <- c(-10, 60)
+dv_keyword <- "NPSpos"
+if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+  color <- c("#1B9E77", "#D95F02")
+} else {
+  color <- c("#4575B4", "#D73027")
+} # if keyword starts with
+plot_savefname <- file.path(
+  analysis_dir,
+  paste(
+    "raincloud_task-", taskname, "_rating-", dv_keyword, "_", as.character(Sys.Date()), "_cooksd.png",
+    sep = ""
+  )
+)
+
+
+
+# 6. raincloud plots _______________________________________________________________
+g <- plot_halfrainclouds_twofactor(
+  NPSstimcue_subjectwise, NPSstimcue_groupwise, model_iv1, model_iv2,
+  sub_mean, group_mean, se, subject, ggtitle, title, xlab, ylab,
+  taskname, ylim, w, h, dv_keyword, color, plot_savefname
+)
+g
+```
+
+```{r echo=FALSE, warning=FALSE}
+g.white <- plot_lineplot_twofactor_subsetthick(NPSstimcue_groupwise, taskname = "pain",
+                        iv1 = "stim_ordered", iv2 = "cue_ordered",
+                        mean = "mean_per_sub_norm_mean", error = "se",
+                        color = c("low cue" = "#5D5C5C","high cue" = "#D73027"), ggtitle = "Within pain task: whitematter as a function of stimulus intensity level and cue",
+                        xlab = "Stimulus intensity", ylab = "Average activation (A.U.)")
+g.white + theme(aspect.ratio=.8)
+g.white + theme(aspect.ratio=.8) + ylim(-0.05, 0.27)
+```
+
+## CSF
+
+> CSF only show an effect of stimulus intensity. The cue levels do not differ.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+
+# 0. set parameters _______________________________________________________________
+combined_se_calc_cooksd <- data.frame()
+combined_psig <- data.frame()
+taskname = "pain"
+ggtitle <- paste(taskname, " - NPS (degree)")
+title <- paste(taskname, " - outcome")
+subject <- "sub"
+w <- 10
+h <- 6
+dv_keyword <- "csf"
+
+data <- myData
+data$STIM <- factor(data$stim)
+
+
+
+# 1. contrast codes _______________________________________________________________
+# ___ contrast code 1 linear
+data$STIM_linear[data$stim == "low"] <- -0.5
+data$STIM_linear[data$stim == "med"] <- 0
+data$STIM_linear[data$stim == "high"] <- 0.5
+
+# ___ contrast code 2 quadratic
+data$STIM_quadratic[data$stim == "low"] <- -0.33
+data$STIM_quadratic[data$stim == "med"] <- 0.66
+data$STIM_quadratic[data$stim == "high"] <- -0.33
+
+# ___ social cude contrast
+data$CUE_high_gt_low[data$cuetype == "cuetype-low"] <-  -0.5 # social influence task
+data$CUE_high_gt_low[data$cuetype == "cuetype-high"] <-  0.5 # no influence task
+
+
+# 2. model parameters _______________________________________________________________
+stim_con1 <- "STIM_linear"
+stim_con2 <- "STIM_quadratic"
+iv1 <- "CUE_high_gt_low"
+dv <- "whitematter"
+model_savefname <- file.path(
+  analysis_dir,
+  paste(
+    "lmer_task-",
+    taskname,
+    "_rating-",
+    dv_keyword,
+    "_",
+    as.character(Sys.Date()),
+    "_cooksd.txt",
+    sep = ""
+  )
+)
+
+
+
+# 3. reordering for plots _______________________________________________________________
+data$cue_name[data$cuetype == "cuetype-high"] <-  "high cue"
+data$cue_name[data$cuetype == "cuetype-low"] <-  "low cue"
+
+data$stim_name[data$stim == "high"] <-  "high"
+data$stim_name[data$stim == "med"] <-  "med"
+data$stim_name[data$stim == "low"] <-  "low"
+
+data$stim_ordered <- factor(data$stim_name,
+                                   levels = c("low", "med", "high"))
+data$cue_ordered <- factor(data$cue_name,
+                                  levels = c("low cue", "high cue"))
+model_iv1 <- "stim_ordered"
+model_iv2 <- "cue_ordered"
+
+
+
+# 4. summary stats: calculate mean and se  _____________________________________
+NPSstimcue_subjectwise <- meanSummary(data,
+                                      c(subject, model_iv1, model_iv2), dv)
+NPSstimcue_groupwise <- summarySEwithin(
+  data = NPSstimcue_subjectwise,
+  measurevar = "mean_per_sub",
+  withinvars = c(model_iv1, model_iv2),
+  idvar = subject
+)
+NPSstimcue_groupwise$task <- taskname
+# https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+
+
+
+# 5. plot parameters _______________________________________________________________
+sub_mean <- "mean_per_sub"
+group_mean <- "mean_per_sub_norm_mean"
+se <- "se"
+subject <- "sub"
+ggtitle <- paste(taskname, " - NPSpos Cooksd removed")
+title <- paste(taskname, " - NPSpos")
+xlab <- ""
+ylab <- "NPSpos (degree)"
+ylim <- c(-10, 60)
+dv_keyword <- "NPSpos"
+if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+  color <- c("#1B9E77", "#D95F02")
+} else {
+  color <- c("#4575B4", "#D73027")
+} # if keyword starts with
+plot_savefname <- file.path(
+  analysis_dir,
+  paste(
+    "raincloud_task-", taskname, "_rating-", dv_keyword, "_", as.character(Sys.Date()), "_cooksd.png",
+    sep = ""
+  )
+)
+
+
+
+# 6. raincloud plots _______________________________________________________________
+g <- plot_halfrainclouds_twofactor(
+  NPSstimcue_subjectwise, NPSstimcue_groupwise, model_iv1, model_iv2,
+  sub_mean, group_mean, se, subject, ggtitle, title, xlab, ylab,
+  taskname, ylim, w, h, dv_keyword, color, plot_savefname
+)
+g
+```
+
+```{r echo=FALSE, warning=FALSE}
+g <- plot_lineplot_twofactor_subsetthick(NPSstimcue_groupwise, taskname = "pain",
+                        iv1 = "stim_ordered", iv2 = "cue_ordered",
+                        mean = "mean_per_sub_norm_mean", error = "se",
+                        color = c("low cue" = "#5D5C5C","high cue" = "#D73027"), ggtitle = "Within pain task: CSF as a function of stimulus intensity level and cue",
+                        xlab = "Stimulus intensity", ylab = "Average activation (A.U.)")
+g + theme(aspect.ratio=.8) + ylim(-0.05, 0.27)
+```
+
+
+## graymatter
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+
+# 0. set parameters ____________________________________________________________
+combined_se_calc_cooksd <- data.frame()
+combined_psig <- data.frame()
+taskname = "pain"
+ggtitle <- paste(taskname, " - NPS (degree)")
+title <- paste(taskname, " - outcome")
+subject <- "sub"
+w <- 10
+h <- 6
+dv_keyword <- "graymatter"
+
+data <- myData
+data$STIM <- factor(data$stim)
+
+
+
+# 1. contrast codes ____________________________________________________________
+# ___ contrast code 1 linear
+data$STIM_linear[data$stim == "low"] <- -0.5
+data$STIM_linear[data$stim == "med"] <- 0
+data$STIM_linear[data$stim == "high"] <- 0.5
+
+# ___ contrast code 2 quadratic
+data$STIM_quadratic[data$stim == "low"] <- -0.33
+data$STIM_quadratic[data$stim == "med"] <- 0.66
+data$STIM_quadratic[data$stim == "high"] <- -0.33
+
+# ___ social cude contrast
+data$CUE_high_gt_low[data$cuetype == "cuetype-low"] <-  -0.5 
+data$CUE_high_gt_low[data$cuetype == "cuetype-high"] <-  0.5 
+
+
+# 2. model parameters __________________________________________________________
+stim_con1 <- "STIM_linear"
+stim_con2 <- "STIM_quadratic"
+iv1 <- "CUE_high_gt_low"
+dv <- "whitematter"
+model_savefname <- file.path(
+  analysis_dir,
+  paste(
+    "lmer_task-", taskname, "_rating-", dv_keyword, "_", as.character(Sys.Date()), "_cooksd.txt",
+    sep = ""
+  )
+)
+
+
+
+# 3. reordering for plots ______________________________________________________
+data$cue_name[data$cuetype == "cuetype-high"] <-  "high cue"
+data$cue_name[data$cuetype == "cuetype-low"] <-  "low cue"
+
+data$stim_name[data$stim == "high"] <-  "high"
+data$stim_name[data$stim == "med"] <-  "med"
+data$stim_name[data$stim == "low"] <-  "low"
+
+data$stim_ordered <- factor(data$stim_name,
+                                   levels = c("low", "med", "high"))
+data$cue_ordered <- factor(data$cue_name,
+                                  levels = c("low cue", "high cue"))
+model_iv1 <- "stim_ordered"
+model_iv2 <- "cue_ordered"
+
+
+
+# 4. summary stats: calculate mean and se  _____________________________________
+NPSstimcue_subjectwise <- meanSummary(data,
+                                      c(subject, model_iv1, model_iv2), dv)
+NPSstimcue_groupwise <- summarySEwithin(
+  data = NPSstimcue_subjectwise,
+  measurevar = "mean_per_sub",
+  withinvars = c(model_iv1, model_iv2),
+  idvar = subject
+)
+NPSstimcue_groupwise$task <- taskname
+# https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+
+
+
+# 5. plot parameters _______________________________________________________________
+sub_mean <- "mean_per_sub"
+group_mean <- "mean_per_sub_norm_mean"
+se <- "se"
+subject <- "sub"
+ggtitle <- paste(taskname, " - NPSpos Cooksd removed")
+title <- paste(taskname, " - NPSpos")
+xlab <- ""
+ylab <- "NPSpos (degree)"
+ylim <- c(-10, 60)
+dv_keyword <- "NPSpos"
+if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+  color <- c("#1B9E77", "#D95F02")
+} else {
+  color <- c("#4575B4", "#D73027")
+} # if keyword starts with
+plot_savefname <- file.path(
+  analysis_dir,
+  paste(
+    "raincloud_task-", taskname, "_rating-", dv_keyword, "_", as.character(Sys.Date()), "_cooksd.png",
+    sep = ""
+  )
+)
+
+
+
+# 6. raincloud plots _______________________________________________________________
+g <- plot_halfrainclouds_twofactor(
+  NPSstimcue_subjectwise, NPSstimcue_groupwise, model_iv1, model_iv2,
+  sub_mean, group_mean, se, subject, ggtitle, title, xlab, ylab,
+  taskname, ylim, w, h, dv_keyword, color, plot_savefname
+)
+g
+```
+
+```{r echo=FALSE, warning=FALSE}
+g <- plot_lineplot_twofactor_subsetthick(NPSstimcue_groupwise, taskname = "pain",
+                        iv1 = "stim_ordered", iv2 = "cue_ordered",
+                        mean = "mean_per_sub_norm_mean", error = "se",
+                        color = c("low cue" = "#5D5C5C","high cue" = "#D73027"), ggtitle = "Within pain task: graymatter as a function of stimulus intensity level and cue",
+                        xlab = "Stimulus intensity", ylab = "Average activation (A.U.)")
+g + theme(aspect.ratio=.8) 
+g + theme(aspect.ratio=.8) + ylim(-0.05, 0.27)
+```
