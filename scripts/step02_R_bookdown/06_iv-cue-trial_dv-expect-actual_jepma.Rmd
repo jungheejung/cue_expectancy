@@ -163,12 +163,7 @@ iv <- "param_cue_type"
 taskname <- "pain"
 exclude <- "sub-0001"
 # data <- cueR::df_load_beh(datadir, taskname = taskname, subject_varkey = subject_varkey, iv = iv, exclude = exclude)
-```
 
-
-
-
-```{r}
 # 1. load data and rename columns ______________________________________________
 taskname <- "pain"
 df <- cueR::df_load_beh(datadir, taskname = taskname, subject_varkey = "src_subject_id", iv = "param_cue_type", dv = "event02_expect_angle", exclude = "sub-0001")
@@ -194,7 +189,7 @@ There could be a correlation between higher outcome ratings and faster reaction 
 
 myvars <- names(df) %in%
   c( "EXPECT", "EXPECT_RT", "OUTCOME", "OUTCOME_RT", "event01_cue_onset")
-newdata <- data[myvars]
+newdata <- df[myvars]
 data_naomit <- na.omit(newdata)
 cor_matrix = cor(data_naomit)
 visibly::corr_heat(cor_matrix)
