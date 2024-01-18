@@ -433,9 +433,7 @@ plot_ly(
 ### PCA groupwise
 
 ```{r}
-# ------------------------------------------------------------------------------
-#                       data formatting
-# ------------------------------------------------------------------------------
+# 1. data formatting ___________________________________________________________
 
 # Convert the dataframe to wide format
 df_wide.group <- pivot_wider(
@@ -444,7 +442,6 @@ df_wide.group <- pivot_wider(
   names_from = "sub",
   values_from = "mean_per_sub"
 )
-
 # Split the data into two subsets based on the 'stim_ordered' value
 # One for 'stimH' and another for 'stimL'
 stim_high.df <- df_wide[df_wide$stim_ordered == "stimH",]
@@ -458,9 +455,7 @@ meanlowdf <-
   data.frame(subset(stim_low.df, select = 3:(ncol(stim_low.df) - 1)))
 
 
-# ------------------------------------------------------------------------------
-#                      Principal Component Analysis (PCA)
-# ------------------------------------------------------------------------------
+# 2. Principal Component Analysis (PCA) ________________________________________
 high.pca <- prcomp(meanhighdf) # Perform Principal Component Analysis (PCA)
 high.pca_scores <- as.data.frame(high.pca$x) # Extract PCA scores
 
@@ -475,9 +470,8 @@ combined_pca_scores <- rbind(high.pca_scores, low.pca_scores)
 combined_pca_scores$stim_ordered <-
   c(rep("high_stim", nrow(high.pca_scores)), rep("low_stim", nrow(low.pca_scores)))
 
-# ------------------------------------------------------------------------------
-#                      plot 3D scatter plot of the PCA scores
-# ------------------------------------------------------------------------------
+
+# 3. plot 3D scatter plot of the PCA scores ____________________________________
 # The points are colored based on their stim_ordered category
 plot_ly(
   combined_pca_scores,
@@ -489,9 +483,8 @@ plot_ly(
   color = ~ stim_ordered
 )
 
-# ------------------------------------------------------------------------------
-#                      plot 2D group plot
-# ------------------------------------------------------------------------------
+
+# 4. plot 2D group plot ________________________________________________________
 # Create a 2D plot with smoothed lines for each stim_ordered group
 combined_pca <- combined_pca_scores %>%
   group_by(stim_ordered) %>%
