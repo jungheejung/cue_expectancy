@@ -99,7 +99,7 @@ sub_mean <- "mean_per_sub";       group_mean <- "mean_per_sub_norm_mean"
 se <- "se"
 iv_keyword <- "cue";              dv_keyword <- "outcome"
 ggtitle_phrase <- " - Outcome Rating"
-ggtitle <- paste0(tools::toTitleCase(taskname), ggtitle_phrase, " (N = ", length(unique(data$sub)), ")");
+ggtitle <- paste0(tools::toTitleCase(taskname), ggtitle_phrase, " (N = ", length(unique(pvc$sub)), ")");
 title <- paste0(tools::toTitleCase(taskname), " - ", tools::toTitleCase(dv_keyword))
 xlab <- "Cue type";               ylab <- "Outcome Ratings (degree)"
 ylim <- c(-10,190);               w = 5; h = 3;
@@ -190,7 +190,7 @@ sub_mean <- "mean_per_sub";       group_mean <- "mean_per_sub_norm_mean"
 se <- "se"
 iv_keyword <- "cue";              dv_keyword <- "outcome"
 ggtitle_phrase <- " - Outcome Rating"
-ggtitle <- paste0(tools::toTitleCase(taskname), ggtitle_phrase, " (N = ", length(unique(data$sub)), ")");
+ggtitle <- paste0(tools::toTitleCase(taskname), ggtitle_phrase, " (N = ", length(unique(pvc$sub)), ")");
 title <- paste0(tools::toTitleCase(taskname), " - ", tools::toTitleCase(dv_keyword))
 xlab <- "Cue type";               ylab <- "Outcome Ratings (degree)"
 ylim <- c(-10,190);               w = 5; h = 3;
@@ -261,13 +261,7 @@ randeffect.V <- compute_randomeffects(model.vicexpect, rand_savefname = rand_sav
 
 > Cue effects are significant even in the outcome rating domain. Note that the outcome ratings are measured after the stimulus delivery, and the cue-related data points are no longer visible on screen. 
 
-```{r cognitive_iv-cue_dv-outcome, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-# taskname = 'cognitive'
-# ggplot_onefactor_pertask(taskname, subject_varkey, subject, exclude,
-#                                      analysis_dir, iv, iv_keyword, dv, dv_keyword,
-#                                      subjectwise_mean, group_mean, se,
-#                                      xlab, ylim, ylab, ggtitle_phrase, print_lmer_output)
-```
+
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 taskname <- 'cognitive'
@@ -280,7 +274,7 @@ sub_mean <- "mean_per_sub";       group_mean <- "mean_per_sub_norm_mean"
 se <- "se"
 iv_keyword <- "cue";              dv_keyword <- "outcome"
 ggtitle_phrase <- " - Outcome Rating"
-ggtitle <- paste0(tools::toTitleCase(taskname), ggtitle_phrase, " (N = ", length(unique(data$sub)), ")");
+ggtitle <- paste0(tools::toTitleCase(taskname), ggtitle_phrase, " (N = ", length(unique(pvc$sub)), ")");
 title <- paste0(tools::toTitleCase(taskname), " - ", tools::toTitleCase(dv_keyword))
 xlab <- "Cue type";               ylab <- "Outcome Ratings (degree)"
 ylim <- c(-10,190);               w = 5; h = 3;
@@ -348,34 +342,6 @@ randeffect.C <- compute_randomeffects(model.cogexpect, rand_savefname = rand_sav
 
 
 
-```{r random_effects_2, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
-# # test function
-# rand_dir <- analysis_dir
-# dir.create(rand_dir, showWarnings = FALSE, recursive = TRUE)
-# dfP <- read.csv(file.path(
-#     rand_dir,
-#     paste("randeffect_task-pain", "_", as.character(Sys.Date()), "_outlier-cooksd.csv", sep = "")
-# ))
-# dfV <- read.csv(file.path(
-#     rand_dir,
-#     paste("randeffect_task-vicarious", "_", as.character(Sys.Date()), "_outlier-cooksd.csv", sep = "")
-# ))
-# dfC <- read.csv(file.path(
-#     rand_dir,
-#     paste("randeffect_task-cognitive", "_", as.character(Sys.Date()), "_outlier-cooksd.csv", sep = "")
-# ))
-# 
-# pvc <- merge_recurse(list(dfP, dfV, dfC))
-# 
-# save_fname <- file.path(
-#     analysis_dir,
-#     paste("randeffect_task-all_",
-#         as.character(Sys.Date()), ".csv",
-#         sep = ""
-#     )
-# )
-# write.csv(pvc, save_fname, row.names = FALSE)
-```
 
 
 ## Individual differences analysis: random cue effects
