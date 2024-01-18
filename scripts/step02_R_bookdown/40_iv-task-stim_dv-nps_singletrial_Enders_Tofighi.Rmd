@@ -1,5 +1,6 @@
-# fMRI :: NPS EndersTofighi {#ch40_EndersTofighi}
+# fMRI :: NPS EndersTofighi {#NPS_EndersTofighi}
 
+03/23/2023
 ---
 
 title: "[fMRI] NPS ~ singletrial"
@@ -34,17 +35,17 @@ library(r2mlm)
 library(effectsize)
 library(devtools)
 options(es.use_symbols = TRUE) # get nice symbols when printing! (On Windows, requires R >= 4.2.0)
-library(EMAtools)
+# library(EMAtools)
 library(emmeans)
 library(sjPlot)
 library(sjmisc)
 library(sjlabelled)
 library(DT)
-library(raincloudplots)
+# library(raincloudplots)
 # devtools::source_url("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/tutorial_R/R_rainclouds.R")
 # devtools::source_url("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/tutorial_R/summarySE.R")
-
-devtools::source_url("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+library(cueR)
+# devtools::source_url("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
                           pattern="*.R",
@@ -52,7 +53,7 @@ file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 # file.sources = list.files(c("https://raw.githubusercontent.com/jungheejung/cue_expectancy/main/scripts/step02_R/utils"), pattern="*.R", full.names=TRUE, ignore.case=TRUE)
-# sapply(file.sources,source,.GlobalEnv)
+sapply(file.sources,source,.GlobalEnv)
 ```
 
 ```{r function::summary_for_plots_pvc, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
@@ -166,8 +167,8 @@ two_factor_lineplot <-
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 # Step 1: Common parameters
-# step 1: load data
-for (signature_key in c("NPS", "NPSpos", "NPSneg", "VPS", "VPSnooccip", "ThermalPain", "MechPain", "GeneralAversive", "AversiveVisual", "ZhouVPS", "PINES",  "GSR", "GeuterPaincPDM"))  {
+# step 1: load data "ThermalPain",
+for (signature_key in c("NPS", "NPSpos", "NPSneg", "VPS", "VPSnooccip",  "Mechpain", "GeneralAversive", "AversiveVisual", "ZhouVPS", "PINES",  "GSR", "GeuterPaincPDM"))  {
      #{
   dv_keyword = signature_key
   signature_name = signature_key
@@ -376,13 +377,11 @@ print(k)
 }
 ```
 
-```{r echo=FALSE}
-p
-```
+## 0. merge NPS and behavior
 
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 
-# Load behavioral data
+# 1. Load behavioral data _________________________________________________________
 
 main_dir = dirname(dirname(getwd()))
 print(main_dir)
@@ -399,6 +398,7 @@ p.df <- df_load_beh(datadir, taskname = "pain", subject_varkey, iv, dv, exclude)
 v.df <- df_load_beh(datadir, taskname = "vicarious", subject_varkey, iv, dv, exclude)
 c.df <- df_load_beh(datadir, taskname = "cognitive", subject_varkey, iv, dv, exclude)
 
+# 2. calculate trial index ________________________________________________________
 p.df2= p.df %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
@@ -429,37 +429,56 @@ c.sub <- data_c[,c("src_subject_id", "session_id", "param_run_num", "param_task_
 # src_subject_id, session_id, param_run_num, param_task_name, event02_expect_angle, param_cue_type, param_stimulus_type, event04_actual_angle
 pvc.sub = rbind(p.sub, v.sub, c.sub)
 
-# data_a3lag <-
-#     pvc.sub %>%
-#     group_by(param_task_name, src_subject_id, session_id, param_run_num) %>%
-#     mutate(lag.04outcomeangle = dplyr::lag(event04_actual_angle, n = 1, default = NA))
-# pvc.sub <- data_a3lag[complete.cases(data_a3lag$lag.04outcomeangle),]
-#
-
-```
-
-```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+# 3. rename column values ______________________________________________________
 pvc.sub$trial_ind <- pvc.sub$trial_index -1
 pvc.sub$sub <- sprintf("sub-%04d", pvc.sub$src_subject_id)
 pvc.sub$ses <- sprintf("ses-%02d", pvc.sub$session_id)
 pvc.sub$run <- sprintf("run-%02d", pvc.sub$param_run_num)
 pvc.sub$runtype <- sprintf("runtype-%s", pvc.sub$param_task_name)
+# pvc.sub$task <- sprintf("%s", pvc.sub$param_task_name)
 pvc.sub$trial <- sprintf("trial-%03d", pvc.sub$trial_ind)
 pvc.sub[c('cue', 'DEPc')]  <- str_split_fixed(pvc.sub$param_cue_type , '_', 2)
 pvc.sub$cuetype <- sprintf("cuetype-%s", pvc.sub$cue)
 pvc.sub[c('stimintensity', 'DEP')]  <- str_split_fixed(pvc.sub$param_stimulus_type , '_', 2)
 
-# merge
+
+# 4. merge _____________________________________________________________________
+sig_name <- file.path(
+      main_dir, "analysis/fmri/nilearn/signature_extract",
+      "signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv"
+      )
+sig_df = read.csv(sig_name)
+sig_df = sig_df %>% separate(
+  singletrial_fname,
+  sep = "_",
+  c(
+    "sub",
+    "ses",
+    "run",
+    "runtype",
+    "event",
+    "trial",
+    "cuetype",
+    "stimintensity"
+  )
+)
+sig_df = sig_df %>% separate(
+  stimintensity,
+  into = c(NA, "stimintensity"),
+  extra = "drop",
+  fill = "left"
+)
+pvc <- simple_contrasts_singletrial(sig_df)
 pvc.beh <- pvc.sub[,c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity","event02_expect_angle", "event04_actual_angle")]
 df_merge <- merge(pvc, pvc.beh,
                   by.x = c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity"),
                   by.y = c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity")
                   )
 
-```
+# 5. contrast code _____________________________________________________________
+df_merge$task <- sub(".*-", "", df_merge$runtype)
 
-```{r}
-# contrast code 1 linear
+# contrast code 1 linear _______________________________________________________
 df_merge$task_V_gt_C[df_merge$task == "pain"] <-  0
 df_merge$task_V_gt_C[df_merge$task == "vicarious"] <-  0.5
 df_merge$task_V_gt_C[df_merge$task == "cognitive"] <- -0.5
@@ -501,13 +520,11 @@ sjPlot::tab_model(model.task_stim,
 ```
 lmer(NPSpos ~
                           CUE_high_gt_low*STIM_linear +CUE_high_gt_low * STIM_quadratic +
-                          (CUE_high_gt_low+STIM|sub), data = data_screen
+                          (CUE_high_gt_low+STIM|sub), data = data
                     )
 ```
 
-```{r echo=FALSE}
-summary(model.task_stim)
-```
+
 
 #### Linear model eta-squared {.unlisted .unnumbered}
 
@@ -525,7 +542,7 @@ kableExtra::kable_styling(
 
 kableExtra::kable_styling(
   knitr::kable(
-    lme.dscore(model.task_stim, df_merge, type = "lme4"),
+    EMAtools::lme.dscore(model.task_stim, df_merge, type = "lme4"),
     "html"), "striped", position = "left", font_size = 12)
 ```
 
@@ -534,6 +551,7 @@ kableExtra::kable_styling(
 ### Q. Within pain task, Does stimulus intenisty level and cue level significantly predict NPS dotproducts? {.unlisted .unnumbered}
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# 1. create dataframe  ________________________________________________________________
 combined_se_calc_cooksd <- data.frame()
 combined_psig <- data.frame()
 taskname = "pain"
@@ -546,11 +564,11 @@ p.sig <- df_merge[df_merge$runtype == "runtype-pain" ,]
 data <- p.sig
 combined_psig <-
   rbind(combined_psig, p.sig)
-# [ CONTRASTS ]  ________________________________________________________________________________ # nolint
-# contrast code ________________________________________
-data$stim[data$stimintensity == "low"] <-  -0.5 # social influence task
-data$stim[data$stimintensity == "med"] <- 0 # no influence task
-data$stim[data$stimintensity == "high"] <-  0.5 # no influence task
+
+# 2. contrast code ________________________________________________________________
+data$stim[data$stimintensity == "low"] <-  -0.5
+data$stim[data$stimintensity == "med"] <- 0 
+data$stim[data$stimintensity == "high"] <-  0.5 
 
 data$STIM <- factor(data$stimintensity)
 
@@ -571,14 +589,14 @@ data$CUE_high_gt_low[data$cuetype == "cuetype-high"] <-  0.5 # no influence task
 data$EXPECT <- data$event02_expect_angle
 data <- data %>%
 mutate(NPS_gmc = NPSpos - mean(NPSpos))
-#######################
+
+
+# 3. plot parameters code ________________________________________________________________
 stim_con1 <- "STIM_linear"
 stim_con2 <- "STIM_quadratic"
 iv1 <- "CUE_high_gt_low"
 dv <- "NPS_gmc"
-#######################
 
-# [ MODEL ] _________________________________________________ # nolint
 model_savefname <- file.path(
   analysis_dir,
   paste(
@@ -611,33 +629,25 @@ influential <- as.numeric(names(cooksd)[(cooksd > (4 / as.numeric(length(unique(
 )))))])
 data_screen <- data[-influential,]
 
-data_screen %>%
-  group_by
 
-# [ PLOT ] reordering for plots _________________________ # nolint
-data_screen$cue_name[data_screen$cuetype == "cuetype-high"] <-
-  "high cue"
-data_screen$cue_name[data_screen$cuetype == "cuetype-low"] <-
-  "low cue"
 
-data_screen$stim_name[data_screen$stimintensity == "high"] <-
-  "high"
-data_screen$stim_name[data_screen$stimintensity == "med"] <-
-  "med"
-data_screen$stim_name[data_screen$stimintensity == "low"] <-
-  "low"
+# 4. reordering for plots ______________________________________________________ 
+data$cue_name[data$cuetype == "cuetype-high"] <-  "high cue"
+data$cue_name[data$cuetype == "cuetype-low"] <-  "low cue"
 
-# DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
+data$stim_name[data$stimintensity == "high"] <-  "high"
+data$stim_name[data$stimintensity == "med"] <-  "med"
+data$stim_name[data$stimintensity == "low"] <-  "low"
 
-data_screen$stim_ordered <- factor(data_screen$stim_name,
+data$stim_ordered <- factor(data$stim_name,
                                    levels = c("low", "med", "high"))
-data_screen$cue_ordered <- factor(data_screen$cue_name,
+data$cue_ordered <- factor(data$cue_name,
                                   levels = c("low cue", "high cue"))
 model_iv1 <- "stim_ordered"
 model_iv2 <- "cue_ordered"
 
-#  [ PLOT ] calculate mean and se  _________________________
-NPSstimcue_subjectwise <- meanSummary(data_screen,
+# 5. summary statistics for plots ______________________________________________
+NPSstimcue_subjectwise <- meanSummary(data,
                                       c(subject, model_iv1, model_iv2), dv)
 NPSstimcue_groupwise <- summarySEwithin(
   data = NPSstimcue_subjectwise,
@@ -648,6 +658,7 @@ NPSstimcue_groupwise <- summarySEwithin(
 NPSstimcue_groupwise$task <- taskname
 # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
 
+# 6. plot parameters __________________________________________________________
 combined_se_calc_cooksd <-
   rbind(combined_se_calc_cooksd, NPSstimcue_groupwise)
 # calculate mean and se
@@ -673,6 +684,8 @@ plot_savefname <- file.path(
     sep = ""
   )
 )
+
+# 7. ggplot ____________________________________________________________________
 g <- plot_halfrainclouds_twofactor(
   NPSstimcue_subjectwise,
   NPSstimcue_groupwise,
@@ -697,7 +710,7 @@ g <- plot_halfrainclouds_twofactor(
 g
 ```
 
-### Lineplots with only low cue {.unlisted .unnumbered}
+### Lineplots with only low cue for presentation purposes {.unlisted .unnumbered}
 
 ```{r echo=FALSE, warning=FALSE}
 subsetNPS <- NPSstimcue_groupwise[NPSstimcue_groupwise$cue_ordered == "low cue",]
@@ -709,7 +722,7 @@ g <- plot_lineplot_twofactor_subset(subsetNPS, taskname = "pain",
 g + theme(aspect.ratio=.8)
 ```
 
-### Lineplots {.unlisted .unnumbered}
+### Lineplots with cue and stim {.unlisted .unnumbered}
 
 ```{r echo=FALSE, warning=FALSE}
 g <- plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain",
@@ -720,11 +733,9 @@ g <- plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain",
 g + theme(aspect.ratio=.8)
 ```
 
-```{r}
 
-```
 
-### Lineplots {.unlisted .unnumbered}
+### Lineplots in a different scheme {.unlisted .unnumbered}
 
 ```{r echo=FALSE, warning=FALSE}
 g <- plot_lineplot_twofactor(NPSstimcue_groupwise,
@@ -744,32 +755,19 @@ g + theme(aspect.ratio=.8)
 
 model.npscuestim <- lmer(NPS_gmc ~
                           CUE_high_gt_low*STIM_linear +CUE_high_gt_low * STIM_quadratic +
-                          (1|sub), data = data_screen
+                          (1|sub), data = data
                     )
 sjPlot::tab_model(model.npscuestim,
                   title = "Multilevel-modeling: \nlmer(NPSpos ~ CUE * STIM + (CUE + STIM | sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
-```
 
-```
-lmer(NPSpos ~
-                          CUE_high_gt_low*STIM_linear +CUE_high_gt_low * STIM_quadratic +
-                          (CUE_high_gt_low+STIM|sub), data = data_screen
-                    )
-```
+# summary(model.npscuestim)
 
-```{r echo=FALSE}
-summary(model.npscuestim)
-```
-
-#### Linear model eta-squared {.unlisted .unnumbered}
-
-```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 kableExtra::kable_styling(
   knitr::kable(
     eta_squared(model.npscuestim, partial = TRUE), # MODIFY
     "html"), "striped", position = "left", font_size = 12)
-#parameters::model_parameters(model.npscuestim)
+
 ```
 
 #### Linear model Cohen's d: NPS stimulus_intensity d = 1.16, cue d = 0.45 {.unlisted .unnumbered}
@@ -778,7 +776,7 @@ kableExtra::kable_styling(
 
 kableExtra::kable_styling(
   knitr::kable(
-    lme.dscore(model.npscuestim, data_screen, type = "lme4"),
+    EMAtools::lme.dscore(model.npscuestim, data, type = "lme4"),
     "html"), "striped", position = "left", font_size = 12)
 ```
 
@@ -787,6 +785,8 @@ kableExtra::kable_styling(
 ### Q. Is the cue effect on NPS different across sessions? {.unlisted .unnumbered}
 
 > Quick answer: Yes, the cue effect in session 1 (for high intensity group) is significantly different; whereas this different becomes non significant in session 4. To unpack, a participant was informed to experience a low stimulus intensity, when in fact they were delivered a high intensity stimulus. This violation presumably leads to a higher NPS response, given that they were delivered a much painful stimulus than expected. The fact that the cue effect is almost non significant during the last session indicates that the cue effects are not just an anchoring effect.
+
+> Note, model does not converge with additional parameters in random effects
 
 ```{r}
 
@@ -823,16 +823,20 @@ kableExtra::kable_styling(
     "html"), "striped", position = "left", font_size = 12)
 ```
 
-#### Cohen's d {.unlisted .unnumbered}
-
+#### Cohen's d  {.unlisted .unnumbered}
+* stimulus intensity d = 0.26, 
+* cue d = -0.09 {.unlisted .unnumbered}
+* session effect, d = .1
 ```{r echo=FALSE, warning=TRUE}
 kableExtra::kable_styling(
   knitr::kable(
-    lme.dscore(model.npsses, combined_psig, type = "lme4"), # MODIFY
+    EMAtools::lme.dscore(model.npsses, combined_psig, type = "lme4"), # MODIFY
     "html"), "striped", position = "left", font_size = 12)
 ```
 
 #### Session wise plots {.unlisted .unnumbered}
+
+> NPS cue effect differs as a function of session. As time goes by, the cue effects disappear.The high stimulus intensity leads to great NPS, whereas session 3, the ambiguous medium intensity leads to a greater response.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
@@ -893,21 +897,21 @@ data$STIM_quadratic[data$stimintensity == "high"] <- -0.33
     ])
     data_screen <- data[-influential, ]
     # [ PLOT ] reordering for plots _________________________ # nolint
-    data_screen$cue_name[data_screen$cuetype == "cuetype-high"] <- "high cue"
-    data_screen$cue_name[data_screen$cuetype == "cuetype-low"] <- "low cue"
+    data$cue_name[data$cuetype == "cuetype-high"] <- "high cue"
+    data$cue_name[data$cuetype == "cuetype-low"] <- "low cue"
 
-    data_screen$stim_name[data_screen$stimintensity == "high"] <- "high"
-    data_screen$stim_name[data_screen$stimintensity == "med"] <- "med"
-    data_screen$stim_name[data_screen$stimintensity == "low"] <- "low"
+    data$stim_name[data$stimintensity == "high"] <- "high"
+    data$stim_name[data$stimintensity == "med"] <- "med"
+    data$stim_name[data$stimintensity == "low"] <- "low"
 
     # DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
 
-    data_screen$stim_ordered <- factor(
-        data_screen$stim_name,
+    data$stim_ordered <- factor(
+        data$stim_name,
         levels = c("low", "med", "high")
     )
-    data_screen$cue_ordered <- factor(
-        data_screen$cue_name,
+    data$cue_ordered <- factor(
+        data$cue_name,
         levels = c("low cue", "high cue")
     )
     model_iv1 <- "stim_ordered"
@@ -915,7 +919,7 @@ data$STIM_quadratic[data$stimintensity == "high"] <- -0.33
 
     #  [ PLOT ] calculate mean and se  _________________________
     actual_subjectwise <- meanSummary(
-        data_screen,
+        data,
         c(subject, model_iv1, model_iv2), dv
     )
     actual_groupwise <- summarySEwithin(
@@ -994,17 +998,17 @@ ggsave(plot_filename, width = 8, height = 4)
 
 ---
 
-## 4. [INCORRECT] no cmc NPS \~ CUE \* STIM \* EXPECT {.unlisted .unnumbered}
+## 4. NPS \~ CUE \* STIM \* EXPECT (raw) {.unlisted .unnumbered}
 
 - 2 cue \* 3 stimulus_intensity \* expectation_rating
 
-```{r eval=FALSE, warning=TRUE, include=FALSE}
+```{r echo=TRUE, warning=TRUE}
 
-data_screen$EXPECT <- data_screen$event02_expect_angle
+data$EXPECT <- data$event02_expect_angle
 model.nps3factor <- lmer(NPSpos ~
                           CUE_high_gt_low*STIM_linear*EXPECT +
                            CUE_high_gt_low*STIM_quadratic*EXPECT +
-                          (CUE_high_gt_low  |sub), data = data_screen
+                          (CUE_high_gt_low  + STIM_linear + EXPECT|sub), data = data
                     )
 sjPlot::tab_model(model.nps3factor,
                   title = "Multilevel-modeling: \nlmer(NPSpos ~ CUE * STIM * EXPECTATION + (CUE + STIM + EXPECT | sub), data = pvc)",
@@ -1013,7 +1017,7 @@ sjPlot::tab_model(model.nps3factor,
 
 #### eta squared {.unlisted .unnumbered}
 
-```{r eval=FALSE, warning=TRUE, include=FALSE}
+```{r echo=FALSE, warning=TRUE}
 kableExtra::kable_styling(
   knitr::kable(
     eta_squared(model.nps3factor, partial = TRUE), # MODIFY
@@ -1022,10 +1026,10 @@ kableExtra::kable_styling(
 
 #### Cohen's d {.unlisted .unnumbered}
 
-```{r eval=FALSE, warning=TRUE, include=FALSE}
+```{r echo=FALSE, warning=TRUE}
 kableExtra::kable_styling(
   knitr::kable(
-    lme.dscore(model.nps3factor, data_screen, type = "lme4"), # MODIFY
+    EMAtools::lme.dscore(model.nps3factor, data, type = "lme4"), # MODIFY
     "html"), "striped", position = "left", font_size = 12)
 ```
 
@@ -1035,66 +1039,66 @@ kableExtra::kable_styling(
 
 ### Q. Do higher NPS values indicate higher outcome ratings? (Pain task only) {.unlisted .unnumbered}
 
-> TODO: update. Yes, Higher NPS values are associated with higher outcome ratings. The linear relationship between NPS value and outcome ratings are stronger for conditions where cue level is congruent with stimulus intensity levels. In other words, NPS-outcome rating relationship is stringent in the low cue-low intensity group, as is the case for high cue-ghigh intensity group.
+>  Yes, Higher NPS values are associated with higher outcome ratings. The linear relationship between NPS value and outcome ratings are stronger for conditions where cue level is congruent with stimulus intensity levels. In other words, NPS-outcome rating relationship is stringent in the low cue-low intensity group, as is the case for high cue-ghigh intensity group.
 
-```{r include=FALSE}
+
+```{r}
+signature_key <- "NPSpos"
 remove_sub_list = c("sub-0009")
 #, "sub-0117", "sub-0081", "sub-0060", "sub-0063", "sub-0074", "sub-0080", "sub-0085", "sub-0098", "sub-0118", "sub-0129")
 df_merge_drop <- subset(df_merge, !(sub %in% remove_sub_list))
 freq <- count(df_merge, "sub")
 subset_ses <-  df_merge_drop[df_merge_drop$task == 'pain',]
-p.demean <- subset_ses %>%
-group_by(sub) %>%
-mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
-mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
-mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
-mutate(OUTCOME_demean = event04_actual_angle - avg_outcome) %>%
-mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
-mutate(EXPECT_demean = event02_expect_angle - avg_expect)
+
+subset_rename <- cueR::df_rename_columns(subset_ses, c("event04_actual_angle" = "OUTCOME", "event02_expect_angle" = "EXPECT"))
+demean_dropna <- cueR::compute_enderstofighi(data = subset_rename, sub = "sub", outcome = "OUTCOME", expect = "EXPECT", ses = "ses", run = "run")
+
+ p.demean <- demean_dropna %>%
+  group_by(sub) %>%
+  mutate(NPSpos = as.numeric(NPSpos)) %>%
+  mutate(avg_NPS = mean(NPSpos, na.rm = TRUE)) %>%
+  mutate(NPS_demean = NPSpos - avg_NPS) %>%
+    ungroup %>%
+  mutate(NPS_cmc = avg_NPS - mean(avg_NPS)) 
+  # mutate(NPS_gmc = NPSpos - mean(NPSpos)) 
 
 p.demean <- p.demean %>%
-group_by(sub, ses) %>%
-mutate(NPSpos = as.numeric(NPSpos)) %>%
-mutate(avg_NPS = mean(NPSpos, na.rm = TRUE)) %>%
-mutate(NPS_demean = NPSpos - avg_NPS) %>%
-  ungroup %>%
-mutate(OUTCOME_cmc = avg_outcome - mean(avg_outcome)) %>%
-mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) %>%
-mutate(NPS_cmc = avg_NPS - mean(avg_NPS)) %>%
-  mutate(NPS_gmc = NPSpos - mean(NPSpos)) %>%
-mutate(OUTCOME_gmc = event04_actual_angle - mean(event04_actual_angle)) %>%
-  mutate(EXPECT_gmc = event02_expect_angle - mean(event02_expect_angle))
-p.demean$EXPECT <- p.demean$event02_expect_angle
-p.demean$OUTCOME <- p.demean$event04_actual_angle
-
-demean_dropna <- p.demean[!is.na(p.demean[, iv1]) & !is.na(p.demean[, iv2]),]
-demean_dropna$EXPECT <- demean_dropna$event02_expect_angle
+  mutate(OUTCOME_gmc = OUTCOME - mean(OUTCOME))
 ```
 
 ### Linear model (without CMC subjectwise mean) {.unlisted .unnumbered}
 
-```{r eval=FALSE, message=FALSE, warning=TRUE, include=FALSE, paged.print=FALSE}
+> Cue, Stimulus intensity, and NPS values positively predict the within subject variability of Outcome ratings
+> Also, Outcome rating (demean) differs as a function of stimulus intensity and NPS values, the greater the NPS value, the lower the Outcome rating as stimulus intensity increases. 
+> Outcome rating also differs as a function of cue and stimulus intensity. 
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 # DEPRECATE DEPRECATE DEPRECATE DEPRECATE DEPRECATEDEPRECATEDEPRECATE
 # organize variable names
 # NPS_demean vs. NPSpos
-model.npsoutcome <- lmer(OUTCOME_demean ~
+model.npsoutcome <- lmer(OUTCOME ~
                            CUE_high_gt_low*STIM_linear*NPSpos +
                            CUE_high_gt_low*STIM_quadratic*NPSpos +
-                           (CUE_high_gt_low+STIM+NPSpos|sub), data = demean_dropna)
+                           (CUE_high_gt_low+STIM+NPSpos|sub), data = p.demean)
 sjPlot::tab_model(model.npsoutcome,
-                  title = "Multilevel-modeling: \nlmer(OUTCOME_demean ~ CUE * STIM * NPSpos + (CUE * STIM *NPSpos | sub), data = pvc)",
+                  title = "Multilevel-modeling: \nlmer(OUTCOME_demean ~ CUE * STIM * NPSpos + (CUE + STIM + NPSpos | sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
 ```
+
+
+### Does outcome rating differ as a function of cue, stim, and NPS? 
+
+> This model is expected to be better, given the demean and CMC variables
 
 ```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
 # organize variable names
 # NPS_demean vs. NPSpos
-model.npsoutcome <- lmer(OUTCOME_gmc ~
+model.npsoutcome <- lmer(OUTCOME ~
                            CUE_high_gt_low*STIM_linear*NPS_demean +
                            CUE_high_gt_low*STIM_quadratic*NPS_demean +
-                           NPS_cmc + (1|sub), data = demean_dropna)
+                           NPS_cmc + (CUE_high_gt_low+STIM_linear+NPS_demean|sub), data = p.demean)
 sjPlot::tab_model(model.npsoutcome,
-                  title = "Multilevel-modeling: \nlmer(OUTCOME_gmc ~ CUE * STIM * NPSpos_demean + NPS_cmc + (1| sub), data = pvc)",
+                  title = "Multilevel-modeling: \nlmer(OUTCOME_gmc ~ CUE * STIM * NPSpos_demean + NPS_cmc + (CUE + STIM + NPSpos_demean| sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
 ```
 
@@ -1153,6 +1157,12 @@ g
 
 ### 6-1. outcome_rating \* cue {.unlisted .unnumbered}
 
+> Outcome rating is best predicted by the NPS clustermeans
+
+::::{.todolist}
+* Need to plot subjecwise slopes, not cluster meanse
+::::
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 p.sig <- df_merge[df_merge$runtype == "runtype-pain",]
 iv2 = "event04_actual_angle"; iv1 = "NPSpos"
@@ -1163,7 +1173,7 @@ total <-
     df_dropna, iv1, iv2,
     group = "cuetype", subject = "sub",
     ymin=0, ymax=180, xmin=-10, xmax=30,
-    ylab = "Outcome rating", xlab = signature_key,
+    ylab = "Outcome rating", xlab = "NPSpos",
     ggtitle = "all stimulus intensity",
     color_scheme = c("cuetype-high" ="#941100","cuetype-low" =  "#BBBBBB"),
     alpha = .8, fit_lm = TRUE, lm_method ="lm", identity_line = FALSE
@@ -1222,6 +1232,9 @@ plots_title
 
 ### 6-3. OUTCOMEgmc \~ NPScmc \* cue {.unlisted .unnumbered}
 
+> NPS (cluster means) , i.e. between subject effects predict outcome ratings well.. 
+There is interaction between cue levels
+
 ```{r echo=FALSE}
 # plot parameters
 iv1 = "NPS_cmc"
@@ -1236,7 +1249,7 @@ lm_method = "lm"
 
 total <-
   plot_twovariable(
-    demean_dropna, iv1, iv2,
+    p.demean, iv1, iv2,
     group = "cuetype", subject = "sub",
     ymin=-90, ymax=180, xmin=-15, xmax=20,
     ylab,  xlab = xlab, #, "\n(subjectwise mean-centered)"),
@@ -1250,6 +1263,8 @@ total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos 
 ```
 
 ### 6-4. OUTCOMEgmc \~ NPScmc \* cue \* stim
+
+> Outcome rating as a function of cue, stim, and NPS cluster means
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
@@ -1269,7 +1284,7 @@ lm_method = "lm"
 # xlab =  paste(signature_key)
 group = "cuetype"; subject = "sub"
 # low stimulus intensity
-demean_low = demean_dropna[demean_dropna$stimintensity == "low", ]
+demean_low = p.demean[p.demean$stimintensity == "low", ]
 low <-
   plot_twovariable(
     demean_low, iv1 , iv2,
@@ -1282,7 +1297,7 @@ low <-
   )
 
 # med stimulus intensity
-demean_med = demean_dropna[demean_dropna$stimintensity == "med", ]
+demean_med = p.demean[p.demean$stimintensity == "med", ]
 med <-
   plot_twovariable(
     demean_med, iv1, iv2,
@@ -1295,7 +1310,7 @@ med <-
   )
 
 # high stimulus intensity
-demean_high = demean_dropna[demean_dropna$stimintensity == "high", ]
+demean_high = p.demean[p.demean$stimintensity == "high", ]
 high <-
   plot_twovariable(
     demean_high, iv1, iv2,
@@ -1499,7 +1514,7 @@ model.npsexpectdemean <- lmer(NPS_gmc ~
                           CUE_high_gt_low*STIM_linear*EXPECT_demean +
                           CUE_high_gt_low*STIM_quadratic*EXPECT_demean +
                           EXPECT_cmc +
-                          (1 |sub), data = demean_dropna, REML = FALSE
+                          (1 |sub), data = p.demean, REML = FALSE
                     )
 # CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.npsexpectdemean,
@@ -1507,7 +1522,9 @@ sjPlot::tab_model(model.npsexpectdemean,
                   CSS = list(css.table = '+font-size: 12;'))
 ```
 
-### 7-1. [correct] NPSgmc \~ EXPECTdemean \* cue {.unlisted .unnumbered}
+### 7-1. [TODO] NPSgmc \~ EXPECTdemean \* cue {.unlisted .unnumbered}
+
+> need to update subjectwise slopes
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # plot parameters
@@ -1515,7 +1532,7 @@ sjPlot::tab_model(model.npsexpectdemean,
 iv1 = "EXPECT_demean"
 iv2 = "NPS_gmc"
 subject = "sub"
-xlab = "Expectation rating \n(CWC; subjectwise mean-centered)"
+xlab = "Expectation rating \n(demean; subjectwise slopes)"
 ylab = paste(signature_key, "\n(grand-mean-centered)") #, " \n(mean-centered)")
 ggtitle = "All stimulus intensity"
 alpha = 0.8
@@ -1540,8 +1557,8 @@ total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos 
 ```
 
 ```{r echo=FALSE}
-ggplot(demean_dropna, aes(x = event02_expect_angle,
-                       y = event04_actual_angle,
+ggplot(p.demean, aes(x = EXPECT,
+                       y = OUTCOME,
                        col = cuetype,
                        shape = sub), size = .3, color = 'gray') +
   geom_point(size = .1) +
@@ -1550,8 +1567,8 @@ ggplot(demean_dropna, aes(x = event02_expect_angle,
 ```
 
 ```{r echo=FALSE}
-ggplot(demean_dropna, aes(x = event02_expect_angle,
-                       y = event04_actual_angle,
+ggplot(p.demean, aes(x = EXPECT,
+                       y = OUTCOME,
                        col = stim_ordered,
                        shape = sub), size = .3, color = 'gray') +
   geom_point(size = .1) +
@@ -1560,7 +1577,7 @@ ggplot(demean_dropna, aes(x = event02_expect_angle,
 ```
 
 ```{r echo=FALSE}
-ggplot(demean_dropna, aes(x = EXPECT_demean,
+ggplot(p.demean, aes(x = EXPECT_demean,
                        y = OUTCOME_gmc,
                        col = stim_ordered,
                        shape = sub), size = .3, color = 'gray') +
@@ -1570,7 +1587,7 @@ ggplot(demean_dropna, aes(x = EXPECT_demean,
 ```
 
 ```{r echo=FALSE}
-ggplot(demean_dropna[demean_dropna$stimintensity == 'low',],
+ggplot(p.demean[p.demean$stimintensity == 'low',],
        aes(x = NPS_demean,
                        y = OUTCOME_gmc,
                        col = cuetype,
@@ -1579,7 +1596,7 @@ ggplot(demean_dropna[demean_dropna$stimintensity == 'low',],
   geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .1, alpha = .2) +
   theme_classic() + theme(legend.position = "none")
 
-ggplot(demean_dropna[demean_dropna$stimintensity == 'high',],
+ggplot(p.demean[p.demean$stimintensity == 'high',],
        aes(x = NPS_demean,
                        y = OUTCOME_gmc,
                        col = cuetype,
@@ -1590,7 +1607,7 @@ ggplot(demean_dropna[demean_dropna$stimintensity == 'high',],
 ```
 
 ```{r echo=FALSE}
-ggplot(demean_dropna, aes(x = event02_expect_angle,
+ggplot(p.demean, aes(x = EXPECT,
                        y = NPS_gmc,
                        col = cuetype,
                        shape = sub), size = .3, color = 'gray') +
@@ -1600,7 +1617,7 @@ ggplot(demean_dropna, aes(x = event02_expect_angle,
 ```
 
 ```{r echo=FALSE}
-ggplot(demean_dropna, aes(x = STIM_linear,
+ggplot(p.demean, aes(x = STIM_linear,
                        y = NPS_gmc,
                        col = cuetype,
                        shape = sub), size = .3, color = c('red', 'gray')) +
@@ -1610,7 +1627,7 @@ ggplot(demean_dropna, aes(x = STIM_linear,
 ```
 
 ```{r echo=FALSE}
-ggplot(demean_dropna, aes(x = NPS_demean,
+ggplot(p.demean, aes(x = NPS_demean,
                        y = OUTCOME_gmc,
                        col = cuetype,
                        shape = sub), size = .3, col = c('red', 'gray')) +
@@ -1620,8 +1637,11 @@ ggplot(demean_dropna, aes(x = NPS_demean,
 
 ```
 
-### 7-2. [correct] NPSgmc \~ EXPECTdemean \* cue \* stim {.unlisted .unnumbered}
+### 7-2. [TODO] NPSgmc \~ EXPECTdemean \* cue \* stim {.unlisted .unnumbered}
 
+::::{.todolist}
+* plot subjectwise slopes
+::::
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 
 # plot parameters
@@ -1629,7 +1649,7 @@ ggplot(demean_dropna, aes(x = NPS_demean,
 iv1 = "EXPECT_demean"
 iv2 = "NPS_gmc"
 subject = "sub"
-xlab = "Expectation rating \n(CWC; subjectwise mean-centered)"
+xlab = "Expectation rating \n(demean; subjectwise slopes)"
 ylab = paste(signature_key, "\n(grand mean-centered")
 ggtitle = "All stimulus intensity"
 alpha = 0.8
@@ -1638,7 +1658,7 @@ yminval=-30; ymaval=30; xminval=-60; xmaxval=60;
 ###################
 
 # low stimulus intensity
-demean_low = demean_dropna[demean_dropna$stimintensity == "low", ]
+demean_low = p.demean[p.demean$stimintensity == "low", ]
 low <-
   plot_twovariable(
     demean_low, iv1 , iv2,
@@ -1652,7 +1672,7 @@ low <-
   )
 
 # med stimulus intensity
-demean_med = demean_dropna[demean_dropna$stimintensity == "med", ]
+demean_med = p.demean[p.demean$stimintensity == "med", ]
 med <-
   plot_twovariable(
     demean_med, iv1, iv2,
@@ -1665,7 +1685,7 @@ med <-
   )
 
 # high stimulus intensity
-demean_high = demean_dropna[demean_dropna$stimintensity == "high", ]
+demean_high = p.demean[p.demean$stimintensity == "high", ]
 high <-
   plot_twovariable(
     demean_high, iv1, iv2,
@@ -1684,30 +1704,30 @@ plots_title
 ### 7-3. [correct] NPSgmc \~ EXPECTcmc {.unlisted .unnumbered}
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-remove_sub_list = c("sub-0009") # "sub-0117", "sub-0081", "sub-0060", "sub-0063", "sub-0074", "sub-0085", "sub-0098", "sub-0118")
-df_merge_drop <- subset(df_merge, !(sub %in% remove_sub_list))
-subset_ses <-  df_merge_drop[df_merge_drop$task == 'pain',]
-p.demean <- subset_ses %>%
-  group_by(sub) %>%
-  mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
-  mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
-  mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
-  mutate(OUTCOME_demean = event04_actual_angle - avg_outcome) %>%
-  mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
-  mutate(EXPECT_demean = event02_expect_angle - avg_expect) %>%
-  group_by(sub, ses) %>%
-  mutate(NPSpos = as.numeric(NPSpos)) %>%
-  mutate(avg_NPS = mean(NPSpos, na.rm = TRUE)) %>%
-  mutate(NPS_demean = NPSpos - avg_NPS) %>%
-  ungroup %>%
-  mutate(OUTCOME_cmc = avg_outcome - mean(avg_outcome)) %>%
-  mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) %>%
-  mutate(NPS_cmc = avg_NPS - mean(avg_NPS)) %>%
-mutate(NPS_gmc = NPSpos - mean(NPSpos)) %>%
-mutate(OUTCOME_gmc = event04_actual_angle - mean(event04_actual_angle)) %>%
-  mutate(EXPECT_gmc = event02_expect_angle - mean(event02_expect_angle))
-p.demean$EXPECT <- p.demean$event02_expect_angle
-p.demean$OUTCOME <- p.demean$event04_actual_angle
+# remove_sub_list = c("sub-0009") # "sub-0117", "sub-0081", "sub-0060", "sub-0063", "sub-0074", "sub-0085", "sub-0098", "sub-0118")
+# df_merge_drop <- subset(df_merge, !(sub %in% remove_sub_list))
+# subset_ses <-  df_merge_drop[df_merge_drop$task == 'pain',]
+# p.demean <- subset_ses %>%
+#   group_by(sub) %>%
+#   mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
+#   mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
+#   mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
+#   mutate(OUTCOME_demean = event04_actual_angle - avg_outcome) %>%
+#   mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
+#   mutate(EXPECT_demean = event02_expect_angle - avg_expect) %>%
+#   group_by(sub, ses) %>%
+#   mutate(NPSpos = as.numeric(NPSpos)) %>%
+#   mutate(avg_NPS = mean(NPSpos, na.rm = TRUE)) %>%
+#   mutate(NPS_demean = NPSpos - avg_NPS) %>%
+#   ungroup %>%
+#   mutate(OUTCOME_cmc = avg_outcome - mean(avg_outcome)) %>%
+#   mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) %>%
+#   mutate(NPS_cmc = avg_NPS - mean(avg_NPS)) %>%
+# mutate(NPS_gmc = NPSpos - mean(NPSpos)) %>%
+# mutate(OUTCOME_gmc = event04_actual_angle - mean(event04_actual_angle)) %>%
+#   mutate(EXPECT_gmc = event02_expect_angle - mean(event02_expect_angle))
+# p.demean$EXPECT <- p.demean$event02_expect_angle
+# p.demean$OUTCOME <- p.demean$event04_actual_angle
 # plot parameters
 ###################
 iv1 = "EXPECT_cmc"
@@ -1720,11 +1740,11 @@ alpha = 0.8
 lm_method = "lm"
 ###################
 # plot parameters
-demean_dropna <- p.demean[!is.na(p.demean[, iv1]) & !is.na(p.demean[, iv2]),]
+# demean_dropna <- p.demean[!is.na(p.demean[, iv1]) & !is.na(p.demean[, iv2]),]
 
 total <-
   plot_twovariable(
-    demean_dropna, iv1, iv2,
+    p.demean, iv1, iv2,
     group = "cuetype", subject = "sub",
     ymin=-10, ymax=10, xmin=-40, xmax=40,
     xlab ,ylab,
@@ -1755,7 +1775,7 @@ yminval=-20; ymaxval=20; xminval=-90; xmaxval=90;
 ###################
 
 # low stimulus intensity
-demean_low = demean_dropna[demean_dropna$stimintensity == "low", ]
+demean_low = p.demean[p.demean$stimintensity == "low", ]
 low <-
   plot_twovariable(
     demean_low, iv1 , iv2,
@@ -1769,7 +1789,7 @@ low <-
   )
 
 # med stimulus intensity
-demean_med = demean_dropna[demean_dropna$stimintensity == "med", ]
+demean_med = p.demean[p.demean$stimintensity == "med", ]
 med <-
   plot_twovariable(
     demean_med, iv1, iv2,
@@ -1782,7 +1802,7 @@ med <-
   )
 
 # high stimulus intensity
-demean_high = demean_dropna[demean_dropna$stimintensity == "high", ]
+demean_high = p.demean[p.demean$stimintensity == "high", ]
 high <-
   plot_twovariable(
     demean_high, iv1, iv2,
@@ -1798,9 +1818,11 @@ plots_title <- annotate_figure(plots, top = text_grob(paste(str_to_title(tasknam
 plots_title
 ```
 
+::::{.refbox}
 - <https://stats.stackexchange.com/questions/365466/significance-of-slope-different-than-zero-in-triple-interaction-with-factors>
 - <https://stats.stackexchange.com/questions/586748/calculating-trends-with-emtrends-for-three-way-interaction-model-results-in-sa>
 - emtrends(model.npsexpectdemean, var = 'EXPECT_demean', lmer.df = "asymptotic")
+::::
 
 ### 7-5. ICC
 
@@ -1833,10 +1855,20 @@ kableExtra::kable_styling(
 
 ### Cohen's d {.unlisted .unnumbered}
 
+> expectation ratings (between subject cluster means) 
+across paritipcnats predict NPS values across participants. d = .62 (medium effect)
+> Stimulus effect, d = .19 (small effect)
+
+model.npsexpectdemean <- lmer(NPS_gmc ~
+                          CUE_high_gt_low*STIM_linear*EXPECT_demean +
+                          CUE_high_gt_low*STIM_quadratic*EXPECT_demean +
+                          EXPECT_cmc +
+                          (1 |sub), data = p.demean, REML = FALSE
+                          
 ```{r echo=FALSE, warning=TRUE}
 kableExtra::kable_styling(
   knitr::kable(
-    lme.dscore(model.npsexpectdemean, demean_dropna, type = "lme4"), # MODIFY
+    EMAtools::lme.dscore(model.npsexpectdemean, demean_dropna, type = "lme4"), # MODIFY
     "html"), "striped", position = "left", font_size = 12)
 ```
 
@@ -1893,7 +1925,7 @@ model.npsexpectdemean.sescontrol <- lmer(NPS_gmc ~
                           # CUE_high_gt_low*STIM_quadratic*EXPECT_demean +
                           EXPECT_cmc +
                           ses +
-                          (CUE_high_gt_low|sub), data = demean_dropna
+                          (CUE_high_gt_low + STIM_linear + EXPECT_demean|sub), data = p.demean
                     )
 # CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.npsexpectdemean.sescontrol,
@@ -1903,6 +1935,11 @@ sjPlot::tab_model(model.npsexpectdemean.sescontrol,
 
 #### 8-2. [correct] NPS \~ EXPECT_demean \* CUE \* STIM \* SES + CMC (Session as interaction) {.unlisted .unnumbered}
 
+> Cue X Stim X Expectation (within subject cenering) X Session * p = .014
+Cue effect (p = .031)
+STIM (p < .001)
+EXPECT Cluster means (p = .006)
+
 ```{r echo=TRUE, message=TRUE, warning=TRUE, paged.print=FALSE}
 
 model.npsexpectdemean.ses <- lmer(NPS_gmc ~
@@ -1911,7 +1948,7 @@ model.npsexpectdemean.ses <- lmer(NPS_gmc ~
                           CUE_high_gt_low*STIM_linear*EXPECT_demean*SES_quadratic +
                           CUE_high_gt_low*STIM_quadratic*EXPECT_demean*SES_quadratic +
                           EXPECT_cmc +
-                          (CUE_high_gt_low|sub) + (1|ses), data = demean_dropna
+                          (EXPECT_demean|sub) + (1|ses), data = demean_dropna
                     )
 # CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.npsexpectdemean.ses,
@@ -1923,25 +1960,25 @@ sjPlot::tab_model(model.npsexpectdemean.ses,
 
 ```{r echo=FALSE}
 # paindf <- data_screen[data_screen$runtype == "runtype-pain",]
-remove_sub_list = c("sub-0009") # "sub-0117", "sub-0081", "sub-0060", "sub-0063", "sub-0074", "sub-0085", "sub-0098", "sub-0118")
-df_merge_drop <- subset(df_merge, !(sub %in% remove_sub_list))
-subset_ses <-  df_merge_drop[df_merge_drop$task == 'pain',]
-p.demean <- subset_ses %>%
-  group_by(sub) %>%
-  mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
-  mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
-  mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
-  mutate(OUTCOME_demean = event04_actual_angle - avg_outcome) %>%
-  mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
-  mutate(EXPECT_demean = event02_expect_angle - avg_expect) %>%
-  group_by(sub, ses) %>%
-  mutate(NPSpos = as.numeric(NPSpos)) %>%
-  mutate(avg_NPS = mean(NPSpos, na.rm = TRUE)) %>%
-  mutate(NPS_demean = NPSpos - avg_NPS) %>%
-  ungroup %>%
-  mutate(OUTCOME_cmc = avg_outcome - mean(avg_outcome)) %>%
-  mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) %>%
-  mutate(NPS_cmc = avg_NPS - mean(avg_NPS))
+# remove_sub_list = c("sub-0009") # "sub-0117", "sub-0081", "sub-0060", "sub-0063", "sub-0074", "sub-0085", "sub-0098", "sub-0118")
+# df_merge_drop <- subset(df_merge, !(sub %in% remove_sub_list))
+# subset_ses <-  df_merge_drop[df_merge_drop$task == 'pain',]
+# p.demean <- subset_ses %>%
+#   group_by(sub) %>%
+#   mutate(event04_actual_angle = as.numeric(event04_actual_angle)) %>%
+#   mutate(event02_expect_angle = as.numeric(event02_expect_angle)) %>%
+#   mutate(avg_outcome = mean(event04_actual_angle, na.rm = TRUE)) %>%
+#   mutate(OUTCOME_demean = event04_actual_angle - avg_outcome) %>%
+#   mutate(avg_expect = mean(event02_expect_angle, na.rm = TRUE)) %>%
+#   mutate(EXPECT_demean = event02_expect_angle - avg_expect) %>%
+#   group_by(sub, ses) %>%
+#   mutate(NPSpos = as.numeric(NPSpos)) %>%
+#   mutate(avg_NPS = mean(NPSpos, na.rm = TRUE)) %>%
+#   mutate(NPS_demean = NPSpos - avg_NPS) %>%
+#   ungroup %>%
+#   mutate(OUTCOME_cmc = avg_outcome - mean(avg_outcome)) %>%
+#   mutate(EXPECT_cmc = avg_expect - mean(avg_expect)) %>%
+#   mutate(NPS_cmc = avg_NPS - mean(avg_NPS))
 
 plotly_subjectwise <- meanSummary(
         p.demean,
@@ -2174,22 +2211,7 @@ plots_title
 
 ```
 
-```{r}
 
-fig.height = 50
-fig.width = 10
-ggplot(aes(x=EXPECT_demean, y=NPSpos, color = CUE_high_gt_low, shape =), data=demean_dropna) +
-  geom_smooth(method='lm', se=F, size=0.75) +
-  geom_point(size=0.1) +
-    # geom_abline(intercept = 0, slope = 1, color="green",
-    #              linetype="dashed", size=0.5) +
-  facet_wrap(~ses) +
-  theme(legend.position='none') +
-  xlim(-50,50) + ylim(-50,50) +
-  xlab("raw data from each participant: n-1 lagged outcome angle") +
-  ylab("n current expectation rating")
-
-```
 
 #### NPSpos \~ EXPECT_demean \* STIM \* CUE {.unlisted .unnumbered}
 

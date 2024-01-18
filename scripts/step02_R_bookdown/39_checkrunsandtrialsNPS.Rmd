@@ -1,4 +1,4 @@
-# fMRI :: single trial QC {#singletrialqc}
+# fMRI :: single trial QC {#NPS_singletrialqc}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
@@ -27,13 +27,14 @@ library(r2mlm)
 library(effectsize)
 library(devtools)
 options(es.use_symbols = TRUE) # get nice symbols when printing! (On Windows, requires R >= 4.2.0)
-library(EMAtools)
+#library(EMAtools)
 library(emmeans)
 library(sjPlot)
 library(sjmisc)
 library(sjlabelled)
 library(DT)
 library(raincloudplots)
+library(cueR)
 # devtools::source_url("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/tutorial_R/R_rainclouds.R")
 # devtools::source_url("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/tutorial_R/summarySE.R")
 
@@ -156,11 +157,11 @@ two_factor_lineplot <-
   }
 ```
 
-## load data {.unlisted .unnumbered}
+
 
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 
-# Load behavioral data
+# Load behavioral data _________________________________________________________
 main_dir = dirname(dirname(getwd()))
 print(main_dir)
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
@@ -209,6 +210,8 @@ pvc.sub = rbind(p.sub, v.sub, c.sub)
 ```
 
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+
+# rename column values _________________________________________________________
 pvc.sub$trial_ind <- pvc.sub$trial_index -1
 pvc.sub$sub <- sprintf("sub-%04d", pvc.sub$src_subject_id)
 pvc.sub$ses <- sprintf("ses-%02d", pvc.sub$session_id)
@@ -219,7 +222,7 @@ pvc.sub[c('cue', 'DEPc')]  <- str_split_fixed(pvc.sub$param_cue_type , '_', 2)
 pvc.sub$cuetype <- sprintf("cuetype-%s", pvc.sub$cue)
 pvc.sub[c('stimintensity', 'DEP')]  <- str_split_fixed(pvc.sub$param_stimulus_type , '_', 2)
 
-# merge
+# merge ________________________________________________________________________
 pvc.beh <- pvc.sub[,c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity","event02_expect_angle", "event04_actual_angle")]
 df_merge <- merge(pvc.sub, pvc.beh,
                   by.x = c("sub", "ses", "run", "runtype", "trial", "cuetype", "stimintensity"),
@@ -228,26 +231,31 @@ df_merge <- merge(pvc.sub, pvc.beh,
 
 ```
 
-## trial-order wise {.unlisted .unnumbered}
 
-The purpose is to check whether trial orders have a systematic differences in average BOLD intensity, or more specifically, average NPS responses.
+
+## Plot signature values in trial-order {.unlisted .unnumbered}
+
+> The purpose is to check whether trial orders have a systematic differences in average BOLD intensity, or more specifically, average NPS responses.
 As we can see, the first trials always have higher NPS responses.
-TODO: run a stats test to see if there a significant difference
 
-```{r message=FALSE, warning=FALSE, include=FALSE}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 # Step 1: Common parameters
 # step 1: load data
-for (signature_key in c("NPSpos")) {
-     #c("NPS", "NPSpos", "NPSneg", "VPS", #"VPSnooccip", "ThermalPain", "MechPain", "GeneralAversive", "AversiveVisual"
-                      #  "ZhouVPS", "PINES",  "GSR", "GeuterPaincPDM")) {
+
+#
+# "ThermalPain",
+for (signature_key in c("NPS", "NPSpos", "NPSneg", "VPS", "VPSnooccip","SIIPS", "Mechpain", "GeneralAversive", "AversiveVisual",
+                        "ZhouVPS", "PINES",  "GSR", "GeuterPaincPDM")) {
+  
   dv_keyword = signature_key
   signature_name = signature_key
-  # step 1: common parameters _______
+  
+  
+  # step 1: common parameters __________________________________________________
   main_dir <- dirname(dirname(getwd()))
-
   analysis_folder  = paste0("model39_iv-task-stim_dv-", signature_key)
-
   sig_name <-
     Sys.glob(file.path(
       main_dir,
@@ -257,33 +265,27 @@ for (signature_key in c("NPSpos")) {
         signature_key,
         "_sub-all_runtype-pvc_event-stimulus.tsv"
       )
-    )) # nolint
+    )) 
   print(sig_name)
   analysis_dir <-
     file.path(main_dir,
               "analysis",
               "mixedeffect",
               analysis_folder,
-              as.character(Sys.Date())) # nolint
+              as.character(Sys.Date())) 
   dir.create(analysis_dir,
              showWarnings = FALSE,
              recursive = TRUE)
   savedir <- analysis_dir
 
-  # step 2: load data
+  
+  # step 2: load data __________________________________________________________
   df = read.csv(sig_name)
   sig_df = df %>% separate(
     singletrial_fname,
     sep = "_",
     c(
-      "sub",
-      "ses",
-      "run",
-      "runtype",
-      "event",
-      "trial",
-      "cuetype",
-      "stimintensity"
+      "sub", "ses", "run", "runtype", "event", "trial", "cuetype", "stimintensity"
     )
   )
   sig_df = sig_df %>% separate(
@@ -299,7 +301,7 @@ for (signature_key in c("NPSpos")) {
   pvc$task <- factor(pvc$task)
 
 
-  # step 3: parameters
+  # step 3: parameters __________________________________________________________
 
   taskname = "all"
   plot_keyword = "stimulusintensity"
@@ -332,19 +334,16 @@ for (signature_key in c("NPSpos")) {
     ylim = c(-250, 500)
   )
 
-  # step 4: within between summary
+  # 4. summary statistic __________________________________________________________
   groupwise <- data.frame()
   subjectwise <- data.frame()
   summary <- summary_for_plots_PVC(
     df = pvc,
-    # taskname = taskname,
     groupwise_measurevar = plot_keys$sub_mean,
-    # "mean_per_sub",
     subject_keyword = plot_keys$subject,
-    # "sub",
     model_iv1 =  "task",
     model_iv2 =  "trial",
-    dv = signature_key #"NPSpos"
+    dv = signature_key
   )
   subjectwise <<- as.data.frame(summary[[1]])
   groupwise <<- as.data.frame(summary[[2]])
@@ -354,8 +353,8 @@ for (signature_key in c("NPSpos")) {
     plot_keys$color <- c("#FF2A00","#E82817","#D1252E","#B92346","#A2215D","#8B1F74","#741C8B","#5D1AA2","#4618B9","#2E16D1","#1713E8","#0011FF")
   }
 
-  # step 5: plot
-
+  
+  # 5. plot parameters _______________________________________________________________________
   iv2 = "trial"
   iv1 = "task"
   taskname = "all"
@@ -374,13 +373,8 @@ for (signature_key in c("NPSpos")) {
   ggtitle <-
     paste0(
       str_to_title(signature_name),
-      " dot product: ",
-      str_to_title(taskname),
-      ' ',
-      ggtitle_phrase,
-      " (N = ",
-      length(unique(pvc$sub)),
-      ")"
+      " dot product: ", str_to_title(taskname), ' ', ggtitle_phrase, " (N = ",
+      length(unique(pvc$sub)), ")"
     )
 
   title <-
@@ -405,20 +399,26 @@ for (signature_key in c("NPSpos")) {
       sep = ""
     )
   )
+  
+  # raincloudplot _______________________________________________________________________
   p <- plot_halfrainclouds_twofactorthick(
-    subjectwise,    groupwise,
-    iv1,    iv2,
-    subject_mean,    group_mean,
-    se,    subject,
-    ggtitle,    title,
-    xlab,    ylab,
-    taskname,
-    ylim,    w = 20,    h = 6,
-    dv_keyword,    color,    plot2_savefname
+    subjectwise, groupwise,    iv1,    iv2,    subject_mean,    group_mean,
+    se,    subject, ggtitle,    title,    xlab,    ylab,    taskname,
+    ylim,    w = 20,    h = 6,    dv_keyword,    color,    plot2_savefname
   )
 
 
-  p
+  print(p)
+  
+  # lineplot
+  g <- plot_lineplot_twofactor(groupwise,
+                        iv1 = "trial", iv2 = "task",
+                        mean = "mean_per_sub_norm_mean", error = "se",
+                        color = c( 'pain' = "#941100", 'cognitive' = "#110094", 'vicarious' = '#009411'), 
+                        ggtitle = ggtitle,
+                        xlab = "Trial order", ylab = tools::toTitleCase(signature_key))
+  print(ggplot_largetext(g) +  theme(legend.position = "bottom"))
+
 }
 ```
 
@@ -427,6 +427,11 @@ p
 ```
 
 ### line plots {.unlisted .unnumbered}
+
+> Check NPS values across the 12 within-run trials for Pain, vicarious, cognitive tasks
+We expect to see NPS higher for the pain task, and lower for the other tasks
+What's also interesting, but expected is that the first trials always lead to higher NPS values, perhaps due to surprisal
+
 
 ```{r echo=FALSE, warning=FALSE}
 
@@ -458,28 +463,230 @@ addSmallLegend(p)
 Q. Is this trial effect only prominent in the pain task?
 Q. Is this trial effect only present for the first trial of the run?
 
+
+
+
+## Q. Do signature values vary across different tasks and trials?
+run wise {.unlisted .unnumbered}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# Step 1: Common parameters
+# step 1: load data ____________________________________________________________
+for (signature_key in c("NPSpos")) {
+     #c("NPS", "NPSpos", "NPSneg", "VPS", #"VPSnooccip", "ThermalPain", "MechPain", "GeneralAversive", "AversiveVisual"
+                      #  "ZhouVPS", "PINES",  "GSR", "GeuterPaincPDM")) {
+  dv_keyword = signature_key
+  signature_name = signature_key
+  # step 1: common parameters _______
+  main_dir <- dirname(dirname(getwd()))
+
+  analysis_folder  = paste0("model35_iv-task-stim_dv-", signature_key)
+
+  sig_name <-
+    Sys.glob(file.path(
+      main_dir,
+      "analysis/fmri/nilearn/signature_extract",
+      paste0(
+        "signature-",
+        signature_key,
+        "_sub-all_runtype-pvc_event-stimulus.tsv"
+      )
+    )) # nolint
+  print(sig_name)
+  analysis_dir <-
+    file.path(main_dir,
+              "analysis",
+              "mixedeffect",
+              analysis_folder,
+              as.character(Sys.Date())) # nolint
+  dir.create(analysis_dir,
+             showWarnings = FALSE,
+             recursive = TRUE)
+  savedir <- analysis_dir
+
+  # 2. load data _______________________________________________________________
+  df = read.csv(sig_name)
+  sig_df = df %>% separate(
+    singletrial_fname,
+    sep = "_",
+    c(
+      "sub",
+      "ses",
+      "run",
+      "runtype",
+      "event",
+      "trial",
+      "cuetype",
+      "stimintensity"
+    )
+  )
+  sig_df = sig_df %>% separate(
+    stimintensity,
+    into = c(NA, "stimintensity"),
+    extra = "drop",
+    fill = "left"
+  )
+  pvc <- simple_contrasts_singletrial(sig_df)
+  pvc$task[pvc$runtype == "runtype-pain"] <- "pain"
+  pvc$task[pvc$runtype == "runtype-vicarious"] <- "vicarious"
+  pvc$task[pvc$runtype == "runtype-cognitive"] <- "cognitive"
+  pvc$task <- factor(pvc$task)
+  
+  
+  # 3. identify run order ______________________________________________________
+  # figure out which run was first vs second
+  pvc$run_num = as.numeric(as.factor(pvc$run))
+  pvc <- pvc %>%
+  dplyr::group_by(sub, ses, runtype) %>%
+  dplyr::mutate(mean_run = mean(run_num))
+  # compared to mean_run, is the run_num smaller or larger?
+  pvc$formerlatter_run <- ifelse(pvc$mean_run >= pvc$run_num , "former", "latter")
+  pvc$ses_run <- interaction( pvc$formerlatter_run, pvc$ses,sep = "_")
+
+  
+  # 4. plot parameters _________________________________________________________
+  taskname = "all"
+  plot_keyword = "stimulusintensity"
+  ggtitle_phrase =  "(3 tasks x 3 stimulus intensity)"
+
+  pvc$task = factor(pvc$task)
+  plot_keys <- list(
+    sub_mean = "mean_per_sub", group_mean = "mean_per_sub_norm_mean",
+    legend_keyword = "ses_run",
+    se = "se", subject = "sub",
+    ggtitle = paste0(
+      str_to_title(signature_key)," dot product: ",str_to_title(taskname),' ',ggtitle_phrase," (N = ",length(unique(pvc$sub)),")"
+    ),
+    title = paste0(
+      str_to_title(signature_key)," - ",str_to_title(plot_keyword)
+    ),
+    xlab = "",
+    ylab = paste(signature_key, " (dot product)"),
+    ylim = c(-250, 500)
+  )
+
+  # 5. summary statistics ______________________________________________________
+  groupwise <- data.frame()
+  subjectwise <- data.frame()
+  summary <- summary_for_plots_PVC(
+    df = pvc,
+    groupwise_measurevar = plot_keys$sub_mean,
+    subject_keyword = plot_keys$subject,
+    model_iv1 =  "task",
+    model_iv2 =  "ses_run",
+    dv = signature_key #"NPSpos"
+  )
+  subjectwise <<- as.data.frame(summary[[1]])
+  groupwise <<- as.data.frame(summary[[2]])
+  if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+    plot_keys$color <- c("#1B9E77", "#D95F02", "#D95F02")
+  } else {
+    plot_keys$color <- c("#FFD500","#D3A33C","#7C02FF","#490098","#D618B4","#A40086")
+  }
+
+  # 6. plot ____________________________________________________________________
+
+  iv2 = "ses_run"
+  iv1 = "task"
+  taskname = "all"
+  if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+    color <- c("#1B9E77", "#D95F02", "#D95F02")
+  } else {
+    color <- c("#FFD500","#D3A33C","#7C02FF","#490098","#D618B4","#A40086")
+  }
+  subject_mean <- "mean_per_sub"
+  sub_mean = subject_mean
+  group_mean <- "mean_per_sub_norm_mean"
+  se <- "se"
+  ylim <- c(-25, 26)
+  subject <- "sub"
+  ggtitle_phrase <-  "(3 tasks x 6 ses_run)"
+  ggtitle <-
+    paste0(
+      str_to_title(signature_name),
+      " dot product: ",str_to_title(taskname),
+      ' ',ggtitle_phrase," (N = ",length(unique(pvc$sub)),
+      ")"
+    )
+
+  title <-
+    paste0(str_to_title(dv_keyword),
+           " - ",
+           str_to_title(plot_keys$legend_keyword))
+  xlab <- ""
+  plot_keyword = "trial"
+  ylab <- paste(signature_name, " (dot product)")
+  plot2_savefname <- file.path(
+    analysis_dir,
+    paste(
+      "signature_task-",      taskname,
+      "_event-",      plot_keyword,
+      "_dv-",      signature_key,
+      "_",      as.character(Sys.Date()),
+      ".png",
+      sep = ""
+    )
+  )
+  s <- plot_halfrainclouds_twofactor(
+    subjectwise,
+    groupwise,
+    iv1,
+    iv2,
+    subject_mean,
+    group_mean,
+    se,
+    subject,
+    ggtitle,
+    title,
+    xlab,
+    ylab,
+    taskname,
+    ylim,
+    w = 30,
+    h = 6,
+    dv_keyword,
+    color,
+    plot2_savefname
+  )
+  print(ggplot_largetext(s))
+  
+  
+  # 7. lineplots_________________________________________________________________
+  g <- plot_lineplot_twofactor(groupwise,
+                        iv1 = "ses_run", iv2 = "task",
+                        mean = "mean_per_sub_norm_mean", error = "se",
+                        color = c( 'pain' = "#941100", 'cognitive' = "#110094", 'vicarious' = '#009411'), ggtitle = "NPS (positive weights) & single trial dotproduct \nas a function of task and trial order",
+                        xlab = "Session and Run order", ylab = tools::toTitleCase(signature_key))
+g <- ggplot_largetext(g) +  theme(legend.position = "bottom")
+print(g)
+}
+```
+
+
+
+```{r echo=FALSE, warning=FALSE}
+
+# g <- plot_lineplot_twofactor(groupwise,
+#                         iv1 = "ses_run", iv2 = "task",
+#                         mean = "mean_per_sub_norm_mean", error = "se",
+#                         color = c( 'pain' = "#941100", 'cognitive' = "#110094", 'vicarious' = '#009411'), ggtitle = "NPS (positive weights) & single trial dotproduct \nas a function of task and trial order",
+#                         xlab = "Session and Run order", ylab = "NPSpos (dot product)")
+# g +  theme(legend.position = "bottom")
+# g
+```
+
+## Q. lmer: Do signature values vary across different trials?
 ```{r}
 pvc$trial_num <- as.numeric(as.factor(pvc$trial))
 model <-  lmer(NPSpos ~ task * trial_num + (1|sub), data = pvc)
 Anova(model, type = "III")
 ```
 
-```{r eval=FALSE, include=FALSE}
-# Assuming you have a model object named 'model' resulting from your analysis
-# Assuming your categorical variable is named 'your_categorical_variable'
 
-# # Specify the custom contrast
-# custom_contrast <- c(11, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
-# pvc$trial <- as.numeric(as.factor(pvc$trial))
-# # Apply the custom contrast using emmeans
-# emmeans_results <- emmeans(model, ~ trial_con,
-#                            at = list(trial = custom_contrast))
-#
-# # Print the emmeans results
-# print(emmeans_results)
 
-```
 
+## Q. Within pain runs, does NPS value vary across different trials?
 ```{r echo=TRUE}
 pain = pvc[pvc$runtype == 'runtype-pain',]
 pain$trialorder = as.numeric(factor(pain$trial))
@@ -491,11 +698,16 @@ pain$trial_con  = factor(pain$trialorder_levels)
 
 # contrasts(pain$trial_con) <- contrast_list
 model = lmer(NPSpos ~ trial_con + (trial_con|sub), data = pain) #, contrasts = (trial_con = contrast_list))
-summary(model)
 
 ```
 
-### trial order emmeans
+#### simple contrasts for pain run NPS values across trials
+> Discussion:
+* 1st trial has high NPS values compared to other consecutive trials, across participants (t(262) = 7.197, p < .0001)
+* The next thought was that there would be a linear trend. However, note that 2nd trial is not significantly different from the other trials, t(294) = -0.232, N.S. In other words, there is not linear detrending effect across trials.
+* The last and 2nd-to-last trial (11th trial and 12th trial) are significantly different, t(104) = 9.645, p < .0001.
+* However, it's not like the last trial is different from all others. 12th trial is not significantly different from the average of 2-11 trials, t(531) = -1.983, N.S.
+
 
 ```{r echo=FALSE}
 # https://aosmith.rbind.io/2019/04/15/custom-contrasts-emmeans/
@@ -560,223 +772,22 @@ contrast(emm, method = list("first trial vs others" = t1 - tother,
 # contrast(emm, method =  "helmert",  adjust = "bonferroni")
 ```
 
-```
-Discussion:
-* 1st trial has high NPS values compared to other consecutive trials, across participants (t(262) = 7.197, p < .0001)
-* The next thought was that there would be a linear trend. However, note that 2nd trial is not significantly different from the other trials, t(294) = -0.232, N.S. In other words, there is not linear detrending effect across trials.
-* The last and 2nd-to-last trial (11th trial and 12th trial) are significantly different, t(104) = 9.645, p < .0001.
-* However, it's not like the last trial is different from all others. 12th trial is not significantly different from the average of 2-11 trials, t(531) = -1.983, N.S.
-```
 
-## run wise {.unlisted .unnumbered}
 
-```{r message=FALSE, warning=FALSE, include=FALSE}
 
-# Step 1: Common parameters
-# step 1: load data
-for (signature_key in c("NPSpos")) {
-     #c("NPS", "NPSpos", "NPSneg", "VPS", #"VPSnooccip", "ThermalPain", "MechPain", "GeneralAversive", "AversiveVisual"
-                      #  "ZhouVPS", "PINES",  "GSR", "GeuterPaincPDM")) {
-  dv_keyword = signature_key
-  signature_name = signature_key
-  # step 1: common parameters _______
-  main_dir <- dirname(dirname(getwd()))
 
-  analysis_folder  = paste0("model35_iv-task-stim_dv-", signature_key)
 
-  sig_name <-
-    Sys.glob(file.path(
-      main_dir,
-      "analysis/fmri/nilearn/signature_extract",
-      paste0(
-        "signature-",
-        signature_key,
-        "_sub-all_runtype-pvc_event-stimulus.tsv"
-      )
-    )) # nolint
-  print(sig_name)
-  analysis_dir <-
-    file.path(main_dir,
-              "analysis",
-              "mixedeffect",
-              analysis_folder,
-              as.character(Sys.Date())) # nolint
-  dir.create(analysis_dir,
-             showWarnings = FALSE,
-             recursive = TRUE)
-  savedir <- analysis_dir
-
-  # step 2: load data
-  df = read.csv(sig_name)
-  sig_df = df %>% separate(
-    singletrial_fname,
-    sep = "_",
-    c(
-      "sub",
-      "ses",
-      "run",
-      "runtype",
-      "event",
-      "trial",
-      "cuetype",
-      "stimintensity"
-    )
-  )
-  sig_df = sig_df %>% separate(
-    stimintensity,
-    into = c(NA, "stimintensity"),
-    extra = "drop",
-    fill = "left"
-  )
-  pvc <- simple_contrasts_singletrial(sig_df)
-  pvc$task[pvc$runtype == "runtype-pain"] <- "pain"
-  pvc$task[pvc$runtype == "runtype-vicarious"] <- "vicarious"
-  pvc$task[pvc$runtype == "runtype-cognitive"] <- "cognitive"
-  pvc$task <- factor(pvc$task)
-  # ____________________________________________________________________________
-  # figure out which run was first vs second
-  pvc$run_num = as.numeric(as.factor(pvc$run))
-  pvc <- pvc %>%
-  dplyr::group_by(sub, ses, runtype) %>%
-  dplyr::mutate(mean_run = mean(run_num))
-  # compared to mean_run, is the run_num smaller or larger?
-  pvc$formerlatter_run <- ifelse(pvc$mean_run >= pvc$run_num , "former", "latter")
-  pvc$ses_run <- interaction( pvc$formerlatter_run, pvc$ses,sep = "_")
-
-  # step 3: parameters _________________________________________________________
-
-  taskname = "all"
-  plot_keyword = "stimulusintensity"
-  ggtitle_phrase =  "(3 tasks x 3 stimulus intensity)"
-
-  pvc$task = factor(pvc$task)
-  plot_keys <- list(
-    sub_mean = "mean_per_sub", group_mean = "mean_per_sub_norm_mean",
-    legend_keyword = "ses_run",
-    se = "se", subject = "sub",
-    ggtitle = paste0(
-      str_to_title(signature_key)," dot product: ",str_to_title(taskname),' ',ggtitle_phrase," (N = ",length(unique(pvc$sub)),")"
-    ),
-    title = paste0(
-      str_to_title(signature_key)," - ",str_to_title(plot_keyword)
-    ),
-    xlab = "",
-    ylab = paste(signature_key, " (dot product)"),
-    ylim = c(-250, 500)
-  )
-
-  # step 4: within between summary
-  groupwise <- data.frame()
-  subjectwise <- data.frame()
-  summary <- summary_for_plots_PVC(
-    df = pvc,
-    groupwise_measurevar = plot_keys$sub_mean,
-    subject_keyword = plot_keys$subject,
-    model_iv1 =  "task",
-    model_iv2 =  "ses_run",
-    dv = signature_key #"NPSpos"
-  )
-  subjectwise <<- as.data.frame(summary[[1]])
-  groupwise <<- as.data.frame(summary[[2]])
-  if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
-    plot_keys$color <- c("#1B9E77", "#D95F02", "#D95F02")
-  } else {
-    plot_keys$color <- c("#FFD500","#D3A33C","#7C02FF","#490098","#D618B4","#A40086")
-  }
-
-  # step 5: plot
-
-  iv2 = "ses_run"
-  iv1 = "task"
-  taskname = "all"
-  if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
-    color <- c("#1B9E77", "#D95F02", "#D95F02")
-  } else {
-    color <- c("#FFD500","#D3A33C","#7C02FF","#490098","#D618B4","#A40086")
-  }
-  subject_mean <- "mean_per_sub"
-  sub_mean = subject_mean
-  group_mean <- "mean_per_sub_norm_mean"
-  se <- "se"
-  ylim <- c(-25, 26)
-  subject <- "sub"
-  ggtitle_phrase <-  "(3 tasks x 6 ses_run)"
-  ggtitle <-
-    paste0(
-      str_to_title(signature_name),
-      " dot product: ",str_to_title(taskname),
-      ' ',ggtitle_phrase," (N = ",length(unique(pvc$sub)),
-      ")"
-    )
-
-  title <-
-    paste0(str_to_title(dv_keyword),
-           " - ",
-           str_to_title(plot_keys$legend_keyword))
-  xlab <- ""
-  plot_keyword = "trial"
-  ylab <- paste(signature_name, " (dot product)")
-  plot2_savefname <- file.path(
-    analysis_dir,
-    paste(
-      "signature_task-",      taskname,
-      "_event-",      plot_keyword,
-      "_dv-",      signature_key,
-      "_",      as.character(Sys.Date()),
-      ".png",
-      sep = ""
-    )
-  )
-  s <- plot_halfrainclouds_twofactor(
-    subjectwise,
-    groupwise,
-    iv1,
-    iv2,
-    subject_mean,
-    group_mean,
-    se,
-    subject,
-    ggtitle,
-    title,
-    xlab,
-    ylab,
-    taskname,
-    ylim,
-    w = 30,
-    h = 6,
-    dv_keyword,
-    color,
-    plot2_savefname
-  )
-  s
-}
-```
-
-```{r echo=FALSE, warning=TRUE}
-s
-```
-
-```{r echo=FALSE, warning=FALSE}
-
-g <- plot_lineplot_twofactor(groupwise,
-                        iv1 = "ses_run", iv2 = "task",
-                        mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c( 'pain' = "#941100", 'cognitive' = "#110094", 'vicarious' = '#009411'), ggtitle = "NPS (positive weights) & single trial dotproduct \nas a function of task and trial order",
-                        xlab = "Session and Run order", ylab = "NPSpos (dot product)")
-g +  theme(legend.position = "bottom")
-g
-```
-
-### linear model: run/ses wise
-
+## Q. Do signature values vary across different runs?
 ```
 lmer(NPSpos ~ task*ses_run_con + (task|sub), data = pvc)
 ```
-
 ```{r}
 pvc$ses_run_con <- as.factor(pvc$ses_run)
 contrasts(pvc$ses_run_con) = contr.poly(6)
 model_run <-  lmer(NPSpos ~ task*ses_run_con + (task|sub), data = pvc)
+sjPlot::tab_model(model_run,
+              title = paste0(tools::toTitleCase(taskname), ": \nlmer(NPSpos ~ task X session/runorder + (task | sub), data = pvc)"),
+              CSS = list(css.table = '+font-size: 12;'))
 Anova(model_run, type = "III")
 # summary(model_run)
 ```
