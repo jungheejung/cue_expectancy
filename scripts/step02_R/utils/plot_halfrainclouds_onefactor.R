@@ -21,7 +21,8 @@
 #' @param dv_keyword Keyword associated with the dependent variable (unused in function).
 #' @param color Color scheme for the plot, specified as a vector of colors.
 #' @param plot_savefname Filename for saving the plot.
-#' 
+#'
+#' @export
 plot_halfrainclouds_onefactor <- function(subjectwise, groupwise, iv,
                                       sub_mean, group_mean, se, subject,
                                       ggtitle, title, xlab, ylab, taskname, ylim,
@@ -68,7 +69,7 @@ plot_halfrainclouds_onefactor <- function(subjectwise, groupwise, iv,
     position = position_jitter(width = .05),
     size = 2,
     alpha = 0.7,
-  ) + 
+  ) +
 
 
     geom_half_boxplot(

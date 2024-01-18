@@ -26,7 +26,7 @@ ggplot_prettifylegend <- function(ggplot_obj, factor_level, factor_color, geom_p
     color = factor_color,
     stringsAsFactors = FALSE
   )
-  
+
   # Create the legend as a separate plot
   legend_plot <-
     ggplot(legend_data, aes(x = 1, y = factorlevel, color = factorlevel)) +
@@ -44,13 +44,17 @@ ggplot_prettifylegend <- function(ggplot_obj, factor_level, factor_color, geom_p
       title = "",
       title.position = "top"
     ))
-  
+
   legend_grob <- ggplotGrob(legend_plot)$grobs[[which(sapply(ggplotGrob(legend_plot)$grobs, function(x) x$name) == "guide-box")]]
-  
+
   # Use grid.arrange to put them together
-  combined_plot <- grid.arrange(ggplot_obj, legend_grob,
-                                ncol = 2,
-                                widths = legend_widths)  # Adjust widths as needed
-  
+  # combined_plot <- gridExtra::grid.arrange(ggplot_obj, legend_grob,
+  #                               ncol = 2,
+  #                               widths = legend_widths,
+  #                               return = TRUE)  # Adjust widths as needed
+  combined_plot <- gridExtra::grid.arrange(ggplot_obj, legend_grob,
+                               ncol = 2,
+                               widths = legend_widths)  # Adjust widths as needed
+
   return(combined_plot)
 }

@@ -51,10 +51,11 @@
 plot_cueexpectancy_onefactor <- function(
     subjectwise, groupwise, iv,
     sub_mean, group_mean, se, subject,
-    ggtitle, title, xlab, ylab, taskname, ylim,
+    ggtitle, title, xlab, ylab, taskname,
     w, h, dv_keyword, color, plot_savefname,
     expand_x = TRUE,
     xlim = c(NA, 3),
+    ylim = c(NA, NA),
     x_scale_expansion = c(0, 0.5),
     x_hline_position = 3.5,
     x_hline_linetype = "dashed",
@@ -67,31 +68,35 @@ plot_cueexpectancy_onefactor <- function(
     legend_widths = c(4, 1)
 ) {
 
-
-    g <- plot_halfrainclouds_onefactor(
-        subjectwise, groupwise,
-        iv, sub_mean, group_mean, se, subject,
-        ggtitle, title, xlab, ylab, taskname, ylim,
-        w, h, dv_keyword, color, plot_savefname
-    )
-  # Apply customizations to the plot
+  # 1. create backbone of one factor raincloud plot ____________________________
+  g <- plot_halfrainclouds_onefactor(
+    subjectwise, groupwise,
+    iv, sub_mean, group_mean, se, subject,
+    ggtitle, title, xlab, ylab, taskname, ylim,
+    w, h, dv_keyword, color, plot_savefname
+  )
+  # 2. apply customizations to the plot ________________________________________
   if (expand_x) {
-    g <- g + coord_cartesian(xlim = xlim, ylim = c(NA, NA), clip = "off") +
+    g <- g + coord_cartesian(xlim = xlim, ylim = ylim, clip = "off") +
       scale_x_discrete(expand = expansion(mult = x_scale_expansion))
   }
 
+  # 2. apply customizations to the plot ________________________________________
   g <- ggplot_hline_bartoshuk(g,
-  xposition = x_hline_position,
-  linetype = x_hline_linetype,
-  nudge_x = x_hline_nudge_x,
-  textsize = x_hline_textsize) +
+                              xposition = x_hline_position,
+                              linetype = x_hline_linetype,
+                              nudge_x = x_hline_nudge_x,
+                              textsize = x_hline_textsize) +
     theme_classic() +
     guides(shape = guide_legend(override.aes = list(shape = c(16, 17)))) +
     theme(legend.position = "none")
 
+
+  # 3. make axes, label text larger _______________________________________________
   g <- ggplot_largetext(g)
 
-  # Use grid.arrange to put them together
+
+  # dreate a brand new legend and paste to plot ________________________________
   combined_plot <- ggplot_prettifylegend(
     g,
     factor_level = legend_factor_levels,
@@ -100,6 +105,6 @@ plot_cueexpectancy_onefactor <- function(
     legend_position = legend_position,
     legend_widths = legend_widths
   )
-
+  # return(g)
   return(combined_plot)
 }
