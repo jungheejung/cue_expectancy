@@ -1,0 +1,882 @@
+# fMRI :: FIR ~ task TTL2 {#scltimeseries_tt2}
+
+The purpose of this notebook is to plot the BOLD timeseries from SPM FIR model.
+TODO
+
+- load tsv
+- concatenate
+- per time column, calculate mean and variance
+- plot
+
+## references
+
+https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+
+```{r libraries_52, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+library(car)
+library(psych)
+library(reshape)
+library(plyr)
+library(dplyr)
+library(tidyselect)
+library(tidyr)
+library(stringr)
+library(lmerTest)
+library(ggplot2)
+library(gghalves)
+library(ggpubr)
+library(plotly)
+library(FactoMineR)
+library(grid)
+library(cueR)
+```
+
+```{r}
+
+plot_timeseries_onefactor <-
+  function(df, iv1, mean, error, xlab, ylab, ggtitle, color) {
+    n_points <- 100 # Number of points for interpolation
+
+    g <- ggplot(
+      data = df,
+      aes(
+        x = .data[[iv1]],
+        y = .data[[mean]],
+        group = .data[[iv1]],
+        color = .data[[iv1]]
+      ),
+      cex.lab = 1.5,
+      cex.axis = 2,
+      cex.main = 1.5,
+      cex.sub = 1.5
+    ) +
+      geom_errorbar(
+        aes(
+        ymin = (.data[[mean]] - .data[[error]]),
+        ymax = (.data[[mean]] + .data[[error]])
+      ),
+      width = .001,
+
+      alpha = 0.1) +
+      geom_line() +
+      geom_point() +
+      ggtitle(ggtitle) +
+      xlab(xlab) +
+      ylab(ylab) +
+      theme_classic() +
+      theme(aspect.ratio = .6) +
+      expand_limits(x = 3.25) +
+      scale_color_manual("",
+                         values = color) +
+
+      theme_bw()
+
+    return(g)
+  }
+```
+
+```{r}
+plot_timeseries_bar_SANDBOX <-
+  function(df, iv1, iv2, mean, error, xlab, ylab, ggtitle, color) {
+    n_points <- 100 # Number of points for interpolation
+
+    ## Removing "tr" from the column values
+    df[[iv1]] <- as.numeric(sub("tr", "", df[[iv1]]))
+
+    g <- ggplot(
+      data = df,
+      aes(
+        x = .data[[iv1]],
+        y = .data[[mean]],
+        group = factor(.data[[iv2]]),
+        color = factor(.data[[iv2]])
+      ),
+      cex.lab = 1.5,
+      cex.axis = 2,
+      cex.main = 1.5,
+      cex.sub = 1.5
+    ) +
+      geom_errorbar(aes(
+        ymin = (.data[[mean]] - .data[[error]]),
+        ymax = (.data[[mean]] + .data[[error]]),
+        #fill =  factor(.data[[iv2]])
+      ),
+      width = .001,
+      alpha = 0.1) +
+      #geom_line() +
+      geom_point() +
+      ggtitle(ggtitle) +
+      xlab(xlab) +
+      ylab(ylab) +
+      theme_classic() +
+      expand_limits(x = 3.25) +
+      scale_color_manual("",
+                         values = color) +
+      scale_fill_manual("",
+                        values = color) +
+      theme(
+        aspect.ratio = .6,
+        text = element_text(size = 20),
+        axis.title.x = element_text(size = 24),
+        axis.title.y = element_text(size = 24),
+        legend.position = c(.99, .99),
+        legend.justification = c("right", "top"),
+        legend.box.just = "right",
+        legend.margin = margin(6, 6, 6, 6)
+      ) +
+      theme(legend.key = element_rect(fill = "white", color = "white")) +
+      theme_bw()
+
+    return(g)
+  }
+```
+
+### parameters {.unlisted .unnumbered}
+
+```{r message=FALSE, warning=FALSE}
+main_dir <- dirname(dirname(getwd()))
+datadir <- file.path(main_dir, "analysis/fmri/nilearn/glm/fir")
+analysis_folder <- paste0("model52_iv-6cond_dv-firglasserSPM_ttl1")
+analysis_dir <-
+  file.path(main_dir,
+            "analysis",
+            "mixedeffect",
+            analysis_folder,
+            as.character(Sys.Date()))
+dir.create(analysis_dir,
+           showWarnings = FALSE,
+           recursive = TRUE)
+save_dir <- analysis_dir
+```
+
+
+
+
+## load data
+```{r}
+
+run_type <- "pain"
+
+df.scl <- read.csv(paste0("/Users/h/Documents/projects_local/cue_expectancy/analysis/physio/physio01_SCL/sub-all_ses-all_run-all_runtype-", run_type,"_epochstart--3_epochend-20_samplingrate-25_ttlindex-2_physio-scltimecourse.csv"))
+# fname example sub-0015_ses-01_run-06_runtype-vicarious_epochstart--3_epochend-20_baselinecorrect-True_samplingrate-25_ttlindex-1_physio-scltimecourse
+column_mapping <- c("src_subject_id" = "sub", 
+                    "session_id" = "ses", 
+                    "param_run_num" = "run", 
+                    "param_task_name" = "runtype",
+                    "param_cue_type" = "cue", 
+                    "param_stimulus_type" = "stimintensity", 
+                    "event04_actual_angle" = "OUTCOME", 
+                    "event02_expect_angle" = "EXPECT")
+df.scl <- cueR::df_rename_columns(df.scl, column_mapping)
+```
+
+
+## downsample data!
+```{r}
+# downsample data to contain averaged columns at a 5Hz sampling rate
+time_columns <- grep("time_", names(df.scl), value = TRUE)
+downsampled_df <- df.scl  # Start with the original dataframe
+# Loop through each set of five columns, calculate the mean, and store in new columns
+for (i in seq(1, length(time_columns), by = 5)) {
+    selected_columns <- time_columns[i:min(i+4, length(time_columns))]
+    mean_column_name <- paste0("downsample_", (i-1)/5)
+    downsampled_df[[mean_column_name]] <- rowMeans(df.scl[, selected_columns], na.rm = TRUE)
+}
+
+
+
+# Select only the new averaged columns along with any other non-time columns
+non_time_columns <- setdiff(names(df.scl), time_columns)
+new_time_columns <- grep("downsample_", names(downsampled_df), value = TRUE)
+downsampled_df <- downsampled_df[, c(non_time_columns, new_time_columns)]
+
+
+
+# convert to long ______________________________________________________________
+df_long <-
+  pivot_longer(
+    downsampled_df,
+    cols = starts_with("downsample"),
+    names_to = "tr_num",
+    values_to = "tr_value"
+  )
+```
+
+
+
+
+## SCR 1) Cue X Stim effect 
+
+```{r echo=FALSE, fig.width=10, fig.height=3}
+# order variables ______________________________________________________________
+TR_length <- 5 * 23-1
+
+df_long$tr_ordered <- factor(df_long$tr_num,
+                         levels = c(paste0("downsample_", 0:TR_length)))
+df_long$cue_ordered <- factor(df_long$cue,
+                           levels = c("high_cue", "low_cue"))
+df_long$stim_ordered <- factor(df_long$stimintensity,
+                           levels = c("high_stim", "med_stim", "low_stim"))
+df_long$condition <- paste0(df_long$cue, "_", df_long$stimintensity)
+
+df_long$sixcond <- factor(
+  df_long$condition,
+  levels = c(
+    "high_cue_high_stim",
+    "low_cue_high_stim",
+    "high_cue_med_stim",
+    "low_cue_med_stim",
+    "high_cue_low_stim",
+    "low_cue_low_stim"
+  )
+)
+
+
+
+# summary statistic _____________________________________________________________
+subjectwise <- meanSummary(df_long,
+                           c("sub", "tr_ordered", "sixcond"), "tr_value")
+groupwise <- summarySEwithin(
+  data = subjectwise,
+  measurevar = "mean_per_sub",
+  withinvars = c("sixcond", "tr_ordered"),
+  idvar = "sub"
+)
+groupwise$task <- taskname
+
+
+# plot parameters _____________________________________________________________
+plot_list_per_roi <- list()
+    groupwise$tr_numeric <- as.numeric(str_replace(groupwise$tr_ordered, "downsample_", "")) + 1
+    groupwise$tr_sequence <-  groupwise$tr_numeric 
+    LINEIV1 <- "tr_sequence"
+    LINEIV2 <- "sixcond"
+    MEAN <- "mean_per_sub_norm_mean"
+    ERROR <- "se"
+    dv_keyword <- "actual"
+    sorted_indices <- order(groupwise$tr_ordered)
+    groupwise_sorted <- groupwise[sorted_indices,]
+    XLAB <- "TRs"
+    YLAB <- "Stimulus Epoch High vs. Low cue"
+    HIGHSTIM_COLOR <- c(
+     "high_cue_high_stim" = "red",
+      "low_cue_high_stim" = "#5f0f40",
+      "high_cue_med_stim" = "NA",
+      "low_cue_med_stim" = "NA",
+      "high_cue_low_stim" = "NA",
+      "low_cue_low_stim" = "NA"
+    )
+    MEDSTIM_COLOR <- c(
+      "high_cue_high_stim" = "NA",
+      "low_cue_high_stim" = "NA",
+      "high_cue_med_stim" = "#bc3908",
+      "low_cue_med_stim" = "#f6aa1c",
+      "high_cue_low_stim" = "NA",
+      "low_cue_low_stim" = "NA"
+    )
+    LOWSTIM_COLOR <- c(
+      "high_cue_high_stim" = "NA",
+      "low_cue_high_stim" = "NA",
+      "high_cue_med_stim" = "NA",
+      "low_cue_med_stim" = "NA",
+      "high_cue_low_stim" = "#2541b2",
+      "low_cue_low_stim" = "#00a6fb"
+    )
+
+    AXIS_FONTSIZE <- 10
+    COMMONAXIS_FONTSIZE <- 15
+    TITLE_FONTSIZE <- 20
+    figure_width <- 10  # Adjust this to your actual figure width
+    figure_height <- 10  # Adjust this to your actual figure height
+    GEOMPOINT_SIZE <- .5 #calculate_point_size(figure_width, figure_height)
+
+    # ----------------------------------------------------------------------------
+    #                             plot intensity per task
+    # ----------------------------------------------------------------------------
+    p3H <- plot_timeseries_bar(
+      groupwise,
+      LINEIV1,
+      LINEIV2,
+      MEAN,
+      ERROR,
+      XLAB,
+      YLAB,
+      ggtitle = paste0(tools::toTitleCase(run_type), "\n High intensity (N = ", unique(groupwise$N), ")"),
+      color_mapping = HIGHSTIM_COLOR,
+      show_legend = FALSE,
+      geompoint_size = GEOMPOINT_SIZE
+    )
+
+    # create tickmarks for every five second ________________________________________
+    m <- (20 - (-3)) / (114 - 0)
+    b <- -3 - m * 1
+    # Function to calculate index for a given time
+    get_index <- function(time) {
+      round((time - b) / m)
+    }
+    labels_to_show <- c(-3, 0, 5, 10, 15, 20) # Desired timepoints
+    breaks_to_show <- sapply(times, get_index) # Calculate corresponding indices
+
+
+    # It's important to ensure that both 'breaks_to_show' and 'labels_to_show' have the same length
+    # If the lengths differ, we need to adjust them so they match
+    if (length(breaks_to_show) != length(labels_to_show)) {
+      # Assuming you want to keep all the breaks and just adjust the labels
+      labels_to_show <- labels_to_show[seq_along(breaks_to_show)]
+    }
+
+    # High intensity
+    plot_list[["H"]] <- p3H +
+      scale_x_continuous(
+        breaks = breaks_to_show,
+        # Set breaks at every 10th point
+        labels = labels_to_show,
+        # Use the calculated labels
+        limits = range(groupwise$tr_sequence)  # Set the limits based on the sequence
+      ) +
+      theme_classic()
+
+    # Medium intensity
+    p3M <- plot_timeseries_bar(
+      groupwise,
+      LINEIV1,
+      LINEIV2,
+      MEAN,
+      ERROR,
+      XLAB,
+      YLAB,
+      ggtitle = paste0(
+        tools::toTitleCase(run_type),
+        "\n Medium intensity (N = ",
+        unique(groupwise$N),
+        ")"
+      ),
+      color_mapping = MEDSTIM_COLOR,
+      show_legend = FALSE,
+      geompoint_size = GEOMPOINT_SIZE
+    )
+    plot_list[["M"]] <- p3M +
+      scale_x_continuous(
+        breaks = breaks_to_show,        # Set breaks at every 10th point
+        labels = labels_to_show,        # Use the calculated labels
+        limits = range(groupwise$tr_sequence)  # Set the limits based on the sequence
+      ) +
+      theme_classic()
+
+    # Low intensity
+    p3L <- plot_timeseries_bar(
+      groupwise,
+      LINEIV1,
+      LINEIV2,
+      MEAN,
+      ERROR,
+      XLAB,
+      YLAB,
+      ggtitle = paste0(tools::toTitleCase(run_type), "\n Low intensity (N = ", unique(groupwise$N), ")"),
+      color_mapping = LOWSTIM_COLOR,
+      show_legend = FALSE,
+      geompoint_size = GEOMPOINT_SIZE
+    )
+    plot_list[["L"]] <- p3L +
+      scale_x_continuous(
+        breaks = breaks_to_show,
+        # Set breaks at every 10th point
+        labels = labels_to_show,
+        # Use the calculated labels
+        limits = range(groupwise$tr_sequence)  # Set the limits based on the sequence
+      ) +
+      theme_classic()
+
+# ----------------------------------------------------------------------------
+    #                   combine three tasks in one panel per ROI
+    # ----------------------------------------------------------------------------
+
+    library(gridExtra)
+    plot_list <- lapply(plot_list, function(plot) {
+      plot +
+        theme(
+          plot.margin = margin(5, 5, 5, 5),          # Adjust plot margins if needed
+          axis.title.y = element_blank(),          # Remove y-axis title
+          axis.title.x = element_blank(),
+          axis.text.y = element_text(size = AXIS_FONTSIZE),          # Increase y-axis text size
+          axis.text.x = element_text(size = AXIS_FONTSIZE, angle = 30)
+        )
+    })
+    combined_plot_per_run <-
+      ggpubr::ggarrange(
+        plot_list[["H"]],
+        plot_list[["M"]],
+        plot_list[["L"]],
+        common.legend = FALSE,
+        legend = "none",
+        ncol = 3,
+        nrow = 1,
+        widths = c(3, 3, 3),
+        heights = c(.5, .5, .5),
+        align = "v"
+      )
+
+    # Add the combined plot for this run type to the list for the current ROI
+    plot_list_per_roi[[run_type]] <- combined_plot_per_run
+
+
+  # end of run loop
+
+  # ----------------------------------------------------------------------------
+  #                  add commom legend
+  # ----------------------------------------------------------------------------
+  legend_data <- data.frame(
+    sixcond = factor(
+      c(
+        "cueH_stimH",
+        "cueL_stimH",
+        "cueH_stimM",
+        "cueL_stimM",
+        "cueH_stimL",
+        "cueL_stimL"
+      )
+    ,
+    levels = c(
+      "cueH_stimH",
+      "cueL_stimH",
+      "cueH_stimM",
+      "cueL_stimM",
+      "cueH_stimL",
+      "cueL_stimL"
+    )
+  ),
+    color = c("red", "#5f0f40", "#bc3908", "#f6aa1c", "#2541b2", "#00a6fb"),
+    stringsAsFactors = FALSE
+  )
+
+  legend_plot <-
+    ggplot(legend_data, aes(x = sixcond, y = 1, color = sixcond)) +
+    geom_point() +
+    scale_color_manual(values = legend_data$color) +
+    theme_void() +
+    theme(legend.position = "bottom") +
+    guides(color = guide_legend(title = "Condition"))
+
+  legend_grob <-
+    ggplotGrob(legend_plot)$grobs[[which(sapply(ggplotGrob(legend_plot)$grobs, function(x)
+      x$name) == "guide-box")]]
+  heights <- c(rep(1, length(run_types)), 2)
+  # ----------------------------------------------------------------------------
+  #                  common axes for the 9 panels
+  # ----------------------------------------------------------------------------
+  y_axis_label <-
+    textGrob(
+      "SCR BOLD \n(high > low cue; stimulus epoch)",
+      rot = 90,
+      gp = gpar(fontsize = COMMONAXIS_FONTSIZE)
+    )
+    x_axis_label <-
+    textGrob(
+      "SCR timecourse (s; 25 hz)",
+      rot = 0,
+      gp = gpar(fontsize = COMMONAXIS_FONTSIZE)
+    )
+  num_rows <- length(plot_list_per_roi) + 1  # +1 for the legend
+  # ----------------------------------------------------------------------------
+  #                  combined plots across 3 tasks
+  # ----------------------------------------------------------------------------
+  roi_combined_plot <-
+    do.call(grid.arrange, c(plot_list_per_roi, ncol = 1))
+roi <- "pain"
+  final_plot <- grid.arrange(
+    y_axis_label,
+    arrangeGrob(
+      roi_combined_plot,
+     x_axis_label,
+      legend_grob,
+
+      ncol = 1,
+      heights = c(11,.5, 1)
+    ),
+    ncol = 2,
+    widths = c(1, 10),    # Relative widths for the label, plots, and legend,
+    top = textGrob(sprintf("%s Time series per task", roi), gp = gpar(
+      fontsize = TITLE_FONTSIZE, fontface = "bold"
+    ))  # title parameter
+  )
+  grid.draw(final_plot)
+
+
+  # # ----------------------------------------------------------------------------
+  # #                 save all plots
+  # # ----------------------------------------------------------------------------
+  # ggsave(file.path(
+  #   save_dir,
+  #   paste0("roi-",
+  #          roi ,
+  #          "_epoch-stim_desc-stimcuecomparison.png")
+  # ),
+  # all_plots[[roi]],
+  # width = 12,
+  # height = 20)
+
+```
+
+
+
+## SCR 2) cue effect
+
+> There is a significant SCR effect of cue. High cues lead to greater SCR response during the pain stimulus phase
+
+```{r}
+# 1. order variables ______________________________________________________________
+TR_length <- 5 * 23-1
+
+df_long$tr_ordered <- factor(df_long$tr_num,
+                         levels = c(paste0("downsample_", 0:TR_length)))
+df_long$cue_ordered <- factor(df_long$cue,
+                           levels = c("high_cue", "low_cue"))
+# df_long$stim_ordered <- factor(df_long$stimintensity,
+#                            levels = c("high_stim", "med_stim", "low_stim"))
+df_long$condition <- paste0(df_long$cue, "_", df_long$stimintensity)
+
+
+
+# 2. summary statistic _____________________________________________________________
+cuesubjectwise <- meanSummary(df_long,
+                           c("sub", "tr_ordered", "cue_ordered"), "tr_value")
+cuegroupwise <- summarySEwithin(
+  data = cuesubjectwise,
+  measurevar = "mean_per_sub",
+  withinvars = c("cue_ordered", "tr_ordered"),
+  idvar = "sub"
+)
+cuegroupwise$task <- taskname
+
+
+
+# 3. plot parameters _____________________________________________________________
+plot_list_per_roi <- list()
+cuegroupwise$tr_numeric <- as.numeric(str_replace(cuegroupwise$tr_ordered, "downsample_", "")) + 1
+cuegroupwise$tr_sequence <-  cuegroupwise$tr_numeric 
+LINEIV1 <- "tr_sequence"
+LINEIV2 <- "cue_ordered"
+MEAN <- "mean_per_sub_norm_mean"
+ERROR <- "se"
+dv_keyword <- "actual"
+sorted_indices <- order(cuegroupwise$tr_ordered)
+groupwise_sorted <- cuegroupwise[sorted_indices,]
+XLAB <- "TRs"
+YLAB <- "Stimulus Epoch High vs. Low cue"
+
+AXIS_FONTSIZE <- 10
+COMMONAXIS_FONTSIZE <- 15
+TITLE_FONTSIZE <- 20
+figure_width <- 10  # Adjust this to your actual figure width
+figure_height <- 10  # Adjust this to your actual figure height
+GEOMPOINT_SIZE <- .1 #calculate_point_size(figure_width, figure_height)
+
+
+
+# 4. plot _________________________________________________________________________
+p1 <- plot_timeseries_bar(
+  groupwise_sorted,
+  LINEIV1,
+  LINEIV2,
+  MEAN,
+  ERROR,
+  xlab = "TRs",
+  ylab = paste0("SCR (A.U.)"),
+  ggtitle = paste0(run_type, " time series, Epoch - stimulus"),
+  color = c("#D73027", "#4575B4")
+)
+p1 <- p1 + theme_classic()
+
+
+
+# 5. create tickmarks for every five second ________________________________________
+m <- (20 - (-3)) / (114 - 0)
+b <- -3 - m * 1
+get_index <- function(time) {
+  round((time - b) / m) # Function to calculate index for a given time
+}
+labels_to_show <- c(-3, 0, 5, 10, 15, 20) # Desired timepoints
+breaks_to_show <- sapply(times, get_index) # Calculate corresponding indices
+# It's important to ensure that both 'breaks_to_show' and 'labels_to_show' have the same length
+# If the lengths differ, we need to adjust them so they match
+if (length(breaks_to_show) != length(labels_to_show)) {
+  # Assuming you want to keep all the breaks and just adjust the labels
+  labels_to_show <- labels_to_show[seq_along(breaks_to_show)]
+}
+
+# 6. layer in tick marks ________________________________________
+p1 <- p1 +
+  scale_x_continuous(
+    breaks = breaks_to_show,
+    labels = labels_to_show,
+    limits = range(groupwise$tr_sequence)  # Set the limits based on the sequence
+  ) +
+  theme_classic()
+ggplot_largetext(p1)
+```
+
+
+## SCR 3) stim effect
+
+
+> There is a significant SCR effect of intensity. High intensity indeed leads to greater SCR response during the pain stimulus phase
+
+```{r}
+# 1. order variables ______________________________________________________________
+TR_length <- 5 * 23-1
+
+df_long$tr_ordered <- factor(df_long$tr_num,
+                         levels = c(paste0("downsample_", 0:TR_length)))
+# df_long$cue_ordered <- factor(df_long$cue,
+#                            levels = c("high_cue", "low_cue"))
+df_long$stim_ordered <- factor(df_long$stimintensity,
+                           levels = c("high_stim", "med_stim", "low_stim"))
+df_long$condition <- paste0(df_long$cue, "_", df_long$stimintensity)
+
+
+
+# 2. summary statistic _____________________________________________________________
+stimsubjectwise <- meanSummary(df_long,
+                           c("sub", "tr_ordered", "stim_ordered"), "tr_value")
+stimgroupwise <- summarySEwithin(
+  data = stimsubjectwise,
+  measurevar = "mean_per_sub",
+  withinvars = c("stim_ordered", "tr_ordered"),
+  idvar = "sub"
+)
+stimgroupwise$task <- taskname
+
+
+
+# 3. plot parameters _____________________________________________________________
+plot_list_per_roi <- list()
+stimgroupwise$tr_numeric <- as.numeric(str_replace(stimgroupwise$tr_ordered, "downsample_", "")) + 1
+stimgroupwise$tr_sequence <-  stimgroupwise$tr_numeric 
+LINEIV1 <- "tr_sequence"
+LINEIV2 <- "stim_ordered"
+MEAN <- "mean_per_sub_norm_mean"
+ERROR <- "se"
+dv_keyword <- "actual"
+sorted_indices <- order(stimgroupwise$tr_ordered)
+groupwise_sorted <- stimgroupwise[sorted_indices,]
+XLAB <- "Time series (s)"
+YLAB <- "Stimulus Epoch High vs. Low stim"
+
+AXIS_FONTSIZE <- 10
+COMMONAXIS_FONTSIZE <- 15
+TITLE_FONTSIZE <- 20
+figure_width <- 10  # Adjust this to your actual figure width
+figure_height <- 10  # Adjust this to your actual figure height
+GEOMPOINT_SIZE <- .1 #calculate_point_size(figure_width, figure_height)
+
+
+
+# 4. plot _________________________________________________________________________
+p1 <- plot_timeseries_bar(
+  groupwise_sorted,
+  LINEIV1,
+  LINEIV2,
+  MEAN,
+  ERROR,
+  xlab = "TRs",
+  ylab = paste0("SCR (A.U.)"),
+  ggtitle = paste0(run_type, " time series, Epoch - stimulus"),
+  color =  c("#5f0f40", "#ae2012", "#fcbf49")
+)
+p1 <- p1 + theme_classic()
+
+
+
+# 5. create tickmarks for every five second ________________________________________
+m <- (20 - (-3)) / (114 - 0)
+b <- -3 - m * 1
+get_index <- function(time) {
+  round((time - b) / m) # Function to calculate index for a given time
+}
+labels_to_show <- c(-3, 0, 5, 10, 15, 20) # Desired timepoints
+breaks_to_show <- sapply(times, get_index) # Calculate corresponding indices
+# It's important to ensure that both 'breaks_to_show' and 'labels_to_show' have the same length
+# If the lengths differ, we need to adjust them so they match
+if (length(breaks_to_show) != length(labels_to_show)) {
+  # Assuming you want to keep all the breaks and just adjust the labels
+  labels_to_show <- labels_to_show[seq_along(breaks_to_show)]
+}
+
+# 6. layer in tick marks ________________________________________
+p1 <- p1 +
+  scale_x_continuous(
+    breaks = breaks_to_show,
+    labels = labels_to_show,
+    limits = range(groupwise$tr_sequence)  # Set the limits based on the sequence
+  ) +
+  theme_classic()
+ggplot_largetext(p1)
+```
+
+
+
+## SCR 4) stim effect across tasks for loop
+```{r echo=FALSE, fig.width=9}
+run_types <- c("pain", "vicarious", "cognitive")
+plot_list <- list()
+TR_length <- 42
+
+
+
+for (run_type in run_types) {
+  
+  # 1. load data _______________________________________________________________
+  df.scl <- read.csv(paste0("/Users/h/Documents/projects_local/cue_expectancy/analysis/physio/physio01_SCL/sub-all_ses-all_run-all_runtype-",run_type,"_epochstart--3_epochend-20_samplingrate-25_ttlindex-1_physio-scltimecourse.csv"))
+
+  column_mapping <- c("src_subject_id" = "sub", 
+                      "session_id" = "ses", 
+                      "param_run_num" = "run", 
+                      "param_task_name" = "runtype",
+                      "param_cue_type" = "cue", 
+                      "param_stimulus_type" = "stimintensity", 
+                      "event04_actual_angle" = "OUTCOME", 
+                      "event02_expect_angle" = "EXPECT")
+  df.scl <- cueR::df_rename_columns(df.scl, column_mapping)
+  
+  
+  
+  # 2. downsample data ____________________________________________________________
+  # ___ 1) to contain averaged columns at a 5Hz sampling rate 
+  time_columns <- grep("time_", names(df.scl), value = TRUE)
+  downsampled_df <- df.scl  # Start with the original dataframe
+  # ___ 2) Loop through each set of five columns, calculate the mean, and store in new columns
+  for (i in seq(1, length(time_columns), by = 5)) {
+      selected_columns <- time_columns[i:min(i+4, length(time_columns))]
+      mean_column_name <- paste0("downsample_", (i-1)/5)
+      downsampled_df[[mean_column_name]] <- rowMeans(df.scl[, selected_columns], na.rm = TRUE)
+  }
+  # ___ 3) Select only the new averaged columns along with any other non-time columns
+  non_time_columns <- setdiff(names(df.scl), time_columns)
+  new_time_columns <- grep("downsample_", names(downsampled_df), value = TRUE)
+  downsampled_df <- downsampled_df[, c(non_time_columns, new_time_columns)]
+  
+  
+  
+  # 3. convert to long ______________________________________________________________
+  df_long <-
+    pivot_longer(
+      downsampled_df,
+      cols = starts_with("downsample"),
+      names_to = "tr_num",
+      values_to = "tr_value"
+    )
+  
+  # 4. order variables ______________________________________________________________
+  TR_length <- 5 * 23-1
+  
+  df_long$tr_ordered <- factor(df_long$tr_num,
+                           levels = c(paste0("downsample_", 0:TR_length)))
+  # df_long$cue_ordered <- factor(df_long$cue,
+  #                            levels = c("high_cue", "low_cue"))
+  df_long$stim_ordered <- factor(df_long$stimintensity,
+                             levels = c("high_stim", "med_stim", "low_stim"))
+  df_long$condition <- paste0(df_long$cue, "_", df_long$stimintensity)
+  
+  
+  
+  # 5. summary statistic _____________________________________________________________
+  stimsubjectwise <- meanSummary(df_long,
+                             c("sub", "tr_ordered", "stim_ordered"), "tr_value")
+  stimgroupwise <- summarySEwithin(
+    data = stimsubjectwise,
+    measurevar = "mean_per_sub",
+    withinvars = c("stim_ordered", "tr_ordered"),
+    idvar = "sub"
+  )
+  stimgroupwise$task <- taskname
+  
+  
+  
+  # 6. plot parameters _____________________________________________________________
+  plot_list_per_roi <- list()
+  stimgroupwise$tr_numeric <- as.numeric(str_replace(stimgroupwise$tr_ordered, "downsample_", "")) + 1
+  stimgroupwise$tr_sequence <-  stimgroupwise$tr_numeric 
+  LINEIV1 <- "tr_sequence"
+  LINEIV2 <- "stim_ordered"
+  MEAN <- "mean_per_sub_norm_mean"
+  ERROR <- "se"
+  dv_keyword <- "actual"
+  sorted_indices <- order(stimgroupwise$tr_ordered)
+  groupwise_sorted <- stimgroupwise[sorted_indices,]
+  XLAB <- "Time series (s)"
+  YLAB <- "Stimulus Epoch High vs. Low stim"
+  
+  AXIS_FONTSIZE <- 10
+  COMMONAXIS_FONTSIZE <- 15
+  TITLE_FONTSIZE <- 20
+  figure_width <- 10  # Adjust this to your actual figure width
+  figure_height <- 10  # Adjust this to your actual figure height
+  GEOMPOINT_SIZE <- .1 #calculate_point_size(figure_width, figure_height)
+  
+  
+  
+  # 7. plot _________________________________________________________________________
+  p1 <- plot_timeseries_bar(
+    groupwise_sorted,
+    LINEIV1,
+    LINEIV2,
+    MEAN,
+    ERROR,
+    xlab = "TRs",
+    ylab = paste0("SCR (A.U.)"),
+    ggtitle = paste0(run_type, " time series, Epoch - stimulus"),
+    color =  c("#5f0f40", "#ae2012", "#fcbf49")
+  )
+  p1 <- p1 + theme_classic()
+  
+  
+  
+  # 8. create tickmarks for every five second ________________________________________
+  m <- (20 - (-3)) / (114 - 0)
+  b <- -3 - m * 1
+  get_index <- function(time) {
+    round((time - b) / m) # Function to calculate index for a given time
+  }
+  labels_to_show <- c(-3, 0, 5, 10, 15, 20) # Desired timepoints
+  breaks_to_show <- sapply(times, get_index) # Calculate corresponding indices
+  # It's important to ensure that both 'breaks_to_show' and 'labels_to_show' have the same length
+  # If the lengths differ, we need to adjust them so they match
+  if (length(breaks_to_show) != length(labels_to_show)) {
+    # Assuming you want to keep all the breaks and just adjust the labels
+    labels_to_show <- labels_to_show[seq_along(breaks_to_show)]
+  }
+  
+  # 9. layer in tick marks ________________________________________
+  p1 <- p1 +
+    scale_x_continuous(
+      breaks = breaks_to_show,
+      labels = labels_to_show,
+      limits = range(groupwise$tr_sequence)  # Set the limits based on the sequence
+    ) +
+    theme_classic()
+  # ggplot_largetext(p1)
+  plot_list[[run_type]] <- ggplot_largetext(p1) + theme_classic()
+}
+
+# combine and plot ______________________________________________________________
+  library(gridExtra)
+  plot_list <- lapply(plot_list, function(plot) {
+    plot + theme(plot.margin = margin(5, 5, 5, 5)) # Adjust plot margins if needed
+  })
+  combined_plot <- ggpubr::ggarrange(
+    plot_list[["pain"]],
+    plot_list[["vicarious"]],
+    plot_list[["cognitive"]],
+    common.legend = TRUE,
+    legend = "bottom",
+    ncol = 3,
+    nrow = 1,
+    widths = c(3, 3, 3),
+    heights = c(.5, .5, .5),
+    align = "v"
+  )
+  print(combined_plot)
+```
+
+
+
