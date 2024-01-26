@@ -30,13 +30,12 @@
 #' # Example usage (assuming appropriate data frames 'subjectwise' and 'groupwise'):
 #' plot_halfrainclouds_twofactor(subjectwise, groupwise, "IV1", "IV2",
 #'                               "SubMean", "GroupMean",
-
-
+#' @import ggplot2
+#' @export
 plot_halfrainclouds_twofactor <- function(subjectwise, groupwise,
                                       iv1, iv2, sub_mean, group_mean, se, subject,
                                       ggtitle, legend_title, xlab, ylab, task_name, ylim,
                                       w, h, dv_keyword, color, save_fname) {
-    library(ggplot2)
     g <- ggplot(
         data = subjectwise,
         aes(
