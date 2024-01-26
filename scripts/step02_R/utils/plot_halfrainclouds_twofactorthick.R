@@ -1,8 +1,44 @@
+#' Plot Half Rainclouds with Two Factor Thickness
+#'
+#' This function creates a complex plot using ggplot2, combining half violin plots,
+#' line graphs, point plots, and boxplots. It's designed to handle two independent
+#' variables and a dependent variable, and includes features like error bars, 
+#' manual color specification, and optional y-axis limits.
+#'
+#' @param subjectwise A dataframe containing subject-wise data.
+#' @param groupwise A dataframe containing group-wise summary data.
+#' @param iv1 The name of the first independent variable.
+#' @param iv2 The name of the second independent variable.
+#' @param sub_mean The name of the column representing the subject mean.
+#' @param group_mean The name of the column representing the group mean.
+#' @param se The name of the column representing the standard error.
+#' @param subject The name of the column for subject identifiers.
+#' @param ggtitle The title of the ggplot.
+#' @param legend_title The title of the legend.
+#' @param xlab The label for the x-axis.
+#' @param ylab The label for the y-axis.
+#' @param task_name Name of the task (not used in current function version).
+#' @param ylim The limits for the y-axis (optional).
+#' @param w The width for saving the plot (optional, requires uncommenting ggsave).
+#' @param h The height for saving the plot (optional, requires uncommenting ggsave).
+#' @param dv_keyword Keyword for the dependent variable (not used in current function version).
+#' @param color A vector of colors for the plot elements.
+#' @param save_fname The filename for saving the plot (optional, requires uncommenting ggsave).
+#' @return A ggplot object.
+#' @import ggplot2
+#' @examples
+#' # Example usage (assuming appropriate data structure):
+#' plot_halfrainclouds_twofactorthick(subjectwise_data, groupwise_data, 
+#'                                    "IV1", "IV2", "SubMean", "GroupMean", "SE", 
+#'                                    "Subject", "Plot Title", "Legend Title", 
+#'                                    "X-axis Label", "Y-axis Label", "Task", 
+#'                                    c(0, 10), 10, 8, "Keyword", c("red", "blue"),
+#'                                    "output_plot.png")
+#' @export
 plot_halfrainclouds_twofactorthick <- function(subjectwise, groupwise,
                                       iv1, iv2, sub_mean, group_mean, se, subject,
                                       ggtitle, legend_title, xlab, ylab, task_name, ylim,
                                       w, h, dv_keyword, color, save_fname) {
-    library(ggplot2)
     g <- ggplot(
         data = subjectwise,
         aes(
@@ -11,11 +47,6 @@ plot_halfrainclouds_twofactorthick <- function(subjectwise, groupwise,
             fill = .data[[iv2]]
         )
     ) +
-        # geom_flat_violin(
-        #     aes(fill = .data[[iv2]]),
-        #     position = position_nudge(x = .1, y = 0),
-        #     adjust = 1.5, trim = FALSE, alpha = .3, colour = NA
-        # ) +
 
         geom_half_violin(
             data = subjectwise,
@@ -101,6 +132,6 @@ plot_halfrainclouds_twofactorthick <- function(subjectwise, groupwise,
     } else {
         g
     }
-    #ggsave(save_fname, width = w, height = h)
+    ggsave(save_fname, width = w, height = h)
     return(g)
 }
