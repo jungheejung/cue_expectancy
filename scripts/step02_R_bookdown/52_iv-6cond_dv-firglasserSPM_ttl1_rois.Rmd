@@ -1,12 +1,6 @@
 # fMRI :: FIR ~ task TTL1 {#fmritimeseries_tt1}
 
 The purpose of this notebook is to plot the BOLD timeseries from SPM FIR model.
-TODO
-
-- load tsv
-- concatenate
-- per time column, calculate mean and variance
-- plot
 
 ## references
 
@@ -193,7 +187,7 @@ for (ROI in roi_list) {
     ))
 
   for (run_type in run_types) {
-    # print(run_type)
+
     filtered_df <-
       df[!(df$condition == "rating" |
              df$condition == "cue" | df$runtype != run_type),]
@@ -544,14 +538,13 @@ ggplot(groupwise, aes(x = tr_ordered, y = mean_per_sub_mean)) +
   theme_minimal()
 ```
 
-
-
 ## taskwise cue effect
 
 Here, I plot the time series for high and low cue, for every task domain, across ROIS
-* Check ROI on the y label
-* three panels per row represent pain, vicarious, cogntivei task
-* within each task, 
+
+- Check ROI on the y label
+- three panels per row represent pain, vicarious, cogntivei task
+- within each task,
 
 ```{r warning=FALSE}
 roi_list <- c("dACC", "PHG", "V1", "SM", "MT", "RSC", "LOC", "FFC", "PIT", "pSTS", "AIP", "premotor") # 'rINS', 'TPJ',
@@ -679,11 +672,9 @@ for (ROI in roi_list) {
 }
 ```
 
-
-
 ## Cue X Stim effect
 
-Here, I plot 6 condition in three panels, high/med/low intensity, as a function of cue. 
+Here, I plot 6 condition in three panels, high/med/low intensity, as a function of cue.
 I do this iteratively for the three tasks domains across ROIs.
 
 ```{r}

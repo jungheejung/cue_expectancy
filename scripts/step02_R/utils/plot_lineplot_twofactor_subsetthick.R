@@ -1,11 +1,11 @@
 plot_lineplot_twofactor_subsetthick <- function(data, taskname, iv1, iv2, mean, error,
-                      color, ggtitle, xlab= "Stimulus Intensity", ylab = "Outcome Rating") {
+                      color, ggtitle, xlab= "Stimulus Intensity", ylab = "Outcome Rating", line_thickness=2) {
     # iv1 = "levels_ordered"
     # iv2 = "social_ordered"
     # mean = mean_per_sub_norm_mean
     # error = ci
     subset <- data[which(data$task == taskname), ]
-    line_thickness=2
+    line_thickness=line_thickness
     g <- ggplot(data = subset, aes(
         x = .data[[iv1]],
         y = .data[[mean]],

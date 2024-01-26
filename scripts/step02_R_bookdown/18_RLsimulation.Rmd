@@ -1,11 +1,9 @@
 # RL :: simulation {#RLsimulation}
 
-
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
 - Here, Aryan simulated behavioral outcome ratings using a reinforcement learning model.
 - TODO: link this notebook with Aryan's matlab script. In other words, which code generated `data/simulated/0409/table_exp.csv`?
-
 
 ```{r include=FALSE}
 library(tidyr)
@@ -160,11 +158,9 @@ merge.df <- data.frame(merged_df)
 
 ## plot expectation and outcome ratings per cue X stim {.unlisted .unnumbered}
 
-
 > Here, I plot the simulated values as a function of expectation and outcome rating
-Different stimulus intensities and cue levels are plotted.
-The simulated data does mimic the behavioral data in terms of the demeaned outcome/expectation ratings.
-
+> Different stimulus intensities and cue levels are plotted.
+> The simulated data does mimic the behavioral data in terms of the demeaned outcome/expectation ratings.
 
 ```{r}
 group <- "cue"
@@ -322,9 +318,9 @@ plots
 # ggsave(file.path(main_dir, 'analysis/mixedeffect/CCNfigures/figD.png'), plots)
 ```
 
-
 ### plot cue and stim using line plots
-> The cue and stim effects are signficiant, but the mid range is different. The behaviorla data shows that the medium intensity has smaller cue effects compared to the high and low cues, whereas the current simulations show the opposite trend. Not sure if we should read too much into this. 
+
+> The cue and stim effects are signficiant, but the mid range is different. The behavioral data shows that the medium intensity has smaller cue effects compared to the high and low cues, whereas the current simulations show the opposite trend. Not sure if we should read too much into this.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 clean.df$stim_name[clean.df$stimulusintensity == "low_stim"] <- "low"
@@ -377,36 +373,7 @@ p1 <- plot_lineplot_twofactor_subset(actual_groupwise, 'pain',
                LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = tools::toTitleCase('pain') )
 p1
 
-<<<<<<< HEAD
-#
-# g <- ggplot(
-#   data = actual_groupwise,
-#   aes(
-#     x = .data[[iv1]],
-#     y = .data[[mean]],
-#     group = as.factor(.data[[iv2]]),
-#     color = as.factor(.data[[iv2]])
-#   ),
-#   cex.lab = 1.5,
-#   cex.axis = 2,
-#   cex.main = 1.5,
-#   cex.sub = 1.5
-# ) +
-#   geom_errorbar(aes(
-#     ymin = (.data[[mean]] - .data[[error]]),
-#     ymax = (.data[[mean]] + .data[[error]])
-#   ), width = .1) +
-#   geom_line() +
-#   geom_point() +
-#   ggtitle(ggtitle) +
-#   xlab(xlab) +
-#   ylab(ylab) +
-#   scale_color_manual(values = color) +
-#   theme_classic() +
-#   theme(legend.position = "none") +
-#   theme(aspect.ratio = .6)
-# g
+
 ```
 
 > The cue and stim effects are signficiant, but the mid range is different. The behaviorla data shows that the medium intensity has smaller cue effects compared to the high and low cues, whereas the current simulations show the opposite trend. Not sure if we should read too much into this.
-
