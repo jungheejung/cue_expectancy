@@ -28,13 +28,13 @@ switch dir_location
         NPS_fname = '/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv01_signature/rampupdown/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv';
         graymatter_mask = '/Users/h/Documents/MATLAB/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/gray_matter_mask.nii';
     case 'discovery'
-        matlab_moduledir = '/dartfs-hpc/rc/lab/C/CANlab/modules'
+        matlab_moduledir = '/dartfs-hpc/rc/lab/C/CANlab/modules';
         main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue';
 %         singletrial_dir = fullfile(main_dir, 'analysis','fmri','nilearn','singletrial');
         singletrial_dir = '/dartfs-hpc/scratch/f0042x1/singletrial_smooth';
         beh_dir = fullfile(main_dir, 'data', 'beh', 'beh03_bids');
         NPS_fname = fullfile(main_dir, 'analysis/fmri/nilearn/deriv01_signature/rampupdown/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv');
-        graymatter_mask = fullfile(matlab_moduledir, 'CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/gray_matter_mask.nii')
+        graymatter_mask = fullfile(matlab_moduledir, 'CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/gray_matter_mask.nii');
     otherwise
         error('Invalid case specified.');
 
@@ -53,7 +53,7 @@ M = cell(1, length(sublist));
 Y = cell(1, length(sublist));
 cov = cell(1, length(sublist));
 l2m = zeros(1, length(sublist));
-
+sub = cell(1, length(sublist));
 eventlist = {'stim'}; 
 %{'cue', 'stim'}
 
@@ -68,14 +68,8 @@ fprintf('step 1. parameter setup')
 npsdf = readtable(NPS_fname,"FileType","text", 'Delimiter', ',');
 for e = 1:length(eventlist)
 for s = 1:length(sublist)
+
     % step 01: glob all the nifti files
-    % step 02: identify number of unique sub/ses/runs and load behavioral files
-    % step 03: merge the behavioral files and niftifiles based on intersection
-    %          Extract the base filenames from the full path filenames
-    % step 04: if any of the Y regressors have NA values, the mediation will fail. Remove these instances
-    % step 05: contrast code the X regressors. Originally, they are strings in my behavioral dataframe
-    % step 06: the mediation code expects the full path of nifti files. Construct this based on the basename columns
-    % step 07: final step! construct the X, M, Y cells for the mediation analysis
     disp(strcat('starting ', sublist{s}))%strcat('sub-',sprintf('%04d', sublist(s)))))
     
     singletrial_flist = dir(fullfile(singletrial_dir, sublist{s},...
@@ -84,11 +78,14 @@ for s = 1:length(sublist)
     if ~isempty(singletrial_flist)
     singletrial_fldr = {singletrial_flist.folder}; fname = {singletrial_flist.name};
     singletrial_files = strcat(singletrial_fldr,'/', fname)';
-    
+        
+
+    % step 02: identify number of unique sub/ses/runs and load behavioral files
     unique_bids = unique_combination_bids(singletrial_files);
 
+    % step 03: merge the behavioral files and niftifiles based on intersection
+    %          Extract the base filenames from the full path filenames
     beh_df = load_beh_based_on_bids(beh_dir, unique_bids);
-
     combinedTable = innerjoin(npsdf, beh_df, 'Keys', 'singletrial_fname');
     singletrial_basefname = cellfun(@(x) extractAfter(x, max(strfind(x, filesep))), singletrial_files, 'UniformOutput', false);
 %     if dir_location== 'discovery'
@@ -97,22 +94,43 @@ for s = 1:length(sublist)
 %         combinedTable.singletrial_fname = strcat(prefix, combinedTable.singletrial_fname);
 %     end
     merge_beh_nii = merge_on_nifti_beh(singletrial_basefname, combinedTable);
+
+    % step 04: if any of the Y regressors have NA values, the mediation will fail. Remove these instances
     metadf_clean = remove_missing_behvalues(merge_beh_nii, 'outcomerating');
+
+    % step 05: contrast code the X regressors. Originally, they are strings in my behavioral dataframe
     cue_contrast_mapper = containers.Map({'low_cue', 'high_cue'}, [-1, 1]);
     stim_contrast_mapper = containers.Map({'low_stim', 'med_stim', 'high_stim'}, [-1, 0, 1]);
     metadf_cue = contrast_coding(metadf_clean, 'cuetype', 'cue_contrast', cue_contrast_mapper);
     metadf_con = contrast_coding(metadf_cue, 'stimtype', 'stim_contrast', stim_contrast_mapper);
+
+    % step 06: the mediation code expects the full path of nifti files. Construct this based on the basename columns
     mediation_df = add_fullpath_column(metadf_con, singletrial_dir, sublist{s}, 'singletrial_fname', 'fullpath_fname');
-    
+
+    % step 07: final step! construct the X, M, Y cells for the mediation analysis  
     X{1,s} = mediation_df.stim_contrast;
     M{1,s} = mediation_df.fullpath_fname;
     Y{1,s} = mediation_df.outcomerating;
     cov{1,s} = mediation_df.cue_contrast;
     l2m(s) = mean(mediation_df.NPSpos); 
+    sub{1,s} = sublist{s}; 
 
     end
 end
 end
+
+fprintf('Size of X: %s\n', mat2str(size(X)));
+fprintf('Size of Y: %s\n', mat2str(size(Y)));
+fprintf('Size of M: %s\n', mat2str(size(M)));
+fprintf('Size of cov: %s\n', mat2str(size(cov)));
+fprintf('Size of l2m: %s\n', mat2str(size(l2m)));
+
+save('mediation_XYMcovL2.mat', 'X', 'Y', 'M', 'cov', 'l2m', 'sub');
+
+% ----------------------------
+% drop missing rows
+% ----------------------------
+
 
 % if Y has empty rows, remove them from all other
 [X_test, Y_test, M_test, cov_test, l2m_test] = filter_empty_cells(X, Y, M, cov, l2m);
@@ -403,3 +421,53 @@ all(all(sizes_Y(:,1) == sizes_X(:,1)))
 all(all(sizes_Y(:,1) == sizes_M(:,1)))
 all(all(sizes_Y(:,1) == sizes_cov(:,1)))
 
+
+
+function [X_test, Y_test, M_test, cov_test, l2m_test] = filter_empty_cells(X, Y, M, cov, l2m)
+    num_subjects = numel(X);
+
+    % ----------------------------------------------------------------------------
+    %  filter rows based on Y data
+    % ----------------------------------------------------------------------------
+
+    % Initialize cell arrays to store filtered data
+    X_filtered = cell(num_subjects, 1);
+    Y_filtered = cell(num_subjects, 1);
+    M_filtered = cell(num_subjects, 1);
+    cov_filtered = cell(num_subjects, 1);
+    l2m_filtered = [];
+
+    % Loop through subjects and filter out cells with empty arrays in Y
+    for i = 1:num_subjects
+        % Check if Y is not empty for the current subject
+        if ~isempty(Y{i})
+            X_filtered{i} = X{i};
+            Y_filtered{i} = Y{i};
+            M_filtered{i} = M{i};
+            cov_filtered{i} = cov{i}; % If you want to filter cov as well
+            l2m_filtered(i) = l2m(i); % If you want to filter l2m as well
+        end
+    end
+
+    num_filtered = numel(Y_filtered);
+    X_test = cell(num_filtered, 1);
+    Y_test = cell(num_filtered, 1);
+    M_test = cell(num_filtered, 1);
+    cov_test = cell(num_filtered, 1);
+    l2m_test = [];
+    % Loop through subjects and filter out cells with empty arrays in Y
+
+
+    % ----------------------------------------------------------------------------
+    %  filter rows based on moderator data
+    % ----------------------------------------------------------------------------
+    % NPS values might have nans in there
+    nan_indices = find(isnan(l2m_filtered));
+
+    X_test = X_filtered([1:nan_indices-1, nan_indices+1:end]);
+    Y_test = Y_filtered([1:nan_indices-1, nan_indices+1:end]);
+    M_test = M_filtered([1:nan_indices-1, nan_indices+1:end]);
+    cov_test = cov_filtered([1:nan_indices-1, nan_indices+1:end]);
+    l2m_test = l2m_filtered([1:nan_indices-1, nan_indices+1:end]);
+
+end
