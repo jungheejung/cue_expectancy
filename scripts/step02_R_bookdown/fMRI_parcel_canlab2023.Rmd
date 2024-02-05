@@ -51,11 +51,7 @@ Let's look at the distribution of the data. X axis: Y axis:
 ```{r paged.print=TRUE}
 # main_dir = dirname(dirname(getwd()))
 # # 1. load data _________________________________________________________________
-# beta <- read.table(file = file.path(main_dir, paste0("analysis/fmri/nilearn/deriv02_parcel-canlab2023/singletrial_rampupdown", "extractdata_*_atlas-canlab2023.tsv")), sep = '\t', header = TRUE)
-
-
 taskname <- "pain"
-
 main_dir <- dirname(dirname(getwd()))
 data_dir <- file.path(main_dir, "analysis/fmri/nilearn/deriv02_parcel-canlab2023/singletrial_rampupdown")
 analysis_dir <- '/Users/h/Desktop/TMP'
@@ -65,15 +61,8 @@ file_paths <- list.files(data_dir, pattern = pattern, full.names = TRUE)
 all_data <- lapply(file_paths, read.table, sep = '\t', header = TRUE) %>% bind_rows()
 
 atlaslabels <- read.csv(file.path(data_dir, "label_atlas-canlab2023_parcel-525.csv"))
-```
 
-
-```{r paged.print=TRUE}
 # split metadata _________________________________________________________________
-# Assuming all_data is your data frame and all_data$filename contains the filenames
-library(tidyr)
-library(dplyr)
-
 # Assuming all_data has already been expanded with the separate() function
 all_data <- all_data %>%
   separate(col = filename, 
@@ -92,12 +81,13 @@ all_data$stimintensity <- gsub("stimintensity-", "", all_data$stimintensity)
 print(head(all_data))
 
 
-```
-
-```{r}
+# 3. create contrasts _________________________________________________________________
 
 df <- cueR::simple_contrast_singletrial(all_data)
-
+df$cue_ordered <- factor(
+        df$cuetype,
+        levels = c("low", "high")
+    )
 # contrast code 1 linear
 df$SES_linear[df$ses == "ses-01"] <- -0.5
 df$SES_linear[df$ses == "ses-03"] <- 0
@@ -136,6 +126,19 @@ model.betases <- lmer(region_extraction21 ~
 sjPlot::tab_model(model.betases,
                   title = "Multilevel-modeling: \nlmer(beta ~ CUE * STIM * SES + (1| sub), data = df)",
                   CSS = list(css.table = '+font-size: 12;'))
+```
+
+## plot parameters
+```{r}
+model_iv1 <- "stim_ordered"
+model_iv2 <- "cue_ordered"
+dv <- "region_extraction21"
+dv_keyword <- "region_21"
+LINEIV1 = "stim_ordered"
+LINEIV2 = "cue_ordered"
+MEAN = "mean_per_sub_norm_mean"
+ERROR = "se"
+color = c("#4C77ED", "#ED220D")
 ```
 
 ## session wise plots
@@ -321,6 +324,115 @@ for (roi_num in roi_nums) {
 ## session wise lineplot: thalamus
 
 ## session wise lineplot: mPFC
+```{r}
+# 1. select ROI based on keyword __________________________________________________
+keyword <- "mPFC"
+subset_atlaslabels <- atlaslabels[grep(keyword, atlaslabels$Label3), ]
+roi_nums <- row.names(subset_atlaslabels)
+
+# Assuming 'keyword' and 'subset_atlaslabels' are defined as before
+roi_nums <- row.names(subset_atlaslabels)  # Pre-computed ROI numbers
+data <- df
+data$ses <- as.factor(data$ses)
+for (roi_num in roi_nums) {
+    dv <- paste0("region_extraction", roi_num)
+    
+    # Ensure 'dv' exists in 'data' to avoid errors
+    if (!dv %in% names(data)) {
+        next  # Skip this iteration if 'dv' doesn't exist
+    }
+
+    actual_subjectwise <- meanSummary(data, c("sub", model_iv1, model_iv2, "ses"), dv)
+    actual_groupwise <- summarySEwithin(data = actual_subjectwise, measurevar = "mean_per_sub", withinvars = c(model_iv1, model_iv2, "ses"), idvar = "sub")
+    
+    DATA <- as.data.frame(actual_groupwise)
+    DATA$taskname <- taskname
+    
+    plots <- lapply(unique(DATA$ses), function(ses) {
+        cueR::plot_lineplot_twofactor_subset(DATA[DATA$ses == ses,], taskname = taskname,
+                                             LINEIV1, LINEIV2, MEAN, ERROR, color, 
+                                             ggtitle = paste0(roi_num, atlaslabels$Label2[as.numeric(roi_num)], atlaslabels$Label3[as.numeric(roi_num)], ses), 
+                                             ylab = paste0("Region ", roi_num, " (.a.u.)"))
+    })
+    
+    g <- ggpubr::ggarrange(plotlist = plots, ncol = 3, nrow = 1, common.legend = TRUE, legend = "bottom")
+    print(g)
+}
+```
+
+## positive effects?
+
+```{r}
+# 1. select ROI based on keyword __________________________________________________
+keyword <- "Ctx_a24"
+subset_atlaslabels <- atlaslabels[grep(keyword, atlaslabels$Label1), ]
+roi_nums <- row.names(subset_atlaslabels)
+
+# Assuming 'keyword' and 'subset_atlaslabels' are defined as before
+roi_nums <- row.names(subset_atlaslabels)  # Pre-computed ROI numbers
+data <- df
+data$ses <- as.factor(data$ses)
+for (roi_num in roi_nums) {
+    dv <- paste0("region_extraction", roi_num)
+    
+    # Ensure 'dv' exists in 'data' to avoid errors
+    if (!dv %in% names(data)) {
+        next  # Skip this iteration if 'dv' doesn't exist
+    }
+
+    actual_subjectwise <- meanSummary(data, c("sub", model_iv1, model_iv2, "ses"), dv)
+    actual_groupwise <- summarySEwithin(data = actual_subjectwise, measurevar = "mean_per_sub", withinvars = c(model_iv1, model_iv2, "ses"), idvar = "sub")
+    
+    DATA <- as.data.frame(actual_groupwise)
+    DATA$taskname <- taskname
+    
+    plots <- lapply(unique(DATA$ses), function(ses) {
+        cueR::plot_lineplot_twofactor_subset(DATA[DATA$ses == ses,], taskname = taskname,
+                                             LINEIV1, LINEIV2, MEAN, ERROR, color, 
+                                             ggtitle = paste0(roi_num, atlaslabels$Label2[as.numeric(roi_num)], atlaslabels$Label3[as.numeric(roi_num)], ses), 
+                                             ylab = paste0("Region ", roi_num, " (.a.u.)"))
+    })
+    
+    g <- ggpubr::ggarrange(plotlist = plots, ncol = 3, nrow = 1, common.legend = TRUE, legend = "bottom")
+    print(g)
+}
+```
+```{r}
+# 1. select ROI based on keyword __________________________________________________
+keyword <- "Ctx_25"
+subset_atlaslabels <- atlaslabels[grep(keyword, atlaslabels$Label1), ]
+roi_nums <- row.names(subset_atlaslabels)
+
+# Assuming 'keyword' and 'subset_atlaslabels' are defined as before
+roi_nums <- row.names(subset_atlaslabels)  # Pre-computed ROI numbers
+data <- df
+data$ses <- as.factor(data$ses)
+for (roi_num in roi_nums) {
+    dv <- paste0("region_extraction", roi_num)
+    
+    # Ensure 'dv' exists in 'data' to avoid errors
+    if (!dv %in% names(data)) {
+        next  # Skip this iteration if 'dv' doesn't exist
+    }
+
+    actual_subjectwise <- meanSummary(data, c("sub", model_iv1, model_iv2, "ses"), dv)
+    actual_groupwise <- summarySEwithin(data = actual_subjectwise, measurevar = "mean_per_sub", withinvars = c(model_iv1, model_iv2, "ses"), idvar = "sub")
+    
+    DATA <- as.data.frame(actual_groupwise)
+    DATA$taskname <- taskname
+    
+    plots <- lapply(unique(DATA$ses), function(ses) {
+        cueR::plot_lineplot_twofactor_subset(DATA[DATA$ses == ses,], taskname = taskname,
+                                             LINEIV1, LINEIV2, MEAN, ERROR, color, 
+                                             ggtitle = paste0(roi_num, atlaslabels$Label2[as.numeric(roi_num)], atlaslabels$Label3[as.numeric(roi_num)], ses), 
+                                             ylab = paste0("Region ", roi_num, " (.a.u.)"))
+    })
+    
+    g <- ggpubr::ggarrange(plotlist = plots, ncol = 3, nrow = 1, common.legend = TRUE, legend = "bottom")
+    print(g)
+}
+```
+
 ## session wise lineplot: TPJ
 
 
