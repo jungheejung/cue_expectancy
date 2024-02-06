@@ -1,4 +1,4 @@
-% -------------------------------------------------------------------------
+%% -------------------------------------------------------------------------
 % script overview
 % -------------------------------------------------------------------------
 
@@ -11,7 +11,7 @@
 % cov is cue contrast, given that we need to account for the other experimental factor
 % l2m is a moderator, a between subject variable, average NPS response.
 
-% -------------------------------------------------------------------------
+%% -------------------------------------------------------------------------
 % directories and parameters
 % -------------------------------------------------------------------------
 
@@ -127,38 +127,122 @@ fprintf('Size of l2m: %s\n', mat2str(size(l2m)));
 
 save('mediation_XYMcovL2.mat', 'X', 'Y', 'M', 'cov', 'l2m', 'sub');
 
+%----------------------------
+%% drop missing rows (ver 1.)
 % ----------------------------
-% drop missing rows
+load('mediation_XYMcovL2.mat');
+missingIndices = []; % Initialize an empty array to store missing indices
+
+% Iterate over each index
+for i = 1:111
+    if isempty(X{i}) || isempty(Y{i}) || isempty(M{i}) || isempty(cov{i}) || isnan(l2m(i))
+        missingIndices = [missingIndices i]; % Add the index to the missing list
+    end
+end
+
+% Retrieve subject numbers for missing indices
+missingSubjects = sub(missingIndices);
+
+% Display the missing indices and corresponding subject numbers
+fprintf('Missing Indices: %s\n', mat2str(missingIndices));
+% fprintf('Subject Numbers at Missing Indices: %s\n', mat2str(missingSubjects));
+
+% Create a logical array with all true values
+logicalIndex = true(1, 111);
+
+% Set the indices corresponding to missingIndices to false
+logicalIndex(missingIndices) = false;
+
+% Filter cell arrays (X, Y, M, cov)
+X_filtered = X(logicalIndex);
+Y_filtered = Y(logicalIndex);
+M_filtered = M(logicalIndex);
+cov_filtered = cov(logicalIndex);
+sub_filtered = sub(logicalIndex);
+
+% For l2m, which is a double array, we need a slightly different approach.
+% We'll replace the values at missing indices with NaN and then remove all NaNs
+l2m_temp = l2m;
+l2m_temp(missingIndices) = NaN;  % Mark missing indices as NaN
+l2m_filtered = l2m_temp(~isnan(l2m_temp)); % Remove NaNs to filter
+
+
+%----------------------------
+%%  DROP MISSING ROWS & TRIALS LESS THAN 10
 % ----------------------------
+load('mediation_XYMcovL2.mat');
+missingIndices = []; % Initialize an empty array to store missing indices
+insufficientDataIndices = []; % Initialize an empty array for indices with insufficient data
+trial_cutoff = 35; % remove subject less than 10 trials
+% Iterate over each index
+for i = 1:size(X,2)
+    % Check for missing or NaN data
+    if isempty(X{i}) || isempty(Y{i}) || isempty(M{i}) || isempty(cov{i}) || isnan(l2m(i))
+        missingIndices = [missingIndices i]; % Add the index to the missing list
+    % Check for insufficient instances in each cell
+    elseif numel(X{i}) < trial_cutoff || numel(Y{i}) < trial_cutoff || numel(M{i}) < trial_cutoff || numel(cov{i}) < trial_cutoff
+        insufficientDataIndices = [insufficientDataIndices i]; % Add index to the insufficient data list
+    end
+end
+
+% Combine missing indices and insufficient data indices
+combinedIndices = unique([missingIndices, insufficientDataIndices]);
+
+% Retrieve subject numbers for combined indices
+missingSubjects = sub(combinedIndices);
+
+% Display the combined indices and corresponding subject numbers
+fprintf('Combined Indices (Missing or Insufficient Data): %s\n', mat2str(combinedIndices));
+% fprintf('Subject Numbers at Combined Indices: %s\n', mat2str(missingSubjects));
+
+% Create a logical array with all true values
+logicalIndex = true(1, size(X,2));
+
+% Set the indices corresponding to combinedIndices to false
+logicalIndex(combinedIndices) = false;
+
+% Filter cell arrays (X, Y, M, cov) based on logicalIndex
+X_filtered = X(logicalIndex);
+Y_filtered = Y(logicalIndex);
+M_filtered = M(logicalIndex);
+cov_filtered = cov(logicalIndex);
+sub_filtered = sub(logicalIndex);
+
+% For l2m, which is a double array, adjust for combinedIndices
+l2m_temp = l2m;
+l2m_temp(combinedIndices) = NaN;  % Mark combined indices as NaN
+l2m_filtered = l2m_temp(~isnan(l2m_temp)); % Remove NaNs to filter
+
+% Now, X_filtered will have all the cells except those in missingIndices
 
 
 % if Y has empty rows, remove them from all other
-[X_test, Y_test, M_test, cov_test, l2m_test] = filter_empty_cells(X, Y, M, cov, l2m);
-M = convert_cell2char(M_test);
-
-% mean center l2m
-mean_values = mean(l2m_test);
-l2m_meancentered= l2m_test - mean_values;
-
-% ----------------------------
-% z score across participants
-% ----------------------------
-
-num_participants = numel(Y_test);
-% Aggregate all data into one matrix (assuming each participant's data is a column vector)
-all_data = vertcat(Y_test{:});
-
-% Compute the mean and standard deviation across all data
-mean_data = mean(all_data); 
-std_data = std(all_data);
-
-% Z-score all data using the computed mean and standard deviation
-zscored_Y = cell(num_participants, 1);
-
-for i = 1:num_participants
-    participant_data = Y_test{i}; % Access the data for the current participant
-    zscored_Y{i} = (participant_data - mean_data) ./ std_data;
-end
+% [X_test, Y_test, M_test, cov_test, l2m_test] = filter_empty_cells(X, Y, M, cov, l2m);
+% M = convert_cell2char(M_test);
+% 
+% % mean center l2m
+% mean_values = mean(l2m_test);
+% l2m_meancentered= l2m_test - mean_values;
+% 
+% % ----------------------------
+% % z score across participants
+% % ----------------------------
+% 
+% num_participants = numel(Y_test);
+% % Aggregate all data into one matrix (assuming each participant's data is a column vector)
+% all_data = vertcat(Y_test{:});
+% 
+% % Compute the mean and standard deviation across all data
+% mean_data = mean(all_data); 
+% std_data = std(all_data);
+% 
+% % Z-score all data using the computed mean and standard deviation
+% zscored_Y = cell(num_participants, 1);
+% 
+% for i = 1:num_participants
+%     participant_data = Y_test{i}; % Access the data for the current participant
+%     zscored_Y{i} = (participant_data - mean_data) ./ std_data;
+% end
 
 % ----------------------------
 % plot
@@ -215,39 +299,61 @@ fprintf('step 2. X, Y, M fully set up');
 % done
 brain_check = fmri_data('/Users/h/Documents/projects_local/sandbox/smooth-6mm_sub-0064_ses-01_run-02_runtype-pain_event-stimulus_trial-000_cuetype-low_stimintensity-med.nii');
 montage(brain_check)
-% -------------------------------------------------------------------------
+%% -------------------------------------------------------------------------
 % start mediation analysis
 % -------------------------------------------------------------------------
 
 addpath(genpath(fullfile(matlab_moduledir, 'CanlabCore')));
-addpath(genpath(fullfile(matlab_moduledir,'Neuroimaging_Pattern_Masks')));
-addpath(genpath(fullfile(matlab_moduledir,'MediationToolbox')));
+addpath(genpath(fullfile(matlab_moduledir, 'Neuroimaging_Pattern_Masks')));
+addpath(genpath(fullfile(matlab_moduledir, 'MediationToolbox')));
 addpath(genpath(fullfile(matlab_moduledir, 'spm12')));
-rmpath(genpath(fullfile(matlab_moduledir,'spm12/external/fieldtrip')));
-rmpath(genpath(fullfile(matlab_moduledir,'spm12/external/fieldtrip/external/stats')));
+rmpath(genpath(fullfile(matlab_moduledir,  'spm12/external/fieldtrip')));
+rmpath(genpath(fullfile(matlab_moduledir,  'spm12/external/fieldtrip/external/stats')));
 
-fprintf('Size of X: %s\n', mat2str(size(X)));
-fprintf('Size of zscored_y: %s\n', mat2str(size(zscored_Y)));
-fprintf('Size of M: %s\n', mat2str(size(M)));
-fprintf('Size of cov: %s\n', mat2str(size(cov)));
-fprintf('Size of l2m_centered: %s\n', mat2str(size(l2m_meancentered)));
+% fprintf('Size of X: %s\n', mat2str(size(X)));
+% fprintf('Size of zscored_y: %s\n', mat2str(size(zscored_Y)));
+% fprintf('Size of M: %s\n', mat2str(size(M)));
+% fprintf('Size of cov: %s\n', mat2str(size(cov)));
+% fprintf('Size of l2m_centered: %s\n', mat2str(size(l2m_meancentered)));
+% ----------------------------
+% z score across participants
+% ----------------------------
 
-M = M_test;
-X = X_test;
-Y = zscored_Y;
-cov = cov_test;
-l2m_meancentered = l2m_test;
+num_participants = numel(Y_filtered);
+% Aggregate all data into one matrix (assuming each participant's data is a column vector)
+all_data = vertcat(Y_filtered{:});
+
+% Compute the mean and standard deviation across all data
+mean_data = mean(all_data); 
+std_data = std(all_data);
+
+% Z-score all data using the computed mean and standard deviation
+zscored_Y = cell(num_participants, 1);
+
+for i = 1:num_participants
+    participant_data = Y_filtered{i}; % Access the data for the current participant
+    zscored_Y{i} = (participant_data - mean_data) ./ std_data;
+end
+zscored_Y_filtered = zscored_Y';
+% M = M_test;
+% X = X_test;
+% Y = zscored_Y;
+% cov = cov_test;
+% l2m_meancentered = l2m_test;
 SETUP.mask = which(graymatter_mask);
 SETUP.preprocX = 0;
 SETUP.preprocY = 0;
 SETUP.preprocM = 0;
 SETUP.wh_is_mediator = 'M';
+M_filtered_char = convert_cell2char(M_filtered);
 % SETUP.data.covs = cov
 % SETUP.data.L2M = l2m_meancentered';
-
-mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'covs', cov, 'L2M', l2m_meancentered'); %, 'boot', 'bootsamples', 1000);
-mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'covs', cov, 'boot', 'bootsamples', 1000);% 'L2M', l2m_meancentered',
-mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'boot', 'bootsamples', 1000);
+mediation_brain_multilevel(X_filtered, zscored_Y_filtered, M_filtered_char, SETUP, 'nopreproc', 'covs', cov_filtered, 'L2M', l2m_filtered'); %, 'boot', 'bootsamples', 1000);
+mediation_brain_multilevel(X_filtered, zscored_Y_filtered, M_filtered_char, SETUP, 'nopreproc', 'covs', cov_filtered, 'boot', 'bootsamples', 1000);% 'L2M', l2m_meancentered',
+mediation_brain_multilevel(X_filtered, zscored_Y_filtered, M_filtered_char, SETUP, 'nopreproc', 'boot', 'bootsamples', 1000);
+% mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'covs', cov, 'L2M', l2m_meancentered'); %, 'boot', 'bootsamples', 1000);
+% mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'covs', cov, 'boot', 'bootsamples', 1000);% 'L2M', l2m_meancentered',
+% mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'boot', 'bootsamples', 1000);
 SETUP = mediation_brain_corrected_threshold('fdr');
 
 dashes = '----------------------------------------------';
