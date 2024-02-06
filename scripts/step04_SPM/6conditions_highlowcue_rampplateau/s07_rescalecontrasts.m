@@ -1,4 +1,7 @@
-%% Overview - what motivated this script
+function s07_rescalecontrasts(sub, spm_dir)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Overview - what motivated this script
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % we were getting some global parcel wise cue effects, generic across the
 % brain. Tor suggested I rescale the contrasts. Rescaling would remove big
@@ -13,12 +16,23 @@
 % Definitely exploratory, but i'm curious to see if the results make sense, b
 % ecause the cue effects look like artifacts to me
 
-%% TODO
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 1-1. identify high cue vs low cue events
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % identify where the high cue and low cue events live
-addpath(genpath('/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore'));
-sub_spm_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/spm/univariate/model01_6cond_highlowcue_rampplateau/sub-0124';
-regressor_savefname = 
+% sub = 'sub-0124';
+% spm_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/spm/univariate/model01_6cond_highlowcue_rampplateau';
+
+sub_spm_dir = fullfile(spm_dir, sub);
+save_dir = fullfile(spm_dir, '1stlevel_rescale', sub);
+if ~exist(save_dir, 'dir')
+    mkdir(save_dir);
+    disp(['Folder "', save_dir, '" was created.']);
+else
+    disp(['Folder "', save_dir, '" already exists.']);
+end
+
+
 load(fullfile(sub_spm_dir, "SPM.mat"))
 paths = cellstr(SPM.xY.P);
 
@@ -44,125 +58,159 @@ runlength = size(A,1);
 numRegressorsPerRun = arrayfun(@(x) length(x.col), SPM.Sess);
 runtype_counts = tabulate(A.runtype);
 % Define the high_beta pattern for selection
-high_beta = [1,0,0, 1,0,0, 1,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0,0];
-low_beta = [0,0,0, 0,0,0, 0,0,0, 1,0,0, 1,0,0, 1,0,0, 0,0,0,0];
-% STIM_cue_high_gt_low         = [1,0,0, 1,0,0, 1,0,0, -1,0,0, -1,0,0, -1,0,0, 0,0,0,0];
+high_beta_pattern = [1,0,0, 1,0,0, 1,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0,0];
+low_beta_pattern = [0,0,0, 0,0,0, 0,0,0, 1,0,0, 1,0,0, 1,0,0, 0,0,0,0];
+
+% Select high beta indices and names
+[selectedIndicesHigh, selectedNamesHigh] = selectBetaIndices(numRegressorsPerRun, SPM, high_beta_pattern);
+[selectedIndiceslow, selectedNamesLow] = selectBetaIndices(numRegressorsPerRun, SPM, low_beta_pattern);
 
 % Initialize an empty vector for selected indices
-selectedIndices = [];
-currentIndex = 1; % Keeps track of the global index across all runs
-
-% Loop through each run
-for run_ind = 1:length(numRegressorsPerRun)
-    % Update the high_beta to match the current run's regressor count
-    currentHighBeta = [high_beta, zeros(1, numRegressorsPerRun(run_ind) - length(high_beta))];
-    runSelectedIndices = find(currentHighBeta == 1);
-    runSelectedIndices = runSelectedIndices + currentIndex - 1;
-    selectedIndices = [selectedIndices, runSelectedIndices];
-    currentIndex = currentIndex + numRegressorsPerRun(run_ind);
-end
-
-% selectedIndices now contains the indices of all selected betas across runs
-disp('Selected Beta Indices:');
-disp(selectedIndices);
-selectedNames = SPM.xX.name(selectedIndices);
-% Assuming selectedNames is your cell array of selected regressor names
-for i = 1:length(selectedNames)
-    fprintf('Regressor no. %d: %s\n', selectedIndices(i), selectedNames{i});
-end
+% selectedIndices = [];
+% currentIndex = 1; % Keeps track of the global index across all runs
+% 
+% % Loop through each run
+% for run_ind = 1:length(numRegressorsPerRun)
+%     % Update the high_beta to match the current run's regressor count
+%     currentHighBeta = [high_beta, zeros(1, numRegressorsPerRun(run_ind) - length(high_beta))];
+%     runSelectedIndices = find(currentHighBeta == 1);
+%     runSelectedIndices = runSelectedIndices + currentIndex - 1;
+%     selectedIndices = [selectedIndices, runSelectedIndices];
+%     currentIndex = currentIndex + numRegressorsPerRun(run_ind);
+% end
+% 
+% % selectedIndices now contains the indices of all selected betas across runs
+% disp('Selected Beta Indices:');
+% disp(selectedIndices);
+% selectedNames = SPM.xX.name(selectedIndices);
+% Assuming selectedFileNames is your cell array of selected regressor names
+% for i = 1:length(selectedNames)
+%     fprintf('Regressor no. %d: %s\n', selectedIndices(i), selectedNames{i});
+% end
 %% low beta
 % Define the low_beta pattern for selection
-low_beta = [0,0,0, 0,0,0, 0,0,0, 1,0,0, 1,0,0, 1,0,0, 0,0,0,0];
+% low_beta = [0,0,0, 0,0,0, 0,0,0, 1,0,0, 1,0,0, 1,0,0, 0,0,0,0];
 
-% Initialize an empty vector for selected indices for low beta
-selectedIndicesLow = [];
-currentIndex = 1; % Reset for low beta
+% % Initialize an empty vector for selected indices for low beta
+% selectedIndicesLow = [];
+% currentIndex = 1; % Reset for low beta
+% 
+% % Loop through each run for low beta
+% for run_ind = 1:length(numRegressorsPerRun)
+%     % Update the low_beta to match the current run's regressor count
+%     currentLowBeta = [low_beta, zeros(1, numRegressorsPerRun(run_ind) - length(low_beta))];
+%     runSelectedIndicesLow = find(currentLowBeta == 1);
+%     runSelectedIndicesLow = runSelectedIndicesLow + currentIndex - 1;
+%     selectedIndicesLow = [selectedIndicesLow, runSelectedIndicesLow];
+%     currentIndex = currentIndex + numRegressorsPerRun(run_ind);
+% end
+% 
+% % selectedIndices now contains the indices of all selected betas across runs
+% disp('Selected Beta Indices:');
+% disp(selectedIndicesLow);
+% selectedNamesLow = SPM.xX.name(selectedIndicesLow);
+% % Assuming selectedFileNames is your cell array of selected regressor names
+% for i = 1:length(selectedNamesLow)
+%     fprintf('Regressor no. %d: %s\n', selectedIndicesLow(i), selectedNamesLow{i});
+% end
 
-% Loop through each run for low beta
-for run_ind = 1:length(numRegressorsPerRun)
-    % Update the low_beta to match the current run's regressor count
-    currentLowBeta = [low_beta, zeros(1, numRegressorsPerRun(run_ind) - length(low_beta))];
-    runSelectedIndicesLow = find(currentLowBeta == 1);
-    runSelectedIndicesLow = runSelectedIndicesLow + currentIndex - 1;
-    selectedIndicesLow = [selectedIndicesLow, runSelectedIndicesLow];
-    currentIndex = currentIndex + numRegressorsPerRun(run_ind);
-end
-
-% selectedIndices now contains the indices of all selected betas across runs
-disp('Selected Beta Indices:');
-disp(selectedIndices);
-selectedNames = SPM.xX.name(selectedIndices);
-% Assuming selectedNames is your cell array of selected regressor names
-for i = 1:length(selectedNames)
-    fprintf('Regressor no. %d: %s\n', selectedIndices(i), selectedNames{i});
-end
-
-%% 1-2. save beta map file
-regressor_savefname = ;
-fileID = fopen(regressor_savefname, 'w');
-if fileID == -1
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 1-2. save beta map file
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+regressor_savefname = fullfile(save_dir, strcat(sub, '_beta-highcue.txt'));
+fileIDHigh = fopen(regressor_savefname, 'w');
+if fileIDHigh == -1
     error('Failed to open the file for writing.');
+else
+    writeRegressorNamesToFile(fileIDHigh, selectedIndicesHigh, selectedNamesHigh);
+    fclose(fileIDHigh);
 end
 
-for i = 1:length(selectedNames)
-    fprintf(fileID, 'Regressor no. %d: %s\n', selectedIndices(i), selectedNames{i});
+
+fileIDLow = fopen(fullfile(save_dir, strcat(sub, '_beta-lowcue.txt')), 'w');
+if fileIDLow == -1
+    error('Failed to open the file for writing.');
+else
+    writeRegressorNamesToFile(fileIDLow, selectedIndicesLow, selectedNamesLow);
+    fclose(fileIDLow);
 end
 
-fclose(fileID);
-disp('Selected regressor names and numbers have been written to selectedRegressors.txt');
-
-%% 1-3. load beta maps into fmridata object
-selectedFileNames = cell(1, length(selectedIndices));
-
-for i = 1:length(selectedIndices)
-    indexStr = sprintf('%04d', selectedIndices(i));
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 1-3. load beta maps into fmridata object
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+selectedFileNamesHigh = cell(1, length(selectedIndicesHigh));
+selectedFileNamesLow = cell(1, length(selectedIndiceslow));
+for i = 1:length(selectedIndicesHigh)
+    indexStr = sprintf('%04d', selectedIndicesHigh(i));
     fileName = strcat('beta_', indexStr, '.nii');
-    selectedFileNames{i} = fullfile(sub_spm_dir, fileName);
+    selectedFileNamesHigh{i} = fullfile(sub_spm_dir, fileName);
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% delete later %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Display the file names (optional)
-disp('Selected Beta File Names:');
-disp(selectedFileNames);
-for i = 1:length(selectedFileNames)
-    fprintf('Regressor no.: %s\n', selectedFileNames{i});
+
+selectedFileNamesLow = cell(1, length(selectedIndicesLow));
+for i = 1:length(selectedIndicesLow)
+    indexStr = sprintf('%04d', selectedIndicesLow(i));
+    fileNameLow = strcat('beta_', indexStr, '.nii');
+    selectedFileNamesLow{i} = fullfile(sub_spm_dir, fileNameLow);
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% delete later %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 % rescale
 % save as high cue and low cue
 % save events for inspection
 % 2. scale them specifically
-high_beta = fmri_data(selectedFileNames);
-high_betadata = rescale(high_beta, 'prctile_images');
-save_highfname = ;
-save_lowfname = ;
-write(high_betadata, 'fname', save_highfname);
+high_beta_obj = fmri_data(selectedFileNamesHigh);
+high_betadata = rescale(high_beta_obj, 'prctileimages');
+low_betaobj = fmri_data(selectedFileNamesLow); % You need to construct selectedFileNamesLow similarly
+low_betadata = rescale(low_betaobj, 'prctileimages');
 
-% Assuming high_beta and low_beta are loaded as fmri_data objects
-low_beta = fmri_data(selectedFileNamesLow); % You need to construct selectedFileNamesLow similarly
-low_betadata = rescale(low_beta, 'prctile_images');
-
-% Save paths need to be defined
-save_highfname = 'path/to/high_beta_rescaled.nii';
-save_lowfname = 'path/to/low_beta_rescaled.nii';
-
-% Save the rescaled high and low beta data
+save_highfname = fullfile(save_dir, 'P_simple_STIM_cue_high.nii');
+save_lowfname = fullfile(save_dir, 'P_simple_STIM_cue_low.nii');
 write(high_betadata, 'fname', save_highfname);
 write(low_betadata, 'fname', save_lowfname);
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 3. compute contrasts
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Subtract low from high beta maps
-high_gt_low = high_betadata.dat - low_betadata.dat;
 
-% Create a new fmri_data object for the result (assuming compatibility)
-high_gt_low_data = high_betadata; % Clone the structure
-high_gt_low_data.dat = high_gt_low; % Update the data
+high_beta_mean = mean(high_betadata);
+low_beta_mean = mean(low_betadata);
+high_gt_low = high_beta_mean.dat - low_beta_mean.dat;
 
+contrast_obj = high_beta_mean;
+contrast_obj.dat = high_gt_low;
+contrast_obj.dat_descrip = strcat('contrast of high cue > low cue for ', sub, '\n');
+contrast_obj.image_names =  [selectedFileNames, selectedFileNamesLow];
 % Save the subtracted image
-save_subtracted_fname = 'path/to/high_gt_low.nii';
-write(high_gt_low_data, 'fname', save_subtracted_fname);
+save_contrast_fname = fullfile(save_dir, 'P_simple_STIM_cue_high_gt_low_rescale.nii');
+write(contrast_obj, 'fname', save_contrast_fname);
 
-% 4. plot
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 4. functions
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [selectedIndices, selectedNames] = selectBetaIndices(numRegressorsPerRun, SPM, pattern)
+    selectedIndices = [];
+    currentIndex = 1; % Keeps track of the global index across all runs
 
-contrast_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/spm/univariate/model01_6cond_highlowcue_rampplateau/1stlevel_rescale';
-beta_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/spm/univariate/model01_6cond_highlowcue_rampplateau';
+    for run_ind = 1:length(numRegressorsPerRun)
+        % Update the pattern to match the current run's regressor count
+        currentPattern = [pattern, zeros(1, numRegressorsPerRun(run_ind) - length(pattern))];
+        runSelectedIndices = find(currentPattern == 1);
+        runSelectedIndices = runSelectedIndices + currentIndex - 1;
+        selectedIndices = [selectedIndices, runSelectedIndices];
+        currentIndex = currentIndex + numRegressorsPerRun(run_ind);
+    end
+
+    selectedNames = SPM.xX.name(selectedIndices);
+end
+
+function writeRegressorNamesToFile(fileID, selectedIndices, selectedNames)
+    for i = 1:length(selectedIndices)
+        fprintf(fileID, 'Regressor no. %d: %s\n', selectedIndices(i), selectedNames{i});
+    end
+end
+
+end
+
 
