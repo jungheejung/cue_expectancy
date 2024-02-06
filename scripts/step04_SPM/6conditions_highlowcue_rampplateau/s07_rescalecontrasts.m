@@ -22,7 +22,8 @@ function s07_rescalecontrasts(sub, spm_dir)
 % identify where the high cue and low cue events live
 % sub = 'sub-0124';
 % spm_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/spm/univariate/model01_6cond_highlowcue_rampplateau';
-
+addpath(genpath("/dartfs-hpc/rc/lab/C/CANlab/modules/spm12"));
+addpath(genpath("/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore"));
 sub_spm_dir = fullfile(spm_dir, sub);
 save_dir = fullfile(spm_dir, '1stlevel_rescale', sub);
 if ~exist(save_dir, 'dir')
@@ -32,8 +33,9 @@ else
     disp(['Folder "', save_dir, '" already exists.']);
 end
 
-
-load(fullfile(sub_spm_dir, "SPM.mat"))
+sub_spm_dir
+SPM = load(fullfile(sub_spm_dir, "SPM.mat"));
+SPM = SPM.SPM
 paths = cellstr(SPM.xY.P);
 
 uniqueFilePaths = unique(cellfun(@(x) x(1:strfind(x, '.nii,')-1), paths, 'UniformOutput', false)); % Get unique file paths (without slice numbers)
@@ -52,10 +54,10 @@ end
 
 % create a table. Aftereward, find the corresponding run-type info
 sortedT = table(subInfo', sesInfo', runInfo', 'VariableNames', {'sub_num', 'ses_num', 'run_num'});
-
+A = sortedT;
 matlabbatch = cell(1,1);
 runlength = size(A,1);
-numRegressorsPerRun = arrayfun(@(x) length(x.col), SPM.Sess);
+numRegressorsPerRun = arrayfun(@(x) length(x.col),SPM.Sess);
 runtype_counts = tabulate(A.runtype);
 % Define the high_beta pattern for selection
 high_beta_pattern = [1,0,0, 1,0,0, 1,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0,0];
