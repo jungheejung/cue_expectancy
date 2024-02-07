@@ -168,21 +168,83 @@ write(contrast_obj, 'fname', save_contrast_fname);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 4. functions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    function [selectedIndices, selectedNames] = selectBetaIndices(taskIndices, numRegressorsPerRun, SPM, pattern)
+%     function [selectedIndices, selectedNames] = selectBetaIndices(taskIndices, numRegressorsPerRun, SPM, pattern)
+%     selectedIndices = [];
+%     currentIndex = 1; % Keeps track of the global index across all runs
+% 
+%     for run_ind = taskIndices
+%         % Update the pattern to match the current run's regressor count
+%         currentPattern = [pattern, zeros(1, numRegressorsPerRun(run_ind) - length(pattern))];
+%         runSelectedIndices = find(currentPattern == 1);
+%         runSelectedIndices = runSelectedIndices + currentIndex - 1;
+%         selectedIndices = [selectedIndices, runSelectedIndices];
+%         currentIndex = currentIndex + numRegressorsPerRun(run_ind);
+%     end
+% 
+%     selectedNames = SPM.xX.name(selectedIndices);
+% end
+
+
+function [selectedIndices, selectedNames] = selectBetaIndices(taskIndices, numRegressorsPerRun, SPM, pattern)
+%SELECTBETAINCIDICES Selects beta indices for specific runs based on task indices.
+%
+% [selectedIndices, selectedNames] = selectBetaIndices(taskIndices, numRegressorsPerRun, SPM, pattern)
+% selects the beta indices for the runs specified in taskIndices. It accounts for the cumulative
+% number of regressors in all preceding runs to correctly offset the indices for each selected run.
+%
+% Inputs:
+%   taskIndices - A vector of indices indicating the runs of interest.
+%   numRegressorsPerRun - A vector indicating the number of regressors per run.
+%   SPM - The SPM structure containing design matrix names in SPM.xX.name.
+%   pattern - A binary vector indicating which regressors to select within each run.
+%
+% Outputs:
+%   selectedIndices - The indices of the selected betas within the design matrix.
+%   selectedNames - The names of the selected regressors corresponding to selectedIndices.
+%
+% Example:
+%   taskIndices = [2, 4, 9];
+%   numRegressorsPerRun = [48, 48, 52, ...]; % Complete vector for all runs
+%   pattern = [1, 0, 1, ...]; % Define pattern for selecting regressors
+%   [indices, names] = selectBetaIndices(taskIndices, numRegressorsPerRun, SPM, pattern);
+%
+% This function assumes that the number of elements in pattern does not exceed the number of
+% regressors in any run specified by taskIndices. If the pattern is shorter than the number of
+% regressors in a run, it's padded with zeros to match the length.
+
     selectedIndices = [];
-    currentIndex = 1; % Keeps track of the global index across all runs
-
-    for run_ind = taskIndices
-        % Update the pattern to match the current run's regressor count
+    % Compute the cumulative sum of regressors per run to use as an offset
+    cumulativeRegressors = cumsum(numRegressorsPerRun);
+    
+    for i = 1:length(taskIndices)
+        run_ind = taskIndices(i); % Get the current run index from taskIndices
+        
+        % Calculate the starting index for the current run
+        % If run_ind is the first run, the starting index is 1
+        % Otherwise, it's the cumulative sum of regressors up to the previous run + 1
+        if run_ind == 1
+            currentIndex = 1;
+        else
+            currentIndex = cumulativeRegressors(run_ind - 1) + 1;
+        end
+        
+        % Update the pattern for the current run if necessary
         currentPattern = [pattern, zeros(1, numRegressorsPerRun(run_ind) - length(pattern))];
+        
+        % Find indices of the current run's selected regressors
         runSelectedIndices = find(currentPattern == 1);
-        runSelectedIndices = runSelectedIndices + currentIndex - 1;
+        runSelectedIndices = runSelectedIndices + currentIndex - 1; % Adjust by the current global index
+        
+        % Append the current run's selected indices to the overall list
         selectedIndices = [selectedIndices, runSelectedIndices];
-        currentIndex = currentIndex + numRegressorsPerRun(run_ind);
     end
-
+    
+    % Extract the names of the selected regressors from SPM.xX.name
     selectedNames = SPM.xX.name(selectedIndices);
 end
+
+
+
 
 function writeRegressorNamesToFile(fileID, selectedIndices, selectedNames)
     for i = 1:length(selectedIndices)
