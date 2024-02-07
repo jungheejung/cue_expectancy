@@ -160,7 +160,7 @@ high_gt_low = high_betadata.dat - low_betadata.dat;
 contrast_obj = high_betadata;
 contrast_obj.dat = high_gt_low;
 contrast_obj.dat_descrip = strcat('contrast of high cue > low cue for ', sub, '\n');
-contrast_obj.image_names =  [selectedFileNames, selectedFileNamesLow];
+contrast_obj.image_names =  [selectedFileNamesHigh, selectedFileNamesLow];
 % Save the subtracted image
 save_contrast_fname = fullfile(save_dir, 'P_simple_STIM_cue_high_gt_low_rescale.nii');
 write(contrast_obj, 'fname', save_contrast_fname);
