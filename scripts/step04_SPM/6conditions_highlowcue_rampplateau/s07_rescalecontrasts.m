@@ -94,7 +94,7 @@ low_beta_pattern = [0,0,0, 0,0,0, 0,0,0, 1,0,0, 1,0,0, 1,0,0, 0,0,0,0];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 1-2. save beta map file
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-regressor_savefname = fullfile(save_dir, strcat(sub, '_beta-highcue.txt'));
+regressor_savefname = fullfile(save_dir, strcat(sub,'_',task, '_beta-highcue.txt'));
 fileIDHigh = fopen(regressor_savefname, 'w');
 if fileIDHigh == -1
     error('Failed to open the file for writing.');
@@ -104,7 +104,7 @@ else
 end
 
 
-fileIDLow = fopen(fullfile(save_dir, strcat(sub, '_beta-lowcue.txt')), 'w');
+fileIDLow = fopen(fullfile(save_dir, strcat(sub,'_', task, '_beta-lowcue.txt')), 'w');
 if fileIDLow == -1
     error('Failed to open the file for writing.');
 else
@@ -144,10 +144,10 @@ low_betaobj = fmri_data(selectedFileNamesLow);
 low_beta_mean = mean(low_betaobj);
 low_betadata = rescale(low_beta_mean, 'prctileimages');
 
-save_highfname = fullfile(save_dir, strcat('runtype-', task, '_simple_STIM_cue_high.nii'));
-save_lowfname  = fullfile(save_dir, strcat('runtype-', task, '_simple_STIM_cue_low.nii'));
-write(high_betadata, 'fname', save_highfname);
-write(low_betadata,  'fname', save_lowfname);
+save_highfname = fullfile(save_dir, strcat(sub, '_runtype-', task, '_simple_STIM_cue_high.nii'));
+save_lowfname  = fullfile(save_dir, strcat(sub, '_runtype-', task, '_simple_STIM_cue_low.nii'));
+write(high_betadata, 'fname', save_highfname, 'overwrite');
+write(low_betadata,  'fname', save_lowfname, 'overwrite');
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -162,8 +162,8 @@ contrast_obj.dat = high_gt_low;
 contrast_obj.dat_descrip = strcat('contrast of high cue > low cue for ', sub, '\n');
 contrast_obj.image_names =  [selectedFileNamesHigh, selectedFileNamesLow];
 % Save the subtracted image
-save_contrast_fname = fullfile(save_dir, 'P_simple_STIM_cue_high_gt_low_rescale.nii');
-write(contrast_obj, 'fname', save_contrast_fname);
+save_contrast_fname = fullfile(save_dir, strcat(sub,'_P_simple_STIM_cue_high_gt_low_rescale.nii'));
+write(contrast_obj, 'fname', save_contrast_fname, 'overwrite');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 4. functions
