@@ -895,6 +895,84 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
 
 }
 ```
+```{r}
+head(data)
+```
+
+Question:
+If a model fails to converge, what are your steps for checking issues?
+Is there a diagnostic plot that would inform me?
+I'd like to know what your workflow is
+
+Question: 
+If the inclusion of a parameter doesn't make a difference
+determined by the anova function
+is it safe to remove?
+The experiment has these structures and we know that some other dependent variables changed across time, 
+so it would be best to include just so that we have starts and compare. 
+
+Question:
+what if the levels are somewhat correlated within factors
+
+```{r fig.height=10, fig.width=7}
+ggplot(data, aes(y = event04_actual_angle, x = param_cue_type)) +
+  geom_point() +
+  xlab("Cue") +
+  ylab("Outcome rating") +
+  theme_classic(base_size = 15) +
+  stat_smooth(method = "lm", formula = 'y ~ x', se=F,fullrange = T) +
+  facet_wrap(~src_subject_id)
+```
+
+## LMER
+```{r}
+# 1. remove trials less than 10, per participant _______________________________
+data_filtered <- data %>%
+  group_by(src_subject_id) %>%
+  filter(n() >= 12) %>%
+  ungroup()  # Remove the grouping specification
+
+# 2. glmmTMB ___________________________________________________________________
+
+# model.cuestim <- glmmTMB::glmmTMB(event04_actual_angle ~ param_cue_type * param_stimulus_type + ( param_cue_type + param_stimulus_type | src_subject_id), data = data_filtered)
+# summary_model <- summary(model.full)
+# anova(model.cuestim, model.cuestimses)
+# 3. ICC _______________________________________________________________________
+# # Extracting variance components
+# random_effect_variance <- summary_model$varcor$cond$src_subject_id[1,1] # Adjust index based on your model structure
+# residual_variance <- summary_model$sigma^2
+# # Calculating ICC
+# icc <- random_effect_variance / (random_effect_variance + residual_variance) # 0.38
+
+
+
+# model.cuestimexpect <- glmmTMB::glmmTMB(event04_actual_angle ~ param_cue_type * param_stimulus_type * event02_expect_angle +session_id+ ( 0 + param_cue_type * param_stimulus_type * event02_expect_angle| src_subject_id) + (1|session_id), data = data_filtered)
+# summary(model.cuestimexpect)
+
+model.cuestimses <- glmmTMB::glmmTMB(event04_actual_angle ~ param_cue_type * param_stimulus_type + session_id + ( param_cue_type + param_stimulus_type | src_subject_id), data = data_filtered)
+summary(model.cuestimses)
+summary_cuestimses <- summary(model.cuestimses)
+# from vignette ________________________________________________________________
+print(paste(">> model Converged?", model.cuestimses$sdr$pdHess ))
+(vc.toep <- VarCorr(model.cuestimses))
+vc1 <- vc.toep$cond[[1]] ## first term of var-cov for RE of conditional model
+summary(diag(vc1))
+summary(vc1[row(vc1)!=col(vc1)])
+# Compound symmetry
+VarCorr(model.cuestimses)
+# 3. ICC _______________________________________________________________________
+# Extracting variance components
+random_effect_variance <- summary_cuestimses$varcor$cond$src_subject_id[1,1] # Adjust index based on your model structure
+residual_variance <- summary_cuestimses$sigma^2
+# Calculating ICC
+icc <- random_effect_variance / (random_effect_variance + residual_variance) # 0.38
+
+
+
+```
+
+> ICC is 0.38 for a model with cue and stim. 
+
 
 ## cue contrast average across expectation
 

@@ -1,0 +1,236 @@
+# RL ::  New model ~  cue*stim {#RL_newmodel}
+
+## What is the purpose of this notebook? {.unlisted .unnumbered}
+
+Here, we want to... assess the performance of Aryans new model.
+We also want to see what PE best explains
+Outcome? Expectation? NPS? Insula? etc
+
+* Main model: `lmer( NPS ~ PE)` 
+* Main question: Is NPS best explained by the model PE? And if so, which model best 
+* {{ HYPOTHESES/EXPECTED OUTCOME }}
+* 
+* IV: 
+  - {{ FACTOR NAME }} ( {{ LEVELS}} )
+* DV: {{ DV }}
+
+
+### TODO: 
+```
+load Aryan's dataframe
+Predict NPS with different model PEs
+load nps
+```
+
+### References : Once note book is complete, add at the bottom of Rmd
+```
+INSERT HERE
+```
+
+### load libraries {.unlisted .unnumbered}
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(car)
+library(psych)
+library(cueR)
+library(ggplot2)
+library(dplyr)
+library(plyr)
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+library(ggheatmap)
+library(ggcorrplot)
+```
+
+
+### display distribution of data
+Let's look at the distribution of the data. X axis: Y axis: 
+```{r paged.print=TRUE}
+main_dir <- dirname(dirname(getwd()))
+rldf <- read.csv("/Users/h/Documents/projects_local/cue_expectancy/data/RL/table_pain_8mdls_andZscores_01182024.csv")
+NPSdf <- read.csv(file.path(main_dir, 'analysis/fmri/nilearn/deriv01_signature/rampupdown/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv' ))
+
+```
+
+
+```{r}
+NPSsplit <- NPSdf %>%
+  # Extract the components from the filename column
+  extract(col = singletrial_fname, into = c("sub", "ses", "run", "runtype", "event", "trial", "cuetype", "stimintensity"),
+          regex = "(sub-\\w+)_+(ses-\\w+)_+(run-\\w+)_+(runtype-\\w+)_+(event-\\w+)_+(trial-\\w+)_+(cuetype-\\w+)_+(stimintensity-\\w+).nii.gz") %>%
+  # Extract numbers and keywords as specified
+  mutate(
+    src_subject_id = as.integer(str_extract(sub, "\\d+")),
+    session_id = as.integer(str_extract(ses, "\\d+")),
+    param_run_num = as.integer(str_extract(run, "\\d+")),
+    trial_index_runwise = as.integer(str_extract(trial, "\\d+")) + 1,
+    param_cue_type = case_when(
+      str_detect(cuetype, "low") ~ "low_cue",
+      str_detect(cuetype, "high") ~ "high_cue"
+    ),
+    param_task_name = str_replace(runtype, "runtype-", ""),
+    param_stimulus_type = case_when(
+      stimintensity == "stimintensity-low" ~ "low_stim",
+      stimintensity == "stimintensity-med" ~ "med_stim",
+      stimintensity == "stimintensity-high" ~ "high_stim",
+      TRUE ~ stimintensity  # Retain original value if neither "low" nor "high"
+    )
+  ) %>%
+
+  # Select and rename the necessary columns
+  select(
+    src_subject_id,
+    session_id,
+    param_run_num,
+    param_task_name,
+    event,
+    trial_index_runwise,
+    param_cue_type,
+    param_stimulus_type,
+    NPSpos
+  )
+    # stimintensity
+```
+
+merge the two dataframes
+
+```{r}
+
+merge_df <- inner_join(NPSsplit, rldf, by = c("src_subject_id",
+    "session_id",
+    "param_run_num",
+    "param_task_name","param_cue_type", "param_stimulus_type", "trial_index_runwise"))
+
+# result_df will contain rows that have matching values in columns A, B, and C in both df1 and df2.
+
+```
+
+```{r}
+head(merge_df)
+colnames(merge_df)
+```
+## create heatmap
+I want to observe the strcture across different models and how correlated they are with the outcome variable
+NPS, event02_expect_angle, event04_actual_angle
+
+```{r}
+# g <- ggheatmap::ggheatmap(merge_df[, c("NPSpos", "event02_expect_angle", 
+#                                   "event04_actual_angle", 
+#                                   "Exp_mdl1", "Exp_mdl2",
+#                                   "Exp_mdl3","Exp_mdl4")])
+# ggheatmap(merge_df[, c("NPSpos","event04_actual_angle", "zPain_mdl1", "zPain_mdl2", "Pain_mdl1", "Pain_mdl2")])
+corr <- cor(merge_df[, c("NPSpos", "event02_expect_angle", 
+                                  "event04_actual_angle",
+                                  "Exp_mdl1", "Exp_mdl2",
+                                  "Exp_mdl3","Exp_mdl4","Exp_mdl7","Exp_mdl14","Exp_mdl15", "zPE_mdl13",
+                         "Pain_mdl15")])
+p.mat <- ggcorrplot::cor_pmat(corr)
+ggcorrplot(corr, hc.order = FALSE,
+     p.mat = p.mat, insig = "blank")
+```
+```{r}
+ggcorrplot(cor(merge_df[, c( "zPain_mdl1", "zPain_mdl2", "zPE_mdl13")]))
+```
+
+## TODO: need the comparable z scores and raw scores from Aryan
+```{r}
+ggheatmap(merge_df[, c( "zPain_mdl1", "zPain_mdl2", "zPE_mdl13")])
+```
+
+
+```{r}
+model.zpe13 <- lmer(NPSpos ~ zPE_mdl13 + (zPE_mdl13|src_subject_id), data = merge_df)
+model.zExp13 <- lmer(NPSpos ~ zExp_mdl13 + (zExp_mdl13|src_subject_id), data = merge_df)
+model.zPain13 <- lmer(NPSpos ~ zPain_mdl13 + (zExp_mdl13|src_subject_id), data = merge_df)
+
+# summary(model.zpe13)
+# summary(model.zExp13)
+# summary(model.zPain13)
+# 
+# anova(model.zpe13, model.zExp13)
+# model.zExp13 <- lmer(NPSpos ~ zExp_mdl13 + (zExp_mdl13|src_subject_id), data = merge_df)
+# model.zExp13 <- lmer(NPSpos ~ zExp_mdl13 + (zExp_mdl13|src_subject_id), data = merge_df)
+
+# BAD model ____________________________________________________________________
+model.full <- lmer(NPSpos ~ zPE_mdl13 + zExp_mdl13 + zPain_mdl13 + (1|src_subject_id), data = merge_df)
+summary(model.full)
+vif(model.full)
+```
+
+
+
+```{r}
+
+ggplot(merge_df, aes(y = NPSpos,
+                       x = zPE_mdl13,
+                       colour = src_subject_id), size = .3, color = 'gray') +
+  geom_point(size = .1) +
+  geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .3) +
+  theme_bw()
+```
+```{r}
+library(dplyr)
+library(ggplot2)
+library(broom)
+
+# Assuming you have a dataframe `df` with the variables `subject`, `trial`, `NPS`, `PE`
+
+# Calculate the coefficients for each participant
+df <- merge_df
+df$subject <- df$src_subject_id
+df$NPS <- df$NPSpos
+df$PE <- df$zPE_mdl13
+
+coefficients <- df %>%
+  group_by(subject) %>%
+  do(tidy(lm(NPS ~ PE, data = .)))
+
+# Extract slopes and intercepts
+slopes_intercepts <- coefficients %>%
+  filter(term == "PE") %>%
+  select(subject, slope = estimate)
+
+intercepts <- coefficients %>%
+  filter(term == "(Intercept)") %>%
+  select(subject, intercept = estimate)
+
+# Merge slopes and intercepts
+subject_lines <- full_join(slopes_intercepts, intercepts, by = "subject")
+
+# Calculate the average slope and intercept for the group
+avg_slope <- mean(subject_lines$slope)
+avg_intercept <- mean(subject_lines$intercept)
+
+# Plot
+ggplot(df, aes(x = PE, y = NPS)) +
+  geom_point(alpha = 0.4) +  # Plot the raw data points
+  geom_abline(data = subject_lines, aes(slope = slope, intercept = intercept, color = as.factor(subject)), size = 1) +
+  geom_abline(slope = avg_slope, intercept = avg_intercept, color = "black", size = 1.5, linetype = "dashed") +
+  labs(color = "Subject") +
+  theme_minimal() +
+  theme(legend.position = "none")  # Remove legend if not needed
+
+```
+
+
+> Summary: 
+
+### plot {.unlisted .unnumbered}
+We'll plot Y as a function of A and B
+X axis: 
+Y axis:
+Each data point indicates ... 
+```{r fig.height=10, fig.width=10}
+
+```
+> Conclusion:
+
+
+:::: {.infobox}
+Include the actual content here. here are my thoughts
+::::
+
+:::: {.refbox}
+Include the actual content here. here are my thoughts
+::::
+
