@@ -46,7 +46,7 @@ library(ICC)
 library(gghalves)
 
 library(ggpubr)
-
+library(cueR)
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
                           pattern="*.R",
@@ -237,6 +237,15 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     dir.create(save_dir, recursive = TRUE, showWarnings = FALSE)
     write.csv(df_filtered_final, file = file.path(save_dir, paste0("spacetop_cue_", taskname, "_0405.csv")), row.names = FALSE)
 }
+```
+
+01/26/2024
+```{r}
+model.full <- lmer(OUTCOME ~ CUE * STIM + (CUE * STIM|subject), data = data)
+summary(model.full)
+# car::durbinWatsonTest(model.full)
+plot(model.full$fitted.values, model.full$residuals, xlab="Fitted", ylab="residuals")
+car::qqPlot(model.full)
 ```
 
 ## TODO: model 03 3-2. individual differences
