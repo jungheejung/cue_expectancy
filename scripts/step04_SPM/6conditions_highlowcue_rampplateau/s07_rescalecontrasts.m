@@ -88,7 +88,7 @@ low_beta_pattern = [0,0,0, 0,0,0, 0,0,0, 1,0,0, 1,0,0, 1,0,0, 0,0,0,0];
 
 % Select high beta indices and names
 [selectedIndicesHigh, selectedNamesHigh] = selectBetaIndices(taskIndices, numRegressorsPerRun, SPM, high_beta_pattern);
-[selectedIndiceslow, selectedNamesLow] = selectBetaIndices(taskIndices, numRegressorsPerRun, SPM, low_beta_pattern);
+[selectedIndicesLow, selectedNamesLow] = selectBetaIndices(taskIndices, numRegressorsPerRun, SPM, low_beta_pattern);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
