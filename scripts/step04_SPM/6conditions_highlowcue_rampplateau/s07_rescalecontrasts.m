@@ -116,7 +116,7 @@ end
 % 1-3. load beta maps into fmridata object
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 selectedFileNamesHigh = cell(1, length(selectedIndicesHigh));
-selectedFileNamesLow  = cell(1, length(selectedIndiceslow));
+selectedFileNamesLow  = cell(1, length(selectedIndicesLow));
 for i = 1:length(selectedIndicesHigh)
     indexStr = sprintf('%04d', selectedIndicesHigh(i));
     fileName = strcat('beta_', indexStr, '.nii');
