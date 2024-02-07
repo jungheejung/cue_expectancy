@@ -1,4 +1,4 @@
-function s07_rescalecontrasts(sub, spm_dir)
+function s07_rescalecontrasts(sub, main_dir, spm_dir, task)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Overview - what motivated this script
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -25,6 +25,7 @@ function s07_rescalecontrasts(sub, spm_dir)
 addpath(genpath("/dartfs-hpc/rc/lab/C/CANlab/modules/spm12"));
 addpath(genpath("/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore"));
 sub_spm_dir = fullfile(spm_dir, sub);
+onset_dir = fullfile(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset02_SPM');
 save_dir = fullfile(spm_dir, '1stlevel_rescale', sub);
 if ~exist(save_dir, 'dir')
     mkdir(save_dir);
@@ -35,12 +36,13 @@ end
 
 sub_spm_dir
 SPM = load(fullfile(sub_spm_dir, "SPM.mat"));
-SPM = SPM.SPM
+SPM = SPM.SPM;
 paths = cellstr(SPM.xY.P);
 
 uniqueFilePaths = unique(cellfun(@(x) x(1:strfind(x, '.nii,')-1), paths, 'UniformOutput', false)); % Get unique file paths (without slice numbers)
 numFiles = length(uniqueFilePaths); % Extract 'sub', 'ses', and 'run' info
 
+%% extract metadata %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 subInfo = zeros(1, numFiles);  % Pre-allocate a matrix for efficiency
 sesInfo = zeros(1, numFiles);   % We will keep these as cells since you didn't specify to change them
 runInfo = zeros(1, numFiles);   % Same here
@@ -54,67 +56,40 @@ end
 
 % create a table. Aftereward, find the corresponding run-type info
 sortedT = table(subInfo', sesInfo', runInfo', 'VariableNames', {'sub_num', 'ses_num', 'run_num'});
-A = sortedT;
+
+% find onset files
+onsetlist = dir(fullfile(onset_dir, sub, '*', strcat(sub, '_*_task-cue_*_events.tsv')));
+onsetT = struct2table(onsetlist);
+sortedonsetT = sortrows(onsetT, 'name');
+
+sortedonsetT.sub_num(:) = str2double(extractBetween(sortedonsetT.name, 'sub-', '_'));
+sortedonsetT.ses_num(:) = str2double(extractBetween(sortedonsetT.name, 'ses-', '_'));
+sortedonsetT.run_num(:) = str2double(extractBetween(sortedonsetT.name, 'run-', '_'));
+sortedonsetT.runtype = string(extractBetween(sortedonsetT.name, 'runtype-', '_'));
+
+%% grab intersection images and onset files
+A = innerjoin(sortedT, sortedonsetT, 'Keys', {'sub_num', 'ses_num', 'run_num'});
 matlabbatch = cell(1,1);
 runlength = size(A,1);
 numRegressorsPerRun = arrayfun(@(x) length(x.col),SPM.Sess);
-runtype_counts = tabulate(A.runtype);
+runtype_counts = tabulate(A.runtype)
+
+%% subset runs of interest %%%%%%
+if task == "all"
+    istask = length(numRegressorsPerRun);
+else
+    istask = A.runtype == task;
+end
+
+taskIndices = find(istask);
 % Define the high_beta pattern for selection
 high_beta_pattern = [1,0,0, 1,0,0, 1,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0,0];
 low_beta_pattern = [0,0,0, 0,0,0, 0,0,0, 1,0,0, 1,0,0, 1,0,0, 0,0,0,0];
 
 % Select high beta indices and names
-[selectedIndicesHigh, selectedNamesHigh] = selectBetaIndices(numRegressorsPerRun, SPM, high_beta_pattern);
-[selectedIndiceslow, selectedNamesLow] = selectBetaIndices(numRegressorsPerRun, SPM, low_beta_pattern);
+[selectedIndicesHigh, selectedNamesHigh] = selectBetaIndices(taskIndices, numRegressorsPerRun, SPM, high_beta_pattern);
+[selectedIndiceslow, selectedNamesLow] = selectBetaIndices(taskIndices, numRegressorsPerRun, SPM, low_beta_pattern);
 
-% Initialize an empty vector for selected indices
-% selectedIndices = [];
-% currentIndex = 1; % Keeps track of the global index across all runs
-% 
-% % Loop through each run
-% for run_ind = 1:length(numRegressorsPerRun)
-%     % Update the high_beta to match the current run's regressor count
-%     currentHighBeta = [high_beta, zeros(1, numRegressorsPerRun(run_ind) - length(high_beta))];
-%     runSelectedIndices = find(currentHighBeta == 1);
-%     runSelectedIndices = runSelectedIndices + currentIndex - 1;
-%     selectedIndices = [selectedIndices, runSelectedIndices];
-%     currentIndex = currentIndex + numRegressorsPerRun(run_ind);
-% end
-% 
-% % selectedIndices now contains the indices of all selected betas across runs
-% disp('Selected Beta Indices:');
-% disp(selectedIndices);
-% selectedNames = SPM.xX.name(selectedIndices);
-% Assuming selectedFileNames is your cell array of selected regressor names
-% for i = 1:length(selectedNames)
-%     fprintf('Regressor no. %d: %s\n', selectedIndices(i), selectedNames{i});
-% end
-%% low beta
-% Define the low_beta pattern for selection
-% low_beta = [0,0,0, 0,0,0, 0,0,0, 1,0,0, 1,0,0, 1,0,0, 0,0,0,0];
-
-% % Initialize an empty vector for selected indices for low beta
-% selectedIndicesLow = [];
-% currentIndex = 1; % Reset for low beta
-% 
-% % Loop through each run for low beta
-% for run_ind = 1:length(numRegressorsPerRun)
-%     % Update the low_beta to match the current run's regressor count
-%     currentLowBeta = [low_beta, zeros(1, numRegressorsPerRun(run_ind) - length(low_beta))];
-%     runSelectedIndicesLow = find(currentLowBeta == 1);
-%     runSelectedIndicesLow = runSelectedIndicesLow + currentIndex - 1;
-%     selectedIndicesLow = [selectedIndicesLow, runSelectedIndicesLow];
-%     currentIndex = currentIndex + numRegressorsPerRun(run_ind);
-% end
-% 
-% % selectedIndices now contains the indices of all selected betas across runs
-% disp('Selected Beta Indices:');
-% disp(selectedIndicesLow);
-% selectedNamesLow = SPM.xX.name(selectedIndicesLow);
-% % Assuming selectedFileNames is your cell array of selected regressor names
-% for i = 1:length(selectedNamesLow)
-%     fprintf('Regressor no. %d: %s\n', selectedIndicesLow(i), selectedNamesLow{i});
-% end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 1-2. save beta map file
@@ -141,7 +116,7 @@ end
 % 1-3. load beta maps into fmridata object
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 selectedFileNamesHigh = cell(1, length(selectedIndicesHigh));
-selectedFileNamesLow = cell(1, length(selectedIndiceslow));
+selectedFileNamesLow  = cell(1, length(selectedIndiceslow));
 for i = 1:length(selectedIndicesHigh)
     indexStr = sprintf('%04d', selectedIndicesHigh(i));
     fileName = strcat('beta_', indexStr, '.nii');
@@ -161,14 +136,18 @@ end
 % save events for inspection
 % 2. scale them specifically
 high_beta_obj = fmri_data(selectedFileNamesHigh);
-high_betadata = rescale(high_beta_obj, 'prctileimages');
-low_betaobj = fmri_data(selectedFileNamesLow); % You need to construct selectedFileNamesLow similarly
-low_betadata = rescale(low_betaobj, 'prctileimages');
+high_beta_mean = mean(high_beta_obj);
+high_betadata = rescale(high_beta_mean, 'prctileimages');
 
-save_highfname = fullfile(save_dir, 'P_simple_STIM_cue_high.nii');
-save_lowfname = fullfile(save_dir, 'P_simple_STIM_cue_low.nii');
+
+low_betaobj = fmri_data(selectedFileNamesLow); 
+low_beta_mean = mean(low_betaobj);
+low_betadata = rescale(low_beta_mean, 'prctileimages');
+
+save_highfname = fullfile(save_dir, strcat('runtype-', task, '_simple_STIM_cue_high.nii'));
+save_lowfname  = fullfile(save_dir, strcat('runtype-', task, '_simple_STIM_cue_low.nii'));
 write(high_betadata, 'fname', save_highfname);
-write(low_betadata, 'fname', save_lowfname);
+write(low_betadata,  'fname', save_lowfname);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -176,11 +155,9 @@ write(low_betadata, 'fname', save_lowfname);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Subtract low from high beta maps
 
-high_beta_mean = mean(high_betadata);
-low_beta_mean = mean(low_betadata);
-high_gt_low = high_beta_mean.dat - low_beta_mean.dat;
+high_gt_low = high_betadata.dat - low_betadata.dat;
 
-contrast_obj = high_beta_mean;
+contrast_obj = high_betadata;
 contrast_obj.dat = high_gt_low;
 contrast_obj.dat_descrip = strcat('contrast of high cue > low cue for ', sub, '\n');
 contrast_obj.image_names =  [selectedFileNames, selectedFileNamesLow];
@@ -191,11 +168,11 @@ write(contrast_obj, 'fname', save_contrast_fname);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 4. functions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [selectedIndices, selectedNames] = selectBetaIndices(numRegressorsPerRun, SPM, pattern)
+    function [selectedIndices, selectedNames] = selectBetaIndices(taskIndices, numRegressorsPerRun, SPM, pattern)
     selectedIndices = [];
     currentIndex = 1; % Keeps track of the global index across all runs
 
-    for run_ind = 1:length(numRegressorsPerRun)
+    for run_ind = taskIndices
         % Update the pattern to match the current run's regressor count
         currentPattern = [pattern, zeros(1, numRegressorsPerRun(run_ind) - length(pattern))];
         runSelectedIndices = find(currentPattern == 1);
