@@ -1,0 +1,240 @@
+# NPS ~  cue stim pain exp PE {#RL_newmodel}
+
+
+## Main Question: 
+1. How can I run a model with highly correlated variables?
+2. Also, how can I run multiple version of these models to find the best winning model/variables?
+
+## Background for Question 1. How do I run models with highly correlated variables?
+My outcome variable is "NPSpos", a proxy of brain activation during pain processing. (Calculated as the dot product between a pain biomarker & experiment-derived pain brain maps)
+I have five factors that may theoretically explain "NPSpos": 1) PE, 2) Pain, 3) Expectation, 4) Cue, 5) Stimulus type. This parameter space is defined theoretically, because pain processing is a sum of expectation, stimulus type, and other cognitive processes.
+PE is a difference score of Pain and Expectation, so of course, they will be correlated with Pain and Expectation, but theoretically, this value is processed differently in the brain. Therefore, we want to see which of the 5 variables best explains NPSpos.
+
+
+## Background for Question 2. How do I compare models to find the best model?
+* For example, mdl1 is a model with a specific learning rate, but no dynamic weights.
+* mdl4 is a model with specific learning rates and dynamic weights. 
+* Both models will output a Pain, Expectation, PE score. 
+How do I test which model is the winning model?
+
+
+
+### load libraries {.unlisted .unnumbered}
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(car)
+library(psych)
+library(cueR)
+library(ggplot2)
+library(dplyr)
+library(plyr)
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+library(ggheatmap)
+library(ggcorrplot)
+```
+
+
+### display distribution of data
+Let's look at the distribution of the data. X axis: Y axis: 
+```{r paged.print=TRUE}
+# 1. load dataframe _____________________________________________________
+main_dir <- dirname(dirname(getwd()))
+rldf <- read.csv(file.path(main_dir, "data/RL/table_pain_mdls_andZscores_02062024.csv"))
+NPSdf <- read.csv(file.path(main_dir, 'analysis/fmri/nilearn/deriv01_signature/rampupdown/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv' ))
+
+# 2. extract meta data from filenames_____________________________________________________
+NPSsplit <- NPSdf %>%
+  # Extract the components from the filename column
+  extract(col = singletrial_fname, into = c("sub", "ses", "run", "runtype", "event", "trial", "cuetype", "stimintensity"),
+          regex = "(sub-\\w+)_+(ses-\\w+)_+(run-\\w+)_+(runtype-\\w+)_+(event-\\w+)_+(trial-\\w+)_+(cuetype-\\w+)_+(stimintensity-\\w+).nii.gz") %>%
+  # Extract numbers and keywords as specified
+  mutate(
+    src_subject_id = as.integer(str_extract(sub, "\\d+")),
+    session_id = as.integer(str_extract(ses, "\\d+")),
+    param_run_num = as.integer(str_extract(run, "\\d+")),
+    trial_index_runwise = as.integer(str_extract(trial, "\\d+")) + 1,
+    param_cue_type = case_when(
+      str_detect(cuetype, "low") ~ "low_cue",
+      str_detect(cuetype, "high") ~ "high_cue"
+    ),
+    param_task_name = str_replace(runtype, "runtype-", ""),
+    param_stimulus_type = case_when(
+      stimintensity == "stimintensity-low" ~ "low_stim",
+      stimintensity == "stimintensity-med" ~ "med_stim",
+      stimintensity == "stimintensity-high" ~ "high_stim",
+      TRUE ~ stimintensity  # Retain original value if neither "low" nor "high"
+    )
+  ) %>%
+
+  # Select and rename the necessary columns
+  select(
+    src_subject_id,
+    session_id,
+    param_run_num,
+    param_task_name,
+    event,
+    trial_index_runwise,
+    param_cue_type,
+    param_stimulus_type,
+    NPSpos
+  )
+    # stimintensity
+
+# 3. merge the two dataframes _____________________________________________________
+merge_df <- inner_join(NPSsplit, rldf, by = c("src_subject_id",
+    "session_id",
+    "param_run_num",
+    "param_task_name","param_cue_type", "param_stimulus_type", "trial_index_runwise"))
+
+
+```
+
+```{r}
+head(merge_df)
+```
+
+
+## create heatmap
+I want to observe the strcture across different models and how correlated they are with the outcome variable
+NPS, event02_expect_angle, event04_actual_angle
+
+```{r}
+calculate_z_scores <- function(data, group_vars, target_vars) {
+  data %>%
+    group_by(across(all_of(group_vars))) %>%
+    mutate(across(all_of(target_vars), ~(. - mean(.)) / sd(.), .names = "z{.col}")) %>%
+    ungroup() # Ensure the result is no longer grouped
+}
+```
+
+```{r fig.height=8, fig.width=8}
+# 1. calculate Prediction error (PE) ___________________________________________________
+merge_df$PE_mdl7 <- merge_df$Pain_mdl7 - merge_df$Exp_mdl7
+merge_df$PE_mdl12 <- merge_df$Pain_mdl12 - merge_df$Exp_mdl12
+merge_df$PE_mdl14 <- merge_df$Pain_mdl14 - merge_df$Exp_mdl14
+merge_df$PE_mdl15 <- merge_df$Pain_mdl15 - merge_df$Exp_mdl15
+
+
+# 2. z score variables ___________________________________________________
+merge_df <- calculate_z_scores(merge_df, group_vars = "src_subject_id", 
+                                target_vars = c( "Exp_mdl3",  "Exp_mdl7", "Exp_mdl12", 
+                                                 "Pain_mdl3", "Pain_mdl7", "Pain_mdl12"  ))
+# 3. convert cue and stimulus strings to numeric values ___________________________________________________
+merge_df <- merge_df %>%
+  mutate(cue_num = case_when(
+    param_cue_type == "low_cue"  ~ -1,
+    param_cue_type == "high_cue"  ~ 1,
+    TRUE ~ NA_real_ # Assigns NA to any row that doesn't match above conditions
+  ))
+
+merge_df <- merge_df %>%
+  mutate(stim_num = case_when(
+    param_stimulus_type == "low_stim"  ~ -1,
+    param_stimulus_type == "med_stim"  ~ 0,
+    param_stimulus_type == "high_stim" ~ 1,
+    TRUE ~ NA_real_ # Assigns NA to any row that doesn't match above conditions
+  ))
+
+corr <- cor(merge_df[, c("NPSpos", "event02_expect_angle", "event04_actual_angle", "cue_num", "stim_num", 
+                         "Exp_mdl1", "Exp_mdl2", "Exp_mdl3", "Exp_mdl4", "Exp_mdl7", "Exp_mdl12", "Exp_mdl13", "Exp_mdl14", "Exp_mdl15", 
+                         "Pain_mdl1", "Pain_mdl2", "Pain_mdl3", "Pain_mdl4", "Pain_mdl7", "Pain_mdl12", "Pain_mdl13", "Pain_mdl14", "Pain_mdl15",
+                         "PE_mdl1", "PE_mdl2", "PE_mdl3", "PE_mdl4", "PE_mdl7", "PE_mdl12", "PE_mdl13","PE_mdl14", "PE_mdl15"
+                         )])
+p.mat <- ggcorrplot::cor_pmat(corr)
+ggcorrplot(corr, hc.order = FALSE,
+     p.mat = p.mat, insig = "blank")
+```
+
+
+
+## lmer
+Running separate lmer probably isn't the right way to go. 
+Why? because we wouldn't be able to see which variable best explains NPSpos in the presence of other variables. 
+In other words, we can't do variance partitioning.
+
+But including all of the regressors doesn't work, because VIF is too high.
+```{r}
+model.zpe13 <- lmer(NPSpos ~ zPE_mdl13 + (zPE_mdl13|src_subject_id), data = merge_df)
+model.zExp13 <- lmer(NPSpos ~ zExp_mdl13 + (zExp_mdl13|src_subject_id), data = merge_df)
+model.zPain13 <- lmer(NPSpos ~ zPain_mdl13 + (zExp_mdl13|src_subject_id), data = merge_df)
+
+# summary(model.zpe13)
+# summary(model.zExp13)
+# summary(model.zPain13)
+# 
+# anova(model.zpe13, model.zExp13)
+# model.zExp13 <- lmer(NPSpos ~ zExp_mdl13 + (zExp_mdl13|src_subject_id), data = merge_df)
+# model.zExp13 <- lmer(NPSpos ~ zExp_mdl13 + (zExp_mdl13|src_subject_id), data = merge_df)
+
+# BAD model ____________________________________________________________________
+model.full <- lmer(NPSpos ~ zPE_mdl13 + zExp_mdl13 + zPain_mdl13 + (1|src_subject_id), data = merge_df)
+summary(model.full)
+vif(model.full)
+```
+
+## Plot
+Without any participant wise summary statistic, plot the effect of NPS ~ z_scored PE from model 13
+This is incorrect, but I want to see if there's any systematicity from participants.
+```{r}
+
+ggplot(merge_df, aes(y = NPSpos,
+                       x = zPE_mdl13,
+                       colour = src_subject_id), size = .3, color = 'gray') +
+  geom_point(size = .1) +
+  geom_smooth(method = 'lm', formula= y ~ x, se = FALSE, size = .3) +
+  theme_bw()
+```
+## plot subject wise slopes of NPS as a function of PE
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(broom)
+
+# Assuming you have a dataframe `df` with the variables `subject`, `trial`, `NPS`, `PE`
+
+# Calculate the coefficients for each participant
+df <- merge_df
+df$subject <- df$src_subject_id
+df$NPS <- df$NPSpos
+df$PE <- df$zPE_mdl13
+
+coefficients <- df %>%
+  group_by(subject) %>%
+  do(tidy(lm(NPS ~ PE, data = .)))
+
+# Extract slopes and intercepts
+slopes_intercepts <- coefficients %>%
+  filter(term == "PE") %>%
+  select(subject, slope = estimate)
+
+intercepts <- coefficients %>%
+  filter(term == "(Intercept)") %>%
+  select(subject, intercept = estimate)
+
+# Merge slopes and intercepts
+subject_lines <- full_join(slopes_intercepts, intercepts, by = "subject")
+
+# Calculate the average slope and intercept for the group
+avg_slope <- mean(subject_lines$slope)
+avg_intercept <- mean(subject_lines$intercept)
+
+# Plot
+ggplot(df, aes(x = PE, y = NPS)) +
+  geom_point(alpha = 0.4) +  # Plot the raw data points
+  geom_abline(data = subject_lines, aes(slope = slope, intercept = intercept, color = as.factor(subject)), size = 1) +
+  geom_abline(slope = avg_slope, intercept = avg_intercept, color = "black", size = 1.5, linetype = "dashed") +
+  labs(color = "Subject") +
+  theme_minimal() +
+  theme(legend.position = "none")  # Remove legend if not needed
+
+```
+
+
+> Conclusion and future directions:
+Based on Jianjun's suggestion, I would run ridge or lasso regression to penalize coefficients. <br>
+R packages: "glmmTMB", "glmmLasso", or "penalizedLMM" are suggested.<br>
+Would this work if I have only five regressors of interest?<br>
+
+
