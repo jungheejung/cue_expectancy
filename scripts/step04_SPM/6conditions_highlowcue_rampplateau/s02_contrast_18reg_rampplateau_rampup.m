@@ -1,4 +1,4 @@
-function s02_contrast_6cond_rampplateau(sub, input_dir, main_dir, save_dir)
+function s02_contrast_18reg_rampplateau_rampup(sub, input_dir, main_dir, save_dir)
 
     % need to scale the contrasts, other wise, missing runs may lead to greater weigthing and messed up estimation
     % PARAMETERS 18 STIM, 2 CUE, 2 RATING
@@ -18,8 +18,10 @@ function s02_contrast_6cond_rampplateau(sub, input_dir, main_dir, save_dir)
 % NOTE 01 start jobs
 disp('...STARTING JOBS');
 
-rootgroup = settings; rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = 'v7.3'
-
+rootgroup = settings; rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = 'v7.3';
+if ~exist(save_dir, 'dir')
+    mkdir(save_dir);
+end
 numscans = 56;
 disacqs = 0;
 disp(strcat('[ STEP 01 ] setting parameters...'));
@@ -57,10 +59,11 @@ motion_dir = fullfile(main_dir, 'data', 'fmri', 'fmri02_motion');
 onset_dir = fullfile(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset02_SPM');
 
 disp( strcat('-----------------------',sub,'----------------------' ));
-output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_6cond_ttl1', ...
-'1stLevel', sub);
-output_dir = save_dir;
-spm_fname = fullfile(output_dir, sub, 'SPM.mat');
+% output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_6cond_ttl1', ...
+% '1stLevel', sub);
+
+
+spm_fname = fullfile(input_dir, sub, 'SPM.mat');
 load(spm_fname);
 
 paths = cellstr(SPM.xY.P);
@@ -361,7 +364,7 @@ end
 
 matlabbatch{1}.spm.stats.con.delete = 1; % delete previous contrast
 
-con_batch = fullfile(output_dir, 'contrast_estimation.mat' );
+con_batch = fullfile(save_dir, 'contrast_estimation.mat' );
 save( con_batch  ,'matlabbatch');
 
 % 2. Run ___________________________________________________________________

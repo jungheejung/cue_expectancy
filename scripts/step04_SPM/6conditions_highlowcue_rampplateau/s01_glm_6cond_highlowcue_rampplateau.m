@@ -215,7 +215,7 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
             cue.rampup_onset = cue.onset03_stim - 2;
             cue.rampdown_onset = cue.onset03_stim + 5;
             cue.rampup_dur = double(repelem(2, length(cue.onset03_stim))');
-            cue.rampdown_dur = double(repelem(2, length(cue.onset03_stim))');;
+            cue.rampdown_dur = double(repelem(2, length(cue.onset03_stim))');
             
         end
         
