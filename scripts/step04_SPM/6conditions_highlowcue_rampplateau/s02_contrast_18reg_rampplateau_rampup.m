@@ -165,7 +165,7 @@ for run_ind = 1: runlength
     task_idx = strcmp(runtype_counts(:, 1), task);
     task_freq = runtype_counts{task_idx, 2};
 
-    if task == "pain"
+    if strcmp(task, "pain")
         STIM_cue_high_gt_low         = [1,1,0, 1,1,0, 1,1,0, -1,-1,0, -1,-1,0, -1,-1,0, 0,0,0,0];
         STIM_stimlin_high_gt_low     = [1,1,0, 0,0,0, -1,-1,0, 1,1,0, 0,0,0, -1,-1,0, 0,0,0,0];
         STIM_stimquad_med_gt_other   = [-1,-1,0, 2,2,0, -1,-1,0, -1,-1,0, 2,2,0, -1,-1,0, 0,0,0,0];
@@ -180,6 +180,21 @@ for run_ind = 1: runlength
         CUE_cue_high_gt_low          = [0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 1,-1,0,0];
         motor_con                    = [0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,1,1];
         stim_con                     = [1,1,0, 1,1,0, 1,1,0, 1,1,0, 1,1,0, 1,1,0, 0,0,0,0];
+    else
+        STIM_cue_high_gt_low         = [1,0,0, 1,0,0, 1,0,0, -1,0,0, -1,0,0, -1,0,0, 0,0,0,0];
+        STIM_stimlin_high_gt_low     = [1,0,0, 0,0,0, -1,0,0, 1,0,0, 0,0,0, -1,0,0, 0,0,0,0];
+        STIM_stimquad_med_gt_other   = [-1,0,0, 2,0,0, -1,0,0, -1,0,0, 2,0,0, -1,0,0, 0,0,0,0];
+        STIM_cue_int_stimlin         = [1,0,0, 0,0,0, -1,0,0, -1,0,0, 0,0,0, 1,0,0, 0,0,0,0];
+        STIM_cue_int_stimquad        = [-1,0,0, 2,0,0, -1,0,0, 1,0,0, -2,0,0, 1,0,0, 0,0,0,0];
+        STIM_highcue_highstim        = [1,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0,0];
+        STIM_highcue_medstim         = [0,0,0, 1,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0,0];
+        STIM_highcue_lowstim         = [0,0,0, 0,0,0, 1,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0,0];
+        STIM_lowcue_highstim         = [0,0,0, 0,0,0, 0,0,0, 1,0,0, 0,0,0, 0,0,0, 0,0,0,0];
+        STIM_lowcue_medstim          = [0,0,0, 0,0,0, 0,0,0, 0,0,0, 1,0,0, 0,0,0, 0,0,0,0];
+        STIM_lowcue_lowstim          = [0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 1,0,0, 0,0,0,0];
+        CUE_cue_high_gt_low          = [0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 1,-1,0,0];
+        motor_con                    = [0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,1,1];
+        stim_con                     = [1,0,0, 1,0,0, 1,0,0, 1,0,0, 1,0,0, 1,0,0, 0,0,0,0];
     end
 
     % disp(['Frequency of cognitive: ', num2str(cognitive_frequency)]);
