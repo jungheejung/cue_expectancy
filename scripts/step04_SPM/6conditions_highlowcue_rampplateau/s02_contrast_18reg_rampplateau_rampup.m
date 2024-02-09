@@ -184,83 +184,83 @@ for run_ind = 1: runlength
 
     % disp(['Frequency of cognitive: ', num2str(cognitive_frequency)]);
 
-    P_VC_STIM_cue_high_gt_low         = [ (m1(task)*STIM_cue_high_gt_low), zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*STIM_cue_high_gt_low),2)) ]; % c01
-    V_PC_STIM_cue_high_gt_low         = [ (m2(task)*STIM_cue_high_gt_low), zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*STIM_cue_high_gt_low),2)) ]; % c02
-    C_PV_STIM_cue_high_gt_low         = [ (m3(task)*STIM_cue_high_gt_low), zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*STIM_cue_high_gt_low),2)) ]; % c03
+    P_VC_STIM_cue_high_gt_low         = [ (m1(task)*STIM_cue_high_gt_low)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*STIM_cue_high_gt_low),2)) ]; % c01
+    V_PC_STIM_cue_high_gt_low         = [ (m2(task)*STIM_cue_high_gt_low)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*STIM_cue_high_gt_low),2)) ]; % c02
+    C_PV_STIM_cue_high_gt_low         = [ (m3(task)*STIM_cue_high_gt_low)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*STIM_cue_high_gt_low),2)) ]; % c03
 
-    P_VC_STIM_stimlin_high_gt_low     = [ (m1(task)*STIM_stimlin_high_gt_low), zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*STIM_stimlin_high_gt_low),2)) ]; % c04
-    V_PC_STIM_stimlin_high_gt_low     = [ (m2(task)*STIM_stimlin_high_gt_low), zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*STIM_stimlin_high_gt_low),2)) ]; % c05
-    C_PV_STIM_stimlin_high_gt_low     = [ (m3(task)*STIM_stimlin_high_gt_low), zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*STIM_stimlin_high_gt_low),2)) ]; % c06
+    P_VC_STIM_stimlin_high_gt_low     = [ (m1(task)*STIM_stimlin_high_gt_low)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*STIM_stimlin_high_gt_low),2)) ]; % c04
+    V_PC_STIM_stimlin_high_gt_low     = [ (m2(task)*STIM_stimlin_high_gt_low)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*STIM_stimlin_high_gt_low),2)) ]; % c05
+    C_PV_STIM_stimlin_high_gt_low     = [ (m3(task)*STIM_stimlin_high_gt_low)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*STIM_stimlin_high_gt_low),2)) ]; % c06
 
-    P_VC_STIM_stimquad_med_gt_other   = [ (m1(task)*STIM_stimquad_med_gt_other), zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*STIM_stimquad_med_gt_other),2)) ]; % c07
-    V_PC_STIM_stimquad_med_gt_other   = [ (m2(task)*STIM_stimquad_med_gt_other), zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*STIM_stimquad_med_gt_other),2)) ]; % c08
-    C_PV_STIM_stimquad_med_gt_other   = [ (m3(task)*STIM_stimquad_med_gt_other), zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*STIM_stimquad_med_gt_other),2)) ]; % c09
+    P_VC_STIM_stimquad_med_gt_other   = [ (m1(task)*STIM_stimquad_med_gt_other)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*STIM_stimquad_med_gt_other),2)) ]; % c07
+    V_PC_STIM_stimquad_med_gt_other   = [ (m2(task)*STIM_stimquad_med_gt_other)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*STIM_stimquad_med_gt_other),2)) ]; % c08
+    C_PV_STIM_stimquad_med_gt_other   = [ (m3(task)*STIM_stimquad_med_gt_other)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*STIM_stimquad_med_gt_other),2)) ]; % c09
 
-    P_VC_STIM_cue_int_stimlin         = [ (m1(task)*STIM_cue_int_stimlin), zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*STIM_cue_int_stimlin),2)) ]; % c10
-    V_PC_STIM_cue_int_stimlin         = [ (m2(task)*STIM_cue_int_stimlin), zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*STIM_cue_int_stimlin),2)) ]; % c11
-    C_PV_STIM_cue_int_stimlin         = [ (m3(task)*STIM_cue_int_stimlin), zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*STIM_cue_int_stimlin),2)) ]; % c12
+    P_VC_STIM_cue_int_stimlin         = [ (m1(task)*STIM_cue_int_stimlin)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*STIM_cue_int_stimlin),2)) ]; % c10
+    V_PC_STIM_cue_int_stimlin         = [ (m2(task)*STIM_cue_int_stimlin)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*STIM_cue_int_stimlin),2)) ]; % c11
+    C_PV_STIM_cue_int_stimlin         = [ (m3(task)*STIM_cue_int_stimlin)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*STIM_cue_int_stimlin),2)) ]; % c12
 
-    P_VC_STIM_cue_int_stimquad        = [ (m1(task)*STIM_cue_int_stimquad), zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*STIM_cue_int_stimquad),2)) ]; % c13
-    V_PC_STIM_cue_int_stimquad        = [ (m2(task)*STIM_cue_int_stimquad), zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*STIM_cue_int_stimquad),2)) ]; % c14
-    C_PV_STIM_cue_int_stimquad        = [ (m3(task)*STIM_cue_int_stimquad), zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*STIM_cue_int_stimquad),2)) ]; % c15
+    P_VC_STIM_cue_int_stimquad        = [ (m1(task)*STIM_cue_int_stimquad)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*STIM_cue_int_stimquad),2)) ]; % c13
+    V_PC_STIM_cue_int_stimquad        = [ (m2(task)*STIM_cue_int_stimquad)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*STIM_cue_int_stimquad),2)) ]; % c14
+    C_PV_STIM_cue_int_stimquad        = [ (m3(task)*STIM_cue_int_stimquad)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*STIM_cue_int_stimquad),2)) ]; % c15
 
-    motor                             = [ motor_con, zeros(1, numRegressorsPerRun(run_ind) - size(motor_con,2) ) ];  % c16
+    motor                             = [ motor_con/(runlength*2), zeros(1, numRegressorsPerRun(run_ind) - size(motor_con,2) ) ];  % c16
 
-    P_simple_STIM_cue_high_gt_low         = [ (m5(task)*STIM_cue_high_gt_low), zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*STIM_cue_high_gt_low),2)) ]; % c17
-    V_simple_STIM_cue_high_gt_low         = [ (m6(task)*STIM_cue_high_gt_low), zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*STIM_cue_high_gt_low),2)) ]; % c18
-    C_simple_STIM_cue_high_gt_low         = [ (m7(task)*STIM_cue_high_gt_low), zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*STIM_cue_high_gt_low),2)) ]; % c19
+    P_simple_STIM_cue_high_gt_low         = [ (m5(task)*STIM_cue_high_gt_low)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*STIM_cue_high_gt_low),2)) ]; % c17
+    V_simple_STIM_cue_high_gt_low         = [ (m6(task)*STIM_cue_high_gt_low)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*STIM_cue_high_gt_low),2)) ]; % c18
+    C_simple_STIM_cue_high_gt_low         = [ (m7(task)*STIM_cue_high_gt_low)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*STIM_cue_high_gt_low),2)) ]; % c19
 
-    P_simple_STIM_stimlin_high_gt_low     = [ (m5(task)*STIM_stimlin_high_gt_low), zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*STIM_stimlin_high_gt_low),2)) ]; % c20
-    V_simple_STIM_stimlin_high_gt_low     = [ (m6(task)*STIM_stimlin_high_gt_low), zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*STIM_stimlin_high_gt_low),2)) ]; % c21
-    C_simple_STIM_stimlin_high_gt_low     = [ (m7(task)*STIM_stimlin_high_gt_low), zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*STIM_stimlin_high_gt_low),2)) ]; % c22
+    P_simple_STIM_stimlin_high_gt_low     = [ (m5(task)*STIM_stimlin_high_gt_low)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*STIM_stimlin_high_gt_low),2)) ]; % c20
+    V_simple_STIM_stimlin_high_gt_low     = [ (m6(task)*STIM_stimlin_high_gt_low)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*STIM_stimlin_high_gt_low),2)) ]; % c21
+    C_simple_STIM_stimlin_high_gt_low     = [ (m7(task)*STIM_stimlin_high_gt_low)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*STIM_stimlin_high_gt_low),2)) ]; % c22
 
-    P_simple_STIM_stimquad_med_gt_other   = [ (m5(task)*STIM_stimquad_med_gt_other), zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*STIM_stimquad_med_gt_other),2))  ]; % c23
-    V_simple_STIM_stimquad_med_gt_other   = [ (m6(task)*STIM_stimquad_med_gt_other), zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*STIM_stimquad_med_gt_other),2))  ]; % c24
-    C_simple_STIM_stimquad_med_gt_other   = [ (m7(task)*STIM_stimquad_med_gt_other), zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*STIM_stimquad_med_gt_other),2))  ]; % c25
+    P_simple_STIM_stimquad_med_gt_other   = [ (m5(task)*STIM_stimquad_med_gt_other)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*STIM_stimquad_med_gt_other),2))  ]; % c23
+    V_simple_STIM_stimquad_med_gt_other   = [ (m6(task)*STIM_stimquad_med_gt_other)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*STIM_stimquad_med_gt_other),2))  ]; % c24
+    C_simple_STIM_stimquad_med_gt_other   = [ (m7(task)*STIM_stimquad_med_gt_other)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*STIM_stimquad_med_gt_other),2))  ]; % c25
 
-    P_simple_STIM_cue_int_stimlin         = [ (m5(task)*STIM_cue_int_stimlin), zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*STIM_cue_int_stimlin),2)) ]; % c26
-    V_simple_STIM_cue_int_stimlin         = [ (m6(task)*STIM_cue_int_stimlin), zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*STIM_cue_int_stimlin),2)) ]; % c27
-    C_simple_STIM_cue_int_stimlin         = [ (m7(task)*STIM_cue_int_stimlin), zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*STIM_cue_int_stimlin),2)) ]; % c28
+    P_simple_STIM_cue_int_stimlin         = [ (m5(task)*STIM_cue_int_stimlin)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*STIM_cue_int_stimlin),2)) ]; % c26
+    V_simple_STIM_cue_int_stimlin         = [ (m6(task)*STIM_cue_int_stimlin)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*STIM_cue_int_stimlin),2)) ]; % c27
+    C_simple_STIM_cue_int_stimlin         = [ (m7(task)*STIM_cue_int_stimlin)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*STIM_cue_int_stimlin),2)) ]; % c28
 
-    P_simple_STIM_cue_int_stimquad        = [ (m5(task)*STIM_cue_int_stimquad), zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*STIM_cue_int_stimquad),2))  ]; % c29
-    V_simple_STIM_cue_int_stimquad        = [ (m6(task)*STIM_cue_int_stimquad), zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*STIM_cue_int_stimquad),2))  ]; % c30
-    C_simple_STIM_cue_int_stimquad        = [ (m7(task)*STIM_cue_int_stimquad), zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*STIM_cue_int_stimquad),2))  ]; % c31
+    P_simple_STIM_cue_int_stimquad        = [ (m5(task)*STIM_cue_int_stimquad)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*STIM_cue_int_stimquad),2))  ]; % c29
+    V_simple_STIM_cue_int_stimquad        = [ (m6(task)*STIM_cue_int_stimquad)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*STIM_cue_int_stimquad),2))  ]; % c30
+    C_simple_STIM_cue_int_stimquad        = [ (m7(task)*STIM_cue_int_stimquad)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*STIM_cue_int_stimquad),2))  ]; % c31
 
-    P_simple_STIM_highcue_highstim        = [ (m5(task)*STIM_highcue_highstim), zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*STIM_highcue_highstim),2))  ];  % c32
-    P_simple_STIM_highcue_medstim         = [ (m5(task)*STIM_highcue_medstim),  zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*STIM_highcue_medstim),2))  ];  % c33
-    P_simple_STIM_highcue_lowstim         = [ (m5(task)*STIM_highcue_lowstim),  zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*STIM_highcue_lowstim),2))  ];  % c34
-    P_simple_STIM_lowcue_highstim         = [ (m5(task)*STIM_lowcue_highstim),  zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*STIM_lowcue_highstim),2))  ];  % c35
-    P_simple_STIM_lowcue_medstim          = [ (m5(task)*STIM_lowcue_medstim),   zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*STIM_lowcue_medstim),2))  ];  % c36
-    P_simple_STIM_lowcue_lowstim          = [ (m5(task)*STIM_lowcue_lowstim),   zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*STIM_lowcue_lowstim),2))  ];  % c37
+    P_simple_STIM_highcue_highstim        = [ (m5(task)*STIM_highcue_highstim)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*STIM_highcue_highstim),2))  ];  % c32
+    P_simple_STIM_highcue_medstim         = [ (m5(task)*STIM_highcue_medstim)/task_freq,  zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*STIM_highcue_medstim),2))  ];  % c33
+    P_simple_STIM_highcue_lowstim         = [ (m5(task)*STIM_highcue_lowstim)/task_freq,  zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*STIM_highcue_lowstim),2))  ];  % c34
+    P_simple_STIM_lowcue_highstim         = [ (m5(task)*STIM_lowcue_highstim)/task_freq,  zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*STIM_lowcue_highstim),2))  ];  % c35
+    P_simple_STIM_lowcue_medstim          = [ (m5(task)*STIM_lowcue_medstim)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*STIM_lowcue_medstim),2))  ];  % c36
+    P_simple_STIM_lowcue_lowstim          = [ (m5(task)*STIM_lowcue_lowstim)/task_freq,  zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*STIM_lowcue_lowstim),2))  ];  % c37
 
-    V_simple_STIM_highcue_highstim        = [ (m6(task)*STIM_highcue_highstim), zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*STIM_highcue_highstim),2)) ];  % c38
-    V_simple_STIM_highcue_medstim         = [ (m6(task)*STIM_highcue_medstim),  zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*STIM_highcue_medstim),2)) ];  % c39
-    V_simple_STIM_highcue_lowstim         = [ (m6(task)*STIM_highcue_lowstim),  zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*STIM_highcue_lowstim),2)) ];  % c40
-    V_simple_STIM_lowcue_highstim         = [ (m6(task)*STIM_lowcue_highstim),  zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*STIM_lowcue_highstim),2)) ];  % c41
-    V_simple_STIM_lowcue_medstim          = [ (m6(task)*STIM_lowcue_medstim),   zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*STIM_lowcue_medstim),2)) ];  % c42
-    V_simple_STIM_lowcue_lowstim          = [ (m6(task)*STIM_lowcue_lowstim),   zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*STIM_lowcue_lowstim),2)) ];  % c43
+    V_simple_STIM_highcue_highstim        = [ (m6(task)*STIM_highcue_highstim)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*STIM_highcue_highstim),2)) ];  % c38
+    V_simple_STIM_highcue_medstim         = [ (m6(task)*STIM_highcue_medstim)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*STIM_highcue_medstim),2)) ];  % c39
+    V_simple_STIM_highcue_lowstim         = [ (m6(task)*STIM_highcue_lowstim)/task_freq,  zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*STIM_highcue_lowstim),2)) ];  % c40
+    V_simple_STIM_lowcue_highstim         = [ (m6(task)*STIM_lowcue_highstim)/task_freq,  zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*STIM_lowcue_highstim),2)) ];  % c41
+    V_simple_STIM_lowcue_medstim          = [ (m6(task)*STIM_lowcue_medstim)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*STIM_lowcue_medstim),2)) ];  % c42
+    V_simple_STIM_lowcue_lowstim          = [ (m6(task)*STIM_lowcue_lowstim)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*STIM_lowcue_lowstim),2)) ];  % c43
 
-    C_simple_STIM_highcue_highstim        = [ (m7(task)*STIM_highcue_highstim), zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*STIM_highcue_highstim),2)) ];  % c44
-    C_simple_STIM_highcue_medstim         = [ (m7(task)*STIM_highcue_medstim),  zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*STIM_highcue_medstim),2)) ];  % c45
-    C_simple_STIM_highcue_lowstim         = [ (m7(task)*STIM_highcue_lowstim),  zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*STIM_highcue_lowstim),2)) ];  % c46
-    C_simple_STIM_lowcue_highstim         = [ (m7(task)*STIM_lowcue_highstim),  zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*STIM_lowcue_highstim),2)) ];  % c47
-    C_simple_STIM_lowcue_medstim          = [ (m7(task)*STIM_lowcue_medstim),   zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*STIM_lowcue_medstim),2)) ];  % c48
-    C_simple_STIM_lowcue_lowstim          = [ (m7(task)*STIM_lowcue_lowstim),   zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*STIM_lowcue_lowstim),2)) ];  % c49
+    C_simple_STIM_highcue_highstim        = [ (m7(task)*STIM_highcue_highstim)/task_freq, zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*STIM_highcue_highstim),2)) ];  % c44
+    C_simple_STIM_highcue_medstim         = [ (m7(task)*STIM_highcue_medstim)/task_freq,  zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*STIM_highcue_medstim),2)) ];  % c45
+    C_simple_STIM_highcue_lowstim         = [ (m7(task)*STIM_highcue_lowstim)/task_freq,  zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*STIM_highcue_lowstim),2)) ];  % c46
+    C_simple_STIM_lowcue_highstim         = [ (m7(task)*STIM_lowcue_highstim)/task_freq,  zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*STIM_lowcue_highstim),2)) ];  % c47
+    C_simple_STIM_lowcue_medstim          = [ (m7(task)*STIM_lowcue_medstim)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*STIM_lowcue_medstim),2)) ];  % c48
+    C_simple_STIM_lowcue_lowstim          = [ (m7(task)*STIM_lowcue_lowstim)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*STIM_lowcue_lowstim),2)) ];  % c49
 
 
     % cue epoch contrasts
-    P_VC_CUE_cue_high_gt_low         = [ (m1(task)*CUE_cue_high_gt_low),   zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*CUE_cue_high_gt_low),2)) ]; % c50
-    V_PC_CUE_cue_high_gt_low         = [ (m2(task)*CUE_cue_high_gt_low),   zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*CUE_cue_high_gt_low),2)) ]; % c51
-    C_PV_CUE_cue_high_gt_low         = [ (m3(task)*CUE_cue_high_gt_low),   zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*CUE_cue_high_gt_low),2)) ]; % c52
+    P_VC_CUE_cue_high_gt_low         = [ (m1(task)*CUE_cue_high_gt_low)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*CUE_cue_high_gt_low),2)) ]; % c50
+    V_PC_CUE_cue_high_gt_low         = [ (m2(task)*CUE_cue_high_gt_low)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*CUE_cue_high_gt_low),2)) ]; % c51
+    C_PV_CUE_cue_high_gt_low         = [ (m3(task)*CUE_cue_high_gt_low)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*CUE_cue_high_gt_low),2)) ]; % c52
 
-    P_simple_CUE_cue_high_gt_low     = [ (m5(task)*CUE_cue_high_gt_low),   zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*CUE_cue_high_gt_low),2)) ]; % c53
-    V_simple_CUE_cue_high_gt_low     = [ (m6(task)*CUE_cue_high_gt_low),   zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*CUE_cue_high_gt_low),2)) ]; % c54
-    C_simple_CUE_cue_high_gt_low     = [ (m7(task)*CUE_cue_high_gt_low),   zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*CUE_cue_high_gt_low),2)) ]; % c55
-    G_simple_CUE_cue_high_gt_low     = [ (m4(task)*CUE_cue_high_gt_low),   zeros(1, numRegressorsPerRun(run_ind) - size((m4(task)*CUE_cue_high_gt_low),2)) ]; % c52
+    P_simple_CUE_cue_high_gt_low     = [ (m5(task)*CUE_cue_high_gt_low)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*CUE_cue_high_gt_low),2)) ]; % c53
+    V_simple_CUE_cue_high_gt_low     = [ (m6(task)*CUE_cue_high_gt_low)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*CUE_cue_high_gt_low),2)) ]; % c54
+    C_simple_CUE_cue_high_gt_low     = [ (m7(task)*CUE_cue_high_gt_low)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*CUE_cue_high_gt_low),2)) ]; % c55
+    G_simple_CUE_cue_high_gt_low     = [ (m4(task)*CUE_cue_high_gt_low)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m4(task)*CUE_cue_high_gt_low),2)) ]; % c52
 
-    P_VC_STIM                        = [ (m1(task)*stim_con),   zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*stim_con),2)) ]; % c50
-    V_PC_STIM                        = [ (m2(task)*stim_con),   zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*stim_con),2)) ]; % c51
-    C_PV_STIM                        = [ (m3(task)*stim_con),   zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*stim_con),2)) ]; % c52
+    P_VC_STIM                        = [ (m1(task)*stim_con)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*stim_con),2)) ]; % c50
+    V_PC_STIM                        = [ (m2(task)*stim_con)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*stim_con),2)) ]; % c51
+    C_PV_STIM                        = [ (m3(task)*stim_con)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*stim_con),2)) ]; % c52
     
 
     c01 = [ c01  P_VC_STIM_cue_high_gt_low];         c02 = [ c02  V_PC_STIM_cue_high_gt_low];         c03 = [ c03  C_PV_STIM_cue_high_gt_low];
