@@ -43,7 +43,8 @@ for subdir in "$source_dir"/sub-*; do
                 filename=$(basename "$file")
                 
                 # Extract the numeric index from the filename, assuming it follows 'con' and precedes '.nii'
-                index=$(echo "$filename" | sed -n 's/con\([0-9]\+\).nii/\1/p')
+                # index=$(echo "$filename" | sed -n 's/con\([0-9]\+\).nii/\1/p')
+                index=$(echo "$filename" | sed 's/con_\(.*\).nii/\1/')
                 
                 # Check if index extraction was successful
                 if [ ! -z "$index" ]; then
