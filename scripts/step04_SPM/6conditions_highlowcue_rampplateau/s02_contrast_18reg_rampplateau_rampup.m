@@ -61,7 +61,7 @@ onset_dir = fullfile(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset02_SPM');
 disp( strcat('-----------------------',sub,'----------------------' ));
 % output_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'univariate', 'model01_6cond_ttl1', ...
 % '1stLevel', sub);
-
+% correct
 
 spm_fname = fullfile(input_dir, sub, 'SPM.mat');
 load(spm_fname);
