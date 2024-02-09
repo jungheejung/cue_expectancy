@@ -30,40 +30,79 @@ contrast_names=(
     "G_simple_CUE_cue_high_gt_low" \
     "P_VC_STIM"  "V_PC_STIM"     "C_PV_STIM" \
 )
-# For each subdirectory in source_dir
-for subdir in "${source_dir}"/sub-*; do
-    # If it"s a directory
-    if [ -d "$subdir" ]; then
-        # Extract the subdirectory name
-        subdir_name=$(basename "$subdir")
 
-        # Create the corresponding subdirectory in dest_dir
+# Loop through subdirectories in the source directory
+for subdir in "$source_dir"/sub-*; do
+    if [ -d "$subdir" ]; then
+        subdir_name=$(basename "$subdir")
         mkdir -p "$dest_dir/$subdir_name"
-        contrast_index=1
-        # Copy files matching the file_pattern from the source subdirectory to the destination subdirectory and rename them
-        for file in "$subdir"/$file_pattern; do
+
+        # Loop through con*.nii files in the current subdirectory
+        for file in "$subdir"/con*.nii; do
             if [ -f "$file" ]; then
-                # Extract the filename without path
                 filename=$(basename "$file")
-                # Extract the index from the filename (assuming format conXXXX.nii, where XXXX is the zero-padded index)
-                index=$(echo "$filename" | sed "s/con\([0-9]\+\).nii/\1/")
-                # Convert the zero-padded index to a regular integer
-                index=$((10#$index))
                 
-                # Get the corresponding contrast name using the extracted index
-                # Bash arrays are 0-indexed, so we subtract 1 from the extracted index
-                contrast_name="${contrast_names[$((index-1))]}"
+                # Extract the numeric index from the filename, assuming it follows 'con' and precedes '.nii'
+                index=$(echo "$filename" | sed -n 's/con\([0-9]\+\).nii/\1/p')
                 
-                # Construct the new name
-                new_name="${subdir_name}_${filename}_${contrast_name}"
-                
-                # Copy and rename
-                cp "$file" "$dest_dir/$subdir_name/$new_name"
-                echo "Copied $file to $dest_dir/$subdir_name/$new_name"
+                # Check if index extraction was successful
+                if [ ! -z "$index" ]; then
+                    # Convert the zero-padded index to a regular integer to avoid base conversion errors
+                    index=$((10#$index))
+                    
+                    # Adjust for zero-based indexing in contrast_names array
+                    contrast_name="${contrast_names[$((index-1))]}"
+                    
+                    # Construct the new filename
+                    new_name="${subdir_name}_${contrast_name}_${filename}"
+                    
+                    # Copy and rename the file
+                    cp "$file" "$dest_dir/$subdir_name/$new_name"
+                    echo "Copied $file to $dest_dir/$subdir_name/$new_name"
+                else
+                    echo "Failed to extract index from $filename"
+                fi
             fi
         done
     fi
 done
+
+# # For each subdirectory in source_dir
+# for subdir in "${source_dir}"/sub-*; do
+#     # If it"s a directory
+#     if [ -d "$subdir" ]; then
+#         # Extract the subdirectory name
+#         subdir_name=$(basename "$subdir")
+
+#         # Create the corresponding subdirectory in dest_dir
+#         mkdir -p "$dest_dir/$subdir_name"
+#         contrast_index=1
+#         # Copy files matching the file_pattern from the source subdirectory to the destination subdirectory and rename them
+#         for file in "$subdir"/$file_pattern; do
+#             if [ -f "$file" ]; then
+#                 # Extract the filename without path
+#                 filename=$(basename "$file")
+#                 # Extract the index from the filename (assuming format conXXXX.nii, where XXXX is the zero-padded index)
+#                 index=$(echo "$filename" | sed -n 's/con\([0-9]\+\).nii/\1/p')
+
+#                 index=$(echo "$filename" | sed "s/con\([0-9]\+\).nii/\1/")
+#                 # Convert the zero-padded index to a regular integer
+#                 index=$((10#$index))
+                
+#                 # Get the corresponding contrast name using the extracted index
+#                 # Bash arrays are 0-indexed, so we subtract 1 from the extracted index
+#                 contrast_name="${contrast_names[$((index-1))]}"
+                
+#                 # Construct the new name
+#                 new_name="${subdir_name}_${filename}_${contrast_name}"
+                
+#                 # Copy and rename
+#                 cp "$file" "$dest_dir/$subdir_name/$new_name"
+#                 echo "Copied $file to $dest_dir/$subdir_name/$new_name"
+#             fi
+#         done
+#     fi
+# done
 
 
 echo "Done!"
