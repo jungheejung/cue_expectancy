@@ -55,7 +55,7 @@ for subdir in "$source_dir"/sub-*; do
                     contrast_name="${contrast_names[$((index-1))]}"
                     
                     # Construct the new filename
-                    new_name="${subdir_name}_${contrast_name}_${filename}"
+                    new_name="${subdir_name}_${filename}_${contrast_name}"
                     
                     # Copy and rename the file
                     cp "$file" "$dest_dir/$subdir_name/$new_name"
