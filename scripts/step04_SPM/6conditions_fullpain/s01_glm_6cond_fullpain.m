@@ -199,11 +199,11 @@ function s01_glm_6cond_fullpain(sub, input_dir, main_dir, fmriprep_dir, badruns_
                 rampdown_values.med_stim = 3.606;
                 rampdown_values.high_stim = 3.813;
                 % Create a new column 'rampup' and initialize with NaN
-                cue.rampup_onset = NaN(height(cue), 1); %
+                % cue.rampup_onset = NaN(height(cue), 1); %
                 cue.rampup_dur = NaN(height(cue), 1);
-                cue.rampdown_onset = NaN(height(cue), 1); % onset03_stim + 5
+                % cue.rampdown_onset = NaN(height(cue), 1); % onset03_stim + 5
                 cue.rampdown_dur = NaN(height(cue), 1);
-                cue.plateau_onset = NaN(height(cue), 1); % onset03_stim + rampup_values (per stim)
+                % cue.plateau_onset = NaN(height(cue), 1); % onset03_stim + rampup_values (per stim)
 
                 % Assign rampup values based on pmod_stimtype
                 low_indices = cellfun(@(x) strcmp(x, 'low_stim'), cellstr(cue.pmod_stimtype));
@@ -215,10 +215,10 @@ function s01_glm_6cond_fullpain(sub, input_dir, main_dir, fmriprep_dir, badruns_
                 cue.rampdown_dur(low_indices)= rampdown_values.low_stim;
                 cue.rampdown_dur(med_indices)= rampdown_values.med_stim;
                 cue.rampdown_dur(high_indices)= rampdown_values.high_stim;
-                cue.rampup_onset = cue.onset03_stim;
-                % cue.rampup_dur = cue.rampup_dur;
-                cue.plateau_onset = cue.rampup_dur + cue.onset03_stim;
-                cue.rampdown_onset = cue.rampup_dur + cue.onset03_stim + 5;
+                % cue.rampup_onset = cue.onset03_stim;
+                % % cue.rampup_dur = cue.rampup_dur;
+                % cue.plateau_onset = cue.rampup_dur + cue.onset03_stim;
+                % cue.rampdown_onset = cue.rampup_dur + cue.onset03_stim + 5;
                 % cue.rampdown_dur = cue.rampdown_dur;
                 cue.stim_dur = cue.rampup_dur + 5 + cue.rampdown_dur;
                 % cue.stim_dur = cue.TTL4-cue.TTL1;
@@ -235,7 +235,7 @@ function s01_glm_6cond_fullpain(sub, input_dir, main_dir, fmriprep_dir, badruns_
             % cue.rampdown_onset = cue.onset03_stim + 5;
             % cue.rampup_dur = double(repelem(2, length(cue.onset03_stim))');
             % cue.rampdown_dur = double(repelem(2, length(cue.onset03_stim))');
-            cue.stim_dur = 5;
+            cue.stim_dur = double(repelem(5, length(cue.onset03_stim))');
             cue.stim_onset = cue.onset03_stim;
             
         end
