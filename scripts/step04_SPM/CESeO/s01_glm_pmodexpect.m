@@ -298,7 +298,7 @@ for run_ind = 1:size(A, 1)
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).duration = double(repelem(5, length(double(cue.onset03_stim)))');
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).tmod = 0;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(1).name = strcat(task,'_stimepoch_cuemodulation');
-    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(1).param = double(cue.CUE_high_gt_low);
+    matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(1).param = double(cue.cue_con);
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod(1).poly = 1;
     matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).orth = 0;
     
