@@ -235,7 +235,12 @@ for run_ind = 1: runlength
     P_simple_CUE_cue_high_gt_low     = [ (m5(task)*CUE_cue_high_gt_low)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m5(task)*CUE_cue_high_gt_low),2)) ]; % c53
     V_simple_CUE_cue_high_gt_low     = [ (m6(task)*CUE_cue_high_gt_low)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m6(task)*CUE_cue_high_gt_low),2)) ]; % c54
     C_simple_CUE_cue_high_gt_low     = [ (m7(task)*CUE_cue_high_gt_low)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m7(task)*CUE_cue_high_gt_low),2)) ]; % c55
+    G_simple_CUE_cue_high_gt_low     = [ (m4(task)*CUE_cue_high_gt_low)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m4(task)*CUE_cue_high_gt_low),2)) ]; % c52
 
+    P_VC_STIM                        = [ (m1(task)*stim_con)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m1(task)*stim_con),2)) ]; % c50
+    V_PC_STIM                        = [ (m2(task)*stim_con)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m2(task)*stim_con),2)) ]; % c51
+    C_PV_STIM                        = [ (m3(task)*stim_con)/task_freq,   zeros(1, numRegressorsPerRun(run_ind) - size((m3(task)*stim_con),2)) ]; % c52
+    
 
     c01 = [ c01  P_VC_STIM_cue_high_gt_low];         c02 = [ c02  V_PC_STIM_cue_high_gt_low];         c03 = [ c03  C_PV_STIM_cue_high_gt_low];
     c04 = [ c04  P_VC_STIM_stimlin_high_gt_low];     c05 = [ c05  V_PC_STIM_stimlin_high_gt_low];     c06 = [ c06  C_PV_STIM_stimlin_high_gt_low];   
@@ -258,7 +263,8 @@ for run_ind = 1: runlength
 
     c50 = [ c50  P_VC_CUE_cue_high_gt_low];         c51 = [ c51  V_PC_CUE_cue_high_gt_low];        c52 = [ c52  C_PV_CUE_cue_high_gt_low];
     c53 = [ c53  P_simple_CUE_cue_high_gt_low];     c54 = [ c54  V_simple_CUE_cue_high_gt_low];    c55 = [ c55  C_simple_CUE_cue_high_gt_low];
-
+    c56 = [ c56  G_simple_CUE_cue_high_gt_low];
+    c57 = [ c57  P_VC_STIM];                        c58 = [ c58  V_PC_STIM];                       c59 = [ c59  C_PV_STIM];
     disp(strcat('task: ', task));
 
  end
@@ -318,7 +324,10 @@ for run_ind = 1: runlength
  contrast_vector{53} = c53/norm(c53);
  contrast_vector{54} = c54/norm(c54);
  contrast_vector{55} = c55/norm(c55);
-
+ contrast_vector{56} = c56/norm(c56);
+ contrast_vector{57} = c57/norm(c57);
+ contrast_vector{58} = c58/norm(c58);
+ contrast_vector{59} = c59/norm(c59);
 
 %  checkOrthogonality(contrast_vector)
 %% 1. contrast batch _______________________________________________________
