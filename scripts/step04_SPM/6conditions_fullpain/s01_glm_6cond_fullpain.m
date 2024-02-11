@@ -168,9 +168,9 @@ function s01_glm_6cond_fullpain(sub, input_dir, main_dir, fmriprep_dir, badruns_
                 onset_fname = fullfile(char(test.folder), char(test.name));
                 cue = struct2table(tdfread(onset_fname));
                 
-                cue.stim_dir = cue.TTL4-cue.TTL1;
+                cue.stim_dur = cue.TTL4-cue.TTL1;
                 cue.stim_onset = cue.TTL1;
-
+                disp(cue);
                 % cue.rampup_onset = cue.TTL1;
                 % cue.rampup_dur = cue.TTL2 - cue.TTL1;
                 % cue.plateau_onset = cue.TTL2;
@@ -239,7 +239,16 @@ function s01_glm_6cond_fullpain(sub, input_dir, main_dir, fmriprep_dir, badruns_
             cue.stim_onset = cue.onset03_stim;
             
         end
-        
+        cue.pmod_cuetype = cellstr(cue.pmod_cuetype);
+        cue.pmod_stimtype = cellstr(cue.pmod_stimtype);
+        cue.pmod_stimtype = strtrim(cue.pmod_stimtype);
+        cue.pmod_cuetype = strtrim(cue.pmod_cuetype);
+        disp(cue.pmod_cuetype)
+        highcue = strcmp(cue.pmod_cuetype,'high_cue');
+        lowcue = strcmp(cue.pmod_cuetype,'low_cue');
+        highstim = strcmp(cue.pmod_stimtype, 'high_stim');
+        medstim = strcmp(cue.pmod_stimtype, 'med_stim');
+        lowstim = strcmp(cue.pmod_stimtype, 'low_stim');        
         disp(strcat('task: ', task));
         disp(strcat('[ STEP 05 ]creating motion covariate text file...'));
 
