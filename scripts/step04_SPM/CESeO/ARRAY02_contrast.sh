@@ -14,10 +14,10 @@
 CANLABCORE_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore"
 SPM_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/spm12"
 MAIN_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue" #"$(realpath "${PWD}/../..")"
-INPUT_DIR="${MAIN_DIR}/analysis/fmri/smooth6mm"
-
+INPUT_DIR="/dartfs-hpc/scratch/f0042x1/spm/model02_CESeO"
+SAVE_DIR="/dartfs-hpc/scratch/f0042x1/spm/model02_CESeO/1stlevel"
 FMRIPREP_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop_data/derivatives/fmriprep/results/fmriprep"
-SPMINPUT_DIR="${MAIN_DIR}/analysis/fmri/spm/univariate/model02_CESeO/1stLevel"
+SPMINPUT_DIR="${MAIN_DIR}/analysis/fmri/spm/univariate/model02_CESeO/"
 mylist=($(find ${SPMINPUT_DIR} -maxdepth 1 -mindepth 1 -type d -iname "sub-*"))
 IFS=$'\n' sorted=($(sort <<<"${mylist[*]}") )
 PARTICIPANT_LABEL="$(basename "${sorted[$((SLURM_ARRAY_TASK_ID-1))]}")"
