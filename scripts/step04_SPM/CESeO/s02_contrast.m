@@ -4,8 +4,9 @@ function s02_contrast(sub, input_dir, main_dir, save_dir)
 disp('...STARTING JOBS');
 
 rootgroup = settings; rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = 'v7.3'
-if ~exist(save_dir, 'dir')
-    mkdir(save_dir);
+
+if ~exist(fullfile(save_dir, sub), 'dir')
+    mkdir(fullfile(save_dir, sub));
 end
 numscans = 56;
 disacqs = 0;
@@ -214,7 +215,7 @@ end
 
 matlabbatch{1}.spm.stats.con.delete = 1; % delete previous contrast
 
-con_batch = fullfile(save_dir, 'contrast_estimation.mat' );
+con_batch = fullfile(save_dir, sub, 'contrast_estimation.mat' );
 save( con_batch  ,'matlabbatch');
 
 % 2. Run ___________________________________________________________________
