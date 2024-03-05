@@ -461,10 +461,13 @@ for beh_fname in beh_list:
     ttl_exist = ttl_exists(beh_fname)
     if run_type == 'pain' and ttl_exist:
         ttl_fname = beh_fname.replace('events.tsv', 'events_ttl.tsv')
+        print(ttl_fname)
         events_df = restructure_task_cue_beh_painttl(ttl_fname)
     elif run_type == 'pain' and not ttl_exist:
+        print(beh_fname)
         events_df = restructure_task_cue_beh_NOttl(beh_fname)
     elif run_type in ('cognitive', 'vicarious'):
+        print(beh_fname)
         events_df = restructure_task_cue_beh(beh_fname)
     # TODO: later save it to source BIDS dir
     save_events_fname = f'{sub}_{ses}_task-cue_acq-mb8_{run}_events.tsv'
