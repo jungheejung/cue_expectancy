@@ -455,10 +455,9 @@ ses_num = args.session_num # e.g. 'task-social' 'task-fractional' 'task-alignvid
 
 onset_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/fmri/fmri01_onset/onset02_SPM'
 save_events_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/beh/beh03_bids'
-fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/smooth6mm'#'/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop_data/derivatives/fmriprep/results/fmriprep'
-# save_singletrial_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/singletrial_rampupdown'
+smooth_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/smooth6mm'
+fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop_data/derivatives/fmriprep/results/fmriprep'
 save_singletrial_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupdown'
-
 save_fig_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/figure/fmri/nilearn/singletrial_rampupplateau'
 sub_folders = next(os.walk(onset_dir))[1]
 print(sub_folders)
@@ -528,7 +527,7 @@ for beh_fname in beh_list:
     'verbose': 0}
     lss_beta_maps = {cond: [] for cond in events_df['trial_type'].unique()}
     lss_design_matrices = []
-    fmri_file = os.path.join(fmriprep_dir, sub, ses, 'func', f'{sub}_{ses}_task-social_acq-mb8_run-{run_num}_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz')
+    fmri_file = os.path.join(smooth_dir, sub, ses, 'func', f'{sub}_{ses}_task-social_acq-mb8_run-{run_num}_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz')
     confounds_file = os.path.join(fmriprep_dir, sub, ses, 'func', f'{sub}_{ses}_task-social_acq-mb8_run-{run_num}_desc-confounds_timeseries.tsv')
     confounds = pd.read_csv(confounds_file, sep = '\t')
     filter_col = [col for col in confounds if col.startswith('motion')]
