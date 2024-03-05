@@ -144,7 +144,8 @@ def restructure_task_cue_beh(beh_fname):
         'onset' : list(beh['onset04_ratingoutcome']),
         'duration' : list(beh['pmod_outcomeRT']),
         'trial_type' : list(np.repeat('outcomerating',len(beh['onset04_ratingoutcome']))),
-        # 'full_trial_type' : list('event-outcomerating_cue-' + beh.pmod_cuetype.str.split('_').str.get(0) + '_stim-' + beh.pmod_stimtype.str.split('_').str.get(0)),
+        # 'full_trial_type' : list('event-outcomerating_cue-' + 
+        # beh.pmod_cuetype.str.split('_').str.get(0) + '_stim-' + beh.pmod_stimtype.str.split('_').str.get(0)),
         # TODO: pick up here. you want to construct a nifti filename that includes all of the major parameters: eventtype, cue, stimintensity
         'sub': list(np.repeat(sub,len(beh['onset04_ratingoutcome']))),
         'ses': list(np.repeat(ses,len(beh['onset04_ratingoutcome']))),
@@ -158,39 +159,6 @@ def restructure_task_cue_beh(beh_fname):
         'outcomerating':beh.pmod_outcomeangle,
         'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-outcomerating_trial-{i:03d}_cuetype-{cuetype_list[i]}_stimintensity-{stimtype_list[i]}.nii.gz" for i in range(len(beh['onset04_ratingoutcome']))]
     })
-
-    # onset05_rampup = pd.DataFrame({
-    #     'onset' : list(beh['onset03_stim'] - 2.5 ),
-    #     'duration' : list(np.repeat(2.5,len(beh['onset03_stim']))),
-    #     'trial_type' : list(np.repeat('stimulus',len(beh['onset03_stim']))),
-    #     'sub': list(np.repeat(sub,len(beh['onset03_stim']))),
-    #     'ses': list(np.repeat(ses,len(beh['onset03_stim']))),
-    #     'run': list(np.repeat(run,len(beh['onset03_stim']))),
-    #     'runtype': list(np.repeat(runtype,len(beh['onset03_stim']))),
-    #     'eventtype': list(np.repeat('stimulus',len(beh['onset03_stim']))),
-    #     'trialnum': list(range(len(beh['onset03_stim']))),
-    #     'cuetype':beh.pmod_cuetype,
-    #     'stimtype':beh.pmod_stimtype,
-    #     'expectrating':beh.pmod_expectangle,
-    #     'outcomerating':beh.pmod_outcomeangle,
-    #     'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-outcomerating_trial-{i:03d}_cuetype-{cuetype_list[i]}_stimintensity-{stimtype_list[i]}.nii.gz" for i in range(len(beh['onset04_ratingoutcome']))]
-    # })
-    # onset06_rampdown = pd.DataFrame({
-    #     'onset' : list(beh['onset03_stim'] + 5 ),
-    #     'duration' : list(np.repeat(2.5,len(beh['onset03_stim']))),
-    #     'trial_type' : list(np.repeat('stimulus',len(beh['onset03_stim']))),
-    #     'sub': list(np.repeat(sub,len(beh['onset03_stim']))),
-    #     'ses': list(np.repeat(ses,len(beh['onset03_stim']))),
-    #     'run': list(np.repeat(run,len(beh['onset03_stim']))),
-    #     'runtype': list(np.repeat(runtype,len(beh['onset03_stim']))),
-    #     'eventtype': list(np.repeat('stimulus',len(beh['onset03_stim']))),
-    #     'trialnum': list(range(len(beh['onset03_stim']))),
-    #     'cuetype':beh.pmod_cuetype,
-    #     'stimtype':beh.pmod_stimtype,
-    #     'expectrating':beh.pmod_expectangle,
-    #     'outcomerating':beh.pmod_outcomeangle,
-    #     'singletrial_fname': [f"{sub}_{ses}_{run}_runtype-{runtype}_event-outcomerating_trial-{i:03d}_cuetype-{cuetype_list[i]}_stimintensity-{stimtype_list[i]}.nii.gz" for i in range(len(beh['onset04_ratingoutcome']))]
-    # })
     events_df = pd.concat([onset01_cue, onset02_expectrating, onset03_stim, onset04_outcomerating])
     events_df = events_df.reset_index(drop=True)
     return events_df
@@ -447,12 +415,12 @@ parser.add_argument("--session-num", type=int,
                     help="specify slurm array id")
 args = parser.parse_args()
 
-# 0. parameters ________________________________________________________________________________
+# 0. parameters ________________________________________________________________
 print(args.slurm_id)
 slurm_id = args.slurm_id # e.g. 1, 2
 ses_num = args.session_num # e.g. 'task-social' 'task-fractional' 'task-alignvideos'
 
-
+################################################################################
 onset_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/fmri/fmri01_onset/onset02_SPM'
 save_events_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/beh/beh03_bids'
 smooth_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/smooth6mm'
@@ -468,7 +436,8 @@ print(f" ________ {sub} {ses} ________")
 subject_beh_dir = os.path.join(onset_dir, sub, ses)
 save_designmatrix_dir = os.path.join(save_fig_dir, sub)
 
-# 1. load behavioral data and restructure for BIDS  ________________________________________________________________________________
+# 1. load behavioral data and restructure for BIDS  ____________________________
+
 # 1-1) load tsv file. If _ttl.tsv exists, then load that one
 # Function to check if TTL file exists
 def ttl_exists(beh_fname):
@@ -484,8 +453,10 @@ for beh_fname in beh_list:
     run = f"run-{run_num:02d}"
     print(f"{run_num} {run_type}")
     # 1-2) restructure for BIDS format. Columns have onset/duration/trial_type
-    # check of TTL file exists. the onset time and behavioral ratings slightly differ depending on existance of TTL files
-    # if so, onset we'll use TTL 1, 2, 3, 4 to calulate rampup, rampdown, and onset of each epoch
+    # check of TTL file exists. the onset time and behavioral ratings slightly 
+    # differ depending on existance of TTL files
+    # if so, onset we'll use TTL 1, 2, 3, 4 to calulate rampup, rampdown, 
+    # and onset of each epoch
     ttl_exist = ttl_exists(beh_fname)
     if run_type == 'pain' and ttl_exist:
         events_df = restructure_task_cue_beh_painttl()
@@ -504,11 +475,14 @@ for beh_fname in beh_list:
     # events_df.trial_type.str.extract(regex)
 
 
-    # %% 2. Setup glm paramters and extract confounds from fmriprep confounds.tsv ___________________________________________________________
-    glm_parameters = {'drift_model':None,
+    # %% 2. Setup glm paramters and extract confounds from fmriprep confounds.tsv 
+    # __________________________________________________________________________
+    glm_parameters = {'drift_model': 'cosine',
     'drift_order': 1,
     'fir_delays': [0],
-    # 'high_pass': 0.01, This parameter specifies the cut frequency of the high-pass filter in Hz for the design matrices. Used only if drift_model is ‘cosine’. Default=0.01.
+    'high_pass': 1./128, 
+    # This parameter specifies the cut frequency of the high-pass filter in Hz 
+    # for the design matrices. Used only if drift_model is ‘cosine’. Default=0.01.
     'hrf_model': 'spm', #
     'mask_img': None,
     'min_onset': -24,
@@ -526,8 +500,8 @@ for beh_fname in beh_list:
     'target_shape': None, #
     'verbose': 0}
     lss_beta_maps = {cond: [] for cond in events_df['trial_type'].unique()}
-    lss_design_matrices = []
-    fmri_file = os.path.join(smooth_dir, sub, ses, 'func', f'{sub}_{ses}_task-social_acq-mb8_run-{run_num}_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz')
+    lss_design_matrices = [] 
+    fmri_file = os.path.join(smooth_dir, sub, ses, f"smooth-6mm_{sub}_{ses}_task-cue_acq-mb8_run-{run_num}_space-MNI152NLin2009cAsym_desc-preproc_bold.nii")
     confounds_file = os.path.join(fmriprep_dir, sub, ses, 'func', f'{sub}_{ses}_task-social_acq-mb8_run-{run_num}_desc-confounds_timeseries.tsv')
     confounds = pd.read_csv(confounds_file, sep = '\t')
     filter_col = [col for col in confounds if col.startswith('motion')]
@@ -539,25 +513,25 @@ for beh_fname in beh_list:
                                 'rot_z', 'rot_z_derivative1', 'rot_z_derivative1_power2', 'rot_z_power2']
     filter_col.extend(default_csf_24dof)
     dummy = pd.DataFrame(np.eye(len(confounds))).loc[:,0:5]
-    dummy.rename(columns = {0:'dummy_00',
-                        1:'dummy_01',
-                        2:'dummy_02',3:'dummy_03',4:'dummy_04',5:'dummy_05'}, inplace=True)
+    dummy.rename(columns = {0:'dummy_00', 1:'dummy_01',2:'dummy_02',
+                            3:'dummy_03',4:'dummy_04',5:'dummy_05'},inplace=True)
     subset_confounds = pd.concat([confounds[filter_col], dummy], axis = 1)
     print("grabbed all the confounds and fmri data")
     subset_confounds.head()
-    # %% 3. Fit glm model per trial ________________________________________________________________________________
-    # TODO: identify the index where trial type is stimulus and cue
-    singletrial_list = events_df.loc[(events_df['trial_type'] == 'cue') | (events_df['trial_type'] == 'stimulus')].index.tolist()
+    # %% 3. Fit glm model per trial ____________________________________________
+    # identify the index where trial type is stimulus and cue
+    singletrial_list = events_df.loc[(events_df['trial_type'] == 'cue') | 
+                                     (events_df['trial_type'] == 'stimulus')].index.tolist()
     for i_trial in singletrial_list:
         print(f"trial number: {i_trial}")
-        # step 1) isolate each event
+        # 1) isolate each event
         lss_events_df, trial_condition = lss_transformer(events_df, i_trial)
         condition_name = trial_condition.split('__')[0]
         trial_num =  trial_condition.split('__')[1]
         fullfname = events_df.singletrial_fname[i_trial]
         description = fullfname.replace(".nii.gz", "")
         print(description)
-        # step 2) compute and collect beta maps
+        # 2) compute and collect beta maps
         lss_glm = FirstLevelModel(**glm_parameters)
         lss_glm.fit(fmri_file, 
                     events = lss_events_df[['onset', 'duration', 'trial_type']], 
@@ -569,7 +543,7 @@ for beh_fname in beh_list:
         )
         design_matrix = lss_glm.design_matrices_[0]
 
-        # Calculate VIF for each regressor in the design matrix
+        # 3) Calculate VIF for each regressor in the design matrix
         vif_data = pd.DataFrame()
         vif_data['feature'] = design_matrix.columns
         vif_data['modelname'] = description
@@ -579,7 +553,7 @@ for beh_fname in beh_list:
         vif_data.to_csv(join(save_singletrial_dir, 'vif', vif_fname), sep='\t')
         # f"{sub}_{ses}_{run}_runtype-{run_type}_event-cue_trial-{i_trial:03d}.tsv" 
     
-        # step 3) save the design matrices and plot this for reference
+        # 4) save the design matrices and plot this for reference
         fig, axes = plt.subplots(ncols=1, figsize=(20, 10))
         # save_designmatrix_dir = os.path.join(save_singletrial_dir, sub)
         save_figname = description + '.png'
@@ -589,7 +563,7 @@ for beh_fname in beh_list:
             output_file = os.path.join(save_designmatrix_dir, save_figname)
             )
 
-        # step 4) save beta map as isolated nifti
+        # 5) save beta map as isolated nifti
         # Drop the trial number from the condition name to get the original name
         beta_map.header['descrip'] = description
         lss_beta_maps[condition_name].append(beta_map)
@@ -597,7 +571,7 @@ for beh_fname in beh_list:
         Path(save_singletrial_subdir).mkdir(parents = True, exist_ok = True)
         nib.save(beta_map, os.path.join(save_singletrial_subdir, events_df.singletrial_fname[i_trial]))
 
-    # step 5) concatenate the lists of 3D maps into a single 4D beta series for each condition, if we want
+    # 6) concatenate the lists of 3D maps into a single 4D beta series for each condition, if we want
     # for name, maps in lss_beta_maps.items():
     #     if len(maps) !=0:
     #         print(name)
