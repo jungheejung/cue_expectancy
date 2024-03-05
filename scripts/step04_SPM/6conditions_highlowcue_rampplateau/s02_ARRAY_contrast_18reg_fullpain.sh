@@ -37,7 +37,7 @@ for subdirectory in "${subdirectories[@]}"; do
     done
     if ! $skip; then
         filtered_subdirectories+=("$subdirectory")
-    fi
+    fi  
 done
 # Print the filtered subdirectories
 sorted_subdirectories=($(printf '%s\n' "${filtered_subdirectories[@]}" | sort))
