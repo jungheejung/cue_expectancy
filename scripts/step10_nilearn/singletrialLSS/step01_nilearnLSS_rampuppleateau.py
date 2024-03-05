@@ -457,9 +457,11 @@ for beh_fname in beh_list:
     # differ depending on existance of TTL files
     # if so, onset we'll use TTL 1, 2, 3, 4 to calulate rampup, rampdown, 
     # and onset of each epoch
+    # ttl_fname = []
     ttl_exist = ttl_exists(beh_fname)
     if run_type == 'pain' and ttl_exist:
-        events_df = restructure_task_cue_beh_painttl()
+        ttl_fname = beh_fname.replace('events.tsv', 'events_ttl.tsv')
+        events_df = restructure_task_cue_beh_painttl(ttl_fname)
     elif run_type == 'pain' and not ttl_exist:
         events_df = restructure_task_cue_beh_NOttl(beh_fname)
     elif run_type in ('cognitive', 'vicarious'):
