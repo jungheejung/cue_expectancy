@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import pandas as pd
 from os.path import join
 import os, glob
