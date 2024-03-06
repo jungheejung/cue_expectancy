@@ -1,20 +1,24 @@
 import os, glob, re
 import pandas as pd
 from os.path import join
+from pathlib import Path
 # load tsv
 
 vif_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupplateau/vif'
-vif_save_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupplateau/vif/summary'
+vif_save_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupplateau/vif_summary'
 singletrial_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupplateau'
 sub_folders = next(os.walk(singletrial_dir))[1]
 sub_list = [i for i in sorted(sub_folders) if i.startswith('sub-')]
+
+Path(vif_save_dir).mkdir(parents=True, exist_ok=True)
 for sub in sub_list:
-    vif_flist = glob.glob(join(vif_dir, 'vif_{sub}}_*.tsv'), recursive=True)
+    vif_flist = glob.glob(join(vif_dir, f'vif_{sub}_*.tsv'), recursive=True)
     vif_summary_df = pd.DataFrame(columns=['singletrial_fname', 'regressor', 'vif'])
 
     len(vif_flist)
-    for vif_fname in vif_flist:
-        df = pd.read_csv(vif_fname)
+    for vif_fname in sorted(vif_flist):
+        df = pd.read_csv(vif_fname,sep='\t')
+        print(df.head())
         model_name = df['modelname'][0]
         # Using regex to extract the keywords following "event-" and "trial-"
         event_match = re.search(r"event-([a-zA-Z0-9]+)_", model_name)
@@ -36,4 +40,4 @@ for sub in sub_list:
             'regressor': regressor,
             'event': event_keyword,
             'vif': vif}, ignore_index=True)
-    vif_summary_df.to_tsv(join(vif_save_dir, f"vif_{sub}.tsv"), vif_summary_df, index=False)
+    vif_summary_df.to_csv(join(vif_save_dir, f"vif_{sub}.tsv"), sep='\t', index=False)
