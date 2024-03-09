@@ -18,7 +18,7 @@ task_subfldr = fullfile(save_dir, strcat('task-',task,'_x-', x_keyword, '_m-', m
     end
 
 dat_fname =  fullfile(task_subfldr, strcat('task-',task,'_PDM_x-', x_keyword, '_m-', m_keyword,'_y-',y_keyword, '_DAT.mat'));
-load(dat_fname)
+load(dat_fname);
 
 %% preprocess data (remove outliers, mismatch dimensions, nan trials)
 % 1. remove outlier single trials based on mahalanobis distance
@@ -91,12 +91,13 @@ pdmX = X; pdmY= Y; pdmM = M;
 %end
 min_comp = 5;
 % project onto lower dimensional space keeping th max number of components
-pdm_min = multivariateMediation(pdmX,pdmY,pdmM,'noPDMestimation','B',min_comp);
+pdm_min = multivariateMediation(pdmX,pdmY,pdmM,'noPDMestimation','B'); %,min_comp, 'svd');
 save_fname = fullfile(task_subfldr, strcat('task-',task, '_PDM-mincomp_x-', x_keyword, '_m-', m_keyword,'_y-',y_keyword,'.mat'));
 save(save_fname,'pdm_min');
 
 %% Compute the multivariate brain mediators
 % use previous PVD dimension reduction, compute PDMs, and plot path coeff
+
 pdm = multivariateMediation(pdm_min,'nPDM', min_comp, 'plots');
 save_fname = fullfile(task_subfldr, strcat('task-',task, '_PDM-plot_x-', x_keyword, '_m-', m_keyword,'_y-',y_keyword,'.mat'));
 save(save_fname,'pdm');
