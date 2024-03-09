@@ -425,7 +425,7 @@ onset_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/
 save_events_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/beh/beh03_bids'
 smooth_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/smooth6mm'
 fmriprep_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/data/spacetop_data/derivatives/fmriprep/results/fmriprep'
-save_singletrial_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupdown'
+save_singletrial_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupplateau'
 save_fig_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/figure/fmri/nilearn/singletrial_rampupplateau'
 sub_folders = next(os.walk(onset_dir))[1]
 print(sub_folders)
@@ -575,7 +575,7 @@ for beh_fname in beh_list:
         save_singletrial_subdir = os.path.join(save_singletrial_dir, sub)
         Path(save_singletrial_subdir).mkdir(parents = True, exist_ok = True)
         nib.save(beta_map, os.path.join(save_singletrial_subdir, events_df.singletrial_fname[i_trial]))
-
+print(f"{sub} complete :+:")
     # 6) concatenate the lists of 3D maps into a single 4D beta series for each condition, if we want
     # for name, maps in lss_beta_maps.items():
     #     if len(maps) !=0:
