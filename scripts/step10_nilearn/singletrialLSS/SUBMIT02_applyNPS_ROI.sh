@@ -1,8 +1,8 @@
 #!/bin/bash -l
 #SBATCH --job-name=glm
 #SBATCH --nodes=1
-#SBATCH --ntasks=16
-#SBATCH --mem-per-cpu=8gb
+#SBATCH --ntasks=8
+#SBATCH --mem-per-cpu=40gb
 #SBATCH --time=01:00:00
 #SBATCH -o ./log_roi/GLM_%A_%a.o
 #SBATCH -e ./log_roi/GLM_%A_%a.e
