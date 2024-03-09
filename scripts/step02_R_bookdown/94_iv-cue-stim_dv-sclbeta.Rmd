@@ -1,4 +1,4 @@
-# [physio] SCL {#ch94_SCL}
+# [physio] SCL {#glmSCL}
 
 
 ## Outline
@@ -93,10 +93,14 @@ beta_con <- simple_contrasts_singletrial(beta_long)
 
 ```{r}
 # 3. linear model ______________________________________________________________ 
+<<<<<<< HEAD
 model.factorial <- lmer(beta ~ STIM_linear*cue_factor + STIM_quadratic*cue_factor + (1|sub), data = beta_con)
+=======
+model.factorial <- glmmTMB::glmmTMB(beta ~ STIM_linear*cue_factor + STIM_quadratic*cue_factor + (STIM_linear +cue_factor|sub), data = beta_con, family="gaussian")
+>>>>>>> cfb54c4711dfbe54893ff366d89899ec10a87dfd
 summary(model.factorial)
 sjPlot::tab_model(model.factorial,
-              title = paste0(tools::toTitleCase(taskname), ": \nlmer(SCR beta ~ Stim * Cue + (1 | sub), data = beta)"),
+              title = paste0(tools::toTitleCase(taskname), ": \nlmer(SCR beta ~ Stim * Cue + (Stim + Cue | sub), data = beta)"),
               CSS = list(css.table = '+font-size: 12;'))
 ```
 
@@ -110,7 +114,7 @@ dv <- "beta"
 dv_keyword <- "sclbeta"
 taskname <- "pain"
 # model_iv2 <- "cue_ordered"
-analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model94_sclbeta", as.character(Sys.Date()))
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "sclbeta", as.character(Sys.Date()))
 beta_con$taskname <- taskname
 
 
@@ -151,9 +155,9 @@ plot_savefname <- file.path(
   )
 )
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
-  color <- c( "blue",  "red")
+  color <- c( "#365af1",  "#fd0000")
 } else {
-  color <- c( "blue", "red")
+  color <- c( "#365af1", "#fd0000")
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -203,10 +207,10 @@ k <- plot_lineplot_twofactor_subsetthick(SCLstim_groupwise,
                         iv1="stim_ordered",
                         iv2="cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c( "high" = "red",
-                                  "low" = "blue"), 
+                        color = c( "high" = "#fd0000",
+                                  "low" = "#365af1"), 
                         ggtitle = title, 
-                        xlab = "Stimulus Intensity", ylab = "SCL activation (A.U.)")
+                        xlab = "Stimulus Intensity", ylab = "SCR beta coefficients (A.U.)")
 k <- k + theme(aspect.ratio=.8)
 print(k)
 ```
@@ -239,11 +243,16 @@ beta_long$SES_quadratic[beta_long$ses == "ses-04"] <- -0.33
 beta_long$CUE_high_gt_low[beta_long$cue == "high_cue"] <- 0.5
 beta_long$CUE_high_gt_low[beta_long$cue == "low_cue"] <- -0.5
 
+<<<<<<< HEAD
 #https://joshua-nugent.github.io/allFit/
 model.betases <- lmer(beta ~
+=======
+model.betases <- glmmTMB::glmmTMB(beta ~
+>>>>>>> cfb54c4711dfbe54893ff366d89899ec10a87dfd
                           CUE_high_gt_low*STIM_linear*SES_linear +
-                          CUE_high_gt_low*STIM_quadratic*SES_linear +
+                          #CUE_high_gt_low*STIM_quadratic*SES_linear +
                           CUE_high_gt_low*STIM_linear*SES_quadratic +
+<<<<<<< HEAD
                           CUE_high_gt_low*STIM_quadratic*SES_quadratic +
                           (CUE_high_gt_low + STIM_linear + SES_linear|sub), data = beta_long,
                       # optimizer="nloptwrap.NLOPT_LN_NELDERMEAD"
@@ -253,6 +262,10 @@ model.betases <- lmer(beta ~
                                                           maxeval = 1e7,
                                                           xtol_abs = 1e-9,
                                                           ftol_abs = 1e-9))
+=======
+                          #CUE_high_gt_low*STIM_quadratic*SES_quadratic +
+                          (CUE_high_gt_low + SES_linear + SES_linear|sub), data = beta_long, family = "gaussian"
+>>>>>>> cfb54c4711dfbe54893ff366d89899ec10a87dfd
                     )
 library(glmmTMB)
 beta_long$beta_scaled <- scale(beta_long$beta)
@@ -272,7 +285,7 @@ beta_long$beta_scaled <- scale(beta_long$beta)
 summary(model.betases)
 # CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.betases,
-                  title = "Multilevel-modeling: \nlmer(beta ~ CUE * STIM * SES + (1| sub), data = pvc)",
+                  title = "Multilevel-modeling: \nlmer(beta ~ CUE * STIM * SES + (Cue + SES + STIM| sub), data = p)",
                   CSS = list(css.table = '+font-size: 12;'))
 ```
 
