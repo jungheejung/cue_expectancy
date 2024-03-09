@@ -7,13 +7,24 @@ from sklearn.model_selection import GroupKFold, cross_val_score, KFold
 from sklearn.cross_decomposition import PLSRegression
 from sklearn.metrics import make_scorer, mean_squared_error
 import numpy as np
-import os, glob, re
+import os, glob, re, json
 from os.path import join
 import numpy as np
 import pandas as pd
 from nilearn import image, masking, maskers, plotting
 from nilearn.image import resample_to_img, math_img, new_img_like
-
+from datetime import datetime
+import nibabel as nib
+import matplotlib.pyplot as plt
+import seaborn as sns
+import joblib
+    """
+    fit it first. step wise regression
+    effect. weights. change
+    residuals. 
+    lowest possible estimate. 
+    depends on the statement.
+    """
 
 # %%
 def extract_metadata(filenames):
@@ -40,37 +51,59 @@ def extract_metadata(filenames):
 # 0. load data
 print("0.load data")
 singletrial_dir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv05_singletrialnpy"
-#singletrial_dir = (
+# singletrial_dir = (
 #    "/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv05_singletrialnpy/"
-#)
+# )
 # Assuming X is your [n_samples x n_features] matrix with predictors
 # and Y is your [n_samples x 1] vector with the outcome variable
 # groups is an array that indicates the subject each sample belongs to
 
 # %% ###################################################################################################
-# load single trial data and append
-print("load_singletrial data")
+# 1. oad single trial data and append
+print("1. load_singletrial data")
+task = "pain"
 flist = []
-#sub_list = ["sub-0002", "sub-0069", "sub-0078", "sub-0120"]
-#for sub in sub_list:
+h5py_fname = f"/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/scripts/step10_nilearn/PLS/brainnumpy_task-{task}.hdf5"
+# sub_list = ["sub-0002", "sub-0069", "sub-0078", "sub-0120"]
+# for sub in sub_list:
 #    flist.extend(sorted(glob.glob(join(singletrial_dir, sub, "*_stimintensity-*.npy"))))
-flist = sorted(glob.glob(join(singletrial_dir, "sub-*", "*_stimintensity-*.npy"), recursive=True))
-loaded_arrays = []
-# Loop over the list of files and load each array
-for file_path in flist:
-    try:
-        array = np.load(file_path)
-        print(f"{os.path.basename(file_path)} {array.shape} ")
-        loaded_arrays.append(array)
-    except Exception as e:
-        # Handle the exception if something goes wrong (file not found, etc.)
-        print(f"An error occurred while loading {file_path}: {e}")
+if os.path.exists(h5py_fname):
+    with h5py.File(h5py_fname, "r") as f:
+        array_2d = f["brainnumpy"][:]
+else:
+    flist = sorted(
+        glob.glob(
+            join(singletrial_dir, "sub-*", f"*runtype-{task}*_stimintensity-*.npy"),
+            recursive=True,
+        )
+    )
+    loaded_arrays = []
+    # Loop over the list of files and load each array
+    for file_path in flist:
+        try:
+            array = np.load(file_path)
+            print(f"{os.path.basename(file_path)} {array.shape} ")
+            loaded_arrays.append(array)
+        except Exception as e:
+            print(f"An error occurred while loading {file_path}: {e}")
 
-# loaded_arrays now contains all the loaded numpy arrays
-array_2d = np.stack(loaded_arrays, axis=0)
-import h5py
-with h5py.File('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/scripts/step10_nilearn/PLS/brainnumpy.hdf5', 'w') as f:
-    f.create_dataset('brainnumpy', data=array_2d)
+    # stack all loaded_arrays, convert list to 2d numpy array
+    array_2d = np.stack(loaded_arrays, axis=0)
+    # save data with json
+    import h5py
+
+    metadata = {
+        "Author": "Heejung Jung",
+        "Date_Created": datetime.now().strftime("%Y-%m-%d"),
+        "Description": "Dataset with single trials, concatenated into numpy array ([ subject x voxel ])",
+        "Version": 1.0,
+        "filelist": flist,
+    }
+    with h5py.File(h5py_fname, "w") as f:
+        dataset = f.create_dataset("brainnumpy", data=array_2d)
+        dataset.attrs["Metadata"] = json.dumps(metadata)
+
+
 # %% ###################################################################################################
 # apply mask
 print("2. apply mask to numpy array")
@@ -83,27 +116,42 @@ mask_img = masking.compute_epi_mask(
     mask, target_affine=ref_img.affine, target_shape=ref_img.shape
 )
 
+
+# for index in range(array_2d.shape[0]):
+# apply masker onto numpy array (shape of #subjects x voxels)
+# 1) convert to 4d
+original_shape = mask_img.shape  # This should be the spatial shape of the brain volume
+array_4d = array_2d.reshape(original_shape + (-1,))
+
+# 2) apply masker
+affine = mask_img.affine  # Assuming your data shares the same space as the mask
+func_4d = nib.Nifti1Image(array_4d, affine)
+
+# Apply the mask using NiftiMasker
 nifti_masker = maskers.NiftiMasker(
     mask_img=mask_img,
     smoothing_fwhm=6,
     target_affine=ref_img.affine,
     target_shape=ref_img.shape,
 )
-x, y, z = ref_img.shape
-maskeddf = []
 
-for index in range(array_2d.shape[0]):
-    # apply masker onto numpy array (shape of #subjects x voxels)
-    maskeddf.append(
-        nifti_masker.fit_transform(
-            new_img_like(ref_img, array_2d[index].reshape(x, y, z))
-        )
-    )
-dfstack = np.stack(maskeddf, axis=0)
-braindf = dfstack.squeeze()
+masked_func = nifti_masker.fit_transform(func_4d)
+braindf = masked_func
+# save masked data
+masked_h5py_fname = f"/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/scripts/step10_nilearn/PLS/masked_brainnumpy_task-{task}.hdf5"
+with h5py.File(h5py_fname, "w") as f:
+    masked_metadata = {
+        "Author": "Heejung Jung",
+        "Date_Created": datetime.now().strftime("%Y-%m-%d"),
+        "Description": f"Dataset with single trials, concatenated into numpy array, after masking it with CANlabbrainmask ([ subject x voxel], {masked_func.shape})",
+        "Version": 1.0,
+        "filelist": flist,
+    }
+    dataset = f.create_dataset("masked_brainnumpy", data=masked_func)
+    dataset.attrs["Metadata"] = json.dumps(masked_metadata)
 
 # %%
-Y = braindf  # (72, 98053)
+Y = braindf  # masked_func.shape (6227, 98053)
 # %% ###################################################################################################
 # 3. find behavioral data
 # for each subject, load behavioral file for given ses and run
@@ -123,7 +171,7 @@ print(unique_combinations_list)
 # %% ###################################################################################################
 # 4. using identified metadata, load behavioral file
 print("4. load behavioral file")
-beh_dir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/beh/beh03_bids" #"/Volumes/spacetop_projects_cue/data/beh/beh03_bids"
+beh_dir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/beh/beh03_bids"  # "/Volumes/spacetop_projects_cue/data/beh/beh03_bids"
 beh_dfs = []
 for sub, ses, run in sorted(unique_combinations_list):
     beh_pattern = join(
@@ -237,12 +285,17 @@ for session_id, group_indices in merged_df.groupby("session_id").groups.items():
 
 # stanity check
 # Plot z-score normalized braindf heatmap
-# plt.figure(figsize=(10, 8))
-# sns.heatmap(zscored_braindf, cmap='viridis', cbar=True)
-# plt.title('Z-score Normalized braindf Heatmap')
-# plt.xlabel('Features')
-# plt.ylabel('Observations')
-# plt.show()
+plt.figure(figsize=(10, 8))
+sns.heatmap(zscored_braindf, cmap="viridis", cbar=True)
+plt.title("Z-score Normalized braindf Heatmap")
+plt.xlabel("Features")
+plt.ylabel("Observations")
+
+plt.savefig(
+    "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/scripts/step10_nilearn/PLS/heatmap.png",
+    dpi=72,
+)  # Adjust dpi for resolution requirements
+
 
 # %%
 Xinterim = merged_df[
@@ -269,26 +322,23 @@ Y = Yinterim[~nan_rows]
 merged_df[~nan_rows]
 groups = groupsinterim[~nan_rows]
 clean_indices = nan_rows[~nan_rows].index
-import numpy as np
 
 # Assuming 'arr' is your NumPy array
 # Calculate the mean of each row excluding NaN values
-arr = Y
-row_means = np.nanmean(arr, axis=1)
-inds = np.where(np.isnan(arr))  # Find the indices where NaN values are present
-
-
+# arr = Y
+row_means = np.nanmean(Y, axis=1)
+inds = np.where(np.isnan(Y))  # Find the indices where NaN values are present
 for i in range(len(inds[0])):  # Replace NaNs with the mean of the corresponding row
-    arr[inds[0][i], inds[1][i]] = row_means[inds[0][i]]
+    Y[inds[0][i], inds[1][i]] = row_means[inds[0][i]]
 
 
 # %% ###################################################################################################
 print("8. start PLS")
 # Outer loop with GroupKFold for splitting subjects
-outer_cv = GroupKFold(n_splits=3)
+outer_cv = GroupKFold(n_splits=5)
 
 # Inner loop with KFold for splitting samples
-inner_cv = KFold(n_splits=5)
+inner_cv = KFold(n_splits=5) #vwithin # group k fold # within-subject K = 
 
 # Define the PLS model
 pls_model = PLSRegression(n_components=3)
@@ -297,8 +347,16 @@ pls_model = PLSRegression(n_components=3)
 outer_scores = []
 weights_per_fold = []
 coefficients = []
+i = 0
+# mediation style
+# minimum effect estimate and maximum estimate. 
+# if i fit those last
+# prediction rate -> 
+# hyperparamter, # of cluster. subset of subjects. 
+# generalization. CV works well for data that is small
+# estimate is less precise. 
+# CV. what my generalization
 for train_val_idx, test_idx in outer_cv.split(X, Y, groups):
-
     print(f"OUTER train validation: {train_val_idx}, test validation: {test_idx}")
     # Split the data into the current outer train/validation and test sets
     X_train_val, X_test = X.iloc[train_val_idx].to_numpy(), X.iloc[test_idx].to_numpy()
@@ -315,7 +373,7 @@ for train_val_idx, test_idx in outer_cv.split(X, Y, groups):
         # Split the data into the current inner train and validation sets
         X_train, X_val = X_train_val[train_idx], X_train_val[val_idx]
         Y_train, Y_val = Y_train_val[train_idx], Y_train_val[val_idx]
-        
+
         # Fit the model
         pls_model.fit(X_train, Y_train)
         coefficients.append(pls_model.coef_)
@@ -333,7 +391,37 @@ for train_val_idx, test_idx in outer_cv.split(X, Y, groups):
     Y_test_pred = pls_model.predict(X_test)
     outer_score = mean_squared_error(Y_test, Y_test_pred)
     outer_scores.append(outer_score)
+    # save each weight map
+    x_weights_first_component = pls_model.x_weights_[:, 0]
+    y_weights_first_component = pls_model.y_weights_[:, 0]
 
+    x_weights_second_component = pls_model.x_weights_[:, 1]
+    y_weights_second_component = pls_model.y_weights_[:, 1]
+
+    x_weights_third_component = pls_model.x_weights_[:, 2]
+    y_weights_third_component = pls_model.y_weights_[:, 2]
+
+    first_img = nifti_masker.inverse_transform(y_weights_first_component)
+    second_img = nifti_masker.inverse_transform(y_weights_second_component)
+    third_img = nifti_masker.inverse_transform(y_weights_third_component)
+    save_dir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/pls/task-pain_reg01-stim_reg02-expect_reg03-outcome"
+    first_img.to_filename(
+        join(
+            save_dir,
+            f"pls-predweights_fold-{i}_component-01_desc-stimuluscontrast.nii.gz",
+        )
+    )
+    second_img.to_filename(
+        join(
+            save_dir, f"pls-predweights_fold-{i}_component-02_desc-expectrating.nii.gz"
+        )
+    )
+    third_img.to_filename(
+        join(
+            save_dir, f"pls-predweights_fold-{i}_component-03_desc-outcomerating.nii.gz"
+        )
+    )
+    i += 1
 # The outer_scores list now contains the MSE for each fold of the outer loop
 print("Outer loop scores:", outer_scores)
 print("Mean performance metric:", np.mean(outer_scores))
@@ -357,7 +445,20 @@ y_weights_second_component = pls_model.y_weights_[:, 1]
 x_weights_third_component = pls_model.x_weights_[:, 2]
 y_weights_third_component = pls_model.y_weights_[:, 2]
 
+first_img = nifti_masker.inverse_transform(y_weights_first_component)
+second_img = nifti_masker.inverse_transform(y_weights_second_component)
 third_img = nifti_masker.inverse_transform(y_weights_third_component)
+save_dir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/pls/task-pain_reg01-stim_reg02-expect_reg03-outcome"
+first_img.to_filename(
+    join(save_dir, "pls-predweights_component-01_desc-stimuluscontrast.nii.gz")
+)
+second_img.to_filename(
+    join(save_dir, "pls-predweights_component-02_desc-expectrating.nii.gz")
+)
+third_img.to_filename(
+    join(save_dir, "pls-predweights_component-03_desc-outcomerating.nii.gz")
+)
+
 
 ######################################
 # SAVE
@@ -368,59 +469,58 @@ joblib.dump(
         "outer_scores": outer_scores,
         "weights_per_fold": weights_per_fold,
         "coefficients": coefficients,
-        
     },
     f"/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/results_fold_.pkl",
 )
 ## %%##################################
 ## job_script.py
-#import sys
-#from sklearn.model_selection import cross_val_score
-#from sklearn.pipeline import Pipeline
-#from sklearn.preprocessing import StandardScaler
-#from sklearn.cross_decomposition import PLSRegression
-#from sklearn.datasets import make_regression
-#from sklearn.model_selection import KFold
+# import sys
+# from sklearn.model_selection import cross_val_score
+# from sklearn.pipeline import Pipeline
+# from sklearn.preprocessing import StandardScaler
+# from sklearn.cross_decomposition import PLSRegression
+# from sklearn.datasets import make_regression
+# from sklearn.model_selection import KFold
 #
 ## Assume X and Y are loaded or generated here
-#X, Y = make_regression(n_samples=1000, n_features=10000, noise=0.1)
+# X, Y = make_regression(n_samples=1000, n_features=10000, noise=0.1)
 #
 ## Define the model pipeline
-#pipeline = Pipeline(
+# pipeline = Pipeline(
 #    [("scaler", StandardScaler()), ("pls", PLSRegression(n_components=2))]
-#)
+# )
 #
 ## Define the cross-validation scheme
-#cv = KFold(n_splits=5)
+# cv = KFold(n_splits=5)
 #
 ## Use the first argument passed to the script as the fold number
-#fold_number = int(sys.argv[1])  # e.g., 0 for the first fold
+# fold_number = int(sys.argv[1])  # e.g., 0 for the first fold
 #
 ## Generate the train/test sets for this fold
-#for i, (train_index, test_index) in enumerate(cv.split(X)):
+# for i, (train_index, test_index) in enumerate(cv.split(X)):
 #    if i == fold_number:
 #        X_train, X_test = X[train_index], X[test_index]
 #        Y_train, Y_test = Y[train_index], Y[test_index]
 #        break
 #
 ## Fit the model on this fold's training data
-#pipeline.fit(X_train, Y_train)
+# pipeline.fit(X_train, Y_train)
 #
 ## Score the model on this fold's testing data
-#score = pipeline.score(X_test, Y_test)
+# score = pipeline.score(X_test, Y_test)
 #
 ## Output the score to a file, e.g., fold_0_score.txt
-#with open(f"fold_{fold_number}_score.txt", "w") as f:
+# with open(f"fold_{fold_number}_score.txt", "w") as f:
 #    f.write(str(score))
-#import os
-#import numpy as np
+# import os
+# import numpy as np
 #
 ## Assuming your output files are named 'fold_0_score.txt', 'fold_1_score.txt', etc.
-#num_folds = 5
-#scores = []
+# num_folds = 5
+# scores = []
 #
 ## Loop through the number of folds to read each output file
-#for fold in range(num_folds):
+# for fold in range(num_folds):
 #    filename = f"fold_{fold}_score.txt"
 #    if os.path.isfile(filename):
 #        with open(filename, "r") as file:
@@ -428,11 +528,11 @@ joblib.dump(
 #            scores.append(float(score))
 #
 ## Convert the list of scores to a NumPy array for easy statistical calculations
-#scores = np.array(scores)
+# scores = np.array(scores)
 #
 ## Calculate and print the mean and standard deviation of the scores
-#mean_score = np.mean(scores)
-#std_score = np.std(scores)
+# mean_score = np.mean(scores)
+# std_score = np.std(scores)
 #
-#print(f"Mean CV score: {mean_score}")
-#print(f"Standard deviation of CV scores: {std_score}")
+# print(f"Mean CV score: {mean_score}")
+# print(f"Standard deviation of CV scores: {std_score}")
