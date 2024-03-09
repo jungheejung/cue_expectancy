@@ -58,7 +58,7 @@ df$stim_ordered <- factor(
         levels = c("low", "med", "high")
     )
 
-df$cue_ordered <- factor(
+  df$cue_ordered <- factor(
         df$cue_name,
         levels = c("low", "high")
     )
@@ -74,7 +74,10 @@ via [https://github.com/jungheejung/spacetop_biopac/tree/main/scripts/p03_glm](h
 
 taskname <- "pain"
 # 1. load data _________________________________________________________________
-beta <- read.table(file = file.path(main_dir, paste0("analysis/physio/glm/factorial/glm-factorial_task-", taskname, "_scr.tsv")), sep = '\t', header = TRUE)
+beta <- read.table(file = file.path(
+  '/Volumes/spacetop_projects_cue/analysis/physio/nobaseline/glm/glm-factorial_task-pain_scr.tsv'
+  # main_dir, paste0("analysis/physio/nobaseline/glm/factorial/glm-factorial_task-", taskname, "_scr.tsv")
+  ), sep = '\t', header = TRUE)
 ```
 
 
@@ -91,7 +94,7 @@ beta_con <- simple_contrasts_singletrial(beta_long)
 ```{r}
 # 3. linear model ______________________________________________________________ 
 model.factorial <- lmer(beta ~ STIM_linear*cue_factor + STIM_quadratic*cue_factor + (1|sub), data = beta_con)
-# summary(model.factorial)
+summary(model.factorial)
 sjPlot::tab_model(model.factorial,
               title = paste0(tools::toTitleCase(taskname), ": \nlmer(SCR beta ~ Stim * Cue + (1 | sub), data = beta)"),
               CSS = list(css.table = '+font-size: 12;'))
@@ -236,21 +239,61 @@ beta_long$SES_quadratic[beta_long$ses == "ses-04"] <- -0.33
 beta_long$CUE_high_gt_low[beta_long$cue == "high_cue"] <- 0.5
 beta_long$CUE_high_gt_low[beta_long$cue == "low_cue"] <- -0.5
 
+#https://joshua-nugent.github.io/allFit/
 model.betases <- lmer(beta ~
                           CUE_high_gt_low*STIM_linear*SES_linear +
                           CUE_high_gt_low*STIM_quadratic*SES_linear +
                           CUE_high_gt_low*STIM_linear*SES_quadratic +
                           CUE_high_gt_low*STIM_quadratic*SES_quadratic +
-                          (1|sub), data = beta_long
+                          (CUE_high_gt_low + STIM_linear + SES_linear|sub), data = beta_long,
+                      # optimizer="nloptwrap.NLOPT_LN_NELDERMEAD"
+                      control = lmerControl(optimizer = "nloptwrap",
+                                           optCtrl = list(algorithm = "NLOPT_LN_BOBYQA",
+                                                          maxfun = 1e9,
+                                                          maxeval = 1e7,
+                                                          xtol_abs = 1e-9,
+                                                          ftol_abs = 1e-9))
                     )
+library(glmmTMB)
+beta_long$beta_scaled <- scale(beta_long$beta)
+
+# model.betases <- glmmTMB::glmmTMB(formula = beta ~
+#                           CUE_high_gt_low*STIM_linear*SES_linear +
+#                           # CUE_high_gt_low*STIM_quadratic*SES_linear +
+#                           CUE_high_gt_low*STIM_linear*SES_quadratic +
+#                           # CUE_high_gt_low*STIM_quadratic*SES_quadratic +
+#                           (1  |sub), family = "gaussian",
+#                          data = beta_long,
+#                          ziformula=~1,
+#                          control = glmmTMB::glmmTMBControl(
+#                            start = list(psi = c(-1, 1)),
+#                            optimizer=optim, optArgs=list(method="BFGS")),
+#                    )
+summary(model.betases)
 # CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.betases,
                   title = "Multilevel-modeling: \nlmer(beta ~ CUE * STIM * SES + (1| sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
 ```
 
+```{r}
+diff_optims <- allFit(model.betases, maxfun = 1e5)
+diff_optims_OK <- diff_optims[sapply(diff_optims, is, "merMod")]
+lapply(diff_optims_OK, function(x) x@optinfo$conv$lme4$messages)
+```
 
 
+```{r}
+convergence_results <- lapply(diff_optims_OK, function(x) x@optinfo$conv$lme4$messages)
+working_indices <- sapply(convergence_results, is.null)
+if(sum(working_indices) == 0){
+  print("No algorithms from allFit converged. You may still be able to use the results, but proceed with extreme caution.")
+  first_fit <- NULL
+} else {
+  first_fit <- diff_optims[working_indices][[1]]
+}
+first_fit
+```
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
