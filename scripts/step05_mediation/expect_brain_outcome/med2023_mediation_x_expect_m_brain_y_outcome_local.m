@@ -23,7 +23,7 @@ switch dir_location
     case 'local'
         matlab_moduledir = '/Users/h/Documents/MATLAB';
         main_dir = '/Volumes/spacetop_projects_cue';
-        singletrial_dir = fullfile('/Volumes/seagate/cue_singletrials/uncompressed_singletrial');
+        singletrial_dir = fullfile('/Volumes/seagate/cue_singletrials/uncompressed_singletrial_rampupplateau');
         beh_dir = '/Volumes/seagate/cue_singletrials/beh03_bids';
         NPS_fname = '/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv01_signature/rampupdown/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv';
         graymatter_mask = '/Users/h/Documents/MATLAB/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/gray_matter_mask.nii';
@@ -108,7 +108,7 @@ for s = 1:length(sublist)
     mediation_df = add_fullpath_column(metadf_con, singletrial_dir, sublist{s}, 'singletrial_fname', 'fullpath_fname');
 
     % step 07: final step! construct the X, Minterim, Y cells for the mediation analysis  
-    X{1,s} = mediation_df.stim_contrast;
+    X{1,s} = mediation_df.expectrating;
     Minterim{1,s} = mediation_df.fullpath_fname;
     Y{1,s} = mediation_df.outcomerating;
     cov{1,s} = mediation_df.cue_contrast;
@@ -125,12 +125,12 @@ fprintf('Size of Minterim: %s\n', mat2str(size(Minterim)));
 fprintf('Size of cov: %s\n', mat2str(size(cov)));
 fprintf('Size of l2m: %s\n', mat2str(size(l2m)));
 
-save('mediation_XYMcovL2.mat', 'X', 'Y', 'Minterim', 'cov', 'l2m', 'sub');
+save('mediation_XexpectYoutcomeMcovL2.mat', 'X', 'Y', 'Minterim', 'cov', 'l2m', 'sub');
 
 %----------------------------
 %% drop missing rows (ver 1.)
 % ----------------------------
-load('mediation_XYMcovL2.mat');
+load('mediation_XexpectYoutcomeMcovL2.mat');
 missingIndices = []; % Initialize an empty array to store missing indices
 
 % Iterate over each index
@@ -170,7 +170,7 @@ l2m_filtered = l2m_temp(~isnan(l2m_temp)); % Remove NaNs to filter
 %----------------------------
 %%  DROP MISSING ROWS & TRIALS LESS THAN 10
 % ----------------------------
-load('mediation_XYMcovL2.mat');
+% load('mediation_XYMcovL2.mat');
 missingIndices = []; % Initialize an empty array to store missing indices
 insufficientDataIndices = []; % Initialize an empty array for indices with insufficient data
 trial_cutoff = 35; % remove subject less than 10 trials
@@ -213,90 +213,11 @@ l2m_temp = l2m;
 l2m_temp(combinedIndices) = NaN;  % Mark combined indices as NaN
 l2m_filtered = l2m_temp(~isnan(l2m_temp)); % Remove NaNs to filter
 
-% Now, X_filtered will have all the cells except those in missingIndices
-
-
-% if Y has empty rows, remove them from all other
-% [X_test, Y_test, M_test, cov_test, l2m_test] = filter_empty_cells(X, Y, Minterim, cov, l2m);
-% Minterim = convert_cell2char(M_test);
-% 
-% % mean center l2m
-% mean_values = mean(l2m_test);
-% l2m_meancentered= l2m_test - mean_values;
-% 
-% % ----------------------------
-% % z score across participants
-% % ----------------------------
-% 
-% num_participants = numel(Y_test);
-% % Aggregate all data into one matrix (assuming each participant's data is a column vector)
-% all_data = vertcat(Y_test{:});
-% 
-% % Compute the mean and standard deviation across all data
-% mean_data = mean(all_data); 
-% std_data = std(all_data);
-% 
-% % Z-score all data using the computed mean and standard deviation
-% zscored_Y = cell(num_participants, 1);
-% 
-% for i = 1:num_participants
-%     participant_data = Y_test{i}; % Access the data for the current participant
-%     zscored_Y{i} = (participant_data - mean_data) ./ std_data;
-% end
-
-% ----------------------------
-% plot
-% ----------------------------
-% Create a histogram
-% figure
-% histogram(all_data, 'BinWidth', 0.5);  % Adjust the BinWidth as needed
-% title('Histogram Example');
-% xlabel('X-Axis Label');
-% ylabel('Frequency');
-% 
-% figure
-% zscored_ = vertcat(zscored_data{:});
-% histogram(zscored_, 'BinWidth', 0.5);  % Adjust the BinWidth as needed
-% title('Histogram Example');
-% xlabel('X-Axis Label');
-% ylabel('Frequency');
 
 
 fprintf('step 2. X, Y, M fully set up');
 
-% -------------------------------------------------------------------------
-% unzip files (bash)
-% -------------------------------------------------------------------------
 
-
-% find singletrial -type f -name "*.nii.gz" -exec sh -c 'mkdir -p "uncompressed_singletrial/$(dirname "{}" | cut -d "/" -f 2-)" && gunzip -c "{}" > "uncompressed_singletrial/$(dirname "{}" | cut -d "/" -f 2-)/$(basename "{}" .gz)"' \;
-% 
-% #!/bin/bash
-% 
-% # Define the main directory containing the subdirectories
-% main_dir="uncompressed_singletrial"
-% 
-% # List of subdirectories you want to process
-% subdirs=("sub-0055" "sub-0062" "sub-0071" "sub-0079" "sub-0086" "sub-0093" "sub-0101" "sub-0111" "sub-0119" "sub-0128"
-% "sub-0056" "sub-0063" "sub-0073" "sub-0080" "sub-0087" "sub-0094" "sub-0102" "sub-0112" "sub-0120" "sub-0129"
-% "sub-0057" "sub-0064" "sub-0074" "sub-0081" "sub-0088" "sub-0095" "sub-0103" "sub-0114" "sub-0122" "sub-0130"
-% "sub-0058" "sub-0066" "sub-0075" "sub-0082" "sub-0089" "sub-0097" "sub-0104" "sub-0115" "sub-0123" "sub-0131"
-% "sub-0059" "sub-0068" "sub-0076" "sub-0083" "sub-0090" "sub-0098" "sub-0106" "sub-0116" "sub-0124" "sub-0132"
-% "sub-0060" "sub-0069" "sub-0077" "sub-0084" "sub-0091" "sub-0099" "sub-0107" "sub-0117" "sub-0126" "sub-0133"
-% "sub-0061" "sub-0070" "sub-0078" "sub-0085" "sub-0092" "sub-0100" "sub-0109" "sub-0118" "sub-0127")
-% # Loop through the specified subdirectories
-% for subdir in "${subdirs[@]}"; do
-%     echo "Processing $subdir..."
-%     
-%     # Define the source directory and target directory
-%     src_dir="/Volumes/seagate/cue_singletrials/singletrial/$subdir"
-%     target_dir="/Volumes/seagate/cue_singletrials/uncompressed_singletrial/$subdir"
-%     
-%     # Run your command for this subdirectory
-%     find "$src_dir" -type f -name "*.nii.gz" -exec sh -c 'mkdir -p "$target_dir/$(dirname "{}" | cut -d "/" -f 2-)" && gunzip -c "{}" > "$target_dir/$(dirname "{}" | cut -d "/" -f 2-)/$(basename "{}" .gz)"' \;
-%     
-%     echo "Finished processing $subdir."
-% done
 brain_check = fmri_data('/Users/h/Documents/projects_local/sandbox/smooth-6mm_sub-0064_ses-01_run-02_runtype-pain_event-stimulus_trial-000_cuetype-low_stimintensity-med.nii');
 montage(brain_check)
 %% -------------------------------------------------------------------------
@@ -340,7 +261,7 @@ zscored_Y_filtered = zscored_Y';
 % Y = zscored_Y;
 % cov = cov_test;
 % l2m_meancentered = l2m_test;
-SETUP.mask = './new_graymattermask.nii'; %which(graymatter_mask);
+SETUP.mask = '../new_graymattermask_thres2.nii'; %which(graymatter_mask);
 SETUP.preprocX = 0;
 SETUP.preprocY = 0;
 SETUP.preprocM = 0;

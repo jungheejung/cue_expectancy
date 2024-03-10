@@ -22,9 +22,9 @@ dir_location = 'local';  % 'local' vs. 'discovery' as needed
 switch dir_location
     case 'local'
         matlab_moduledir = '/Users/h/Documents/MATLAB';
-        main_dir = '/Volumes/spacetop_projects_cue';
-        singletrial_dir = fullfile('/Volumes/seagate/cue_singletrials/uncompressed_singletrial');
-        beh_dir = '/Volumes/seagate/cue_singletrials/beh03_bids';
+        main_dir =  '/Users/h/Documents/projects_local/cue_expectancy';%'/Volumes/spacetop_projects_cue';
+        singletrial_dir = fullfile('/Volumes/seagate/cue_singletrials/uncompressed_singletrial_rampupplateau');
+        beh_dir = '/Volumes/seagate/cue_singletrials/beh';
         NPS_fname = '/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv01_signature/rampupdown/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv';
         graymatter_mask = '/Users/h/Documents/MATLAB/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/gray_matter_mask.nii';
     case 'discovery'
@@ -65,7 +65,7 @@ fprintf('step 1. parameter setup')
 % -------------------------------------------------------------------------
 % NPS_fname = '/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv01_signature/rampupdown/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv';
 
-npsdf = readtable(NPS_fname,"FileType","text", 'Delimiter', ',');
+% npsdf = readtable(NPS_fname,"FileType","text", 'Delimiter', ',');
 for e = 1:length(eventlist)
 for s = 1:length(sublist)
 
@@ -85,8 +85,10 @@ for s = 1:length(sublist)
 
     % step 03: merge the behavioral files and niftifiles based on intersection
     %          Extract the base filenames from the full path filenames
-    beh_df = load_beh_based_on_bids(beh_dir, unique_bids);
-    combinedTable = innerjoin(npsdf, beh_df, 'Keys', 'singletrial_fname');
+%     beh_df = load_beh_based_on_bids(beh_dir, unique_bids);
+    combinedTable = load_beh_bids(beh_dir, unique_bids);
+    beh_fname = fullfile(main_dir, 'data', 'beh', 'beh_singletrials', strcat(sublist{s}, '_task-', task, 'desc-singletrialbehintersection_events.tsv');
+    writetable(combinedTable, beh_fname, 'Delimiter', '\t', 'FileType', 'text');
     singletrial_basefname = cellfun(@(x) extractAfter(x, max(strfind(x, filesep))), singletrial_files, 'UniformOutput', false);
 %     if dir_location== 'discovery'
 % %     Define the prefix and merge dataframe based on single trial filenames
@@ -101,8 +103,8 @@ for s = 1:length(sublist)
     % step 05: contrast code the X regressors. Originally, they are strings in my behavioral dataframe
     cue_contrast_mapper = containers.Map({'low_cue', 'high_cue'}, [-1, 1]);
     stim_contrast_mapper = containers.Map({'low_stim', 'med_stim', 'high_stim'}, [-1, 0, 1]);
-    metadf_cue = contrast_coding(metadf_clean, 'cuetype', 'cue_contrast', cue_contrast_mapper);
-    metadf_con = contrast_coding(metadf_cue, 'stimtype', 'stim_contrast', stim_contrast_mapper);
+    metadf_cue = contrast_coding(metadf_clean, 'cue', 'cue_contrast', cue_contrast_mapper);
+    metadf_con = contrast_coding(metadf_cue, 'stimulusintensity', 'stim_contrast', stim_contrast_mapper);
 
     % step 06: the mediation code expects the full path of nifti files. Construct this based on the basename columns
     mediation_df = add_fullpath_column(metadf_con, singletrial_dir, sublist{s}, 'singletrial_fname', 'fullpath_fname');
