@@ -1,0 +1,500 @@
+%% -------------------------------------------------------------------------
+% script overview
+% -------------------------------------------------------------------------
+
+% This is a script that runs the multilevel mediation analysis 
+% for the cue expectancy pain task
+% 
+% X is stimulus contrast (high med low = 1, 0, -1)
+% M is singletrials from stimulus epoch (pain plateau)
+% Y is outcome rating from behavioral measures
+% cov is cue contrast, given that we need to account for the other experimental factor
+% l2m is a moderator, a between subject variable, average NPS response.
+
+%% -------------------------------------------------------------------------
+% directories and parameters
+% -------------------------------------------------------------------------
+
+addpath(genpath('./utils'));
+
+% Define the case variable
+dir_location = 'local';  % 'local' vs. 'discovery' as needed
+switch dir_location
+    case 'local'
+        matlab_moduledir = '/Users/h/Documents/MATLAB';
+        main_dir = '/Volumes/spacetop_projects_cue';
+        singletrial_dir = fullfile('/Volumes/seagate/cue_singletrials/uncompressed_singletrial_rampupplateau');
+        beh_dir = '/Volumes/seagate/cue_singletrials/beh03_bids';
+        NPS_fname = '/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv01_signature/rampupdown/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv';
+        graymatter_mask = '/Users/h/Documents/MATLAB/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/gray_matter_mask.nii';
+    case 'discovery'
+        matlab_moduledir = '/dartfs-hpc/rc/lab/C/CANlab/modules';
+        main_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue';
+%         singletrial_dir = fullfile(main_dir, 'analysis','fmri','nilearn','singletrial');
+        singletrial_dir = '/dartfs-hpc/scratch/f0042x1/singletrial_smooth';
+        beh_dir = fullfile(main_dir, 'data', 'beh', 'beh03_bids');
+        NPS_fname = fullfile(main_dir, 'analysis/fmri/nilearn/deriv01_signature/rampupdown/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv');
+        graymatter_mask = fullfile(matlab_moduledir, 'CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/gray_matter_mask.nii');
+    otherwise
+        error('Invalid case specified.');
+
+end
+
+
+addpath(genpath(fullfile(matlab_moduledir, 'CanlabCore')));
+addpath(genpath(fullfile(matlab_moduledir,'Neuroimaging_Pattern_Masks')));
+addpath(genpath(fullfile(matlab_moduledir,'MediationToolbox')));
+rmpath(genpath(fullfile(matlab_moduledir,'spm12/external/fieldtrip')));
+rmpath(genpath(fullfile(matlab_moduledir,'spm12/external/fieldtrip/external/stats')));
+
+sublist = find_sublist_from_dir(singletrial_dir); % find subdirectories that start with keyword "sub-"
+X = cell(1, length(sublist));
+Minterim = cell(1, length(sublist));
+Y = cell(1, length(sublist));
+cov = cell(1, length(sublist));
+l2m = zeros(1, length(sublist));
+sub = cell(1, length(sublist));
+eventlist = {'stim'}; 
+%{'cue', 'stim'}
+
+task = 'pain';
+fprintf('step 1. parameter setup')
+
+% -------------------------------------------------------------------------
+% construct dataframes for mediation analysis
+% -------------------------------------------------------------------------
+% NPS_fname = '/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv01_signature/rampupdown/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv';
+
+npsdf = readtable(NPS_fname,"FileType","text", 'Delimiter', ',');
+for e = 1:length(eventlist)
+for s = 1:length(sublist)
+
+    % step 01: glob all the nifti files
+    disp(strcat('starting ', sublist{s}))%strcat('sub-',sprintf('%04d', sublist(s)))))
+    
+    singletrial_flist = dir(fullfile(singletrial_dir, sublist{s},...
+        strcat(sublist{s}, '*_runtype-', task, '*_event-',eventlist{e},'*.nii')   ));
+%                         strcat('smooth-6mm_',sublist{s}, '*_runtype-', task, '*_event-',eventlist{e},'*.nii')   ));
+    if ~isempty(singletrial_flist)
+    singletrial_fldr = {singletrial_flist.folder}; fname = {singletrial_flist.name};
+    singletrial_files = strcat(singletrial_fldr,'/', fname)';
+        
+
+    % step 02: identify number of unique sub/ses/runs and load behavioral files
+    unique_bids = unique_combination_bids(singletrial_files);
+
+    % step 03: merge the behavioral files and niftifiles based on intersection
+    %          Extract the base filenames from the full path filenames
+    beh_df = load_beh_based_on_bids(beh_dir, unique_bids);
+    combinedTable = innerjoin(npsdf, beh_df, 'Keys', 'singletrial_fname');
+    singletrial_basefname = cellfun(@(x) extractAfter(x, max(strfind(x, filesep))), singletrial_files, 'UniformOutput', false);
+%     if dir_location== 'discovery'
+% %     Define the prefix and merge dataframe based on single trial filenames
+%         prefix = 'smooth-6mm_';
+%         combinedTable.singletrial_fname = strcat(prefix, combinedTable.singletrial_fname);
+%     end
+    merge_beh_nii = merge_on_nifti_beh(singletrial_basefname, combinedTable);
+
+    % step 04: if any of the Y regressors have NA values, the mediation will fail. Remove these instances
+    metadf_clean = remove_missing_behvalues(merge_beh_nii, 'outcomerating');
+
+    % step 05: contrast code the X regressors. Originally, they are strings in my behavioral dataframe
+    cue_contrast_mapper = containers.Map({'low_cue', 'high_cue'}, [-1, 1]);
+    stim_contrast_mapper = containers.Map({'low_stim', 'med_stim', 'high_stim'}, [-1, 0, 1]);
+    metadf_cue = contrast_coding(metadf_clean, 'cuetype', 'cue_contrast', cue_contrast_mapper);
+    metadf_con = contrast_coding(metadf_cue, 'stimtype', 'stim_contrast', stim_contrast_mapper);
+
+    % step 06: the mediation code expects the full path of nifti files. Construct this based on the basename columns
+    mediation_df = add_fullpath_column(metadf_con, singletrial_dir, sublist{s}, 'singletrial_fname', 'fullpath_fname');
+
+    % step 07: final step! construct the X, Minterim, Y cells for the mediation analysis  
+    X{1,s} = mediation_df.expectrating;
+    Minterim{1,s} = mediation_df.fullpath_fname;
+    Y{1,s} = mediation_df.outcomerating;
+    cov{1,s} = mediation_df.cue_contrast;
+    l2m(s) = mean(mediation_df.NPSpos); 
+    sub{1,s} = sublist{s}; 
+
+    end
+end
+end
+
+fprintf('Size of X: %s\n', mat2str(size(X)));
+fprintf('Size of Y: %s\n', mat2str(size(Y)));
+fprintf('Size of Minterim: %s\n', mat2str(size(Minterim)));
+fprintf('Size of cov: %s\n', mat2str(size(cov)));
+fprintf('Size of l2m: %s\n', mat2str(size(l2m)));
+
+save('mediation_XexpectYoutcomeMcovL2.mat', 'X', 'Y', 'Minterim', 'cov', 'l2m', 'sub');
+
+%----------------------------
+%% drop missing rows (ver 1.)
+% ----------------------------
+load('mediation_XexpectYoutcomeMcovL2.mat');
+missingIndices = []; % Initialize an empty array to store missing indices
+
+% Iterate over each index
+for i = 1:111
+    if isempty(X{i}) || isempty(Y{i}) || isempty(Minterim{i}) || isempty(cov{i}) || isnan(l2m(i))
+        missingIndices = [missingIndices i]; % Add the index to the missing list
+    end
+end
+
+% Retrieve subject numbers for missing indices
+missingSubjects = sub(missingIndices);
+
+% Display the missing indices and corresponding subject numbers
+fprintf('Missing Indices: %s\n', mat2str(missingIndices));
+% fprintf('Subject Numbers at Missing Indices: %s\n', mat2str(missingSubjects));
+
+% Create a logical array with all true values
+logicalIndex = true(1, 111);
+
+% Set the indices corresponding to missingIndices to false
+logicalIndex(missingIndices) = false;
+
+% Filter cell arrays (X, Y, Minterim, cov)
+X_filtered = X(logicalIndex);
+Y_filtered = Y(logicalIndex);
+M_filtered = Minterim(logicalIndex);
+cov_filtered = cov(logicalIndex);
+sub_filtered = sub(logicalIndex);
+
+% For l2m, which is a double array, we need a slightly different approach.
+% We'll replace the values at missing indices with NaN and then remove all NaNs
+l2m_temp = l2m;
+l2m_temp(missingIndices) = NaN;  % Mark missing indices as NaN
+l2m_filtered = l2m_temp(~isnan(l2m_temp)); % Remove NaNs to filter
+
+
+%----------------------------
+%%  DROP MISSING ROWS & TRIALS LESS THAN 10
+% ----------------------------
+% load('mediation_XYMcovL2.mat');
+missingIndices = []; % Initialize an empty array to store missing indices
+insufficientDataIndices = []; % Initialize an empty array for indices with insufficient data
+trial_cutoff = 35; % remove subject less than 10 trials
+% Iterate over each index
+for i = 1:size(X,2)
+    % Check for missing or NaN data
+    if isempty(X{i}) || isempty(Y{i}) || isempty(Minterim{i}) || isempty(cov{i}) || isnan(l2m(i))
+        missingIndices = [missingIndices i]; % Add the index to the missing list
+    % Check for insufficient instances in each cell
+    elseif numel(X{i}) < trial_cutoff || numel(Y{i}) < trial_cutoff || numel(Minterim{i}) < trial_cutoff || numel(cov{i}) < trial_cutoff
+        insufficientDataIndices = [insufficientDataIndices i]; % Add index to the insufficient data list
+    end
+end
+
+% Combine missing indices and insufficient data indices
+combinedIndices = unique([missingIndices, insufficientDataIndices]);
+
+% Retrieve subject numbers for combined indices
+missingSubjects = sub(combinedIndices);
+
+% Display the combined indices and corresponding subject numbers
+fprintf('Combined Indices (Missing or Insufficient Data): %s\n', mat2str(combinedIndices));
+% fprintf('Subject Numbers at Combined Indices: %s\n', mat2str(missingSubjects));
+
+% Create a logical array with all true values
+logicalIndex = true(1, size(X,2));
+
+% Set the indices corresponding to combinedIndices to false
+logicalIndex(combinedIndices) = false;
+
+% Filter cell arrays (X, Y, Minterim, cov) based on logicalIndex
+X_filtered = X(logicalIndex);
+Y_filtered = Y(logicalIndex);
+M_filtered = Minterim(logicalIndex);
+cov_filtered = cov(logicalIndex);
+sub_filtered = sub(logicalIndex);
+
+% For l2m, which is a double array, adjust for combinedIndices
+l2m_temp = l2m;
+l2m_temp(combinedIndices) = NaN;  % Mark combined indices as NaN
+l2m_filtered = l2m_temp(~isnan(l2m_temp)); % Remove NaNs to filter
+
+
+
+fprintf('step 2. X, Y, M fully set up');
+
+
+brain_check = fmri_data('/Users/h/Documents/projects_local/sandbox/smooth-6mm_sub-0064_ses-01_run-02_runtype-pain_event-stimulus_trial-000_cuetype-low_stimintensity-med.nii');
+montage(brain_check)
+%% -------------------------------------------------------------------------
+% start mediation analysis
+% -------------------------------------------------------------------------
+
+addpath(genpath(fullfile(matlab_moduledir, 'CanlabCore')));
+addpath(genpath(fullfile(matlab_moduledir, 'Neuroimaging_Pattern_Masks')));
+addpath(genpath(fullfile(matlab_moduledir, 'MediationToolbox')));
+addpath(genpath(fullfile(matlab_moduledir, 'spm12')));
+rmpath(genpath(fullfile(matlab_moduledir,  'spm12/external/fieldtrip')));
+rmpath(genpath(fullfile(matlab_moduledir,  'spm12/external/fieldtrip/external/stats')));
+
+% fprintf('Size of X: %s\n', mat2str(size(X)));
+% fprintf('Size of zscored_y: %s\n', mat2str(size(zscored_Y)));
+% fprintf('Size of M: %s\n', mat2str(size(M)));
+% fprintf('Size of cov: %s\n', mat2str(size(cov)));
+% fprintf('Size of l2m_centered: %s\n', mat2str(size(l2m_meancentered)));
+% ----------------------------
+% z score across participants
+% ----------------------------
+
+num_participants = numel(Y_filtered);
+% Aggregate all data into one matrix (assuming each participant's data is a column vector)
+all_data = vertcat(Y_filtered{:});
+
+% Compute the mean and standard deviation across all data
+mean_data = mean(all_data); 
+std_data = std(all_data);
+
+% Z-score all data using the computed mean and standard deviation
+zscored_Y = cell(num_participants, 1);
+
+for i = 1:num_participants
+    participant_data = Y_filtered{i}; % Access the data for the current participant
+    zscored_Y{i} = (participant_data - mean_data) ./ std_data;
+end
+zscored_Y_filtered = zscored_Y';
+% M = M_test;
+% X = X_test;
+% Y = zscored_Y;
+% cov = cov_test;
+% l2m_meancentered = l2m_test;
+SETUP.mask = '../new_graymattermask_thres2.nii'; %which(graymatter_mask);
+SETUP.preprocX = 0;
+SETUP.preprocY = 0;
+SETUP.preprocM = 0;
+SETUP.wh_is_mediator = 'M';
+M_filtered_char = convert_cell2char(M_filtered);
+% SETUP.data.covs = cov
+% SETUP.data.L2M = l2m_meancentered';
+mediation_brain_multilevel(X_filtered, zscored_Y_filtered, M_filtered_char, SETUP, 'nopreproc', 'covs', cov_filtered, 'L2M', l2m_filtered'); %, 'boot', 'bootsamples', 1000);
+mediation_brain_multilevel(X_filtered, zscored_Y_filtered, M_filtered_char, SETUP, 'nopreproc', 'covs', cov_filtered, 'boot', 'bootsamples', 1000);% 'L2M', l2m_meancentered',
+mediation_brain_multilevel(X_filtered, zscored_Y_filtered, M_filtered_char, SETUP, 'nopreproc', 'boot', 'bootsamples', 1000);
+% mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'covs', cov, 'L2M', l2m_meancentered'); %, 'boot', 'bootsamples', 1000);
+% mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'covs', cov, 'boot', 'bootsamples', 1000);% 'L2M', l2m_meancentered',
+% mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'boot', 'bootsamples', 1000);
+SETUP = mediation_brain_corrected_threshold('fdr');
+
+dashes = '----------------------------------------------';
+printstr = @(dashes) disp(dashes);
+printhdr = @(str) fprintf('\n\n%s\n%s\n%s\n%s\n%s\n\n', dashes, dashes, str, dashes, dashes);
+
+printhdr('Path a: Cue to Brain Response')
+
+mediation_brain_results('a', 'thresh', ...
+    SETUP.fdr_p_thresh, 'size', 5, ...
+    'slices', 'tables', 'names', 'save');
+print('Path_a_results.pdf', '-dpdf');
+
+% Results for Path b
+% Generate results for effects of brain responses on pain reports, controlling for stimulus  temperature.
+printhdr('Path b: Brain Response to Actual Rating, Adjusting for Cue')
+
+mediation_brain_results('b', 'thresh', ...
+    SETUP.fdr_p_thresh, 'size', 5, ...
+    'slices', 'tables', 'names', 'save');
+print('Path_b_results.pdf', '-dpdf');
+% Results for Path a*b
+% Generate results for the mediation effect. Here, we'll return some clusters structures with results to the workspace as output so we can examine them later. (We can also load them from disk).
+printhdr('Path a*b: Brain Mediators of Cue Effects on General')
+
+[clpos, clneg, clpos_data, clneg_data, clpos_data2, clneg_data2] = mediation_brain_results('ab', 'thresh', ...
+    SETUP.fdr_p_thresh, 'size', 5, ...
+    'slices', 'tables', 'names', 'save');
+print('Path_ab_results.pdf', '-dpdf');
+
+
+%
+% Subject   1,  27 images.
+% Subject   2,  46 images.
+% Subject   3,  47 images.
+% Subject   4,  46 images.
+% Subject   5,  47 images.
+% Subject   6,  12 images.
+% Subject   7,  35 images.
+% Subject   8,  48 images.
+% Subject   9,  43 images.
+% Subject  10,  24 images.
+% Subject  11,  48 images.
+% Subject  12,  48 images.
+% Subject  13,  24 images.
+% Subject  14,  58 images.
+% Subject  15,  48 images.
+% Subject  16,  66 images.
+% Subject  17,  57 images.
+% Subject  18,  49 images.
+% Subject  19,  36 images.
+% Subject  20,  22 images.
+% Subject  21,  55 images.
+% Subject  22,  57 images.
+% Subject  23,  24 images.
+% Subject  24,  72 images.
+% Subject  25,  23 images.
+% Subject  26,  72 images.
+% Subject  27,  47 images.
+% Subject  28,  72 images.
+% Subject  29,  46 images.
+% Subject  30,  72 images.
+% Subject  31,  68 images.
+% Subject  32,  71 images.
+% Subject  33,  47 images.
+% Subject  34,  48 images.
+% Subject  35,  24 images.
+% Subject  36,  70 images.
+% Subject  37,  67 images.
+% Subject  38,  24 images.
+% Subject  39,  72 images.
+% Subject  40,  71 images.
+% Subject  41,  69 images.
+% Subject  42,  70 images.
+% Subject  43,  71 images.
+% Subject  44,  48 images.
+% Subject  45,  71 images.
+% Subject  46,  71 images.
+% Subject  47,  46 images.
+% Subject  48,  71 images.
+% Subject  49,  68 images.
+% Subject  50,  67 images.
+% Subject  51,  12 images.
+% Subject  52,  23 images.
+% Subject  53,  10 images.
+% Subject  54,  24 images.
+% Subject  55,  24 images.
+% Subject  56,  23 images.
+% Subject  57,   0 images.
+% Subject  58,  69 images.
+% Subject  59,  62 images.
+% Subject  60,   0 images.
+% Subject  61,  24 images.
+% Subject  62,  46 images.
+% Subject  63,  71 images.
+% Subject  64,  38 images.
+% Subject  65,  61 images.
+% Subject  66,  58 images.
+% Subject  67,  18 images.
+% Subject  68,  43 images.
+% Subject  69,  23 images.
+% Subject  70,  18 images.
+% Subject  71,  64 images.
+% Subject  72,  66 images.
+% Subject  73,  72 images.
+% Subject  74,  59 images.
+% Subject  75,  72 images.
+% Subject  76,  70 images.
+% Subject  77,  58 images.
+% Subject  78,  71 images.
+% Subject  79,  69 images.
+% Subject  80,  72 images.
+% Subject  81,  24 images.
+% Subject  82,  14 images.
+% Subject  83,  70 images.
+% Subject  84,  64 images.
+% Subject  85,  71 images.
+% Subject  86,   0 images.
+% Subject  87,  31 images.
+% Subject  88,  47 images.
+% Subject  89,  72 images.
+% Subject  90,  47 images.
+% Subject  91,  69 images.
+% Subject  92,  71 images.
+% Subject  93,  42 images.
+% Subject  94,  23 images.
+% Subject  95,  66 images.
+% Subject  96,  70 images.
+% Subject  97,   6 images.
+% Subject  98,  21 images.
+% Subject  99,  24 images.
+% Subject 100,  22 images.
+% Subject 101,  64 images.
+% Subject 102,  21 images.
+% Subject 103,  71 images.
+% Subject 104,  45 images.
+% Subject 105,  70 images.
+% Subject 106,  48 images.
+% Subject 107,  56 images.
+% Subject 108,  70 images.
+% Subject 109,  48 images.
+% Subject 110,  72 images.
+% Subject 111,  67 images.
+
+% Assuming X and Y are cell arrays containing double arrays
+num_cells_X = numel(X);
+num_cells_Y = numel(Y);
+num_cells_M = numel(Minterim);
+num_cells_cov = numel(cov);
+sizes_X = zeros(num_cells_X, 2); % Matrix to store sizes of X
+sizes_Y = zeros(num_cells_Y, 2); % Matrix to store sizes of Y
+sizes_M = zeros(num_cells_M, 2);
+sizes_cov = zeros(num_cells_cov, 2);
+% Loop through X and Y to get the sizes of the double arrays
+for i = 1:num_cells_X
+    sizes_X(i, :) = size(X{i});
+end
+
+for i = 1:num_cells_Y
+    sizes_Y(i, :) = size(Y{i});
+end
+
+for i = 1:num_cells_M
+    sizes_M(i, :) = size(Minterim{i});
+end
+
+for i = 1:num_cells_cov
+    sizes_cov(i, :) = size(cov{i});
+end
+all(all(sizes_Y(:,1) == sizes_X(:,1)))
+all(all(sizes_Y(:,1) == sizes_M(:,1)))
+all(all(sizes_Y(:,1) == sizes_cov(:,1)))
+
+
+
+function [X_test, Y_test, M_test, cov_test, l2m_test] = filter_empty_cells(X, Y, M, cov, l2m)
+    num_subjects = numel(X);
+
+    % ----------------------------------------------------------------------------
+    %  filter rows based on Y data
+    % ----------------------------------------------------------------------------
+
+    % Initialize cell arrays to store filtered data
+    X_filtered = cell(num_subjects, 1);
+    Y_filtered = cell(num_subjects, 1);
+    M_filtered = cell(num_subjects, 1);
+    cov_filtered = cell(num_subjects, 1);
+    l2m_filtered = [];
+
+    % Loop through subjects and filter out cells with empty arrays in Y
+    for i = 1:num_subjects
+        % Check if Y is not empty for the current subject
+        if ~isempty(Y{i})
+            X_filtered{i} = X{i};
+            Y_filtered{i} = Y{i};
+            M_filtered{i} = M{i};
+            cov_filtered{i} = cov{i}; % If you want to filter cov as well
+            l2m_filtered(i) = l2m(i); % If you want to filter l2m as well
+        end
+    end
+
+    num_filtered = numel(Y_filtered);
+    X_test = cell(num_filtered, 1);
+    Y_test = cell(num_filtered, 1);
+    M_test = cell(num_filtered, 1);
+    cov_test = cell(num_filtered, 1);
+    l2m_test = [];
+    % Loop through subjects and filter out cells with empty arrays in Y
+
+
+    % ----------------------------------------------------------------------------
+    %  filter rows based on moderator data
+    % ----------------------------------------------------------------------------
+    % NPS values might have nans in there
+    nan_indices = find(isnan(l2m_filtered));
+
+    X_test = X_filtered([1:nan_indices-1, nan_indices+1:end]);
+    Y_test = Y_filtered([1:nan_indices-1, nan_indices+1:end]);
+    M_test = M_filtered([1:nan_indices-1, nan_indices+1:end]);
+    cov_test = cov_filtered([1:nan_indices-1, nan_indices+1:end]);
+    l2m_test = l2m_filtered([1:nan_indices-1, nan_indices+1:end]);
+
+end

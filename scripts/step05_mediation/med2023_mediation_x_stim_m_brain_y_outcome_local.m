@@ -49,7 +49,7 @@ rmpath(genpath(fullfile(matlab_moduledir,'spm12/external/fieldtrip/external/stat
 
 sublist = find_sublist_from_dir(singletrial_dir); % find subdirectories that start with keyword "sub-"
 X = cell(1, length(sublist));
-M = cell(1, length(sublist));
+Minterim = cell(1, length(sublist));
 Y = cell(1, length(sublist));
 cov = cell(1, length(sublist));
 l2m = zeros(1, length(sublist));
@@ -107,9 +107,9 @@ for s = 1:length(sublist)
     % step 06: the mediation code expects the full path of nifti files. Construct this based on the basename columns
     mediation_df = add_fullpath_column(metadf_con, singletrial_dir, sublist{s}, 'singletrial_fname', 'fullpath_fname');
 
-    % step 07: final step! construct the X, M, Y cells for the mediation analysis  
+    % step 07: final step! construct the X, Minterim, Y cells for the mediation analysis  
     X{1,s} = mediation_df.stim_contrast;
-    M{1,s} = mediation_df.fullpath_fname;
+    Minterim{1,s} = mediation_df.fullpath_fname;
     Y{1,s} = mediation_df.outcomerating;
     cov{1,s} = mediation_df.cue_contrast;
     l2m(s) = mean(mediation_df.NPSpos); 
@@ -121,11 +121,11 @@ end
 
 fprintf('Size of X: %s\n', mat2str(size(X)));
 fprintf('Size of Y: %s\n', mat2str(size(Y)));
-fprintf('Size of M: %s\n', mat2str(size(M)));
+fprintf('Size of Minterim: %s\n', mat2str(size(Minterim)));
 fprintf('Size of cov: %s\n', mat2str(size(cov)));
 fprintf('Size of l2m: %s\n', mat2str(size(l2m)));
 
-save('mediation_XYMcovL2.mat', 'X', 'Y', 'M', 'cov', 'l2m', 'sub');
+save('mediation_XYMcovL2.mat', 'X', 'Y', 'Minterim', 'cov', 'l2m', 'sub');
 
 %----------------------------
 %% drop missing rows (ver 1.)
@@ -135,7 +135,7 @@ missingIndices = []; % Initialize an empty array to store missing indices
 
 % Iterate over each index
 for i = 1:111
-    if isempty(X{i}) || isempty(Y{i}) || isempty(M{i}) || isempty(cov{i}) || isnan(l2m(i))
+    if isempty(X{i}) || isempty(Y{i}) || isempty(Minterim{i}) || isempty(cov{i}) || isnan(l2m(i))
         missingIndices = [missingIndices i]; % Add the index to the missing list
     end
 end
@@ -153,10 +153,10 @@ logicalIndex = true(1, 111);
 % Set the indices corresponding to missingIndices to false
 logicalIndex(missingIndices) = false;
 
-% Filter cell arrays (X, Y, M, cov)
+% Filter cell arrays (X, Y, Minterim, cov)
 X_filtered = X(logicalIndex);
 Y_filtered = Y(logicalIndex);
-M_filtered = M(logicalIndex);
+M_filtered = Minterim(logicalIndex);
 cov_filtered = cov(logicalIndex);
 sub_filtered = sub(logicalIndex);
 
@@ -177,10 +177,10 @@ trial_cutoff = 35; % remove subject less than 10 trials
 % Iterate over each index
 for i = 1:size(X,2)
     % Check for missing or NaN data
-    if isempty(X{i}) || isempty(Y{i}) || isempty(M{i}) || isempty(cov{i}) || isnan(l2m(i))
+    if isempty(X{i}) || isempty(Y{i}) || isempty(Minterim{i}) || isempty(cov{i}) || isnan(l2m(i))
         missingIndices = [missingIndices i]; % Add the index to the missing list
     % Check for insufficient instances in each cell
-    elseif numel(X{i}) < trial_cutoff || numel(Y{i}) < trial_cutoff || numel(M{i}) < trial_cutoff || numel(cov{i}) < trial_cutoff
+    elseif numel(X{i}) < trial_cutoff || numel(Y{i}) < trial_cutoff || numel(Minterim{i}) < trial_cutoff || numel(cov{i}) < trial_cutoff
         insufficientDataIndices = [insufficientDataIndices i]; % Add index to the insufficient data list
     end
 end
@@ -201,10 +201,10 @@ logicalIndex = true(1, size(X,2));
 % Set the indices corresponding to combinedIndices to false
 logicalIndex(combinedIndices) = false;
 
-% Filter cell arrays (X, Y, M, cov) based on logicalIndex
+% Filter cell arrays (X, Y, Minterim, cov) based on logicalIndex
 X_filtered = X(logicalIndex);
 Y_filtered = Y(logicalIndex);
-M_filtered = M(logicalIndex);
+M_filtered = Minterim(logicalIndex);
 cov_filtered = cov(logicalIndex);
 sub_filtered = sub(logicalIndex);
 
@@ -217,8 +217,8 @@ l2m_filtered = l2m_temp(~isnan(l2m_temp)); % Remove NaNs to filter
 
 
 % if Y has empty rows, remove them from all other
-% [X_test, Y_test, M_test, cov_test, l2m_test] = filter_empty_cells(X, Y, M, cov, l2m);
-% M = convert_cell2char(M_test);
+% [X_test, Y_test, M_test, cov_test, l2m_test] = filter_empty_cells(X, Y, Minterim, cov, l2m);
+% Minterim = convert_cell2char(M_test);
 % 
 % % mean center l2m
 % mean_values = mean(l2m_test);
@@ -340,7 +340,7 @@ zscored_Y_filtered = zscored_Y';
 % Y = zscored_Y;
 % cov = cov_test;
 % l2m_meancentered = l2m_test;
-SETUP.mask = which(graymatter_mask);
+SETUP.mask = './new_graymattermask.nii'; %which(graymatter_mask);
 SETUP.preprocX = 0;
 SETUP.preprocY = 0;
 SETUP.preprocM = 0;
@@ -501,7 +501,7 @@ print('Path_ab_results.pdf', '-dpdf');
 % Assuming X and Y are cell arrays containing double arrays
 num_cells_X = numel(X);
 num_cells_Y = numel(Y);
-num_cells_M = numel(M);
+num_cells_M = numel(Minterim);
 num_cells_cov = numel(cov);
 sizes_X = zeros(num_cells_X, 2); % Matrix to store sizes of X
 sizes_Y = zeros(num_cells_Y, 2); % Matrix to store sizes of Y
@@ -517,7 +517,7 @@ for i = 1:num_cells_Y
 end
 
 for i = 1:num_cells_M
-    sizes_M(i, :) = size(M{i});
+    sizes_M(i, :) = size(Minterim{i});
 end
 
 for i = 1:num_cells_cov
