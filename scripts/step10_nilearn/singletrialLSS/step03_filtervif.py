@@ -6,6 +6,8 @@ import os, glob
 
 """
 In this code, we filter the single trials based on a specific VIF threshold
+VIFs were extracted during model estimation code
+Check code: scripts/step10_nilearn/singletrialLSS/step01_nilearnLSS_rampuppleateau.py
 """
 vif_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupplateau/vif_summary'
 
