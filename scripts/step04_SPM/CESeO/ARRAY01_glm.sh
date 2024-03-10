@@ -8,7 +8,7 @@
 #SBATCH -e ./log_CESeO/GLM_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1-133%50
+#SBATCH --array=1-3
 
 
 CANLABCORE_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore"

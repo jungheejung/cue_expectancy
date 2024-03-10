@@ -18,7 +18,7 @@ ID=$((SLURM_ARRAY_TASK_ID-1))
 MAINDIR=$(git rev-parse --show-toplevel) #"/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue"
 SINGLETRIALDIR="${MAINDIR}/analysis/fmri/nilearn/singletrial_rampupplateau"
 SAVEDIR="${MAINDIR}/analysis/fmri/nilearn/deriv01_signature/rampup_plateau"
-python ${MAINDIR}/scripts/step10_nilearn/singletrialLSS/step02_applysignature_recursive.py \
+python ${MAINDIR}/scripts/step10_nilearn/signature/step02_applysignature_recursive.py \
 --slurm-id ${ID} \
 --input-niidir ${SINGLETRIALDIR} \
 --output-savedir ${SAVEDIR}

@@ -49,7 +49,7 @@ STIM_lowcue_medstim          = [0,0,0,0,1,0,0,0,0,0];
 STIM_lowcue_lowstim          = [0,0,0,0,0,1,0,0,0,0];
 CUE_cue_high_gt_low          = [0,0,0,0,0,0,1,-1,0,0];
 motor_con                    = [0,0,0,0,0,0,0,0,1,1];
-
+stim_con                     = [1,1,1,1,1,1,0,0,0,0];
 % NOTE 02 define directories _______________________________________________________
 motion_dir = fullfile(main_dir, 'data', 'fmri', 'fmri02_motion');
 onset_dir = fullfile(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset02_SPM');
@@ -57,7 +57,7 @@ onset_dir = fullfile(main_dir, 'data', 'fmri', 'fmri01_onset', 'onset02_SPM');
 disp( strcat('-----------------------',sub,'----------------------' ));
 
 output_dir = save_dir;
-spm_fname = fullfile(output_dir, sub, 'SPM.mat');
+spm_fname = fullfile(input_dir, sub, 'SPM.mat');
 load(spm_fname);
 
 paths = cellstr(SPM.xY.P);
@@ -134,7 +134,7 @@ contrast_name = {
     'C_simple_STIM_lowcue_highstim',    'C_simple_STIM_lowcue_medstim', 'C_simple_STIM_lowcue_lowstim',...
     'P_VC_CUE_cue_high_gt_low','V_PC_CUE_cue_high_gt_low','C_PV_CUE_cue_high_gt_low',...% cue epoch contrasts
     'P_simple_CUE_cue_high_gt_low','V_simple_CUE_STIM_cue_high_gt_low','C_simple_CUE_cue_high_gt_low',...% cue epoch dummy
-
+    'G_simple_CUE_cue_high_gt_low', 'P_VC_STIM', 'V_PC_STIM', 'C_PV_STIM'
 };
 
 c01 = []; c02 = []; c03 = []; c04 = []; c05 = []; c06 = []; c07 = []; c08 = []; c09 = []; c10 = [];
@@ -142,7 +142,7 @@ c11 = []; c12 = []; c13 = []; c14 = []; c15 = []; c16 = []; c17 = []; c18 = []; 
 c21 = []; c22 = []; c23 = []; c24 = []; c25 = []; c26 = []; c27 = []; c28 = []; c29 = []; c30 = [];
 c31 = []; c32 = []; c33 = []; c34 = []; c35 = []; c36 = []; c37 = []; c38 = []; c39 = []; c40 = [];
 c41 = []; c42 = []; c43 = []; c44 = []; c45 = []; c46 = []; c47 = []; c48 = []; c49 = []; c50 = [];
-c51 = []; c52 = []; c53 = []; c54 = []; c55 = [];
+c51 = []; c52 = []; c53 = []; c54 = []; c55 = []; c56 = []; c57 = []; c58 = []; c59 = []; c60 = [];
 
 matlabbatch = cell(1,1);
 runlength = size(A,1);
@@ -342,7 +342,10 @@ end
 
 matlabbatch{1}.spm.stats.con.delete = 1; % delete previous contrast
 
-con_batch = fullfile(output_dir, 'contrast_estimation.mat' );
+if ~exist(fullfile(save_dir, sub), 'dir')
+mkdir(fullfile(save_dir, sub))
+end
+con_batch = fullfile(output_dir, sub, 'contrast_estimation.mat' );
 save( con_batch  ,'matlabbatch');
 
 % 2. Run ___________________________________________________________________

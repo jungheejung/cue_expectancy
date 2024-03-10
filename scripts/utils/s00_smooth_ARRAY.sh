@@ -8,7 +8,7 @@
 #SBATCH -e ./smooth/smooth_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1-13
+#SBATCH --array=1-133%10
 
 
 CANLABCORE_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore"

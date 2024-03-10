@@ -17,7 +17,8 @@ CANLABCORE_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore"
 MAIN_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue" 
 INPUT_DIR="${MAIN_DIR}/analysis/fmri/smooth6mm"
 INPUT_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/spm/univariate/model01_6cond_fullpain"
-SAVE_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/spm/univariate/model01_6cond_fullpain"
+SAVE_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/spm/univariate/model01_6cond_fullpain/1stlevel"
+SPM_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/spm12"
 ### GPT
 FILE="${MAIN_DIR}/scripts/step00_qc/qc03_fmriprep_visualize/bad_runs.json"
 BAD=$(jq -r 'keys[]' ${FILE})   

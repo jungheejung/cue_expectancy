@@ -8,13 +8,13 @@
 #SBATCH -e ./output/GLM_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=4-6
+#SBATCH --array=1-133%30
 
 CANLABCORE_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore"
 SPM_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/spm12"
 MAIN_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue" #"$(realpath "${PWD}/../..")"
 SPM_DIR="${MAIN_DIR}/analysis/fmri/spm/univariate/model01_6cond_highlowcue_rampplateau";
-TASK="pain"
+TASK="pain" # "vicarious" "cognitive" "all"
 mylist=($(find ${SPM_DIR} -maxdepth 1 -mindepth 1 -type d -iname "sub-*"))
 IFS=$'\n' sorted=($(sort <<<"${mylist[*]}") )
 PARTICIPANT_LABEL="$(basename "${sorted[$((SLURM_ARRAY_TASK_ID-1))]}")"
