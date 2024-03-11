@@ -195,16 +195,26 @@ g <- g + theme_bw() + theme_classic()
 print(g)
 SCLstim_groupwise$task = taskname
 
-k <- plot_lineplot_twofactor_subsetthick(SCLstim_groupwise,
-                             taskname="pain", 
+k <- plot_lineplot_twofactor(SCLstim_groupwise,
+                             # taskname="pain", 
                         iv1="stim_ordered",
                         iv2="cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c( "high" = "red",
-                                  "low" = "blue"), 
+                                  "low" = "#4C77ED"), 
                         ggtitle = title, 
-                        xlab = "Stimulus Intensity", ylab = "SCL activation (A.U.)")
-k <- k + theme(aspect.ratio=.8)
+                        xlab = "Stimulus intensity", ylab = "SCR (A.U.)")
+# k <- k + theme(aspect.ratio=.8) +   geom_line(size = 1) + # Adjust line thickness
+#   geom_point(size = 3)  # Adjust point size
+k <-  k + theme(aspect.ratio=.8,
+          text = element_text(size = 18), # Default text size for the plot
+          axis.title = element_text(size = 24, ), # Axis titles
+          axis.text = element_text(size = 18), # Axis text (x and y)
+          plot.title = element_text(size = 24, hjust = 0.5) # Plot title
+          ) +
+  geom_line(size = 1) + # Adjust line thickness
+  geom_point(size = 3)  # Adjust point size
+  
 print(k)
 ```
 
@@ -368,13 +378,13 @@ ERROR = "se"
 dv_keyword = "actual"
 p1 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-01",],
                LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'ses-01',
-               ylab = "SCR (a.u.)" )
+               ylab = "SCR (A.U.)" )
 p2 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-03",],
                LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'ses-03',
-               ylab = "SCR (a.u.)")
+               ylab = "SCR (A.U.)")
 p3 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-04",],
                LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = 'ses-04',
-               ylab = "SCR (a.u.)")
+               ylab = "SCR (A.U.)")
 
 ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
 plot_filename = file.path(analysis_dir,

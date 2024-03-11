@@ -55,7 +55,7 @@ sapply(file.sources,source,.GlobalEnv)
 analysis_folder <- "fmri_nps"
 beh <- readr::read_tsv(file.path(main_dir, "data/beh/sub-all_task-all_events.tsv"))
 # load nps tsv
-nps <- read.csv(file.path(main_dir, "analysis/fmri/nilearn/deriv01_signature/rampup_plateau/signature-NPS_sub-all_runtype-pvc_event-stimulus.tsv"), sep = ",")
+nps <- read.csv(file.path("/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau/signature-NPS_sub-all_runtype-pvc_event-stimulus.tsv"), sep = ",")
 # intersect
 # Assuming df1 and df2 are your data frames and 'key_column' is the name of your key column
 df_merge <- inner_join(beh, nps, by = "singletrial_fname")
@@ -169,41 +169,6 @@ summary_for_plots_PVC <- function(df, groupwise_measurevar, subject_keyword, mod
 }
 ```
 
-```{r function::simple_contrasts_singletrial, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
-simple_contrasts_singletrial <- function(df) {
-# [ CONTRASTS ]  ________________________________________________________________________________ # nolint
-# contrast code ________________________________________
-df$STIM <- factor(df$stimulusintensity)
-
-# contrast code 1 linear
-df$STIM_linear[df$stimulusintensity == "low"] <-  -0.5
-df$STIM_linear[df$stimulusintensity == "med"] <-  0
-df$STIM_linear[df$stimulusintensity == "high"] <-  0.5
-
-# contrast code 2 quadratic
-df$STIM_quadratic[df$stimulusintensity == "low"] <-  -0.33
-df$STIM_quadratic[df$stimulusintensity == "med"] <-  0.66
-df$STIM_quadratic[df$stimulusintensity == "high"] <-  -0.33
-
-# cue contrast
-df$CUE_high_gt_low[df$cue == "low"] <-  -0.5 # social influence task
-df$CUE_high_gt_low[df$cue == "high"] <-  0.5 # no influence task
-
-df$stim_ordered <- factor(
-        df$stimulusintensity,
-        levels = c("low", "med", "high")
-    )
-
-df$cue_name[df$cuetype == "low"] <- "low"
-df$cue_name[df$cuetype == "high"] <- "high"
-
-df$cue_ordered <- factor(
-        df$cue_name,
-        levels = c("low", "high")
-    )
-return(df)
-}
-```
 
 ```{r function::NPS_lineplot_34, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 two_factor_lineplot <-
@@ -408,12 +373,21 @@ g + theme(aspect.ratio=.8)
 ### Lineplots {.unlisted .unnumbered}
 
 ```{r echo=FALSE, warning=FALSE}
-g <- plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain",
+g <- plot_lineplot_twofactor(NPSstimcue_groupwise,# taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = "#5D5C5C","high cue" = "#D73027"), ggtitle = "Within pain task: NPS dotproducts as a function of stimulus intensity level and cue",
+                        color = c("low cue" = "#4C77ED","high cue" = "#D73027"), 
+                        ggtitle = "NPS dotproducts as a function of stimulus intensity level and cue",
                         xlab = "Stimulus intensity", ylab = "NPS (dot product)")
-g + theme(aspect.ratio=.8)
+g + theme(aspect.ratio=.8,
+          text = element_text(size = 18), # Default text size for the plot
+          axis.title = element_text(size = 24, ), # Axis titles
+          axis.text = element_text(size = 18), # Axis text (x and y)
+          plot.title = element_text(size = 24, hjust = 0.5) # Plot title
+          ) +
+  geom_line(size = 1) + # Adjust line thickness
+  geom_point(size = 3)  # Adjust point size
+  
 ```
 
 ### Lineplots tilt axis {.unlisted .unnumbered}
