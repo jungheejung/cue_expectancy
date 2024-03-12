@@ -1,4 +1,4 @@
-# [physio] SCL {#glmSCL}
+# [physio] SCL {#ch94_SCL}
 
 
 ## Outline
@@ -58,7 +58,7 @@ df$stim_ordered <- factor(
         levels = c("low", "med", "high")
     )
 
-  df$cue_ordered <- factor(
+df$cue_ordered <- factor(
         df$cue_name,
         levels = c("low", "high")
     )
@@ -74,17 +74,13 @@ via [https://github.com/jungheejung/spacetop_biopac/tree/main/scripts/p03_glm](h
 
 taskname <- "pain"
 # 1. load data _________________________________________________________________
-beta <- read.table(file = file.path(
-  '/Volumes/spacetop_projects_cue/analysis/physio/nobaseline/glm/glm-factorial_task-pain_scr.tsv'
-  # main_dir, paste0("analysis/physio/nobaseline/glm/factorial/glm-factorial_task-", taskname, "_scr.tsv")
-  ), sep = '\t', header = TRUE)
+beta <- read.table(file = file.path(main_dir, paste0("analysis/physio/glm/factorial/glm-factorial_task-", taskname, "_scr.tsv")), sep = '\t', header = TRUE)
 ```
 
 
 ## 1) stim x cue effect
 ```{r}
 # 2. summarize data frame ______________________________________________________ 
-beta_subset <- beta[,c("X","filename","sub","ses","run","runtype","intercept","high_stim.high_cue" ,"high_stim.low_cue", "med_stim.high_cue","med_stim.low_cue","low_stim.high_cue","low_stim.low_cue")]
 beta_long <- beta %>%
   gather(key = "stim_cue", value = "beta", starts_with("high_stim"), starts_with("med_stim"), starts_with("low_stim")) %>%
   separate(stim_cue, into = c("stim", "cue"), sep = "\\.")
@@ -94,14 +90,10 @@ beta_con <- simple_contrasts_singletrial(beta_long)
 
 ```{r}
 # 3. linear model ______________________________________________________________ 
-
-model.factorial <- lmer(beta ~ STIM_linear*cue_factor + STIM_quadratic*cue_factor + (STIM_linear + cue_factor|sub), data = beta_con)
-
-# model.factorial <- glmmTMB::glmmTMB(beta ~ STIM_linear*cue_factor + STIM_quadratic*cue_factor + (STIM_linear +cue_factor|sub), data = beta_con, family="gaussian")
-
-summary(model.factorial)
+model.factorial <- lmer(beta ~ STIM_linear*cue_factor + STIM_quadratic*cue_factor + (1|sub), data = beta_con)
+# summary(model.factorial)
 sjPlot::tab_model(model.factorial,
-              title = paste0(tools::toTitleCase(taskname), ": \nlmer(SCR beta ~ Stim * Cue + (Stim + Cue | sub), data = beta)"),
+              title = paste0(tools::toTitleCase(taskname), ": \nlmer(SCR beta ~ Stim * Cue + (1 | sub), data = beta)"),
               CSS = list(css.table = '+font-size: 12;'))
 ```
 
@@ -115,7 +107,7 @@ dv <- "beta"
 dv_keyword <- "sclbeta"
 taskname <- "pain"
 # model_iv2 <- "cue_ordered"
-analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "sclbeta", as.character(Sys.Date()))
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model94_sclbeta", as.character(Sys.Date()))
 beta_con$taskname <- taskname
 
 
@@ -156,9 +148,9 @@ plot_savefname <- file.path(
   )
 )
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
-  color <- c( "#365af1",  "#fd0000")
+  color <- c( "blue",  "red")
 } else {
-  color <- c( "#365af1", "#fd0000")
+  color <- c( "blue", "red")
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -203,16 +195,26 @@ g <- g + theme_bw() + theme_classic()
 print(g)
 SCLstim_groupwise$task = taskname
 
-k <- plot_lineplot_twofactor_subsetthick(SCLstim_groupwise,
-                             taskname="pain", 
+k <- plot_lineplot_twofactor(SCLstim_groupwise,
+                             # taskname="pain", 
                         iv1="stim_ordered",
                         iv2="cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c( "high" = "#fd0000",
-                                  "low" = "#365af1"), 
+                        color = c( "high" = "red",
+                                  "low" = "#4C77ED"), 
                         ggtitle = title, 
-                        xlab = "Stimulus Intensity", ylab = "SCR beta coefficients (A.U.)")
-k <- k + theme(aspect.ratio=.8)
+                        xlab = "Stimulus intensity", ylab = "SCR (A.U.)")
+# k <- k + theme(aspect.ratio=.8) +   geom_line(size = 1) + # Adjust line thickness
+#   geom_point(size = 3)  # Adjust point size
+k <-  k + theme(aspect.ratio=.8,
+          text = element_text(size = 18), # Default text size for the plot
+          axis.title = element_text(size = 24, ), # Axis titles
+          axis.text = element_text(size = 18), # Axis text (x and y)
+          plot.title = element_text(size = 24, hjust = 0.5) # Plot title
+          ) +
+  geom_line(size = 1) + # Adjust line thickness
+  geom_point(size = 3)  # Adjust point size
+  
 print(k)
 ```
 
@@ -244,62 +246,21 @@ beta_long$SES_quadratic[beta_long$ses == "ses-04"] <- -0.33
 beta_long$CUE_high_gt_low[beta_long$cue == "high_cue"] <- 0.5
 beta_long$CUE_high_gt_low[beta_long$cue == "low_cue"] <- -0.5
 
-
-#https://joshua-nugent.github.io/allFit/
 model.betases <- lmer(beta ~
-                         CUE_high_gt_low*STIM_linear*SES_linear +
+                          CUE_high_gt_low*STIM_linear*SES_linear +
                           CUE_high_gt_low*STIM_quadratic*SES_linear +
                           CUE_high_gt_low*STIM_linear*SES_quadratic +
                           CUE_high_gt_low*STIM_quadratic*SES_quadratic +
-                          (CUE_high_gt_low + STIM_linear + SES_linear|sub), data = beta_long,
-                      # optimizer="nloptwrap.NLOPT_LN_NELDERMEAD"
-                      control = lmerControl(optimizer = "nloptwrap",
-                                           optCtrl = list(algorithm = "NLOPT_LN_NELDERMEAD",
-                                                          maxfun = 1e9,
-                                                          maxeval = 1e7,
-                                                          xtol_abs = 1e-9,
-                                                          ftol_abs = 1e-9)))
-# nloptwrap.NLOPT_LN_NELDERMEAD
-library(glmmTMB)
-beta_long$beta_scaled <- scale(beta_long$beta)
-
-# model.betases <- glmmTMB::glmmTMB(formula = beta ~
-#                           CUE_high_gt_low*STIM_linear*SES_linear +
-#                           # CUE_high_gt_low*STIM_quadratic*SES_linear +
-#                           CUE_high_gt_low*STIM_linear*SES_quadratic +
-#                           # CUE_high_gt_low*STIM_quadratic*SES_quadratic +
-#                           (1  |sub), family = "gaussian",
-#                          data = beta_long,
-#                          ziformula=~1,
-#                          control = glmmTMB::glmmTMBControl(
-#                            start = list(psi = c(-1, 1)),
-#                            optimizer=optim, optArgs=list(method="BFGS")),
-#                    )
-summary(model.betases)
+                          (1|sub), data = beta_long
+                    )
 # CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.betases,
-                  title = "Multilevel-modeling: \nlmer(beta ~ CUE * STIM * SES + (Cue + SES + STIM| sub), data = p)",
+                  title = "Multilevel-modeling: \nlmer(beta ~ CUE * STIM * SES + (1| sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
 ```
 
-```{r}
-diff_optims <- allFit(model.betases, maxfun = 1e5)
-diff_optims_OK <- diff_optims[sapply(diff_optims, is, "merMod")]
-lapply(diff_optims_OK, function(x) x@optinfo$conv$lme4$messages)
-```
 
 
-```{r}
-convergence_results <- lapply(diff_optims_OK, function(x) x@optinfo$conv$lme4$messages)
-working_indices <- sapply(convergence_results, is.null)
-if(sum(working_indices) == 0){
-  print("No algorithms from allFit converged. You may still be able to use the results, but proceed with extreme caution.")
-  first_fit <- NULL
-} else {
-  first_fit <- diff_optims[working_indices][[1]]
-}
-first_fit
-```
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
@@ -417,13 +378,13 @@ ERROR = "se"
 dv_keyword = "actual"
 p1 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-01",],
                LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'ses-01',
-               ylab = "SCR (a.u.)" )
+               ylab = "SCR (A.U.)" )
 p2 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-03",],
                LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'ses-03',
-               ylab = "SCR (a.u.)")
+               ylab = "SCR (A.U.)")
 p3 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-04",],
                LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = 'ses-04',
-               ylab = "SCR (a.u.)")
+               ylab = "SCR (A.U.)")
 
 ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
 plot_filename = file.path(analysis_dir,
