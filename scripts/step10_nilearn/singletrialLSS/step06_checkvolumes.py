@@ -8,19 +8,6 @@ dir_path_nii = Path('/Volumes/seagate/cue_singletrials/uncompressed_singletrial_
 # dir_path_nii_gz = Path('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue')
 # dir_path_nii = Path('/Volumes/seagate/cue_singletrials/uncompressed_singletrial_rampupplateau')
 
-# Function to collect all file paths in a directory, stripped of the root directory and file extension
-# def get_relative_paths(directory, extension):
-    
-#     return {str(path.relative_to(directory)).rsplit(extension, 1)[0] for path in directory.rglob(f'*{extension}')}
-
-# def get_relative_paths(directory, extension):
-#     # Use rglob to find all matching files, then filter by filenames starting with 'sub-'
-#     filtered_paths = {
-#         str(path.relative_to(directory)).rsplit(extension, 1)[0]
-#         for path in directory.rglob(f'*{extension}')
-#         if path.name.startswith('sub-')
-#     }
-#     return filtered_paths
 def get_relative_paths(directory, extension):
     filtered_paths = set()
     for path in directory.rglob(f'sub-*/*{extension}'):
