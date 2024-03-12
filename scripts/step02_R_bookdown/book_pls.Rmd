@@ -1,0 +1,96 @@
+# PLS ::  PLS scores ~  cue * stim {#pls}
+
+## What is the purpose of this notebook? {.unlisted .unnumbered}
+
+Here, we want to... {{ INSERT }} 
+
+* Main model: `plsscores ~ cue stim` 
+* Main question: With PLS, did we predict the observed scores well? 
+* {{ HYPOTHESES/EXPECTED OUTCOME }}
+* 
+* IV: 
+  - {{ FACTOR NAME }} ( {{ LEVELS}} )
+* DV: {{ DV }}
+
+
+### TODO: 
+```
+INSERT HERE
+```
+
+### References : Once note book is complete, add at the bottom of Rmd
+```
+INSERT HERE
+```
+
+### load libraries {.unlisted .unnumbered}
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(car)
+library(psych)
+library(cueR)
+```
+
+
+### display distribution of data
+Let's look at the distribution of the data. X axis: Y axis: 
+```{r paged.print=TRUE}
+expect.fname = "/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/pls/pls_model-expectrating.tsv"
+outcome.fname = "/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/pls/pls_model-outcometrating.tsv"
+
+expect_df = read.csv(expect.fname, sep = '\t')
+outcome_df = read.csv(outcome.fname, sep = '\t')
+```
+```{r}
+subject <- "sub"
+model_iv1 <- "cuetype"
+model_iv2 <- "stimulusintensity"
+dv <- "expectrating"
+expect.subjectwise <- meanSummary(expect_df,
+                                      c(subject, model_iv1), dv)
+expect.groupwise <- summarySEwithin(
+  data = expect.subjectwise,
+  measurevar = "mean_per_sub",
+  withinvars = c(model_iv1),
+  idvar = subject
+)
+
+dv <- "pred_pain_expect"
+pls.expect.subjectwise <- meanSummary(expect_df,
+                                      c(subject, model_iv1), dv)
+pls.expect.subjectwise <- summarySEwithin(
+  data = expect.subjectwise,
+  measurevar = "mean_per_sub",
+  withinvars = c(model_iv1),
+  idvar = subject
+)
+# outcome.subjectwise <- meanSummary(outcome_df,
+#                                       c(subject, model_iv2), dv)
+# outcome.groupwise <- summarySEwithin(
+#   data = outcome.subjectwise,
+#   measurevar = "mean_per_sub",
+#   withinvars = c(model_iv2),
+#   idvar = subject
+# )
+```
+
+> Summary: 
+
+### plot {.unlisted .unnumbered}
+We'll plot Y as a function of A and B
+X axis: 
+Y axis:
+Each data point indicates ... 
+```{r fig.height=10, fig.width=10}
+
+```
+> Conclusion:
+
+
+:::: {.infobox}
+Include the actual content here. here are my thoughts
+::::
+
+:::: {.refbox}
+Include the actual content here. here are my thoughts
+::::
+
