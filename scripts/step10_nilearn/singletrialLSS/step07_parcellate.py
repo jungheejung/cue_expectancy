@@ -48,16 +48,17 @@ __maintainer__ = "Heejung Jung"
 __email__ = "heejung.jung@colorado.edu"
 __status__ = "Development" 
 
-# %%load data ____________________________________________________________________
+# %% load data ____________________________________________________________________
 main_dir = '/Users/h/Documents/projects_local/cue_expectancy'
 singletrial_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupplateau/'
 # singletrial_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupplateau/'
-# sub = "sub-0101"
+
 subdirectories = sorted(glob.glob(join(singletrial_dir, "sub-*")))
 flists = []
 for subdir in subdirectories:
     sub = os.path.basename(subdir)
-    flist = glob.glob(join(singletrial_dir, sub, f"{sub}_ses-*_run-*_runtype-*_event-stimulus_trial-*_cuetype-*_stimintensity-*.nii.gz"))
+    flist = glob.glob(join(singletrial_dir, sub, 
+                           f"{sub}_ses-*_run-*_runtype-*_event-stimulus_trial-*_cuetype-*_stimintensity-*.nii.gz"))
     flists.append(flist)
 
 flattened_list = [item for sublist in flists for item in sublist]
@@ -68,14 +69,16 @@ parcelarray = []
 metadata = []
 for fname in flattened_list:
     metadata.append(os.path.basename(fname))
-    singletrialFSLR = neuromaps.transforms.mni152_to_fslr(fname, fslr_density='32k', method='linear')
+    singletrialFSLR = neuromaps.transforms.mni152_to_fslr(
+        fname, fslr_density='32k', method='linear')
     parc = Parcellater(dlabel_to_gifti(schaefer), 'fsLR')
     singletrial_parc = parc.fit_transform(singletrialFSLR, 'fsLR')
     parcelarray.append(singletrial_parc)
 # %%
 parcel_value = np.vstack(parcelarray)
 np.save(join(singletrial_dir, 'singletrial_rampupplateau_task-pvc_atlas-schaefer2018.npy'),parcel_value)
-np.save(join(main_dir, 'singletrial_rampupplateau_task-pvc_atlas-schaefer2018.npy'),parcel_value)
+np.save(join(main_dir, 'analysis/fmri/nilearn/singletrial_rampupplateau/singletrial_rampupplateau_task-pvc_atlas-schaefer2018.npy'),parcel_value)
+np.save(join('/Volumes/seagate/cue_singletrials/singletrial_rampupplateau_task-pvc_atlas-schaefer2018.npy'),parcel_value)
 
 data = {
     "code_generated": "scripts/step10_nilearn/singletrialLSS/step07_parcellate.py",
@@ -91,15 +94,30 @@ data = {
     "atlas": "Schaefer2018_400Parcels_7Networks_order",
     "python_packages": ["neuromaps", "netneurotools"]
 }
-with open('/Volumes/seagate/cue_singletrials/singletrial_rampupplateau_task-pvc_atlas-schaefer2018.json', 'w') as json_file:
+
+with open(join(main_dir,'analysis/fmri/nilearn/singletrial_rampupplateau', 
+               'singletrial_rampupplateau_task-pvc_atlas-schaefer2018.json'), 'w') as json_file:
     json.dump(data, json_file, indent=4)
+with open(join(singletrial_dir,'singletrial_rampupplateau_task-pvc_atlas-schaefer2018.json'), 'w') as json_file:
+    json.dump(data, json_file, indent=4)
+with open(join('/Volumes/seagate/cue_singletrials/singletrial_rampupplateau_task-pvc_atlas-schaefer2018.json'), 'w') as json_file:
+    json.dump(data, json_file, indent=4)
+metadatadf = pd.DataFrame(metadata, columns=['singletrial_fname'])
 
-metadatadf = pd.DataFrame(metadata, columns=['filename'])
-
-df_split = metadatadf['filename'].str.extract(
-    r'(?P<sub>sub-\d+)_ses-(?P<ses>\d+)_run-(?P<run>\d+)_runtype-(?P<runtype>\w+)_event-(?P<event>\w+)_trial-(?P<trial>\d+)_cuetype-(?P<cuetype>\w+)_stimintensity-(?P<stimintensity>\w+)'
+df_split = metadatadf['singletrial_fname'].str.extract(
+    r'(?P<sub>sub-\d+)_'
+    r'(?P<ses>ses-\d+)_'
+    r'(?P<run>run-\d+)_'
+    r'runtype-(?P<runtype>\w+)_'
+    r'event-(?P<event>\w+)_'
+    r'(?P<trial>trial-\d+)_'
+    r'cuetype-(?P<cuetype>\w+)_'
+    r'stimintensity-(?P<stimintensity>\w+)'
 )
 
 df_final = pd.concat([metadatadf, df_split], axis=1)
 df_final.head()
-df_final.to_csv(join(main_dir, 'analysis/fmri/nilearn/deriv02_parcel-schaefer400', 'singletrial_rampupplateau_task-pvc_atlas-schaefer2018.tsv'), sep='\t', index=False, header=True)
+df_final.to_csv(join(singletrial_dir, 'singletrial_rampupplateau_task-pvc_atlas-schaefer2018.tsv'), 
+                sep='\t', index=False, header=True)
+df_final.to_csv(join('/Volumes/seagate/cue_singletrials/singletrial_rampupplateau_task-pvc_atlas-schaefer2018.tsv'), 
+                sep='\t', index=False, header=True)
