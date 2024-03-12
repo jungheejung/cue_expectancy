@@ -241,12 +241,149 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
 
 01/26/2024
 ```{r}
-model.full <- lmer(OUTCOME ~ CUE * STIM + (CUE * STIM|subject), data = data)
+model.full <- lmer(OUTCOME ~ CUE_high_gt_low * STIM + (CUE * STIM|subject), data = data)
 summary(model.full)
 # car::durbinWatsonTest(model.full)
 plot(model.full$fitted.values, model.full$residuals, xlab="Fitted", ylab="residuals")
 car::qqPlot(model.full)
 ```
+
+
+## CHECK number of data
+```{r}
+library(dplyr)
+# 
+# # Assuming your data frame is named 'data' and it contains the variables 'subject', 'CUE_high_gt_low', and 'STIM_linear'
+# data_points_check <- data %>%
+#   group_by(subject, CUE_high_gt_low, STIM_linear) %>%
+#   summarise(count = n(), .groups = 'drop') %>%
+#   arrange(subject, CUE_high_gt_low, STIM_linear)
+# 
+# # Check if any group has fewer than 3 data points
+# data_points_check$adequate_data <- ifelse(data_points_check$count >= 3, TRUE, FALSE)
+# 
+# # View the summary to see which combinations are lacking data
+# print(data_points_check)
+# 
+# # Optionally, check if any subject-cue-stim combinations have less than 3 data points
+# inadequate_data_combinations <- filter(data_points_check, count < 3)
+# print(inadequate_data_combinations)
+# 
+# # General check
+# if(all(data_points_check$adequate_data)) {
+#   cat("All subject-cue-stim combinations have at least 3 data points.\n")
+# } else {
+#   cat("Some subject-cue-stim combinations have fewer than 3 data points.\n")
+# }
+
+library(dplyr)
+
+# Step 1: Identify subjects with inadequate data
+subjects_with_inadequate_data <- data %>%
+  group_by(subject, CUE_high_gt_low, SES_linear, STIM_linear) %>%
+  summarise(count = n(), .groups = 'drop') %>%
+  filter(count < 3) %>%
+  distinct(subject) %>%
+  pull(subject)
+
+# Step 2: Filter out these subjects from the original dataframe
+morethan21 <- data %>%
+  filter(!(subject %in% subjects_with_inadequate_data))
+
+# data_filtered now contains only subjects with adequate data for each CUE_high_gt_low * STIM_linear combination
+
+
+```
+```{r}
+length(unique(data$subject))
+length(unique(morethan21$subject))
+```
+
+```{r}
+  model_flex <-  lmer(OUTCOME ~ CUE_high_gt_low * STIM_linear + (CUE_high_gt_low * STIM_linear|subject), data = morethan21)
+```
+
+## different optimizer
+```{r}
+library(parallel)
+ncores <- detectCores()
+diff_optims <- allFit(model_flex, maxfun = 1e5, parallel = 'multicore', ncpus = ncores)
+# diff_optims <- allFit(model.full, maxfun = 1e5)
+diff_optims_OK <- diff_optims[sapply(diff_optims, is, "merMod")]
+lapply(diff_optims_OK, function(x) x@optinfo$conv$lme4$messages)
+```
+
+```{r}
+model_flex <-  lmer(OUTCOME ~ CUE_high_gt_low * STIM_linear + 
+                      CUE_high_gt_low * STIM_quadratic + 
+                      (CUE_high_gt_low * STIM_linear|subject), 
+                    data = morethan21,
+                                          control = lmerControl(optimizer = "nmkbw"))
+                                           # optCtrl = list(algorithm = "NLOPT_LN_NELDERMEAD",
+                                           #                maxfun = 1e9,
+                                           #                maxeval = 1e7,
+                                           #                xtol_abs = 1e-9,
+                                           #                ftol_abs = 1e-9)))
+                     # control = lmerControl(optimizer = "optimx",
+                     #                       optCtrl = list(method = optimx_options[i],
+                     #                                               maxit = 1e9, maxfun = 1e9,
+                     #                                      maxeval = 1e7,
+                     #                                      xtol_abs = 1e-9,
+                     #                                      ftol_abs = 1e-9)))
+```
+
+## loop optimizer
+```{r}
+
+
+optimx_options <- c("L-BFGS-B", "nlminb", "nlm", "bobyqa", "nmkb", "hjkb")
+for(i in 1:length(optimx_options)){
+  print(paste0("Testing optimx: ", optimx_options[i]))
+  model_flex <-  lmer(OUTCOME ~ CUE_high_gt_low * STIM_linear + CUE_high_gt_low * STIM_quadratic + (CUE_high_gt_low * STIM_linear|subject), data = morethan21,
+                     control = lmerControl(optimizer = "optimx",
+                                           optCtrl = list(method = optimx_options[i],
+                                                                   maxit = 1e9,                                                           maxfun = 1e9,
+                                                          maxeval = 1e7,
+                                                          xtol_abs = 1e-9,
+                                                          ftol_abs = 1e-9)))
+                        # control = lmerControl(optimizer = "nloptwrap",
+                        #                    optCtrl = list(algorithm = "NLOPT_LN_BOBYQA",
+                        #                                   maxfun = 1e9,
+                        #                                   maxeval = 1e7,
+                        #                                   xtol_abs = 1e-9,
+                        #                                   ftol_abs = 1e-9))
+  if(is.null(model_flex@optinfo$conv$lme4$messages)){
+    print(paste0("One of the optimx options, ", optimx_options[i],", worked!"))
+    print(model_flex)
+    break
+  }
+}
+```
+
+
+
+
+```{r}
+library(ggplot2)
+library(lme4)
+
+# Extract random effects
+re <- ranef(model_flex, condVar = TRUE)$subject
+
+# Convert to a data frame
+re_df <- as.data.frame(re)
+
+# Plot
+ggplot(re_df, aes(x = `(Intercept)`, y = `STIM_linear`)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  labs(x = "Random Intercept (Average Outcome Rating)",
+       y = "Random Slope (Sensitivity to STIM_linear)",
+       title = "Correlation between Random Intercept and Slope")
+
+```
+
+
 
 ## TODO: model 03 3-2. individual differences
 
@@ -599,7 +736,7 @@ ggsave(plot_filename, width = 8, height = 4)
 
 
 
-## cue x stim x ses lineplot
+## cue x stim x ses lineplot (with all trials)
 ```{r}
 taskname <- "pain"
     ggtitle <- paste(taskname, " - outcome judgment (degree)")
@@ -668,7 +805,7 @@ model.ses <- lmer(OUTCOME ~
                           CUE_high_gt_low*STIM_quadratic*SES_linear +
                           CUE_high_gt_low*STIM_linear*SES_quadratic +
                           CUE_high_gt_low*STIM_quadratic*SES_quadratic +
-                          (1|SUB), data = data
+                          (1|SUB), data = data#data
                     )
 # CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.ses,
@@ -771,6 +908,273 @@ for (sesname in c(1,3,4)) {
 print(g)
 }
 ```
+
+
+## cue x stim x ses lineplot (with 6trials per cell)
+
+```{r}
+data <- morethan21
+    data <- df_rename_columns(data, column_mapping)
+    # 2. contrasts codes _______________________________________________________
+    data$stim[data$STIM == "low_stim"] <- -0.5
+    data$stim[data$STIM == "med_stim"] <- 0
+    data$stim[data$STIM == "high_stim"] <- 0.5
+
+    data$stim_factor <- factor(data$STIM)
+
+    # ___ 2-1. contrast code 1 linear __________________________________________
+    data$STIM_linear[data$STIM == "low_stim"] <- -0.5
+    data$STIM_linear[data$STIM == "med_stim"] <- 0
+    data$STIM_linear[data$STIM == "high_stim"] <- 0.5
+
+    # ___ 2-2. contrast code 2 quadratic _______________________________________
+    data$STIM_quadratic[data$STIM == "low_stim"] <- -0.33
+    data$STIM_quadratic[data$STIM == "med_stim"] <- 0.66
+    data$STIM_quadratic[data$STIM == "high_stim"] <- -0.33
+
+    # ___ 2-3. social cude contrast ____________________________________________
+    data$CUE_high_gt_low[data$CUE == "low_cue"] <- -0.5
+    data$CUE_high_gt_low[data$CUE == "high_cue"] <- 0.5
+
+
+
+
+# contrast code 1 linear
+data$SES_linear[data$SES == 1] <- -0.5
+data$SES_linear[data$SES == 3] <- 0
+data$SES_linear[data$SES == 4] <- 0.5
+
+# contrast code 2 quadratic
+data$SES_quadratic[data$SES == 1] <- -0.33
+data$SES_quadratic[data$SES == 3] <- 0.66
+data$SES_quadratic[data$SES == 4] <- -0.33
+
+data$CUE_high_gt_low[data$cue == "high_cue"] <- 0.5
+data$CUE_high_gt_low[data$cue == "low_cue"] <- -0.5
+
+    # ___ 1-1. rename column ___________________________________________________
+    column_mapping <- c("event04_actual_angle" = "OUTCOME",
+                        "event02_expect_angle" = "EXPECT",
+                        "src_subject_id" = "SUB",
+                        "session_id" = "SES",
+                        "param_run_num" = "RUN",
+                        "param_task_name" = "RUNTYPE",
+                        "event02_expect_RT" = "EXPECT_RT",
+                        "event04_actual_RT" = "OUTCOME_RT",
+                        "param_stimulus_type" = "STIM",
+                        "param_cue_type" = "CUE")
+    data <- df_rename_columns(data, column_mapping)
+    # 2. contrasts codes _______________________________________________________
+    data$stim[data$STIM == "low_stim"] <- -0.5
+    data$stim[data$STIM == "med_stim"] <- 0
+    data$stim[data$STIM == "high_stim"] <- 0.5
+
+    data$stim_factor <- factor(data$STIM)
+
+    # ___ 2-1. contrast code 1 linear __________________________________________
+    data$STIM_linear[data$STIM == "low_stim"] <- -0.5
+    data$STIM_linear[data$STIM == "med_stim"] <- 0
+    data$STIM_linear[data$STIM == "high_stim"] <- 0.5
+
+    # ___ 2-2. contrast code 2 quadratic _______________________________________
+    data$STIM_quadratic[data$STIM == "low_stim"] <- -0.33
+    data$STIM_quadratic[data$STIM == "med_stim"] <- 0.66
+    data$STIM_quadratic[data$STIM == "high_stim"] <- -0.33
+
+    # ___ 2-3. social cude contrast ____________________________________________
+    data$CUE_high_gt_low[data$CUE == "low_cue"] <- -0.5
+    data$CUE_high_gt_low[data$CUE == "high_cue"] <- 0.5
+
+
+
+
+# contrast code 1 linear
+data$SES_linear[data$ses == 1] <- -0.5
+data$SES_linear[data$ses == 3] <- 0
+data$SES_linear[data$ses == 4] <- 0.5
+
+# contrast code 2 quadratic
+data$SES_quadratic[data$ses == 1] <- -0.33
+data$SES_quadratic[data$ses == 3] <- 0.66
+data$SES_quadratic[data$ses == 4] <- -0.33
+
+data$CUE_high_gt_low[data$cue == "high_cue"] <- 0.5
+data$CUE_high_gt_low[data$cue == "low_cue"] <- -0.5
+
+model.ses <- lmer(OUTCOME ~
+                          CUE_high_gt_low*STIM_linear*SES_linear +
+                          CUE_high_gt_low*STIM_quadratic*SES_linear +
+                          CUE_high_gt_low*STIM_linear*SES_quadratic +
+                          CUE_high_gt_low*STIM_quadratic*SES_quadratic +
+                          (CUE_high_gt_low*STIM_linear*SES_linear|SUB), data = data
+                    )
+# CUE_high_gt_low+STIM+EXPECT_demean
+sjPlot::tab_model(model.ses,
+                  title = "Multilevel-modeling: \nlmer(beta ~ CUE * STIM * SES + (1| sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+
+combined_se_calc_cooksd <- data.frame()
+for (sesname in c(1,3,4)) {
+
+    ggtitle <- paste(taskname, " - Outcome rating")
+    title <- paste(taskname, " -  Outcome rating")
+    subject <- "sub"
+    w <- 10
+    h <- 6
+  data.ses <- data[ data$ses == sesname,]
+
+
+    stim_con1 <- "STIM_linear"
+    stim_con2 <- "STIM_quadratic"
+    iv1 <- "CUE_high_gt_low"
+    dv <- "OUTCOME"
+
+    # [ MODEL ] _________________________________________________ # nolint
+    model_savefname <- file.path(
+        analysis_dir,
+        paste("lmer_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), "_cooksd.txt",
+            sep = ""
+        )
+    )
+
+    # [ PLOT ] reordering for plots _________________________ # nolint
+    data.ses$cue_name <- NA
+    data.ses$cue_name[data.ses$CUE == "high_cue"] <- "high cue"
+    data.ses$cue_name[data.ses$CUE == "low_cue"] <- "low cue"
+
+    data.ses$stim_name[data.ses$STIM == "high_stim"] <- "high"
+    data.ses$stim_name[data.ses$STIM == "med_stim"] <- "med"
+    data.ses$stim_name[data.ses$STIM == "low_stim"] <- "low"
+
+    # DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
+
+    data.ses$stim_ordered <- factor(
+        data.ses$stim_name,
+        levels = c("low", "med", "high")
+    )
+    data.ses$cue_ordered <- factor(
+        data.ses$cue_name,
+        levels = c("low cue", "high cue")
+    )
+    model_iv1 <- "stim_ordered"
+    model_iv2 <- "cue_ordered"
+  subject <- "SUB"
+    #  [ PLOT ] calculate mean and se  _________________________
+    actual_subjectwise <- meanSummary(
+        data.ses,
+        c(subject, model_iv1, model_iv2), dv
+    )
+    actual_groupwise <- summarySEwithin(
+        data = actual_subjectwise,
+        measurevar = "mean_per_sub",
+        withinvars = c(model_iv1, model_iv2), idvar = subject
+    )
+    actual_groupwise$task <- taskname
+    actual_groupwise$ses <- sesname
+    # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+
+    combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, actual_groupwise)
+   # calculate mean and se
+    sub_mean <- "mean_per_sub"
+    group_mean <- "mean_per_sub_norm_mean"
+    se <- "se"
+
+    ggtitle <- paste(str_to_title(taskname), " - Outcome ", sesname )
+    title <- paste(str_to_title(taskname), " - cue level")
+    xlab <- ""
+    ylab <- "Outcome Rating (a.u.)"
+    ylim <- c(-10,60)
+    dv_keyword <- "outcome"
+    if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color <- c("#1B9E77", "#D95F02")
+    } else {
+        color <- c("#4575B4", "#D73027")
+    } # if keyword starts with
+    plot_savefname <- file.path(
+        analysis_dir,
+        paste("raincloud_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), "_cooksd.png",
+            sep = ""
+        )
+    )
+    g <- plot_halfrainclouds_twofactor(
+        actual_subjectwise, actual_groupwise, model_iv1, model_iv2,
+        sub_mean, group_mean, se, subject,
+        ggtitle, title, xlab, ylab, taskname,ylim,
+        w, h, dv_keyword, color, plot_savefname
+    )
+print(g)
+}
+```
+
+# CHECK optimizer
+```{r}
+    # 2. contrasts codes _______________________________________________________
+    morethan21$stim[morethan21$STIM == "low_stim"] <- -0.5
+    morethan21$stim[morethan21$STIM == "med_stim"] <- 0
+    morethan21$stim[morethan21$STIM == "high_stim"] <- 0.5
+
+    morethan21$stim_factor <- factor(morethan21$STIM)
+
+    # ___ 2-1. contrast code 1 linear __________________________________________
+    morethan21$STIM_linear[morethan21$STIM == "low_stim"] <- -0.5
+    morethan21$STIM_linear[morethan21$STIM == "med_stim"] <- 0
+    morethan21$STIM_linear[morethan21$STIM == "high_stim"] <- 0.5
+
+    # ___ 2-2. contrast code 2 quadratic _______________________________________
+    morethan21$STIM_quadratic[morethan21$STIM == "low_stim"] <- -0.33
+    morethan21$STIM_quadratic[morethan21$STIM == "med_stim"] <- 0.66
+    morethan21$STIM_quadratic[morethan21$STIM == "high_stim"] <- -0.33
+
+    # ___ 2-3. social cude contrast ____________________________________________
+    morethan21$CUE_high_gt_low[morethan21$CUE == "low_cue"] <- -0.5
+    morethan21$CUE_high_gt_low[morethan21$CUE == "high_cue"] <- 0.5
+
+    # contrast code 1 linear
+morethan21$SES_linear[morethan21$SES == 1] <- -0.5
+morethan21$SES_linear[morethan21$SES == 3] <- 0
+morethan21$SES_linear[morethan21$SES == 4] <- 0.5
+
+# contrast code 2 quadratic
+morethan21$SES_quadratic[morethan21$SES == 1] <- -0.33
+morethan21$SES_quadratic[morethan21$SES == 3] <- 0.66
+morethan21$SES_quadratic[morethan21$SES == 4] <- -0.33
+
+morethan21$CUE_high_gt_low[morethan21$cue == "high_cue"] <- 0.5
+morethan21$CUE_high_gt_low[morethan21$cue == "low_cue"] <- -0.5
+morethan21$SUB <- factor(morethan21$subject)
+optimx_options <- c("L-BFGS-B", "nlminb", "nlm", "bobyqa", "nmkb", "hjkb")
+for(i in 1:length(optimx_options)){
+  print(paste0("Testing optimx: ", optimx_options[i]))
+  model_flex <-   lmer(OUTCOME ~
+                          CUE_high_gt_low*STIM_linear*SES_linear +
+                          CUE_high_gt_low*STIM_quadratic*SES_linear +
+                          CUE_high_gt_low*STIM_linear*SES_quadratic +
+                          CUE_high_gt_low*STIM_quadratic*SES_quadratic +
+                          (CUE_high_gt_low*SES_linear+STIM_linear|SUB), data = morethan21,
+                     control = lmerControl(optimizer = "optimx",
+                                           optCtrl = list(method = optimx_options[i],
+                                                                   maxit = 1e9,                                                           maxfun = 1e9,
+                                                          maxeval = 1e7,
+                                                          xtol_abs = 1e-9,
+                                                          ftol_abs = 1e-9)))
+                        # control = lmerControl(optimizer = "nloptwrap",
+                        #                    optCtrl = list(algorithm = "NLOPT_LN_BOBYQA",
+                        #                                   maxfun = 1e9,
+                        #                                   maxeval = 1e7,
+                        #                                   xtol_abs = 1e-9,
+                        #                                   ftol_abs = 1e-9))
+  if(is.null(model_flex@optinfo$conv$lme4$messages)){
+    print(paste0("One of the optimx options, ", optimx_options[i],", worked!"))
+    print(model_flex)
+    break
+  }
+}
+```
+
 
 #### session wise line plots {.unlisted .unnumbered}
 
