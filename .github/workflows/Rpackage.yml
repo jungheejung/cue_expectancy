@@ -1,0 +1,33 @@
+name: Update R Package
+
+on:
+  repository_dispatch:
+    types: [update-r-scripts]
+
+jobs:
+  update-package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout R Package Repo
+        uses: actions/checkout@v2
+        with:
+          ref: main # or your default branch
+
+      - name: Checkout cue_expectancy Repo
+        uses: actions/checkout@v2
+        with:
+          repository: jungheejung/cue_expectancy
+          path: cue_expectancy
+
+      - name: Copy R Scripts
+        run: |
+          mkdir -p ./R/
+          cp ./cue_expectancy/scripts/step02_R/utils/*.R ./R/
+
+      - name: Commit and Push Changes
+        run: |
+          git config --local user.email "jungheejung@github.com"
+          git config --local user.name "jungheejung"
+          git add ./R/
+          git commit -m "Update R scripts from cue_expectancy repo"
+          git push
