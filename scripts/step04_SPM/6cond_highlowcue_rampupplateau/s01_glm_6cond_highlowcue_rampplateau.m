@@ -213,13 +213,12 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
             end
         else% for cognitive and vicarious tasks
             cue = struct2table(tdfread(onset_fname));
-            cue.stim_dur = NaN(height(cue), 1);
             cue.plateau_onset = cue.onset03_stim;
             cue.rampup_onset = cue.onset03_stim - 2;
             cue.rampdown_onset = cue.onset03_stim + 5;
             % cue.rampup_dur = double(repelem(2, length(cue.onset03_stim))');
             % cue.rampdown_dur = double(repelem(2, length(cue.onset03_stim))');
-            cue.stim_dur = 5
+            cue.stim_dur = repmat(5, height(cue), 1);
             
         end
         
