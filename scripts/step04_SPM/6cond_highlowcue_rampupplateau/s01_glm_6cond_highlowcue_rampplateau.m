@@ -157,9 +157,9 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
                 cue.rampup_onset = cue.TTL1;
                 cue.rampup_dur = cue.TTL2 - cue.TTL1;
                 cue.plateau_onset = cue.TTL2;
-                cue.plateau_dur = cue.TTL3 - cue.TTL2;
-                cue.rampdown_onset =cue.TTL3;
-                cue.rampdown_dur =cue.TTL4 - cue.TTL3;
+                cue.stim_dur = cue.TTL3 - cue.TTL1;
+                % cue.rampdown_onset =cue.TTL3;
+                % cue.rampdown_dur =cue.TTL4 - cue.TTL3;
                 disp(strcat('this is a pain run with a ttl file: ', onset_fname))
             else
                 disp(strcat('this is a pain run without a ttl file'))
@@ -202,7 +202,7 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
                 % cue.rampup_dur = cue.rampup_dur;
                 cue.plateau_onset = cue.rampup_dur + cue.onset03_stim;
                 cue.rampdown_onset = cue.rampup_dur + cue.onset03_stim + 5;
-                cue.plateau_dur = 5
+                cue.stim_dur = cue.rampup_dur + 5
                 
                 % cue.rampdown_dur = cue.rampdown_dur;
 
@@ -216,8 +216,9 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
             cue.plateau_onset = cue.onset03_stim;
             cue.rampup_onset = cue.onset03_stim - 2;
             cue.rampdown_onset = cue.onset03_stim + 5;
-            cue.rampup_dur = double(repelem(2, length(cue.onset03_stim))');
-            cue.rampdown_dur = double(repelem(2, length(cue.onset03_stim))');
+            % cue.rampup_dur = double(repelem(2, length(cue.onset03_stim))');
+            % cue.rampdown_dur = double(repelem(2, length(cue.onset03_stim))');
+            cue.stim_dur = 5
             
         end
         
@@ -332,7 +333,7 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
         % cond 1 : STIM_cue-high_stim-high
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).name = strcat(task, '_STIM_cue-high_stim-high');
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).onset = double(cue.rampup_onset(highcue(:,1) & highstim(:,1)));
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).duration = double(repelem(cue.rampup_dur + cue.plateau_dur, length(double(cue.plateau_onset(highcue(:,1) & highstim(:,1)))))');
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).duration = double(repelem(cue.stim_dur, length(double(cue.plateau_onset(highcue(:,1) & highstim(:,1)))))');
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).tmod = 0;
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).pmod = struct('name', {}, 'param', {}, 'poly', {});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(1).orth = 0;
@@ -341,7 +342,7 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
         % cond 2 : STIM_cue-high_stim-med
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).name = strcat(task, '_STIM_cue-high_stim-med');
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).onset = double(cue.rampup_onset(highcue(:,1) & medstim(:,1)));
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).duration = double(repelem(cue.rampup_dur + cue.plateau_dur, length(double(cue.plateau_onset(highcue(:,1) & medstim(:,1)))))');
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).duration = double(repelem(cue.stim_dur, length(double(cue.plateau_onset(highcue(:,1) & medstim(:,1)))))');
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).tmod = 0;
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).pmod = struct('name', {}, 'param', {}, 'poly', {});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(2).orth = 0;
@@ -350,7 +351,7 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
         % cond 3 : STIM_cue-high_stim-low
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).name = strcat(task, '_STIM_cue-high_stim-low');
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).onset = double(cue.rampup_onset(highcue(:,1) & lowstim(:,1)));
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).duration = double(repelem(cue.rampup_dur + cue.plateau_dur, length(double(cue.plateau_onset(highcue(:,1) & lowstim(:,1)))))');
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).duration = double(repelem(cue.stim_dur, length(double(cue.plateau_onset(highcue(:,1) & lowstim(:,1)))))');
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).tmod = 0;
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).pmod = struct('name', {}, 'param', {}, 'poly', {});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(3).orth = 0;
@@ -359,7 +360,7 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
 % cond 4 : STIM_cue-low_stim-high
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).name = strcat(task, '_STIM_cue-low_stim-high');
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).onset = double(cue.rampup_onset(lowcue(:,1) & highstim(:,1)));
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).duration = double(repelem(cue.rampup_dur + cue.plateau_dur, length(double(cue.plateau_onset(lowcue(:,1) & highstim(:,1)))))');
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).duration = double(repelem(cue.stim_dur, length(double(cue.plateau_onset(lowcue(:,1) & highstim(:,1)))))');
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).tmod = 0;
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).pmod = struct('name', {}, 'param', {}, 'poly', {});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(4).orth = 0;
@@ -368,7 +369,7 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
 % cond 5 : STIM_cue-low_stim-med
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(5).name = strcat(task, '_STIM_cue-low_stim-med');
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(5).onset = double(cue.rampup_onset(lowcue(:,1) & medstim(:,1)));
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(5).duration = double(repelem(cue.rampup_dur + cue.plateau_dur, length(double(cue.plateau_onset(lowcue(:,1) & medstim(:,1)))))');
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(5).duration = double(repelem(cue.stim_dur, length(double(cue.plateau_onset(lowcue(:,1) & medstim(:,1)))))');
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(5).tmod = 0;
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(5).pmod = struct('name', {}, 'param', {}, 'poly', {});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(5).orth = 0;
@@ -377,7 +378,7 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
 % cond 6 : STIM_cue-low_stim-low
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(6).name = strcat(task, '_STIM_cue-low_stim-low');
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(6).onset = double(cue.rampup_onset(lowcue(:,1) & lowstim(:,1)));
-        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(6).duration = double(repelem(cue.rampup_dur + cue.plateau_dur, length(double(cue.plateau_onset(lowcue(:,1) & lowstim(:,1)))))');
+        matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(6).duration = double(repelem(cue.stim_dur, length(double(cue.plateau_onset(lowcue(:,1) & lowstim(:,1)))))');
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(6).tmod = 0;
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(6).pmod = struct('name', {}, 'param', {}, 'poly', {});
         matlabbatch{1}.spm.stats.fmri_spec.sess(run_ind).cond(6).orth = 0;
