@@ -187,7 +187,7 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
                 cue.rampdown_onset = NaN(height(cue), 1); % onset03_stim + 5
                 cue.rampdown_dur = NaN(height(cue), 1);
                 cue.plateau_onset = NaN(height(cue), 1); % onset03_stim + rampup_values (per stim)
-
+                cue.stim_dur = NaN(height(cue), 1);
                 % Assign rampup values based on pmod_stimtype
                 low_indices = cellfun(@(x) strcmp(x, 'low_stim'), cellstr(cue.pmod_stimtype));
                 med_indices = cellfun(@(x) strcmp(x, 'med_stim'), cellstr(cue.pmod_stimtype));
@@ -213,6 +213,7 @@ function s01_glm_6cond_highlowcue_rampplateau(sub, input_dir, main_dir, fmriprep
             end
         else% for cognitive and vicarious tasks
             cue = struct2table(tdfread(onset_fname));
+            cue.stim_dur = NaN(height(cue), 1);
             cue.plateau_onset = cue.onset03_stim;
             cue.rampup_onset = cue.onset03_stim - 2;
             cue.rampdown_onset = cue.onset03_stim + 5;
