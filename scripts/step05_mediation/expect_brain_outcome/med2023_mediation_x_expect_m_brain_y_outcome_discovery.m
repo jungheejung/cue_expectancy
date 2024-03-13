@@ -32,7 +32,7 @@ switch dir_location
         main_dir =  '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue';
         singletrial_dir = fullfile('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupplateau');
         beh_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupplateau/beh';
-        NPS_fname = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv';
+        NPS_fname = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau/signature-NPS_sub-all_runtype-pvc_event-stimulus.tsv';
         graymatter_mask = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/scripts/step05_mediation/gray_matter_mask.nii';
     otherwise
         error('Invalid case specified.');
@@ -45,7 +45,7 @@ addpath(genpath(fullfile(matlab_moduledir,'Neuroimaging_Pattern_Masks')));
 addpath(genpath(fullfile(matlab_moduledir,'MediationToolbox')));
 rmpath(genpath(fullfile(matlab_moduledir,'spm12/external/fieldtrip')));
 rmpath(genpath(fullfile(matlab_moduledir,'spm12/external/fieldtrip/external/stats')));
-
+addpath(genpath(fullfile(main_dir, 'scripts/step05_mediation/utils')));
 sublist = find_sublist_from_dir(singletrial_dir); % find subdirectories that start with keyword "sub-"
 X = cell(1, length(sublist));
 Minterim = cell(1, length(sublist));
@@ -66,7 +66,7 @@ NPS_fname = fullfile(main_dir, 'analysis/fmri/nilearn/deriv01_signature/rampup_p
 npsdf = readtable(NPS_fname,"FileType","text", 'Delimiter', ',');
 
 for e = 1:length(eventlist)
-    for s = 2:length(sublist)
+    for s = 1:length(sublist)
     
         % step 01: glob all the nifti files
         disp(strcat('starting ', sublist{s}))%strcat('sub-',sprintf('%04d', sublist(s)))))
