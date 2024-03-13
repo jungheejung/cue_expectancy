@@ -248,8 +248,6 @@ l2m_filtered = l2m_temp(~isnan(l2m_temp)); % Remove NaNs to filter
 fprintf('step 2. X, Y, M fully set up');
 
 
-brain_check = fmri_data('/Users/h/Documents/projects_local/sandbox/smooth-6mm_sub-0064_ses-01_run-02_runtype-pain_event-stimulus_trial-000_cuetype-low_stimintensity-med.nii');
-montage(brain_check)
 %% -------------------------------------------------------------------------
 % start mediation analysis
 % -------------------------------------------------------------------------
