@@ -84,13 +84,11 @@ for e = 1:length(eventlist)
     
         % step 03: merge the behavioral files and niftifiles based on intersection
         %          Extract the base filenames from the full path filenames
-    %     beh_df = load_beh_based_on_bids(beh_dir, unique_bids);
-    %     combinedTable = load_beh_bids(beh_dir, unique_bids);
         beh_df = load_beh_bids(fullfile(beh_dir), unique_bids);
         combinedTable = innerjoin(npsdf, beh_df, 'Keys', 'singletrial_fname');
     %     beh_fname = fullfile(main_dir, 'data', 'beh', 'beh_singletrials', strcat(sublist{s}, '_task-', task, 'desc-singletrialbehintersection_events.tsv');
         mkdir(fullfile(main_dir, 'data', 'beh', 'beh_singletrials',strcat(sublist{s})));
-        beh_fname = fullfile(main_dir, 'data', 'beh', 'beh_singletrials',sublist{s}, strcat(sublist{s}, '_task-', task, 'desc-singletrialbehintersection_events.tsv'));
+        beh_fname = fullfile(main_dir, 'data', 'beh', 'beh_singletrials',sublist{s}, strcat(sublist{s}, '_task-', task, '_desc-singletrialbehintersection_events.tsv'));
         writetable(combinedTable, beh_fname, 'Delimiter', '\t', 'FileType', 'text');
         singletrial_basefname = cellfun(@(x) extractAfter(x, max(strfind(x, filesep))), singletrial_files, 'UniformOutput', false);
     %     if dir_location== 'discovery'
@@ -133,21 +131,21 @@ end
 
 
 
-for i = 1:length(Y)
-    currentArray = Y{i}; % Extract the current array (might contain strings)
-    for j = 1:length(currentArray)
-        if ischar(currentArray{j}) || isstring(currentArray{j})
-            % Attempt to convert string to number, use NaN if not possible
-            currentArray{j} = str2double(currentArray{j});
-            if isnan(currentArray{j})
-                % Handle non-convertible strings as needed, for example, use NaN
-                currentArray{j} = NaN; 
-            end
-        end
-    end
-    % Ensure the inner array is numeric after conversion
-    Y{i} = cell2mat(currentArray);
-end
+% for i = 1:length(Y)
+%     currentArray = Y{i}; % Extract the current array (might contain strings)
+%     for j = 1:length(currentArray)
+%         if ischar(currentArray{j}) || isstring(currentArray{j})
+%             % Attempt to convert string to number, use NaN if not possible
+%             currentArray{j} = str2double(currentArray{j});
+%             if isnan(currentArray{j})
+%                 % Handle non-convertible strings as needed, for example, use NaN
+%                 currentArray{j} = NaN; 
+%             end
+%         end
+%     end
+%     % Ensure the inner array is numeric after conversion
+%     Y{i} = cell2mat(currentArray);
+% end
     
 fprintf('Size of X: %s\n', mat2str(size(X)));
 fprintf('Size of Y: %s\n', mat2str(size(Y)));
@@ -205,7 +203,7 @@ missingIndices = []; % Initialize an empty array to store missing indices
 insufficientDataIndices = []; % Initialize an empty array for indices with insufficient data
 trial_cutoff = 10; % remove subject less than 10 trials
 % Iterate over each index
-for i = 1:size(X,2)
+for i = 1:size(X_filtered,2)
     % Check for missing or NaN data
     if isempty(X{i}) || isempty(Y{i}) || isempty(Minterim{i}) || isempty(cov{i}) || isnan(l2m(i))
         missingIndices = [missingIndices i]; % Add the index to the missing list
@@ -299,9 +297,9 @@ SETUP.wh_is_mediator = 'M';
 M_filtered_char = convert_cell2char(M_filtered);
 % SETUP.data.covs = cov
 % SETUP.data.L2M = l2m_meancentered';
-mediation_brain_multilevel(X_filtered, zscored_Y_filtered, M_filtered_char, SETUP, 'nopreproc', 'covs', cov_filtered, 'L2M', l2m_filtered'); %, 'boot', 'bootsamples', 1000);
-mediation_brain_multilevel(X_filtered, zscored_Y_filtered, M_filtered_char, SETUP, 'nopreproc', 'covs', cov_filtered, 'boot', 'bootsamples', 1000);% 'L2M', l2m_meancentered',
-mediation_brain_multilevel(X_filtered, zscored_Y_filtered, M_filtered_char, SETUP, 'nopreproc', 'boot', 'bootsamples', 1000);
+mediation_brain_multilevel(X_filtered, zscored_Y_filtered, M_filtered_char, SETUP, 'nopreproc', 'covs', cov_filtered, 'L2M', l2m_filtered', 'boot', 'bootsamples', 1000);
+% mediation_brain_multilevel(X_filtered, zscored_Y_filtered, M_filtered_char, SETUP, 'nopreproc', 'covs', cov_filtered, 'boot', 'bootsamples', 1000);% 'L2M', l2m_meancentered',
+% mediation_brain_multilevel(X_filtered, zscored_Y_filtered, M_filtered_char, SETUP, 'nopreproc', 'boot', 'bootsamples', 1000);
 % mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'covs', cov, 'L2M', l2m_meancentered'); %, 'boot', 'bootsamples', 1000);
 % mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'covs', cov, 'boot', 'bootsamples', 1000);% 'L2M', l2m_meancentered',
 % mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'boot', 'bootsamples', 1000);
