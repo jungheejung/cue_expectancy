@@ -66,7 +66,7 @@ NPS_fname = fullfile(main_dir, 'analysis/fmri/nilearn/deriv01_signature/rampup_p
 npsdf = readtable(NPS_fname,"FileType","text", 'Delimiter', ',');
 
 for e = 1:length(eventlist)
-    for s = 2:length(sublist)
+    for s = 1:length(sublist)
     
         % step 01: glob all the nifti files
         disp(strcat('starting ', sublist{s}))%strcat('sub-',sprintf('%04d', sublist(s)))))
@@ -120,8 +120,9 @@ for e = 1:length(eventlist)
         X{1,s} = mediation_df.expectrating;
         Minterim{1,s} = mediation_df.fullpath_fname;
         Y{1,s} = mediation_df.outcomerating;
-        cov{1,s} = mediation_df.cue_contrast;
-        cov{2,s} = mediation_df.stim_contrast;
+        covariates = [mediation_df.cue_contrast mediation_df.stim_contrast];
+        cov{1,s} = covariates; %mediation_df.cue_contrast;
+%         cov{2,s} = mediation_df.stim_contrast;
         l2m(s) = mean(mediation_df.NPS); 
         sub{1,s} = sublist{s}; 
     
