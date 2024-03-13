@@ -46,6 +46,13 @@ addpath(genpath(fullfile(matlab_moduledir,'MediationToolbox')));
 rmpath(genpath(fullfile(matlab_moduledir,'spm12/external/fieldtrip')));
 rmpath(genpath(fullfile(matlab_moduledir,'spm12/external/fieldtrip/external/stats')));
 addpath(genpath(fullfile(main_dir, 'scripts/step05_mediation/utils')));
+
+addpath(genpath(fullfile(matlab_moduledir, 'CanlabCore')));
+addpath(genpath(fullfile(matlab_moduledir,'Neuroimaging_Pattern_Masks')));
+addpath(genpath(fullfile(matlab_moduledir,'MediationToolbox')));
+rmpath(genpath(fullfile(matlab_moduledir,'spm12/external/fieldtrip')));
+rmpath(genpath(fullfile(matlab_moduledir,'spm12/external/fieldtrip/external/stats')));
+
 sublist = find_sublist_from_dir(singletrial_dir); % find subdirectories that start with keyword "sub-"
 X = cell(1, length(sublist));
 Minterim = cell(1, length(sublist));
@@ -84,13 +91,11 @@ for e = 1:length(eventlist)
     
         % step 03: merge the behavioral files and niftifiles based on intersection
         %          Extract the base filenames from the full path filenames
-    %     beh_df = load_beh_based_on_bids(beh_dir, unique_bids);
-    %     combinedTable = load_beh_bids(beh_dir, unique_bids);
         beh_df = load_beh_bids(fullfile(beh_dir), unique_bids);
         combinedTable = innerjoin(npsdf, beh_df, 'Keys', 'singletrial_fname');
     %     beh_fname = fullfile(main_dir, 'data', 'beh', 'beh_singletrials', strcat(sublist{s}, '_task-', task, 'desc-singletrialbehintersection_events.tsv');
         mkdir(fullfile(main_dir, 'data', 'beh', 'beh_singletrials',strcat(sublist{s})));
-        beh_fname = fullfile(main_dir, 'data', 'beh', 'beh_singletrials',sublist{s}, strcat(sublist{s}, '_task-', task, 'desc-singletrialbehintersection_events.tsv'));
+        beh_fname = fullfile(main_dir, 'data', 'beh', 'beh_singletrials',sublist{s}, strcat(sublist{s}, '_task-', task, '_desc-singletrialbehintersection_events.tsv'));
         writetable(combinedTable, beh_fname, 'Delimiter', '\t', 'FileType', 'text');
         singletrial_basefname = cellfun(@(x) extractAfter(x, max(strfind(x, filesep))), singletrial_files, 'UniformOutput', false);
     %     if dir_location== 'discovery'
@@ -122,8 +127,9 @@ for e = 1:length(eventlist)
         X{1,s} = mediation_df.expectrating;
         Minterim{1,s} = mediation_df.fullpath_fname;
         Y{1,s} = mediation_df.outcomerating;
-        cov{1,s} = mediation_df.cue_contrast;
-        cov{2,s} = mediation_df.stim_contrast;
+        covariates = [mediation_df.cue_contrast mediation_df.stim_contrast];
+        cov{1,s} = covariates; %mediation_df.cue_contrast;
+%         cov{2,s} = mediation_df.stim_contrast;
         l2m(s) = mean(mediation_df.NPS); 
         sub{1,s} = sublist{s}; 
     
@@ -133,21 +139,21 @@ end
 
 
 
-for i = 1:length(Y)
-    currentArray = Y{i}; % Extract the current array (might contain strings)
-    for j = 1:length(currentArray)
-        if ischar(currentArray{j}) || isstring(currentArray{j})
-            % Attempt to convert string to number, use NaN if not possible
-            currentArray{j} = str2double(currentArray{j});
-            if isnan(currentArray{j})
-                % Handle non-convertible strings as needed, for example, use NaN
-                currentArray{j} = NaN; 
-            end
-        end
-    end
-    % Ensure the inner array is numeric after conversion
-    Y{i} = cell2mat(currentArray);
-end
+% for i = 1:length(Y)
+%     currentArray = Y{i}; % Extract the current array (might contain strings)
+%     for j = 1:length(currentArray)
+%         if ischar(currentArray{j}) || isstring(currentArray{j})
+%             % Attempt to convert string to number, use NaN if not possible
+%             currentArray{j} = str2double(currentArray{j});
+%             if isnan(currentArray{j})
+%                 % Handle non-convertible strings as needed, for example, use NaN
+%                 currentArray{j} = NaN; 
+%             end
+%         end
+%     end
+%     % Ensure the inner array is numeric after conversion
+%     Y{i} = cell2mat(currentArray);
+% end
     
 fprintf('Size of X: %s\n', mat2str(size(X)));
 fprintf('Size of Y: %s\n', mat2str(size(Y)));
@@ -205,7 +211,7 @@ missingIndices = []; % Initialize an empty array to store missing indices
 insufficientDataIndices = []; % Initialize an empty array for indices with insufficient data
 trial_cutoff = 10; % remove subject less than 10 trials
 % Iterate over each index
-for i = 1:size(X,2)
+for i = 1:size(X_filtered,2)
     % Check for missing or NaN data
     if isempty(X{i}) || isempty(Y{i}) || isempty(Minterim{i}) || isempty(cov{i}) || isnan(l2m(i))
         missingIndices = [missingIndices i]; % Add the index to the missing list
@@ -248,6 +254,8 @@ l2m_filtered = l2m_temp(~isnan(l2m_temp)); % Remove NaNs to filter
 fprintf('step 2. X, Y, M fully set up');
 
 
+brain_check = fmri_data('/Users/h/Documents/projects_local/sandbox/smooth-6mm_sub-0064_ses-01_run-02_runtype-pain_event-stimulus_trial-000_cuetype-low_stimintensity-med.nii');
+montage(brain_check)
 %% -------------------------------------------------------------------------
 % start mediation analysis
 % -------------------------------------------------------------------------
@@ -297,9 +305,9 @@ SETUP.wh_is_mediator = 'M';
 M_filtered_char = convert_cell2char(M_filtered);
 % SETUP.data.covs = cov
 % SETUP.data.L2M = l2m_meancentered';
-mediation_brain_multilevel(X_filtered, zscored_Y_filtered, M_filtered_char, SETUP, 'nopreproc', 'covs', cov_filtered, 'L2M', l2m_filtered'); %, 'boot', 'bootsamples', 1000);
-mediation_brain_multilevel(X_filtered, zscored_Y_filtered, M_filtered_char, SETUP, 'nopreproc', 'covs', cov_filtered, 'boot', 'bootsamples', 1000);% 'L2M', l2m_meancentered',
-mediation_brain_multilevel(X_filtered, zscored_Y_filtered, M_filtered_char, SETUP, 'nopreproc', 'boot', 'bootsamples', 1000);
+mediation_brain_multilevel(X_filtered, zscored_Y_filtered, M_filtered_char, SETUP, 'nopreproc', 'covs', cov_filtered, 'L2M', l2m_filtered', 'boot', 'bootsamples', 1000);
+% mediation_brain_multilevel(X_filtered, zscored_Y_filtered, M_filtered_char, SETUP, 'nopreproc', 'covs', cov_filtered, 'boot', 'bootsamples', 1000);% 'L2M', l2m_meancentered',
+% mediation_brain_multilevel(X_filtered, zscored_Y_filtered, M_filtered_char, SETUP, 'nopreproc', 'boot', 'bootsamples', 1000);
 % mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'covs', cov, 'L2M', l2m_meancentered'); %, 'boot', 'bootsamples', 1000);
 % mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'covs', cov, 'boot', 'bootsamples', 1000);% 'L2M', l2m_meancentered',
 % mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'boot', 'bootsamples', 1000);
