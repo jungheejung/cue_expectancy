@@ -2,6 +2,12 @@
 % run to extract single trial file paths
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+
+%% -------------------------------------------------------------------------
+% directories and parameters
+% -------------------------------------------------------------------------
+
 addpath(genpath('./utils'));
 
 % Define the case variable
@@ -9,10 +15,10 @@ dir_location = 'local';  % 'local' vs. 'discovery' as needed
 switch dir_location
     case 'local'
         matlab_moduledir = '/Users/h/Documents/MATLAB';
-        main_dir = '/Volumes/spacetop_projects_cue';
-        singletrial_dir = fullfile('/Volumes/seagate/cue_singletrials/uncompressed_singletrial');
-        beh_dir = '/Volumes/seagate/cue_singletrials/beh03_bids';
-        NPS_fname = '/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv01_signature/rampupdown/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv';
+        main_dir =  '/Users/h/Documents/projects_local/cue_expectancy';%'/Volumes/spacetop_projects_cue';
+        singletrial_dir = fullfile('/Volumes/seagate/cue_singletrials/uncompressed_singletrial_rampupplateau');
+        beh_dir = '/Volumes/seagate/cue_singletrials/beh';
+        NPS_fname = '/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv01_signature/rampup_plateau/signature-NPS_sub-all_runtype-pvc_event-stimulus.tsv';
         graymatter_mask = '/Users/h/Documents/MATLAB/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/gray_matter_mask.nii';
     case 'discovery'
         matlab_moduledir = '/dartfs-hpc/rc/lab/C/CANlab/modules';
@@ -20,7 +26,7 @@ switch dir_location
 %         singletrial_dir = fullfile(main_dir, 'analysis','fmri','nilearn','singletrial');
         singletrial_dir = '/dartfs-hpc/scratch/f0042x1/singletrial_smooth';
         beh_dir = fullfile(main_dir, 'data', 'beh', 'beh03_bids');
-        NPS_fname = fullfile(main_dir, 'analysis/fmri/nilearn/deriv01_signature/rampupdown/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv');
+        NPS_fname = fullfile(main_dir, 'analysis/fmri/nilearn/deriv01_signature/rampup_plateau/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv');
         graymatter_mask = fullfile(matlab_moduledir, 'CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/gray_matter_mask.nii');
     otherwise
         error('Invalid case specified.');
@@ -33,7 +39,6 @@ addpath(genpath(fullfile(matlab_moduledir,'Neuroimaging_Pattern_Masks')));
 addpath(genpath(fullfile(matlab_moduledir,'MediationToolbox')));
 rmpath(genpath(fullfile(matlab_moduledir,'spm12/external/fieldtrip')));
 rmpath(genpath(fullfile(matlab_moduledir,'spm12/external/fieldtrip/external/stats')));
-
 
 sublist = find_sublist_from_dir(singletrial_dir); % find subdirectories that start with keyword "sub-"
 X = cell(1, length(sublist));
@@ -51,61 +56,75 @@ fprintf('step 1. parameter setup')
 % -------------------------------------------------------------------------
 % construct dataframes for mediation analysis
 % -------------------------------------------------------------------------
-% NPS_fname = '/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv01_signature/rampupdown/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv';
-
+NPS_fname = fullfile(main_dir, 'analysis/fmri/nilearn/deriv01_signature/rampup_plateau/signature-NPS_sub-all_runtype-pvc_event-stimulus.tsv');
 npsdf = readtable(NPS_fname,"FileType","text", 'Delimiter', ',');
+
 for e = 1:length(eventlist)
-for s = 1:length(sublist)
-
-    % step 01: glob all the nifti files
-    disp(strcat('starting ', sublist{s}))%strcat('sub-',sprintf('%04d', sublist(s)))))
+    for s = 1:length(sublist)
     
-    singletrial_flist = dir(fullfile(singletrial_dir, sublist{s},...
-        strcat(sublist{s}, '*_runtype-', task, '*_event-',eventlist{e},'*.nii')   ));
-%                         strcat('smooth-6mm_',sublist{s}, '*_runtype-', task, '*_event-',eventlist{e},'*.nii')   ));
-    if ~isempty(singletrial_flist)
-    singletrial_fldr = {singletrial_flist.folder}; fname = {singletrial_flist.name};
-    singletrial_files = strcat(singletrial_fldr,'/', fname)';
+        % step 01: glob all the nifti files
+        disp(strcat('starting ', sublist{s}))%strcat('sub-',sprintf('%04d', sublist(s)))))
         
-
-    % step 02: identify number of unique sub/ses/runs and load behavioral files
-    unique_bids = unique_combination_bids(singletrial_files);
-
-    % step 03: merge the behavioral files and niftifiles based on intersection
-    %          Extract the base filenames from the full path filenames
-    beh_df = load_beh_based_on_bids(beh_dir, unique_bids);
-    combinedTable = innerjoin(npsdf, beh_df, 'Keys', 'singletrial_fname');
-    singletrial_basefname = cellfun(@(x) extractAfter(x, max(strfind(x, filesep))), singletrial_files, 'UniformOutput', false);
-%     if dir_location== 'discovery'
-% %     Define the prefix and merge dataframe based on single trial filenames
-%         prefix = 'smooth-6mm_';
-%         combinedTable.singletrial_fname = strcat(prefix, combinedTable.singletrial_fname);
-%     end
-    merge_beh_nii = merge_on_nifti_beh(singletrial_basefname, combinedTable);
-
-    % step 04: if any of the Y regressors have NA values, the mediation will fail. Remove these instances
-    metadf_clean = remove_missing_behvalues(merge_beh_nii, 'outcomerating');
-
-    % step 05: contrast code the X regressors. Originally, they are strings in my behavioral dataframe
-    cue_contrast_mapper = containers.Map({'low_cue', 'high_cue'}, [-1, 1]);
-    stim_contrast_mapper = containers.Map({'low_stim', 'med_stim', 'high_stim'}, [-1, 0, 1]);
-    metadf_cue = contrast_coding(metadf_clean, 'cuetype', 'cue_contrast', cue_contrast_mapper);
-    metadf_con = contrast_coding(metadf_cue, 'stimtype', 'stim_contrast', stim_contrast_mapper);
-
-    % step 06: the mediation code expects the full path of nifti files. Construct this based on the basename columns
-    mediation_df = add_fullpath_column(metadf_con, singletrial_dir, sublist{s}, 'singletrial_fname', 'fullpath_fname');
-
-    % step 07: final step! construct the X, M, Y cells for the mediation analysis  
-    X{1,s} = mediation_df.stim_contrast;
-    M{1,s} = mediation_df.fullpath_fname;
-    Y{1,s} = mediation_df.outcomerating;
-    cov{1,s} = mediation_df.cue_contrast;
-    l2m(s) = mean(mediation_df.NPSpos); 
-    sub{1,s} = sublist{s}; 
-
+        singletrial_flist = dir(fullfile(singletrial_dir, sublist{s},...
+            strcat(sublist{s}, '*_runtype-', task, '*_event-',eventlist{e},'*.nii')   ));
+    %                         strcat('smooth-6mm_',sublist{s}, '*_runtype-', task, '*_event-',eventlist{e},'*.nii')   ));
+        if ~isempty(singletrial_flist)
+        singletrial_fldr = {singletrial_flist.folder}; fname = {singletrial_flist.name};
+        singletrial_files = strcat(singletrial_fldr,'/', fname)';
+            
+    
+        % step 02: identify number of unique sub/ses/runs and load behavioral files
+        unique_bids = unique_combination_bids(singletrial_files);
+    
+        % step 03: merge the behavioral files and niftifiles based on intersection
+        %          Extract the base filenames from the full path filenames
+    %     beh_df = load_beh_based_on_bids(beh_dir, unique_bids);
+    %     combinedTable = load_beh_bids(beh_dir, unique_bids);
+        beh_df = load_beh_bids(fullfile(beh_dir), unique_bids);
+        combinedTable = innerjoin(npsdf, beh_df, 'Keys', 'singletrial_fname');
+    %     beh_fname = fullfile(main_dir, 'data', 'beh', 'beh_singletrials', strcat(sublist{s}, '_task-', task, 'desc-singletrialbehintersection_events.tsv');
+        mkdir(fullfile(main_dir, 'data', 'beh', 'beh_singletrials',strcat(sublist{s})));
+        beh_fname = fullfile(main_dir, 'data', 'beh', 'beh_singletrials',sublist{s}, strcat(sublist{s}, '_task-', task, 'desc-singletrialbehintersection_events.tsv'));
+        writetable(combinedTable, beh_fname, 'Delimiter', '\t', 'FileType', 'text');
+        singletrial_basefname = cellfun(@(x) extractAfter(x, max(strfind(x, filesep))), singletrial_files, 'UniformOutput', false);
+    %     if dir_location== 'discovery'
+    % %     Define the prefix and merge dataframe based on single trial filenames
+    %         prefix = 'smooth-6mm_';
+    %         combinedTable.singletrial_fname = strcat(prefix, combinedTable.singletrial_fname);
+    %     end
+    
+        merge_beh_nii = merge_on_nifti_beh(singletrial_basefname, combinedTable);
+    
+        % step 04: if any of the Y regressors have NA values, the mediation will fail. Remove these instances
+        metadf_clean = remove_missing_behvalues(merge_beh_nii, 'outcomerating');
+        metadf_clean = remove_missing_behvalues(metadf_clean, 'expectrating');
+    %     metadf_clean = remove_missing_behvalues(merge_beh_nii, 'outcomerating');
+    
+        % step 05: contrast code the X regressors. Originally, they are strings in my behavioral dataframe
+        cue_contrast_mapper = containers.Map({'low_cue', 'high_cue'}, [-1, 1]);
+        stim_contrast_mapper = containers.Map({'low_stim', 'med_stim', 'high_stim'}, [-1, 0, 1]);
+        metadf_cue = contrast_coding(metadf_clean, 'cue', 'cue_contrast', cue_contrast_mapper);
+        metadf_con = contrast_coding(metadf_cue, 'stimulusintensity', 'stim_contrast', stim_contrast_mapper);
+    
+    
+    
+        
+        % step 06: the mediation code expects the full path of nifti files. Construct this based on the basename columns
+        mediation_df = add_fullpath_column(metadf_con, singletrial_dir, sublist{s}, 'singletrial_fname', 'fullpath_fname');
+    
+        % step 07: final step! construct the X, M, Y cells for the mediation analysis  
+        X{1,s} = mediation_df.expectrating;
+        M{1,s} = mediation_df.fullpath_fname;
+        Y{1,s} = mediation_df.outcomerating;
+        cov{1,s} = mediation_df.cue_contrast;
+        cov{2,s} = mediation_df.stim_contrast;
+        l2m(s) = mean(mediation_df.NPS); 
+        sub{1,s} = sublist{s}; 
+    
+        end
     end
 end
-end
+
 
 fprintf('Size of X: %s\n', mat2str(size(X)));
 fprintf('Size of Y: %s\n', mat2str(size(Y)));
@@ -114,7 +133,21 @@ fprintf('Size of cov: %s\n', mat2str(size(cov)));
 fprintf('Size of l2m: %s\n', mat2str(size(l2m)));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
+% for i = 1:length(Y)
+%     currentArray = Y{i}; % Extract the current array (might contain strings)
+%     for j = 1:length(currentArray)
+%         if ischar(currentArray{j}) || isstring(currentArray{j})
+%             % Attempt to convert string to number, use NaN if not possible
+%             currentArray{j} = str2double(currentArray{j});
+%             if isnan(currentArray{j})
+%                 % Handle non-convertible strings as needed, for example, use NaN
+%                 currentArray{j} = NaN; 
+%             end
+%         end
+%     end
+%     % Ensure the inner array is numeric after conversion
+%     Y{i} = cell2mat(currentArray);
+% end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % identify good voxels vs. voxels to exclude
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
