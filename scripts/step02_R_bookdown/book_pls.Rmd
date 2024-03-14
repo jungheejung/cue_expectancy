@@ -6,7 +6,7 @@ Here, we want to... {{ INSERT }}
 
 * Main model: `plsscores ~ cue stim` 
 * Main question: With PLS, did we predict the observed scores well? 
-* {{ HYPOTHESES/EXPECTED OUTCOME }}
+* {{ HYPOTHESES/EXPECTED expect }}
 * 
 * IV: 
   - {{ FACTOR NAME }} ( {{ LEVELS}} )
@@ -35,43 +35,287 @@ library(cueR)
 Let's look at the distribution of the data. X axis: Y axis: 
 ```{r paged.print=TRUE}
 expect.fname = "/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/pls/pls_model-expectrating.tsv"
-outcome.fname = "/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/pls/pls_model-outcometrating.tsv"
+outcome.fname = "/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/pls/pls_model-outcomerating.tsv"
 
 expect_df = read.csv(expect.fname, sep = '\t')
 outcome_df = read.csv(outcome.fname, sep = '\t')
 ```
+
+
 ```{r}
+for (taskname in c("pain")) {
+  combined_data <- data.frame()
 subject <- "sub"
 model_iv1 <- "cuetype"
 model_iv2 <- "stimulusintensity"
-dv <- "expectrating"
+model_iv2 <- "runtype"
+dv <- paste0(taskname,"_expect")
 expect.subjectwise <- meanSummary(expect_df,
-                                      c(subject, model_iv1), dv)
+                                      c(subject, model_iv1, "runtype"), dv)
 expect.groupwise <- summarySEwithin(
   data = expect.subjectwise,
   measurevar = "mean_per_sub",
-  withinvars = c(model_iv1),
+  withinvars = c(model_iv1, model_iv2),
   idvar = subject
+)
+expect.groupwise$data <- "observed"
+dv <- paste0("pred_", taskname, "_expect")
+pls.expect.subjectwise <- meanSummary(expect_df,
+                                      c(subject, model_iv1, "runtype"),dv )
+pls.expect.groupwisewise <- summarySEwithin(
+  data = pls.expect.subjectwise,
+  measurevar = "mean_per_sub",
+  withinvars = c(model_iv1, model_iv2),
+  idvar = subject
+)
+pls.expect.groupwisewise$data <- "plsmodel"
+
+library(ggplot2)
+
+# Assuming pls.expect.groupwisewise and expect.groupwise are already loaded and prepared as described
+
+# Combine the data for ease of plotting (optional, depending on your needs)
+combined_data <- data.frame(
+  mean_per_sub_norm_mean_x = expect.groupwise$mean_per_sub_norm_mean,  # x-axis
+  mean_per_sub_norm_mean_y = pls.expect.groupwisewise$mean_per_sub_norm_mean,  # y-axis
+  se_x = expect.groupwise$se,
+  se_y = pls.expect.groupwisewise$se,
+  cuetype = expect.groupwise$cuetype,
+  runtype = expect.groupwise$runtype
 )
 
-dv <- "pred_pain_expect"
-pls.expect.subjectwise <- meanSummary(expect_df,
-                                      c(subject, model_iv1), dv)
-pls.expect.subjectwise <- summarySEwithin(
-  data = expect.subjectwise,
-  measurevar = "mean_per_sub",
-  withinvars = c(model_iv1),
-  idvar = subject
-)
-# outcome.subjectwise <- meanSummary(outcome_df,
-#                                       c(subject, model_iv2), dv)
-# outcome.groupwise <- summarySEwithin(
-#   data = outcome.subjectwise,
-#   measurevar = "mean_per_sub",
-#   withinvars = c(model_iv2),
-#   idvar = subject
-# )
+# Plotting
+g <- ggplot(combined_data, aes(x = mean_per_sub_norm_mean_x, y = mean_per_sub_norm_mean_y, color = runtype)) +
+  geom_point(size=3) +
+  geom_errorbarh(aes(xmin = mean_per_sub_norm_mean_x - se_x, xmax = mean_per_sub_norm_mean_x + se_x)) +
+  geom_errorbar(aes(ymin = mean_per_sub_norm_mean_y - se_y, ymax = mean_per_sub_norm_mean_y + se_y)) +
+  theme_minimal() +
+  labs(x = "Expect Groupwise mean_per_sub_norm_mean", 
+       y = "PLS Expect Groupwise mean_per_sub_norm_mean", 
+       title = "Comparison of Groupwise means") +
+  scale_color_manual(values = c("pain" = "red","vicarious" = "green",  "cognitive" = "blue")) +
+  ylim(0,180) +
+  xlim(0,180)
+print(g)
+}
 ```
+
+
+```{r}
+library(ggplot2)
+
+# Define a list of keyword pairs
+keyword_pairs <- list(
+  c("observed" = "pain", "predicted" = "pain"),
+  c("observed" = "vic", "predicted" = "vicarious"),
+  c("observed" = "cog", "predicted" = "cognitive")
+)
+
+combined_data <- data.frame()
+
+for (pair in keyword_pairs) {
+  observed_keyword <- names(pair)[1]
+  predicted_keyword <- names(pair)[2]
+  taskname_observed <- pair[[1]]
+  taskname_predicted <- pair[[2]]
+  
+  subject <- "sub"
+  model_iv1 <- "cuetype"
+  model_iv2 <- "runtype" # Correctly assign model_iv2 to "runtype"
+  dv_observed <- paste0(taskname_observed, "_expect")
+  dv_predicted <- paste0("pred_", taskname_predicted, "_expect")
+  
+  # Process observed data
+  expect.subjectwise <- meanSummary(expect_df, c(subject, model_iv1, model_iv2), dv_observed)
+  expect.groupwise <- summarySEwithin(data = expect.subjectwise, measurevar = "mean_per_sub", withinvars = c(model_iv1, model_iv2), idvar = subject)
+  expect.groupwise$data <- observed_keyword
+  
+  # Process predicted data
+  pls.expect.subjectwise <- meanSummary(expect_df, c(subject, model_iv1, model_iv2), dv_predicted)
+  pls.expect.groupwisewise <- summarySEwithin(data = pls.expect.subjectwise, measurevar = "mean_per_sub", withinvars = c(model_iv1, model_iv2), idvar = subject)
+  pls.expect.groupwisewise$data <- predicted_keyword
+  
+  # Assuming pls.expect.groupwisewise and expect.groupwise are already loaded and prepared as described
+  # Combine the data for ease of plotting
+  temp_combined_data <- data.frame(
+    mean_per_sub_norm_mean_x = expect.groupwise$mean_per_sub_norm_mean,  # x-axis
+    mean_per_sub_norm_mean_y = pls.expect.groupwisewise$mean_per_sub_norm_mean,  # y-axis
+    se_x = expect.groupwise$se,
+    se_y = pls.expect.groupwisewise$se,
+    cuetype = expect.groupwise$cuetype,
+    runtype = expect.groupwise$runtype
+  )
+  
+  combined_data <- rbind(combined_data, temp_combined_data)
+}
+
+# Plotting
+g <- ggplot(combined_data, aes(x = mean_per_sub_norm_mean_x, y = mean_per_sub_norm_mean_y, color = runtype)) +
+  geom_point(size=3) +
+  geom_errorbarh(aes(xmin = mean_per_sub_norm_mean_x - se_x, xmax = mean_per_sub_norm_mean_x + se_x)) +
+  geom_errorbar(aes(ymin = mean_per_sub_norm_mean_y - se_y, ymax = mean_per_sub_norm_mean_y + se_y)) +
+  theme_minimal() +
+  labs(x = "Expect Groupwise mean_per_sub_norm_mean", 
+       y = "PLS Expect Groupwise mean_per_sub_norm_mean", 
+       title = "Comparison of Groupwise means") +
+  scale_color_manual(values = c("pain" = "red","vicarious" = "green",  "cognitive" = "blue")) +
+  ylim(0,180) +
+  xlim(0,180)
+print(g)
+
+```
+```{r}
+library(ggplot2)
+library(ggplot2)
+
+# Define a list of keyword pairs
+keyword_pairs <- list(
+  c("observed" = "pain", "predicted" = "pain"),
+  c("observed" = "vic", "predicted" = "vicarious"),
+  c("observed" = "cog", "predicted" = "cognitive")
+)
+
+combined_data <- data.frame()
+plot_list <- list()
+
+for (pair in keyword_pairs) {
+  observed_keyword <- names(pair)[1]
+  predicted_keyword <- names(pair)[2]
+  taskname_observed <- pair[[1]]
+  taskname_predicted <- pair[[2]]
+  
+  subject <- "sub"
+  model_iv1 <- "stimulusintensity"
+  model_iv2 <- "runtype" # Correctly assign model_iv2 to "runtype"
+  dv_observed <- paste0(taskname_observed, "_expect")
+  dv_predicted <- paste0("pred_", taskname_predicted, "_expect")
+  
+  # Process observed data
+  expect.subjectwise <- meanSummary(expect_df, c(subject, model_iv1, model_iv2), dv_observed)
+  expect.groupwise <- summarySEwithin(data = expect.subjectwise, measurevar = "mean_per_sub", withinvars = c(model_iv1, model_iv2), idvar = subject)
+  expect.groupwise$data <- observed_keyword
+  
+  # Process predicted data
+  pls.expect.subjectwise <- meanSummary(expect_df, c(subject, model_iv1, model_iv2), dv_predicted)
+  pls.expect.groupwisewise <- summarySEwithin(data = pls.expect.subjectwise, measurevar = "mean_per_sub", withinvars = c(model_iv1, model_iv2), idvar = subject)
+  pls.expect.groupwisewise$data <- predicted_keyword
+  
+  # Assuming pls.expect.groupwisewise and expect.groupwise are already loaded and prepared as described
+  # Combine the data for ease of plotting
+  temp_combined_data <- data.frame(
+    mean_per_sub_norm_mean_x = expect.groupwise$mean_per_sub_norm_mean,  # x-axis
+    mean_per_sub_norm_mean_y = pls.expect.groupwisewise$mean_per_sub_norm_mean,  # y-axis
+    se_x = expect.groupwise$se,
+    se_y = pls.expect.groupwisewise$se,
+    stimulusintensity = expect.groupwise$stimulusintensity,
+    runtype = expect.groupwise$runtype
+  )
+  
+  # combined_data <- rbind(combined_data, temp_combined_data)
+
+
+# Plotting
+g <- ggplot(temp_combined_data, aes(x = mean_per_sub_norm_mean_x, y = mean_per_sub_norm_mean_y, color = runtype)) +
+  geom_point(size=1) +
+  geom_errorbarh(aes(xmin = mean_per_sub_norm_mean_x - se_x, xmax = mean_per_sub_norm_mean_x + se_x)) +
+  geom_errorbar(aes(ymin = mean_per_sub_norm_mean_y - se_y, ymax = mean_per_sub_norm_mean_y + se_y)) +
+  theme_minimal() +
+  labs(x = "Expect Groupwise mean_per_sub_norm_mean", 
+       y = "PLS Expect Groupwise mean_per_sub_norm_mean", 
+       title = "Comparison of Groupwise means") +
+  scale_color_manual(values = c("pain" = "red","vicarious" = "green",  "cognitive" = "blue")) +
+  ylim(0,75) +
+  xlim(0,75)
+
+
+ plot_list[[length(plot_list) + 1]] <- g
+}
+
+combined_plot <- ggarrange(plotlist = plot_list, nrow = 2, ncol = 2)
+
+# Print the combined plot
+combined_plot
+
+```
+
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Assuming sub_means is your data frame already prepared with the necessary columns
+
+# Define the custom color palette
+custom_palette <- c(
+  pain = '#941100',
+  cognitive = '#011891',
+  vicarious = '#008F51',
+  general = 'purple'
+)
+
+# Set up the plotting grid
+expect_pairs <- list(
+  c('pred_pain_expect', 'pain_expect'),
+  c('pred_vicarious_expect', 'vic_expect'),
+  c('pred_cognitive_expect', 'cog_expect'),
+  c('pred_general_expect', 'gen_expect')
+)
+# sub_means <- expect_df %>%
+#   group_by(sub, stimulusintensity, runtype) %>%
+#   dplyr::summarise(across(c(pred_pain_expect, pain_expect,
+#                      pred_vicarious_expect, vic_expect,
+#                      pred_cognitive_expect, cog_expect,
+#                      pred_general_expect, gen_expect), mean, na.rm = TRUE),
+#             .groups = 'drop')
+sub_means <- expect_df %>%
+  group_by(sub, stimulusintensity, runtype) %>%
+  summarise(across(c("pred_pain_expect", "pain_expect",
+                     "pred_vicarious_expect", "vic_expect",
+                     "pred_cognitive_expect", "cog_expect",
+                     "pred_general_expect", "gen_expect"),
+            list(mean = ~mean(.x, na.rm = TRUE), 
+                 se = ~sd(.x, na.rm = TRUE) / sqrt(n()))),
+            .groups = 'drop')
+
+# Assuming 'stimulusintensity' has values that need to be ordered as 'low_stim', 'med_stim', 'high_stim'
+sub_means$stimulusintensity <- factor(sub_means$stimulusintensity,
+                                      levels = c('low_stim', 'med_stim', 'high_stim'),
+                                      ordered = TRUE)
+# Creating plots for each pair
+plot_list <- lapply(1:length(expect_pairs), function(i) {
+  pred_expect <- expect_pairs[[i]][1]
+  actual_expect <- expect_pairs[[i]][2]
+  
+  # Calculate means and standard errors for plotting; adjust this as per your actual data's needs
+  grouped_means <- sub_means %>%
+    group_by(stimulusintensity, runtype) %>%
+    summarise_at(vars(pred_expect, actual_expect), list(mean = mean, se = sd/sqrt(n())))
+  
+  p <- ggplot(grouped_means, aes_string(x = paste0(actual_expect, "_mean"), y = paste0(pred_expect, "_mean"), color = "runtype")) +
+    geom_point(size = 3) +
+    geom_errorbar(aes_string(ymin = paste0(pred_expect, "_mean") - paste0(pred_expect, "_se"), ymax = paste0(pred_expect, "_mean") + paste0(pred_expect, "_se")), width = 0.2) +
+    geom_errorbarh(aes_string(xmin = paste0(actual_expect, "_mean") - paste0(actual_expect, "_se"), xmax = paste0(actual_expect, "_mean") + paste0(actual_expect, "_se")), height = 0.2) +
+    scale_color_manual(values = custom_palette) +
+    labs(title = strsplit(pred_expect, "_")[[1]][2], x = 'Actual expect Rating', y = 'Predicted expect Rating') +
+    theme_minimal() +
+    theme(legend.position = "right")
+  
+  # Adjust legend for the last two plots
+  if(i %in% c(3, 4)) {
+    p <- p + theme(legend.position = "bottom")
+  } else {
+    p <- p + theme(legend.position = "none")
+  }
+  
+  return(p)
+})
+
+# Arrange plots in a 2x2 grid
+library(gridExtra)
+grid.arrange(grobs = plot_list, ncol = 2)
+
+```
+
 
 > Summary: 
 
