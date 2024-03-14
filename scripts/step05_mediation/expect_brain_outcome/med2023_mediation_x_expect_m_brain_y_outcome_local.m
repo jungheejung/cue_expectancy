@@ -120,9 +120,10 @@ for e = 1:length(eventlist)
         X{1,s} = mediation_df.expectrating;
         Minterim{1,s} = mediation_df.fullpath_fname;
         Y{1,s} = mediation_df.outcomerating;
-        covariates = [mediation_df.cue_contrast mediation_df.stim_contrast];
-        cov{1,s} = covariates; %mediation_df.cue_contrast;
+%         covariates = [mediation_df.cue_contrast mediation_df.stim_contrast];
+%         cov{1,s} = covariates; %mediation_df.cue_contrast;
 %         cov{2,s} = mediation_df.stim_contrast;
+        cov{1,s} = mediation_df.cue_contrast;
         l2m(s) = mean(mediation_df.NPS); 
         sub{1,s} = sublist{s}; 
     

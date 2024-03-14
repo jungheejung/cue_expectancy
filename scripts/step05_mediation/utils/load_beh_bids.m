@@ -124,8 +124,69 @@ function finalTable = load_beh_bids(beh_dir, unique_bids)
                                                stim_level{index}), ...
                              (1:height(subMergedData))', 'UniformOutput', false);
 
+        % Assuming your table is named 'data'
+        
+        % Convert 'expectrating' column from string to numeric values, handling empty strings
+
+        % Example for 'expectrating' column
+% Find rows with empty character arrays or strings and set them to NaN
+% Ensure the column is treated as a cell array, regardless of its current format
+expectratingCells = table2cell(subMergedData(:, 'expectrating'));
+outcomeratingCells = table2cell(subMergedData(:, 'outcomerating'));
+
+% Convert strings to numbers, handling empty and non-empty strings
+for i = 1:length(expectratingCells)
+    if ischar(expectratingCells{i}) || isstring(expectratingCells{i})
+        if isempty(strtrim(expectratingCells{i}))
+            expectratingCells{i} = NaN;
+        else
+            expectratingCells{i} = str2double(expectratingCells{i});
+        end
+    end
+end
+
+% Repeat for outcomerating
+for i = 1:length(outcomeratingCells)
+    if ischar(outcomeratingCells{i}) || isstring(outcomeratingCells{i})
+        if isempty(strtrim(outcomeratingCells{i}))
+            outcomeratingCells{i} = NaN;
+        else
+            outcomeratingCells{i} = str2double(outcomeratingCells{i});
+        end
+    end
+end
+
+% Update the original table with the processed data
+subMergedData.expectrating = cell2mat(expectratingCells);
+subMergedData.outcomerating = cell2mat(outcomeratingCells);
+
+
+%         for i = 1:height(subMergedData)
+%             if isempty(subMergedData.expectrating{i})  % Check for empty char
+%                 subMergedData.expectrating{i} = NaN;  % Assign NaN for missing values
+%             else
+%                 % Convert string to number
+%                 subMergedData.expectrating{i} = str2double(subMergedData.expectrating{i});
+%             end
+%         end
+%         
+%         % Since the table initially contains cells of mixed types (strings and NaNs),
+%         % you need to unify the data type for the entire column. Convert cell array to a numeric array.
+%         subMergedData.expectrating = cell2mat(subMergedData.expectrating);
 % 
-% 
+%         for i = 1:height(subMergedData)
+%             if isempty(subMergedData.outcomerating{i})  % Check for empty char
+%                 subMergedData.outcomerating{i} = NaN;  % Assign NaN for missing values
+%             else
+%                 % Convert string to number
+%                 subMergedData.outcomerating{i} = str2double(subMergedData.outcomerating{i});
+%             end
+%         end
+%         
+%         % Since the table initially contains cells of mixed types (strings and NaNs),
+%         % you need to unify the data type for the entire column. Convert cell array to a numeric array.
+%         subMergedData.outcomerating = cell2mat(subMergedData.outcomerating);
+% % 
 %         % Construct the filename using string concatenation
 %         filenames = strcat(subMergedData.sub, '_', subMergedData.ses, '_', subMergedData.run, ...
 %             '_runtype-', subMergedData.runtype, '_event-stimulus_trial-', trial_index_formatted, ...
