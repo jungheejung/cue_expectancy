@@ -1,39 +1,22 @@
 from sklearn.model_selection import GroupKFold, cross_val_score, KFold
 from sklearn.cross_decomposition import PLSRegression
-from sklearn.metrics import make_scorer, mean_squared_error
-import numpy as np
+from sklearn.metrics import make_scorer, mean_squared_error, confusion_matrix
+
 import os, glob, re, json
 from os.path import join
 import numpy as np
 import pandas as pd
-from nilearn import image, masking, maskers, plotting
-from nilearn.image import resample_to_img, math_img, new_img_like
-from datetime import datetime
-import nibabel as nib
-import matplotlib.pyplot as plt
-import seaborn as sns
-import joblib
-import h5py
-
-import os
-import re
-import json
-import glob
-from datetime import datetime
-from os.path import join
 from pathlib import Path
+from surfplot import Plot
 
-import numpy as np
-import pandas as pd
+from datetime import datetime
+import nibabel as nib
 import matplotlib.pyplot as plt
 import seaborn as sns
-import nibabel as nib
 import joblib
 import h5py
 
-from sklearn.model_selection import GroupKFold, cross_val_score, KFold
-from sklearn.cross_decomposition import PLSRegression
-from sklearn.metrics import make_scorer, mean_squared_error
+from collections import Counter
 
 from nilearn import image, masking, plotting
 from nilearn.maskers import NiftiLabelsMasker, NiftiMapsMasker
@@ -47,12 +30,8 @@ from neuromaps.images import dlabel_to_gifti
 from neuromaps.transforms import fsaverage_to_fslr
 
 from netneurotools import datasets as nnt_data
+import cloudpickle
 
-from surfplot import Plot
-
-from sklearn.metrics import confusion_matrix
-import seaborn as sns
-import matplotlib.pyplot as plt
 
 def extract_metadata(filenames):
     pattern = re.compile(
@@ -132,11 +111,6 @@ def plot_scores(X_train_r, Y_train_r,
     plt.yticks(())
     plt.show()
 
-    from nilearn import image, plotting
-from surfplot import Plot
-from neuromaps.transforms import fsaverage_to_fslr
-import glob
-
 def plot_brain_surfaces(image, cbar_label='INSERT LABEL', cmap='viridis', color_range=None):
     """
     Plot brain surfaces with the given data.
@@ -171,11 +145,6 @@ def plot_brain_surfaces(image, cbar_label='INSERT LABEL', cmap='viridis', color_
 # Example usage:
 # TST = (left_hemisphere_data, right_hemisphere_data)
 # plot_brain_surfaces(TST, cbar_label='gradient', cmap='viridis', color_range=(0, .15))
-
-from nilearn import image, plotting
-from surfplot import Plot
-from neuromaps.transforms import fsaverage_to_fslr
-import glob
 
 def plot_brain_surfaces_lateralonly(image, cbar_label='INSERT LABEL', cmap='viridis', color_range=None):
     """
@@ -252,17 +221,18 @@ gradient = np.linspace(0, 1, 256)
 gradient = np.vstack((gradient, gradient))
 
 # Plot the gradient
-fig, ax = plt.subplots(figsize=(6, 2))
-ax.imshow(gradient, aspect='auto', cmap=cmap)
-ax.set_axis_off()
+# fig, ax = plt.subplots(figsize=(6, 2))
+# ax.imshow(gradient, aspect='auto', cmap=cmap)
+# ax.set_axis_off()
 
-plt.show()
+# plt.show()
 
 # load data _______________________
 current_dir = os.getcwd()
 current_dir
 main_dir = Path(current_dir).parents[2] 
 print(main_dir)
+main_dir = '/Users/h/Documents/projects_local/cue_expectancy'
 # /Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv02_parcel-schaefer400/singletrial_rampupplateau_task-pvc_atlas-schaefer2018.npy'
 braindf = np.load(join(main_dir, 'analysis/fmri/nilearn/deriv02_parcel-schaefer400', 'singletrial_rampupplateau_task-pvc_atlas-schaefer2018.npy'))
 print(f"the shape of the parcel data {braindf.shape}")
@@ -319,7 +289,7 @@ beh['gen_expect'] = beh['dummy_general'] * beh['expectrating']
 
 singletrial = cleanbraindf  # zscored_braindf  # np.random.randn(89, 1)      # Replace with your actual data
 # identify groups
-from collections import Counter
+
 
 # subject_ids = [int(re.search(r"sub-(\d+)", fname).group(1)) for fname in flist]
 subject_counts = Counter(beh['sub'])  # Count the occurrences of each subject
@@ -376,7 +346,7 @@ from joblib import Parallel, delayed
 import numpy as np
 import pandas as pd
 # import cloudpickle
-import warnings
+# import warnings
 # SET PARAMETERS
 X = singletrial_dropna # (trials x Brain either voxels or parcels)
 Y = beh_dropna[['pain_expect', 'vic_expect', 'cog_expect', 'gen_expect']] #(trials x ratings)
@@ -386,15 +356,13 @@ n_components = 10
 n_splits = 10
 n_permutations = 39
 scaler = StandardScaler()
-from warnings import simplefilter
+# from warnings import simplefilter
 # ignore all future warnings
 # simplefilter(action='ignore', category=FutureWarning)
 # Define parallelized functions
 def fit_pls_for_subject(X_train, Y_train, subject_mask, n_components):
     X_train_subj = X_train[subject_mask, :]
     Y_train_subj = Y_train[subject_mask, :]
-    # with warnings.catch_warnings():
-    #     warnings.simplefilter(action='ignore', category=FutureWarning)
     pls = PLSRegression(n_components=n_components)
     pls.fit(X_train_subj, Y_train_subj)
     return pls.coef_, pls.intercept_
@@ -440,16 +408,19 @@ for fold, (train_idx, test_idx) in enumerate(outer_cv.split(X, Y, groups)):
     groups_train = groups[train_idx]
     groups_test = groups[test_idx]
     print(f"X_train shape: {X_train.shape}, Y_train shape: {Y_train.shape}")
-    print(f"Number of subject masks: {len(subject_masks)}")
+    
 
     # Parallel training for each subject
     print(f"model fit: per subject for fold {fold}")
-    subject_masks = [groups_train == subject for subject in np.unique(groups_train)]
-
+    subject_masks = np.array([groups_train == subject for subject in np.unique(groups_train)])
+    print(f"Number of subject masks: {len(subject_masks)}")
     print(f"Starting parallel processing for fold {fold}...")
-    parallel_results = Parallel(n_jobs=-1, backend='loky')(
-    delayed(fit_pls_for_subject)(X_train, Y_train, mask, n_components) for mask in subject_masks
-)
+    cloudpickle.dumps(X_train)
+    # Example direct call (adjust indices or mask as needed)
+    # for mask in subject_masks
+    # c, i = fit_pls_for_subject(X_train, Y_train, subject_masks, n_components)
+
+    parallel_results = Parallel(n_jobs=2, prefer="threads")(delayed(fit_pls_for_subject)(X_train, Y_train, mask, n_components) for mask in subject_masks)
     print(f"Completed parallel model fit for fold {fold}.")
     # parallel_results = Parallel(n_jobs=-1, backend='loky')(delayed(fit_pls_for_subject, backend='cloudpickle')(X_train, Y_train, mask, n_components) for mask in subject_masks)
     # parallel_results = Parallel(n_jobs=-1)(delayed(fit_pls_for_subject)(X_train, Y_train, mask, n_components) for mask in subject_masks)
@@ -475,7 +446,7 @@ for fold, (train_idx, test_idx) in enumerate(outer_cv.split(X, Y, groups)):
     try: 
         parallel_permutations = Parallel(n_jobs=-1)(delayed(permute_and_fit_single)(X_train, Y_train, n_components) for _ in range(n_permutations))
     except Exception as e:
-    print(f"Error during parallel execution: {e}")
+        print(f"Error during parallel execution: {e}")
     fold_permute_coefs, fold_permute_intercepts = zip(*parallel_permutations)
     # Convert lists to numpy arrays for easier handling
     fold_permute_coefs = np.array(fold_permute_coefs)
