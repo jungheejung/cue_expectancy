@@ -76,8 +76,9 @@ for fname in flattened_list:
     parcelarray.append(singletrial_parc)
 # %%
 parcel_value = np.vstack(parcelarray)
-np.save(join(singletrial_dir, 'singletrial_rampupplateau_task-pvc_epoch-cue_atlas-schaefer2018.npy'),parcel_value)
-np.save(join(main_dir, 'analysis/fmri/nilearn/singletrial_rampupplateau/singletrial_rampupplateau_task-pvc_epoch-cue_atlas-schaefer2018.npy'),parcel_value)
+save_discovery_dir= '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv02_parcel-schaefer400'
+np.save(join(save_discovery_dir, 'singletrial_rampupplateau_task-pvc_epoch-cue_atlas-schaefer2018.npy'),parcel_value)
+np.save(join(main_dir, 'analysis/fmri/nilearn/deriv02_parcel-schaefer400/singletrial_rampupplateau_task-pvc_epoch-cue_atlas-schaefer2018.npy'),parcel_value)
 np.save(join('/Volumes/seagate/cue_singletrials/singletrial_rampupplateau_task-pvc_epoch-cue_atlas-schaefer2018.npy'),parcel_value)
 
 data = {
@@ -95,10 +96,10 @@ data = {
     "python_packages": ["neuromaps", "netneurotools"]
 }
 
-with open(join(main_dir,'analysis/fmri/nilearn/singletrial_rampupplateau', 
+with open(join(main_dir,'analysis/fmri/nilearn/deriv02_parcel-schaefer400', 
                'singletrial_rampupplateau_task-pvc_epoch-cue_atlas-schaefer2018.json'), 'w') as json_file:
     json.dump(data, json_file, indent=4)
-with open(join(singletrial_dir,'singletrial_rampupplateau_task-pvc_epoch-cue_atlas-schaefer2018.json'), 'w') as json_file:
+with open(join(save_discovery_dir,'singletrial_rampupplateau_task-pvc_epoch-cue_atlas-schaefer2018.json'), 'w') as json_file:
     json.dump(data, json_file, indent=4)
 with open(join('/Volumes/seagate/cue_singletrials/singletrial_rampupplateau_task-pvc_epoch-cue_atlas-schaefer2018.json'), 'w') as json_file:
     json.dump(data, json_file, indent=4)
@@ -111,13 +112,17 @@ df_split = metadatadf['singletrial_fname'].str.extract(
     r'runtype-(?P<runtype>\w+)_'
     r'event-(?P<event>\w+)_'
     r'(?P<trial>trial-\d+)_'
-    r'cuetype-(?P<cuetype>\w+)_'
-    r'stimintensity-(?P<stimintensity>\w+)'
+    r'cuetype-(?P<cuetype>\w+)'
+    
 )
 
 df_final = pd.concat([metadatadf, df_split], axis=1)
 df_final.head()
-df_final.to_csv(join(singletrial_dir, 'singletrial_rampupplateau_task-pvc_epoch-cue_atlas-schaefer2018.tsv'), 
+df_final.to_csv(join(save_discovery_dir, 'singletrial_rampupplateau_task-pvc_epoch-cue_atlas-schaefer2018.tsv'), 
+                sep='\t', index=False, header=True)
+df_final.to_csv(join(main_dir, 'analysis/fmri/nilearn/deriv02_parcel-schaefer400', 'singletrial_rampupplateau_task-pvc_epoch-cue_atlas-schaefer2018.tsv'), 
                 sep='\t', index=False, header=True)
 df_final.to_csv(join('/Volumes/seagate/cue_singletrials/singletrial_rampupplateau_task-pvc_epoch-cue_atlas-schaefer2018.tsv'), 
                 sep='\t', index=False, header=True)
+
+# %%
