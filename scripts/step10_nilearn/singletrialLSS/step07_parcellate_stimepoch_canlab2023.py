@@ -75,8 +75,8 @@ for fname in flattened_list:
 # %%
 parcel_value = np.vstack(parcelarray)
 np.save(join(save_discovery_dir, 'singletrial_rampupplateau_task-pvc_epoch-stim_atlas-canlab2023.npy'),parcel_value)
-np.save(join(main_dir, 'analysis/fmri/nilearn/singletrial_rampupplateau/singletrial_rampupplateau_task-pvc_atlas-canlab2023.npy'),parcel_value)
-np.save(join('/Volumes/seagate/cue_singletrials/singletrial_rampupplateau_task-pvc_atlas-canlab2023.npy'),parcel_value)
+np.save(join(main_dir, 'analysis/fmri/nilearn/singletrial_rampupplateau/singletrial_rampupplateau_task-pvc_epoch-stim_atlas-canlab2023.npy'),parcel_value)
+np.save(join('/Volumes/seagate/cue_singletrials/singletrial_rampupplateau_task-pvc_epoch-stim_atlas-canlab2023.npy'),parcel_value)
 
 data = {
     "code_generated": "scripts/step10_nilearn/singletrialLSS/step07_parcellate_canlab2023.py",
