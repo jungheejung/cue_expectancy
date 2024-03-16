@@ -1,4 +1,4 @@
-# beh :: outcome ~ cue \* stim {#beh-outcome-cueXstim}
+# beh :: outcome ~ cue \* stim {#upgrade_beh-outcome-cueXstim}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
@@ -73,7 +73,8 @@ dir.create(analysis_dir, recursive = TRUE, showWarnings = FALSE)
 - IV: Stim X Cue_contrast
 - DV: Outcome rating
 
-## load data
+
+## load data {.unlisted .unnumbered}
 ```{r}
 df <- readr::read_tsv(file.path(main_dir, "data/beh/sub-all_task-all_events.tsv"))
 df.na <- df %>%
@@ -81,8 +82,10 @@ df.na <- df %>%
 
 ```
 
-### filter with including session
+## 1. Cue X stim 
 ```{r}
+# filter with cue x stim trial combination _____________________________________
+
 subjects_with_inadequate_data <- df.na %>%
   group_by(sub, cue, stimulusintensity) %>% 
   dplyr::summarise(count = n(), .groups = 'drop') %>%
@@ -92,11 +95,7 @@ subjects_with_inadequate_data <- df.na %>%
 df_filter <- df %>%
   filter(!(sub %in% subjects_with_inadequate_data))
 
-print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(df$sub)), length(unique(df_filter_ses$sub)) ))
-```
-
-
-```{r common_parameters_4, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(df$sub)), length(unique(df_filter$sub)) ))
 
 beh <- df_filter
 
@@ -251,7 +250,39 @@ summary(model.full)
 
 ```
 
-## TODO: model 03 3-2. individual differences
+### Cue X Stim Lineplot {.unlisted .unnumbered}
+
+Instead of the rain cloud plots, here, I plot the lines and confidence interval
+for each cue x stim combination. Plotted per task.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+DATA = as.data.frame(combined_se_calc_cooksd)
+color = c( "#4575B4", "#D73027")
+LINEIV1 = "stim_ordered"
+LINEIV2 = "cue_ordered"
+MEAN = "mean_per_sub_norm_mean"
+ERROR = "ci"
+dv_keyword = "outcome"
+p1 = plot_lineplot_twofactor_subset(DATA, 'pain',
+             LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = tools::toTitleCase('pain') )
+p2 = plot_lineplot_twofactor_subset(DATA,'vicarious',
+             LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = tools::toTitleCase("vicarious"))
+p3 = plot_lineplot_twofactor_subset(DATA, 'cognitive',
+             LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = tools::toTitleCase('cognitive'))
+
+ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
+# plot_filename = file.path(analysis_dir,                        paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
+# ggsave(plot_filename, width = 8, height = 4)
+```
+
+
+
+
+
+
+
+
 
 ## Cue X Stim Raincloud plots
 
@@ -528,128 +559,21 @@ for(i in 1:length(optimx_options)){
 }
 ```
 
-
-## Individual differences in cue effects
-
+## 2. Cue x stim x ses lineplot 
+### filter with including session
 ```{r}
-combined_cueeffect <- data.frame()
+subjects_with_inadequate_ses <- df.na %>%
+  group_by(sub, cue, stimulusintensity, ses) %>% 
+  dplyr::summarise(count = n(), .groups = 'drop') %>%
+  filter(count < 5) %>%
+  distinct(sub) %>%
+  pull(sub)
+df_filter_ses <- df %>%
+  filter(!(sub %in% subjects_with_inadequate_ses))
 
-for (taskname in c("pain", "vicarious", "cognitive")) {
-subject <- "sub"
-dv <- diff
-df <- wide[wide$runtype == taskname, ]
-
-# 5. summary statistics ____________________________________________________
-avg_within_run <- df %>%
-  group_by(sub, ses, run) %>%
-  summarise(avg_diff_per_run = mean(diff, na.rm = TRUE)) %>%
-  ungroup()
-
-# Average across sessions for each subject
-outcome_subjectwise <- avg_within_run %>%
-  group_by(sub) %>%
-  summarise(avg_diff_per_sub = mean(avg_diff_per_run, na.rm = TRUE)) %>%
-  ungroup()
-
-outcome_subjectwise$task <- taskname
-combined_cueeffect <- rbind(combined_cueeffect, outcome_subjectwise)
-}
-
-# wide form ____________________________________________________________________
-
-wide_df <- combined_cueeffect %>%
-  pivot_wider(names_from = task, values_from = avg_diff_per_sub)
-
-
-# plot cue effects _____________________________________________________________
-pv <- plot_ggplot_correlation(data = wide_df, x = 'vicarious', y = 'pain', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 45, label_position = 45)
-vc <- plot_ggplot_correlation(data = wide_df, x = 'cognitive', y = 'vicarious', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 45, label_position = 45)
-cp <- plot_ggplot_correlation(data = wide_df, x = 'pain', y = 'cognitive', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 45, label_position = 45)
-
-
-# 4. combine plots and add title _______________________________________________
-plots <- ggpubr::ggarrange(pv, vc, cp, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
-plots_title <- annotate_figure(plots,top = text_grob("individual differences\n - cue effects from expectation ratings", color = "black", face = "bold", size = 10 ))
-save_plotname <- file.path(
-  analysis_dir,
-  paste("randeffect_scatterplot_task-all_",
-      as.character(Sys.Date()), ".png",
-      sep = ""
-  )
-)
-plots
-ggsave(save_plotname, width = 10, height = 3)
+print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(df$sub)), length(unique(df_filter_ses$sub)) ))
 ```
 
-## individual differences random effects (DEP)
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-
-# 1. stack random effects from each task- .csv ____________________________________
-dfP = read.csv(file.path(analysis_dir, paste('randeffect_task-pain_',as.character(Sys.Date()),'_outlier-cooksd.csv',  sep='') ))
-dfV = read.csv(file.path(analysis_dir, paste('randeffect_task-vicarious_',as.character(Sys.Date()),'_outlier-cooksd.csv',  sep='') ))
-dfC = read.csv(file.path(analysis_dir, paste('randeffect_task-cognitive_',as.character(Sys.Date()),'_outlier-cooksd.csv',  sep='') ))
-
-pvc <- merge_recurse(list(dfP,dfV,dfC))
-
-save_fname = file.path(analysis_dir, paste('randeffect_task-all_',as.character(Sys.Date()),'_outlier-cooksd.csv',  sep='') )
-write.csv(pvc, save_fname, row.names = FALSE)
-
-
-# 2. stack _____________________________________________________________________
-pvc_rand_cue_subset <- subset(pvc, select = c(task, subj, CUE_high_gt_low))
-pvc_rand_cue <- spread(pvc_rand_cue_subset, key = task, value = CUE_high_gt_low)
-
-
-# 3. plot individually _________________________________________________________
-pv <- plot_ggplot_correlation(data = pvc_rand_cue, x = 'vicarious', y = 'pain', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 20, label_position = 18)
-vc <- plot_ggplot_correlation(data = pvc_rand_cue, x = 'cognitive', y = 'vicarious', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 20, label_position = 18)
-cp <- plot_ggplot_correlation(data = pvc_rand_cue, x = 'pain', y = 'cognitive', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 20, label_position = 18)
-
-
-# 4. combine plots and add title _______________________________________________
-plots <- ggpubr::ggarrange(pv, vc, cp, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
-plots_title <- annotate_figure(plots,top = text_grob("individual differences\n - cue effects from expectation ratings", color = "black", face = "bold", size = 10 ))
-save_plotname <- file.path(
-  analysis_dir,
-  paste("randeffect_scatterplot_task-all_",
-      as.character(Sys.Date()), ".png",
-      sep = ""
-  )
-)
-plots
-ggsave(save_plotname, width = 10, height = 3)
-```
-
-## Cue X Stim Lineplot
-
-Instead of the rain cloud plots, here, I plot the lines and confidence interval
-for each cue x stim combination. Plotted per task.
-
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-
-DATA = as.data.frame(combined_se_calc_cooksd)
-color = c( "#4575B4", "#D73027")
-LINEIV1 = "stim_ordered"
-LINEIV2 = "cue_ordered"
-MEAN = "mean_per_sub_norm_mean"
-ERROR = "ci"
-dv_keyword = "outcome"
-p1 = plot_lineplot_twofactor_subset(DATA, 'pain',
-             LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = tools::toTitleCase('pain') )
-p2 = plot_lineplot_twofactor_subset(DATA,'vicarious',
-             LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = tools::toTitleCase("vicarious"))
-p3 = plot_lineplot_twofactor_subset(DATA, 'cognitive',
-             LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = tools::toTitleCase('cognitive'))
-
-ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
-plot_filename = file.path(analysis_dir,
-                        paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
-ggsave(plot_filename, width = 8, height = 4)
-```
-
-
-
-## cue x stim x ses lineplot (TODO)
 ```{r}
 
 # taskname <- "pain"
@@ -657,6 +581,7 @@ ggtitle <- paste(taskname, " - outcome judgment (degree)")
 title <- paste(taskname, " - outcome")
 subject <- "subject"
 
+beh <- df_filter_ses
   # 2. contrasts codes _______________________________________________________
 
 # contrast code 1 linear
@@ -818,17 +743,111 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     p1, p2, p3, ncol = 3, nrow = 1, common.legend = TRUE, legend = "bottom"
   )
   print(arranged_plot)
-  plot_filename = file.path(analysis_dir,
-                            paste('lineplot_task-all_rating-', dv_keyword, '.png', sep = ""))
-  ggsave(plot_filename, arranged_plot, width = 8, height = 4)
+  # plot_filename = file.path(analysis_dir,
+                            # paste('lineplot_task-all_rating-', dv_keyword, '.png', sep = ""))
+  # ggsave(plot_filename, arranged_plot, width = 8, height = 4)
 }
 ```
+
+
+## 3. Individual differences in cue effects
+
+```{r}
+combined_cueeffect <- data.frame()
+
+for (taskname in c("pain", "vicarious", "cognitive")) {
+subject <- "sub"
+dv <- diff
+df <- wide[wide$runtype == taskname, ]
+
+# 5. summary statistics ____________________________________________________
+avg_within_run <- df %>%
+  group_by(sub, ses, run) %>%
+  summarise(avg_diff_per_run = mean(diff, na.rm = TRUE)) %>%
+  ungroup()
+
+# Average across sessions for each subject
+outcome_subjectwise <- avg_within_run %>%
+  group_by(sub) %>%
+  summarise(avg_diff_per_sub = mean(avg_diff_per_run, na.rm = TRUE)) %>%
+  ungroup()
+
+outcome_subjectwise$task <- taskname
+combined_cueeffect <- rbind(combined_cueeffect, outcome_subjectwise)
+}
+
+# wide form ____________________________________________________________________
+
+wide_df <- combined_cueeffect %>%
+  pivot_wider(names_from = task, values_from = avg_diff_per_sub)
+
+
+# plot cue effects _____________________________________________________________
+pv <- plot_ggplot_correlation(data = wide_df, x = 'vicarious', y = 'pain', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 45, label_position = 45)
+vc <- plot_ggplot_correlation(data = wide_df, x = 'cognitive', y = 'vicarious', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 45, label_position = 45)
+cp <- plot_ggplot_correlation(data = wide_df, x = 'pain', y = 'cognitive', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 45, label_position = 45)
+
+
+# 4. combine plots and add title _______________________________________________
+plots <- ggpubr::ggarrange(pv, vc, cp, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots,top = text_grob("individual differences\n - cue effects from expectation ratings", color = "black", face = "bold", size = 10 ))
+save_plotname <- file.path(
+  analysis_dir,
+  paste("randeffect_scatterplot_task-all_",
+      as.character(Sys.Date()), ".png",
+      sep = ""
+  )
+)
+plots
+ggsave(save_plotname, width = 10, height = 3)
+```
+
+## individual differences random effects (DEP)
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+
+# 1. stack random effects from each task- .csv ____________________________________
+dfP = read.csv(file.path(analysis_dir, paste('randeffect_task-pain_',as.character(Sys.Date()),'_outlier-cooksd.csv',  sep='') ))
+dfV = read.csv(file.path(analysis_dir, paste('randeffect_task-vicarious_',as.character(Sys.Date()),'_outlier-cooksd.csv',  sep='') ))
+dfC = read.csv(file.path(analysis_dir, paste('randeffect_task-cognitive_',as.character(Sys.Date()),'_outlier-cooksd.csv',  sep='') ))
+
+pvc <- merge_recurse(list(dfP,dfV,dfC))
+
+save_fname = file.path(analysis_dir, paste('randeffect_task-all_',as.character(Sys.Date()),'_outlier-cooksd.csv',  sep='') )
+write.csv(pvc, save_fname, row.names = FALSE)
+
+
+# 2. stack _____________________________________________________________________
+pvc_rand_cue_subset <- subset(pvc, select = c(task, subj, CUE_high_gt_low))
+pvc_rand_cue <- spread(pvc_rand_cue_subset, key = task, value = CUE_high_gt_low)
+
+
+# 3. plot individually _________________________________________________________
+pv <- plot_ggplot_correlation(data = pvc_rand_cue, x = 'vicarious', y = 'pain', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 20, label_position = 18)
+vc <- plot_ggplot_correlation(data = pvc_rand_cue, x = 'cognitive', y = 'vicarious', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 20, label_position = 18)
+cp <- plot_ggplot_correlation(data = pvc_rand_cue, x = 'pain', y = 'cognitive', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 20, label_position = 18)
+
+
+# 4. combine plots and add title _______________________________________________
+plots <- ggpubr::ggarrange(pv, vc, cp, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots,top = text_grob("individual differences\n - cue effects from expectation ratings", color = "black", face = "bold", size = 10 ))
+save_plotname <- file.path(
+  analysis_dir,
+  paste("randeffect_scatterplot_task-all_",
+      as.character(Sys.Date()), ".png",
+      sep = ""
+  )
+)
+plots
+ggsave(save_plotname, width = 10, height = 3)
+```
+
+
 
 ## Clinical trials
 
 ## cue contrast average across intensity
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 
 ## common dir for saving plots and model outputs
 analysis_dir <- file.path(
@@ -929,7 +948,7 @@ so it would be best to include just so that we have starts and compare.
 Question:
 what if the levels are somewhat correlated within factors
 
-```{r fig.height=10, fig.width=7}
+```{r eval=FALSE, fig.height=10, fig.width=7, include=FALSE}
 ggplot(data, aes(y = event04_actual_angle, x = param_cue_type)) +
 geom_point() +
 xlab("Cue") +
@@ -940,7 +959,7 @@ facet_wrap(~sub)
 ```
 
 ## LMER
-```{r}
+```{r eval=FALSE, include=FALSE}
 # 1. remove trials less than 10, per participant _______________________________
 data_filtered <- data %>%
 group_by(sub) %>%
@@ -991,7 +1010,7 @@ icc <- random_effect_variance / (random_effect_variance + residual_variance) # 0
 
 ## cue contrast average across expectation
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 
 ## common dir for saving plots and model outputs
 analysis_dir <- file.path(
