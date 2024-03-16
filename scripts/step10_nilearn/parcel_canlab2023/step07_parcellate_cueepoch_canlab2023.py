@@ -49,6 +49,7 @@ __status__ = "Development"
 main_dir = '/Users/h/Documents/projects_local/cue_expectancy'
 singletrial_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupplateau/'
 save_discovery_dir= '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv02_parcel-canlab2023'
+Path(save_discovery_dir).mkdir(exist_ok=True, parents=True)
 # singletrial_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupplateau/'
 
 subdirectories = sorted(glob.glob(join(singletrial_dir, "sub-*")))
@@ -56,13 +57,13 @@ flists = []
 for subdir in subdirectories:
     sub = os.path.basename(subdir)
     flist = glob.glob(join(singletrial_dir, sub, 
-                           f"{sub}_ses-*_run-*_runtype-*_event-stimulus_trial-*_cuetype-*_stimintensity-*.nii.gz"))
+                           f"{sub}_ses-*_run-*_runtype-*_event-cue_trial-*_cuetype-*.nii.gz"))
     flists.append(flist)
 
 flattened_list = [item for sublist in flists for item in sublist]
 flattened_list[0]
 # %%
-canlab2023 = '/Users/h/Desktop/CANLab2023_MNI152NLin2009cAsym_fine_2mm.nii'
+canlab2023 = '/Users/h/Documents/projects_local/cue_expectancy/data/atlas/CANLab2023_MNI152NLin2009cAsym_fine_2mm.nii.gz'
 parc = Parcellater(parcellation=canlab2023, 
                        space='MNI152', 
                        resampling_target='parcellation')
@@ -70,19 +71,19 @@ parcelarray = []
 metadata = []
 for fname in flattened_list:
     metadata.append(os.path.basename(fname))
-    singletrial_parc = parc.fit_transform(fname) # (1, 595)
+    singletrial_parc = parc.fit_transform(fname, 'MNI152') # (1, 595)
     parcelarray.append(singletrial_parc)
 # %%
 parcel_value = np.vstack(parcelarray)
-np.save(join(save_discovery_dir, 'singletrial_rampupplateau_task-pvc_epoch-stim_atlas-canlab2023.npy'),parcel_value)
-np.save(join(main_dir, 'analysis/fmri/nilearn/singletrial_rampupplateau/singletrial_rampupplateau_task-pvc_atlas-canlab2023.npy'),parcel_value)
+np.save(join(save_discovery_dir, 'singletrial_rampupplateau_task-pvc_epoch-cue_atlas-canlab2023.npy'),parcel_value)
+np.save(join(main_dir, 'analysis/fmri/nilearn/deriv02_parcel-canlab2023/singletrial_rampupplateau_task-pvc_atlas-canlab2023.npy'),parcel_value)
 np.save(join('/Volumes/seagate/cue_singletrials/singletrial_rampupplateau_task-pvc_atlas-canlab2023.npy'),parcel_value)
 
 data = {
     "code_generated": "scripts/step10_nilearn/singletrialLSS/step07_parcellate_canlab2023.py",
     "code_parcellate": """canlab2023_fine = load_atlas('canlab2023_fine_fmriprep20_2mm')
     data = fmri_data(canlab2023_fine)
-    data.fullpath = '/Users/h/Desktop/CANLab2023_MNI152NLin2009cAsym_fine_2mm.nii.gz'
+    data.fullpath = '/Users/h/Documents/projects_local/cue_expectancy/data/atlas/CANLab2023_MNI152NLin2009cAsym_fine_2mm.nii'
     data.write()
     tbl = table(canlab2023_fine.labels', canlab2023_fine.labels_2', canlab2023_fine.labels_3', canlab2023_fine.labels_4', canlab2023_fine.labels_5', canlab2023_fine.label_descriptions, 'VariableNames', {'fine labels', 'coarse labels', 'coarser labels', 'coarsest labels', 'source atlas', 'label_description'})
     writetable(tbl, '/Users/h/Desktop/CANLab2023_MNI152NLin2009cAsym_fine_2mm.csv')
@@ -100,12 +101,12 @@ data = {
     "python_packages": ["neuromaps", "netneurotools"]
 }
 
-with open(join(main_dir,'analysis/fmri/nilearn/singletrial_rampupplateau', 
-               'singletrial_rampupplateau_task-pvc_epoch-stim_atlas-canlab2023.json'), 'w') as json_file:
+with open(join(main_dir,'analysis/fmri/nilearn/deriv02_parcel-canlab2023', 
+               'singletrial_rampupplateau_task-pvc_epoch-cue_atlas-canlab2023.json'), 'w') as json_file:
     json.dump(data, json_file, indent=4)
-with open(join(save_discovery_dir,'singletrial_rampupplateau_task-pvc_epoch-stim_atlas-canlab2023.json'), 'w') as json_file:
+with open(join(save_discovery_dir,'singletrial_rampupplateau_task-pvc_epoch-cue_atlas-canlab2023.json'), 'w') as json_file:
     json.dump(data, json_file, indent=4)
-with open(join('/Volumes/seagate/cue_singletrials/singletrial_rampupplateau_task-pvc_epoch-stim_atlas-canlab2023.json'), 'w') as json_file:
+with open(join('/Volumes/seagate/cue_singletrials/singletrial_rampupplateau_task-pvc_epoch-cue_atlas-canlab2023.json'), 'w') as json_file:
     json.dump(data, json_file, indent=4)
 metadatadf = pd.DataFrame(metadata, columns=['singletrial_fname'])
 
@@ -116,17 +117,16 @@ df_split = metadatadf['singletrial_fname'].str.extract(
     r'runtype-(?P<runtype>\w+)_'
     r'event-(?P<event>\w+)_'
     r'(?P<trial>trial-\d+)_'
-    r'cuetype-(?P<cuetype>\w+)_'
-    r'stimintensity-(?P<stimintensity>\w+)'
+    r'cuetype-(?P<cuetype>\w+)'
+    
 )
 
 df_final = pd.concat([metadatadf, df_split], axis=1)
 df_final.head()
 
-save_discovery_dir= '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv02_parcel-canlab2023'
-df_final.to_csv(join(save_discovery_dir, 'singletrial_rampupplateau_task-pvc_epoch-stim_atlas-canlab2023.tsv'), 
+df_final.to_csv(join(save_discovery_dir, 'singletrial_rampupplateau_task-pvc_epoch-cue_atlas-canlab2023.tsv'), 
                 sep='\t', index=False, header=True)
-df_final.to_csv(join(main_dir, 'analysis/fmri/nilearn/deriv02_parcel-canlab2023', 'singletrial_rampupplateau_task-pvc_epoch-stim_atlas-canlab2023.tsv'), 
+df_final.to_csv(join(main_dir, 'analysis/fmri/nilearn/deriv02_parcel-canlab2023', 'singletrial_rampupplateau_task-pvc_epoch-cue_atlas-canlab2023.tsv'), 
                 sep='\t', index=False, header=True)
-df_final.to_csv(join('/Volumes/seagate/cue_singletrials/singletrial_rampupplateau_task-pvc_epoch-stim_atlas-canlab2023.tsv'), 
+df_final.to_csv(join('/Volumes/seagate/cue_singletrials/singletrial_rampupplateau_task-pvc_epoch-cue_atlas-canlab2023.tsv'), 
                 sep='\t', index=False, header=True)
