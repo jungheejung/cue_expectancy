@@ -8,26 +8,26 @@ dest_dir="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/ana
 file_pattern="con*.nii"
 #subdir_pattern="sub-01*"
 
-contrast_name=(
-    'P_VC_STIM_cue_high_gt_low'         'V_PC_STIM_cue_high_gt_low'         'C_PV_STIM_cue_high_gt_low'
-    'P_VC_STIM_stimlin_high_gt_low'     'V_PC_STIM_stimlin_high_gt_low'     'C_PV_STIM_stimlin_high_gt_low'
-    'P_VC_STIM_stimquad_med_gt_other'   'V_PC_STIM_stimquad_med_gt_other'   'C_PV_STIM_stimquad_med_gt_other'
-    'P_VC_STIM_cue_int_stimlin'         'V_PC_STIM_cue_int_stimlin'         'C_PV_STIM_cue_int_stimlin'
-    'P_VC_STIM_cue_int_stimquad'        'V_PC_STIM_cue_int_stimquad'        'C_PV_STIM_cue_int_stimquad'
-    'motor'
-    'P_simple_STIM_cue_high_gt_low'      'V_simple_STIM_cue_high_gt_low'         'C_simple_STIM_cue_high_gt_low'
-    'P_simple_STIM_stimlin_high_gt_low'  'V_simple_STIM_stimlin_high_gt_low'        'C_simple_STIM_stimlin_high_gt_low'
-    'P_simple_STIM_stimquad_med_gt_other'   'V_simple_STIM_stimquad_med_gt_other' 'C_simple_STIM_stimquad_med_gt_other'
-    'P_simple_STIM_cue_int_stimlin'      'V_simple_STIM_cue_int_stimlin'    'C_simple_STIM_cue_int_stimlin'
-    'P_simple_STIM_cue_int_stimquad'     'V_simple_STIM_cue_int_stimquad'   'C_simple_STIM_cue_int_stimquad'
-    'P_simple_STIM_highcue_highstim'     'P_simple_STIM_highcue_medstim'    'P_simple_STIM_highcue_lowstim'
-    'P_simple_STIM_lowcue_highstim'      'P_simple_STIM_lowcue_medstim'     'P_simple_STIM_lowcue_lowstim'
-    'V_simple_STIM_highcue_highstim'     'V_simple_STIM_highcue_medstim'    'V_simple_STIM_highcue_lowstim'
-    'V_simple_STIM_lowcue_highstim'      'V_simple_STIM_lowcue_medstim'     'V_simple_STIM_lowcue_lowstim'
-    'C_simple_STIM_highcue_highstim'    'C_simple_STIM_highcue_medstim'      'C_simple_STIM_highcue_lowstim'
-    'C_simple_STIM_lowcue_highstim'    'C_simple_STIM_lowcue_medstim'        'C_simple_STIM_lowcue_lowstim'
-    'P_VC_CUE_cue_high_gt_low'      'V_PC_CUE_cue_high_gt_low'              'C_PV_CUE_cue_high_gt_low'
-    'P_simple_CUE_cue_high_gt_low'  'V_simple_CUE_STIM_cue_high_gt_low'     'C_simple_CUE_cue_high_gt_low'
+contrast_names=(
+    "P_VC_STIM_cue_high_gt_low"         "V_PC_STIM_cue_high_gt_low"         "C_PV_STIM_cue_high_gt_low"
+    "P_VC_STIM_stimlin_high_gt_low"     "V_PC_STIM_stimlin_high_gt_low"     "C_PV_STIM_stimlin_high_gt_low"
+    "P_VC_STIM_stimquad_med_gt_other"   "V_PC_STIM_stimquad_med_gt_other"   "C_PV_STIM_stimquad_med_gt_other"
+    "P_VC_STIM_cue_int_stimlin"         "V_PC_STIM_cue_int_stimlin"         "C_PV_STIM_cue_int_stimlin"
+    "P_VC_STIM_cue_int_stimquad"        "V_PC_STIM_cue_int_stimquad"        "C_PV_STIM_cue_int_stimquad"
+    "motor"
+    "P_simple_STIM_cue_high_gt_low"      "V_simple_STIM_cue_high_gt_low"         "C_simple_STIM_cue_high_gt_low"
+    "P_simple_STIM_stimlin_high_gt_low"  "V_simple_STIM_stimlin_high_gt_low"        "C_simple_STIM_stimlin_high_gt_low"
+    "P_simple_STIM_stimquad_med_gt_other"   "V_simple_STIM_stimquad_med_gt_other" "C_simple_STIM_stimquad_med_gt_other"
+    "P_simple_STIM_cue_int_stimlin"      "V_simple_STIM_cue_int_stimlin"    "C_simple_STIM_cue_int_stimlin"
+    "P_simple_STIM_cue_int_stimquad"     "V_simple_STIM_cue_int_stimquad"   "C_simple_STIM_cue_int_stimquad"
+    "P_simple_STIM_highcue_highstim"     "P_simple_STIM_highcue_medstim"    "P_simple_STIM_highcue_lowstim"
+    "P_simple_STIM_lowcue_highstim"      "P_simple_STIM_lowcue_medstim"     "P_simple_STIM_lowcue_lowstim"
+    "V_simple_STIM_highcue_highstim"     "V_simple_STIM_highcue_medstim"    "V_simple_STIM_highcue_lowstim"
+    "V_simple_STIM_lowcue_highstim"      "V_simple_STIM_lowcue_medstim"     "V_simple_STIM_lowcue_lowstim"
+    "C_simple_STIM_highcue_highstim"    "C_simple_STIM_highcue_medstim"      "C_simple_STIM_highcue_lowstim"
+    "C_simple_STIM_lowcue_highstim"    "C_simple_STIM_lowcue_medstim"        "C_simple_STIM_lowcue_lowstim"
+    "P_VC_CUE_cue_high_gt_low"      "V_PC_CUE_cue_high_gt_low"              "C_PV_CUE_cue_high_gt_low"
+    "P_simple_CUE_cue_high_gt_low"  "V_simple_CUE_STIM_cue_high_gt_low"     "C_simple_CUE_cue_high_gt_low"
 )
 # Loop through subdirectories in the source directory
 for subdir in "$source_dir"/sub-*; do
@@ -40,8 +40,8 @@ for subdir in "$source_dir"/sub-*; do
             if [ -f "$file" ]; then
                 filename=$(basename "$file")
                 
-                # Extract the numeric index from the filename, assuming it follows 'con' and precedes '.nii'
-                index=$(echo "$filename" | grep -oP 'con_\K\d+')
+                # Extract the numeric index from the filename, assuming it follows "con" and precedes ".nii"
+                index=$(echo "$filename" | grep -oP "con_\K\d+")
                 
                 # Check if index extraction was successful
                 if [ ! -z "$index" ]; then
@@ -52,7 +52,7 @@ for subdir in "$source_dir"/sub-*; do
                     contrast_name="${contrast_names[$((index-1))]}"
                     
                     # Extract the base filename without extension
-                    base_filename=$(echo "$filename" | sed 's/\(.*\)\.nii/\1/')
+                    base_filename=$(echo "$filename" | sed "s/\(.*\)\.nii/\1/")
                     
                     # Construct the new filename with contrast name inserted before the extension
                     new_name="${subdir_name}_${base_filename}_${contrast_name}.nii"
