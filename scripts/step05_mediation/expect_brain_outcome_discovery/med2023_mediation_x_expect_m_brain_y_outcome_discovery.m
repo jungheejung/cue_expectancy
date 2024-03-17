@@ -30,7 +30,7 @@ switch dir_location
     case 'discovery'
         matlab_moduledir = '/dartfs-hpc/rc/lab/C/CANlab/modules';
         main_dir =  '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue';
-        singletrial_dir = fullfile('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupplateau');
+        singletrial_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/uncompressed_singletrial_rampupplateau';
         beh_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupplateau/beh';
         NPS_fname = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau/signature-NPS_sub-all_runtype-pvc_event-stimulus.tsv';
         graymatter_mask = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/scripts/step05_mediation/gray_matter_mask.nii';
@@ -65,6 +65,7 @@ eventlist = {'stim'};
 
 task = 'pain';
 fprintf('step 1. parameter setup')
+
 
 % -------------------------------------------------------------------------
 % construct dataframes for mediation analysis
