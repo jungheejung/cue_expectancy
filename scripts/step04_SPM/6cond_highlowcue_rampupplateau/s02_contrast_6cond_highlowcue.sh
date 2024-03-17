@@ -8,7 +8,7 @@
 #SBATCH -e /dartfs-hpc/scratch/f0042x1/spm/log_ramp/CON_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1-3
+#SBATCH --array=1-133%30
 
 CANLABCORE_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore"
 SPM_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/spm12"

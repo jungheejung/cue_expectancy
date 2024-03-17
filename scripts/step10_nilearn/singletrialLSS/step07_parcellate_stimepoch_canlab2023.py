@@ -28,7 +28,6 @@ from neuromaps.parcellate import Parcellater
 from neuromaps.images import dlabel_to_gifti
 from neuromaps.transforms import fsaverage_to_fslr
 
-from netneurotools import datasets as nntdata
 
 from surfplot import Plot
 
