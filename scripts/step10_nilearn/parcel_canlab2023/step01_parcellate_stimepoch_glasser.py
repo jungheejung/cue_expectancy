@@ -10,31 +10,13 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 import nibabel as nib
 import joblib
 import h5py
 
-
-from nilearn import image, masking, plotting
-from nilearn.input_data import NiftiLabelsMasker, NiftiMapsMasker
-
-
-import neuromaps
-from neuromaps import datasets as neuromaps_datasets
-from neuromaps.datasets import fetch_annotation, fetch_fslr
+from neuromaps import transforms
 from neuromaps.parcellate import Parcellater
-from neuromaps.images import dlabel_to_gifti
-from neuromaps.transforms import fsaverage_to_fslr
-
-from netneurotools import datasets as nntdata
-
-from surfplot import Plot
-
-from sklearn.metrics import confusion_matrix
-import seaborn as sns
-import matplotlib.pyplot as plt
+from neuromaps.images import dlabel_to_gifti, annot_to_gifti
 
 __author__ = "Heejung Jung"
 __copyright__ = "Spatial Topology Project"
@@ -65,30 +47,35 @@ flattened_list = [item for sublist in flists for item in sublist]
 parcelarray = []
 metadata = []
 
-from neuromaps import images
-# hcp_fslr = fsaverage_to_fslr(hcp_gii, target_density='32k',method='nearest')
-hcplh = images.annot_to_gifti('/Users/h/Documents/projects_local/cue_expectancy/data/atlas/lh.HCP-MMP1.annot')
-hcprh = images.annot_to_gifti('/Users/h/Documents/projects_local/cue_expectancy/data/atlas/rh.HCP-MMP1.annot')
-HCP_fslr_lh = fsaverage_to_fslr(hcplh, hemi='L')
-HCP_fslr_rh = fsaverage_to_fslr(hcprh, hemi='R')
+# %% load HCP annotation
+hcplh = annot_to_gifti('/Users/h/Documents/projects_local/cue_expectancy/data/atlas/lh.HCP-MMP1.annot')
+hcprh = annot_to_gifti('/Users/h/Documents/projects_local/cue_expectancy/data/atlas/rh.HCP-MMP1.annot')
+HCP_fslr_lh = transforms.fsaverage_to_fslr(hcplh, hemi='L', target_density='32k', method='nearest')
+HCP_fslr_rh = transforms.fsaverage_to_fslr(hcprh, hemi='R', target_density='32k', method='nearest')
+HCP_fslr_rh_update = HCP_fslr_rh
+HCP_fslr_rh_update[0].darrays[0].data = np.where(HCP_fslr_rh[0].agg_data() != 0, HCP_fslr_rh[0].agg_data() + 180, HCP_fslr_rh[0].agg_data())
+hcp_glasser = (HCP_fslr_lh[0], HCP_fslr_rh_update[0])
 
-hcp_fslr = (HCP_fslr_lh[0], HCP_fslr_rh[0])
-
+# %% apply parcellation
 for fname in flattened_list:
     metadata.append(os.path.basename(fname))
-    singletrialFSLR = neuromaps.transforms.mni152_to_fslr(
+    singletrialFSLR = transforms.mni152_to_fslr(
         fname, fslr_density='32k', method='linear')
     
-    HCPparc = Parcellater(hcp_fslr, 'fsLR')#, resampling_target='parcellation')
+    HCPparc = Parcellater(hcp_glasser, 'fsLR', resampling_target='parcellation')
     singletrial_parc = HCPparc.fit_transform(singletrialFSLR, 'fsLR')
     parcelarray.append(singletrial_parc)
+
+
+
+    # brainimage = HCPparc.inverse_transform(singletrial_parc)
 
 
 # %%sub-0002_ses-04_run-03_runtype-pain_event-stimulus_trial-000_cuetype-low_stimintensity-high.nii.gz
 parcel_value = np.vstack(parcelarray)
 np.save(join(save_discovery_dir, 'singletrial_rampupplateau_task-pvc_epoch-stimulus_atlas-glasser.npy'),parcel_value)
-np.save(join(main_dir, 'analysis/fmri/nilearn/deriv02_parcel-glasser/singletrial_rampupplateau_task-pvc_epoch-stimulus_atlas-glasser.npy.npy'),parcel_value)
-np.save(join('/Volumes/seagate/cue_singletrials/singletrial_rampupplateau_task-pvc_epoch-stimulus_atlas-glasser.npy.npy'),parcel_value)
+np.save(join(main_dir, 'analysis/fmri/nilearn/deriv02_parcel-glasser/singletrial_rampupplateau_task-pvc_epoch-stimulus_atlas-glasser.npy'),parcel_value)
+np.save(join('/Volumes/seagate/cue_singletrials/singletrial_rampupplateau_task-pvc_epoch-stimulus_atlas-glasser.npy'),parcel_value)
 
 data = {
     "code_generated": "scripts/step10_nilearn/parcel_canlab2023/step01_parcellate_stimepoch_subcortex.py",
