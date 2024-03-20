@@ -71,14 +71,14 @@ for fname in flattened_list:
     # brainimage = HCPparc.inverse_transform(singletrial_parc)
 
 
-# %%sub-0002_ses-04_run-03_runtype-pain_event-stimulus_trial-000_cuetype-low_stimintensity-high.nii.gz
+# %% sub-0002_ses-04_run-03_runtype-pain_event-stimulus_trial-000_cuetype-low_stimintensity-high.nii.gz
 parcel_value = np.vstack(parcelarray)
 np.save(join(save_discovery_dir, 'singletrial_rampupplateau_task-pvc_epoch-stimulus_atlas-glasser.npy'),parcel_value)
 np.save(join(main_dir, 'analysis/fmri/nilearn/deriv02_parcel-glasser/singletrial_rampupplateau_task-pvc_epoch-stimulus_atlas-glasser.npy'),parcel_value)
 np.save(join('/Volumes/seagate/cue_singletrials/singletrial_rampupplateau_task-pvc_epoch-stimulus_atlas-glasser.npy'),parcel_value)
 
 data = {
-    "code_generated": "scripts/step10_nilearn/parcel_canlab2023/step01_parcellate_stimepoch_subcortex.py",
+    "code_generated": "scripts/step10_nilearn/parcel_canlab2023/step01_parcellate_stimepoch_glasser.py",
     "code_parcellate": """canlab2023_coarse = load_atlas('canlab2023_coarse_fmriprep20_2mm')
     data = fmri_data(canlab2023_coarse)
     data.fullpath = '/Users/h/Desktop/CANLab2023_MNI152NLin2009cAsym_coarse_2mm.nii.gz'

@@ -73,7 +73,7 @@ np.save(join(main_dir, 'analysis/fmri/nilearn/deriv02_parcel-glasser/singletrial
 np.save(join('/Volumes/seagate/cue_singletrials/singletrial_rampupplateau_task-pvc_epoch-cue_atlas-glasser.npy'),parcel_value)
 
 data = {
-    "code_generated": "scripts/step10_nilearn/parcel_canlab2023/step01_parcellate_stimepoch_subcortex.py",
+    "code_generated": "scripts/step10_nilearn/parcel_canlab2023/step01_parcellate_cueepoch_glasser.py",
     "code_parcellate": """canlab2023_coarse = load_atlas('canlab2023_coarse_fmriprep20_2mm')
     data = fmri_data(canlab2023_coarse)
     data.fullpath = '/Users/h/Desktop/CANLab2023_MNI152NLin2009cAsym_coarse_2mm.nii.gz'
