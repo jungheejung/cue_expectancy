@@ -8,7 +8,7 @@ close all;
 
 
 %% Parameter ___________________________________________________________________
-save_bayesdir = '/Volumes/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/spm/univariate/model01_6cond_highlowcue_rampplateau/BayesFactor'
+save_bayesdir = '/Volumes/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/spm/univariate/model01_6cond_highlowcue_rampplateau/BayesFactor';
 nifti_save_dir = '/Users/h/Documents/projects_local/cue_expectancy/resources/plots_dissertation/SPM_univariate/6cond_highlowcue_rampupplateau';
 nifti_save_fname_prefix = 'model01-6cond_epoch-cue_dummy-cuelinear';
 mount_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/spm/univariate/model01_6cond_highlowcue_rampplateau/1stlevel';
@@ -39,9 +39,10 @@ contrast_name = {
 
 
 %% 1. load t-map per cue effect (stim epoch) ___________________________________
-contrast_of_interest = 'P_simple_CUE_cue_high_gt_low'
 
 % 1-1) pain ____________________________________________________________________
+contrast_of_interest = 'P_simple_CUE_cue_high_gt_low';
+
 index = find(strcmp(contrast_name, contrast_of_interest));
 con_name = sprintf('*con_%04d_%s.nii', index, contrast_of_interest);
 con_list = dir(fullfile(mount_dir, '*', con_name));
@@ -126,7 +127,7 @@ drawnow; snapnow;
 set(gcf,'Visible','on');
 figure ('Visible', 'on');
 drawnow, snapnow;
-Cognitive only :: remove outliers based on plot
+% Cognitive only :: remove outliers based on plot
 con = con_data_obj;
 disp(strcat("current length is ", num2str(size(con_data_obj.dat,2))));
 %for s = 1:length(wh_outlier_corr)
@@ -148,14 +149,14 @@ cog_t = ttest(imgs2);
 
 
 % 2-1. Bayes map of domain general cue representation __________________________
-pain_bf = estimateBayesFactor(pain_t, 't')
-vic_bf = estimateBayesFactor(vic_t, 't') %  exp(BF/2) = 2xlog(BF)
-cog_bf = estimateBayesFactor(cog_t, 't')
+pain_bf = estimateBayesFactor(pain_t, 't');
+vic_bf = estimateBayesFactor(vic_t, 't'); %  exp(BF/2) = 2xlog(BF)
+cog_bf = estimateBayesFactor(cog_t, 't');
 
 
 domaingeneral = pain_bf;
-thres=3
-nondomain_thres = 0.3
+thres=3;
+nondomain_thres = 0.3;
 
 for i = 1:length(pain_bf.dat)
     if pain_bf.dat(i) > thres &&  vic_bf.dat(i) > thres && cog_bf.dat(i) > thres  %&& pain_t.dat(i) ~= 0 && vic_t.dat(i) ~= 0 && cog_t.dat(i) ~= 0 
@@ -166,15 +167,31 @@ for i = 1:length(pain_bf.dat)
     end
 end
 montage(domaingeneral)
-domaingeneral_pos = fmri_data(domaingeneral)
-domaingeneral_pos.fullpath = '/Users/h/Documents/projects_local/cue_expectancy/resources/plots_dissertation/SPM_univariate/domaingeneral_cueepoch.nii'
-domaingeneral_pos.write()
+domaingeneral_obj = fmri_data(domaingeneral);
+domaingeneral_obj.fullpath = fullfile(save_bayesdir, 'domaingeneral_cueepoch_BFmask.nii');
+domaingeneral_obj.write('overwrite');
 
 
-% 2-1. Bayes map of domain speciric pain cue representation ____________________
+genBF_pain = domaingeneral_obj;
+genBF_pain.dat = domaingeneral_obj.dat.*pain_t.dat;
+genBF_pain.fullpath = fullfile(save_bayesdir, 'domaingeneral_cueepoch_pain_tmap.nii');
+genBF_pain.write('overwrite');
+
+genBF_vic = domaingeneral_obj;
+genBF_vic.dat = domaingeneral_obj.dat.*vic_t.dat;
+genBF_vic.fullpath = fullfile(save_bayesdir, 'domaingeneral_cueepoch_vic_tmap.nii');
+genBF_vic.write('overwrite');
+
+genBF_cog = domaingeneral_obj;
+genBF_cog.dat = domaingeneral_obj.dat.*cog_t.dat;
+genBF_cog.fullpath = fullfile(save_bayesdir, 'domaingeneral_cueepoch_cog_tmap.nii');
+genBF_cog.write('overwrite');
+
+
+% 2-1. Bayes map of domain speciric pain cue representation _______________
 domainpain = pain_bf;
-thres=3
-nondomain_thres = 0.3
+thres=3;
+nondomain_thres = 0.3;
 
 for i = 1:length(pain_bf.dat)
     if pain_bf.dat(i) > thres &&  vic_bf.dat(i) < nondomain_thres && cog_bf.dat(i) < nondomain_thres % && pain_t.dat(i) > 0 && vic_t.dat(i) == 0 && cog_t.dat(i) == 0 
@@ -185,15 +202,22 @@ for i = 1:length(pain_bf.dat)
     end
 end
 montage(domainpain)
-domainpain_obj = fmri_data(domainpain)
-domainpain_obj.fullpath = '/Users/h/Documents/projects_local/cue_expectancy/resources/plots_dissertation/SPM_univariate/domainspecific_pain_cueepoch.nii'
-domainpain_obj.write()
 
-% 2-1. Bayes map of domain speciric vicarious cue representation _______________
+domainP_obj = fmri_data(domainpain);
+domainP_obj.fullpath = fullfile(save_bayesdir, 'domainspecific_pain_cueepoch_BFmask.nii');
+domainP_obj.write('overwrite');
+
+pain_thresholdBF = domainP_obj;
+pain_thresholdBF.dat = domainP_obj.dat.*pain_t.dat;
+
+pain_thresholdBF.fullpath = fullfile(save_bayesdir, 'domainspecific_pain_cueepoch_tmap.nii');
+pain_thresholdBF.write('overwrite');
+
+% 2-2. Bayes map of domain specific vicarious cue representation __________
 close all
 domainV = pain_bf;
-thres=3
-nondomain_thres = 0.3
+thres=3;
+nondomain_thres = 0.3;
 
 for i = 1:length(pain_bf.dat)
     if pain_bf.dat(i) < nondomain_thres &&  vic_bf.dat(i) > thres && cog_bf.dat(i) < nondomain_thres % && pain_t.dat(i) > 0 && vic_t.dat(i) == 0 && cog_t.dat(i) == 0 
@@ -204,15 +228,20 @@ for i = 1:length(pain_bf.dat)
     end
 end
 montage(domainV)
-domainV_obj = fmri_data(domainV)
-domainV_obj.fullpath = '/Users/h/Documents/projects_local/cue_expectancy/resources/plots_dissertation/SPM_univariate/domainspecific_vicarious_cueepoch.nii'
-domainV_obj.write()
+domainV_obj = fmri_data(domainV);
+domainV_obj.fullpath =  fullfile(save_bayesdir, 'domainspecific_vic_cueepoch_BFmask.nii');
+domainV_obj.write('overwrite');
 
+vic_thresholdBF = domainV_obj;
+vic_thresholdBF.dat = domainV_obj.dat.*vic_t.dat;
 
-% 2-1. Bayes map of domain speciric cognitive cue representation _______________
+vic_thresholdBF.fullpath = fullfile(save_bayesdir, 'domainspecific_vic_cueepoch_tmap.nii');
+vic_thresholdBF.write('overwrite');
+
+% 2-3. Bayes map of domain specific cognitive cue representation __________
 domainC = pain_bf;
-thres=3
-nondomain_thres = 0.3
+thres=3;
+nondomain_thres = 0.3;
 
 for i = 1:length(pain_bf.dat)
     if pain_bf.dat(i) < nondomain_thres &&  vic_bf.dat(i) <nondomain_thres && cog_bf.dat(i) > thres % && pain_t.dat(i) > 0 && vic_t.dat(i) == 0 && cog_t.dat(i) == 0 
@@ -223,6 +252,13 @@ for i = 1:length(pain_bf.dat)
     end
 end
 montage(domainC)
-domainC_obj = fmri_data(domainC)
-domainC_obj.fullpath = '/Users/h/Documents/projects_local/cue_expectancy/resources/plots_dissertation/SPM_univariate/domainspecific_cognitive_cueepoch.nii'
-domainC_obj.write()
+
+domainC_obj = fmri_data(domainC);
+domainC_obj.fullpath = fullfile(save_bayesdir, 'domainspecific_cog_cueepoch_BFmask.nii');
+domainC_obj.write('overwrite');
+
+cog_thresholdBF = domainC_obj;
+cog_thresholdBF.dat = domainC_obj.dat.*cog_t.dat;
+
+cog_thresholdBF.fullpath = fullfile(save_bayesdir, 'domainspecific_cog_cueepoch_tmap.nii');
+cog_thresholdBF.write('overwrite');
