@@ -30,7 +30,8 @@
 #'               color = c("red", "blue"), ggtitle = "My Plot")
 #' [Example plot](TODO)
 plot_lineplot_twofactor_subset <- function(data, taskname, iv1, iv2, mean, error,
-                      color, ggtitle, xlab= "Stimulus Intensity", ylab = "Outcome Rating") {
+                      color, ggtitle, xlab= "Stimulus intensity", ylab = "Outcome rating",
+                      xlim = NULL, ylim = NULL) {
 
     # Check if 'taskname' column exists in 'data'
     if ("task" %in% names(data) && !is.null(taskname)) {
@@ -60,5 +61,14 @@ plot_lineplot_twofactor_subset <- function(data, taskname, iv1, iv2, mean, error
         theme_classic() +
         theme(legend.position = "none") +
         theme(aspect.ratio = .6)
+
+        # Conditionally apply xlim and ylim if provided
+        if (!is.null(xlim)) {
+            g <- g + xlim(xlim)
+        }
+        if (!is.null(ylim)) {
+            g <- g + ylim(ylim)
+        }
+        
     return(g)
 }
