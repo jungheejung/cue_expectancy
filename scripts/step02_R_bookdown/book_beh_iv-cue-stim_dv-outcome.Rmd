@@ -44,7 +44,7 @@ library(rmarkdown)
 library(stringr)
 library(ICC)
 library(gghalves)
-
+# library(equatiomatic)
 library(ggpubr)
 library(cueR)
 main_dir = dirname(dirname(getwd()))
@@ -81,29 +81,66 @@ df.na <- df %>%
   filter(!is.na(outcomerating))
 trial_per_condition <- 3
 ```
+## load subject information from SPM contrast data 
+We'll grab the intersection of the data
+
 
 ## 1. Cue X stim (cue effect)
 ```{r}
+
 model_summaries <- data.frame()
 combined_se_calc_cooksd <- data.frame()
 # filter with cue x stim trial combination _____________________________________
 for (taskname in c("pain", "vicarious", "cognitive")) {
-  # taskname <- "pain"
-  # subset dataset per loop based on task name
-  df.task <- df.na[df.na$runtype == taskname,]
-  df.task_clean <- df.task[complete.cases(df.task$outcomerating), ]
+  # 1. filter based on SPM intersecting subject ids
+  subid_df <-
+    read.csv(file.path(
+      main_dir,
+      paste0(
+        "resources/plots_dissertation/SPM_6condrampup_",
+        taskname,
+        "_contrast_BIDSid.csv"
+      )
+    ))
+  print(sprintf(taskname))
+  
+  unique_sub_ids <- unique(df.na$sub)
+  print(paste("1. beh :: N=", length(unique_sub_ids)))
+  intersection_sub_ids <- intersect(subid_df$sub, unique_sub_ids)
+  # 2. identify how many would be removed if we grab the intersection
+  num_removed <- length(subid_df$sub) - length(intersection_sub_ids)
+  subjects_to_be_removed <-
+    setdiff(subid_df$sub, intersection_sub_ids)
+  print(sprintf(
+    paste("2. Number of subjects to be removed based on SPM:", num_removed)
+  ))
+  print(paste0("2-1. Subjects to be removed: ", subjects_to_be_removed))
+  df_intersect <- df.na[df.na$sub %in% intersection_sub_ids,]
+  # 3. identify how many trials are present in each condition
+  df.task <- df_intersect[df_intersect$runtype == taskname, ]
+  df.task_clean <- df.task[complete.cases(df.task$outcomerating),]
   subjects_with_inadequate_data <- df.task_clean %>%
-    group_by(sub,  cue, stimulusintensity) %>% 
+    group_by(sub,  cue, stimulusintensity) %>%
     dplyr::summarise(count = n(), .groups = 'drop') %>%
     filter(count < trial_per_condition) %>%
     distinct(sub) %>%
     pull(sub)
   df_filter <- df.task_clean %>%
     filter(!(sub %in% subjects_with_inadequate_data))
-
-print(sprintf("INFO :: After filtering out subjects that have less than %d trials in cell, we have N=%d -> N=%d",trial_per_condition, length(unique(df$sub)), length(unique(df_filter$sub)) ))
-
-beh <- df_filter
+  
+  print(
+    sprintf(
+      "3. INFO :: After filtering out subjects that have less than %d trials in cell, we have N=%d -> N=%d",
+      trial_per_condition,
+      length(unique(df_intersect$sub)),
+      length(unique(df_filter$sub))
+    )
+  )
+  subjects_to_be_removed <-
+    setdiff(unique(df_intersect$sub), unique(df_filter$sub))
+  print(paste0("3-3. Subjects to be removed: ", subjects_to_be_removed))
+  
+  beh <- df_filter
 
 subject_varkey <- "sub"
 iv <- "cue"; iv_keyword <- "cue"
@@ -273,23 +310,55 @@ ylab <- "judgment (degree)"
 w <- 10
 h <- 6
 subject <- "sub"
-
-  # subset dataset per loop based on task name
-  df.task <- df.na[df.na$runtype == taskname,]
-  df.task_clean <- df.task[complete.cases(df.task$outcomerating), ] # drops rows with NA values
+  # 1. filter based on SPM intersecting subject ids
+  subid_df <-
+    read.csv(file.path(
+      main_dir,
+      paste0(
+        "resources/plots_dissertation/SPM_6condrampup_",
+        taskname,
+        "_contrast_BIDSid.csv"
+      )
+    ))
+  print(sprintf(taskname))
+  
+  unique_sub_ids <- unique(df.na$sub)
+  print(paste("1. beh :: N=", length(unique_sub_ids)))
+  intersection_sub_ids <- intersect(subid_df$sub, unique_sub_ids)
+  # 2. identify how many would be removed if we grab the intersection
+  num_removed <- length(subid_df$sub) - length(intersection_sub_ids)
+  subjects_to_be_removed <-
+    setdiff(subid_df$sub, intersection_sub_ids)
+  print(sprintf(
+    paste("2. Number of subjects to be removed based on SPM:", num_removed)
+  ))
+  print(paste0("2-1. Subjects to be removed: ", subjects_to_be_removed))
+  df_intersect <- df.na[df.na$sub %in% intersection_sub_ids,]
+  # 3. identify how many trials are present in each condition
+  df.task <- df_intersect[df_intersect$runtype == taskname, ]
+  df.task_clean <- df.task[complete.cases(df.task$outcomerating),]
   subjects_with_inadequate_data <- df.task_clean %>%
-    group_by(sub,  cue, stimulusintensity) %>% 
+    group_by(sub,  cue, stimulusintensity) %>%
     dplyr::summarise(count = n(), .groups = 'drop') %>%
     filter(count < trial_per_condition) %>%
     distinct(sub) %>%
     pull(sub)
   df_filter <- df.task_clean %>%
     filter(!(sub %in% subjects_with_inadequate_data))
-
-print(sprintf("INFO :: After filtering out subjects that have less than %d trials in cell, we have N=%d -> N=%d",trial_per_condition, length(unique(df$sub)), length(unique(df_filter$sub)) ))
-
-
-beh <- df_filter
+  
+  print(
+    sprintf(
+      "3. INFO :: After filtering out subjects that have less than %d trials in cell, we have N=%d -> N=%d",
+      trial_per_condition,
+      length(unique(df_intersect$sub)),
+      length(unique(df_filter$sub))
+    )
+  )
+  subjects_to_be_removed <-
+    setdiff(unique(df_intersect$sub), unique(df_filter$sub))
+  print(paste0("3-3. Subjects to be removed: ", subjects_to_be_removed))
+  
+  beh <- df_filter
 
 # 2. contrasts codes _______________________________________________________
 beh$stim[beh$stimulusintensity == "low_stim"] <- -0.5
@@ -436,7 +505,7 @@ g <-
     legend_widths = c(4, 1)
   )
 print(g)
-ggsave(plot_savefname, width = w, height = h)
+ggsave(plot_savefname, plot=g, width = w, height = h, dpi=300)
 }
 print(model_summaries[["pain"]]) #singular
 print(model_summaries[["vicarious"]])
@@ -460,11 +529,11 @@ MEAN = "mean_per_sub_norm_mean"
 ERROR = "ci"
 dv_keyword = "outcome"
 p1 = plot_lineplot_twofactor_subset(DATA, 'pain',
-             LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = tools::toTitleCase('pain') )
+             LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = tools::toTitleCase('pain'), ylim=c(10,90))
 p2 = plot_lineplot_twofactor_subset(DATA,'vicarious',
-             LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = tools::toTitleCase("vicarious"))
+             LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = tools::toTitleCase("vicarious"), ylim=c(10,90))
 p3 = plot_lineplot_twofactor_subset(DATA, 'cognitive',
-             LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = tools::toTitleCase('cognitive'))
+             LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = tools::toTitleCase('cognitive'), ylim=c(10,90))
 
 ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
 # plot_filename = file.path(analysis_dir,                        paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
@@ -545,13 +614,13 @@ ggplot(beh, aes(x = sub, y = outcomerating, fill = sub)) +
 subjects_with_inadequate_ses <- df.na %>%
   group_by(sub, cue, stimulusintensity, ses) %>% 
   dplyr::summarise(count = n(), .groups = 'drop') %>%
-  filter(count < 5) %>%
+  filter(count < 3) %>%
   distinct(sub) %>%
   pull(sub)
-df_filter_ses <- df %>%
+df_filter_ses <- df.na %>%
   filter(!(sub %in% subjects_with_inadequate_ses))
 
-print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(df$sub)), length(unique(df_filter_ses$sub)) ))
+print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(df.na$sub)), length(unique(df_filter_ses$sub)) ))
 ```
 
 ```{r}
@@ -603,7 +672,7 @@ model.ses <- lmer(outcomerating ~
                         CUE_high_gt_low*STIM_quadratic*SES_linear +
                         CUE_high_gt_low*STIM_linear*SES_quadratic +
                         CUE_high_gt_low*STIM_quadratic*SES_quadratic +
-                        (1|sub), data = beh
+                        (CUE_high_gt_low+STIM_quadratic+SES_quadratic|sub), data = beh
                   )
 # CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.ses,
