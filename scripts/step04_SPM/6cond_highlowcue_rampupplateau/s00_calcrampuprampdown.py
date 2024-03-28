@@ -1,7 +1,20 @@
 #!/usr/bin/env python
 
 """
-The purpose of this script is to calculate the average duration of ramp-up and ramp-downs
+The purpose of this script is to calculate the average duration of ramp-up and 
+ramp-downs.
+
+* What will the derivatives be used for?
+- This will be used in SPM glm files for the onset during, in case we don't have
+TTL signals recorded for a given run.
+
+* Why is this calculation necessary?
+Some runs, we do not have physiological and TTL signals collected due to equipment 
+failure. To account for this, I aggregate all trials from TTL files and calculate 
+the avarage duration of rampup and rampdown per stimulus intensity type. Note, different temperatures,
+especially higher temperatures, take longer to peak, resulting in a longer rampup
+and rampdown.
+
 """
 
 import os, glob, re
