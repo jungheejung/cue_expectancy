@@ -2,10 +2,10 @@
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
-Here, I plot the outcome ratings as a function of cue and stimulus intensity.
+Here, I plot the outcome ratings as a function of cue and Stimulus intensity.
 
 - Main model: `lmer(outcome_rating ~ cue * stim)`
-- Main question: do outcome ratings differ as a function of cue type and stimulus intensity?
+- Main question: do outcome ratings differ as a function of cue type and Stimulus intensity?
 - If there is a main effect of cue on outcome ratings, does this cue effect differ depending on task type?
 - Is there an interaction between the two factors?
 - IV:
@@ -62,7 +62,7 @@ print(main_dir)
 ## common dir for saving plots and model outputs
 analysis_dir <- file.path(
   main_dir, "analysis",
-  "mixedeffect", "model05_iv-cuecontrast_dv-outcome", as.character(Sys.Date()))
+  "mixedeffect", "book_iv-cue-stim_dv-outcome", as.character(Sys.Date()))
 dir.create(analysis_dir, recursive = TRUE, showWarnings = FALSE)
 ```
 
@@ -79,27 +79,32 @@ dir.create(analysis_dir, recursive = TRUE, showWarnings = FALSE)
 df <- readr::read_tsv(file.path(main_dir, "data/beh/sub-all_task-all_events.tsv"))
 df.na <- df %>%
   filter(!is.na(outcomerating))
-
+trial_per_condition <- 3
 ```
 
-## 1. Cue X stim 
+## 1. Cue X stim (cue effect)
 ```{r}
+model_summaries <- data.frame()
+combined_se_calc_cooksd <- data.frame()
 # filter with cue x stim trial combination _____________________________________
+for (taskname in c("pain", "vicarious", "cognitive")) {
+  # taskname <- "pain"
+  # subset dataset per loop based on task name
+  df.task <- df.na[df.na$runtype == taskname,]
+  df.task_clean <- df.task[complete.cases(df.task$outcomerating), ]
+  subjects_with_inadequate_data <- df.task_clean %>%
+    group_by(sub,  cue, stimulusintensity) %>% 
+    dplyr::summarise(count = n(), .groups = 'drop') %>%
+    filter(count < trial_per_condition) %>%
+    distinct(sub) %>%
+    pull(sub)
+  df_filter <- df.task_clean %>%
+    filter(!(sub %in% subjects_with_inadequate_data))
 
-subjects_with_inadequate_data <- df.na %>%
-  group_by(sub, cue, stimulusintensity) %>% 
-  dplyr::summarise(count = n(), .groups = 'drop') %>%
-  filter(count < 5) %>%
-  distinct(sub) %>%
-  pull(sub)
-df_filter <- df %>%
-  filter(!(sub %in% subjects_with_inadequate_data))
-
-print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(df$sub)), length(unique(df_filter$sub)) ))
+print(sprintf("INFO :: After filtering out subjects that have less than %d trials in cell, we have N=%d -> N=%d",trial_per_condition, length(unique(df$sub)), length(unique(df_filter$sub)) ))
 
 beh <- df_filter
 
-# for (taskname in c("pain", "vicarious", "cognitive")) {
 subject_varkey <- "sub"
 iv <- "cue"; iv_keyword <- "cue"
 dv <- "outcomerating"
@@ -110,13 +115,7 @@ ylab <- "Outcome rating"
 # exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 w <- 10
 h <- 6
-model_savefname <- file.path(
-  analysis_dir,
-  paste("lmer_task-", taskname, "_cue_on_rating-", dv_keyword, "_",
-      as.character(Sys.Date()), ".txt",
-      sep = ""
-  )
-)
+
 
 
 
@@ -147,8 +146,10 @@ wide$stim_ordered <- factor(wide$stim_name,
     levels = c("low", "med", "high")
 )
 
-for (taskname in c("pain", "vicarious", "cognitive")) {
-# 4. summary stats __________________________________________________________
+
+
+# for (taskname in c("pain", "vicarious", "cognitive")) {
+# 4. summary stats _____________________________________________________________
 subjectwise_diff <- meanSummary(wide, c("sub", "stim_ordered"), "diff")
 subjectwise_diff$stim_ordered <- factor(subjectwise_diff$stim_ordered,
     levels = c("low", "med", "high")
@@ -163,7 +164,10 @@ groupwise_diff <- summarySEwithin(
 # 4. plot results
 # 4-1. parameters __________________________________________________________
 subjectwise <- subjectwise_diff
+
 groupwise <- groupwise_diff
+groupwise$task <- taskname
+combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, groupwise)
 iv <- "stim_ordered"
 subject_mean <- "mean_per_sub"
 group_mean <- "mean_per_sub_norm_mean"
@@ -171,7 +175,7 @@ p1.se <- "se"
 dv_keyword = "cuecontrast"
 subject <- "sub"
 p1.xlab <- ""
-p1.ylab <- "Cue effect \n(outcome ratings of high > low cue)"
+p1.ylab <- "Cue effect"
 ylim <- c()
 ylim <- c(-75,75)
 p1.ggtitle <- paste(taskname, " - outcome judgment (degree)")
@@ -209,9 +213,9 @@ ggsave(p1.save_fname, plot = g)
 
 # 4-3.  plot geom range ____________________________________________________
 p2.se <- "sd" # se, sd, ci
-p2.xlab <- "stimulus intensity"
-p2.ylab <- "Cue effect \n(outcome ratings of high > low cue)"
-p2.ggtitle <- paste(taskname, " - cue effect per stimulus intensity", sep = "")
+p2.xlab <- "Stimulus intensity"
+p2.ylab <- "Cue effect"
+p2.ggtitle <- paste(taskname, " - cue effect per Stimulus intensity", sep = "")
 w <- 5
 h <- 5
 p2.save_fname <- file.path(
@@ -243,38 +247,6 @@ ggsave(p2.save_fname, plot = r)
 
 
 
-```{r}
-model.full <- lmer(outcomerating ~ cue * stimulusintensity + (cue * stimulusintensity|sub), data = beh)
-summary(model.full)
-# car::durbinWatsonTest(model.full)
-
-```
-
-### Cue X Stim Lineplot {.unlisted .unnumbered}
-
-Instead of the rain cloud plots, here, I plot the lines and confidence interval
-for each cue x stim combination. Plotted per task.
-
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-
-DATA = as.data.frame(combined_se_calc_cooksd)
-color = c( "#4575B4", "#D73027")
-LINEIV1 = "stim_ordered"
-LINEIV2 = "cue_ordered"
-MEAN = "mean_per_sub_norm_mean"
-ERROR = "ci"
-dv_keyword = "outcome"
-p1 = plot_lineplot_twofactor_subset(DATA, 'pain',
-             LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = tools::toTitleCase('pain') )
-p2 = plot_lineplot_twofactor_subset(DATA,'vicarious',
-             LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = tools::toTitleCase("vicarious"))
-p3 = plot_lineplot_twofactor_subset(DATA, 'cognitive',
-             LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = tools::toTitleCase('cognitive'))
-
-ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
-# plot_filename = file.path(analysis_dir,                        paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
-# ggsave(plot_filename, width = 8, height = 4)
-```
 
 
 
@@ -282,20 +254,16 @@ ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bo
 
 
 
-
-
-## Cue X Stim Raincloud plots
+### Cue X Stim (2x3) lmer & Raincloud plots
 
 - IV: Cue x stim
 - DV: Outcome rating
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 combined_se_calc_cooksd <- data.frame()
-analysis_dir <- file.path(
-      main_dir,
-      "analysis", "mixedeffect", "model05_iv-cue-stim_dv-outcome",as.character(Sys.Date())
-  )
-dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
+model_summaries <- list()
+
+for (taskname in c("pain", "vicarious", "cognitive")) {
 
 
 # 1. data parameters ___________________________________________________________
@@ -306,6 +274,22 @@ w <- 10
 h <- 6
 subject <- "sub"
 
+  # subset dataset per loop based on task name
+  df.task <- df.na[df.na$runtype == taskname,]
+  df.task_clean <- df.task[complete.cases(df.task$outcomerating), ] # drops rows with NA values
+  subjects_with_inadequate_data <- df.task_clean %>%
+    group_by(sub,  cue, stimulusintensity) %>% 
+    dplyr::summarise(count = n(), .groups = 'drop') %>%
+    filter(count < trial_per_condition) %>%
+    distinct(sub) %>%
+    pull(sub)
+  df_filter <- df.task_clean %>%
+    filter(!(sub %in% subjects_with_inadequate_data))
+
+print(sprintf("INFO :: After filtering out subjects that have less than %d trials in cell, we have N=%d -> N=%d",trial_per_condition, length(unique(df$sub)), length(unique(df_filter$sub)) ))
+
+
+beh <- df_filter
 
 # 2. contrasts codes _______________________________________________________
 beh$stim[beh$stimulusintensity == "low_stim"] <- -0.5
@@ -335,16 +319,45 @@ dv <- "outcomerating"
 
 
 # 3. mixed models __________________________________________________________
-model_savefname <- file.path(
-    analysis_dir,
-    paste("lmer_task-", taskname,
-        "_rating-", dv_keyword,
-        "_", as.character(Sys.Date()), "_cooksd.txt",
-        sep = ""
+fullmodel <-
+  lmer(
+    outcomerating ~ CUE_high_gt_low * STIM_linear + 
+      CUE_high_gt_low * STIM_quadratic + 
+      (CUE_high_gt_low + STIM_linear| sub),
+    data = beh,
+    control = lmerControl(
+      optimizer = "nloptwrap",
+      optCtrl = list(
+        algorithm = "NLOPT_LN_BOBYQA",
+        maxfun = 1e9,
+        maxeval = 1e7,
+        xtol_abs = 1e-9,
+        ftol_abs = 1e-9
+      )
     )
+  )
+model_summary <- summary(fullmodel)
+model_summaries[[taskname]] <- summary(fullmodel)
+print(paste0("-------------", taskname, "-------------"))
+print(model_summary)
+
+# lmer _________________________________________________________________________
+
+model_summary <- capture.output(summary(fullmodel))
+
+model_savefname <- file.path(
+  analysis_dir,
+  paste("lmer_task-", taskname, "_cue_on_rating-", dv_keyword, "_",
+      as.character(Sys.Date()), ".txt",
+      sep = ""
+  )
 )
-
-
+write(model_summary, file = model_savefname)
+# save equation
+write(capture.output(equatiomatic::extract_eq(fullmodel)), file.path(
+  analysis_dir,"linear_model_equation.txt"))
+  
+  
 # 4. prep for plots ________________________________________________________
 beh$cue_name[beh$cue == "high_cue"] <- "high cue"
 beh$cue_name[beh$cue == "low_cue"] <- "low cue"
@@ -364,11 +377,10 @@ beh$cue_ordered <- factor(
 model_iv1 <- "stim_ordered"
 model_iv2 <- "cue_ordered"
 
-for (taskname in c("pain", "vicarious", "cognitive")) {
-  subdf <- beh[beh$runtype == taskname, ]
+
 # 5. summary statistics ____________________________________________________
 outcome_subjectwise <- meanSummary(
-    subdf,
+    beh,
     c(subject, model_iv1, model_iv2), dv
 )
 outcome_groupwise <- summarySEwithin(
@@ -426,99 +438,60 @@ g <-
 print(g)
 ggsave(plot_savefname, width = w, height = h)
 }
-# # 8. save fixed & random effects ___________________________________________
-# randEffect$newcoef <- mapvalues(randEffect$term,
-#     from = c("(Intercept)", "data[, iv]",
-#              "data[, stim_con1]", "data[, stim_con2]",
-#              "data[, iv]:data[, stim_con1]",
-#              "data[, iv]:data[, stim_con2]"),
-#     to = c("rand_intercept", "rand_cue", "rand_stimlin",
-#            "rand_stimquad", "rand_int_cue_stimlin", "rand_int_cue_stimquad")
-# )
-# 
-# # ___ 8-1. convert to a wide dataframe _____________________________________
-# rand_subset <- subset(randEffect, select = -c(grpvar, term, condsd))
-# wide_rand <- spread(rand_subset, key = newcoef, value = condval)
-# wide_fix <- do.call(
-#     "rbind",
-#     replicate(nrow(wide_rand), as.data.frame(t(as.matrix(fixEffect))),
-#         simplify = FALSE
-#     )
-# )
-# rownames(wide_fix) <- NULL
-# new_wide_fix <- dplyr::rename(wide_fix,
-#     fix_intercept = `(Intercept)`,
-#     fix_cue = `CUE_high_gt_low`, # `data[, iv]`,
-#     fix_stimulus_linear = `STIM_linear`, # `data[, stim_con1]`,
-#     fix_stimulus_quad = `STIM_quadratic`, #`data[, stim_con2]`,
-#     fix_int_cue_stimlin = `CUE_high_gt_low:STIM_linear`, #`data[, iv]:data[, stim_con1]`,
-#     fix_int_cue_stimquad = `CUE_high_gt_low:STIM_quadratic` #`data[, iv]:data[, stim_con2]`
-# )
-# 
-# # ___ 8-2. combine fixed and random effects ________________________________
-# total <- cbind(wide_rand, new_wide_fix)
-# total$task <- taskname
-# new_total <- total %>% dplyr::select(task, everything())
-# new_total <- dplyr::rename(total, subj = grp)
-# 
-# # ___ 8-3. save fixed/random effects _______________________________________
-# coef_savefname <- file.path(analysis_dir,
-#                             paste("randeffect_task-", taskname,
-#                                   "_", as.character(Sys.Date()), "_outlier-cooksd.csv", sep = ""))
-# write.csv(new_total, coef_savefname, row.names = FALSE)
+print(model_summaries[["pain"]]) #singular
+print(model_summaries[["vicarious"]])
+print(model_summaries[["cognitive"]]) # singular
 
 
 ```
 
-### Cue X Stim linear model
+### Cue X Stim Lineplot {.unlisted .unnumbered}
+
+Instead of the rain cloud plots, here, I plot the lines and confidence interval
+for each cue x stim combination. Plotted per task.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+DATA = as.data.frame(combined_se_calc_cooksd)
+color = c( "#4575B4", "#D73027")
+LINEIV1 = "stim_ordered"
+LINEIV2 = "cue_ordered"
+MEAN = "mean_per_sub_norm_mean"
+ERROR = "ci"
+dv_keyword = "outcome"
+p1 = plot_lineplot_twofactor_subset(DATA, 'pain',
+             LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = tools::toTitleCase('pain') )
+p2 = plot_lineplot_twofactor_subset(DATA,'vicarious',
+             LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = tools::toTitleCase("vicarious"))
+p3 = plot_lineplot_twofactor_subset(DATA, 'cognitive',
+             LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = tools::toTitleCase('cognitive'))
+
+ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
+# plot_filename = file.path(analysis_dir,                        paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
+# ggsave(plot_filename, width = 8, height = 4)
+```
+
+
+### Cue X Stim lmer
 
 ```{r}
-for (taskname in c("pain", "vicarious", "cognitive")){
-beh.na <- beh %>%
-  filter(!is.na(outcomerating) & runtype == taskname)
-
 fullmodel <-
-lmer(
-  outcomerating ~ CUE_high_gt_low * STIM_linear + CUE_high_gt_low * STIM_quadratic + (
-    CUE_high_gt_low * STIM_linear  |
-      sub
-  ),
-  data = beh.na,
-                        control = lmerControl(optimizer = "nloptwrap",
-                                           optCtrl = list(algorithm = "NLOPT_LN_BOBYQA",
-                                                          maxfun = 1e9,
-                                                          maxeval = 1e7,
-                                                          xtol_abs = 1e-9,
-                                                          ftol_abs = 1e-9))
-
-)
-print(paste("----------", taskname))
-print(summary(fullmodel))
-sjPlot::tab_model(fullmodel,
-                title = paste0("Multilevel-modeling: \nlmer(OUTCOME ~ CUE * STIM + (CUE * STIM | sub))", taskname),
-                CSS = list(css.table = '+font-size: 12;'))
-}
-# archive ______________________________________________________________________
-# 
-# library(Matrix)
-# library(glmmTMB)
-# library(TMB)
-# library(RcppEigen)
-# TODO:: troubleshoot
-# m <- glmmTMB(OUTCOME ~ CUE_high_gt_low * STIM_linear + ( CUE_high_gt_low * STIM_linear  | subject),
-#              data = df,
-#              control = glmmTMBControl(rank_check = "adjust"))
-#              #start = start_values,
-#
-# summary(m)
+  lmer(
+    outcomerating ~ CUE_high_gt_low * STIM_linear + 
+      CUE_high_gt_low * STIM_quadratic + 
+      (CUE_high_gt_low * STIM_quadratic| sub),
+    data = beh
+   
+  )
 ```
+
 
 ```{r}
 # optimizer
 library(parallel)
 ncores <- detectCores()
 # diff_optims <- allFit(fullmodel, maxfun = 1e5, parallel = 'multicore', ncpus = ncores)
-diff_optims <- allFit(fullmodel, maxfun = 1e5)
+diff_optims <- allFit(fullmodel, maxfun = 1e9)
 diff_optims_OK <- diff_optims[sapply(diff_optims, is, "merMod")]
 lapply(diff_optims_OK, function(x) x@optinfo$conv$lme4$messages)
 ```
@@ -531,9 +504,9 @@ for(i in 1:length(optimx_options)){
   print(paste0("Testing optimx: ", optimx_options[i]))
   model_full <-   lmer(
   outcomerating ~ CUE_high_gt_low * STIM_linear + CUE_high_gt_low * STIM_quadratic + (
-    CUE_high_gt_low * STIM_linear  |
+    CUE_high_gt_low + STIM_quadratic  |
       sub
-  ), data = beh.na,
+  ), data = beh,
   control = lmerControl(
     optimizer = "optimx",
     optCtrl = list(
@@ -558,6 +531,13 @@ for(i in 1:length(optimx_options)){
   }
 }
 ```
+
+```{r}
+ggplot(beh, aes(x = sub, y = outcomerating, fill = sub)) +
+  geom_boxplot() + 
+  geom_jitter(width = .1, alpha = 0, size = 1)
+```
+
 
 ## 2. Cue x stim x ses lineplot 
 ### filter with including session
@@ -584,6 +564,27 @@ subject <- "subject"
 beh <- df_filter_ses
   # 2. contrasts codes _______________________________________________________
 
+
+# 2. contrasts codes _______________________________________________________
+beh$stim[beh$stimulusintensity == "low_stim"] <- -0.5
+beh$stim[beh$stimulusintensity == "med_stim"] <- 0
+beh$stim[beh$stimulusintensity == "high_stim"] <- 0.5
+
+beh$stim_factor <- factor(beh$stimulusintensity)
+
+# ___ 2-1. contrast code 1 linear __________________________________________
+beh$STIM_linear[beh$stimulusintensity == "low_stim"] <- -0.5
+beh$STIM_linear[beh$stimulusintensity == "med_stim"] <- 0
+beh$STIM_linear[beh$stimulusintensity == "high_stim"] <- 0.5
+
+# ___ 2-2. contrast code 2 quadratic _______________________________________
+beh$STIM_quadratic[beh$stimulusintensity == "low_stim"] <- -0.33
+beh$STIM_quadratic[beh$stimulusintensity == "med_stim"] <- 0.66
+beh$STIM_quadratic[beh$stimulusintensity == "high_stim"] <- -0.33
+
+# ___ 2-3. social cude contrast ____________________________________________
+beh$CUE_high_gt_low[beh$cue == "low_cue"] <- -0.5
+beh$CUE_high_gt_low[beh$cue == "high_cue"] <- 0.5
 # contrast code 1 linear
 beh$SES_linear[beh$ses == "ses-01"] <- -0.5
 beh$SES_linear[beh$ses == "ses-03"] <- 0
@@ -640,17 +641,15 @@ data.ses <- data.ses %>% filter(!is.na(outcomerating))
   )
 
   # [ PLOT ] reordering for plots _________________________ # nolint
-  # data.ses$cue_name <- NA
-  # data.ses$cue_name[data.ses$cue == "high_cue"] <- "high cue"
-  # data.ses$cue_name[data.ses$cue == "low_cue"] <- "low cue"
-  # 
-  # data.ses$stim_name[data.ses$stimulusintensity == "high_stim"] <- "high"
-  # data.ses$stim_name[data.ses$stimulusintensity == "med_stim"] <- "med"
-  # data.ses$stim_name[data.ses$stimulusintensity == "low_stim"] <- "low"
+  data.ses$cue_name <- NA
+  data.ses$cue_name[data.ses$cue == "high_cue"] <- "high cue"
+  data.ses$cue_name[data.ses$cue == "low_cue"] <- "low cue"
+  #
+  data.ses$stim_name[data.ses$stimulusintensity == "high_stim"] <- "high"
+  data.ses$stim_name[data.ses$stimulusintensity == "med_stim"] <- "med"
+  data.ses$stim_name[data.ses$stimulusintensity == "low_stim"] <- "low"
 
-  # DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
 
-  
   data.ses$stim_ordered <- factor(
       data.ses$stim_name,
       levels = c("low", "med", "high")
@@ -684,8 +683,8 @@ subject <- "sub"
 
   ggtitle <- paste(str_to_title(taskname), " - Outcome ", sesname )
   title <- paste(str_to_title(taskname), " - cue level")
-  xlab <- ""
-  ylab <- "Outcome Rating (a.u.)"
+  xlab <- "Stimulus intensity"
+  ylab <- "Outcome rating (a.u.)"
   ylim <- c(-10,60)
   dv_keyword <- "outcome"
   if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
@@ -783,9 +782,9 @@ wide_df <- combined_cueeffect %>%
 
 
 # plot cue effects _____________________________________________________________
-pv <- plot_ggplot_correlation(data = wide_df, x = 'vicarious', y = 'pain', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 45, label_position = 45)
-vc <- plot_ggplot_correlation(data = wide_df, x = 'cognitive', y = 'vicarious', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 45, label_position = 45)
-cp <- plot_ggplot_correlation(data = wide_df, x = 'pain', y = 'cognitive', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 45, label_position = 45)
+pv <- plot_ggplot_correlation(data = wide_df, x = 'Vicarious', y = 'Pain', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 45, label_position = 45)
+vc <- plot_ggplot_correlation(data = wide_df, x = 'Cognitive', y = 'Vicarious', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 45, label_position = 45)
+cp <- plot_ggplot_correlation(data = wide_df, x = 'Pain', y = 'Cognitive', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 45, label_position = 45)
 
 
 # 4. combine plots and add title _______________________________________________
@@ -882,6 +881,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
 
   # ___ 3) calculate difference scores and summarize _______________________________ 
   # TODO: within param_run_num
+  data$run_order <- NA
   data$run_order[data$param_run_num > 3] <- "a"
   data$run_order[data$param_run_num <= 3] <- "b"
   sub_diff <- subset(data, select = c(
