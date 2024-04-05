@@ -307,7 +307,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
 dv_keyword <- "outcomerating"
 xlab <- ""
 ylab <- "judgment (degree)"
-w <- 10
+w <- 8
 h <- 6
 subject <- "sub"
   # 1. filter based on SPM intersecting subject ids
@@ -431,13 +431,13 @@ write(capture.output(equatiomatic::extract_eq(fullmodel)), file.path(
 beh$cue_name[beh$cue == "high_cue"] <- "high cue"
 beh$cue_name[beh$cue == "low_cue"] <- "low cue"
 
-beh$stim_name[beh$stimulusintensity == "high_stim"] <- "high"
-beh$stim_name[beh$stimulusintensity == "med_stim"] <- "med"
-beh$stim_name[beh$stimulusintensity == "low_stim"] <- "low"
+beh$stim_name[beh$stimulusintensity == "high_stim"] <- "High"
+beh$stim_name[beh$stimulusintensity == "med_stim"] <- "Med"
+beh$stim_name[beh$stimulusintensity == "low_stim"] <- "Low"
 
 beh$stim_ordered <- factor(
     beh$stim_name,
-    levels = c("low", "med", "high")
+    levels = c("Low", "Med", "High")
 )
 beh$cue_ordered <- factor(
     beh$cue_name,
@@ -466,24 +466,24 @@ sub_mean <- "mean_per_sub"
 group_mean <- "mean_per_sub_norm_mean"
 se <- "se"
 subject <- "sub"
-ggtitle <- paste0(tools::toTitleCase(taskname), " - Outcome Rating (degree)")
+ggtitle <- paste0(tools::toTitleCase(taskname))
 title <- paste0(tools::toTitleCase(taskname), " - Outcome")
 xlab <- "Stimulus intensity"
-ylab <- "Outcome ratings"
-ylim <- c(-10,190)
+ylab <- "Outcome rating"
+ylim <- c(-10,200)
 dv_keyword <- "Outcome"
 
 # color differently depending on keyword
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
     color <- c("#1B9E77", "#D95F02")
 } else {
-    color <- c("#4575B4", "#D73027")
+    color <- c("#3E61EC", "#FF0000")
 }
 plot_savefname <- file.path(
     analysis_dir,
     paste("raincloud_task-", taskname,
         "_rating-", dv_keyword,
-        "_", as.character(Sys.Date()), "_cooksd.png",
+        "_", as.character(Sys.Date()), ".svg",
         sep = ""
     )
 )
@@ -492,18 +492,21 @@ g <-
   plot_cueexpectancy_twofactor(
     outcome_subjectwise, outcome_groupwise, model_iv1, model_iv2,
     sub_mean, group_mean, se, subject, ggtitle, title,
-    xlab, ylab, taskname, ylim,
+    xlab, ylab, taskname, ylim=c(-10,200),
     w, h, dv_keyword, color, plot_savefname,
     x_hline_position = 3.5,
     x_hline_linetype = "dashed",
     x_hline_nudge_x = 0.1,
     x_hline_textsize = 3,
     legend_factor_levels = c("High cue", "Low cue"),
-    legend_factor_colors = c("#D73027", "#4575B4"),
+    legend_factor_colors = c("#FF0000", "#3E61EC"),
     legend_geom_point_size = 4,
     legend_position = c(-0.1, 0.9),
-    legend_widths = c(4, 1)
-  )
+    legend_widths = c(4, 1)) 
+      
+
+
+
 print(g)
 ggsave(plot_savefname, plot=g, width = w, height = h, dpi=300)
 }
