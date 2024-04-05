@@ -589,10 +589,12 @@ model.SIIPSses <- lmer(SIIPS ~
                           CUE_high_gt_low*STIM_quadratic*SES_linear +
                           CUE_high_gt_low*STIM_linear*SES_quadratic +
                           CUE_high_gt_low*STIM_quadratic*SES_quadratic +
-                          (CUE_high_gt_low + STIM_linear + SES_linear  |
+                          (CUE_high_gt_low  + STIM_quadratic  |
          sub), data = df_filter_ses,
-         control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 1e5))
-)
+         control = lmerControl(optimizer = "nmkbw"
+                               ))
+#, optCtrl = list(maxfun = 1e5))
+# )
          # control = lmerControl(optimizer = "nmkbw")
                     # )
 
@@ -602,25 +604,10 @@ sjPlot::tab_model(model.SIIPSses,
                   title = "Multilevel-modeling: \nlmer(SIIPS ~ CUE * STIM * SES + (CUE + STIM + SES| sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
 ```
-> Using nmkbw optimizer, random slopes of cue, stimulus intensity, and sessions are modeled using orthogonal contrast codes. Cue effects on SIIPS are significant (b = -0.28, SE = 0.13, t(95.65) = -2.09, CI = [-0.54, -0.02], p = 0.037), where higher cues lead to lower SIIPS values. Stimulus intensity effects are significant; higher temperature leads to greater SIIPS response (b =  1.33, SE = 0.15, t(279.51) = 8.63, p < .001)
+> Using nmkbw optimizer, we model the cue x stimulus intensity x session interaction to test for cue effects as a function of time. random slopes of cue, stimulus intensity were modeled using orthogonal contrast codes. Cue effects on SIIPS are significant (b =  56.653, SE = 13.069, t(238.150) = 4.335, CI = [31.03 – 82.28], p < .001), where higher cues lead to lower SIIPS values. Stimulus intensity effects are significant; higher temperature leads to greater SIIPS response (b =  103.18, SE = 0.15, CI=[72.20 – 134.16] t(4642.174   ) = 6.529, p < .001). Lastly, a session by cue by stimulu effect was signficiant, (b = 135.00, SE = 66.450 t(4642.174) = 2.032, CI = [4.73 – 265.27],  p < .05) 0.0423 indicating that the cue by stimulus interaction becomes pronounced across time
 
 
-```{r}
-model.SIIPSses <- lmer(SIIPS ~
-                          CUE_high_gt_low*STIM_linear + SES_linear +
-                          CUE_high_gt_low*STIM_quadratic +
 
-                          (CUE_high_gt_low * STIM_linear + SES_linear   |
-         sub), data = df_filter_ses,
-         control = lmerControl(optimizer = "nmkbw")
-                    )
-
-summary(model.SIIPSses)
-# CUE_high_gt_low+STIM+EXPECT_demean
-sjPlot::tab_model(model.SIIPSses,
-                  title = "Multilevel-modeling: \nlmer(SIIPS ~ CUE * STIM * SES + (CUE + STIM + SES| sub), data = pvc)",
-                  CSS = list(css.table = '+font-size: 12;'))
-```
 
 
 ```{r}
