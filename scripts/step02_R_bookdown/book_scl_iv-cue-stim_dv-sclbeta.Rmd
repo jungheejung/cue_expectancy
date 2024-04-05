@@ -10,7 +10,7 @@ library(car)
 library(psych)
 library(reshape)
 library(plyr); library(dplyr)
-library(tidyselect)
+# library(tidyselect)
 library(tidyr)
 library(stringr)
 library(lme4)
@@ -87,14 +87,28 @@ beta_long <- beta %>%
 beta_con <- simple_contrasts_singletrial(beta_long)
 ```
 
+```{r}
+subjects_with_inadequate_data <- beta_con %>%
+  group_by(sub, cue_factor, STIM_linear) %>% 
+  dplyr::summarise(count = n(), .groups = 'drop') %>%
+  filter(count < 1) %>%
+  distinct(sub) %>%
+  pull(sub)
+df_filter <- beta_con %>%
+  filter(!(sub %in% subjects_with_inadequate_data))
+
+print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(beta_con$sub)), length(unique(df_filter$sub)) ))
+```
+
 
 ```{r}
 # 3. linear model ______________________________________________________________ 
-model.factorial <- lmer(beta ~ STIM_linear*cue_factor + STIM_quadratic*cue_factor + (1|sub), data = beta_con)
+model.factorial <- lmer(beta ~ STIM_linear*cue_factor + STIM_quadratic*cue_factor + (cue_factor |sub), data = beta_con)
 # summary(model.factorial)
 sjPlot::tab_model(model.factorial,
-              title = paste0(tools::toTitleCase(taskname), ": \nlmer(SCR beta ~ Stim * Cue + (1 | sub), data = beta)"),
+              title = paste0(tools::toTitleCase(taskname), ": \nlmer(SCR beta ~ Stim * Cue + (Cue + Stim | sub), data = beta)"),
               CSS = list(css.table = '+font-size: 12;'))
+summary(model.factorial)
 ```
 
 ```{r}
@@ -107,7 +121,7 @@ dv <- "beta"
 dv_keyword <- "sclbeta"
 taskname <- "pain"
 # model_iv2 <- "cue_ordered"
-analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model94_sclbeta", as.character(Sys.Date()))
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "book_scr")
 beta_con$taskname <- taskname
 
 
@@ -203,17 +217,19 @@ k <- plot_lineplot_twofactor(SCLstim_groupwise,
                         color = c( "high" = "red",
                                   "low" = "#4C77ED"), 
                         ggtitle = title, 
-                        xlab = "Stimulus intensity", ylab = "SCR (A.U.)")
+                        xlab = "Stimulus intensity", ylab = "SCR")
 # k <- k + theme(aspect.ratio=.8) +   geom_line(size = 1) + # Adjust line thickness
 #   geom_point(size = 3)  # Adjust point size
-k <-  k + theme(aspect.ratio=.8,
+k <- k + theme(aspect.ratio=.8,
           text = element_text(size = 18), # Default text size for the plot
-          axis.title = element_text(size = 24, ), # Axis titles
-          axis.text = element_text(size = 18), # Axis text (x and y)
+          axis.title = element_text(size = 22, ), # Axis titles
+          axis.text = element_text(size = 15), # Axis text (x and y)
           plot.title = element_text(size = 24, hjust = 0.5) # Plot title
           ) +
-  geom_line(size = 1) + # Adjust line thickness
-  geom_point(size = 3)  # Adjust point size
+  # geom_line(size = 1) + # Adjust line thickness
+  geom_point(size = 2)  # Adjust point size
+
+ggsave(file.path(analysis_dir, paste0("SCR_maineffect", as.character(Sys.Date()), ".svg")), dpi=300) 
   
 print(k)
 ```
@@ -251,12 +267,13 @@ model.betases <- lmer(beta ~
                           CUE_high_gt_low*STIM_quadratic*SES_linear +
                           CUE_high_gt_low*STIM_linear*SES_quadratic +
                           CUE_high_gt_low*STIM_quadratic*SES_quadratic +
-                          (1|sub), data = beta_long
+                          (CUE_high_gt_low + STIM_linear + SES_linear|sub), data = beta_long
                     )
 # CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.betases,
                   title = "Multilevel-modeling: \nlmer(beta ~ CUE * STIM * SES + (1| sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
+summary(model.betases)
 ```
 
 
@@ -296,15 +313,15 @@ for (sesname in c("ses-01", "ses-03", "ses-04")) {
     data$cue_name[data$cue == "high_cue"] <- "high cue"
     data$cue_name[data$cue == "low_cue"] <- "low cue"
 
-    data$stim_name[data$stim == "high_stim"] <- "high"
-    data$stim_name[data$stim == "med_stim"] <- "med"
-    data$stim_name[data$stim == "low_stim"] <- "low"
+    data$stim_name[data$stim == "high_stim"] <- "High"
+    data$stim_name[data$stim == "med_stim"] <- "Med"
+    data$stim_name[data$stim == "low_stim"] <- "Low"
 
     # DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
 
     data$stim_ordered <- factor(
         data$stim_name,
-        levels = c("low", "med", "high")
+        levels = c("Low", "Med", "High")
     )
     data$cue_ordered <- factor(
         data$cue_name,
@@ -391,4 +408,47 @@ plot_filename = file.path(analysis_dir,
                           paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
 ggsave(plot_filename, width = 8, height = 4)
 ```
-
+```{r}
+  DATA = as.data.frame(combined_se_calc_cooksd)
+  color <- c("#4C77ED", "#ED220D")
+  model_iv1 <- "stim_ordered"
+  model_iv2 <- "ses_ordered"
+  LINEIV1 <- "stim_ordered"
+  LINEIV2 <- "cue_ordered"
+  MEAN <- "mean_per_sub_norm_mean"
+  ERROR <- "se"
+  dv_keyword <- "SCR"
+  line_thickness <- 0.2
+  ylim <- c(1.3, 2.4)
+  p1 <- plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-01" , ], taskname,
+                               LINEIV1, LINEIV2, MEAN, ERROR, color, 
+                               ggtitle = 'Visit 1', ylab = "SCR", 
+                               ylim=ylim)
+  p1 <- p1 + theme(
+  aspect.ratio = 1, # Adjust this as needed
+  axis.line = element_line(size = line_thickness)
+)
+  p2 = plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-03", ], taskname,
+                               LINEIV1, LINEIV2, MEAN, ERROR, color,
+                               ggtitle = 'Visit 2', ylab = "SCR", 
+                               ylim=ylim)
+    p2 <- p2 + theme(
+  aspect.ratio = 1, # Adjust this as needed
+  axis.line = element_line(size = line_thickness)
+)
+  p3 = plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-04", ], taskname,
+                               LINEIV1, LINEIV2, MEAN,ERROR, color,
+                               ggtitle = 'Visit 3', ylab = "SCR", 
+                               ylim=ylim)
+    p3 <- p3 + theme(
+  aspect.ratio = 1, # Adjust this as needed
+  axis.line = element_line(size = line_thickness)
+)
+  arranged_plot <- ggpubr::ggarrange(
+    p1, p2, p3, ncol = 3, nrow = 1, common.legend = TRUE, legend = "bottom"
+  )
+  print(arranged_plot)
+  plot_filename = file.path(analysis_dir,
+  paste('lineplot_task-all_rating-', dv_keyword,taskname, '.svg', sep = ""))
+  ggsave(plot_filename, arranged_plot, width = 8, height = 4, dpi=300)
+```
