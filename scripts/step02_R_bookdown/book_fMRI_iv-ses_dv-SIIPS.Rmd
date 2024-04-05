@@ -34,6 +34,7 @@ library(sjmisc)
 library(sjlabelled)
 library(plotly)
 library(DT)
+library(scico)
 library(raincloudplots)
 # devtools::source_url("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/tutorial_R/R_rainclouds.R")
 # devtools::source_url("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/tutorial_R/summarySE.R")
@@ -113,7 +114,7 @@ dv_keyword <- "SIIPS"
 subjects_with_inadequate_data <- data %>%
   group_by(sub, CUE_high_gt_low, STIM_linear) %>% #SES_linear, 
   dplyr::summarise(count = n(), .groups = 'drop') %>%
-  filter(count < 5) %>%
+  filter(count < 3) %>%
   distinct(sub) %>%
   pull(sub)
 df_filter <- data %>%
@@ -138,17 +139,49 @@ sorted_data <- df_filter.NA %>%
 df_filter.NA$sub <- factor(df_filter.NA$sub, levels = sorted_data$sub)
 
 # Create the ggplot
-g <- ggplot(df_filter.NA, aes(x = sub, y = SIIPS, fill = sub)) +
-  geom_boxplot(outlier.shape = NA, width = 1.2, position = position_dodge(2)) +  
-  geom_jitter(width = .1, alpha = 0, size = 1) +
-  labs(x = "Subject", y = "SIIPS") +
-  theme_classic() +
-  theme(legend.position = "none") +
-  scale_x_discrete(breaks = NULL) 
+df_filter.NA$sub_numeric <- as.numeric(factor(df_filter.NA$sub))
 
+# Load necessary libraries
+library(ggplot2)
+library(scico)
+
+# Assuming df_filter.NA is your dataframe and 'sub' is the categorical variable
+
+# Step 1: Convert 'sub' from categorical to numeric
+df_filter.NA$sub_numeric <- as.numeric(factor(df_filter.NA$sub))
+df_filter.NA$sub_index <- as.numeric(as.factor(df_filter.NA$sub))  # Create a numeric index
+
+# Step 2: Create the plot with Batlow color gradient
+# g <- ggplot(df_filter.NA, aes(x = sub, y = SIIPS)) +
+#   geom_boxplot(aes(fill = sub_numeric), outlier.shape = 16, width = .7, position = position_dodge()) +
+#   geom_jitter(width = .1, alpha = 0, size = 1) +
+#   labs(x = "Subject", y = "SIIPS") +
+#   theme_classic() +
+#   theme(legend.position = "none") +
+#   # scale_x_discrete(breaks = NULL) +
+  
+g <- ggplot(df_filter.NA, aes(x = sub_index, y = SIIPS, fill = sub_index)) +
+  geom_boxplot(aes(group = sub_index), outlier.shape = 16, width = 0.7, position = position_dodge()) +  
+  geom_jitter(width = .1, alpha = 0, size = 1) +
+  labs(x = "Participants", y = "SIIPS") +
+  theme_classic() +
+  theme(legend.position = "none", 
+        axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_fill_gradientn(colors = scico(n = length(unique(df_filter.NA$sub_index)), palette = "batlow")) +
+  scale_x_continuous(breaks = c(10, 20, 30, 40, 50, 60, 70, 80, 90))
+
+num_subjects <- length(levels(df_filter.NA$sub))
+breaks_at <- seq(from = 1, to = num_subjects, length.out = 4)  # Adjust based on your data's distribution
+g + scale_x_discrete(breaks = levels(df_filter.NA$sub)[breaks_at])
+
+# Note: You may need to adjust the 'n' in scico() to match the number of unique 'sub' values if not automatically scaled.
+
+# Print the plot
+ggplot_largetext(g)
 # Convert ggplot object to a plotly object with hover information
 g_plotly <- ggplotly(ggplot_largetext(g), tooltip = c("x", "y"))
 g_plotly
+
 ```
 
 
@@ -325,7 +358,7 @@ dv_keyword <- "SIIPS"
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
-  color <- c("#4575B4", "#D73027")
+  color <- c("#3E61EC", "#FF0000")
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -362,12 +395,19 @@ g
 
 ```{r echo=FALSE, warning=FALSE}
 subsetSIIPS <- SIIPSstimcue_groupwise[SIIPSstimcue_groupwise$cue_ordered == "low cue",]
-g <- plot_lineplot_twofactor_subset(subsetSIIPS, taskname = "pain",
+g <- plot_lineplot_twofactor(subsetSIIPS, 
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = "#5D5C5C", "#D73027"), ggtitle = "Within pain task: SIIPS dotproducts as a function of stimulus intensity level and cue",
+                        color = c("low cue" = "#3E61EC"), ggtitle = "Within pain task: SIIPS dotproducts as a function of stimulus intensity level and cue",
                         xlab = "Stimulus intensity", ylab = "SIIPS (dot product)")
-g + theme(aspect.ratio=.8)
+g + theme(aspect.ratio=.8,
+          text = element_text(size = 18), # Default text size for the plot
+          axis.title = element_text(size = 24, ), # Axis titles
+          axis.text = element_text(size = 18), # Axis text (x and y)
+          plot.title = element_text(size = 24, hjust = 0.5) # Plot title
+          ) +
+  geom_line(size = 1) + # Adjust line thickness
+  geom_point(size = 3)  # Adjust point size
 ```
 
 ### Lineplots {.unlisted .unnumbered}
@@ -376,7 +416,7 @@ g + theme(aspect.ratio=.8)
 g <- plot_lineplot_twofactor(SIIPSstimcue_groupwise,# taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = "#4C77ED","high cue" = "#D73027"), 
+                        color = c("low cue" = "#3E61EC","high cue" = "#FF0000"), 
                         ggtitle = "SIIPS dotproducts as a function of stimulus intensity level and cue",
                         xlab = "Stimulus intensity", ylab = "SIIPS (dot product)")
 g + theme(aspect.ratio=.8,
@@ -396,9 +436,9 @@ g + theme(aspect.ratio=.8,
 g <- plot_lineplot_twofactor(SIIPSstimcue_groupwise,
                         iv2 = "stim_ordered", iv1 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("high" = "red",
-                                  "med" = "orange",
-                                  "low" = "yellow"),
+                        color = c("high" = "#9100C6",
+                                  "med" = "#FF2519",
+                                  "low" = "#FFBB00"),
                         ggtitle = "Within pain task: SIIPS dotproducts as a function of stimulus intensity level and cue",
                         xlab = "Stimulus intensity", ylab = "SIIPS (dot product)")
 g + theme(aspect.ratio=.8)
@@ -407,12 +447,19 @@ g + theme(aspect.ratio=.8)
 ## Linear model results (SIIPS ~ paintask: 2 cue x 3 stimulus_intensity)
 > Modeling random slopes and random cues, we find a significnat effect of cue  and stimintensity  on SIIPS dot products. The greater the stimulus intensity, the greater the SIIPS values (b = -0.31, SE = 0.13, t(131.98) = -2.355, p < .020). Higher cues lead to lower SIIPS values ( b = 1.29, SE = 0.16, t(140.04) = 8.024, p < .001) 
 
+
+> We find a significnat main effect of cue  and stimintensity on SIIPS dot products. Cue effects were significant where higher cues lead to greater SIIPS values (b = 44.76, SE = 12.32, CI = [20.61 – 68.92], t(92.00) = 3.63, p < .001) 
+Stimulus intensity effects were also significant, where increasing temperature led to greater SIIPS values, both displaying. alinear and quadratic (b_linear = 97.74, SE = 14.95,CI = [68.42 – 127.05] t(1650.31)=6.54, p < .001, 
+b_quad = 36.37, SE = 12.96, CI =[ 10.96 – 61.77], t(5357.69) = 2.806, p < .01. 
+marginal r^2 = 0.009, conditional r2 = 0.266
+
+
 lmer
 ```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
 
 model.SIIPScuestim <- lmer(SIIPS ~
                           CUE_high_gt_low*STIM_linear +CUE_high_gt_low * STIM_quadratic +
-                          (CUE_high_gt_low+STIM_linear|sub), data = df_filter, 
+                          (CUE_high_gt_low + STIM_linear|sub), data = df_filter, 
                          control = lmerControl(optimizer = "nmkbw")
                     )
 
@@ -422,6 +469,9 @@ sjPlot::tab_model(model.SIIPScuestim,
                   CSS = list(css.table = '+font-size: 12;'))
 
 ```
+
+
+
 
 ```{r}
 # model.SIIPScuestim.summarystats <- df_filter %>%
@@ -517,7 +567,7 @@ kableExtra::kable_styling(
 subjects_with_inadequate_data <- data %>%
   group_by(sub, CUE_high_gt_low, STIM_linear, SES_linear) %>% 
   dplyr::summarise(count = n(), .groups = 'drop') %>%
-  filter(count < 3) %>%
+  filter(count < 4) %>%
   distinct(sub) %>%
   pull(sub)
 df_filter_ses <- data %>%
@@ -528,12 +578,39 @@ print(sprintf("after filtering out subjects that have less than 3 trials in cell
 
 
 ```{r}
+
+df_filter_ses$SIIPS_scaled <- scale(df_filter_ses$SIIPS, center = TRUE, scale = TRUE)
+# df_filter_ses_scaled <- df_filter_ses %>%
+#   group_by(sub) %>%
+#   mutate(across(c(SIIPS), ~scale(.x, center = TRUE, scale = TRUE))) %>%
+#   ungroup()
 model.SIIPSses <- lmer(SIIPS ~
                           CUE_high_gt_low*STIM_linear*SES_linear +
                           CUE_high_gt_low*STIM_quadratic*SES_linear +
                           CUE_high_gt_low*STIM_linear*SES_quadratic +
                           CUE_high_gt_low*STIM_quadratic*SES_quadratic +
-                          (CUE_high_gt_low +SES_quadratic + STIM_linear |
+                          (CUE_high_gt_low + STIM_linear + SES_linear  |
+         sub), data = df_filter_ses,
+         control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 1e5))
+)
+         # control = lmerControl(optimizer = "nmkbw")
+                    # )
+
+summary(model.SIIPSses)
+# CUE_high_gt_low+STIM+EXPECT_demean
+sjPlot::tab_model(model.SIIPSses,
+                  title = "Multilevel-modeling: \nlmer(SIIPS ~ CUE * STIM * SES + (CUE + STIM + SES| sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+```
+> Using nmkbw optimizer, random slopes of cue, stimulus intensity, and sessions are modeled using orthogonal contrast codes. Cue effects on SIIPS are significant (b = -0.28, SE = 0.13, t(95.65) = -2.09, CI = [-0.54, -0.02], p = 0.037), where higher cues lead to lower SIIPS values. Stimulus intensity effects are significant; higher temperature leads to greater SIIPS response (b =  1.33, SE = 0.15, t(279.51) = 8.63, p < .001)
+
+
+```{r}
+model.SIIPSses <- lmer(SIIPS ~
+                          CUE_high_gt_low*STIM_linear + SES_linear +
+                          CUE_high_gt_low*STIM_quadratic +
+
+                          (CUE_high_gt_low * STIM_linear + SES_linear   |
          sub), data = df_filter_ses,
          control = lmerControl(optimizer = "nmkbw")
                     )
@@ -544,35 +621,17 @@ sjPlot::tab_model(model.SIIPSses,
                   title = "Multilevel-modeling: \nlmer(SIIPS ~ CUE * STIM * SES + (CUE + STIM + SES| sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
 ```
-> Using nmkbw optimizer, random slopes of cue, stimulus intensity, and sessions are modeled using orthogonal contrast codes. Cue effects on SIIPS are significant (b = -0.28, SE = 0.13, t(95.65) = -2.09, CI = [-0.54, -0.02], p = 0.037), where higher cues lead to lower SIIPS values. Stimulus intensity effects are significant; higher temperature leads to greater SIIPS response (b =  1.33, SE = 0.15, t(279.51) = 8.63, p < .001)
+
 
 ```{r}
 library(parallel)
 ncores <- detectCores()
-diff_optims <- allFit(model.SIIPSses, maxfun = 1e5, parallel = 'multicore', ncpus = ncores)
+diff_optims <- allFit(model.SIIPSses, maxfun = 1e9, parallel = 'multicore', ncpus = ncores)
 # diff_optims <- allFit(model.full, maxfun = 1e5)
 diff_optims_OK <- diff_optims[sapply(diff_optims, is, "merMod")]
 lapply(diff_optims_OK, function(x) x@optinfo$conv$lme4$messages)
 ```
-### model converge [OK: optimizer nmkbw]
 
-```{r}
-library(optimx)
-model.SIIPScuestim <- lmer(
-  SIIPS ~
-    CUE_high_gt_low * STIM_linear * SES_linear +
-    CUE_high_gt_low * STIM_quadratic * SES_linear +
-    CUE_high_gt_low * STIM_linear * SES_quadratic +
-    CUE_high_gt_low * STIM_quadratic * SES_quadratic +
-    (CUE_high_gt_low + SES_quadratic + STIM_linear |
-       sub),
-  data = df_filter_ses,
-  control = lmerControl(optimizer = "nmkbw")
-)
-                         # control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 1e5)))
-
-summary(model.SIIPScuestim)
-```
 
 ### convergence
 ```{r}
@@ -647,28 +706,7 @@ taskname = "pain"
     h <- 6
 s1.sig <- df_filter_ses[df_filter_ses$runtype == "pain" & df_filter_ses$ses == sesname,]
 data <- s1.sig
-    # [ CONTRASTS ]  ________________________________________________________________________________ # nolint
-# contrast code ________________________________________
-# data$stim[data$stimulusintensity == "low_stim"] <- -0.5 # social influence task
-# data$stim[data$stimulusintensity == "med_stim"] <- 0 # no influence task
-# data$stim[data$stimulusintensity == "high_stim"] <- 0.5 # no influence task
-# 
-# data$STIM <- factor(data$stimulusintensity)
-# 
-# # contrast code 1 linear
-# data$STIM_linear[data$stimulusintensity == "low_stim"] <- -0.5
-# data$STIM_linear[data$stimulusintensity == "med_stim"] <- 0
-# data$STIM_linear[data$stimulusintensity == "high_stim"] <- 0.5
-# 
-# # contrast code 2 quadratic
-# data$STIM_quadratic[data$stimulusintensity == "low_stim"] <- -0.33
-# data$STIM_quadratic[data$stimulusintensity == "med_stim"] <- 0.66
-# data$STIM_quadratic[data$stimulusintensity == "high_stim"] <- -0.33
-# 
-# # social cude contrast
-# data$CUE_high_gt_low[data$cue == "low_cue"] <- -0.5 # social influence task
-# data$CUE_high_gt_low[data$cue == "high_cue"] <- 0.5 # no influence task
-# 
+
 
 stim_con1 <- "STIM_linear"
 stim_con2 <- "STIM_quadratic"
@@ -736,13 +774,12 @@ dv <- "SIIPS"
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
-        color <- c("#4575B4", "#D73027")
-    } # if keyword starts with
+        color <- c("#4C77ED", "#ED220D"
     plot_savefname <- file.path(
         analysis_dir,
         paste("raincloud_task-", taskname,
             "_rating-", dv_keyword,
-            "_", as.character(Sys.Date()), "_cooksd.png",
+            "_", as.character(Sys.Date()), "_ses.png",
             sep = ""
         )
     )
@@ -771,13 +808,13 @@ MEAN = "mean_per_sub_norm_mean"
 ERROR = "se"
 dv_keyword = "actual"
 p1 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-01",],
-               LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'ses-01',
+               LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'Visit 1',
                ylab = "SIIPS (dot products)" )
 p2 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-03",],
-               LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'ses-03',
+               LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'Visit 2',
                ylab = "SIIPS (dot products)")
 p3 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-04",],
-               LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = 'ses-04',
+               LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = 'Visit 3',
                ylab = "SIIPS (dot products)")
 
 ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
