@@ -1,0 +1,115 @@
+# [fMRI] ROI ~ decoding {#ROI_decoding}
+
+## What is the purpose of this notebook? {.unlisted .unnumbered}
+
+
+```{r libraries_SIIPS_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+library(car)
+library(lme4)
+library(optimx)
+library(minqa)
+library(dfoptim)
+library(tidyverse)
+library(psych)
+library(reshape)
+library(dplyr)
+library(tidyselect)
+library(tidyr)
+library(stringr)
+library(lmerTest)
+library(gghalves)
+library(plyr)
+library(ggpubr)
+library(r2mlm)
+library(effectsize)
+library(devtools)
+options(es.use_symbols = TRUE) # get nice symbols when printing! (On Windows, requires R >= 4.2.0)
+library(EMAtools)
+library(emmeans)
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
+library(plotly)
+library(DT)
+library(scico)
+library(cueR)
+library(raincloudplots)
+# devtools::source_url("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/tutorial_R/R_rainclouds.R")
+# devtools::source_url("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/tutorial_R/summarySE.R")
+
+devtools::source_url("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+library(r2mlm)
+main_dir <- dirname(dirname(getwd()))
+file.sources = list.files(file.path(main_dir, 'scripts', 'step02_R', 'utils'),
+                          pattern="*.R",
+                          full.names=TRUE,
+                          ignore.case=TRUE)
+sapply(file.sources,source,.GlobalEnv)
+
+```
+
+## load data {.unlisted .unnumbered}
+```{r}
+data_dir = "/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv06_NPSdecoding"
+# load data ____________________________________________________________________
+low_fname <- file.path(data_dir, "roi-dACC_cue-low.tsv")
+lowdf <- readr::read_tsv(low_fname)
+lowdf$cue <- "low cue"
+high_fname <- file.path(data_dir, "roi-dACC_cue-high.tsv")
+highdf <- readr::read_tsv(high_fname)
+highdf$cue <- "high cue"
+df <- rbind(lowdf, highdf)
+
+
+# pivot wide to long ___________________________________________________________
+df_long <- pivot_longer(
+  data = df, 
+  cols = c(F1_Class_high, F1_Class_med, F1_Class_low), 
+  names_to = "stim", 
+  values_to = "f1_value",
+  names_prefix = "F1_Class_"
+)
+
+# Adjust the stim levels from the column names to meaningful labels if necessary
+df_long$stim <- factor(df_long$stim, levels = c("low", "med", "high"))
+df_long$stim_name[df_long$stim == "high"] <-
+  "High"
+df_long$stim_name[df_long$stim == "med"] <-
+  "Med"
+df_long$stim_name[df_long$stim == "low"] <-
+  "Low"
+
+df_long$stim_ordered <- factor(df_long$stim_name,
+                                   levels = c("Low", "Med", "High"))
+df_long$cue_ordered <- factor(df_long$cue,
+                                  levels = c("low cue", "high cue"))
+#  summary statistics  _________________________________________________________
+subject <- "sub"
+iv1 <- "stim_ordered"
+iv2 <- "cue_ordered"
+dv <- "f1_value"
+f1_subjectwise <- meanSummary(df_long,
+                                      c(subject, iv1, iv2), dv)
+f1_groupwise <- summarySEwithin(
+  data = f1_subjectwise,
+  measurevar = "mean_per_sub",
+  withinvars = c(iv1, iv2),
+  idvar = subject
+)
+
+# plot line plots ______________________________________________________________
+g <- plot_lineplot_twofactor(f1_groupwise,# taskname = "pain",
+                        iv1 = "stim_ordered", iv2 = "cue_ordered",
+                        mean = "mean_per_sub_norm_mean", error = "se",
+                        color = c("low cue" = "#3E61EC","high cue" = "#FF0000"), 
+                        ggtitle = "Decoding dACC",
+                        xlab = "Stimulus intensity", ylab = "f1 score")
+g + theme(aspect.ratio=.8,
+          text = element_text(size = 18), # Default text size for the plot
+          axis.title = element_text(size = 24, ), # Axis titles
+          axis.text = element_text(size = 18), # Axis text (x and y)
+          plot.title = element_text(size = 24, hjust = 0.5) # Plot title
+          ) +
+  geom_line(size = 1) + # Adjust line thickness
+  geom_point(size = 3)  # Adjust point size
+```
