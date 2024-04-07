@@ -16,7 +16,7 @@ library(tidyverse)
 library(psych)
 library(reshape)
 library(dplyr)
-library(tidyselect)
+# library(tidyselect)
 library(tidyr)
 library(stringr)
 library(lmerTest)
@@ -25,7 +25,7 @@ library(plyr)
 library(ggpubr)
 library(r2mlm)
 library(effectsize)
-library(devtools)
+# library(devtools)
 options(es.use_symbols = TRUE) # get nice symbols when printing! (On Windows, requires R >= 4.2.0)
 library(EMAtools)
 library(emmeans)
@@ -288,8 +288,8 @@ analysis_dir <-
   file.path(main_dir,
             "analysis",
             "mixedeffect",
-            analysis_folder,
-            as.character(Sys.Date())) # nolint
+            analysis_folder
+            ) # nolint
 dir.create(analysis_dir,
            showWarnings = FALSE,
            recursive = TRUE)
@@ -315,16 +315,16 @@ df_filter$cue_name[df_filter$cue == "low_cue"] <-
   "low cue"
 
 df_filter$stim_name[df_filter$stimulusintensity == "high_stim"] <-
-  "high"
+  "High"
 df_filter$stim_name[df_filter$stimulusintensity == "med_stim"] <-
-  "med"
+  "Med"
 df_filter$stim_name[df_filter$stimulusintensity == "low_stim"] <-
-  "low"
+  "Low"
 
 # DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
 
 df_filter$stim_ordered <- factor(df_filter$stim_name,
-                                   levels = c("low", "med", "high"))
+                                   levels = c("Low", "Med", "High"))
 df_filter$cue_ordered <- factor(df_filter$cue_name,
                                   levels = c("low cue", "high cue"))
 model_iv1 <- "stim_ordered"
@@ -388,7 +388,9 @@ g <- plot_halfrainclouds_twofactor(
   color,
   plot_savefname
 )
-g
+
+# g
+
 ```
 
 ### Lineplots with only low cue {.unlisted .unnumbered}
@@ -417,17 +419,19 @@ g <- plot_lineplot_twofactor(SIIPSstimcue_groupwise,# taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("low cue" = "#3E61EC","high cue" = "#FF0000"), 
-                        ggtitle = "SIIPS dotproducts as a function of stimulus intensity level and cue",
-                        xlab = "Stimulus intensity", ylab = "SIIPS (dot product)")
-g + theme(aspect.ratio=.8,
+                        ggtitle = paste0("SIIPS N =", length(unique(SIIPSstimcue_subjectwise$sub))),
+                        xlab = "Stimulus intensity", ylab = "Average SIIPS score")
+g<- g + theme(aspect.ratio=1,
           text = element_text(size = 18), # Default text size for the plot
-          axis.title = element_text(size = 24, ), # Axis titles
-          axis.text = element_text(size = 18), # Axis text (x and y)
+          axis.title = element_text(size = 22, ), # Axis titles
+          axis.text = element_text(size = 15), # Axis text (x and y)
           plot.title = element_text(size = 24, hjust = 0.5) # Plot title
           ) +
-  geom_line(size = 1) + # Adjust line thickness
-  geom_point(size = 3)  # Adjust point size
-  
+  # geom_line(size = 1) + # Adjust line thickness
+  geom_point(size = 2)  # Adjust point size
+g
+ggsave(file.path(analysis_dir, paste0("SIIPS_maineffect", as.character(Sys.Date()), ".svg")), plot=g, dpi=300) 
+
 ```
 
 ### Lineplots tilt axis {.unlisted .unnumbered}
@@ -436,9 +440,9 @@ g + theme(aspect.ratio=.8,
 g <- plot_lineplot_twofactor(SIIPSstimcue_groupwise,
                         iv2 = "stim_ordered", iv1 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("high" = "#9100C6",
-                                  "med" = "#FF2519",
-                                  "low" = "#FFBB00"),
+                        color = c("High" = "#9100C6",
+                                  "Med" = "#FF2519",
+                                  "Low" = "#FFBB00"),
                         ggtitle = "Within pain task: SIIPS dotproducts as a function of stimulus intensity level and cue",
                         xlab = "Stimulus intensity", ylab = "SIIPS (dot product)")
 g + theme(aspect.ratio=.8)
@@ -463,11 +467,17 @@ model.SIIPScuestim <- lmer(SIIPS ~
                          control = lmerControl(optimizer = "nmkbw")
                     )
 
+# model.SIIPScuestim_cue <- lmer(SIIPS ~
+#                           CUE_high_gt_low +
+#                           (CUE_high_gt_low |sub), data = df_filter, 
+#                          control = lmerControl(optimizer = "nmkbw")
+#                     )
 summary(model.SIIPScuestim)
+# anova(model.SIIPScuestim_cue, model.SIIPScuestim)
 sjPlot::tab_model(model.SIIPScuestim,
                   title = "Multilevel-modeling: \nlmer(SIIPS ~ CUE * STIM + (CUE + STIM | sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
-
+equatiomatic::extract_eq(model.SIIPScuestim)
 ```
 
 
@@ -589,7 +599,7 @@ model.SIIPSses <- lmer(SIIPS ~
                           CUE_high_gt_low*STIM_quadratic*SES_linear +
                           CUE_high_gt_low*STIM_linear*SES_quadratic +
                           CUE_high_gt_low*STIM_quadratic*SES_quadratic +
-                          (CUE_high_gt_low  + STIM_quadratic  |
+                          (CUE_high_gt_low + STIM_quadratic  |
          sub), data = df_filter_ses,
          control = lmerControl(optimizer = "nmkbw"
                                ))
@@ -603,6 +613,7 @@ summary(model.SIIPSses)
 sjPlot::tab_model(model.SIIPSses,
                   title = "Multilevel-modeling: \nlmer(SIIPS ~ CUE * STIM * SES + (CUE + STIM + SES| sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
+equatiomatic::extract_eq(model.SIIPSses)
 ```
 > Using nmkbw optimizer, we model the cue x stimulus intensity x session interaction to test for cue effects as a function of time. random slopes of cue, stimulus intensity were modeled using orthogonal contrast codes. Cue effects on SIIPS are significant (b =  56.653, SE = 13.069, t(238.150) = 4.335, CI = [31.03 – 82.28], p < .001), where higher cues lead to lower SIIPS values. Stimulus intensity effects are significant; higher temperature leads to greater SIIPS response (b =  103.18, SE = 0.15, CI=[72.20 – 134.16] t(4642.174   ) = 6.529, p < .001). Lastly, a session by cue by stimulu effect was signficiant, (b = 135.00, SE = 66.450 t(4642.174) = 2.032, CI = [4.73 – 265.27],  p < .05) 0.0423 indicating that the cue by stimulus interaction becomes pronounced across time
 
@@ -715,15 +726,15 @@ dv <- "SIIPS"
     data$cue_name[data$cue == "high_cue"] <- "high cue"
     data$cue_name[data$cue == "low_cue"] <- "low cue"
 
-    data$stim_name[data$stimulusintensity == "high_stim"] <- "high"
-    data$stim_name[data$stimulusintensity == "med_stim"] <- "med"
-    data$stim_name[data$stimulusintensity == "low_stim"] <- "low"
+    data$stim_name[data$stimulusintensity == "high_stim"] <- "High"
+    data$stim_name[data$stimulusintensity == "med_stim"] <- "Med"
+    data$stim_name[data$stimulusintensity == "low_stim"] <- "Low"
 
     # DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
 
     data$stim_ordered <- factor(
         data$stim_name,
-        levels = c("low", "med", "high")
+        levels = c("Low", "Med", "High")
     )
     data$cue_ordered <- factor(
         data$cue_name,
@@ -761,7 +772,7 @@ dv <- "SIIPS"
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
-        color <- c("#4C77ED", "#ED220D"
+        color <- c("#4C77ED", "#ED220D")}
     plot_savefname <- file.path(
         analysis_dir,
         paste("raincloud_task-", taskname,
@@ -776,7 +787,7 @@ dv <- "SIIPS"
         ggtitle, title, xlab, ylab, taskname,ylim,
         w, h, dv_keyword, color, plot_savefname
     )
-print(g)
+# print(g)
 }
 ```
 
@@ -809,6 +820,51 @@ ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bo
 plot_filename = file.path(analysis_dir,
                           paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
 ggsave(plot_filename, width = 8, height = 4)
+```
+
+```{r}
+  DATA = as.data.frame(combined_se_calc_cooksd)
+  color <- c("#4C77ED", "#ED220D")
+  model_iv1 <- "stim_ordered"
+  model_iv2 <- "ses_ordered"
+  LINEIV1 <- "stim_ordered"
+  LINEIV2 <- "cue_ordered"
+  MEAN <- "mean_per_sub_norm_mean"
+  ERROR <- "se"
+  dv_keyword <- "SIIPS"
+  line_thickness <- 0.2
+  ylim <- c(420,700)
+  p1 <- plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-01" , ], taskname,
+                               LINEIV1, LINEIV2, MEAN, ERROR, color, 
+                               ggtitle = 'Visit 1', ylab = "Outcome rating", 
+                               ylim=ylim)
+  p1 <- p1 + theme(
+  aspect.ratio = 1, # Adjust this as needed
+  axis.line = element_line(size = line_thickness)
+)
+  p2 = plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-03", ], taskname,
+                               LINEIV1, LINEIV2, MEAN, ERROR, color,
+                               ggtitle = 'Visit 2', ylab = "Outcome rating", 
+                               ylim=ylim)
+    p2 <- p2 + theme(
+  aspect.ratio = 1, # Adjust this as needed
+  axis.line = element_line(size = line_thickness)
+)
+  p3 = plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-04", ], taskname,
+                               LINEIV1, LINEIV2, MEAN,ERROR, color,
+                               ggtitle = 'Visit 3', ylab = "Outcome rating", 
+                               ylim=ylim)
+    p3 <- p3 + theme(
+  aspect.ratio = 1, # Adjust this as needed
+  axis.line = element_line(size = line_thickness)
+)
+  arranged_plot <- ggpubr::ggarrange(
+    p1, p2, p3, ncol = 3, nrow = 1, common.legend = TRUE, legend = "bottom"
+  )
+  print(arranged_plot)
+  plot_filename = file.path(analysis_dir,
+  paste('lineplot_task-all_rating-', dv_keyword,taskname, '.svg', sep = ""))
+  ggsave(plot_filename, arranged_plot, width = 8, height = 4, dpi=300)
 ```
 
 ---

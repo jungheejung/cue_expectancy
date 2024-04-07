@@ -11,7 +11,7 @@ library(car)
 library(psych)
 library(reshape)
 library(plyr); library(dplyr)
-library(tidyselect)
+# library(tidyselect)
 library(tidyr)
 library(stringr)
 library(lme4)
@@ -254,6 +254,7 @@ model.betases <- lmer(beta ~
                           CUE_high_gt_low*STIM_quadratic*SES_quadratic +
                           (1|sub), data = beta_long
                     )
+summary(model.betases)
 # CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.betases,
                   title = "Multilevel-modeling: \nlmer(beta ~ CUE * STIM * SES + (1| sub), data = pvc)",
