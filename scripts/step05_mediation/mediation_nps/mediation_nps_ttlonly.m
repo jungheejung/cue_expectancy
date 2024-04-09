@@ -1,16 +1,16 @@
-% load NPS value
+% load NPSpos value
 main_dir = '/Volumes/spacetop_projects_cue';
-% % /Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampupdown/signature-NPS_sub-all_runtype-pvc_event-stimulus.tsv
-% NPSdf = readtable(fullfile(main_dir, 'analysis/fmri/nilearn/deriv01_signature/rampup_plateau/signature-NPS_sub-all_runtype-pvc_event-stimulus.tsv'),...
+% % /Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampupdown/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv
+% NPSposdf = readtable(fullfile(main_dir, 'analysis/fmri/nilearn/deriv01_signature/rampup_plateau/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv'),...
 %     'FileType', 'text', 'Delimiter', ',');
 
-NPSdf = readtable(fullfile('/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampupdown/signature-NPS_sub-all_runtype-pvc_event-stimulus.tsv'),...
+NPSposdf = readtable(fullfile('/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/TTL2/signature-NPSpos_sub-all_runtype-pvc_event-stimulus.tsv'),...
     'FileType', 'text', 'Delimiter', ',');
 % load behavioral value
 behdf = readtable(fullfile('/Users/h/Documents/projects_local/cue_expectancy','data/beh/sub-all_task-all_epoch-stim_events.tsv'), ...
     'FileType', 'text', 'Delimiter', '\t');
 % calculate intersection
-mergedf = innerjoin(NPSdf, behdf, 'Keys', 'singletrial_fname');
+mergedf = innerjoin(NPSposdf, behdf, 'Keys', 'singletrial_fname');
 
 % trim based on value and remove if na
 
@@ -46,15 +46,15 @@ end
 %% remove NAN
 paindf_clean_Y = remove_missing_behvalues(paindf, 'outcomerating');
 paindf_clean_X = remove_missing_behvalues(paindf_clean_Y, 'expectrating');
-paindf_clean = remove_missing_behvalues(paindf_clean_X, 'NPS');
+paindf_clean = remove_missing_behvalues(paindf_clean_X, 'NPSpos');
 % paindf_clean.stimulusintensity(index)
 % sublist is the list of unique values in mergedf.sub
 sub_list = unique(paindf_clean.sub);
-%% expect -> NPS -> outcome
+%% expect -> NPSpos -> outcome
 for i= 1:1:length(sub_list)
     index = strcmpi(paindf_clean.sub, sub_list(i));
     model1_X{i} = paindf_clean.expectrating(index); %df.cue(index);  %
-    model1_M{i} = paindf_clean.NPS(index); 
+    model1_M{i} = paindf_clean.NPSpos(index); 
     model1_Y{i} = paindf_clean.outcomerating(index); 
     cov_mediation_paincue{i} = [ paindf_clean.stim_con(index)];% paindf_clean.cue_con(index)];
 end
@@ -104,18 +104,18 @@ meany = cellfun(@nanmean, model1_Ytrimmed)';
 meanm = cellfun(@nanmean, model1_Mtrimmed)';
 partialr = partialcorr([meanx meany meanm]);
 
-t = array2table(partialr, 'VariableNames', {'Expect' 'Pain' 'NPS'});
+t = array2table(partialr, 'VariableNames', {'Expect' 'Pain' 'NPSpos'});
 
 
 moderator = scale(meanm, 1); 
 
 [paths_M_tolerance, stats_M_tolerance] = mediation(model1_Xtrimmed, model1_Ytrimmed, model1_Mtrimmed, ...
     'covs', cov_mediation_paincue_trimmed ,  'boot', 'verbose','plots', ...
-    'names', {'Pain_Expectation' 'Outcome rating', 'NPS' },'bootsamples', 10000);
+    'names', {'Pain_Expectation' 'Outcome rating', 'NPSpos' },'bootsamples', 10000);
 
 [paths_M_tolerance, stats_M_tolerance] = mediation(model1_Xtrimmed, model1_Ytrimmed, model1_Mtrimmed, ...
     'covs', cov_mediation_paincue_trimmed ,  'boot', 'verbose','plots', ...
-    'names', {'Pain_Expectation' 'Outcome rating', 'NPS' },'L2M', moderator, 'bootsamples', 10000);
+    'names', {'Pain_Expectation' 'Outcome rating', 'NPSpos' },'L2M', moderator, 'bootsamples', 10000);
 
 %% check:
 % Obtain lengths of each trimmed variable
@@ -188,33 +188,33 @@ create_figure('Expectation vs. Pain');
   ylabel('Pain, Quintiles')
 
 
-create_figure('NPS vs. Pain');
+create_figure('NPSpos vs. Pain');
   set(gca, 'FontSize', 20);
   han = line_plot_multisubject(model1_M, model1_Y, 'n_bins', 5);
-  title('NPS vs. Pain');
+  title('NPSpos vs. Pain');
   xlabel('Deciles of fitted response');
 
   figure; plot_correlation_samefig(meanm, meany, [], 'ko');
-  xlabel('NPS, Quintiles')
+  xlabel('NPSpos, Quintiles')
   ylabel('Pain, Quintiles')
 
 
-create_figure('Expectation vs. NPS');
+create_figure('Expectation vs. NPSpos');
   set(gca, 'FontSize', 20);
   han = line_plot_multisubject(model1_X, model1_M, 'n_bins', 5);
-  title('Expectation vs. NPS');
+  title('Expectation vs. NPSpos');
   xlabel('Deciles of fitted response');
 
   figure; plot_correlation_samefig(meanx, meanm, [], 'ko');
   xlabel('Expectation, Quintiles')
-  ylabel('NPS, Quintiles')
+  ylabel('NPSpos, Quintiles')
 
     
 
 
-% partial correlations between expectancy, pain and NPS
+% partial correlations between expectancy, pain and NPSpos
 partialr = partialcorr([meanx meany meanm]);
 
-t = array2table(partialr, 'VariableNames', {'Expect' 'Pain' 'NPS'});
+t = array2table(partialr, 'VariableNames', {'Expect' 'Pain' 'NPSpos'});
 t
 
