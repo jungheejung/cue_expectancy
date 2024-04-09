@@ -300,8 +300,8 @@ ggsave(p2.save_fname, plot = r)
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 combined_se_calc_cooksd <- data.frame()
 model_summaries <- list()
-
-for (taskname in c("pain", "vicarious", "cognitive")) {
+# , "vicarious", "cognitive")
+for (taskname in c("pain")) {
 
 
 # 1. data parameters ___________________________________________________________
@@ -543,6 +543,43 @@ ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bo
 # plot_filename = file.path(analysis_dir,                        paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
 # ggsave(plot_filename, width = 8, height = 4)
 ```
+```{r}
+
+DATA = as.data.frame(combined_se_calc_cooksd)
+  color <- c("#3E61EC", "#FF0000")
+  model_iv1 <- "stim_ordered"
+  model_iv2 <- "ses_ordered"
+  LINEIV1 <- "stim_ordered"
+  LINEIV2 <- "cue_ordered"
+  MEAN <- "mean_per_sub_norm_mean"
+  ERROR <- "se"
+  dv_keyword <- "outcomerating"
+  line_thickness <- 0.2
+  p1 <- plot_lineplot_twofactor_subset(DATA, "pain",
+                               LINEIV1, LINEIV2, MEAN, ERROR, color, 
+                               ggtitle = 'Pain', ylab = "Outcome rating", 
+                               ylim=c(40, 90))
+  p1 <-p1 + theme(
+          text = element_text(size = 18), # Default text size for the plot
+          axis.title = element_text(size = 22, ), # Axis titles
+          axis.text = element_text(size = 15), # Axis text (x and y)
+          plot.title = element_text(size = 24, hjust = 0.5), # Plot title
+            aspect.ratio = 1 # Adjust this as needed
+
+          ) +geom_point(size = 2)
+
+# 
+
+#   print(arranged_plot)
+  plot_filename = file.path(analysis_dir,
+  paste('lineplot_task-all_rating-', dv_keyword,taskname, '.svg', sep = ""))
+
+p1
+
+  ggsave(plot_filename, p1, width = 8, height = 4, dpi=300)
+
+
+```
 
 
 ### Cue X Stim lmer
@@ -552,10 +589,45 @@ fullmodel <-
   lmer(
     outcomerating ~ CUE_high_gt_low * STIM_linear + 
       CUE_high_gt_low * STIM_quadratic + 
-      (CUE_high_gt_low * STIM_quadratic| sub),
-    data = beh
-   
+      (CUE_high_gt_low + STIM_linear| sub),
+    data = beh[beh$runtype == "pain",],
+    control = lmerControl(
+      optimizer = "nloptwrap",
+      optCtrl = list(
+        algorithm = "NLOPT_LN_BOBYQA",
+        maxfun = 1e9,
+        maxeval = 1e7,
+        xtol_abs = 1e-9,
+        ftol_abs = 1e-9
+      )
+    )
   )
+model_summary <- summary(fullmodel)
+model_summaries[[taskname]] <- summary(fullmodel)
+print(paste0("-------------", taskname, "-------------"))
+print(model_summary)
+sjPlot::tab_model(fullmodel,
+              title = paste0(tools::toTitleCase(taskname), ": \nlmer(beh ~ Stim * Cue + (Cue + Stim | sub), data = beh)"),
+              CSS = list(css.table = '+font-size: 12;'))
+```
+```{r}
+# outcome_groupwise[outcome_groupwise$cue_ordered == "high cue", outcome_groupwise$mean_per_sub_norm_mean]
+
+model_iv1 <- "stim_ordered"
+model_iv2 <- "cue_ordered"
+
+
+# 5. summary statistics ____________________________________________________
+outcome_CUEsubjectwise <- meanSummary(
+    beh,
+    c(subject, model_iv2), dv
+)
+outcome_CUEgroupwise <- summarySEwithin(
+    data = outcome_CUEsubjectwise,
+    measurevar = "mean_per_sub",
+    withinvars = c(model_iv2), idvar = subject
+)
+outcome_CUEgroupwise
 ```
 
 
@@ -718,14 +790,14 @@ data.ses <- data.ses %>% filter(!is.na(outcomerating))
   data.ses$cue_name[data.ses$cue == "high_cue"] <- "high cue"
   data.ses$cue_name[data.ses$cue == "low_cue"] <- "low cue"
   #
-  data.ses$stim_name[data.ses$stimulusintensity == "high_stim"] <- "high"
-  data.ses$stim_name[data.ses$stimulusintensity == "med_stim"] <- "med"
-  data.ses$stim_name[data.ses$stimulusintensity == "low_stim"] <- "low"
+  data.ses$stim_name[data.ses$stimulusintensity == "high_stim"] <- "High"
+  data.ses$stim_name[data.ses$stimulusintensity == "med_stim"] <- "Med"
+  data.ses$stim_name[data.ses$stimulusintensity == "low_stim"] <- "Low"
 
 
   data.ses$stim_ordered <- factor(
       data.ses$stim_name,
-      levels = c("low", "med", "high")
+      levels = c("Low", "Med", "High")
   )
   data.ses$cue_ordered <- factor(
       data.ses$cue_name,
@@ -758,7 +830,7 @@ subject <- "sub"
   title <- paste(str_to_title(taskname), " - cue level")
   xlab <- "Stimulus intensity"
   ylab <- "Outcome rating (a.u.)"
-  ylim <- c(-10,60)
+  ylim <- c(-10,150)
   dv_keyword <- "outcome"
   if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
       color <- c("#1B9E77", "#D95F02")
@@ -783,8 +855,28 @@ print(g)
 }
 }
 ```
-
-
+## lmer
+```{r}
+model.ses <- lmer(outcomerating ~
+                        CUE_high_gt_low*STIM_linear*SES_linear +
+                        CUE_high_gt_low*STIM_quadratic*SES_linear +
+                        CUE_high_gt_low*STIM_linear*SES_quadratic +
+                        CUE_high_gt_low*STIM_quadratic*SES_quadratic +
+                        (CUE_high_gt_low+STIM_linear+SES_quadratic|sub), data = beh[beh$runtype =="pain",]
+                  )
+# model.betases <- lmer(beta ~
+#                           CUE_high_gt_low*STIM_linear*SES_linear +
+#                           CUE_high_gt_low*STIM_quadratic*SES_linear +
+#                           CUE_high_gt_low*STIM_linear*SES_quadratic +
+#                           CUE_high_gt_low*STIM_quadratic*SES_quadratic +
+#                           (1|sub), data = beta_long
+#                     )
+summary(model.ses)
+# CUE_high_gt_low+STIM+EXPECT_demean
+sjPlot::tab_model(model.ses,
+                  title = "Multilevel-modeling: \nlmer(beta ~ CUE * STIM * SES + (1| sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+```
 
 #### session wise line plots {.unlisted .unnumbered}
 
@@ -799,25 +891,41 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
   model_iv2 <- "ses_ordered"
   LINEIV1 <- "stim_ordered"
   LINEIV2 <- "cue_ordered"
-  MEAN = "mean_per_sub_norm_mean"
-  ERROR = "se"
-  dv_keyword = "outcomerating"
-  p1 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-01" , ],
+  MEAN <- "mean_per_sub_norm_mean"
+  ERROR <- "se"
+  dv_keyword <- "outcomerating"
+  line_thickness <- 0.2
+  p1 <- plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-01" , ], taskname,
                                LINEIV1, LINEIV2, MEAN, ERROR, color, 
-                               ggtitle = 'ses-01', ylab = "Outcome rating")
-  p2 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-03", ],
+                               ggtitle = 'Visit 1', ylab = "Outcome rating", 
+                               ylim=c(40, 90))
+  p1 <- p1 + theme(
+  aspect.ratio = 1, # Adjust this as needed
+  axis.line = element_line(size = line_thickness)
+)
+  p2 = plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-03", ], taskname,
                                LINEIV1, LINEIV2, MEAN, ERROR, color,
-                               ggtitle = 'ses-03', ylab = "Outcome rating")
-  p3 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-04", ],
+                               ggtitle = 'Visit 2', ylab = "Outcome rating", 
+                               ylim=c(40, 90))
+    p2 <- p2 + theme(
+  aspect.ratio = 1, # Adjust this as needed
+  axis.line = element_line(size = line_thickness)
+)
+  p3 = plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-04", ], taskname,
                                LINEIV1, LINEIV2, MEAN,ERROR, color,
-                               ggtitle = 'ses-04', ylab = "Outcome rating")
+                               ggtitle = 'Visit 3', ylab = "Outcome rating", 
+                               ylim=c(40, 90))
+    p3 <- p3 + theme(
+  aspect.ratio = 1, # Adjust this as needed
+  axis.line = element_line(size = line_thickness)
+)
   arranged_plot <- ggpubr::ggarrange(
     p1, p2, p3, ncol = 3, nrow = 1, common.legend = TRUE, legend = "bottom"
   )
   print(arranged_plot)
-  # plot_filename = file.path(analysis_dir,
-                            # paste('lineplot_task-all_rating-', dv_keyword, '.png', sep = ""))
-  # ggsave(plot_filename, arranged_plot, width = 8, height = 4)
+  plot_filename = file.path(analysis_dir,
+  paste('lineplot_task-all_rating-', dv_keyword,taskname, '.svg', sep = ""))
+  ggsave(plot_filename, arranged_plot, width = 8, height = 4, dpi=300)
 }
 ```
 
