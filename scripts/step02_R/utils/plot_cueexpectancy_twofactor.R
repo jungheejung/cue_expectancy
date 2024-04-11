@@ -61,14 +61,19 @@
 #'
 #' ![Example Plot](https://github.com/jungheejung/cueR/blob/main/man/figures/example_plot_cueexpectancy_twofactor.png)
 #' @export
-#' 
-#' 
 
 plot_cueexpectancy_twofactor <- function(
     subjectwise, groupwise, model_iv1, model_iv2,
     sub_mean, group_mean, se, subject,
     ggtitle, title, xlab, ylab, taskname, ylim,
     w, h, dv_keyword, color, plot_savefname,
+    font_sizes = list(
+      axis_text = 12,
+      axis_title = 14,
+      plot_title = 16,
+      legend_text = 12,
+      legend_title = 14
+    ),
     expand_x = TRUE,
     xlim = c(NA, 3),
     x_scale_expansion = c(0, 0.5),
@@ -104,7 +109,14 @@ plot_cueexpectancy_twofactor <- function(
   g <- ggplot_largetext(g)
   
   # Create the legend data frame
-  
+  g <- g + theme(
+    text = element_text(size = font_sizes$base_text),
+    axis.text = element_text(size = font_sizes$axis_text),
+    axis.title = element_text(size = font_sizes$axis_title),
+    plot.title = element_text(size = font_sizes$plot_title, hjust = 0.5),
+    legend.text = element_text(size = font_sizes$legend_text),
+    legend.title = element_text(size = font_sizes$legend_title)
+  )
   
   # Use grid.arrange to put them together
   combined_plot <- ggplot_prettifylegend(

@@ -128,9 +128,9 @@ plot_halfrainclouds_twofactor <- function(subjectwise, groupwise,
             plot.subtitle = ggtext::element_textbox_simple(size= 11))
 
     if (!is.null(ylim)) {
-        g + ylim(ylim)
+        g <- g + ylim(ylim)
     } else {
-        g
+        g <- g
     }
     #ggsave(save_fname, width = w, height = h)
     return(g)

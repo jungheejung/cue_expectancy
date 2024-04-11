@@ -157,15 +157,15 @@ for i = 1:length(pain_bf.dat)
     end
 end
 montage(domaingeneral)
-domaingeneral_pos = fmri_data(domaingeneral)
-domaingeneral_pos.fullpath = fullfile(save_bayesdir, 'domaingeneral_stimepoch_tmap.nii') 
-domaingeneral_pos.write('overwrite')
+domaingeneral_pos = fmri_data(domaingeneral);
+domaingeneral_pos.fullpath = fullfile(save_bayesdir, 'domaingeneral_stimepoch_tmap.nii') ;
+domaingeneral_pos.write('overwrite');
 
 
 % 2-2. Bayes map of domain specific "Pain" ________________________________________
 domainpain = pain_bf;
-thres=3
-nondomain_thres = 0.3
+thres =3.22 ;
+nondomain_thres = 1/3.22;
 
 for i = 1:length(pain_bf.dat)
     if pain_bf.dat(i) > thres &&  vic_bf.dat(i) < nondomain_thres && cog_bf.dat(i) < nondomain_thres % && pain_t.dat(i) > 0 && vic_t.dat(i) == 0 && cog_t.dat(i) == 0 
@@ -176,23 +176,23 @@ for i = 1:length(pain_bf.dat)
     end
 end
 montage(domainpain)
-domainP_obj = fmri_data(domainpain)
-domainP_obj.fullpath = fullfile(save_bayesdir, 'domainspecific_pain_stimepoch_BFmask.nii')
-domainP_obj.write('overwrite')
+domainP_obj = fmri_data(domainpain);
+domainP_obj.fullpath = fullfile(save_bayesdir, 'domainspecific_pain_stimepoch_BFmask.nii');
+domainP_obj.write('overwrite');
 
 
-pain_thresholdBF = domainP_obj
-pain_thresholdBF.dat = domainP_obj.dat.*pain_t.dat
+pain_thresholdBF = domainP_obj;
+pain_thresholdBF.dat = domainP_obj.dat.*pain_t.dat;
 
-pain_thresholdBF.fullpath = fullfile(save_bayesdir, 'domainspecific_pain_stimepoch_tmap.nii')
+pain_thresholdBF.fullpath = fullfile(save_bayesdir, 'domainspecific_pain_stimepoch_tmap.nii');
 pain_thresholdBF.write('overwrite')
 
 
 % 2-2. Bayes map of domain specific "Vicarious" ________________________________
 close all
 domainV = pain_bf;
-thres=3
-nondomain_thres = 0.3
+thres=3.2; %4.6 Ke; 2.3 Bayes of Factor 5:1
+nondomain_thres = 0.3;
 
 for i = 1:length(pain_bf.dat)
     if pain_bf.dat(i) < nondomain_thres &&  vic_bf.dat(i) > thres && cog_bf.dat(i) < nondomain_thres % && pain_t.dat(i) > 0 && vic_t.dat(i) == 0 && cog_t.dat(i) == 0 
@@ -203,8 +203,8 @@ for i = 1:length(pain_bf.dat)
     end
 end
 montage(domainV)
-domainV_obj = fmri_data(domainV)
-domainV_obj.fullpath = fullfile(save_bayesdir, 'domainspecific_vic_stimepoch_BFmask.nii')
+domainV_obj = fmri_data(domainV);
+domainV_obj.fullpath = fullfile(save_bayesdir, 'domainspecific_vic_stimepoch_BFmask.nii');
 domainV_obj.write('overwrite')
 
 vic_thresholdBF = domainV_obj

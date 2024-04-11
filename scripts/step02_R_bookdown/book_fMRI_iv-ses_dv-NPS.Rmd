@@ -16,7 +16,7 @@ library(tidyverse)
 library(psych)
 library(reshape)
 library(dplyr)
-library(tidyselect)
+# library(tidyselect)
 library(tidyr)
 library(stringr)
 library(lmerTest)
@@ -25,7 +25,7 @@ library(plyr)
 library(ggpubr)
 library(r2mlm)
 library(effectsize)
-library(devtools)
+# library(devtools)
 options(es.use_symbols = TRUE) # get nice symbols when printing! (On Windows, requires R >= 4.2.0)
 library(EMAtools)
 library(emmeans)
@@ -123,7 +123,7 @@ print(sprintf("after filtering out subjects that have less than 3 trials in cell
 ```
 
 
-## QC. check NPS distribution
+  ## QC. check NPS distribution
 ```{r}
 df_filter.NA <- df_filter %>% filter(!is.na(NPS))  # Remove NA values
 head(df_filter.NA)
@@ -282,16 +282,16 @@ df_filter$cue_name[df_filter$cue == "low_cue"] <-
   "low cue"
 
 df_filter$stim_name[df_filter$stimulusintensity == "high_stim"] <-
-  "high"
+  "High"
 df_filter$stim_name[df_filter$stimulusintensity == "med_stim"] <-
-  "med"
+  "Med"
 df_filter$stim_name[df_filter$stimulusintensity == "low_stim"] <-
-  "low"
+  "Low"
 
 # DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
 
 df_filter$stim_ordered <- factor(df_filter$stim_name,
-                                   levels = c("low", "med", "high"))
+                                   levels = c("Low", "Med", "High"))
 df_filter$cue_ordered <- factor(df_filter$cue_name,
                                   levels = c("low cue", "high cue"))
 model_iv1 <- "stim_ordered"
@@ -373,20 +373,29 @@ g + theme(aspect.ratio=.8)
 ### Lineplots {.unlisted .unnumbered}
 
 ```{r echo=FALSE, warning=FALSE}
-g <- plot_lineplot_twofactor(NPSstimcue_groupwise,# taskname = "pain",
+g <- plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = "#4C77ED","high cue" = "#D73027"), 
-                        ggtitle = "NPS dotproducts as a function of stimulus intensity level and cue",
-                        xlab = "Stimulus intensity", ylab = "NPS (dot product)")
-g + theme(aspect.ratio=.8,
+                        color = c("low cue" = "#3E61EC","high cue" = "#FF0000"), 
+                        ggtitle = "",
+                        xlab = "Stimulus intensity", ylab = "NPS")
+g <- g + theme(aspect.ratio=1,
           text = element_text(size = 18), # Default text size for the plot
-          axis.title = element_text(size = 24, ), # Axis titles
-          axis.text = element_text(size = 18), # Axis text (x and y)
+          axis.title = element_text(size = 22, ), # Axis titles
+          axis.text = element_text(size = 15), # Axis text (x and y)
           plot.title = element_text(size = 24, hjust = 0.5) # Plot title
           ) +
-  geom_line(size = 1) + # Adjust line thickness
-  geom_point(size = 3)  # Adjust point size
+  # geom_line(size = 1) + # Adjust line thickness
+  geom_point(size = 2)  # Adjust point size
+  
+
+#   print(arranged_plot)
+  plot_filename = file.path(analysis_dir,
+  paste('lineplot_task-all_rating-', dv_keyword,taskname, '.svg', sep = ""))
+
+g
+
+  ggsave(plot_filename, g, width = 8, height = 4, dpi=300)
   
 ```
 
@@ -396,9 +405,9 @@ g + theme(aspect.ratio=.8,
 g <- plot_lineplot_twofactor(NPSstimcue_groupwise,
                         iv2 = "stim_ordered", iv1 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("high" = "red",
-                                  "med" = "orange",
-                                  "low" = "yellow"),
+                        color = c("high" = "#9100C6",
+                                  "med" = "#FF2519",
+                                  "low" = "#FFBB00"),
                         ggtitle = "Within pain task: NPS dotproducts as a function of stimulus intensity level and cue",
                         xlab = "Stimulus intensity", ylab = "NPS (dot product)")
 g + theme(aspect.ratio=.8)
@@ -690,15 +699,15 @@ dv <- "NPS"
     data$cue_name[data$cue == "high_cue"] <- "high cue"
     data$cue_name[data$cue == "low_cue"] <- "low cue"
 
-    data$stim_name[data$stimulusintensity == "high_stim"] <- "high"
-    data$stim_name[data$stimulusintensity == "med_stim"] <- "med"
-    data$stim_name[data$stimulusintensity == "low_stim"] <- "low"
+    data$stim_name[data$stimulusintensity == "high_stim"] <- "High"
+    data$stim_name[data$stimulusintensity == "med_stim"] <- "Med"
+    data$stim_name[data$stimulusintensity == "low_stim"] <- "Low"
 
     # DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
 
     data$stim_ordered <- factor(
         data$stim_name,
-        levels = c("low", "med", "high")
+        levels = c("Low", "Med", "High")
     )
     data$cue_ordered <- factor(
         data$cue_name,
@@ -785,6 +794,54 @@ ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bo
 plot_filename = file.path(analysis_dir,
                           paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
 ggsave(plot_filename, width = 8, height = 4)
+
+
+
+```
+
+```{r}
+  DATA = as.data.frame(combined_se_calc_cooksd)
+  color <- c("#4C77ED", "#ED220D")
+  model_iv1 <- "stim_ordered"
+  model_iv2 <- "ses_ordered"
+  LINEIV1 <- "stim_ordered"
+  LINEIV2 <- "cue_ordered"
+  MEAN <- "mean_per_sub_norm_mean"
+  ERROR <- "se"
+  dv_keyword <- "NPS"
+  line_thickness <- 0.2
+  ylim <- c(4.5, 7.5)
+  p1 <- plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-01" , ], taskname,
+                               LINEIV1, LINEIV2, MEAN, ERROR, color, 
+                               ggtitle = 'Visit 1', ylab = "Outcome rating", 
+                               ylim=ylim)
+  p1 <- p1 + theme(
+  aspect.ratio = 1, # Adjust this as needed
+  axis.line = element_line(size = line_thickness)
+)
+  p2 = plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-03", ], taskname,
+                               LINEIV1, LINEIV2, MEAN, ERROR, color,
+                               ggtitle = 'Visit 2', ylab = "Outcome rating", 
+                               ylim=ylim)
+    p2 <- p2 + theme(
+  aspect.ratio = 1, # Adjust this as needed
+  axis.line = element_line(size = line_thickness)
+)
+  p3 = plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-04", ], taskname,
+                               LINEIV1, LINEIV2, MEAN,ERROR, color,
+                               ggtitle = 'Visit 3', ylab = "Outcome rating", 
+                               ylim=ylim)
+    p3 <- p3 + theme(
+  aspect.ratio = 1, # Adjust this as needed
+  axis.line = element_line(size = line_thickness)
+)
+  arranged_plot <- ggpubr::ggarrange(
+    p1, p2, p3, ncol = 3, nrow = 1, common.legend = TRUE, legend = "bottom"
+  )
+  print(arranged_plot)
+  plot_filename = file.path(analysis_dir,
+  paste('lineplot_task-all_rating-', dv_keyword,taskname, '.svg', sep = ""))
+  ggsave(plot_filename, arranged_plot, width = 8, height = 4, dpi=300)
 ```
 
 ---
