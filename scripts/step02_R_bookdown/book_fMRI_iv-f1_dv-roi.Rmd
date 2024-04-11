@@ -13,7 +13,6 @@ library(tidyverse)
 library(psych)
 library(reshape)
 library(dplyr)
-library(tidyselect)
 library(tidyr)
 library(stringr)
 library(lmerTest)
@@ -22,7 +21,7 @@ library(plyr)
 library(ggpubr)
 library(r2mlm)
 library(effectsize)
-library(devtools)
+# library(devtools)
 options(es.use_symbols = TRUE) # get nice symbols when printing! (On Windows, requires R >= 4.2.0)
 library(EMAtools)
 library(emmeans)
@@ -48,14 +47,14 @@ sapply(file.sources,source,.GlobalEnv)
 
 ```
 
-## load data {.unlisted .unnumbered}
+## f1score {.unlisted .unnumbered}
 ```{r}
-data_dir = "/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv06_NPSdecoding"
+data_dir = "/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv04_NPSdecoding"
 # load data ____________________________________________________________________
-low_fname <- file.path(data_dir, "roi-dACC_cue-low.tsv")
+low_fname <- file.path(data_dir, "roi-npspos_dACC_cue-low_f1score.tsv") #roi-npspos_dACC_cue-high_cue
 lowdf <- readr::read_tsv(low_fname)
 lowdf$cue <- "low cue"
-high_fname <- file.path(data_dir, "roi-dACC_cue-high.tsv")
+high_fname <- file.path(data_dir, "roi-npspos_dACC_cue-high_f1score.tsv") 
 highdf <- readr::read_tsv(high_fname)
 highdf$cue <- "high cue"
 df <- rbind(lowdf, highdf)
@@ -64,10 +63,10 @@ df <- rbind(lowdf, highdf)
 # pivot wide to long ___________________________________________________________
 df_long <- pivot_longer(
   data = df, 
-  cols = c(F1_Class_high, F1_Class_med, F1_Class_low), 
+  cols = c(F1_high, F1_med, F1_low), 
   names_to = "stim", 
   values_to = "f1_value",
-  names_prefix = "F1_Class_"
+  names_prefix = "F1_"
 )
 
 # Adjust the stim levels from the column names to meaningful labels if necessary
@@ -104,6 +103,73 @@ g <- plot_lineplot_twofactor(f1_groupwise,# taskname = "pain",
                         color = c("low cue" = "#3E61EC","high cue" = "#FF0000"), 
                         ggtitle = "Decoding dACC",
                         xlab = "Stimulus intensity", ylab = "f1 score")
+g + theme(aspect.ratio=.8,
+          text = element_text(size = 18), # Default text size for the plot
+          axis.title = element_text(size = 24, ), # Axis titles
+          axis.text = element_text(size = 18), # Axis text (x and y)
+          plot.title = element_text(size = 24, hjust = 0.5) # Plot title
+          ) +
+  geom_line(size = 1) + # Adjust line thickness
+  geom_point(size = 3)  # Adjust point size
+```
+
+
+## accuracy {.unlisted .unnumbered}
+```{r}
+data_dir = "/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv04_NPSdecoding"
+# load data ____________________________________________________________________
+low_fname <- file.path(data_dir, "roi-npspos_dACC_cue-low_accuracy.tsv") #roi-npspos_dACC_cue-high_cue
+lowdf <- readr::read_tsv(low_fname)
+lowdf$cue <- "low cue"
+high_fname <- file.path(data_dir, "roi-npspos_dACC_cue-high_accuracy.tsv") 
+highdf <- readr::read_tsv(high_fname)
+highdf$cue <- "high cue"
+df <- rbind(lowdf, highdf)
+
+
+# pivot wide to long ___________________________________________________________
+df_long <- pivot_longer(
+  data = df, 
+  cols = c(Accuracy_high, Accuracy_med, Accuracy_low), 
+  names_to = "stim", 
+  values_to = "accuracy",
+  names_prefix = "Accuracy_"
+)
+
+# Adjust the stim levels from the column names to meaningful labels if necessary
+df_long$stim <- factor(df_long$stim, levels = c("low", "med", "high"))
+df_long$stim_name[df_long$stim == "high"] <-
+  "High"
+df_long$stim_name[df_long$stim == "med"] <-
+  "Med"
+df_long$stim_name[df_long$stim == "low"] <-
+  "Low"
+
+df_long$stim_ordered <- factor(df_long$stim_name,
+                                   levels = c("Low", "Med", "High"))
+df_long$cue_ordered <- factor(df_long$cue,
+                                  levels = c("low cue", "high cue"))
+#  summary statistics  _________________________________________________________
+subject <- "sub"
+iv1 <- "stim_ordered"
+iv2 <- "cue_ordered"
+dv <- "accuracy"
+acc_subjectwise <- meanSummary(df_long,
+                                      c(subject, iv1, iv2), dv)
+acc_groupwise <- summarySEwithin(
+  data = acc_subjectwise,
+  measurevar = "mean_per_sub",
+  withinvars = c(iv1, iv2),
+  idvar = subject
+)
+
+# plot line plots ______________________________________________________________
+g <- plot_lineplot_twofactor(acc_groupwise,# taskname = "pain",
+                        iv1 = "stim_ordered", iv2 = "cue_ordered",
+                        mean = "mean_per_sub_norm_mean", error = "se",
+                        color = c("low cue" = "#3E61EC","high cue" = "#FF0000"), 
+                        ggtitle = "Decoding dACC",
+                        xlab = "Stimulus intensity", ylab = "Accuracy")
 g + theme(aspect.ratio=.8,
           text = element_text(size = 18), # Default text size for the plot
           axis.title = element_text(size = 24, ), # Axis titles
