@@ -16,7 +16,7 @@ library(tidyverse)
 library(psych)
 library(reshape)
 library(dplyr)
-library(tidyselect)
+
 library(tidyr)
 library(stringr)
 library(lmerTest)
@@ -25,7 +25,7 @@ library(plyr)
 library(ggpubr)
 library(r2mlm)
 library(effectsize)
-library(devtools)
+# library(devtools)
 options(es.use_symbols = TRUE) # get nice symbols when printing! (On Windows, requires R >= 4.2.0)
 library(EMAtools)
 library(emmeans)
@@ -65,54 +65,45 @@ file_paths <- list.files(base_dir, pattern = "extract-NPS_sub-.*\\.csv$", full.n
 
 # Read and stack the CSV files
 all_data <- file_paths %>% 
-  map_dfr(read_csv(.x, show_col_types = FALSE), .id = "file_path")
+  map_dfr(~read_csv(.x, show_col_types = FALSE), .id = "file_path")
 
 # If you want to extract and include the subject ID in the data frame:
 # all_data_with_id <- file_paths %>%
 #   map_dfr(read_csv, .id = "file_path") %>%
 #   mutate(sub_id = str_extract(file_path, "sub-\\d+"))
-all_data_with_id <- file_paths %>%
+canlabnpsdf <- file_paths %>%
   map_dfr(~read_csv(.x, show_col_types = FALSE), .id = "file_path") %>%
   mutate(sub_id = str_extract(file_path, "sub-\\d+"))
-all_data_with_id
+canlabnpsdf
+
+write.csv(canlabnpsdf, "/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv05_canlabapplyNPS/sub-all_runtype-pvc.csv", row.names = FALSE)
 ```
 
-
+# intersect single trials with clean data
 ```{r}
-# beh <- readr::read_tsv(file.path(main_dir, "data/beh/sub-all_task-all_events.tsv"))
-# # load nps tsv
-# beh <- beh %>%
-#   mutate(
-#     sub = str_extract(singletrial_fname, "sub-\\d+"),
-#     ses = str_extract(singletrial_fname, "ses-\\d+"),
-#     run = str_extract(singletrial_fname, "run-\\d+"),
-#     runtype = str_extract(singletrial_fname, "(?<=runtype-)[^_]+"),
-#     trial_index = as.integer(str_extract(singletrial_fname, "(?<=trial-)\\d+")),
-#     cue = str_extract(singletrial_fname, "(?<=cuetype-)[^_.]+")
-#   )
-# nps <- read.csv(file.path("/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau_cueepoch/signature-NPS_sub-all_runtype-pvc_event-cue.tsv"), sep = ",")
-# # intersect
-# 
-# nps <- nps %>%
-#   mutate(
-#     sub = str_extract(singletrial_fname, "sub-\\d+"),
-#     ses = str_extract(singletrial_fname, "ses-\\d+"),
-#     run = str_extract(singletrial_fname, "run-\\d+"),
-#     runtype = str_extract(singletrial_fname, "(?<=runtype-)[^_]+"),
-#     trial_index = as.integer(str_extract(singletrial_fname, "(?<=trial-)\\d+")),
-#     cue = str_extract(singletrial_fname, "(?<=cuetype-)[^.]+")
-#   )
-# # Assuming df1 and df2 are your data frames and 'key_column' is the name of your key column
-# df_merge <- inner_join(beh, nps, by = c("sub", "ses", "run", "runtype", "trial_index", "cue"))
+
+canlabnpsdf <- read.csv( "/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv05_canlabapplyNPS/sub-all_runtype-pvc.csv")
+
+
+nps_df <- read.csv(file.path("/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau/signature-NPS_sub-all_runtype-pvc_event-stimulus.tsv"), sep = ",")
+nps_df <- nps_df %>%
+  mutate(filename_no_ext = tools::file_path_sans_ext(singletrial_fname))
+
+canlabnpsdf$filename_no_ext <- canlabnpsdf$filename
+
+# Now, merge the two data frames based on the new column
+merged_df <- inner_join(nps_df, canlabnpsdf, by = "filename_no_ext")#, all = TRUE) # or use `all.x = TRUE` or `all.y = TRUE` depending on your needs
 
 ```
+
+
 
 ```{r}
 # extract metadata from filename
 library(tidyverse)
 
-df <- all_data_with_id %>%
-  mutate(filename = as.character(filename)) %>%
+df <- merged_df %>%
+  mutate(filename = as.character(filename_no_ext)) %>%
   extract(filename, into = c("sub", "ses", "run", "runtype", "event", "trial", "cuetype", "stimintensity"),
           regex = "^(sub-\\d+)_(ses-\\d+)_(run-\\d+)_runtype-(pain|vicarious|cognitive)_event-(cue|stimulus)_trial-(\\d+)_cuetype-(high|low)(?:_stimintensity-(high|med|low))?\\.nii$",
           remove = FALSE)
@@ -124,32 +115,39 @@ df$stimintensity[df$stimintensity == ""] <- NA
 
 
 ```{r}
-data <-df[df$runtype == "pain" & df$event == "stimulus" ,]
 
+df <- canlabnpsdf %>%
+  mutate(filename = as.character(filename_no_ext)) %>%
+  extract(filename, into = c("sub", "ses", "run", "runtype", "event", "trial", "cuetype", "stimintensity"),
+          regex = "^(sub-\\d+)_(ses-\\d+)_(run-\\d+)_runtype-(pain|vicarious|cognitive)_event-(cue|stimulus)_trial-(\\d+)_cuetype-(high|low)(?:_stimintensity-(high|med|low))?\\.nii$",
+          remove = FALSE)
+data <-df[df$runtype == "pain" & df$event == "stimulus" ,]
+# Adjust the dataframe to handle NA for missing stimintensity, if tidyr version doesn't support `fill`
+data$stimintensity[data$stimintensity == ""] <- NA
 # contrast code ________________________________________________________________
 data$stim <- NA; data$STIM_linear <- NA; data$STIM_quadratic <- NA; 
 data$cue <- NA;
 data$CUE_high_gt_low <- NA;
 data$SES_linear <- NA;data$SES_quadratic <- NA
-# data$stim[data$stimulusintensity == "low_stim"] <-  -0.5 # social influence task
-# data$stim[data$stimulusintensity == "med_stim"] <- 0 # no influence task
-# data$stim[data$stimulusintensity == "high_stim"] <-  0.5 # no influence task
-# 
-# data$STIM <- factor(data$stimulusintensity)
-# 
-# # contrast code 1 linear
-# data$STIM_linear[data$stimulusintensity == "low_stim"] <- -0.5
-# data$STIM_linear[data$stimulusintensity == "med_stim"] <- 0
-# data$STIM_linear[data$stimulusintensity == "high_stim"] <- 0.5
-# 
-# # contrast code 2 quadratic
-# data$STIM_quadratic[data$stimulusintensity == "low_stim"] <- -0.33
-# data$STIM_quadratic[data$stimulusintensity == "med_stim"] <- 0.66
-# data$STIM_quadratic[data$stimulusintensity == "high_stim"] <- -0.33
+data$stim[data$stimintensity == "low"] <-  -0.5 # social influence task
+data$stim[data$stimintensity == "med"] <- 0 # no influence task
+data$stim[data$stimintensity == "high"] <-  0.5 # no influence task
+
+data$STIM <- factor(data$stimintensity)
+
+# contrast code 1 linear
+data$STIM_linear[data$stimintensity == "low"] <- -0.5
+data$STIM_linear[data$stimintensity == "med"] <- 0
+data$STIM_linear[data$stimintensity == "high"] <- 0.5
+
+# contrast code 2 quadratic
+data$STIM_quadratic[data$stimintensity == "low"] <- -0.33
+data$STIM_quadratic[data$stimintensity == "med"] <- 0.66
+data$STIM_quadratic[data$stimintensity == "high"] <- -0.33
 
 # social cude contrast
-data$CUE_high_gt_low[data$cue == "low"] <-  -0.5 # social influence task
-data$CUE_high_gt_low[data$cue == "high"] <-  0.5 # no influence task
+data$CUE_high_gt_low[data$cuetype == "low"] <-  -0.5 # social influence task
+data$CUE_high_gt_low[data$cuetype == "high"] <-  0.5 # no influence task
 
 data$EXPECT <- data$expectrating
 data$OUTCOME <- data$outcomerating
@@ -167,21 +165,21 @@ data$SES_quadratic[data$ses == "ses-04"] <- -0.33
 # stim_con1 <- "STIM_linear"
 # stim_con2 <- "STIM_quadratic"
 iv1 <- "CUE_high_gt_low"
-dv <- "NPS"
-dv_keyword <- "NPS"
+dv <- "nps"
+dv_keyword <- "nps"
 
 # filter data __________________________________________________________________
 # Make sure that each condition cell has adequate amount of trials
 
 subjects_with_inadequate_data <- data %>%
-  group_by(sub, CUE_high_gt_low) %>% #SES_linear, 
+  group_by(sub, CUE_high_gt_low, STIM_linear) %>% #SES_linear, 
   dplyr::summarise(count = n(), .groups = 'drop') %>%
-  filter(count < 5) %>%
+  filter(count < 6) %>%
   distinct(sub) %>%
   pull(sub)
 df_filter <- data %>%
   filter(!(sub %in% subjects_with_inadequate_data))
-
+print(subjects_with_inadequate_data)
 print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(data$sub)), length(unique(df_filter$sub)) ))
 ```
 
@@ -215,76 +213,6 @@ g_plotly
 ```
 
 
-```{r function::summary_for_plots_pvc, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
-summary_for_plots_PVC <- function(df, groupwise_measurevar, subject_keyword, model_iv1, dv) {
-    #  [ PLOT ] calculate mean and se  _________________________
-    subjectwise <- meanSummary(
-        df,
-        c(subject_keyword, model_iv1), dv
-    )
-    groupwise <- summarySEwithin(
-        data = subjectwise,
-        measurevar = groupwise_measurevar,
-        withinvars = c(model_iv1), idvar = subject_keyword
-    )
-
-    return(list(subjectwise,groupwise))
-}
-```
-
-
-```{r function::NPS_lineplot_34, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
-two_factor_lineplot <-
-  function(df, iv1, iv2, mean, error, xlab, ylab) {
-    g <- ggplot(
-      data = df,
-      aes(
-        x = .data[[iv1]],
-        y = .data[[mean]],
-        group = factor(.data[[iv2]]),
-        color = factor(.data[[iv2]])
-      ),
-      cex.lab = 1.5,
-      cex.axis = 2,
-      cex.main = 1.5,
-      cex.sub = 1.5
-    ) +
-      geom_errorbar(aes(
-        ymin = (.data[[mean]] - .data[[error]]),
-        ymax = (.data[[mean]] + .data[[error]])
-      ), width = .1) +
-      geom_line() +
-      geom_point() +
-      ggtitle(ggtitle) +
-      xlab(xlab) +
-      ylab(ylab) +
-      #scale_color_manual(values = color) +
-      theme_classic() +
-
-      theme(aspect.ratio = .6) +
-      expand_limits(x = 3.25) +
-      #guides(fill = "none") +
-      #guides(color = TRUE) +
-      #guides(fill = guide_legend(title = "title")) +
-      #scale_fill_manual(values = color) +
-      scale_color_manual("",
-                         values =  c(
-                           "pain" = "#941100",
-                           "vicarious" = "#008F51",
-                           "cognitive" = "#011891"
-                         )) +
-      theme(
-        legend.position = c(.99, .99),
-        legend.justification = c("right", "top"),
-        legend.box.just = "right",
-        legend.margin = margin(6, 6, 6, 6)
-      ) +
-      theme(legend.key = element_rect(fill = "white", colour = "white")) +
-      theme_bw()
-
-    return(g)
-  }
-```
 
 
 #### Contrast weight table {.unlisted .unnumbered}
@@ -305,7 +233,6 @@ kableExtra::kable_styling(
 # 03/10/2024
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
-# combined_psig <- data.frame()
 taskname = "pain"
 ggtitle <- paste(taskname, " - NPS (degree)")
 title <- paste(taskname, " - actual")
@@ -313,7 +240,7 @@ subject <- "sub"
 w <- 10
 h <- 6
 # p.sig <- df_merge[df_merge$runtype == "pain" ,]
-
+analysis_folder <- "fmri_npsroi"
 analysis_dir <-
   file.path(main_dir,
             "analysis",
@@ -339,9 +266,9 @@ model_savefname <- file.path(
 
 
 # [ PLOT ] reordering for plots _________________________ # nolint
-df_filter$cue_name[df_filter$cuetype == "high"] <-
+df_filter.NA$cue_name[df_filter.NA$cuetype == "high"] <-
   "high cue"
-df_filter$cue_name[df_filter$cuetype == "low"] <-
+df_filter.NA$cue_name[df_filter.NA$cuetype == "low"] <-
   "low cue"
 
 # df_filter$stim_name[df_filter$stimulusintensity == "high_stim"] <-
@@ -353,15 +280,15 @@ df_filter$cue_name[df_filter$cuetype == "low"] <-
 
 # DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
 # 
-df_filter$stim_ordered <- factor(df_filter$stimintensity,
+df_filter.NA$stim_ordered <- factor(df_filter.NA$stimintensity,
                                    levels = c("low", "med", "high"))
-df_filter$cue_ordered <- factor(df_filter$cue_name,
+df_filter.NA$cue_ordered <- factor(df_filter.NA$cue_name,
                                   levels = c("low cue", "high cue"))
 model_iv1 <- "stim_ordered"
 model_iv2 <- "cue_ordered"
 dv <- "nps"
 #  [ PLOT ] calculate mean and se  _________________________
-NPSstimcue_subjectwise <- meanSummary(df_filter,
+NPSstimcue_subjectwise <- meanSummary(df_filter.NA,
                                       c(subject,  model_iv1, model_iv2), dv)
 NPSstimcue_groupwise <- summarySEwithin(
   data = NPSstimcue_subjectwise,
@@ -384,7 +311,7 @@ title <- paste(taskname, " - NPS")
 xlab <- ""
 ylab <- "NPS (degree)"
 ylim <- c(-10, 15)
-dv_keyword <- "NPS"
+# dv_keyword <- "NPS"
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
@@ -419,13 +346,7 @@ g <- plot_halfrainclouds_twofactor(
   plot_savefname
 )
 g
-```
 
-
-
-### Lineplots {.unlisted .unnumbered}
-
-```{r echo=FALSE, warning=FALSE}
 g <- plot_lineplot_twofactor(NPSstimcue_groupwise,# taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
@@ -462,42 +383,42 @@ g + theme(aspect.ratio=.8)
 
 lmer
 ```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
-data$stim[data$stimintensity == "low"] <-  -0.5 # social influence task
-data$stim[data$stimintensity == "med"] <- 0 # no influence task
-data$stim[data$stimintensity == "high"] <-  0.5 # no influence task
+df_filter.NA$stim[df_filter.NA$stimintensity == "low"] <-  -0.5 # social influence task
+df_filter.NA$stim[df_filter.NA$stimintensity == "med"] <- 0 # no influence task
+df_filter.NA$stim[df_filter.NA$stimintensity == "high"] <-  0.5 # no influence task
 
-data$STIM <- factor(data$stimintensity)
+df_filter.NA$STIM <- factor(df_filter.NA$stimintensity)
 
 # contrast code 1 linear
-data$STIM_linear[data$stimintensity == "low"] <- -0.5
-data$STIM_linear[data$stimintensity == "med"] <- 0
-data$STIM_linear[data$stimintensity == "high"] <- 0.5
+df_filter.NA$STIM_linear[df_filter.NA$stimintensity == "low"] <- -0.5
+df_filter.NA$STIM_linear[df_filter.NA$stimintensity == "med"] <- 0
+df_filter.NA$STIM_linear[df_filter.NA$stimintensity == "high"] <- 0.5
 
 # contrast code 2 quadratic
-data$STIM_quadratic[data$stimintensity == "low"] <- -0.33
-data$STIM_quadratic[data$stimintensity == "med"] <- 0.66
-data$STIM_quadratic[data$stimintensity == "high"] <- -0.33
+df_filter.NA$STIM_quadratic[df_filter.NA$stimintensity == "low"] <- -0.33
+df_filter.NA$STIM_quadratic[df_filter.NA$stimintensity == "med"] <- 0.66
+df_filter.NA$STIM_quadratic[df_filter.NA$stimintensity == "high"] <- -0.33
 
 # social cude contrast
-data$CUE_high_gt_low[data$cuetype == "low"] <-  -0.5 # social influence task
-data$CUE_high_gt_low[data$cuetype == "high"] <-  0.5 # no influence task
+df_filter.NA$CUE_high_gt_low[df_filter.NA$cuetype == "low"] <-  -0.5 # social influence task
+df_filter.NA$CUE_high_gt_low[df_filter.NA$cuetype == "high"] <-  0.5 # no influence task
 
-data$EXPECT <- data$expectrating
-data$OUTCOME <- data$outcomerating
+df_filter.NA$EXPECT <- df_filter.NA$expectrating
+df_filter.NA$OUTCOME <- df_filter.NA$outcomerating
 
 
-data$SES_linear[data$ses == "ses-01"] <- -0.5
-data$SES_linear[data$ses == "ses-03"] <- 0
-data$SES_linear[data$ses == "ses-04"] <- 0.5
+df_filter.NA$SES_linear[df_filter.NA$ses == "ses-01"] <- -0.5
+df_filter.NA$SES_linear[df_filter.NA$ses == "ses-03"] <- 0
+df_filter.NA$SES_linear[df_filter.NA$ses == "ses-04"] <- 0.5
 
 # contrast code 2 quadratic
-data$SES_quadratic[data$ses == "ses-01"] <- -0.33
-data$SES_quadratic[data$ses == "ses-03"] <- 0.66
-data$SES_quadratic[data$ses == "ses-04"] <- -0.33
+df_filter.NA$SES_quadratic[df_filter.NA$ses == "ses-01"] <- -0.33
+df_filter.NA$SES_quadratic[df_filter.NA$ses == "ses-03"] <- 0.66
+df_filter.NA$SES_quadratic[df_filter.NA$ses == "ses-04"] <- -0.33
 
 model.npscuestim <- lmer(nps ~
                           CUE_high_gt_low* STIM_linear + CUE_high_gt_low* STIM_quadratic +  
-                          (CUE_high_gt_low + STIM_linear|sub), data = data, 
+                          (CUE_high_gt_low + STIM_linear|sub), data = df_filter.NA, 
                          control = lmerControl(optimizer = "nmkbw")
                     )
 
@@ -519,8 +440,8 @@ sjPlot::tab_model(model.npscuestim,
 # model.npscuestim.summarystats
 
 
-model.npscuestim.summarystats.sub <- meanSummary(df_filter,
-                                      c("sub", "CUE_high_gt_low"), "NPS")
+model.npscuestim.summarystats.sub <- meanSummary(df_filter.NA,
+                                      c("sub", "CUE_high_gt_low"), dv_keyword)
 model.npscuestim.summarystats.group <- summarySEwithin(
   data = model.npscuestim.summarystats.sub,
   measurevar = "mean_per_sub",
@@ -551,10 +472,10 @@ diff_optims <- allFit(model.npscuestim, maxfun = 1e5)
 
 ```{r}
 library(optimx)
-model.npscuestim <- lmer(NPS ~
+model.npscuestim <- lmer(nps ~
                           CUE_high_gt_low*STIM_linear +
                           CUE_high_gt_low*STIM_quadratic +
-                          (CUE_high_gt_low + STIM_linear|sub), data = df_filter,
+                          (CUE_high_gt_low *STIM_linear|sub), data = df_filter.NA,
                                     control=lmerControl(optimizer="nmkbw"
                                  ))
                          # control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 1e5)))
@@ -600,13 +521,13 @@ kableExtra::kable_styling(
 
 ### filter with including session
 ```{r}
-subjects_with_inadequate_data <- data %>%
+subjects_with_inadequate_data <- df_filter.NA %>%
   group_by(sub, CUE_high_gt_low, SES_linear) %>% 
   dplyr::summarise(count = n(), .groups = 'drop') %>%
   filter(count < 3) %>%
   distinct(sub) %>%
   pull(sub)
-df_filter_ses <- data %>%
+df_filter_ses <- df_filter.NA %>%
   filter(!(sub %in% subjects_with_inadequate_data))
 
 print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(data$sub)), length(unique(df_filter_ses$sub)) ))
@@ -643,7 +564,7 @@ lapply(diff_optims_OK, function(x) x@optinfo$conv$lme4$messages)
 ```{r}
 library(optimx)
 model.npscuestim <- lmer(
-  nps ~
+  NPS ~
     CUE_high_gt_low  * SES_quadratic +
     CUE_high_gt_low  * SES_linear +
 
@@ -756,7 +677,7 @@ data <- s1.sig
 # stim_con1 <- "STIM_linear"
 # stim_con2 <- "STIM_quadratic"
 iv1 <- "CUE_high_gt_low"
-dv <- "nps"
+
 
     # [ MODEL ] _________________________________________________ # nolint
     model_savefname <- file.path(
@@ -838,81 +759,6 @@ dv <- "nps"
 print(g)
 }
 ```
-
-#### session wise line plots {.unlisted .unnumbered}
-```{r}
-# plot_lineplot_onefactor <- function(data, taskname, iv,  mean, error,
-#                       color, xlab, ylab, ggtitle) {
-#     # iv = "levels_ordered"
-#     # mean = mean_per_sub_norm_mean
-#     # error = ci
-#     subset <- data[which(data$task == taskname), ]
-# 
-#     g <- ggplot(data = subset, aes(
-#         x = factor(.data[[iv]]),
-#         y = .data[[mean]]),
-#         #group = .data[[iv]],
-#         #color = .data[[iv]]),
-#         cex.lab = 1.5, cex.axis = 2, cex.main = 1.5, cex.sub = 1.5) +
-#         geom_errorbar(aes(
-#             ymin = (.data[[mean]] - .data[[error]]),
-#             ymax = (.data[[mean]] + .data[[error]])
-#         ), width = .1) +
-#         geom_line(aes(group = 1), data = subset) +
-#         
-#         geom_point() +
-#         # scale_x_continuous(breaks = seq(-3, +3, by = 1)) +
-#         # scale_y_continuous(breaks = seq(0, 90, by=30), limits=c(0,90)) +
-#         ggtitle(ggtitle) +
-#         xlab(xlab) +
-#         ylab(ylab) +
-#         # guides(fill=guide_legend(title="Social Endorsement Position")) +
-#         #scale_color_manual(values = color) +
-#         theme_classic() +
-#         theme(legend.position = "none") +
-#         theme(aspect.ratio = .6)
-#     return(g)
-# }
-
-
-library(ggplot2)
-
-plot_lineplot_onefactor <- function(data, taskname, iv, mean, error,
-                                    color, xlab, ylab, ggtitle) {
-  # Filter data based on the task name
-  subset <- data[data$runtype == taskname, ]
-  
-  # Specify dodge width for separation
-  dodge <- position_dodge(width = 0.2)
-  
-  g <- ggplot(data = subset, aes_string(
-        x = factor(iv),
-        y = mean,
-        color = "cue_ordered")) + # Assuming 'cueType' distinguishes between 'low cue' and 'high cue'
-        geom_errorbar(aes(
-            ymin = get(mean) - get(error),
-            ymax = get(mean) + get(error)
-        ), width = .1, position = dodge) +
-        geom_point(position = dodge, size = 2) + # Plots points with specified dodge
-        ggtitle(ggtitle) +
-        xlab(xlab) +
-        ylab(ylab) +
-        scale_color_manual(values = color) + # Manually specify colors for 'low cue' and 'high cue'
-        theme_classic() +
-        theme(legend.position = "right",
-              aspect.ratio = .6,
-              axis.ticks.x = element_blank(), # Remove x-axis ticks
-              axis.text.x = element_blank()) # Optionally remove x-axis text as well
-  return(g)
-}
-
-
-# Example usage
-# Assuming you have a dataframe 'df' and you've set up variables correctly:
-# plot_lineplot_onefactor(df, "YourTaskName", "YourIV", "meanColumnName",
-
-```
-
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
