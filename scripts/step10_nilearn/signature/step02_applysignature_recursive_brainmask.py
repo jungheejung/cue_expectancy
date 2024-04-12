@@ -148,15 +148,41 @@ def utils_extractsignature(img_flist, signature_dict, signature_key, brain_mask_
     from nilearn import image
     import pandas as pd
     import numpy as np
+    # ----------------------------------------------------------------------------
+    # 2. concatenate
+    mask_priv_dir = "/dartfs-hpc/rc/lab/C/CANlab/modules/MasksPrivate"
+    mul_sig_dir = "/dartfs-hpc/rc/lab/C/CANlab/modules/Neuroimaging_Pattern_Masks/Multivariate_signature_patterns"
+    graymattermask = '/Users/h/Documents/MATLAB/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask_canlab.nii'
+    mask_priv_fname = glob.glob(
+        os.path.join(mask_priv_dir, "**", signature_dict[signature_key] + "*"),
+        recursive=True,
+    )
+    mul_sig_fname = glob.glob(
+        os.path.join(mul_sig_dir, "**", signature_dict[signature_key] + "*"),
+        recursive=True,
+    )
+    mask_priv_fname.extend(mul_sig_fname)
+    # print(mask_priv_fname)
+    if len(mask_priv_fname):
+        print(mask_priv_fname[0])
+    else:
+        print(f"check whats going on: {mask_priv_fname}")
 
-    # Load brain mask and prepare for resampling
+    signature_fname = mask_priv_fname[0]
+    print(f"key: {signature_key}, signature filename: {mask_priv_fname}")
+
+    if ".nii" not in os.path.splitext(signature_fname)[-1]:
+        print(signature_fname)
+        signature_fname = convert_imggz_to_niigz_nib(signature_fname)
+
+    # Load brain mask and prepare for resampling ______________________________
     brain_mask_img = image.load_img(brain_mask_path)
 
     # Prepare the signature image
-    signature_path = signature_dict.get(signature_key)
-    if not signature_path:
+    # signature_path = signature_dict.get(signature_key)
+    if not signature_fname:
         raise ValueError(f"Signature '{signature_key}' not found in signature_dict.")
-    signature_img = image.load_img(signature_path)
+    signature_img = image.load_img(signature_fname)
 
     # Resample signature to the brain mask
     resampled_signature = image.resample_to_img(source_img=signature_img, target_img=brain_mask_img, interpolation='nearest')
