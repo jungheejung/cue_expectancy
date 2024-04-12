@@ -125,8 +125,8 @@ def parse_filename_with_regex_adjusted(filename):
     else:
         return {}
 # %% load data
-# roi = 'dACC' 
-roi_list = ['npsneg_pgACC', 'npsneg_rIPL', 'npsneg_rLOC', #'npsneg_lLOC', 
+# roi = 'dACC'
+roi_list = [ 'npsneg_rIPL',  'npsneg_pgACC','npsneg_rLOC', 'npsneg_lLOC', 
             'npspos_dACC', 'npspos_rdpIns', 'npspos_rS2_Op', 'npspos_rV1', 'npspos_vermis']
 for roi in roi_list:
     data_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv02_parcel-NPS'
@@ -180,7 +180,7 @@ for roi in roi_list:
     # Optional: Adjust plot aesthetics
     g.set_axis_labels("Stimulation Level", "Average NPS Score")
     g.set_titles("{col_name}")
-    g.set(ylim=(0, grouped_data['NPS_mean'].max()*1.1)) # Adjust y-axis limits if necessary
+    #g.set(ylim=(0, grouped_data['NPS_mean'].max()*1.1)) # Adjust y-axis limits if necessary
     plt.xticks(rotation=45) # Rotate x-axis labels if needed
 
     plt.show()
@@ -208,7 +208,7 @@ for roi in roi_list:
         print(f'______________ decoding {cuetype} ______________')
         # high_cue_pain_index = nps_roi[(nps_roi['runtype'] == 'pain') & 
         #                                     (nps_roi['cue'] == cuetype)].index
-        df_pain_highcue = nps_roi[(nps_roi['runtype'] == 'pain') & 
+        df = nps_roi[(nps_roi['runtype'] == 'pain') & 
                                         (nps_roi['cue'] == cuetype)].copy().reset_index(drop=True)
 
 
@@ -218,12 +218,14 @@ for roi in roi_list:
         # This step aims to exclude subjects or trials that don't meet this criterion, 
         # ensuring a minimum level of data availability for each condition.
 
-        df_pain_highcue['ses_run'] =  df_pain_highcue['ses'] + '_' + df_pain_highcue['run'] 
-        unique_subs_before = df_pain_highcue['sub'].unique()
+        df['ses_run'] =  df['ses'] + '_' + df['run'] 
+        unique_subs_before = df['sub'].unique()
         # Correcting the approach to identify participants to exclude
-        filtered_groups = df_pain_highcue.groupby(['sub', 'ses_run', 'stimulusintensity']).filter(lambda x: len(x) < 2)
+        # filtered_df = df.groupby(['sub', 'ses_run']).filter(lambda x: {'high_stim', 'med_stim', 'low_stim'}.issubset(x['stim'].unique()))
+
+        filtered_groups = df.groupby(['sub', 'ses_run', 'stimulusintensity']).filter(lambda x: len(x) < 2)
         participants_to_exclude = filtered_groups['sub'].unique()
-        filtered_df = df_pain_highcue[~df_pain_highcue['sub'].isin(participants_to_exclude)]
+        filtered_df = df[~df['sub'].isin(participants_to_exclude)]
 
 
         # Step 3: How many subjects would be dropped after this filtering? _____________
@@ -236,8 +238,9 @@ for roi in roi_list:
         print(f"Number of unique subjects dropped: {num_subs_dropped}")
 
         # Step 4: group level arrays
-        runs_per_sub = filtered_df.groupby('sub')['run'].nunique()
+        runs_per_sub = filtered_df.groupby('sub')['ses_run'].nunique()
         subs_to_drop = runs_per_sub[runs_per_sub <= 1].index
+        print(f"subs to drop: {subs_to_drop}")
         df_filtered = filtered_df[~filtered_df['sub'].isin(subs_to_drop)]
         confusion_matrices = []
         overall_results = []
@@ -251,9 +254,12 @@ for roi in roi_list:
 
         # Step 5: Iterate over each subject
         for sub in df_filtered['sub'].unique():
+
             df_sub = df_filtered[df_filtered['sub'] == sub]
-            X = df_sub.filter(regex=rf'^{roi}_\d+').values
-            Y_mapped = df_sub['stim'].map(desired_order)
+            filtered_sub = df_sub.groupby('ses_run').filter(lambda x: {'high_stim', 'med_stim', 'low_stim'}.issubset(x['stim'].unique()))
+
+            X = filtered_sub.filter(regex=rf'^{roi}_\d+').values
+            Y_mapped = filtered_sub['stim'].map(desired_order)
             Y = Y_mapped.values
             uniques = np.array(['high_stim', 'med_stim', 'low_stim'])
             
@@ -270,7 +276,7 @@ for roi in roi_list:
             # or session as group distinctions. There are session/run combinations that
             # constitutes different runs
 
-            groups, unique_runs = pd.factorize(df_sub['ses_run'])
+            groups, unique_runs = pd.factorize(filtered_sub['ses_run'])
             cv = GroupKFold(n_splits=len(np.unique(groups)))
             
             for i,(train_idx, test_idx) in enumerate(cv.split(X, Y, groups=groups)):
@@ -372,10 +378,10 @@ for roi in roi_list:
         print(f"high cue f1score: {highcue_results_df['f1_score'].mean()}")
         print(f"high cue accuracy: {highcue_results_df['accuracy'].mean()}")
 
-        
+        f1df['roi'] = roi
         f1df.to_csv(join(save_dir, f'roi-{roi}_cue-{cuename}_f1score.tsv'), 
                     sep='\t', index=False)
-        
+        accuracy_df['roi'] = roi
         accuracy_df.to_csv(join(save_dir, f'roi-{roi}_cue-{cuename}_accuracy.tsv'), 
                         sep='\t', index=False)
         
