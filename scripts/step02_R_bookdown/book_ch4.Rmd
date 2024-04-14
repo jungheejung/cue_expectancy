@@ -76,6 +76,8 @@ dir.create(analysis_dir,
            showWarnings = FALSE,
            recursive = TRUE)
 savedir <- analysis_dir
+lowcuehex <- "#575a5e" #3E61EC
+highcuehex <- "#FEAE00" ##FF0000
 ```
 
 ```{r}
@@ -189,7 +191,7 @@ dv_keyword <- "outcomerating"
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
-  color <- c("#3E61EC", "#FF0000")
+  color <- c(lowcuehex, highcuehex)
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -202,7 +204,7 @@ subset <- stimcue_groupwise[stimcue_groupwise$cue_ordered == "low cue",]
 g <- plot_lineplot_twofactor(subset, 
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = "#3E61EC"), ggtitle = "Within pain task: Outcome rating",
+                        color = c("low cue" = lowcuehex), ggtitle = "Within pain task: Outcome rating",
                         xlab = "Stimulus intensity", ylab = "Outcome rating")
 g <- g + theme(aspect.ratio=1,
           text = element_text(size = 18), # Default text size for the plot
@@ -219,7 +221,7 @@ ggsave(file.path(analysis_dir, paste0("beh_maineffect", as.character(Sys.Date())
 k <- plot_lineplot_twofactor(stimcue_groupwise,# taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = "#3E61EC","high cue" = "#FF0000"), 
+                        color = c("low cue" = lowcuehex,"high cue" = highcuehex), 
                         ggtitle = paste0("Beh N =", length(unique(stimcue_subjectwise$sub))),
                         xlab = "Stimulus intensity", ylab = "Outcome rating")
 k<- k+ theme(aspect.ratio=1,
@@ -291,7 +293,7 @@ dv_keyword <- "nps"
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
-  color <- c("#3E61EC", "#FF0000")
+  color <- c(lowcuehex, highcuehex)
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -304,7 +306,7 @@ NPSsubset <- NPSstimcue_groupwise[NPSstimcue_groupwise$cue_ordered == "low cue",
 g <- plot_lineplot_twofactor(NPSsubset, 
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = "#3E61EC"), ggtitle = paste0("NPS N =", length(unique(NPSstimcue_subjectwise$sub))),
+                        color = c("low cue" = lowcuehex), ggtitle = paste0("NPS N =", length(unique(NPSstimcue_subjectwise$sub))),
                         xlab = "Stimulus intensity", ylab = "NPS")
 g <- g + theme(aspect.ratio=1,
           text = element_text(size = 18), # Default text size for the plot
@@ -321,7 +323,7 @@ ggsave(file.path(analysis_dir, paste0("NPS_maineffect", as.character(Sys.Date())
 k <- plot_lineplot_twofactor(NPSstimcue_groupwise,# taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = "#3E61EC","high cue" = "#FF0000"), 
+                        color = c("low cue" = lowcuehex,"high cue" = highcuehex), 
                         ggtitle = paste0("NPS N =", length(unique(NPSstimcue_subjectwise$sub))),
                         xlab = "Stimulus intensity", ylab = "NPS")
 k<- k+ theme(aspect.ratio=1,
@@ -391,7 +393,7 @@ dv_keyword <- "siips"
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
-  color <- c("#3E61EC", "#FF0000")
+  color <- c(lowcuehex, highcuehex)
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -404,7 +406,7 @@ SIIPSsubset <- SIIPS_groupwise[SIIPS_groupwise$cue_ordered == "low cue",]
 g <- plot_lineplot_twofactor(SIIPSsubset, 
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = "#3E61EC"), ggtitle = paste0("NPS N =", length(unique(SIIPS_subjectwise$sub))),
+                        color = c("low cue" = lowcuehex), ggtitle = paste0("NPS N =", length(unique(SIIPS_subjectwise$sub))),
                         xlab = "Stimulus intensity", ylab = "SIIPS")
 g <- g + theme(aspect.ratio=1,
           text = element_text(size = 18), # Default text size for the plot
@@ -421,8 +423,8 @@ ggsave(file.path(analysis_dir, paste0("SIIPS_maineffect", as.character(Sys.Date(
 k <- plot_lineplot_twofactor(SIIPS_groupwise,# taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = "#3E61EC","high cue" = "#FF0000"), 
-                        ggtitle = paste0("NPS N =", length(unique(SIIPS_subjectwise$sub))),
+                        color = c("low cue" = lowcuehex,"high cue" = highcuehex), 
+                        ggtitle = paste0("SIIPS N =", length(unique(SIIPS_subjectwise$sub))),
                         xlab = "Stimulus intensity", ylab = "SIIPS")
 k<- k+ theme(aspect.ratio=1,
           text = element_text(size = 18), # Default text size for the plot
@@ -760,7 +762,7 @@ dv_keyword <- "siips"
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
-  color <- c("#3E61EC", "#FF0000")
+  color <- c(lowcuehex, highcuehex)
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -773,7 +775,7 @@ plot_savefname <- file.path(
 # g <- plot_lineplot_twofactor(SIIPSsubset, 
 #                         iv1 = "stim_ordered", iv2 = "cue_ordered",
 #                         mean = "mean_per_sub_norm_mean", error = "se",
-#                         color = c("low cue" = "#3E61EC"), ggtitle = paste0("NPS N =", length(unique(SIIPS_subjectwise$sub))),
+#                         color = c("low cue" = lowcuehex), ggtitle = paste0("NPS N =", length(unique(SIIPS_subjectwise$sub))),
 #                         xlab = "Stimulus intensity", ylab = "SIIPS")
 # g <- g + theme(aspect.ratio=1,
 #           text = element_text(size = 18), # Default text size for the plot
@@ -790,7 +792,7 @@ plot_savefname <- file.path(
 # k <- plot_lineplot_twofactor(SIIPS_groupwise,# taskname = "pain",
 #                         iv1 = "stim_ordered", iv2 = "cue_ordered",
 #                         mean = "mean_per_sub_norm_mean", error = "se",
-#                         color = c("low cue" = "#3E61EC","high cue" = "#FF0000"), 
+#                         color = c("low cue" = lowcuehex,"high cue" = highcuehex), 
 #                         ggtitle = paste0("NPS N =", length(unique(SIIPS_subjectwise$sub))),
 #                         xlab = "Stimulus intensity", ylab = "SIIPS")
 # k<- k+ theme(aspect.ratio=1,

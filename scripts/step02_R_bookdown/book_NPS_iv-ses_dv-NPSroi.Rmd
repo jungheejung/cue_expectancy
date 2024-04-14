@@ -512,6 +512,580 @@ kableExtra::kable_styling(
     "html"), "striped", position = "left", font_size = 12)
 ```
 
+
+
+## B. Check HJ code after applying brain mask
+```{r}
+nps_brainmask_fname = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau_brainmask/signature-NPS_sub-all_runtype-pvc_event-stimulus.tsv'
+analysis_folder <- "fmri_nps"
+beh <- readr::read_tsv(file.path(main_dir, "data/beh/sub-all_task-all_events.tsv"))
+
+nps_brainmask <- read.csv(nps_brainmask_fname, sep = ",")
+# intersect
+# Assuming df1 and df2 are your data frames and 'key_column' is the name of your key column
+df_merge <- inner_join(beh, nps_brainmask, by = "singletrial_fname")
+df_merge$NPS <- df_merge$NPS_dot_product
+```
+
+```{r}
+data <-df_merge[df_merge$runtype == "pain" ,]
+
+# contrast code ________________________________________________________________
+data$stim <- NA; data$STIM_linear <- NA; data$STIM_quadratic <- NA; 
+data$CUE_high_gt_low <- NA;
+data$SES_linear <- NA;data$SES_quadratic <- NA
+data$stim[data$stimulusintensity == "low_stim"] <-  -0.5 # social influence task
+data$stim[data$stimulusintensity == "med_stim"] <- 0 # no influence task
+data$stim[data$stimulusintensity == "high_stim"] <-  0.5 # no influence task
+
+data$STIM <- factor(data$stimulusintensity)
+
+# contrast code 1 linear
+data$STIM_linear[data$stimulusintensity == "low_stim"] <- -0.5
+data$STIM_linear[data$stimulusintensity == "med_stim"] <- 0
+data$STIM_linear[data$stimulusintensity == "high_stim"] <- 0.5
+
+# contrast code 2 quadratic
+data$STIM_quadratic[data$stimulusintensity == "low_stim"] <- -0.33
+data$STIM_quadratic[data$stimulusintensity == "med_stim"] <- 0.66
+data$STIM_quadratic[data$stimulusintensity == "high_stim"] <- -0.33
+
+# social cude contrast
+data$CUE_high_gt_low[data$cue == "low_cue"] <-  -0.5 # social influence task
+data$CUE_high_gt_low[data$cue == "high_cue"] <-  0.5 # no influence task
+
+data$EXPECT <- data$expectrating
+data$OUTCOME <- data$outcomerating
+
+
+data$SES_linear[data$ses == "ses-01"] <- -0.5
+data$SES_linear[data$ses == "ses-03"] <- 0
+data$SES_linear[data$ses == "ses-04"] <- 0.5
+
+# contrast code 2 quadratic
+data$SES_quadratic[data$ses == "ses-01"] <- -0.33
+data$SES_quadratic[data$ses == "ses-03"] <- 0.66
+data$SES_quadratic[data$ses == "ses-04"] <- -0.33
+
+stim_con1 <- "STIM_linear"
+stim_con2 <- "STIM_quadratic"
+iv1 <- "CUE_high_gt_low"
+dv <- "NPS"
+dv_keyword <- "NPS"
+
+# filter data __________________________________________________________________
+# Make sure that each condition cell has adequate amount of trials
+
+subjects_with_inadequate_data <- data %>%
+  group_by(sub, CUE_high_gt_low, STIM_linear) %>% #SES_linear, 
+  dplyr::summarise(count = n(), .groups = 'drop') %>%
+  filter(count < 3) %>%
+  distinct(sub) %>%
+  pull(sub)
+df_filter <- data %>%
+  filter(!(sub %in% subjects_with_inadequate_data))
+
+print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(data$sub)), length(unique(df_filter$sub)) ))
+```
+
+
+  ## QC. check NPS distribution
+```{r}
+df_filter.NA <- df_filter %>% filter(!is.na(NPS))  # Remove NA values
+head(df_filter.NA)
+# Sort the data by median "outcome" in ascending order
+sorted_data <- df_filter.NA %>%
+  group_by(sub) %>%
+  dplyr::summarize(median_nps = median(NPS, na.rm = TRUE)) %>%
+  arrange(median_nps) %>%
+  select(sub)
+
+# Reorder the "subject" factor based on the sorted order
+df_filter.NA$sub <- factor(df_filter.NA$sub, levels = sorted_data$sub)
+
+# Create the ggplot
+g <- ggplot(df_filter.NA, aes(x = sub, y = NPS, fill = sub)) +
+  geom_boxplot(outlier.shape = NA, width = 1.2, position = position_dodge(2)) +  
+  geom_jitter(width = .1, alpha = 0, size = 1) +
+  labs(x = "Subject", y = "NPS") +
+  theme_classic() +
+  theme(legend.position = "none") +
+  scale_x_discrete(breaks = NULL) 
+
+# Convert ggplot object to a plotly object with hover information
+g_plotly <- ggplotly(ggplot_largetext(g), tooltip = c("x", "y"))
+g_plotly
+```
+
+
+
+
+#### Contrast weight table {.unlisted .unnumbered}
+```{r echo=FALSE}
+tab <- matrix(c(0, .5, -.5,
+                .66, -.34, -.34), ncol=3, byrow=TRUE)
+colnames(tab) <- c('pain','vicarious','cognitive')
+rownames(tab) <- c('task_V_gt_C','task_P_gt_VC')
+kableExtra::kable_styling(
+  knitr::kable(
+    tab, caption = "Contrast weights", "html"),
+  "striped", position = "left", font_size = 15)
+```
+
+
+## 2. NPS ~ paintask: 2 cue x 3 stimulus_intensity
+### Q. Within pain task, Does stimulus intenisty level and cue level significantly predict NPS dotproducts? {.unlisted .unnumbered}
+# 03/10/2024
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+combined_se_calc_cooksd <- data.frame()
+# combined_psig <- data.frame()
+taskname = "pain"
+ggtitle <- paste(taskname, " - NPS (degree)")
+title <- paste(taskname, " - actual")
+subject <- "sub"
+w <- 10
+h <- 6
+# p.sig <- df_merge[df_merge$runtype == "pain" ,]
+
+analysis_dir <-
+  file.path(main_dir,
+            "analysis",
+            "mixedeffect",
+            analysis_folder,
+            as.character(Sys.Date())) # nolint
+dir.create(analysis_dir,
+           showWarnings = FALSE,
+           recursive = TRUE)
+savedir <- analysis_dir
+# combined_psig <-
+#   rbind(combined_psig, p.sig)
+
+
+# lmer model __________________________________________________________________
+model_savefname <- file.path(
+  analysis_dir,
+  paste(
+    "lmer_task-",taskname,"_rating-",dv_keyword,"_",as.character(Sys.Date()),"_cooksd.txt",
+    sep = ""
+  )
+)
+
+
+# [ PLOT ] reordering for plots _________________________ # nolint
+df_filter$cue_name[df_filter$cue == "high_cue"] <-
+  "high cue"
+df_filter$cue_name[df_filter$cue == "low_cue"] <-
+  "low cue"
+
+df_filter$stim_name[df_filter$stimulusintensity == "high_stim"] <-
+  "High"
+df_filter$stim_name[df_filter$stimulusintensity == "med_stim"] <-
+  "Med"
+df_filter$stim_name[df_filter$stimulusintensity == "low_stim"] <-
+  "Low"
+
+# DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
+
+df_filter$stim_ordered <- factor(df_filter$stim_name,
+                                   levels = c("Low", "Med", "High"))
+df_filter$cue_ordered <- factor(df_filter$cue_name,
+                                  levels = c("low cue", "high cue"))
+model_iv1 <- "stim_ordered"
+model_iv2 <- "cue_ordered"
+
+#  [ PLOT ] calculate mean and se  _________________________
+NPSstimcue_subjectwise <- meanSummary(df_filter,
+                                      c(subject, model_iv1, model_iv2), dv)
+NPSstimcue_groupwise <- summarySEwithin(
+  data = NPSstimcue_subjectwise,
+  measurevar = "mean_per_sub",
+  withinvars = c(model_iv1, model_iv2),
+  idvar = subject
+)
+NPSstimcue_groupwise$task <- taskname
+# https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+
+combined_se_calc_cooksd <-
+  rbind(combined_se_calc_cooksd, NPSstimcue_groupwise)
+# calculate mean and se
+sub_mean <- "mean_per_sub"
+group_mean <- "mean_per_sub_norm_mean"
+se <- "se"
+subject <- "sub"
+ggtitle <- paste(taskname, " - NPS Cooksd removed")
+title <- paste(taskname, " - NPS")
+xlab <- ""
+ylab <- "NPS (degree)"
+ylim <- c(-10, 60)
+dv_keyword <- "NPS"
+if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+  color <- c("#1B9E77", "#D95F02")
+} else {
+  color <- c("#4575B4", "#D73027")
+} # if keyword starts with
+plot_savefname <- file.path(
+  analysis_dir,
+  paste(
+    "raincloud_task-", taskname, "_rating-", dv_keyword, "_", as.character(Sys.Date()), "_cooksd.png",
+    sep = ""
+  )
+)
+g <- plot_halfrainclouds_twofactor(
+  NPSstimcue_subjectwise,
+  NPSstimcue_groupwise,
+  model_iv1,
+  model_iv2,
+  sub_mean,
+  group_mean,
+  se,
+  subject,
+  ggtitle,
+  title,
+  xlab,
+  ylab,
+  taskname,
+  ylim,
+  w,
+  h,
+  dv_keyword,
+  color,
+  plot_savefname
+)
+g
+```
+
+### Lineplots with only low cue {.unlisted .unnumbered}
+
+```{r echo=FALSE, warning=FALSE}
+subsetNPS <- NPSstimcue_groupwise[NPSstimcue_groupwise$cue_ordered == "low cue",]
+g <- plot_lineplot_twofactor_subset(subsetNPS, taskname = "pain",
+                        iv1 = "stim_ordered", iv2 = "cue_ordered",
+                        mean = "mean_per_sub_norm_mean", error = "se",
+                        color = c("low cue" = "#5D5C5C", "#D73027"), ggtitle = "Within pain task: NPS dotproducts as a function of stimulus intensity level and cue",
+                        xlab = "Stimulus intensity", ylab = "NPS (dot product)")
+g + theme(aspect.ratio=.8)
+```
+
+### Lineplots {.unlisted .unnumbered}
+
+```{r echo=FALSE, warning=FALSE}
+g <- plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain",
+                        iv1 = "stim_ordered", iv2 = "cue_ordered",
+                        mean = "mean_per_sub_norm_mean", error = "se",
+                        color = c("low cue" = "#333333","high cue" = "#FEAE00"), 
+                        ggtitle = "",
+                        xlab = "Stimulus intensity", ylab = "NPS")
+g <- g + theme(aspect.ratio=1,
+          text = element_text(size = 18), # Default text size for the plot
+          axis.title = element_text(size = 22, ), # Axis titles
+          axis.text = element_text(size = 15), # Axis text (x and y)
+          plot.title = element_text(size = 24, hjust = 0.5) # Plot title
+          ) +
+  # geom_line(size = 1) + # Adjust line thickness
+  geom_point(size = 2)  # Adjust point size
+  
+
+#   print(arranged_plot)
+  plot_filename = file.path(analysis_dir,
+  paste('lineplot_task-all_rating-', dv_keyword,taskname, '.svg', sep = ""))
+
+g
+
+  ggsave(plot_filename, g, width = 8, height = 4, dpi=300)
+  
+```
+# C. Check CANlab code
+```{r}
+nps_brainmask_fname = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau_brainmask/CANlab_applyNPS_singletrial_rampupplateau_nosmooth.csv'
+analysis_folder <- "fmri_nps"
+beh <- readr::read_tsv(file.path(main_dir, "data/beh/sub-all_task-all_events.tsv"))
+
+nps_brainmask <- read.csv(nps_brainmask_fname, sep = ",")
+nps_brainmask$singletrial_fname <- nps_brainmask$image_name
+# intersect
+# Assuming df1 and df2 are your data frames and 'key_column' is the name of your key column
+df_merge <- inner_join(beh, nps_brainmask, by = "singletrial_fname")
+df_merge$NPS <- df_merge$NPS_dot_product
+df_merge$NPS <- df_merge$nps_value
+
+df_merge <- df_merge %>%
+  mutate(singletrial_fname = as.character(singletrial_fname)) %>%
+  extract(singletrial_fname, into = c("sub", "ses", "run", "runtype", "event", "trial", "cuetype", "stimintensity"),
+          regex = "^(sub-\\d+)_(ses-\\d+)_(run-\\d+)_runtype-(pain|vicarious|cognitive)_event-(cue|stimulus)_trial-(\\d+)_cuetype-(high|low)(?:_stimintensity-(high|med|low))?\\.nii.gz$",
+          remove = FALSE)
+
+# Adjust the dataframe to handle NA for missing stimintensity, if tidyr version doesn't support `fill`
+df_merge$stimintensity[df_merge$stimintensity == ""] <- NA
+```
+
+```{r}
+data <-df_merge[df_merge$runtype == "pain" ,]
+
+# contrast code ________________________________________________________________
+data$stim <- NA; data$STIM_linear <- NA; data$STIM_quadratic <- NA; 
+data$CUE_high_gt_low <- NA;
+data$SES_linear <- NA;data$SES_quadratic <- NA
+data$stim[data$stimulusintensity == "low_stim"] <-  -0.5 # social influence task
+data$stim[data$stimulusintensity == "med_stim"] <- 0 # no influence task
+data$stim[data$stimulusintensity == "high_stim"] <-  0.5 # no influence task
+
+data$STIM <- factor(data$stimulusintensity)
+
+# contrast code 1 linear
+data$STIM_linear[data$stimulusintensity == "low_stim"] <- -0.5
+data$STIM_linear[data$stimulusintensity == "med_stim"] <- 0
+data$STIM_linear[data$stimulusintensity == "high_stim"] <- 0.5
+
+# contrast code 2 quadratic
+data$STIM_quadratic[data$stimulusintensity == "low_stim"] <- -0.33
+data$STIM_quadratic[data$stimulusintensity == "med_stim"] <- 0.66
+data$STIM_quadratic[data$stimulusintensity == "high_stim"] <- -0.33
+
+# social cude contrast
+data$CUE_high_gt_low[data$cue == "low_cue"] <-  -0.5 # social influence task
+data$CUE_high_gt_low[data$cue == "high_cue"] <-  0.5 # no influence task
+
+data$EXPECT <- data$expectrating
+data$OUTCOME <- data$outcomerating
+
+
+data$SES_linear[data$ses == "ses-01"] <- -0.5
+data$SES_linear[data$ses == "ses-03"] <- 0
+data$SES_linear[data$ses == "ses-04"] <- 0.5
+
+# contrast code 2 quadratic
+data$SES_quadratic[data$ses == "ses-01"] <- -0.33
+data$SES_quadratic[data$ses == "ses-03"] <- 0.66
+data$SES_quadratic[data$ses == "ses-04"] <- -0.33
+
+stim_con1 <- "STIM_linear"
+stim_con2 <- "STIM_quadratic"
+iv1 <- "CUE_high_gt_low"
+dv <- "NPS"
+dv_keyword <- "NPS"
+
+# filter data __________________________________________________________________
+# Make sure that each condition cell has adequate amount of trials
+
+subjects_with_inadequate_data <- data %>%
+  group_by(sub, CUE_high_gt_low, STIM_linear) %>% #SES_linear, 
+  dplyr::summarise(count = n(), .groups = 'drop') %>%
+  filter(count < 3) %>%
+  distinct(sub) %>%
+  pull(sub)
+df_filter <- data %>%
+  filter(!(sub %in% subjects_with_inadequate_data))
+
+print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(data$sub)), length(unique(df_filter$sub)) ))
+```
+
+
+  ## QC. check NPS distribution
+```{r}
+df_filter.NA <- df_filter %>% filter(!is.na(NPS))  # Remove NA values
+head(df_filter.NA)
+# Sort the data by median "outcome" in ascending order
+sorted_data <- df_filter.NA %>%
+  group_by(sub) %>%
+  dplyr::summarize(median_nps = median(NPS, na.rm = TRUE)) %>%
+  arrange(median_nps) %>%
+  select(sub)
+
+# Reorder the "subject" factor based on the sorted order
+df_filter.NA$sub <- factor(df_filter.NA$sub, levels = sorted_data$sub)
+
+# Create the ggplot
+g <- ggplot(df_filter.NA, aes(x = sub, y = NPS, fill = sub)) +
+  geom_boxplot(outlier.shape = NA, width = 1.2, position = position_dodge(2)) +  
+  geom_jitter(width = .1, alpha = 0, size = 1) +
+  labs(x = "Subject", y = "NPS") +
+  theme_classic() +
+  theme(legend.position = "none") +
+  scale_x_discrete(breaks = NULL) 
+
+# Convert ggplot object to a plotly object with hover information
+g_plotly <- ggplotly(ggplot_largetext(g), tooltip = c("x", "y"))
+g_plotly
+```
+
+
+
+
+#### Contrast weight table {.unlisted .unnumbered}
+```{r echo=FALSE}
+tab <- matrix(c(0, .5, -.5,
+                .66, -.34, -.34), ncol=3, byrow=TRUE)
+colnames(tab) <- c('pain','vicarious','cognitive')
+rownames(tab) <- c('task_V_gt_C','task_P_gt_VC')
+kableExtra::kable_styling(
+  knitr::kable(
+    tab, caption = "Contrast weights", "html"),
+  "striped", position = "left", font_size = 15)
+```
+
+
+## 2. NPS ~ paintask: 2 cue x 3 stimulus_intensity
+### Q. Within pain task, Does stimulus intenisty level and cue level significantly predict NPS dotproducts? {.unlisted .unnumbered}
+# 03/10/2024
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+combined_se_calc_cooksd <- data.frame()
+# combined_psig <- data.frame()
+taskname = "pain"
+ggtitle <- paste(taskname, " - NPS (degree)")
+title <- paste(taskname, " - actual")
+subject <- "sub"
+w <- 10
+h <- 6
+# p.sig <- df_merge[df_merge$runtype == "pain" ,]
+
+analysis_dir <-
+  file.path(main_dir,
+            "analysis",
+            "mixedeffect",
+            analysis_folder,
+            as.character(Sys.Date())) # nolint
+dir.create(analysis_dir,
+           showWarnings = FALSE,
+           recursive = TRUE)
+savedir <- analysis_dir
+# combined_psig <-
+#   rbind(combined_psig, p.sig)
+
+
+# lmer model __________________________________________________________________
+model_savefname <- file.path(
+  analysis_dir,
+  paste(
+    "lmer_task-",taskname,"_rating-",dv_keyword,"_",as.character(Sys.Date()),"_cooksd.txt",
+    sep = ""
+  )
+)
+
+
+# [ PLOT ] reordering for plots _________________________ # nolint
+df_filter$cue_name[df_filter$cue == "high_cue"] <-
+  "high cue"
+df_filter$cue_name[df_filter$cue == "low_cue"] <-
+  "low cue"
+
+df_filter$stim_name[df_filter$stimulusintensity == "high_stim"] <-
+  "High"
+df_filter$stim_name[df_filter$stimulusintensity == "med_stim"] <-
+  "Med"
+df_filter$stim_name[df_filter$stimulusintensity == "low_stim"] <-
+  "Low"
+
+# DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
+
+df_filter$stim_ordered <- factor(df_filter$stim_name,
+                                   levels = c("Low", "Med", "High"))
+df_filter$cue_ordered <- factor(df_filter$cue_name,
+                                  levels = c("low cue", "high cue"))
+model_iv1 <- "stim_ordered"
+model_iv2 <- "cue_ordered"
+
+#  [ PLOT ] calculate mean and se  _________________________
+NPSstimcue_subjectwise <- meanSummary(df_filter,
+                                      c(subject, model_iv1, model_iv2), dv)
+NPSstimcue_groupwise <- summarySEwithin(
+  data = NPSstimcue_subjectwise,
+  measurevar = "mean_per_sub",
+  withinvars = c(model_iv1, model_iv2),
+  idvar = subject
+)
+NPSstimcue_groupwise$task <- taskname
+# https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+
+combined_se_calc_cooksd <-
+  rbind(combined_se_calc_cooksd, NPSstimcue_groupwise)
+# calculate mean and se
+sub_mean <- "mean_per_sub"
+group_mean <- "mean_per_sub_norm_mean"
+se <- "se"
+subject <- "sub"
+ggtitle <- paste(taskname, " - NPS Cooksd removed")
+title <- paste(taskname, " - NPS")
+xlab <- ""
+ylab <- "NPS (degree)"
+ylim <- c(-10, 60)
+dv_keyword <- "NPS"
+if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+  color <- c("#1B9E77", "#D95F02")
+} else {
+  color <- c("#4575B4", "#D73027")
+} # if keyword starts with
+plot_savefname <- file.path(
+  analysis_dir,
+  paste(
+    "raincloud_task-", taskname, "_rating-", dv_keyword, "_", as.character(Sys.Date()), "_cooksd.png",
+    sep = ""
+  )
+)
+g <- plot_halfrainclouds_twofactor(
+  NPSstimcue_subjectwise,
+  NPSstimcue_groupwise,
+  model_iv1,
+  model_iv2,
+  sub_mean,
+  group_mean,
+  se,
+  subject,
+  ggtitle,
+  title,
+  xlab,
+  ylab,
+  taskname,
+  ylim,
+  w,
+  h,
+  dv_keyword,
+  color,
+  plot_savefname
+)
+g
+```
+
+### Lineplots with only low cue {.unlisted .unnumbered}
+
+```{r echo=FALSE, warning=FALSE}
+subsetNPS <- NPSstimcue_groupwise[NPSstimcue_groupwise$cue_ordered == "low cue",]
+g <- plot_lineplot_twofactor_subset(subsetNPS, taskname = "pain",
+                        iv1 = "stim_ordered", iv2 = "cue_ordered",
+                        mean = "mean_per_sub_norm_mean", error = "se",
+                        color = c("low cue" = "#5D5C5C", "#D73027"), ggtitle = "Within pain task: NPS dotproducts as a function of stimulus intensity level and cue",
+                        xlab = "Stimulus intensity", ylab = "NPS (dot product)")
+g + theme(aspect.ratio=.8)
+```
+
+### Lineplots {.unlisted .unnumbered}
+
+```{r echo=FALSE, warning=FALSE}
+g <- plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain",
+                        iv1 = "stim_ordered", iv2 = "cue_ordered",
+                        mean = "mean_per_sub_norm_mean", error = "se",
+                        color = c("low cue" = "#3E61EC","high cue" = "#FF0000"), 
+                        ggtitle = "",
+                        xlab = "Stimulus intensity", ylab = "NPS")
+g <- g + theme(aspect.ratio=1,
+          text = element_text(size = 18), # Default text size for the plot
+          axis.title = element_text(size = 22, ), # Axis titles
+          axis.text = element_text(size = 15), # Axis text (x and y)
+          plot.title = element_text(size = 24, hjust = 0.5) # Plot title
+          ) +
+  # geom_line(size = 1) + # Adjust line thickness
+  geom_point(size = 2)  # Adjust point size
+  
+
+#   print(arranged_plot)
+  plot_filename = file.path(analysis_dir,
+  paste('lineplot_task-all_rating-', dv_keyword,taskname, '.svg', sep = ""))
+
+g
+
+  ggsave(plot_filename, g, width = 8, height = 4, dpi=300)
+  
+```
+
 ## 3. NPS ~ SES _ CUE _ STIM
 
 ### Q. Is the cue effect on NPS different across sessions? {.unlisted .unnumbered}
