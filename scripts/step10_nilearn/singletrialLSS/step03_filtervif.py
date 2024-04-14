@@ -11,6 +11,8 @@ Check code: scripts/step10_nilearn/singletrialLSS/step01_nilearnLSS_rampuppleate
 """
 vif_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupplateau/vif_summary'
 
+vif_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupplateau_nosmooth/vif_summary'
+
 # identify sub directories
 summary_df = pd.DataFrame()
 threshold = 3
