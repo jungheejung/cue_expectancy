@@ -1,4 +1,4 @@
-function applynps_singletrial(input)
+% function applynps_singletrial(input)
 % This code is to apply NPS to the TTL extracted pain onsets.
 % The purpose is to identify the correct way to model HRF of pain elicited BOLD signals.
 %%  TODO:
@@ -28,29 +28,30 @@ function applynps_singletrial(input)
 %% 1. Data directories and parameters
 % current_dir = pwd;
 % main_dir = fileparts(fileparts(current_dir));
-contrast_name = {'cue_P', 'cue_V', 'cue_C',...
-'stim_P', 'stim_V', 'stim_C',...
-'stimXcue_P', 'stimXcue_V', 'stimXcue_C',...
-'stimXint_P', 'stimXint_V', 'stimXint_C',...
-'motor', ...
-'simple_cue_P', 'simple_cue_V', 'simple_cue_C','simple_cue_G',...
-'simple_stim_P', 'simple_stim_V', 'simple_stim_C','simple_stim_G',...
-'simple_stimXcue_P', 'simple_stimXcue_V', 'simple_stimXcue_C','simple_stimXcue_G',...
-'simple_stimXint_P', 'simple_stimXint_V','simple_stimXint_C', 'simple_stimXint_G'};
-
-fname_key = {'cognitive_ev-cue_l2norm', 'cognitive_ev-cue', 'cognitive_ev-stim_l2norm', 'cognitive_ev-stim',...
-    'pain_ev-cue_l2norm', 'pain_ev-cue', 'pain_ev-stim_l2norm', 'pain_ev-stim',...
-    'vicarious_ev-cue_l2norm', 'vicarious_ev-cue', 'vicarious_ev-stim_l2norm', 'vicarious_ev-stim'};
+% contrast_name = {'cue_P', 'cue_V', 'cue_C',...
+% 'stim_P', 'stim_V', 'stim_C',...
+% 'stimXcue_P', 'stimXcue_V', 'stimXcue_C',...
+% 'stimXint_P', 'stimXint_V', 'stimXint_C',...
+% 'motor', ...
+% 'simple_cue_P', 'simple_cue_V', 'simple_cue_C','simple_cue_G',...
+% 'simple_stim_P', 'simple_stim_V', 'simple_stim_C','simple_stim_G',...
+% 'simple_stimXcue_P', 'simple_stimXcue_V', 'simple_stimXcue_C','simple_stimXcue_G',...
+% 'simple_stimXint_P', 'simple_stimXint_V','simple_stimXint_C', 'simple_stimXint_G'};
+% 
+% % fname_key = {'cognitive_ev-cue_l2norm', 'cognitive_ev-cue', 'cognitive_ev-stim_l2norm', 'cognitive_ev-stim',...
+%     'pain_ev-cue_l2norm', 'pain_ev-cue', 'pain_ev-stim_l2norm', 'pain_ev-stim',...
+%     'vicarious_ev-cue_l2norm', 'vicarious_ev-cue', 'vicarious_ev-stim_l2norm', 'vicarious_ev-stim'};
+fname_key = {'*'};
+input = 1;
 %% 2. test run
 current_dir = pwd;
-% con = strcat('con_', sprintf('%04d', input));
 main_dir = fileparts(fileparts(current_dir));
 %main_dir = '/Volumes/spacetop_projects_social';
-singletrial_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'multivariate_24dofcsd', 's03_concatnifti');
-nps_dir = fullfile(main_dir, 'analysis', 'fmri', 'spm', 'multivariate_24dofcsd','s04_extractbiomarker');
+singletrial_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupplateau_nosmooth'; %uncompressed_singletrial_rampupplateau';%'/Volumes/seagate/cue_singletrials/uncompressed_singletrial_rampupplateau'; %fullfile(main_dir, 'analysis', 'fmri', 'spm', 'multivariate_24dofcsd', 's03_concatnifti');
+nps_dir = '/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv05_canlabapplyNPS_nosmooth';
 d = dir(singletrial_dir);
 dfolders = d([d(:).isdir]);
-dfolders_remove = dfolders(~ismember({dfolders(:).name},{'.','..','sub-0000','sub-0002'}));
+dfolders_remove = dfolders(~ismember({dfolders(:).name},{'.','..', 'archive','sub-0000','sub-0002'}));
 sub_list = {dfolders_remove.name};
 group = [];
 
@@ -60,20 +61,22 @@ for sub = 1:length(sub_list)
     end
     dat = [];    subject = [];   s = []; sub_table = [];    test_file = [];
     meta_nifti = [];
-    nii_files = dir(char(fullfile(singletrial_dir, sub_list(sub), char(strcat('*',fname_key(input),'.nii')))));
+    nii_files = dir(char(fullfile(singletrial_dir, sub_list(sub), char(strcat('*.nii.gz')))));
+%     nii_filenames = fullfile(string({nii_files.folder}), string({nii_files.name}));
+    nii_filenames = char(arrayfun(@(f) fullfile(f.folder, f.name), nii_files, 'UniformOutput', false));
     % for fl = 1:length(nii_files)i
     disp(nii_files)
-    if ~isempty(nii_files)
-    test_file = fullfile(nii_files.folder, nii_files.name);
-    disp(strcat('loading ', sub_list(sub), ' test file: ', test_file));
+    if ~isempty(nii_filenames)
+%         test_file = fullfile(nii_files(1).folder, nii_files(1).name);
+%     disp(strcat('loading ', sub_list(sub), ' test file: ', test_file));
     %if isfile(test_file)
         
-        dat = fmri_data(test_file);
-        fname = nii_files.name(1:strfind(nii_files.name,'.')-1);
-        refmask = fmri_data(which('brainmask.nii'));  % shell image
+        dat = fmri_data(nii_filenames);
+%         fname = nii_files.name(1:strfind(nii_files.name,'.')-1);
+        refmask = fmri_data('/Users/h/Documents/MATLAB/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask_canlab.nii');  % shell image
         nps = which('weights_NSF_grouppred_cvpcr.img');
-        npspos = which('weights_NSF_positive_smoothed_larger_than_10vox.img');
-        npsneg = which('weights_NSF_negative_smoothed_larger_than_10vox.img');
+        npspos = which('weights_NSF_positive_smoothed_larger_than_10vox.img.gz');
+        npsneg = which('weights_NSF_negative_smoothed_larger_than_10vox.img.gz');
         posnames = {'vermis'    'rIns'    'rV1'    'rThal'    'lIns'    'rdpIns'    'rS2_Op'    'dACC'};
         negnames = {'rLOC'    'lLOC'    'rpLOC'    'pgACC'    'lSTS'    'rIPL'    'PCC'};
         
@@ -102,10 +105,16 @@ for sub = 1:length(sub_list)
         npspos_cosine_exp_by_region = cat(2, clpos_cosine.dat);
         
         clneg = extract_roi_averages(all_dat2, npsneg, 'pattern_expression', 'contiguous_regions', 'nonorm');
-        clneg_corr = extract_roi_averages(all_dat2, npsneg, 'pattern_expression', 'correlation', 'contiguous_regions', 'nonorm');
+        try
+            clneg_corr = extract_roi_averages(all_dat2, npsneg, 'pattern_expression', 'correlation', 'contiguous_regions', 'nonorm');
+        catch
+            clneg_corr = fmri_data();
+            clneg_corr.dat = nan(size(npspos_corr_values));
+        end
+
         clneg_cosine = extract_roi_averages(all_dat2, npsneg, 'pattern_expression', 'cosine_similarity', 'contiguous_regions', 'nonorm');
         npsneg_exp_by_region = cat(2, clneg.dat);
-        npsneg_corr_exp_by_region = cat(2, clneg_corr.dat);
+        npsneg_corr_exp_by_region = cat(2, clneg.dat);%#cat(2, clneg_corr.dat);
         npsneg_cosine_exp_by_region = cat(2, clneg_cosine.dat);
         
         dat.metadata_table.nps = nps_values;
@@ -144,11 +153,13 @@ for sub = 1:length(sub_list)
         subject = sub_list(sub);
         fname_noext = fname_key(input);
         s = table(subject);
-        f = table(fname_noext);
-        a = [s f];
-        sub_table = [repmat(a, size(dat.metadata_table,1),1) dat.metadata_table];
+%         f = table(nii_filenames);%fname_noext);
+%         a = [s f];
+        ftable = table(char(nii_files.name), 'VariableNames', {'filename'});
+
+        sub_table = [repmat(s,  size(dat.metadata_table,1),1), ftable, dat.metadata_table];
         group = [group; sub_table];
-        sub_fname = fullfile(nps_dir, sub_list(sub), strcat('extract-NPS_', sub_list(sub), '_', fname_noext, '.csv'));
+        sub_fname = fullfile(nps_dir, sub_list(sub), strcat('extract-NPS_', sub_list(sub),'.csv')); %'_', fname_noext, '.csv'));
         disp(sub_fname);
         writetable(sub_table, char(sub_fname));
 	
@@ -158,13 +169,7 @@ for sub = 1:length(sub_list)
     
     disp(strcat("complete job", sub_list(sub)));
 end
-class(group);
-table_fname = fullfile(nps_dir, char(strcat('extract-NPS_', fname_key(input), '.csv')));
-writetable(group, char(table_fname));
-% clear dat meta_nifti test_file
 
-
-end
 
 
 

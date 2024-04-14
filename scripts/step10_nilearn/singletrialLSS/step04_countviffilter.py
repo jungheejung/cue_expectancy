@@ -27,6 +27,8 @@ def convert_float_to_int(value):
 
 # Load the DataFrame
 singletrial_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupplateau'
+singletrial_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupplateau_nosmooth'
+
 df = pd.read_csv(join(singletrial_dir, 'vif_summary/singletrial_vif-above-3.tsv'), sep='\t')
 
 # Extract subject and runtype

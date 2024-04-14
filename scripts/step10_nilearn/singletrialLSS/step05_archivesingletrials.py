@@ -29,10 +29,10 @@ singletrial_dir = join('/Volumes/seagate/cue_singletrials/singletrial_rampupplat
 designated_dir = join('/Volumes/seagate/cue_singletrials/singletrial_rampupplateau/archive')
 
 # # dartfs
-# main_dir = get_git_top_dir()
-# vif_summary = join(main_dir, 'analysis/fmri/nilearn/singletrial_rampupplateau/vif_summary/singletrial_vif-above-3.tsv')
-# singletrial_dir = join(main_dir, 'analysis/fmri/nilearn/singletrial_rampupplateau')
-# designated_dir = join(main_dir, 'analysis/fmri/nilearn/singletrial_rampupplateau/archive')
+main_dir = get_git_top_dir()
+vif_summary = join(main_dir, 'analysis/fmri/nilearn/singletrial_rampupplateau_nosmooth/vif_summary/singletrial_vif-above-3.tsv')
+singletrial_dir = join(main_dir, 'analysis/fmri/nilearn/singletrial_rampupplateau_nosmooth')
+designated_dir = join(main_dir, 'analysis/fmri/nilearn/singletrial_rampupplateau_nosmooth/archive')
 
 # 1. use vif information to filter single trials _______________________________
 # in vif_summary
