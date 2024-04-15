@@ -8,7 +8,7 @@ Benchmarks the apply_all_signatures.m
 
 Signature indices are inputted as slurm ids (environment variable)
 """
-
+# %%
 import os, glob, pathlib
 from nilearn import image, plotting
 import numpy as np
@@ -152,7 +152,9 @@ def utils_extractsignature(img_flist, signature_dict, signature_key, brain_mask_
     # 2. concatenate
     mask_priv_dir = "/dartfs-hpc/rc/lab/C/CANlab/modules/MasksPrivate"
     mul_sig_dir = "/dartfs-hpc/rc/lab/C/CANlab/modules/Neuroimaging_Pattern_Masks/Multivariate_signature_patterns"
-    graymattermask = '/Users/h/Documents/MATLAB/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask_canlab.nii'
+    mask_priv_dir = "/Users/h/Documents/MATLAB/MasksPrivate/Masks_private"
+    mul_sig_dir = "/dartfs-hpc/rc/lab/C/CANlab/modules/Neuroimaging_Pattern_Masks/Multivariate_signature_patterns"    
+    # graymattermask = '/Users/h/Documents/MATLAB/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask_canlab.nii'
     mask_priv_fname = glob.glob(
         os.path.join(mask_priv_dir, "**", signature_dict[signature_key] + "*"),
         recursive=True,
@@ -195,24 +197,16 @@ def utils_extractsignature(img_flist, signature_dict, signature_key, brain_mask_
         img = image.load_img(img_path)
 
         # Resample image to the brain mask
-        resampled_img = image.resample_to_img(source_img=img, target_img=brain_mask_img, interpolation='nearest')
+        resampled_img = image.resample_to_img(source_img=img, target_img=brain_mask_img, interpolation='linear')
 
         # Mask both the resampled image and signature to only consider the overlapping voxels
-        # masked_img_data = resampled_img.get_fdata()[brain_mask_img.get_fdata() > 0]
-        # masked_signature_data = resampled_signature.get_fdata()[brain_mask_img.get_fdata() > 0]
-        # masked_img_data = resampled_img.get_fdata()[(resampled_signature.get_fdata() != 0) & (~np.isnan(resampled_signature.get_fdata()))]
-        # masked_signature_data = resampled_signature.get_fdata()[(resampled_signature.get_fdata() != 0) & (~np.isnan(resampled_signature.get_fdata()))]
+        masked_img_data = resampled_img.get_fdata()[brain_mask_img.get_fdata() > 0.2]
+        masked_signature_data = resampled_signature.get_fdata()[brain_mask_img.get_fdata() > 0.2]
 
-        # # Calculate dot product for the current image
-        # dot_product = np.dot(masked_img_data.flatten(), masked_signature_data.flatten())
-        # dot_products.append(dot_product)
-        mask = (~np.isnan(resampled_img.get_fdata()) & (resampled_img.get_fdata() != 0) & (~np.isnan(resampled_signature.get_fdata()))) #
-
-        masked_img_data = resampled_img.get_fdata()[mask]
-        masked_signature_data = resampled_signature.get_fdata()[mask]
         # Calculate dot product for the current image
         dot_product = np.dot(masked_img_data.flatten(), masked_signature_data.flatten())
         dot_products.append(dot_product)
+
     # Create a DataFrame to return results
     results_df = pd.DataFrame({
         "singletrial_fname": [os.path.basename(path) for path in img_flist],
