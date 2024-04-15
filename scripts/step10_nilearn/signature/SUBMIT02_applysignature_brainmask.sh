@@ -8,7 +8,7 @@
 #SBATCH -e ./log_glm/GLM_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1-5
+#SBATCH --array=1-50%10
 #50%10 
 
 conda activate spacetop_env

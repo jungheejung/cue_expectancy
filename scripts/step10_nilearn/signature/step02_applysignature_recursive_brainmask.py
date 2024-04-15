@@ -195,11 +195,13 @@ def utils_extractsignature(img_flist, signature_dict, signature_key, brain_mask_
         img = image.load_img(img_path)
 
         # Resample image to the brain mask
-        resampled_img = image.resample_to_img(source_img=img, target_img=brain_mask_img, interpolation='linear')
+        resampled_img = image.resample_to_img(source_img=img, target_img=brain_mask_img, interpolation='nearest')
 
         # Mask both the resampled image and signature to only consider the overlapping voxels
-        masked_img_data = resampled_img.get_fdata()[brain_mask_img.get_fdata() > 0]
-        masked_signature_data = resampled_signature.get_fdata()[brain_mask_img.get_fdata() > 0]
+        # masked_img_data = resampled_img.get_fdata()[brain_mask_img.get_fdata() > 0]
+        # masked_signature_data = resampled_signature.get_fdata()[brain_mask_img.get_fdata() > 0]
+        masked_img_data = resampled_img.get_fdata()[(resampled_signature.get_fdata() != 0) & (~np.isnan(resampled_signature.get_fdata()))]
+        masked_signature_data = resampled_signature.get_fdata()[(resampled_signature.get_fdata() != 0) & (~np.isnan(resampled_signature.get_fdata()))]
 
         # Calculate dot product for the current image
         dot_product = np.dot(masked_img_data.flatten(), masked_signature_data.flatten())
