@@ -10,7 +10,7 @@ Signature indices are inputted as slurm ids (environment variable)
 """
 
 import os, glob, pathlib
-from nilearn import image, plotting
+from nilearn import image, plotting, datasets
 import numpy as np
 import pandas as pd
 import argparse
@@ -79,7 +79,6 @@ def convert_imggz_to_niigz_nib(img_fname):
 #     # 2. concatenate
 #     mask_priv_dir = "/dartfs-hpc/rc/lab/C/CANlab/modules/MasksPrivate"
 #     mul_sig_dir = "/dartfs-hpc/rc/lab/C/CANlab/modules/Neuroimaging_Pattern_Masks/Multivariate_signature_patterns"
-#     graymattermask = '/Users/h/Documents/MATLAB/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask_canlab.nii'
 #     mask_priv_fname = glob.glob(
 #         os.path.join(mask_priv_dir, "**", signature_dict[signature_key] + "*"),
 #         recursive=True,
@@ -129,7 +128,6 @@ def convert_imggz_to_niigz_nib(img_fname):
 #     )
 #     return nps_df
 
-
 def utils_extractsignature(img_flist, signature_dict, signature_key, brain_mask_path):
     """
     Using signature_dict, select a signature to apply onto img_flist and return the dot product between the signature and each Nifti image.
@@ -152,7 +150,7 @@ def utils_extractsignature(img_flist, signature_dict, signature_key, brain_mask_
     # 2. concatenate
     mask_priv_dir = "/dartfs-hpc/rc/lab/C/CANlab/modules/MasksPrivate"
     mul_sig_dir = "/dartfs-hpc/rc/lab/C/CANlab/modules/Neuroimaging_Pattern_Masks/Multivariate_signature_patterns"
-    graymattermask = '/Users/h/Documents/MATLAB/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask_canlab.nii'
+    # graymattermask = '/Users/h/Documents/MATLAB/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask_canlab.nii'
     mask_priv_fname = glob.glob(
         os.path.join(mask_priv_dir, "**", signature_dict[signature_key] + "*"),
         recursive=True,
@@ -185,11 +183,13 @@ def utils_extractsignature(img_flist, signature_dict, signature_key, brain_mask_
     signature_img = image.load_img(signature_fname)
 
     # Resample signature to the brain mask
-    resampled_signature = image.resample_to_img(source_img=signature_img, target_img=brain_mask_img, interpolation='nearest')
+    # resampled_signature = image.resample_to_img(source_img=signature_img, target_img=brain_mask_img, interpolation='nearest')
 
     # Initialize list to store dot products
     dot_products = []
 
+    mni = datasets.load_mni152_template(2.7)
+    resampled_signature = image.resample_to_img(source_img=signature_img, target_img=mni, interpolation='nearest')
     # Process each image in the file list
     for img_path in sorted(img_flist):
         img = image.load_img(img_path)
@@ -220,9 +220,6 @@ def utils_extractsignature(img_flist, signature_dict, signature_key, brain_mask_
     })
 
     return results_df
-
-
-
 # %% -------------------------------------------------------------------------
 #  0. argparse
 # ----------------------------------------------------------------------------
@@ -251,6 +248,7 @@ save_signaturedir = args.output_savedir
 # TODO: delete section1. load nifti image
 # singletrial_dir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_TTL2"
 # save_signaturedir = "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/ttl2"
+brain_mask_path = '/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask_canlab.nii'
 
 
 # load in the signatures:
@@ -306,10 +304,6 @@ print(signature_key)
 # %% -------------------------------------------------------------------------
 #  load single trial images
 # ----------------------------------------------------------------------------
-
-brain_mask_path = '/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask_canlab.nii'
-
-
 nifti_fname_dict = {
     "singletrial_dir": singletrial_dir,
     "sub": "*",
