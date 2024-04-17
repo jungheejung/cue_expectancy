@@ -47,70 +47,163 @@ sapply(file.sources,source,.GlobalEnv)
 
 ```
 
-## f1score {.unlisted .unnumbered}
+
+## function
+```{r}
+load_process_BOLD_data <- function(data_dir, roi_name) {
+  # File paths
+  lowBOLD_fname <- file.path(data_dir, paste0("roi-", roi_name, "_cue-low_BOLD.tsv"))
+  highBOLD_fname <- file.path(data_dir, paste0("roi-", roi_name, "_cue-high_BOLD.tsv"))
+  
+  # Read data
+  lowBOLDdf <- readr::read_tsv(lowBOLD_fname, show_col_types = FALSE)
+  highBOLDdf <- readr::read_tsv(highBOLD_fname, show_col_types = FALSE)
+  
+  # Add cue labels
+  # lowBOLDdf$cue <- "low cue"
+  # highBOLDdf$cue <- "high cue"
+  
+  # Combine data
+  bold_df <- rbind(lowBOLDdf, highBOLDdf)
+  bold_df$stim <- factor(bold_df$stimulusintensity, levels = c("low", "med", "high"))
+bold_df$stim_name[bold_df$stim == "high"] <-  "High"
+bold_df$stim_name[bold_df$stim == "med"] <-  "Med"
+bold_df$stim_name[bold_df$stim == "low"] <-  "Low"
+bold_df$cue_name[bold_df$cuetype == "high"] <-  "high cue"
+bold_df$cue_name[bold_df$cuetype == "low"] <-  "low cue"
+
+bold_df$stim_ordered <- factor(bold_df$stim_name,
+                                   levels = c("Low", "Med", "High"))
+bold_df$cue_ordered <- factor(bold_df$cue_name,
+                                  levels = c("low cue", "high cue"))
+
+  
+  # Calculate summary statistics
+  subject <- "sub"
+  iv1 <- "stim_ordered"
+  iv2 <- "cue_ordered"
+  dv <- grep("^mean_nps", names(bold_df), value = TRUE)
+  
+  bold_subjectwise <- meanSummary(bold_df, c(subject, iv1, iv2), dv)
+  bold_groupwise <- summarySEwithin(
+    data = bold_subjectwise,
+    measurevar = "mean_per_sub",
+    withinvars = c(iv1, iv2),
+    idvar = subject
+  )
+  bold_groupwise$score <- "bold"
+  
+  return(bold_groupwise)
+}
+
+
+
+load_process_f1_data <- function(data_dir, roi_name) {
+  # Construct file names
+  low_fname <- file.path(data_dir, paste0("roi-", roi_name, "_cue-low_f1score.tsv"))
+  high_fname <- file.path(data_dir, paste0("roi-", roi_name, "_cue-high_f1score.tsv"))
+  
+  # Load data and add cue labels
+  lowdf <- readr::read_tsv(low_fname, show_col_types = FALSE)
+  lowdf$cue <- "low cue"
+  highdf <- readr::read_tsv(high_fname, show_col_types = FALSE)
+  highdf$cue <- "high cue"
+  
+  # Combine data
+  df <- rbind(lowdf, highdf)
+  
+  # Pivot data from wide to long format
+  df_long <- tidyr::pivot_longer(
+    data = df, 
+    cols = starts_with("F1_"), 
+    names_to = "stim", 
+    values_to = "f1_value",
+    names_prefix = "F1_"
+  )
+  
+  # Adjust stimulus levels to meaningful labels
+  df_long$stim <- factor(df_long$stim, levels = c("low", "med", "high"))
+  df_long$stim_name <- ifelse(df_long$stim == "high", "High", ifelse(df_long$stim == "med", "Med", "Low"))
+
+  df_long$stim_ordered <- factor(df_long$stim_name, levels = c("Low", "Med", "High"))
+  df_long$cue_ordered <- factor(df_long$cue, levels = c("low cue", "high cue"))
+  
+  # Calculate summary statistics
+  subject <- "sub"
+  iv1 <- "stim_ordered"
+  iv2 <- "cue_ordered"
+  dv <- "f1_value"
+  
+  # Assuming meanSummary and summarySEwithin are defined functions or part of a loaded package
+  f1_subjectwise <- meanSummary(df_long, c(subject, iv1, iv2), dv)
+  f1_groupwise <- summarySEwithin(
+    data = f1_subjectwise,
+    measurevar = "mean_per_sub",
+    withinvars = c(iv1, iv2),
+    idvar = subject
+  )
+  f1_groupwise$score <- "f1"
+  
+  return(f1_groupwise)
+}
+
+####################################
+#        plot combined
+####################################
+plot_combined <- function(data_bar, data_line, iv1, iv2, mean_bar, mean_line, error_bar, error_line, color_line, xlab, ylab_bar, ylab_line, offset, positiondodge) {
+      bar_width <- 0.7  # Decrease this value to make bars narrower
+    dodge_width <- 0.05  # Decrease this value to reduce space between bars within groups
+    
+    # Add the offset to line plot data for visual separation
+    data_line$mean_line_adj <- data_line[[mean_line]] + offset
+    data_line$ymin_adj <- data_line[[mean_line]] - data_line[[error_line]] + offset
+    data_line$ymax_adj <- data_line[[mean_line]] + data_line[[error_line]] + offset
+    
+    # Create the ggplot object
+    g <- ggplot() +
+        # Bar plot for BOLD scores _____________________________________________
+        geom_bar(data = data_bar, aes(x = .data[[iv1]], y = .data[[mean_bar]], fill = .data[[iv2]]), stat="identity", position=position_dodge(width = dodge_width), width=bar_width) +
+        geom_errorbar(data = data_bar, aes(x = .data[[iv1]], ymin = .data[[mean_bar]] - .data[[error_bar]], ymax = .data[[mean_bar]] + .data[[error_bar]]), position=position_dodge(width = dodge_width), width=0.1) +
+        # Adjusted line plot for f1 scores ______________________________________
+        geom_line(data = data_line, aes(x = .data[[iv1]], y = mean_line_adj, group = .data[[iv2]], color = .data[[iv2]]), size = 1) +
+        geom_point(data = data_line, aes(x = .data[[iv1]], y = mean_line_adj, color = .data[[iv2]]), size = 1, position=position_dodge(width = dodge_width)) +
+        geom_errorbar(data = data_line, aes(x = .data[[iv1]], ymin = ymin_adj, ymax = ymax_adj, color = .data[[iv2]]), width=0.1, position=position_dodge(width = dodge_width)) +
+        # Scales for fill and color ____________________________________________
+        scale_fill_manual(values = color_line) +
+        scale_color_manual(values = color_line) +
+        # X and Y axis labels __________________________________________________
+        xlab(xlab) +
+        ylab(ylab_bar) +
+        # Primary y-axis for BOLD scores and Secondary y-axis for original f1 scores
+        scale_y_continuous(
+            name = ylab_bar,
+            sec.axis = sec_axis(~ . - offset, name = ylab_line)  # Adjust the secondary axis labels to reflect original values
+        ) +
+        # Faceting to create separate panels for each cue_ordered level
+        facet_wrap(~ .data[[iv2]], scales = "free_x") +
+        # Theme adjustments ____________________________________________________
+        theme_classic() +
+        theme(
+            axis.text.x = element_text(angle = 90, hjust = 1),
+            axis.title.y.right = element_text(color = "black", angle = 270),
+            strip.background = element_blank(),
+            legend.position = "bottom",
+            aspect.ratio = 1.4
+        )
+
+    return(g)
+}
+
+```
+
+
+
+
 ```{r}
 data_dir = "/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv04_NPSdecoding"
-# load data ____________________________________________________________________
-low_fname <- file.path(data_dir, "roi-npspos_dACC_cue-low_f1score.tsv") #roi-npspos_dACC_cue-high_cue
-lowdf <- readr::read_tsv(low_fname)
-lowdf$cue <- "low cue"
-high_fname <- file.path(data_dir, "roi-npspos_dACC_cue-high_f1score.tsv") 
-highdf <- readr::read_tsv(high_fname)
-highdf$cue <- "high cue"
-df <- rbind(lowdf, highdf)
-
-
-# pivot wide to long ___________________________________________________________
-df_long <- pivot_longer(
-  data = df, 
-  cols = c(F1_high, F1_med, F1_low), 
-  names_to = "stim", 
-  values_to = "f1_value",
-  names_prefix = "F1_"
-)
-
-# Adjust the stim levels from the column names to meaningful labels if necessary
-df_long$stim <- factor(df_long$stim, levels = c("low", "med", "high"))
-df_long$stim_name[df_long$stim == "high"] <-
-  "High"
-df_long$stim_name[df_long$stim == "med"] <-
-  "Med"
-df_long$stim_name[df_long$stim == "low"] <-
-  "Low"
-
-df_long$stim_ordered <- factor(df_long$stim_name,
-                                   levels = c("Low", "Med", "High"))
-df_long$cue_ordered <- factor(df_long$cue,
-                                  levels = c("low cue", "high cue"))
-#  summary statistics  _________________________________________________________
-subject <- "sub"
-iv1 <- "stim_ordered"
-iv2 <- "cue_ordered"
-dv <- "f1_value"
-f1_subjectwise <- meanSummary(df_long,
-                                      c(subject, iv1, iv2), dv)
-f1_groupwise <- summarySEwithin(
-  data = f1_subjectwise,
-  measurevar = "mean_per_sub",
-  withinvars = c(iv1, iv2),
-  idvar = subject
-)
-
-# plot line plots ______________________________________________________________
-g <- plot_lineplot_twofactor(f1_groupwise,# taskname = "pain",
-                        iv1 = "stim_ordered", iv2 = "cue_ordered",
-                        mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = "#3E61EC","high cue" = "#FF0000"), 
-                        ggtitle = "Decoding dACC",
-                        xlab = "Stimulus intensity", ylab = "f1 score")
-g + theme(aspect.ratio=.8,
-          text = element_text(size = 18), # Default text size for the plot
-          axis.title = element_text(size = 24, ), # Axis titles
-          axis.text = element_text(size = 18), # Axis text (x and y)
-          plot.title = element_text(size = 24, hjust = 0.5) # Plot title
-          ) +
-  geom_line(size = 1) + # Adjust line thickness
-  geom_point(size = 3)  # Adjust point size
+roi_name <- "npspos_rdpIns"  # Replace with your actual ROI name
+bold_data <- load_process_BOLD_data(data_dir, roi_name)
+f1_data <- load_process_f1_data(data_dir, roi_name)
 ```
 
 
@@ -179,3 +272,90 @@ g + theme(aspect.ratio=.8,
   geom_line(size = 1) + # Adjust line thickness
   geom_point(size = 3)  # Adjust point size
 ```
+
+
+# plot combined
+```{r}
+plot_combined <- function(data_bar, data_line, iv1, iv2, mean_bar, mean_line, error_bar, error_line, color_line, xlab, ylab_bar, ylab_line) {
+    # Combine the datasets for plotting
+    data_combined <- rbind(
+        transform(data_bar, dataset = 'bar'),
+        transform(data_line, dataset = 'line')
+    )
+  
+    # Create initial ggplot object with the combined data
+    g <- ggplot(data_combined, aes_string(x = iv1, y = mean_bar, group = iv2, fill = iv2)) +
+        # geom_col(data = subset(data_combined, dataset == 'bar'), position = position_dodge(width = 0.8)) +
+        geom_bar(data = subset(data_combined, dataset == 'bar'), aes_string(x = iv1, y = mean_bar, fill = iv2), stat="identity", position=position_dodge(width = 0.2), width=.5) +
+        geom_errorbar(data = subset(data_combined, dataset == 'bar'), aes_string(x = iv1, ymin = paste0(mean_bar, '-', error_bar), ymax = paste0(mean_bar, '+', error_bar), fill = iv2), position=position_dodge(width = 0.8), width=0.1) +
+
+
+      
+        geom_line(data = subset(data_combined, dataset == 'line'), aes_string(group = iv2, color = iv1), size = 1) +
+        geom_point(data = subset(data_combined, dataset == 'line'), size = 3) +
+        geom_errorbar(data = subset(data_combined, dataset == 'line'), aes_string(ymin = paste(mean_line, '-', error_line), ymax = paste(mean_line, '+', error_line)), width = 0.2, position = position_dodge(width = 0.8)) +
+        scale_fill_manual(values = c("low cue" = "blue", "high cue" = "red")) +
+        scale_color_manual(values = c("low cue" = "blue", "high cue" = "red")) +
+        facet_grid(~ .data[[iv2]]) +
+        xlab(xlab) +
+        ylab(ylab_bar) +
+        scale_y_continuous(sec.axis = sec_axis(~ ., name = ylab_line)) +
+        theme_classic() +
+        theme(axis.text.x = element_text(angle = 90, hjust = 1),
+              axis.title.y.right = element_text(color = "black", angle = 270),
+              strip.background = element_blank(),
+              legend.position = "bottom") +
+        guides(fill = guide_legend(title = "Cue Ordered"), color = guide_legend(title = "Cue Ordered"))
+  
+    return(g)
+}
+
+# Call the function with your data
+plot_combined(
+    data_bar = bold_groupwise, # Your data frame for bar plots
+    data_line = f1_groupwise, # Your data frame for line plots
+    iv1 = "stim_ordered", # Variable for faceting
+    iv2 = "cue_ordered", # Variable for x-axis grouping
+    mean_bar = "mean_per_sub_mean", # Mean column name for bar plot
+    mean_line = "mean_per_sub_mean", # Mean column name for line plot
+    error_bar = "se",
+    error_line = "se", # Error column name for error bars in line plot
+    color_line = c("blue", "red"), # Colors for line plot
+    xlab = "Stimulus intensity",
+    ylab_bar = "BOLD (a.u.)",
+    ylab_line = "Classification (f1)"
+)
+plot_combined
+
+ggsave(filename=, plot_combined())
+```
+
+# different scale
+```{r}
+
+
+# Define an offset for visual separation
+offset_value <- 0.3
+
+# Example usage
+combined_plot <- plot_combined(
+    data_bar = bold_data,#bold_groupwise,
+    data_line = f1_data, #f1_groupwise,
+    iv1 = "stim_ordered",
+    iv2 = "cue_ordered",
+    mean_bar = "mean_per_sub_mean",
+    mean_line = "mean_per_sub_mean",
+    error_bar = "se",
+    error_line = "se",
+    color_line = c("low cue" = "blue", "high cue" = "red"),
+    xlab = "Stimulus Intensity",
+    ylab_bar = "BOLD (a.u.)",
+    ylab_line = "Classification (f1)",
+    offset = offset_value  # The offset for visual separation
+)
+
+print(combined_plot)
+
+```
+
+
