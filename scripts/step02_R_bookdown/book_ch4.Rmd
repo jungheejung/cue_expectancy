@@ -150,7 +150,7 @@ base_dir <- "/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signat
 file_paths <- list.files(base_dir, pattern =  "sub-.*_signature-NPSroi_.*\\.csv$", full.names = TRUE, recursive = TRUE)
 NPS <- file_paths %>% 
   map_dfr(~read_csv(.x, show_col_types = FALSE), .id = "file_path")
-SIIPS <- read.csv(file.path("/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau/signature-SIIPS_sub-all_runtype-pvc_event-stimulus.tsv"), sep = ",")
+SIIPS <- read.csv(file.path("/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau_canlab/signature-SIIPS_sub-all_runtype-pain_event-stimulus.csv"), sep = ",")
 # SIIPS <- siips %>% 
 #   select(-X)
 # NPS <- nps %>% 
@@ -352,6 +352,9 @@ sjPlot::tab_model(model.NPS,
                   title = "Multilevel-modeling: \nlmer(NPS ~ CUE * STIM + (CUE + STIM | sub), data = pain)",
                   CSS = list(css.table = '+font-size: 12;'))
 equatiomatic::extract_eq(model.NPS)
+sink("/Users/h/Desktop/NPS_output.txt")  # Redirects output to 'my_output.txt'
+summary(model.NPS)
+sink(NULL)  #
 ```
 
 ### lineplot
@@ -443,8 +446,53 @@ k<- k+ theme(aspect.ratio=1,
 k
 ggsave(file.path(analysis_dir, paste0("NPS_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300) 
 ```
+### PE 
+```{r}
+PEdf <- read.csv("/Users/h/Documents/projects_local/cue_expectancy/data/RL/modelfit_jepma_0525/table_pain.csv")
+# dfmerge
+dfmerge$src_subject_id <-  as.numeric(gsub("[^0-9]", "", dfmerge$sub))
+dfmerge$session_id <- as.numeric(gsub("[^0-9]", "", dfmerge$ses))
+dfmerge$param_run_num <- as.numeric(gsub("[^0-9]", "", dfmerge$run))
+PEdf$trial_index <- PEdf$trial_index_runwise
+# Full outer join
+PEnpsdf <- merge(dfmerge, PEdf, by = c("src_subject_id", "session_id", "param_run_num", "trial_index"))
+print(PEnpsdf)
 
-## F-2. Filter data and plot
+PE.model <- lmer(nps ~ PE_mdl2 + (PE_mdl2 | sub), data=PEnpsdf, control = lmerControl(optimizer = "nmkbw"))
+summary(PE.model)
+sjPlot::tab_model(PE.model,
+                  title = "Multilevel-modeling: \nlmer(NPS ~ PE + (CUE + STIM | sub), data = pain)",
+                  CSS = list(css.table = '+font-size: 12;'))
+equatiomatic::extract_eq(PE.model)
+sink("/Users/h/Desktop/PEnps_output.txt")  # Redirects output to 'my_output.txt'
+summary(PE.model)
+sink(NULL)  #
+
+library(ggplot2)
+
+min_value <- -40
+max_value <- 40
+PEnpsdf$sub <- factor(PEnpsdf$sub)
+plot.PE_NPS <- ggplot(PEnpsdf, aes(x = PE_mdl2, y = NPS)) +
+  geom_point(aes(colour = sub), size = .1) +  # Points colored by subject
+  geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .3, linetype = "dashed") +  # Subject-wise regression lines
+  geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = .5, color = "black") +  # Group regression line
+  # ylim(min_value, max_value) +  # Set y-axis limits
+  # xlim(min_value, max_value)
+  theme_classic2()  +# Use a theme with a white background
+xlab("PE") +
+   theme(aspect.ratio=1,
+          text = element_text(size = 18), # Default text size for the plot
+          axis.title = element_text(size = 24, ), # Axis titles
+          axis.text = element_text(size = 18), # Axis text (x and y)
+          plot.title = element_text(size = 24, hjust = 0.5),# Plot title
+         legend.position = "none"  
+          ) 
+plot.PE_NPS
+ggsave("/Users/h/Documents/projects_local/cue_expectancy/resources/plots_dissertation/ch4/ch4_NPSPE.png",plot.PE_NPS, w=5, h=4, dpi=300)
+```
+
+## 3 nociceptive ROI
 ```{r}
 # filter data __________________________________________________________________
 # Make sure that each condition cell has adequate amount of trials
@@ -621,7 +669,11 @@ summary(model.SIIPS)
 sjPlot::tab_model(model.SIIPS,
                   title = "Multilevel-modeling: \nlmer(SIIPS ~ CUE * STIM + (CUE + STIM | sub), data = pain)",
                   CSS = list(css.table = '+font-size: 12;'))
-equatiomatic::extract_eq(model.beh)
+
+sink("/Users/h/Desktop/SIIPS_output.txt")  # Redirects output to 'my_output.txt'
+summary(model.SIIPS)
+equatiomatic::extract_eq(model.SIIPS)
+sink(NULL)  #
 ```
 ```{r}
 dv <- "SIIPS"
