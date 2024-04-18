@@ -126,6 +126,7 @@ def parse_filename_with_regex_adjusted(filename):
         return {}
 # %% load data
 # roi = 'dACC'
+
 roi_list = [ 'npsneg_rIPL',  'npsneg_pgACC','npsneg_rLOC', 'npsneg_lLOC', 
             'npspos_dACC', 'npspos_rdpIns', 'npspos_rS2_Op', 'npspos_rV1', 'npspos_vermis']
 for roi in roi_list:
@@ -251,7 +252,16 @@ for roi in roi_list:
 
         f1df = pd.DataFrame(columns=['sub', 'ses_run', 'F1_high', 'F1_med', 'F1_low'])
         accuracy_df = pd.DataFrame(columns=['sub', 'ses_run', 'Accuracy_high', 'Accuracy_med', 'Accuracy_low'])
-
+        # calculate average value for BOLD comparison
+        roi_columns = filtered_df.filter(regex=f'^{roi}')
+        filtered_df[f'mean_{roi}'] = roi_columns.mean(axis=1)
+        bold_df = filtered_df[['sub', 'ses', 'run', 'runtype', 'event', 'trial', 'cuetype',
+       'stimulusintensity', 'cue', 'stim', 'singletrial_fname',
+       'stim_num', 'trial_index', 'ses_run', f'mean_{roi}']]
+        bold_df['roi'] = roi
+        cuename = cuetype.strip('_cue')
+        bold_df.to_csv(join(save_dir, f'roi-{roi}_cue-{cuename}_BOLD.tsv'), 
+                        sep='\t', index=False)
         # Step 5: Iterate over each subject
         for sub in df_filtered['sub'].unique():
 
@@ -355,24 +365,48 @@ for roi in roi_list:
         # Step 8. Convert overall results to a DataFrame for easier analysis ___________
         highcue_results_df = pd.DataFrame(overall_results)
         # print(highcue_results_df)
-        desired_class_order = ['high_stim', 'med_stim', 'low_stim']
+        desired_class_order = ['high_stim',   'med_stim', 'low_stim']
+        # desired_class_order = [label.replace('_stim', '').capitalize() for label in original_order]
+        order_map = {'high_stim': 0, 'med_stim': 1, 'low_stim': 2}
+        # desired_order_indices = [order_map[label] for label in desired_class_order]
+        desired_order_indices = [2,1,0]
 
         # Step 9. Plot confusion matrix ________________________________________________
         average_normalized_cm = np.mean(group_confusion_matrices, axis=0)
+        ordered_cm = average_normalized_cm[:, desired_order_indices][desired_order_indices, :]
         print("Normalized Confusion Matrix (by Actual Class Totals):")
-        print(average_normalized_cm)
+        # print(average_normalized_cm)
 
         cuename = cuetype.strip('_cue')
 
-        plt.figure(figsize=(4,4))
-        sns.heatmap(average_normalized_cm, 
-                    annot=True, fmt=".2%", cmap=cmap, vmin=.25, vmax=.45,
-                    xticklabels=desired_class_order, 
-                    yticklabels=desired_class_order)
-        plt.ylabel('Actual label')
-        plt.xlabel('Predicted label')
-        plt.title(f'{roi} {cuetype}\nClassify high/med/low stim')
-        plt.savefig(join(save_dir, f'roi-{roi}_cue-{cuename}_confusionmatrix.png'))
+        plt.figure(figsize=(5,5))
+        plt.rc('font', family='Arial', size=16)  # Set the font type and base size
+        roimapping = {'npsneg_rIPL': 'IPL (R)',  
+              'npsneg_pgACC': 'pgACC',
+              'npsneg_rLOC': 'LOC (R)', 
+              'npsneg_lLOC': 'LOC (L)',
+              'npspos_dACC': 'dACC', 
+              'npspos_rdpIns': 'dpIns', 
+              'npspos_rS2_Op': 'SII & Op', 
+              'npspos_rV1': 'V1 (R)', 
+              'npspos_vermis': 'Vermis'}
+        cuetypemapping = {'low_cue': 'low cue',
+                          'high_cue': 'high cue'}
+        ax = sns.heatmap(ordered_cm,
+                    annot=True, fmt=".2%", center=.33,cmap="RdBu_r",vmin=.27, vmax=.40,
+                    xticklabels=['Low', 'Med',  'High'], 
+                    yticklabels=['Low', 'Med', 'High']
+                    )
+        plt.ylabel('Actual label', fontsize=20)
+        plt.xlabel('Predicted label', fontsize=20)
+        cbar = ax.collections[0].colorbar
+        from matplotlib.ticker import MaxNLocator
+        # Use MaxNLocator to control the maximum number of ticks
+        cbar.locator = MaxNLocator(nbins=5)  # Adjust 'nbins' to change the number of ticks
+        cbar.update_ticks()
+
+        plt.title(f'{roimapping[roi]} {cuetypemapping[cuetype]}', fontsize=24)
+        plt.savefig(join(save_dir, f'roi-{roi}_cue-{cuename}_confusionmatrix.svg'), dpi=200)
         plt.show()
 
         print(f"high cue f1score: {highcue_results_df['f1_score'].mean()}")
