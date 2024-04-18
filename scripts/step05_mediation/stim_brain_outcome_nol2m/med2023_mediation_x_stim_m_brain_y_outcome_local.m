@@ -89,7 +89,7 @@ for s = 2:length(sublist)
 %     combinedTable = load_beh_bids(beh_dir, unique_bids);
     beh_df = load_beh_bids(fullfile(beh_dir), unique_bids);
     combinedTable = innerjoin(npsdf, beh_df, 'Keys', 'singletrial_fname');
-%     beh_fname = fullfile(main_dir, 'data', 'beh', 'beh_singletrials', strcat(sublist{s}, '_task-', task, 'desc-singletrialbehintersection_events.tsv');
+
     mkdir(fullfile(main_dir, 'data', 'beh', 'beh_singletrials',strcat(sublist{s})));
     beh_fname = fullfile(main_dir, 'data', 'beh', 'beh_singletrials',sublist{s}, strcat(sublist{s}, '_task-', task, 'desc-singletrialbehintersection_events.tsv'));
     writetable(combinedTable, beh_fname, 'Delimiter', '\t', 'FileType', 'text');
@@ -130,40 +130,25 @@ for s = 2:length(sublist)
     end
 end
 end
-% 
-% for idx = 1:numel(Y)
-%     if ischar(Y{idx}) || isstring(Y{idx})
-%         % Try converting string to number
-%         num = str2double(Y{idx});
-%         if isnan(num) && ~strcmpi(Y{idx}, 'nan')
-%             % If conversion fails and it's not explicitly 'nan', keep as NaN
-%             Y{idx} = NaN;
-%         else
-%             % If conversion is successful or it's 'nan', update the cell
-%             Y{idx} = num;
+
+
+% Assuming cellArray is your 1x98 cell array TODO. check and delete
+% for i = 1:length(Y)
+%     currentArray = Y{i}; % Extract the current array (might contain strings)
+%     for j = 1:length(currentArray)
+%         if ischar(currentArray{j}) || isstring(currentArray{j})
+%             % Attempt to convert string to number, use NaN if not possible
+%             currentArray{j} = str2double(currentArray{j});
+%             if isnan(currentArray{j})
+%                 % Handle non-convertible strings as needed, for example, use NaN
+%                 currentArray{j} = NaN; 
+%             end
 %         end
 %     end
-%     % Numeric values and NaNs remain unchanged
+%     % Ensure the inner array is numeric after conversion
+%     Y{i} = cell2mat(currentArray);
 % end
-
-
-% Assuming cellArray is your 1x98 cell array
-for i = 1:length(Y)
-    currentArray = Y{i}; % Extract the current array (might contain strings)
-    for j = 1:length(currentArray)
-        if ischar(currentArray{j}) || isstring(currentArray{j})
-            % Attempt to convert string to number, use NaN if not possible
-            currentArray{j} = str2double(currentArray{j});
-            if isnan(currentArray{j})
-                % Handle non-convertible strings as needed, for example, use NaN
-                currentArray{j} = NaN; 
-            end
-        end
-    end
-    % Ensure the inner array is numeric after conversion
-    Y{i} = cell2mat(currentArray);
-end
-
+% 
 
 
 
@@ -388,7 +373,7 @@ zscored_Y_filtered = zscored_Y';
 % Y = zscored_Y;
 % cov = cov_test;
 % l2m_meancentered = l2m_test;
-SETUP.mask = '../new_graymattermask.nii'; %which(graymatter_mask);
+SETUP.mask = '../new_graymattermask_thres2.nii'; %which(graymatter_mask);
 SETUP.preprocX = 0;
 SETUP.preprocY = 0;
 SETUP.preprocM = 0;
@@ -398,17 +383,13 @@ M_filtered_char = convert_cell2char(M_filtered);
 % SETUP.data.L2M = l2m_meancentered';
 
 mediation_brain_multilevel(X_filtered, zscored_Y_filtered, M_filtered_char, SETUP, 'nopreproc', 'covs', cov_filtered, 'boot', 'bootsamples', 1000);% 'L2M', l2m_meancentered',
-% mediation_brain_multilevel(X_filtered, zscored_Y_filtered, M_filtered_char, SETUP, 'nopreproc', 'boot', 'bootsamples', 1000);
-% mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'covs', cov, 'L2M', l2m_meancentered'); %, 'boot', 'bootsamples', 1000);
-% mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'covs', cov, 'boot', 'bootsamples', 1000);% 'L2M', l2m_meancentered',
-% mediation_brain_multilevel(X, Y, M, SETUP, 'nopreproc', 'boot', 'bootsamples', 1000);
 SETUP = mediation_brain_corrected_threshold('fdr');
 
 dashes = '----------------------------------------------';
 printstr = @(dashes) disp(dashes);
 printhdr = @(str) fprintf('\n\n%s\n%s\n%s\n%s\n%s\n\n', dashes, dashes, str, dashes, dashes);
 
-printhdr('Path a: Cue to Brain Response')
+printhdr('Path a: Stim to Brain Response')
 
 mediation_brain_results('a', 'thresh', ...
     SETUP.fdr_p_thresh, 'size', 5, ...
@@ -417,7 +398,7 @@ print('Path_a_results.pdf', '-dpdf');
 
 % Results for Path b
 % Generate results for effects of brain responses on pain reports, controlling for stimulus  temperature.
-printhdr('Path b: Brain Response to Actual Rating, Adjusting for Cue')
+printhdr('Path b: Brain Response to Actual Rating, Adjusting for Stim')
 
 mediation_brain_results('b', 'thresh', ...
     SETUP.fdr_p_thresh, 'size', 5, ...
@@ -425,7 +406,7 @@ mediation_brain_results('b', 'thresh', ...
 print('Path_b_results.pdf', '-dpdf');
 % Results for Path a*b
 % Generate results for the mediation effect. Here, we'll return some clusters structures with results to the workspace as output so we can examine them later. (We can also load them from disk).
-printhdr('Path a*b: Brain Mediators of Cue Effects on General')
+printhdr('Path a*b: Brain Mediators of Stim Effects on General')
 
 [clpos, clneg, clpos_data, clneg_data, clpos_data2, clneg_data2] = mediation_brain_results('ab', 'thresh', ...
     SETUP.fdr_p_thresh, 'size', 5, ...
