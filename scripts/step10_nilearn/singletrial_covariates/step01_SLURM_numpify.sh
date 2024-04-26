@@ -24,5 +24,5 @@ BETADIR="${MAINDIR}/analysis/fmri/nilearn/singletrial_rampupplateau"
 SAVEDIR="${MAINDIR}/analysis/fmri/nilearn/deriv04_covariate"
 python ${MAINDIR}/scripts/step10_nilearn/singletrial_covariates/step01_numpify.py \
 --slurm-id ${ID} \
---input-betadir ${BETADIR}
+--input-betadir ${BETADIR} \
 --save-npydir ${SAVEDIR}
