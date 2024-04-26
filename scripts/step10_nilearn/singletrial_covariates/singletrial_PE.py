@@ -102,16 +102,21 @@ for subject, runs in bad_dict.items():
 # ----------------------------------------------------------------------
 # Here, we create a brain mask based on brainmask_canlab.nii; 
 # We also use sample single trial as target shape and target affine
-imgfname = join(main_dir, 'analysis', 'fmri', 'nilearn', 'singletrial', 'sub-0060', f'sub-0060_ses-01_run-05_runtype-vicarious_event-{fmri_event}_trial-011_cuetype-low_stimintensity-low.nii.gz')
+imgfname = join(main_dir, 'analysis', 'fmri', 'nilearn', 'singletrial', 'sub-0060', 
+                f'sub-0060_ses-01_run-05_runtype-vicarious_event-{fmri_event}_trial-011_cuetype-low_stimintensity-low.nii.gz')
 ref_img = image.load_img(imgfname)
 
 mask = image.load_img(join(canlab_dir, 'CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask_canlab.nii'))
-mask_img = nilearn.masking.compute_epi_mask(mask, target_affine = ref_img.affine, target_shape = ref_img.shape)
+mask_img = nilearn.masking.compute_epi_mask(mask, 
+                                            target_affine=ref_img.affine, 
+                                            target_shape=ref_img.shape)
 
-nifti_masker = nilearn.maskers.NiftiMasker(mask_img= mask_img,
+nifti_masker = nilearn.maskers.NiftiMasker(mask_img=mask_img,
                                            smoothing_fwhm=6,
-                            target_affine = ref_img.affine, target_shape = ref_img.shape, 
-                    memory="nilearn_cache", memory_level=1)
+                                           target_affine=ref_img.affine, 
+                                           target_shape=ref_img.shape, 
+                                           memory="nilearn_cache", 
+                                           memory_level=1)
 
 # %% -------------------------------------------------------------------
 #                        main correlation
@@ -129,7 +134,8 @@ filtered_files = [file_path for file_path in nii_flist
 keyword_names = ["sub", "ses", "run", "runtype", "event", "trial", "cuetype", "stimintensity"] # Define the desired keyword names
 dfs = [
     pd.DataFrame(
-        [dict(zip(keyword_names, re.findall(r'-(.*?)(?:_|$)', os.path.splitext(os.path.basename(nii_fname))[0])))]
+        [dict(zip(keyword_names, re.findall(r'-(.*?)(?:_|$)', 
+                                            os.path.splitext(os.path.basename(nii_fname))[0])))]
         )
     for nii_fname in filtered_files
 ]
@@ -160,7 +166,8 @@ intersection.to_csv(join(save_dir, f"{sub}_intersection.csv"))
 
 # %% 05 using intersection, grab nifti/npy _____________________________
 for index, row in intersection.iterrows():
-    fname = sorted(glob.glob(join(beta_dir, sub, f"sub-{row['sub']:04d}_ses-{row['ses']:02d}_run-{row['run']:02d}_runtype-{row['runtype']}_event-{row['event']}_trial-{row['trial']:03d}_*.npy")))
+    fname = sorted(glob.glob(join(beta_dir, sub, 
+                                  f"sub-{row['sub']:04d}_ses-{row['ses']:02d}_run-{row['run']:02d}_runtype-{row['runtype']}_event-{row['event']}_trial-{row['trial']:03d}_*.npy")))
     flist.append(fname)
 flatlist=[]
 for sublist in flist:
@@ -200,7 +207,10 @@ print(corr_subjectnifti)
 # %% Save the resampled image using the reference affine
 Path(save_dir).mkdir(parents = True, exist_ok = True)
 resampled_image = image.resample_to_img(corr_subjectnifti, ref_img)
-plot = plotting.plot_stat_map(resampled_image,  display_mode = 'mosaic', title = f'task-{task} corr w/ {fmri_event} and {beh_savename}', cut_coords = 8)
+plot = plotting.plot_stat_map(resampled_image,  
+                              display_mode='mosaic', 
+                              title=f'task-{task} corr w/ {fmri_event} and {beh_savename}', 
+                              cut_coords=8)
 plot.savefig(join(save_dir ,  f'corr_{sub}_x-{fmri_event}_y-{beh_savename}.png'))
 resampled_image.to_filename(join(save_dir, f'corr_{sub}_x-{fmri_event}_y-{beh_savename}.nii.gz'))
 
