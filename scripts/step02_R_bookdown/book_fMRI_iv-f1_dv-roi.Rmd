@@ -328,6 +328,12 @@ print(combined_plot)
 ggsave(paste0("/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv04_NPSdecoding/boldf1-", roi_name, ".svg"), combined_plot, width = 8, height = 4, dpi=300)
 }
 ```
+
+```{r}
+f1_data
+```
+
+
 ```{r}
 data_dir = "/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv04_NPSdecoding"
 # roi_name <- "npspos_rdpIns"  # Replace with your actual ROI name
@@ -336,7 +342,7 @@ roi_list <- c( "npsneg_rIPL", "npsneg_pgACC","npsneg_rLOC", "npsneg_lLOC",
 roi_title <- c( "IPL (R)",  "pgACC","LOC (R)", "LOC (L)", 
             "dACC", "dpIns (R)", "S2 & Op (R)", "V1 (R)", "Vermis")
 
-for (i in 1) {#seq_along(roi_list)) {
+for (i in 8) {#seq_along(roi_list)) {
   roi_name <- roi_list[i]
   dv_title <- roi_title[i]
 
@@ -347,11 +353,11 @@ acc_data <- load_process_acc_data(data_dir, roi_name)
 # Define an offset for visual separation
 # offset_value <- 0.3
 
-offset_value <- calculate_best_offset(data_bar=bold_data, data_line=acc_data, mean_bar="mean_per_sub_mean", mean_line="mean_per_sub_mean", error_bar="se", "se")
+offset_value <- calculate_best_offset(data_bar=bold_data, data_line=f1_data, mean_bar="mean_per_sub_mean", mean_line="mean_per_sub_mean", error_bar="se", "se")
 # Example usage
 combined_plot <- plot_combined(
     data_bar = bold_data,#bold_groupwise,
-    data_line = acc_data, #f1_groupwise,
+    data_line = f1_data, #f1_groupwise,
     iv1 = "cue_ordered",
     iv2 = "stim_ordered",
     mean_bar = "mean_per_sub_mean",
@@ -363,13 +369,13 @@ combined_plot <- plot_combined(
     ylab_bar = "BOLD (a.u.)",
     ylab_line = "Classification (f1)",
     title = dv_title,
-    offset = 0.000001  # The offset for visual separation
+    offset = 0  # The offset for visual separation
 )
 combined_plot <- combined_plot + theme(aspect.ratio=1.3,
-          text = element_text(size = 12), # Default text size for the plot
-          axis.title = element_text(size = 12, ), # Axis titles
-          axis.text = element_text(size = 10), # Axis text (x and y)
-          plot.title = element_text(size = 15, hjust = 0.5), # Plot title
+          text = element_text(size = 15), # Default text size for the plot
+          axis.title = element_text(size = 15, ), # Axis titles
+          axis.text = element_text(size = 12), # Axis text (x and y)
+          plot.title = element_text(size = 18, hjust = 0.5), # Plot title
          axis.text.x = element_text(angle = 45, hjust = 1)
           )
 print(combined_plot)
