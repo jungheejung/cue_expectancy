@@ -98,10 +98,25 @@ f1_groupwise <- summarySEwithin(
 )
 
 # plot line plots ______________________________________________________________
-g <- plot_lineplot_twofactor(f1_groupwise,# taskname = "pain",
+g <- plot_lineplot_twofactor(f1_groupwise[f1_groupwise$cue_ordered == "high cue",],# taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = "#3E61EC","high cue" = "#FF0000"), 
+                        color = c( "high cue" = "#FF0000"), #"low cue" = "#3E61EC",
+                        ggtitle = "Decoding dACC",
+                        xlab = "Stimulus intensity", ylab = "f1 score")
+g + theme(aspect.ratio=.8,
+          text = element_text(size = 18), # Default text size for the plot
+          axis.title = element_text(size = 24, ), # Axis titles
+          axis.text = element_text(size = 18), # Axis text (x and y)
+          plot.title = element_text(size = 24, hjust = 0.5) # Plot title
+          ) +
+  geom_line(size = 1) + # Adjust line thickness
+  geom_point(size = 3)  # Adjust point size
+
+g <- plot_lineplot_twofactor(f1_groupwise[f1_groupwise$cue_ordered == "low cue",],# taskname = "pain",
+                        iv1 = "stim_ordered", iv2 = "cue_ordered",
+                        mean = "mean_per_sub_norm_mean", error = "se",
+                        color = c( "low cue" = "#3E61EC"),
                         ggtitle = "Decoding dACC",
                         xlab = "Stimulus intensity", ylab = "f1 score")
 g + theme(aspect.ratio=.8,
