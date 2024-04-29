@@ -1,5 +1,6 @@
 plot_lineplot_twofactor_subsetthick <- function(data, taskname, iv1, iv2, mean, error,
-                      color, ggtitle, xlab= "Stimulus Intensity", ylab = "Outcome Rating", line_thickness=2) {
+                      color, ggtitle, xlab= "Stimulus Intensity", ylab = "Outcome Rating", 
+                      line_thickness=2, xlim = NULL, ylim = NULL) {
     # iv1 = "levels_ordered"
     # iv2 = "social_ordered"
     # mean = mean_per_sub_norm_mean
@@ -30,5 +31,13 @@ plot_lineplot_twofactor_subsetthick <- function(data, taskname, iv1, iv2, mean, 
         theme(legend.position = "none") +
         theme(text = element_text(size = 20))   +
         theme(aspect.ratio = .6)
+
+    if (!is.null(xlim)) {
+        g <- g + xlim(xlim)
+    }
+    if (!is.null(ylim)) {
+        g <- g + ylim(ylim)
+    }
+
     return(g)
 }

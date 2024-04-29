@@ -1,7 +1,8 @@
 function step02_apply_NPS()
     %% Data directories and parameters setup
-    main_dir = '/Volumes/seagate/TMP';
-    singletrial_dir = fullfile('/Volumes/seagate/cue_singletrials/uncompressed_singletrial_rampupplateau');
+%     main_dir = '/Volumes/seagate/TMP';
+main_dir = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau_brainmask';
+    singletrial_dir = fullfile('/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupplateau');
     sub_list = getSubFolders(singletrial_dir);
     key_list = {'stimulus'}; % Add 'cue' to this list if needed
 
@@ -14,7 +15,7 @@ function step02_apply_NPS()
         
         for sub_ind = 1:length(sub_list)
             sub = sub_list{sub_ind};
-            test_files = dir(fullfile(singletrial_dir, sub, sprintf('*_event-%s*.nii', key)));
+            test_files = dir(fullfile(singletrial_dir, sub, sprintf('*_event-%s*.nii.gz', key)));
 
             %% Process each file
             for file_ind = 1:length(test_files)
@@ -52,7 +53,7 @@ function step02_apply_NPS()
     end
 
     %% Save the result table to a file (optional)
-    writetable(resultTable, fullfile(main_dir, 'nps_results.csv'));
+    writetable(resultTable, fullfile(main_dir, 'CANlab_applyNPS_singletrial_rampupplateau.csv'));
 end
 
 function subFolders = getSubFolders(singletrial_dir)

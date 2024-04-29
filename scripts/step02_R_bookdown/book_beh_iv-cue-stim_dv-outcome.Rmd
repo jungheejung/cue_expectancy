@@ -55,6 +55,328 @@ file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
 sapply(file.sources,source,.GlobalEnv)
 ```
 
+
+# function
+```{r}
+#' Create a Cue Expectancy Plot with Two Factors
+#'
+#' This function generates a cue expectancy plot with two factors, including customization options for various plot elements.
+#'
+#' @param subjectwise Data for outcome by subject.
+#' @param groupwise Data for outcome by group.
+#' @param model_iv1 First independent variable for modeling.
+#' @param model_iv2 Second independent variable for modeling.
+#' @param sub_mean Mean outcome by subject.
+#' @param group_mean Mean outcome by group.
+#' @param se Standard error.
+#' @param subject Subject information.
+#' @param ggtitle Title for the plot.
+#' @param title Title for the plot.
+#' @param xlab Label for the x-axis.
+#' @param ylab Label for the y-axis.
+#' @param taskname Task name.
+#' @param ylim Limits for the y-axis.
+#' @param w Width of the plot.
+#' @param h Height of the plot.
+#' @param dv_keyword Keyword for dependent variable.
+#' @param color Color for plot elements.
+#' @param plot_savefname Filename for saving the plot.
+#' @param expand_x Expand limits for the x-axis. Default is TRUE.
+#' @param xlim Limits for the x-axis. Default is c(NA, 3).
+#' @param x_scale_expansion Expansion for x-axis scale. Default is c(0, 0.5).
+#' @param x_hline_position Position for horizontal line on the x-axis. Default is 3.5.
+#' @param x_hline_linetype Linetype for the horizontal line. Default is "dashed".
+#' @param x_hline_nudge_x Nudge value for horizontal line on the x-axis. Default is 0.1.
+#' @param x_hline_textsize Text size for the horizontal line annotation. Default is 3.
+#' @param legend_factor_levels Levels for the legend factors. Default is c("High cue", "Low cue").
+#' @param legend_factor_colors Colors for the legend factors. Default is c("#D73027", "#4575B4").
+#' @param legend_geom_point_size Size of the points in the legend. Default is 3.
+#' @param legend_position Position of the legend. Default is c(-0.1, 0.9).
+#' @param legend_widths Relative widths of the plot and legend. Default is c(4, 1).
+#'
+#' @return A customized cue expectancy plot with two factors.
+#'
+#' @import ggplot2
+#' @import gridExtra
+#'
+#' @examples
+#' # Example usage:
+#'     g <- plot_cueexpectancy_twofactor(
+#'         outcome_subjectwise, outcome_groupwise, model_iv1, model_iv2,
+#'         sub_mean, group_mean, se, subject, ggtitle, title,
+#'         xlab, ylab, taskname, ylim,
+#'         w, h, dv_keyword, color, plot_savefname,
+#'         x_hline_position = 3.5,
+#'         x_hline_linetype = "dashed",
+#'         x_hline_nudge_x = 0.1,
+#'         x_hline_textsize = 3,
+#'         legend_factor_levels = c("High cue", "Low cue"),
+#'         legend_factor_colors = c("#D73027", "#4575B4"),
+#'         legend_geom_point_size = 4,
+#'         legend_position = c(-0.1, 0.9),
+#'         legend_widths = c(4, 1)
+#'         )
+#'         print(g)
+#'         ggsave(plot_savefname, width = w, height = h)
+#'
+#' ![Example Plot](https://github.com/jungheejung/cueR/blob/main/man/figures/example_plot_cueexpectancy_twofactor.png)
+#' @export
+
+plot_cueexpectancy_twofactor <- function(
+    subjectwise, groupwise, model_iv1, model_iv2,
+    sub_mean, group_mean, se, subject,
+    ggtitle, title, xlab, ylab, taskname, ylim,
+    w, h, dv_keyword, color, plot_savefname,
+    font_sizes = list(
+      axis_text = 12,
+      axis_title = 14,
+      plot_title = 16,
+      legend_text = 12,
+      legend_title = 14
+    ),
+    expand_x = TRUE,
+    xlim = c(NA, 3),
+    x_scale_expansion = c(0, 0.5),
+    x_hline_position = 3.5,
+    x_hline_linetype = "dashed",
+    x_hline_nudge_x = 0.1,
+    x_hline_textsize = 3,
+    legend_factor_levels = c("High cue", "Low cue"),
+    legend_factor_colors = c("#D73027", "#4575B4"),
+    legend_geom_point_size = 3,
+    legend_position = c(-0.1, 0.9),
+    legend_widths = c(4, 1)
+) {
+  # Generate the main plot
+  g <- ggplot()
+
+    
+  g <- plot_halfrainclouds_twofactor(
+    subjectwise, groupwise, model_iv1, model_iv2,
+    sub_mean, group_mean, se, subject,
+    ggtitle, title, xlab, ylab, taskname, ylim,
+    w, h, dv_keyword, color, plot_savefname
+  )
+  
+  # Apply customizations to the plot
+  if (expand_x) {
+    g <- g + coord_cartesian(xlim = xlim, ylim = c(NA, NA), clip = "off") +
+      scale_x_discrete(expand = expansion(mult = x_scale_expansion))
+  }
+  
+  g <- ggplot_hline_bartoshuk(g, 
+                              linesize=.1,
+                              linecolor = "#575757",
+                              xposition = x_hline_position, 
+                              linetype = x_hline_linetype, 
+                              nudge_x = x_hline_nudge_x, 
+                              textsize = x_hline_textsize) +
+    theme_classic() +
+    guides(shape = guide_legend(override.aes = list(shape = c(16, 17)))) +
+    theme(legend.position = "none")
+  
+  g <- ggplot_largetext(g)
+  
+  # Create the legend data frame
+  g <- g + theme(
+    text = element_text(size = font_sizes$base_text),
+    axis.text = element_text(size = font_sizes$axis_text),
+    axis.title = element_text(size = font_sizes$axis_title),
+    plot.title = element_text(size = font_sizes$plot_title, hjust = 0.5),
+    legend.text = element_text(size = font_sizes$legend_text),
+    legend.title = element_text(size = font_sizes$legend_title)
+  )
+  
+  # Use grid.arrange to put them together
+  combined_plot <- ggplot_prettifylegend(
+    g,
+    factor_level = legend_factor_levels,
+    factor_color = legend_factor_colors,
+    geom_point_size = legend_geom_point_size,
+    legend_position = legend_position,
+    legend_widths = legend_widths
+  )
+  
+  return(combined_plot)
+}
+```
+
+
+```{r}
+#' Plot Half Rainclouds for Two Factors
+#'
+#' This function creates a half raincloud plot for a given two-factor dataset. It combines
+#' violin plots, box plots, and individual data points to provide a comprehensive view of
+#' the data distribution across two independent variables.
+#'
+#' @param subjectwise A dataframe containing subject-wise data.
+#' @param groupwise A dataframe containing group-wise summary statistics.
+#' @param iv1 The name of the first independent variable in the dataframe.
+#' @param iv2 The name of the second independent variable in the dataframe.
+#' @param sub_mean The name of the subject-wise mean variable in the dataframe.
+#' @param group_mean The name of the group mean variable in the dataframe.
+#' @param se The name of the standard error variable in the dataframe.
+#' @param subject The name of the subject identifier variable in the dataframe.
+#' @param ggtitle Title for the ggplot.
+#' @param legend_title Title for the legend.
+#' @param xlab Label for the x-axis.
+#' @param ylab Label for the y-axis.
+#' @param task_name Name of the task (unused in function).
+#' @param ylim y-axis limits for the plot.
+#' @param w Width of the saved plot.
+#' @param h Height of the saved plot.
+#' @param dv_keyword Keyword associated with the dependent variable (unused in function).
+#' @param color Color scheme for the plot, specified as a named vector of colors.
+#' @param save_fname Filename for saving the plot.
+#'
+#' @return A ggplot object representing the customized half raincloud plot.
+#'
+#' @examples
+#' # Example usage (assuming appropriate data frames 'subjectwise' and 'groupwise'):
+#' plot_halfrainclouds_twofactor(subjectwise, groupwise, "IV1", "IV2",
+#'                               "SubMean", "GroupMean",
+#' @import ggplot2
+#' @export
+plot_halfrainclouds_twofactor <- function(subjectwise, groupwise,
+                                      iv1, iv2, sub_mean, group_mean, se, subject,
+                                      ggtitle, legend_title, xlab, ylab, task_name, ylim,
+                                      w, h, dv_keyword, color, save_fname) {
+  dodge_width <- 0.1
+  subjectwise$adjusted_x <- as.numeric(as.factor(subjectwise[[iv1]])) + 
+                          ifelse(subjectwise[[iv2]] == "low cue", -0.3, -0.2)  # Adjust these offsets as needed
+  groupwise$adjusted_groupx <- as.numeric(as.factor(groupwise[[iv1]])) + 
+                          ifelse(groupwise[[iv2]] == "low cue", -0.3, -0.2)  # Adjust these offsets as needed
+
+#   subjectwise$adjusted_box <- as.numeric(as.factor(groupwise[[iv1]])) +
+#                           ifelse(subjectwise[[iv2]] == "high cue", -0.15, -0.05) 
+#                           # (as.numeric(as.factor(subjectwise[[iv2]])) - 1) * dodge_width
+# 
+# #
+    g <- ggplot(
+        data = subjectwise,
+        aes(
+            y = .data[[sub_mean]],
+            x = .data[[iv1]],
+            fill = .data[[iv2]]
+        )
+    ) +
+
+        # geom_half_violin(
+        #     data = subjectwise,
+        # aes(color = .data[[iv2]]),
+        # side = 'r',
+        # position = position_nudge(x = .2, y = 0),
+        # adjust = 1.5,
+        # trim = FALSE,
+        # alpha = .3,
+        # colour = NA
+        # ) +
+      
+      
+    geom_line(
+        data = groupwise,
+        aes(
+            x = adjusted_groupx, #as.numeric(as.factor(.data[[iv1]])) ,
+            y = .data[[group_mean]],
+            group = .data[[iv2]],
+            color = .data[[iv2]]
+        ),
+        size = .7, 
+        alpha = 1,
+        linetype = "solid",
+        #position = position_nudge(x = .2, y = 0)
+    ) +
+      
+      
+
+        # geom_line(
+        #     data = subjectwise,
+        #     aes(
+        #         group = .data[[subject]],
+        #         y = .data[[sub_mean]],
+        #         x = as.numeric(as.factor(.data[[iv1]])) - .15,
+        #         color = .data[[iv2]]
+        #     ),
+        #     linetype = 3, color = "grey", alpha = .3
+        # ) +
+        geom_point(
+            data = subjectwise,
+            aes(
+                x = adjusted_x, #as.numeric(as.factor(.data[[iv1]])) - .15,
+                y = .data[[sub_mean]],
+                color = .data[[iv2]]
+            ),
+            position = position_jitter(width = .05),
+            size = .7, alpha = 0.3, shape = 21, 
+            # colour = NA
+        ) +
+
+
+        geom_boxplot(
+          data = subjectwise,
+          aes(x = .data[[iv1]] ,
+              y = .data[[sub_mean]],
+              fill = .data[[iv2]]),
+          # position = position_nudge(x = -0.1),
+          # position = position_dodge(0.05),
+        outlier.shape = NA,
+        alpha = .8,
+        width = .25, #dodge_width,
+        notch = FALSE,
+        notchwidth = 0,
+        varwidth = FALSE,
+        colour = "black",
+        ) +
+
+        # use summary stats ____________________________________________________
+
+        geom_errorbar(
+            data = groupwise,
+            aes(x = adjusted_groupx,
+                # x = as.numeric(as.factor(.data[[iv1]])),
+                y = .data[[group_mean]],
+                group = .data[[iv2]],
+                #colour = c("white", "white"),#.data[[iv2]],
+                ymin = .data[[group_mean]] - .data[[se]],
+                ymax = .data[[group_mean]] + .data[[se]]
+            ), width = .1,color = "black"
+            # position = position_nudge(x = .2, y = 0),
+            # position = position_nudge(x = -0.05)
+        ) +
+
+
+        # legend stuff _________________________________________________________
+        expand_limits(x = 3.5) +
+        guides(fill = "none") +
+        guides(color = "none") +
+        guides(fill = guide_legend(title = legend_title)) +
+        # geom_text()
+
+
+        scale_fill_manual(values = color) +
+        scale_color_manual(values = color) +
+        ggtitle(ggtitle) +
+        # coord_flip() + #vertical vs horizontal
+        xlab(xlab) +
+        ylab(ylab) +
+        theme_classic()
+        #theme(text = element_text(size = 30))   +
+        theme(text = element_text(size = 15)) +theme(aspect.ratio=1) +
+        theme(axis.line = element_line(colour = "black"),
+            panel.background = element_blank(),
+            plot.subtitle = ggtext::element_textbox_simple(size= 11))
+
+    if (!is.null(ylim)) {
+        g <- g + ylim(ylim)
+    } else {
+        g <- g
+    }
+    #ggsave(save_fname, width = w, height = h)
+    return(g)
+}
+
+```
+
 ```{r parameters_4, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 main_dir = dirname(dirname(getwd()))
 print(main_dir)
@@ -90,9 +412,10 @@ We'll grab the intersection of the data
 
 model_summaries <- data.frame()
 combined_se_calc_cooksd <- data.frame()
+wide_dataframe <- data.frame()
 # , "vicarious", "cognitive"
 # filter with cue x stim trial combination _____________________________________
-for (taskname in c("pain")) {
+for (taskname in c("pain", "vicarious", "cognitive")) {
   # 1. filter based on SPM intersecting subject ids
   subid_df <-
     read.csv(file.path(
@@ -183,8 +506,8 @@ wide$stim_name[wide$stimulusintensity == "low_stim"] <- "low"
 wide$stim_ordered <- factor(wide$stim_name,
     levels = c("low", "med", "high")
 )
-
-
+wide$task <- taskname 
+wide_dataframe <- rbind(wide_dataframe, wide)
 
 # for (taskname in c("pain", "vicarious", "cognitive")) {
 # 4. summary stats _____________________________________________________________
@@ -301,7 +624,7 @@ ggsave(p2.save_fname, plot = r)
 combined_se_calc_cooksd <- data.frame()
 model_summaries <- list()
 # , "vicarious", "cognitive")
-for (taskname in c("pain")) {
+for (taskname in c("pain",  "vicarious", "cognitive")) {
 
 
 # 1. data parameters ___________________________________________________________
@@ -495,6 +818,13 @@ g <-
     sub_mean, group_mean, se, subject, ggtitle, title,
     xlab, ylab, taskname, ylim=c(-10,200),
     w, h, dv_keyword, color, plot_savefname,
+    font_sizes = list(
+      axis_text = 12,
+      axis_title = 18,
+      plot_title = 16,
+      legend_text = 12,
+      legend_title = 14
+    ),
     x_hline_position = 3.5,
     x_hline_linetype = "dashed",
     x_hline_nudge_x = 0.1,
@@ -509,7 +839,7 @@ g <-
 
 
 print(g)
-ggsave(plot_savefname, plot=g, width = w, height = h, dpi=300)
+ggsave(plot_savefname, plot=g, width = 4, height = 3, dpi=300)
 }
 print(model_summaries[["pain"]]) #singular
 print(model_summaries[["vicarious"]])
@@ -590,7 +920,7 @@ fullmodel <-
     outcomerating ~ CUE_high_gt_low * STIM_linear + 
       CUE_high_gt_low * STIM_quadratic + 
       (CUE_high_gt_low + STIM_linear| sub),
-    data = beh[beh$runtype == "pain",],
+    data = beh,#, [beh$runtype == "pain",],
     control = lmerControl(
       optimizer = "nloptwrap",
       optCtrl = list(
@@ -885,7 +1215,7 @@ sjPlot::tab_model(model.ses,
 
 ses.summarystat <- as.data.frame(combined_se_calc_cooksd)
 for (taskname in c("pain", "vicarious", "cognitive")) {
-  DATA <- ses.summarystat[ses.summarystat$task == taskname,]
+  DATA <- ses.summarystat #[ses.summarystat$task == taskname,]
   color <- c("#4C77ED", "#ED220D")
   model_iv1 <- "stim_ordered"
   model_iv2 <- "ses_ordered"
@@ -937,8 +1267,8 @@ combined_cueeffect <- data.frame()
 
 for (taskname in c("pain", "vicarious", "cognitive")) {
 subject <- "sub"
-dv <- diff
-df <- wide[wide$runtype == taskname, ]
+dv <- "diff"
+df <- wide_dataframe[wide_dataframe$runtype == taskname, ]
 
 # 5. summary statistics ____________________________________________________
 avg_within_run <- df %>%
@@ -961,25 +1291,38 @@ combined_cueeffect <- rbind(combined_cueeffect, outcome_subjectwise)
 wide_df <- combined_cueeffect %>%
   pivot_wider(names_from = task, values_from = avg_diff_per_sub)
 
-
 # plot cue effects _____________________________________________________________
-pv <- plot_ggplot_correlation(data = wide_df, x = 'Vicarious', y = 'Pain', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 45, label_position = 45)
-vc <- plot_ggplot_correlation(data = wide_df, x = 'Cognitive', y = 'Vicarious', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 45, label_position = 45)
-cp <- plot_ggplot_correlation(data = wide_df, x = 'Pain', y = 'Cognitive', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 45, label_position = 45)
+pv <- plot_ggplot_correlation(data = wide_df, x = 'vicarious', y = 'pain', 
+                              p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 45, label_position = 45)
+vc <- plot_ggplot_correlation(data = wide_df, x = 'cognitive', y = 'vicarious', 
+                              p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 45, label_position = 45)
+cp <- plot_ggplot_correlation(data = wide_df, x = 'pain', y = 'cognitive', 
+                              p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 45, label_position = 45)
+pv <- pv + theme(text = element_text(size = 12)) # Adjusts overall text size, replace 'pv' with your actual plot object creation
+vc <- vc + theme(text = element_text(size = 12))
+cp <- cp + theme(text = element_text(size = 12))
 
 
 # 4. combine plots and add title _______________________________________________
 plots <- ggpubr::ggarrange(pv, vc, cp, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
-plots_title <- annotate_figure(plots,top = text_grob("individual differences\n - cue effects from expectation ratings", color = "black", face = "bold", size = 10 ))
+plots_title <- annotate_figure(plots,top = text_grob("individual differences\n - cue effects from expectation ratings", 
+                                                     color = "black", face = "bold", size = 10 ))
 save_plotname <- file.path(
   analysis_dir,
-  paste("randeffect_scatterplot_task-all_",
+  paste("cueeffect_scatterplot_task-all_",
       as.character(Sys.Date()), ".png",
       sep = ""
   )
 )
 plots
 ggsave(save_plotname, width = 10, height = 3)
+ggsave(file.path(
+  analysis_dir,
+  paste("cueeffect_scatterplot_task-all_",
+      as.character(Sys.Date()), ".svg",
+      sep = ""
+  )
+), width = 10, height = 3)
 ```
 
 ## individual differences random effects (DEP)

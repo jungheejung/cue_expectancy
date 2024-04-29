@@ -17,8 +17,8 @@ echo "SLURMSARRAY: " ${SLURM_ARRAY_TASK_ID}
 ID=$((SLURM_ARRAY_TASK_ID-1))
 MAINDIR=$(git rev-parse --show-toplevel) #"/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue"
 SINGLETRIALDIR="${MAINDIR}/analysis/fmri/nilearn/singletrial_TTL2"
-SAVEDIR="${MAINDIR}/analysis/fmri/nilearn/deriv01_signature/TTL2"
-python ${MAINDIR}/scripts/step10_nilearn/signature/step02_applysignature_recursive_TTL.py \
+SAVEDIR="${MAINDIR}/analysis/fmri/nilearn/deriv01_signature/TTL2_brainmask"
+python ${MAINDIR}/scripts/step10_nilearn/signature/step02_applysignature_recursive_TTL_brainmaskresolution.py \
 --slurm-id ${ID} \
 --input-niidir ${SINGLETRIALDIR} \
 --output-savedir ${SAVEDIR}

@@ -1,0 +1,1636 @@
+# beh :: outcome ~ cue \* stim {#upgrade_beh-outcome-cueXstim}
+
+## What is the purpose of this notebook? {.unlisted .unnumbered}
+
+Here, I plot the outcome ratings as a function of cue and Stimulus intensity.
+
+- Main model: `lmer(outcome_rating ~ cue * stim)`
+- Main question: do outcome ratings differ as a function of cue type and Stimulus intensity?
+- If there is a main effect of cue on outcome ratings, does this cue effect differ depending on task type?
+- Is there an interaction between the two factors?
+- IV:
+- cue (high / low)
+- stim (high / med / low)
+- DV: outcome rating
+
+```{r load_libraries_4, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+library(psych)
+library(car)
+library(lme4)
+library(lmerTest)
+library(plyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+library(png)
+library(knitr)
+library(TMB)
+library(sjPlot)
+library(ggpubr)
+library(gridExtra)
+library(merTools)
+library(sjstats) #to get ICC
+library(broom)
+library(tidyverse)
+library(GGally)
+library(RCurl)
+library(rstanarm)
+library(reshape)
+library(boot)
+library(afex)
+library(cowplot)
+library(readr)
+library(rmarkdown)
+library(stringr)
+library(ICC)
+library(gghalves)
+# library(equatiomatic)
+library(ggpubr)
+library(cueR)
+main_dir = dirname(dirname(getwd()))
+file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
+                        pattern="*.R",
+                        full.names=TRUE,
+                        ignore.case=TRUE)
+sapply(file.sources,source,.GlobalEnv)
+```
+
+
+# function
+```{r}
+#' Create a Cue Expectancy Plot with Two Factors
+#'
+#' This function generates a cue expectancy plot with two factors, including customization options for various plot elements.
+#'
+#' @param subjectwise Data for outcome by subject.
+#' @param groupwise Data for outcome by group.
+#' @param model_iv1 First independent variable for modeling.
+#' @param model_iv2 Second independent variable for modeling.
+#' @param sub_mean Mean outcome by subject.
+#' @param group_mean Mean outcome by group.
+#' @param se Standard error.
+#' @param subject Subject information.
+#' @param ggtitle Title for the plot.
+#' @param title Title for the plot.
+#' @param xlab Label for the x-axis.
+#' @param ylab Label for the y-axis.
+#' @param taskname Task name.
+#' @param ylim Limits for the y-axis.
+#' @param w Width of the plot.
+#' @param h Height of the plot.
+#' @param dv_keyword Keyword for dependent variable.
+#' @param color Color for plot elements.
+#' @param plot_savefname Filename for saving the plot.
+#' @param expand_x Expand limits for the x-axis. Default is TRUE.
+#' @param xlim Limits for the x-axis. Default is c(NA, 3).
+#' @param x_scale_expansion Expansion for x-axis scale. Default is c(0, 0.5).
+#' @param x_hline_position Position for horizontal line on the x-axis. Default is 3.5.
+#' @param x_hline_linetype Linetype for the horizontal line. Default is "dashed".
+#' @param x_hline_nudge_x Nudge value for horizontal line on the x-axis. Default is 0.1.
+#' @param x_hline_textsize Text size for the horizontal line annotation. Default is 3.
+#' @param legend_factor_levels Levels for the legend factors. Default is c("High cue", "Low cue").
+#' @param legend_factor_colors Colors for the legend factors. Default is c("#D73027", "#4575B4").
+#' @param legend_geom_point_size Size of the points in the legend. Default is 3.
+#' @param legend_position Position of the legend. Default is c(-0.1, 0.9).
+#' @param legend_widths Relative widths of the plot and legend. Default is c(4, 1).
+#'
+#' @return A customized cue expectancy plot with two factors.
+#'
+#' @import ggplot2
+#' @import gridExtra
+#'
+#' @examples
+#' # Example usage:
+#'     g <- plot_cueexpectancy_twofactor(
+#'         outcome_subjectwise, outcome_groupwise, model_iv1, model_iv2,
+#'         sub_mean, group_mean, se, subject, ggtitle, title,
+#'         xlab, ylab, taskname, ylim,
+#'         w, h, dv_keyword, color, plot_savefname,
+#'         x_hline_position = 3.5,
+#'         x_hline_linetype = "dashed",
+#'         x_hline_nudge_x = 0.1,
+#'         x_hline_textsize = 3,
+#'         legend_factor_levels = c("High cue", "Low cue"),
+#'         legend_factor_colors = c("#D73027", "#4575B4"),
+#'         legend_geom_point_size = 4,
+#'         legend_position = c(-0.1, 0.9),
+#'         legend_widths = c(4, 1)
+#'         )
+#'         print(g)
+#'         ggsave(plot_savefname, width = w, height = h)
+#'
+#' ![Example Plot](https://github.com/jungheejung/cueR/blob/main/man/figures/example_plot_cueexpectancy_twofactor.png)
+#' @export
+
+plot_cueexpectancy_twofactor <- function(
+    subjectwise, groupwise, model_iv1, model_iv2,
+    sub_mean, group_mean, se, subject,
+    ggtitle, title, xlab, ylab, taskname, ylim,
+    w, h, dv_keyword, color, plot_savefname,
+    font_sizes = list(
+      axis_text = 12,
+      axis_title = 14,
+      plot_title = 16,
+      legend_text = 12,
+      legend_title = 14
+    ),
+    expand_x = TRUE,
+    xlim = c(NA, 3),
+    x_scale_expansion = c(0, 0.5),
+    x_hline_position = 3.5,
+    x_hline_linetype = "dashed",
+    x_hline_nudge_x = 0.1,
+    x_hline_textsize = 3,
+    legend_factor_levels = c("High cue", "Low cue"),
+    legend_factor_colors = c("#D73027", "#4575B4"),
+    legend_geom_point_size = 3,
+    legend_position = c(-0.1, 0.9),
+    legend_widths = c(4, 1)
+) {
+  # Generate the main plot
+  g <- ggplot()
+
+    
+  g <- plot_halfrainclouds_twofactor(
+    subjectwise, groupwise, model_iv1, model_iv2,
+    sub_mean, group_mean, se, subject,
+    ggtitle, title, xlab, ylab, taskname, ylim,
+    w, h, dv_keyword, color, plot_savefname
+  )
+  
+  # Apply customizations to the plot
+  if (expand_x) {
+    g <- g + coord_cartesian(xlim = xlim, ylim = c(NA, NA), clip = "off") +
+      scale_x_discrete(expand = expansion(mult = x_scale_expansion))
+  }
+  
+  g <- ggplot_hline_bartoshuk(g, 
+                              linesize=.1,
+                              linecolor = "#575757",
+                              xposition = x_hline_position, 
+                              linetype = x_hline_linetype, 
+                              nudge_x = x_hline_nudge_x, 
+                              textsize = x_hline_textsize) +
+    theme_classic() +
+    guides(shape = guide_legend(override.aes = list(shape = c(16, 17)))) +
+    theme(legend.position = "none")
+  
+  g <- ggplot_largetext(g)
+  
+  # Create the legend data frame
+  g <- g + theme(
+    text = element_text(size = font_sizes$base_text),
+    axis.text = element_text(size = font_sizes$axis_text),
+    axis.title = element_text(size = font_sizes$axis_title),
+    plot.title = element_text(size = font_sizes$plot_title, hjust = 0.5),
+    legend.text = element_text(size = font_sizes$legend_text),
+    legend.title = element_text(size = font_sizes$legend_title)
+  )
+  
+  # Use grid.arrange to put them together
+  combined_plot <- ggplot_prettifylegend(
+    g,
+    factor_level = legend_factor_levels,
+    factor_color = legend_factor_colors,
+    geom_point_size = legend_geom_point_size,
+    legend_position = legend_position,
+    legend_widths = legend_widths
+  )
+  
+  return(combined_plot)
+}
+```
+
+
+```{r}
+#' Plot Half Rainclouds for Two Factors
+#'
+#' This function creates a half raincloud plot for a given two-factor dataset. It combines
+#' violin plots, box plots, and individual data points to provide a comprehensive view of
+#' the data distribution across two independent variables.
+#'
+#' @param subjectwise A dataframe containing subject-wise data.
+#' @param groupwise A dataframe containing group-wise summary statistics.
+#' @param iv1 The name of the first independent variable in the dataframe.
+#' @param iv2 The name of the second independent variable in the dataframe.
+#' @param sub_mean The name of the subject-wise mean variable in the dataframe.
+#' @param group_mean The name of the group mean variable in the dataframe.
+#' @param se The name of the standard error variable in the dataframe.
+#' @param subject The name of the subject identifier variable in the dataframe.
+#' @param ggtitle Title for the ggplot.
+#' @param legend_title Title for the legend.
+#' @param xlab Label for the x-axis.
+#' @param ylab Label for the y-axis.
+#' @param task_name Name of the task (unused in function).
+#' @param ylim y-axis limits for the plot.
+#' @param w Width of the saved plot.
+#' @param h Height of the saved plot.
+#' @param dv_keyword Keyword associated with the dependent variable (unused in function).
+#' @param color Color scheme for the plot, specified as a named vector of colors.
+#' @param save_fname Filename for saving the plot.
+#'
+#' @return A ggplot object representing the customized half raincloud plot.
+#'
+#' @examples
+#' # Example usage (assuming appropriate data frames 'subjectwise' and 'groupwise'):
+#' plot_halfrainclouds_twofactor(subjectwise, groupwise, "IV1", "IV2",
+#'                               "SubMean", "GroupMean",
+#' @import ggplot2
+#' @export
+plot_halfrainclouds_twofactor <- function(subjectwise, groupwise,
+                                      iv1, iv2, sub_mean, group_mean, se, subject,
+                                      ggtitle, legend_title, xlab, ylab, task_name, ylim,
+                                      w, h, dv_keyword, color, save_fname) {
+  dodge_width <- 0.1
+  subjectwise$adjusted_x <- as.numeric(as.factor(subjectwise[[iv1]])) + 
+                          ifelse(subjectwise[[iv2]] == "low cue", -0.3, -0.2)  # Adjust these offsets as needed
+  groupwise$adjusted_groupx <- as.numeric(as.factor(groupwise[[iv1]])) + 
+                          ifelse(groupwise[[iv2]] == "low cue", -0.3, -0.2)  # Adjust these offsets as needed
+
+#   subjectwise$adjusted_box <- as.numeric(as.factor(groupwise[[iv1]])) +
+#                           ifelse(subjectwise[[iv2]] == "high cue", -0.15, -0.05) 
+#                           # (as.numeric(as.factor(subjectwise[[iv2]])) - 1) * dodge_width
+# 
+# #
+    g <- ggplot(
+        data = subjectwise,
+        aes(
+            y = .data[[sub_mean]],
+            x = .data[[iv1]],
+            fill = .data[[iv2]]
+        )
+    ) +
+
+        # geom_half_violin(
+        #     data = subjectwise,
+        # aes(color = .data[[iv2]]),
+        # side = 'r',
+        # position = position_nudge(x = .2, y = 0),
+        # adjust = 1.5,
+        # trim = FALSE,
+        # alpha = .3,
+        # colour = NA
+        # ) +
+      
+      
+    geom_line(
+        data = groupwise,
+        aes(
+            x = adjusted_groupx, #as.numeric(as.factor(.data[[iv1]])) ,
+            y = .data[[group_mean]],
+            group = .data[[iv2]],
+            color = .data[[iv2]]
+        ),
+        size = .7, 
+        alpha = 1,
+        linetype = "solid",
+        #position = position_nudge(x = .2, y = 0)
+    ) +
+      
+      
+
+        # geom_line(
+        #     data = subjectwise,
+        #     aes(
+        #         group = .data[[subject]],
+        #         y = .data[[sub_mean]],
+        #         x = as.numeric(as.factor(.data[[iv1]])) - .15,
+        #         color = .data[[iv2]]
+        #     ),
+        #     linetype = 3, color = "grey", alpha = .3
+        # ) +
+        geom_point(
+            data = subjectwise,
+            aes(
+                x = adjusted_x, #as.numeric(as.factor(.data[[iv1]])) - .15,
+                y = .data[[sub_mean]],
+                color = .data[[iv2]]
+            ),
+            position = position_jitter(width = .05),
+            size = .7, alpha = 0.3, shape = 21, 
+            # colour = NA
+        ) +
+
+
+        geom_boxplot(
+          data = subjectwise,
+          aes(x = .data[[iv1]] ,
+              y = .data[[sub_mean]],
+              fill = .data[[iv2]]),
+          # position = position_nudge(x = -0.1),
+          # position = position_dodge(0.05),
+        outlier.shape = NA,
+        alpha = .8,
+        width = .25, #dodge_width,
+        notch = FALSE,
+        notchwidth = 0,
+        varwidth = FALSE,
+        colour = "black",
+        ) +
+
+        # use summary stats ____________________________________________________
+
+        geom_errorbar(
+            data = groupwise,
+            aes(x = adjusted_groupx,
+                # x = as.numeric(as.factor(.data[[iv1]])),
+                y = .data[[group_mean]],
+                group = .data[[iv2]],
+                #colour = c("white", "white"),#.data[[iv2]],
+                ymin = .data[[group_mean]] - .data[[se]],
+                ymax = .data[[group_mean]] + .data[[se]]
+            ), width = .1,color = "black"
+            # position = position_nudge(x = .2, y = 0),
+            # position = position_nudge(x = -0.05)
+        ) +
+
+
+        # legend stuff _________________________________________________________
+        expand_limits(x = 3.5) +
+        guides(fill = "none") +
+        guides(color = "none") +
+        guides(fill = guide_legend(title = legend_title)) +
+        # geom_text()
+
+
+        scale_fill_manual(values = color) +
+        scale_color_manual(values = color) +
+        ggtitle(ggtitle) +
+        # coord_flip() + #vertical vs horizontal
+        xlab(xlab) +
+        ylab(ylab) +
+        theme_classic()
+        #theme(text = element_text(size = 30))   +
+        theme(text = element_text(size = 15)) +theme(aspect.ratio=1) +
+        theme(axis.line = element_line(colour = "black"),
+            panel.background = element_blank(),
+            plot.subtitle = ggtext::element_textbox_simple(size= 11))
+
+    if (!is.null(ylim)) {
+        g <- g + ylim(ylim)
+    } else {
+        g <- g
+    }
+    #ggsave(save_fname, width = w, height = h)
+    return(g)
+}
+
+```
+
+```{r parameters_4, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+main_dir = dirname(dirname(getwd()))
+print(main_dir)
+
+## common dir for saving plots and model outputs
+analysis_dir <- file.path(
+  main_dir, "analysis",
+  "mixedeffect", "book_iv-cue-stim_dv-outcome", as.character(Sys.Date()))
+dir.create(analysis_dir, recursive = TRUE, showWarnings = FALSE)
+```
+
+## Cue contrasts
+
+`lmer(Outcome ~ Cue_contrast)`
+
+- IV: Stim X Cue_contrast
+- DV: Outcome rating
+
+
+## load data {.unlisted .unnumbered}
+```{r}
+df <- readr::read_tsv(file.path(main_dir, "data/beh/sub-all_task-all_events.tsv"))
+df.na <- df %>%
+  filter(!is.na(outcomerating))
+trial_per_condition <- 3
+```
+## load subject information from SPM contrast data 
+We'll grab the intersection of the data
+
+
+## 1. Cue X stim (cue effect)
+```{r}
+
+model_summaries <- data.frame()
+combined_se_calc_cooksd <- data.frame()
+wide_dataframe <- data.frame()
+# , "vicarious", "cognitive"
+# filter with cue x stim trial combination _____________________________________
+for (taskname in c("pain", "vicarious", "cognitive")) {
+  # 1. filter based on SPM intersecting subject ids
+  subid_df <-
+    read.csv(file.path(
+      main_dir,
+      paste0(
+        "resources/plots_dissertation/SPM_6condrampup_",
+        taskname,
+        "_contrast_BIDSid.csv"
+      )
+    ))
+  print(sprintf(taskname))
+  
+  unique_sub_ids <- unique(df.na$sub)
+  print(paste("1. beh :: N=", length(unique_sub_ids)))
+  intersection_sub_ids <- intersect(subid_df$sub, unique_sub_ids)
+  # 2. identify how many would be removed if we grab the intersection
+  num_removed <- length(subid_df$sub) - length(intersection_sub_ids)
+  subjects_to_be_removed <-
+    setdiff(subid_df$sub, intersection_sub_ids)
+  print(sprintf(
+    paste("2. Number of subjects to be removed based on SPM:", num_removed)
+  ))
+  print(paste0("2-1. Subjects to be removed: ", subjects_to_be_removed))
+  df_intersect <- df.na[df.na$sub %in% intersection_sub_ids,]
+  # 3. identify how many trials are present in each condition
+  df.task <- df_intersect[df_intersect$runtype == taskname, ]
+  df.task_clean <- df.task[complete.cases(df.task$outcomerating),]
+  subjects_with_inadequate_data <- df.task_clean %>%
+    group_by(sub,  cue, stimulusintensity) %>%
+    dplyr::summarise(count = n(), .groups = 'drop') %>%
+    filter(count < trial_per_condition) %>%
+    distinct(sub) %>%
+    pull(sub)
+  df_filter <- df.task_clean %>%
+    filter(!(sub %in% subjects_with_inadequate_data))
+  
+  print(
+    sprintf(
+      "3. INFO :: After filtering out subjects that have less than %d trials in cell, we have N=%d -> N=%d",
+      trial_per_condition,
+      length(unique(df_intersect$sub)),
+      length(unique(df_filter$sub))
+    )
+  )
+  subjects_to_be_removed <-
+    setdiff(unique(df_intersect$sub), unique(df_filter$sub))
+  print(paste0("3-3. Subjects to be removed: ", subjects_to_be_removed))
+  
+  beh <- df_filter
+
+subject_varkey <- "sub"
+iv <- "cue"; iv_keyword <- "cue"
+dv <- "outcomerating"
+dv_keyword <- "outcome"
+subject <- "sub"
+xlab <- ""
+ylab <- "Outcome rating"
+# exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
+w <- 10
+h <- 6
+
+
+
+
+
+# 3. calculate difference scores and summarize _____________________________
+beh$run_number <- as.integer(str_extract(beh$run, "\\d+"))
+
+beh$run_order[beh$run_number > 3] <- "a"
+beh$run_order[beh$run_number <= 3] <- "b"
+sub_diff <- subset(beh, select = c(
+    "sub", "ses", "run",
+    "runtype", "cue",
+    "stimulusintensity", dv
+))
+subjectwise <- meanSummary(sub_diff, c(
+    "sub", "ses", "run",
+    "runtype", "cue",
+    "stimulusintensity"
+), dv)
+mean_outcome <- subjectwise[1:(length(subjectwise) - 1)]
+wide <- mean_outcome %>%
+    spread(cue, mean_per_sub)
+wide$diff <- wide$high_cue - wide$low_cue
+wide$stim_name[wide$stimulusintensity == "high_stim"] <- "high"
+wide$stim_name[wide$stimulusintensity == "med_stim"] <- "med"
+wide$stim_name[wide$stimulusintensity == "low_stim"] <- "low"
+wide$stim_ordered <- factor(wide$stim_name,
+    levels = c("low", "med", "high")
+)
+wide$task <- taskname 
+wide_dataframe <- rbind(wide_dataframe, wide)
+
+# for (taskname in c("pain", "vicarious", "cognitive")) {
+# 4. summary stats _____________________________________________________________
+subjectwise_diff <- meanSummary(wide, c("sub", "stim_ordered"), "diff")
+subjectwise_diff$stim_ordered <- factor(subjectwise_diff$stim_ordered,
+    levels = c("low", "med", "high")
+)
+groupwise_diff <- summarySEwithin(
+    data = subjectwise_diff,
+    measurevar = "mean_per_sub", # variable created from above
+    withinvars = c("stim_ordered"), # iv
+    idvar = "sub"
+)
+
+# 4. plot results
+# 4-1. parameters __________________________________________________________
+subjectwise <- subjectwise_diff
+
+groupwise <- groupwise_diff
+groupwise$task <- taskname
+combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, groupwise)
+iv <- "stim_ordered"
+subject_mean <- "mean_per_sub"
+group_mean <- "mean_per_sub_norm_mean"
+p1.se <- "se"
+dv_keyword = "cuecontrast"
+subject <- "sub"
+p1.xlab <- ""
+p1.ylab <- "Cue effect"
+ylim <- c()
+ylim <- c(-75,75)
+p1.ggtitle <- paste(taskname, " - outcome judgment (degree)")
+p1.title <- paste(taskname, " - outcome")
+p1.save_fname <- file.path(
+    analysis_dir,
+    paste("raincloud_task-", taskname, "_rating-",
+        dv_keyword, "-cuecontrast_", as.character(Sys.Date()), ".png",
+        sep = ""
+    )
+)
+if (any(startsWith(taskname, c("pain", "Pain")))) { # red
+    color <- c("#B7021E", "#B7021E", "#B7021E")
+} else if (any(startsWith(taskname, c("vicarious", "Vicarious")))) { # green
+    color <- c("#22834A", "#22834A", "#22834A")
+} else if (any(startsWith(taskname, c("cognitive", "Cognitive")))) { # blue
+    color <- c("#0237C9", "#0237C9", "#0237C9")
+}
+
+# 4-2. plot rain cloud plots _______________________________________________
+g <- plot_halfrainclouds_onefactor(
+    subjectwise, groupwise, iv, subject_mean, group_mean, p1.se,
+    subject, p1.ggtitle, p1.title, p1.xlab, p1.ylab, taskname, ylim,
+    w, h, dv_keyword, color, p1.save_fname
+)
+g <- g + geom_hline(yintercept = 0, size = 0.5, linetype = "dashed") + 
+    theme(aspect.ratio=.8,
+          text = element_text(size = 14), # Default text size for the plot
+          axis.title = element_text(size = 18, ), # Axis titles
+          axis.text = element_text(size = 14), # Axis text (x and y)
+          plot.title = element_text(size = 18, hjust = 0.5) # Plot title
+          ) 
+print(g)
+ggsave(p1.save_fname, plot = g)
+
+# 4-3.  plot geom range ____________________________________________________
+p2.se <- "sd" # se, sd, ci
+p2.xlab <- "Stimulus intensity"
+p2.ylab <- "Cue effect"
+p2.ggtitle <- paste(taskname, " - cue effect per Stimulus intensity", sep = "")
+w <- 5
+h <- 5
+p2.save_fname <- file.path(
+    analysis_dir,
+    paste("cueeffect_task-", taskname, "_rating-", dv_keyword, "_",
+        as.character(Sys.Date()), ".png",
+        sep = ""
+    )
+)
+r <- plot_geompointrange_onefactor(
+    subjectwise, groupwise, iv,
+    subject_mean, group_mean, p2.se,
+    p2.xlab, p2.ylab, color, p2.ggtitle, w, h, p2.save_fname
+)
+r <- r + geom_hline(yintercept = 0, size = 1, linetype = "dashed") +
+  theme(aspect.ratio=.8,
+          text = element_text(size = 14), # Default text size for the plot
+          axis.title = element_text(size = 18, ), # Axis titles
+          axis.text = element_text(size = 14), # Axis text (x and y)
+          plot.title = element_text(size = 18, hjust = 0.5) # Plot title
+          ) 
+  
+print(r)
+ggsave(p2.save_fname, plot = r)
+}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+### Cue X Stim (2x3) lmer & Raincloud plots
+
+- IV: Cue x stim
+- DV: Outcome rating
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+combined_se_calc_cooksd <- data.frame()
+model_summaries <- list()
+# , "vicarious", "cognitive")
+for (taskname in c("pain",  "vicarious", "cognitive")) {
+
+
+# 1. data parameters ___________________________________________________________
+dv_keyword <- "outcomerating"
+xlab <- ""
+ylab <- "judgment (degree)"
+w <- 8
+h <- 6
+subject <- "sub"
+  # 1. filter based on SPM intersecting subject ids
+  subid_df <-
+    read.csv(file.path(
+      main_dir,
+      paste0(
+        "resources/plots_dissertation/SPM_6condrampup_",
+        taskname,
+        "_contrast_BIDSid.csv"
+      )
+    ))
+  print(sprintf(taskname))
+  
+  unique_sub_ids <- unique(df.na$sub)
+  print(paste("1. beh :: N=", length(unique_sub_ids)))
+  intersection_sub_ids <- intersect(subid_df$sub, unique_sub_ids)
+  # 2. identify how many would be removed if we grab the intersection
+  num_removed <- length(subid_df$sub) - length(intersection_sub_ids)
+  subjects_to_be_removed <-
+    setdiff(subid_df$sub, intersection_sub_ids)
+  print(sprintf(
+    paste("2. Number of subjects to be removed based on SPM:", num_removed)
+  ))
+  print(paste0("2-1. Subjects to be removed: ", subjects_to_be_removed))
+  df_intersect <- df.na[df.na$sub %in% intersection_sub_ids,]
+  # 3. identify how many trials are present in each condition
+  df.task <- df_intersect[df_intersect$runtype == taskname, ]
+  df.task_clean <- df.task[complete.cases(df.task$outcomerating),]
+  subjects_with_inadequate_data <- df.task_clean %>%
+    group_by(sub,  cue, stimulusintensity) %>%
+    dplyr::summarise(count = n(), .groups = 'drop') %>%
+    filter(count < trial_per_condition) %>%
+    distinct(sub) %>%
+    pull(sub)
+  df_filter <- df.task_clean %>%
+    filter(!(sub %in% subjects_with_inadequate_data))
+  
+  print(
+    sprintf(
+      "3. INFO :: After filtering out subjects that have less than %d trials in cell, we have N=%d -> N=%d",
+      trial_per_condition,
+      length(unique(df_intersect$sub)),
+      length(unique(df_filter$sub))
+    )
+  )
+  subjects_to_be_removed <-
+    setdiff(unique(df_intersect$sub), unique(df_filter$sub))
+  print(paste0("3-3. Subjects to be removed: ", subjects_to_be_removed))
+  
+  beh <- df_filter
+
+# 2. contrasts codes _______________________________________________________
+beh$stim[beh$stimulusintensity == "low_stim"] <- -0.5
+beh$stim[beh$stimulusintensity == "med_stim"] <- 0
+beh$stim[beh$stimulusintensity == "high_stim"] <- 0.5
+
+beh$stim_factor <- factor(beh$stimulusintensity)
+
+# ___ 2-1. contrast code 1 linear __________________________________________
+beh$STIM_linear[beh$stimulusintensity == "low_stim"] <- -0.5
+beh$STIM_linear[beh$stimulusintensity == "med_stim"] <- 0
+beh$STIM_linear[beh$stimulusintensity == "high_stim"] <- 0.5
+
+# ___ 2-2. contrast code 2 quadratic _______________________________________
+beh$STIM_quadratic[beh$stimulusintensity == "low_stim"] <- -0.33
+beh$STIM_quadratic[beh$stimulusintensity == "med_stim"] <- 0.66
+beh$STIM_quadratic[beh$stimulusintensity == "high_stim"] <- -0.33
+
+# ___ 2-3. social cude contrast ____________________________________________
+beh$CUE_high_gt_low[beh$cue == "low_cue"] <- -0.5
+beh$CUE_high_gt_low[beh$cue == "high_cue"] <- 0.5
+
+stim_con1 <- "STIM_linear"
+stim_con2 <- "STIM_quadratic"
+iv1 <- "CUE_high_gt_low"
+dv <- "outcomerating"
+
+
+# 3. mixed models __________________________________________________________
+fullmodel <-
+  lmer(
+    outcomerating ~ CUE_high_gt_low * STIM_linear + 
+      CUE_high_gt_low * STIM_quadratic + 
+      (CUE_high_gt_low + STIM_linear| sub),
+    data = beh,
+    control = lmerControl(
+      optimizer = "nloptwrap",
+      optCtrl = list(
+        algorithm = "NLOPT_LN_BOBYQA",
+        maxfun = 1e9,
+        maxeval = 1e7,
+        xtol_abs = 1e-9,
+        ftol_abs = 1e-9
+      )
+    )
+  )
+model_summary <- summary(fullmodel)
+model_summaries[[taskname]] <- summary(fullmodel)
+print(paste0("-------------", taskname, "-------------"))
+print(model_summary)
+
+# lmer _________________________________________________________________________
+
+model_summary <- capture.output(summary(fullmodel))
+
+model_savefname <- file.path(
+  analysis_dir,
+  paste("lmer_task-", taskname, "_cue_on_rating-", dv_keyword, "_",
+      as.character(Sys.Date()), ".txt",
+      sep = ""
+  )
+)
+write(model_summary, file = model_savefname)
+# save equation
+write(capture.output(equatiomatic::extract_eq(fullmodel)), file.path(
+  analysis_dir,"linear_model_equation.txt"))
+  
+  
+# 4. prep for plots ________________________________________________________
+beh$cue_name[beh$cue == "high_cue"] <- "high cue"
+beh$cue_name[beh$cue == "low_cue"] <- "low cue"
+
+beh$stim_name[beh$stimulusintensity == "high_stim"] <- "High"
+beh$stim_name[beh$stimulusintensity == "med_stim"] <- "Med"
+beh$stim_name[beh$stimulusintensity == "low_stim"] <- "Low"
+
+beh$stim_ordered <- factor(
+    beh$stim_name,
+    levels = c("Low", "Med", "High")
+)
+beh$cue_ordered <- factor(
+    beh$cue_name,
+    levels = c("low cue", "high cue")
+)
+model_iv1 <- "stim_ordered"
+model_iv2 <- "cue_ordered"
+
+
+# 5. summary statistics ____________________________________________________
+outcome_subjectwise <- meanSummary(
+    beh,
+    c(subject, model_iv1, model_iv2), dv
+)
+outcome_groupwise <- summarySEwithin(
+    data = outcome_subjectwise,
+    measurevar = "mean_per_sub",
+    withinvars = c(model_iv1, model_iv2), idvar = subject
+)
+outcome_groupwise$task <- taskname
+combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, outcome_groupwise)
+
+
+# 6. plot related parameters _______________________________________________
+sub_mean <- "mean_per_sub"
+group_mean <- "mean_per_sub_norm_mean"
+se <- "se"
+subject <- "sub"
+ggtitle <- paste0(tools::toTitleCase(taskname))
+title <- paste0(tools::toTitleCase(taskname), " - Outcome")
+xlab <- "Stimulus intensity"
+ylab <- "Outcome rating"
+ylim <- c(-10,200)
+dv_keyword <- "Outcome"
+
+# color differently depending on keyword
+if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+    color <- c("#1B9E77", "#D95F02")
+} else {
+    color <- c("#3E61EC", "#FF0000")
+}
+plot_savefname <- file.path(
+    analysis_dir,
+    paste("raincloud_task-", taskname,
+        "_rating-", dv_keyword,
+        "_", as.character(Sys.Date()), ".svg",
+        sep = ""
+    )
+)
+# 7. ggplot ________________________________________________________________
+g <-
+  plot_cueexpectancy_twofactor(
+    outcome_subjectwise, outcome_groupwise, model_iv1, model_iv2,
+    sub_mean, group_mean, se, subject, ggtitle, title,
+    xlab, ylab, taskname, ylim=c(-10,200),
+    w, h, dv_keyword, color, plot_savefname,
+    font_sizes = list(
+      axis_text = 12,
+      axis_title = 18,
+      plot_title = 16,
+      legend_text = 12,
+      legend_title = 14
+    ),
+    x_hline_position = 3.5,
+    x_hline_linetype = "dashed",
+    x_hline_nudge_x = 0.1,
+    x_hline_textsize = 3.5,
+    legend_factor_levels = c("High cue", "Low cue"),
+    legend_factor_colors = c("#FF0000", "#3E61EC"),
+    legend_geom_point_size = 4,
+    legend_position = c(-0.1, 0.9),
+    legend_widths = c(4, 1)) 
+      
+
+
+
+print(g)
+ggsave(plot_savefname, plot=g, width = 4, height = 3, dpi=300)
+}
+print(model_summaries[["pain"]]) #singular
+print(model_summaries[["vicarious"]])
+print(model_summaries[["cognitive"]]) # singular
+
+
+```
+
+### Cue X Stim Lineplot {.unlisted .unnumbered}
+
+Instead of the rain cloud plots, here, I plot the lines and confidence interval
+for each cue x stim combination. Plotted per task.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+DATA = as.data.frame(combined_se_calc_cooksd)
+color = c( "#4575B4", "#D73027")
+LINEIV1 = "stim_ordered"
+LINEIV2 = "cue_ordered"
+MEAN = "mean_per_sub_norm_mean"
+ERROR = "ci"
+dv_keyword = "outcome"
+p1 = plot_lineplot_twofactor_subset(DATA, 'pain',
+             LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = tools::toTitleCase('pain'), ylim=c(10,90))
+p2 = plot_lineplot_twofactor_subset(DATA,'vicarious',
+             LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = tools::toTitleCase("vicarious"), ylim=c(10,90))
+p3 = plot_lineplot_twofactor_subset(DATA, 'cognitive',
+             LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = tools::toTitleCase('cognitive'), ylim=c(10,90))
+
+ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
+# plot_filename = file.path(analysis_dir,                        paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
+# ggsave(plot_filename, width = 8, height = 4)
+```
+```{r}
+
+DATA = as.data.frame(combined_se_calc_cooksd)
+  color <- c("#3E61EC", "#FF0000")
+  model_iv1 <- "stim_ordered"
+  model_iv2 <- "ses_ordered"
+  LINEIV1 <- "stim_ordered"
+  LINEIV2 <- "cue_ordered"
+  MEAN <- "mean_per_sub_norm_mean"
+  ERROR <- "se"
+  dv_keyword <- "outcomerating"
+  line_thickness <- 0.2
+  p1 <- plot_lineplot_twofactor_subset(DATA, "pain",
+                               LINEIV1, LINEIV2, MEAN, ERROR, color, 
+                               ggtitle = 'Pain', ylab = "Outcome rating", 
+                               ylim=c(40, 90))
+  p1 <-p1 + theme(
+          text = element_text(size = 18), # Default text size for the plot
+          axis.title = element_text(size = 22, ), # Axis titles
+          axis.text = element_text(size = 15), # Axis text (x and y)
+          plot.title = element_text(size = 24, hjust = 0.5), # Plot title
+            aspect.ratio = 1 # Adjust this as needed
+
+          ) +geom_point(size = 2)
+
+# 
+
+#   print(arranged_plot)
+  plot_filename = file.path(analysis_dir,
+  paste('lineplot_task-all_rating-', dv_keyword,taskname, '.svg', sep = ""))
+
+p1
+
+  ggsave(plot_filename, p1, width = 8, height = 4, dpi=300)
+
+
+```
+
+
+### Cue X Stim lmer
+
+```{r}
+fullmodel <-
+  lmer(
+    outcomerating ~ CUE_high_gt_low * STIM_linear + 
+      CUE_high_gt_low * STIM_quadratic + 
+      (CUE_high_gt_low + STIM_linear| sub),
+    data = beh,#, [beh$runtype == "pain",],
+    control = lmerControl(
+      optimizer = "nloptwrap",
+      optCtrl = list(
+        algorithm = "NLOPT_LN_BOBYQA",
+        maxfun = 1e9,
+        maxeval = 1e7,
+        xtol_abs = 1e-9,
+        ftol_abs = 1e-9
+      )
+    )
+  )
+model_summary <- summary(fullmodel)
+model_summaries[[taskname]] <- summary(fullmodel)
+print(paste0("-------------", taskname, "-------------"))
+print(model_summary)
+sjPlot::tab_model(fullmodel,
+              title = paste0(tools::toTitleCase(taskname), ": \nlmer(beh ~ Stim * Cue + (Cue + Stim | sub), data = beh)"),
+              CSS = list(css.table = '+font-size: 12;'))
+```
+```{r}
+# outcome_groupwise[outcome_groupwise$cue_ordered == "high cue", outcome_groupwise$mean_per_sub_norm_mean]
+
+model_iv1 <- "stim_ordered"
+model_iv2 <- "cue_ordered"
+
+
+# 5. summary statistics ____________________________________________________
+outcome_CUEsubjectwise <- meanSummary(
+    beh,
+    c(subject, model_iv2), dv
+)
+outcome_CUEgroupwise <- summarySEwithin(
+    data = outcome_CUEsubjectwise,
+    measurevar = "mean_per_sub",
+    withinvars = c(model_iv2), idvar = subject
+)
+outcome_CUEgroupwise
+```
+
+
+```{r}
+# optimizer
+library(parallel)
+ncores <- detectCores()
+# diff_optims <- allFit(fullmodel, maxfun = 1e5, parallel = 'multicore', ncpus = ncores)
+diff_optims <- allFit(fullmodel, maxfun = 1e9)
+diff_optims_OK <- diff_optims[sapply(diff_optims, is, "merMod")]
+lapply(diff_optims_OK, function(x) x@optinfo$conv$lme4$messages)
+```
+
+```{r}
+diff_optims <- allFit(fullmodel, maxfun = 1e5)
+
+optimx_options <- c("L-BFGS-B", "nlminb", "nlm", "bobyqa", "nmkb", "hjkb")
+for(i in 1:length(optimx_options)){
+  print(paste0("Testing optimx: ", optimx_options[i]))
+  model_full <-   lmer(
+  outcomerating ~ CUE_high_gt_low * STIM_linear + CUE_high_gt_low * STIM_quadratic + (
+    CUE_high_gt_low + STIM_quadratic  |
+      sub
+  ), data = beh,
+  control = lmerControl(
+    optimizer = "optimx",
+    optCtrl = list(
+      method = optimx_options[i],
+      maxit = 1e9,
+      maxfun = 1e9,
+      maxeval = 1e7,
+      xtol_abs = 1e-9,
+      ftol_abs = 1e-9
+    )
+  ))
+                        # control = lmerControl(optimizer = "nloptwrap",
+                        #                    optCtrl = list(algorithm = "NLOPT_LN_BOBYQA",
+                        #                                   maxfun = 1e9,
+                        #                                   maxeval = 1e7,
+                        #                                   xtol_abs = 1e-9,
+                        #                                   ftol_abs = 1e-9))
+  if(is.null(model_full@optinfo$conv$lme4$messages)){
+    print(paste0("One of the optimx options, ", optimx_options[i],", worked!"))
+    print(model_full)
+    break
+  }
+}
+```
+
+```{r}
+ggplot(beh, aes(x = sub, y = outcomerating, fill = sub)) +
+  geom_boxplot() + 
+  geom_jitter(width = .1, alpha = 0, size = 1)
+```
+
+
+## 2. Cue x stim x ses lineplot 
+### filter with including session
+```{r}
+subjects_with_inadequate_ses <- df.na %>%
+  group_by(sub, cue, stimulusintensity, ses) %>% 
+  dplyr::summarise(count = n(), .groups = 'drop') %>%
+  filter(count < 3) %>%
+  distinct(sub) %>%
+  pull(sub)
+df_filter_ses <- df.na %>%
+  filter(!(sub %in% subjects_with_inadequate_ses))
+
+print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(df.na$sub)), length(unique(df_filter_ses$sub)) ))
+```
+
+```{r}
+
+# taskname <- "pain"
+ggtitle <- paste(taskname, " - outcome judgment (degree)")
+title <- paste(taskname, " - outcome")
+subject <- "subject"
+
+beh <- df_filter_ses
+  # 2. contrasts codes _______________________________________________________
+
+
+# 2. contrasts codes _______________________________________________________
+beh$stim[beh$stimulusintensity == "low_stim"] <- -0.5
+beh$stim[beh$stimulusintensity == "med_stim"] <- 0
+beh$stim[beh$stimulusintensity == "high_stim"] <- 0.5
+
+beh$stim_factor <- factor(beh$stimulusintensity)
+
+# ___ 2-1. contrast code 1 linear __________________________________________
+beh$STIM_linear[beh$stimulusintensity == "low_stim"] <- -0.5
+beh$STIM_linear[beh$stimulusintensity == "med_stim"] <- 0
+beh$STIM_linear[beh$stimulusintensity == "high_stim"] <- 0.5
+
+# ___ 2-2. contrast code 2 quadratic _______________________________________
+beh$STIM_quadratic[beh$stimulusintensity == "low_stim"] <- -0.33
+beh$STIM_quadratic[beh$stimulusintensity == "med_stim"] <- 0.66
+beh$STIM_quadratic[beh$stimulusintensity == "high_stim"] <- -0.33
+
+# ___ 2-3. social cude contrast ____________________________________________
+beh$CUE_high_gt_low[beh$cue == "low_cue"] <- -0.5
+beh$CUE_high_gt_low[beh$cue == "high_cue"] <- 0.5
+# contrast code 1 linear
+beh$SES_linear[beh$ses == "ses-01"] <- -0.5
+beh$SES_linear[beh$ses == "ses-03"] <- 0
+beh$SES_linear[beh$ses == "ses-04"] <- 0.5
+
+# contrast code 2 quadratic
+beh$SES_quadratic[beh$ses == "ses-01"] <- -0.33
+beh$SES_quadratic[beh$ses == "ses-03"] <- 0.64
+beh$SES_quadratic[beh$ses == "ses-04"] <- -0.33
+
+beh$CUE_high_gt_low[beh$cue == "high_cue"] <- 0.5
+beh$CUE_high_gt_low[beh$cue == "low_cue"] <- -0.5
+
+model.ses <- lmer(outcomerating ~
+                        CUE_high_gt_low*STIM_linear*SES_linear +
+                        CUE_high_gt_low*STIM_quadratic*SES_linear +
+                        CUE_high_gt_low*STIM_linear*SES_quadratic +
+                        CUE_high_gt_low*STIM_quadratic*SES_quadratic +
+                        (CUE_high_gt_low+STIM_quadratic+SES_quadratic|sub), data = beh
+                  )
+# CUE_high_gt_low+STIM+EXPECT_demean
+sjPlot::tab_model(model.ses,
+                title = "Multilevel-modeling: \nlmer(beta ~ CUE * STIM * SES + (1| sub), data = pvc)",
+                CSS = list(css.table = '+font-size: 12;'))
+
+combined_se_calc_cooksd <- data.frame()
+
+for (taskname in c("pain", "vicarious", "cognitive")) {
+for (sesname in c("ses-01", "ses-03", "ses-04")) {
+
+  ggtitle <- paste(taskname, " - Outcome rating")
+  title <- paste(taskname, " -  Outcome rating")
+  subject <- "sub"
+  w <- 10
+  h <- 6
+data.ses <- beh[ beh$ses == sesname & beh$runtype == taskname,]
+
+data.ses <- data.ses %>% filter(!is.na(outcomerating))
+
+
+  stim_con1 <- "STIM_linear"
+  stim_con2 <- "STIM_quadratic"
+  iv1 <- "CUE_high_gt_low"
+  dv <- "outcomerating"
+
+  # [ MODEL ] _________________________________________________ # nolint
+  model_savefname <- file.path(
+      analysis_dir,
+      paste("lmer_task-", taskname,
+          "_rating-", dv_keyword,
+          "_", as.character(Sys.Date()), "_cooksd.txt",
+          sep = ""
+      )
+  )
+
+  # [ PLOT ] reordering for plots _________________________ # nolint
+  data.ses$cue_name <- NA
+  data.ses$cue_name[data.ses$cue == "high_cue"] <- "high cue"
+  data.ses$cue_name[data.ses$cue == "low_cue"] <- "low cue"
+  #
+  data.ses$stim_name[data.ses$stimulusintensity == "high_stim"] <- "High"
+  data.ses$stim_name[data.ses$stimulusintensity == "med_stim"] <- "Med"
+  data.ses$stim_name[data.ses$stimulusintensity == "low_stim"] <- "Low"
+
+
+  data.ses$stim_ordered <- factor(
+      data.ses$stim_name,
+      levels = c("Low", "Med", "High")
+  )
+  data.ses$cue_ordered <- factor(
+      data.ses$cue_name,
+      levels = c("low cue", "high cue")
+  )
+  model_iv1 <- "stim_ordered"
+  model_iv2 <- "cue_ordered"
+subject <- "sub"
+  #  [ PLOT ] calculate mean and se  _________________________
+  actual_subjectwise <- meanSummary(
+      data.ses,
+      c(subject, model_iv1, model_iv2), dv
+  )
+  actual_groupwise <- summarySEwithin(
+      data = actual_subjectwise,
+      measurevar = "mean_per_sub",
+      withinvars = c(model_iv1, model_iv2), idvar = subject
+  )
+  actual_groupwise$task <- taskname
+  actual_groupwise$ses <- sesname
+  # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+
+  combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, actual_groupwise)
+ # calculate mean and se
+  sub_mean <- "mean_per_sub"
+  group_mean <- "mean_per_sub_norm_mean"
+  se <- "se"
+
+  ggtitle <- paste(str_to_title(taskname), " - Outcome ", sesname )
+  title <- paste(str_to_title(taskname), " - cue level")
+  xlab <- "Stimulus intensity"
+  ylab <- "Outcome rating (a.u.)"
+  ylim <- c(-10,150)
+  dv_keyword <- "outcome"
+  if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+      color <- c("#1B9E77", "#D95F02")
+  } else {
+      color <- c("#4575B4", "#D73027")
+  } # if keyword starts with
+  plot_savefname <- file.path(
+      analysis_dir,
+      paste("raincloud_task-", taskname,
+          "_rating-", dv_keyword,
+          "_", as.character(Sys.Date()), "_cooksd.png",
+          sep = ""
+      )
+  )
+  g <- plot_halfrainclouds_twofactor(
+      actual_subjectwise, actual_groupwise, model_iv1, model_iv2,
+      sub_mean, group_mean, se, subject,
+      ggtitle, title, xlab, ylab, taskname,ylim,
+      w, h, dv_keyword, color, plot_savefname
+  )
+print(g)
+}
+}
+```
+## lmer
+```{r}
+model.ses <- lmer(outcomerating ~
+                        CUE_high_gt_low*STIM_linear*SES_linear +
+                        CUE_high_gt_low*STIM_quadratic*SES_linear +
+                        CUE_high_gt_low*STIM_linear*SES_quadratic +
+                        CUE_high_gt_low*STIM_quadratic*SES_quadratic +
+                        (CUE_high_gt_low+STIM_linear+SES_quadratic|sub), data = beh[beh$runtype =="pain",]
+                  )
+# model.betases <- lmer(beta ~
+#                           CUE_high_gt_low*STIM_linear*SES_linear +
+#                           CUE_high_gt_low*STIM_quadratic*SES_linear +
+#                           CUE_high_gt_low*STIM_linear*SES_quadratic +
+#                           CUE_high_gt_low*STIM_quadratic*SES_quadratic +
+#                           (1|sub), data = beta_long
+#                     )
+summary(model.ses)
+# CUE_high_gt_low+STIM+EXPECT_demean
+sjPlot::tab_model(model.ses,
+                  title = "Multilevel-modeling: \nlmer(beta ~ CUE * STIM * SES + (1| sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+```
+
+#### session wise line plots {.unlisted .unnumbered}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# lineplot per session
+
+ses.summarystat <- as.data.frame(combined_se_calc_cooksd)
+for (taskname in c("pain", "vicarious", "cognitive")) {
+  DATA <- ses.summarystat #[ses.summarystat$task == taskname,]
+  color <- c("#4C77ED", "#ED220D")
+  model_iv1 <- "stim_ordered"
+  model_iv2 <- "ses_ordered"
+  LINEIV1 <- "stim_ordered"
+  LINEIV2 <- "cue_ordered"
+  MEAN <- "mean_per_sub_norm_mean"
+  ERROR <- "se"
+  dv_keyword <- "outcomerating"
+  line_thickness <- 0.2
+  p1 <- plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-01" , ], taskname,
+                               LINEIV1, LINEIV2, MEAN, ERROR, color, 
+                               ggtitle = 'Visit 1', ylab = "Outcome rating", 
+                               ylim=c(40, 90))
+  p1 <- p1 + theme(
+  aspect.ratio = 1, # Adjust this as needed
+  axis.line = element_line(size = line_thickness)
+)
+  p2 = plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-03", ], taskname,
+                               LINEIV1, LINEIV2, MEAN, ERROR, color,
+                               ggtitle = 'Visit 2', ylab = "Outcome rating", 
+                               ylim=c(40, 90))
+    p2 <- p2 + theme(
+  aspect.ratio = 1, # Adjust this as needed
+  axis.line = element_line(size = line_thickness)
+)
+  p3 = plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-04", ], taskname,
+                               LINEIV1, LINEIV2, MEAN,ERROR, color,
+                               ggtitle = 'Visit 3', ylab = "Outcome rating", 
+                               ylim=c(40, 90))
+    p3 <- p3 + theme(
+  aspect.ratio = 1, # Adjust this as needed
+  axis.line = element_line(size = line_thickness)
+)
+  arranged_plot <- ggpubr::ggarrange(
+    p1, p2, p3, ncol = 3, nrow = 1, common.legend = TRUE, legend = "bottom"
+  )
+  print(arranged_plot)
+  plot_filename = file.path(analysis_dir,
+  paste('lineplot_task-all_rating-', dv_keyword,taskname, '.svg', sep = ""))
+  ggsave(plot_filename, arranged_plot, width = 8, height = 4, dpi=300)
+}
+```
+
+
+## 3. Individual differences in cue effects
+
+```{r}
+combined_cueeffect <- data.frame()
+
+for (taskname in c("pain", "vicarious", "cognitive")) {
+subject <- "sub"
+dv <- "diff"
+df <- wide_dataframe[wide_dataframe$runtype == taskname, ]
+
+# 5. summary statistics ____________________________________________________
+avg_within_run <- df %>%
+  group_by(sub, ses, run) %>%
+  summarise(avg_diff_per_run = mean(diff, na.rm = TRUE)) %>%
+  ungroup()
+
+# Average across sessions for each subject
+outcome_subjectwise <- avg_within_run %>%
+  group_by(sub) %>%
+  summarise(avg_diff_per_sub = mean(avg_diff_per_run, na.rm = TRUE)) %>%
+  ungroup()
+
+outcome_subjectwise$task <- taskname
+combined_cueeffect <- rbind(combined_cueeffect, outcome_subjectwise)
+}
+
+# wide form ____________________________________________________________________
+
+wide_df <- combined_cueeffect %>%
+  pivot_wider(names_from = task, values_from = avg_diff_per_sub)
+
+# plot cue effects _____________________________________________________________
+pv <- plot_ggplot_correlation(data = wide_df, x = 'vicarious', y = 'pain', 
+                              p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 45, label_position = 45)
+vc <- plot_ggplot_correlation(data = wide_df, x = 'cognitive', y = 'vicarious', 
+                              p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 45, label_position = 45)
+cp <- plot_ggplot_correlation(data = wide_df, x = 'pain', y = 'cognitive', 
+                              p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 45, label_position = 45)
+pv <- pv + theme(text = element_text(size = 12)) # Adjusts overall text size, replace 'pv' with your actual plot object creation
+vc <- vc + theme(text = element_text(size = 12))
+cp <- cp + theme(text = element_text(size = 12))
+
+
+# 4. combine plots and add title _______________________________________________
+plots <- ggpubr::ggarrange(pv, vc, cp, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots,top = text_grob("individual differences\n - cue effects from expectation ratings", 
+                                                     color = "black", face = "bold", size = 10 ))
+save_plotname <- file.path(
+  analysis_dir,
+  paste("cueeffect_scatterplot_task-all_",
+      as.character(Sys.Date()), ".png",
+      sep = ""
+  )
+)
+plots
+ggsave(save_plotname, width = 10, height = 3)
+ggsave(file.path(
+  analysis_dir,
+  paste("cueeffect_scatterplot_task-all_",
+      as.character(Sys.Date()), ".svg",
+      sep = ""
+  )
+), width = 10, height = 3)
+```
+
+## individual differences random effects (DEP)
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+
+# 1. stack random effects from each task- .csv ____________________________________
+dfP = read.csv(file.path(analysis_dir, paste('randeffect_task-pain_',as.character(Sys.Date()),'_outlier-cooksd.csv',  sep='') ))
+dfV = read.csv(file.path(analysis_dir, paste('randeffect_task-vicarious_',as.character(Sys.Date()),'_outlier-cooksd.csv',  sep='') ))
+dfC = read.csv(file.path(analysis_dir, paste('randeffect_task-cognitive_',as.character(Sys.Date()),'_outlier-cooksd.csv',  sep='') ))
+
+pvc <- merge_recurse(list(dfP,dfV,dfC))
+
+save_fname = file.path(analysis_dir, paste('randeffect_task-all_',as.character(Sys.Date()),'_outlier-cooksd.csv',  sep='') )
+write.csv(pvc, save_fname, row.names = FALSE)
+
+
+# 2. stack _____________________________________________________________________
+pvc_rand_cue_subset <- subset(pvc, select = c(task, subj, CUE_high_gt_low))
+pvc_rand_cue <- spread(pvc_rand_cue_subset, key = task, value = CUE_high_gt_low)
+
+
+# 3. plot individually _________________________________________________________
+pv <- plot_ggplot_correlation(data = pvc_rand_cue, x = 'vicarious', y = 'pain', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 20, label_position = 18)
+vc <- plot_ggplot_correlation(data = pvc_rand_cue, x = 'cognitive', y = 'vicarious', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 20, label_position = 18)
+cp <- plot_ggplot_correlation(data = pvc_rand_cue, x = 'pain', y = 'cognitive', p_acc = 0.001, r_acc = 0.01, limit_min = -20, limit_max = 20, label_position = 18)
+
+
+# 4. combine plots and add title _______________________________________________
+plots <- ggpubr::ggarrange(pv, vc, cp, ncol = 3, nrow = 1, common.legend = FALSE, legend = "bottom")
+plots_title <- annotate_figure(plots,top = text_grob("individual differences\n - cue effects from expectation ratings", color = "black", face = "bold", size = 10 ))
+save_plotname <- file.path(
+  analysis_dir,
+  paste("randeffect_scatterplot_task-all_",
+      as.character(Sys.Date()), ".png",
+      sep = ""
+  )
+)
+plots
+ggsave(save_plotname, width = 10, height = 3)
+```
+
+
+
+## Clinical trials
+
+## cue contrast average across intensity
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+
+## common dir for saving plots and model outputs
+analysis_dir <- file.path(
+  main_dir, "analysis",
+  "mixedeffect", "model04_iv-cuecontrast_dv-outcome", as.character(Sys.Date()))
+dir.create(analysis_dir, recursive = TRUE, showWarnings = FALSE)
+
+for (taskname in c("pain", "vicarious", "cognitive")) {
+  subject_varkey <- "sub"
+  iv <- "param_cue_type"; iv_keyword <- "cue"
+  dv <- "event04_actual_angle"
+  dv_keyword <- "outcome"
+  subject <- "subject"
+  xlab <- ""
+  ylab <- "ratings (degree)"
+  exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
+  w <- 10
+  h <- 6
+  model_savefname <- file.path(
+      analysis_dir,
+      paste("lmer_task-", taskname, "_cue_on_rating-", dv_keyword, "_",
+          as.character(Sys.Date()), ".txt",
+          sep = ""
+      )
+  )
+  # ___ 1) load data _______________________________________________________________ # nolint
+  data <- df_load_beh(datadir, taskname, subject_varkey, iv, dv, exclude)
+  unique(data$sub)
+  data$subject <- factor(data$sub)
+
+
+
+  # ___ 3) calculate difference scores and summarize _______________________________ 
+  # TODO: within param_run_num
+  data$run_order <- NA
+  data$run_order[data$param_run_num > 3] <- "a"
+  data$run_order[data$param_run_num <= 3] <- "b"
+  sub_diff <- subset(data, select = c(
+      "subject", "session_id", "run_order",
+      "param_task_name", "param_cue_type",
+     # "param_stimulus_type",
+      dv
+  ))
+  subjectwise <- meanSummary(sub_diff, c(
+      "subject", "session_id", "run_order",
+      "param_task_name", "param_cue_type"
+      #"param_stimulus_type"
+  ), dv)
+  mean_outcome <- subjectwise[1:(length(subjectwise) - 1)]
+  wide <- mean_outcome %>%
+      spread(param_cue_type, mean_per_sub)
+  wide$diff <- wide$high_cue - wide$low_cue
+  subjectwise_diff <- meanSummary(wide, c("subject"), "diff")
+  groupwise_diff <- summarySE(
+      data = subjectwise_diff,
+      measurevar = "mean_per_sub" # variable created from above
+  )
+  print(taskname)
+  print(groupwise_diff$mean_per_sub_mean)
+  print(groupwise_diff$se)
+
+
+  subjectwise_NDA_high <- meanSummary(wide, c("subject"), "high_cue")
+  subjectwise_NDA_low <- meanSummary(wide, c("subject"), "low_cue")
+  subjectwise_NDA_low<- na.omit(subjectwise_NDA_low)
+  subjectwise_NDA_high<- na.omit(subjectwise_NDA_high)
+  groupwise_NDA_high <- summarySE(
+      data = subjectwise_NDA_high,
+      measurevar = "mean_per_sub" # variable created from above
+  )
+ groupwise_NDA_low <- summarySE(
+      data = subjectwise_NDA_low,
+      measurevar = "mean_per_sub" # variable created from above
+  )
+
+  print("high vs. low cue")
+  print(c("low", groupwise_NDA_low$mean_per_sub_mean, groupwise_NDA_low$se))
+  print(c("high", groupwise_NDA_high$mean_per_sub_mean, groupwise_NDA_high$se))
+
+
+}
+```
+```{r}
+head(data)
+```
+
+Question:
+If a model fails to converge, what are your steps for checking issues?
+Is there a diagnostic plot that would inform me?
+I'd like to know what your workflow is
+
+Question: 
+If the inclusion of a parameter doesn't make a difference
+determined by the anova function
+is it safe to remove?
+The experiment has these structures and we know that some other dependent variables changed across time, 
+so it would be best to include just so that we have starts and compare. 
+
+Question:
+what if the levels are somewhat correlated within factors
+
+```{r eval=FALSE, fig.height=10, fig.width=7, include=FALSE}
+ggplot(data, aes(y = event04_actual_angle, x = param_cue_type)) +
+geom_point() +
+xlab("Cue") +
+ylab("Outcome rating") +
+theme_classic(base_size = 15) +
+stat_smooth(method = "lm", formula = 'y ~ x', se=F,fullrange = T) +
+facet_wrap(~sub)
+```
+
+## LMER
+```{r eval=FALSE, include=FALSE}
+# 1. remove trials less than 10, per participant _______________________________
+data_filtered <- data %>%
+group_by(sub) %>%
+filter(n() >= 12) %>%
+ungroup()  # Remove the grouping specification
+
+# 2. glmmTMB ___________________________________________________________________
+
+# model.cuestim <- glmmTMB::glmmTMB(event04_actual_angle ~ param_cue_type * param_stimulus_type + ( param_cue_type + param_stimulus_type | sub), data = data_filtered)
+# summary_model <- summary(model.full)
+# anova(model.cuestim, model.cuestimses)
+# 3. ICC _______________________________________________________________________
+# # Extracting variance components
+# random_effect_variance <- summary_model$varcor$cond$sub[1,1] # Adjust index based on your model structure
+# residual_variance <- summary_model$sigma^2
+# # Calculating ICC
+# icc <- random_effect_variance / (random_effect_variance + residual_variance) # 0.38
+
+
+
+# model.cuestimexpect <- glmmTMB::glmmTMB(event04_actual_angle ~ param_cue_type * param_stimulus_type * event02_expect_angle +session_id+ ( 0 + param_cue_type * param_stimulus_type * event02_expect_angle| sub) + (1|session_id), data = data_filtered)
+# summary(model.cuestimexpect)
+
+model.cuestimses <- glmmTMB::glmmTMB(event04_actual_angle ~ param_cue_type * param_stimulus_type + session_id + ( param_cue_type + param_stimulus_type | sub), data = data_filtered)
+summary(model.cuestimses)
+summary_cuestimses <- summary(model.cuestimses)
+# from vignette ________________________________________________________________
+print(paste(">> model Converged?", model.cuestimses$sdr$pdHess ))
+(vc.toep <- VarCorr(model.cuestimses))
+vc1 <- vc.toep$cond[[1]] ## first term of var-cov for RE of conditional model
+summary(diag(vc1))
+summary(vc1[row(vc1)!=col(vc1)])
+# Compound symmetry
+VarCorr(model.cuestimses)
+# 3. ICC _______________________________________________________________________
+# Extracting variance components
+random_effect_variance <- summary_cuestimses$varcor$cond$sub[1,1] # Adjust index based on your model structure
+residual_variance <- summary_cuestimses$sigma^2
+# Calculating ICC
+icc <- random_effect_variance / (random_effect_variance + residual_variance) # 0.38
+
+
+
+```
+
+> ICC is 0.38 for a model with cue and stim. 
+
+
+## cue contrast average across expectation
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+
+## common dir for saving plots and model outputs
+analysis_dir <- file.path(
+  main_dir, "analysis",
+  "mixedeffect", "model05_iv-cuecontrast_dv-outcome", as.character(Sys.Date()))
+dir.create(analysis_dir, recursive = TRUE, showWarnings = FALSE)
+
+for (taskname in c("pain", "vicarious", "cognitive")) {
+  subject_varkey <- "sub"
+  iv <- "param_cue_type"; iv_keyword <- "cue"
+  dv <- "event02_expect_angle"
+  dv_keyword <- "expect"
+  subject <- "subject"
+  xlab <- ""
+  ylab <- "ratings (degree)"
+  exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
+  w <- 10
+  h <- 6
+  model_savefname <- file.path(
+      analysis_dir,
+      paste("lmer_task-", taskname, "_cue_on_rating-", dv_keyword, "_",
+          as.character(Sys.Date()), ".txt",
+          sep = ""
+      )
+  )
+  # ___ 1) load data _______________________________________________________________ # nolint
+  data <- df_load_beh(datadir, taskname, subject_varkey, iv, dv, exclude)
+  unique(data$sub)
+  data$subject <- factor(data$sub)
+
+  # ___ 2) mixed effects model _____________________________________________________ # nolint
+  cooksd <- lmer_onefactor_cooksd(
+      df = data, taskname, iv, dv, subject_keyword = subject, dv_keyword, model_savefname, print_lmer_output=FALSE
+  )
+  influential <- as.numeric(names(cooksd)[
+      (cooksd > (4 / as.numeric(length(unique(data$subject)))))
+  ])
+  data_screen <- data[-influential, ]
+
+  # ___ 3) calculate difference scores and summarize _______________________________ # nolint
+  # TODO: within param_run_num
+  data$run_order[data$param_run_num > 3] <- "a"
+  data$run_order[data$param_run_num <= 3] <- "b"
+  sub_diff <- subset(data, select = c(
+      "subject", "session_id", "run_order",
+      "param_task_name", "param_cue_type",
+     # "param_stimulus_type",
+      dv
+  ))
+  subjectwise <- meanSummary(sub_diff, c(
+      "subject", "session_id", "run_order",
+      "param_task_name", "param_cue_type"
+      #"param_stimulus_type"
+  ), dv)
+  mean_outcome <- subjectwise[1:(length(subjectwise) - 1)]
+  wide <- mean_outcome %>%
+      spread(param_cue_type, mean_per_sub)
+  wide$diff <- wide$high_cue - wide$low_cue
+
+  subjectwise_diff <- meanSummary(wide, c("subject"), "diff")
+  # subjectwise_diff$stim_ordered <- factor(subjectwise_diff$stim_ordered,
+  #     # levels = c("low", "med", "high")
+  # )
+  subjectwise_diff<- na.omit(subjectwise_diff)
+  groupwise_diff <- summarySE(
+      data = subjectwise_diff,
+      measurevar = "mean_per_sub" # variable created from above
+      # withinvars = c("stim_ordered"), # iv
+      # idvar = "subject"
+  )
+
+  subjectwise_NDA_high <- meanSummary(wide, c("subject"), "high_cue")
+  subjectwise_NDA_low <- meanSummary(wide, c("subject"), "low_cue")
+  subjectwise_NDA_low<- na.omit(subjectwise_NDA_low)
+  subjectwise_NDA_high<- na.omit(subjectwise_NDA_high)
+  groupwise_NDA_high <- summarySE(
+      data = subjectwise_NDA_high,
+      measurevar = "mean_per_sub" # variable created from above
+  )
+ groupwise_NDA_low <- summarySE(
+      data = subjectwise_NDA_low,
+      measurevar = "mean_per_sub" # variable created from above
+  )
+  print(taskname)
+  print(groupwise_diff$mean_per_sub_mean)
+  print(groupwise_diff$se)
+  print("high vs. low cue")
+  print(c("low", groupwise_NDA_low$mean_per_sub_mean, groupwise_NDA_low$se))
+  print(c("high", groupwise_NDA_high$mean_per_sub_mean, groupwise_NDA_high$se))
+
+
+}
+```
+
+:::: {.refbox}
+
+- https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+
+::::
