@@ -2,6 +2,7 @@
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
+
 ```{r libraries_SIIPS_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(car)
 library(lme4)
@@ -46,25 +47,25 @@ sapply(file.sources,source,.GlobalEnv)
 
 ```
 
-## function
 
+## function
 ```{r}
 load_process_BOLD_data <- function(data_dir, roi_name) {
   # File paths
   lowBOLD_fname <- file.path(data_dir, paste0("roi-", roi_name, "_cue-low_BOLD.tsv"))
   highBOLD_fname <- file.path(data_dir, paste0("roi-", roi_name, "_cue-high_BOLD.tsv"))
-
+  
   # Read data
   lowBOLDdf <- readr::read_tsv(lowBOLD_fname, show_col_types = FALSE)
   highBOLDdf <- readr::read_tsv(highBOLD_fname, show_col_types = FALSE)
-
+  
   # Add cue labels
   # lowBOLDdf$cue <- "low cue"
   # highBOLDdf$cue <- "high cue"
-
+  
   # Combine data
   bold_df <- rbind(lowBOLDdf, highBOLDdf)
-  bold_df$stim_name <- NA; bold_df$cue_name <- NA;
+  bold_df$stim_name <- NA; bold_df$cue_name <- NA; 
   bold_df$stim <- factor(bold_df$stimulusintensity, levels = c("low", "med", "high"))
 bold_df$stim_name[bold_df$stim == "high"] <-  "High stim"
 bold_df$stim_name[bold_df$stim == "med"] <-  "Med stim"
@@ -77,13 +78,13 @@ bold_df$stim_ordered <- factor(bold_df$stim_name,
 bold_df$cue_ordered <- factor(bold_df$cue_name,
                                   levels = c("Low cue", "High cue"))
 
-
+  
   # Calculate summary statistics
   subject <- "sub"
   iv1 <- "stim_ordered"
   iv2 <- "cue_ordered"
   dv <- grep("^mean_nps", names(bold_df), value = TRUE)
-
+  
   bold_subjectwise <- meanSummary(bold_df, c(subject, iv1, iv2), dv)
   bold_groupwise <- summarySEwithin(
     data = bold_subjectwise,
@@ -92,7 +93,7 @@ bold_df$cue_ordered <- factor(bold_df$cue_name,
     idvar = subject
   )
   bold_groupwise$score <- "bold"
-
+  
   return(bold_groupwise)
 }
 
@@ -102,25 +103,25 @@ load_process_f1_data <- function(data_dir, roi_name) {
   # Construct file names
   low_fname <- file.path(data_dir, paste0("roi-", roi_name, "_cue-low_f1score.tsv"))
   high_fname <- file.path(data_dir, paste0("roi-", roi_name, "_cue-high_f1score.tsv"))
-
+  
   # Load data and add cue labels
   lowdf <- readr::read_tsv(low_fname, show_col_types = FALSE)
   lowdf$cue <- "Low cue"
   highdf <- readr::read_tsv(high_fname, show_col_types = FALSE)
   highdf$cue <- "High cue"
-
+  
   # Combine data
   df <- rbind(lowdf, highdf)
-
+  
   # Pivot data from wide to long format
   df_long <- tidyr::pivot_longer(
-    data = df,
-    cols = starts_with("F1_"),
-    names_to = "stim",
+    data = df, 
+    cols = starts_with("F1_"), 
+    names_to = "stim", 
     values_to = "f1_value",
     names_prefix = "F1_"
   )
-
+  
   # Adjust stimulus levels to meaningful labels
   df_long$stim <- factor(df_long$stim, levels = c("low", "med", "high"))
   # df_long$stim_name <- ifelse(df_long$stim == "high", "High", ifelse(df_long$stim == "med", "Med", "Low"))
@@ -130,13 +131,13 @@ load_process_f1_data <- function(data_dir, roi_name) {
   df_long$stim_name[df_long$stim == "low"] <-  "Low stim"
   df_long$stim_ordered <- factor(df_long$stim_name, levels = c("Low stim", "Med stim", "High stim"))
   df_long$cue_ordered <- factor(df_long$cue, levels = c("Low cue", "High cue"))
-
+  
   # Calculate summary statistics
   subject <- "sub"
   iv1 <- "stim_ordered"
   iv2 <- "cue_ordered"
   dv <- "f1_value"
-
+  
   # Assuming meanSummary and summarySEwithin are defined functions or part of a loaded package
   f1_subjectwise <- meanSummary(df_long, c(subject, iv1, iv2), dv)
   f1_groupwise <- summarySEwithin(
@@ -146,7 +147,7 @@ load_process_f1_data <- function(data_dir, roi_name) {
     idvar = subject
   )
   f1_groupwise$score <- "f1"
-
+  
   return(f1_groupwise)
 }
 
@@ -155,7 +156,7 @@ load_process_acc_data <- function(data_dir, roi_name) {
   # Construct file names
   low_fname <- file.path(data_dir, paste0("roi-", roi_name, "_cue-low_accuracy.tsv"))
   high_fname <- file.path(data_dir, paste0("roi-", roi_name, "_cue-high_accuracy.tsv"))
-
+  
     # Load data and add cue labels
   lowdf <- readr::read_tsv(low_fname, show_col_types = FALSE)
   lowdf$cue <- "Low cue"
@@ -164,17 +165,17 @@ load_process_acc_data <- function(data_dir, roi_name) {
 
   # Combine data
   df <- rbind(lowdf, highdf)
-
+  
   # Pivot data from wide to long format
   df_long <- tidyr::pivot_longer(
-    data = df,
-    cols = starts_with("Accuracy_"),
-    names_to = "stim",
+    data = df, 
+    cols = starts_with("Accuracy_"), 
+    names_to = "stim", 
     values_to = "accuracy",
     names_prefix = "Accuracy_"
   )
 
-
+  
   # Adjust the stim levels from the column names to meaningful labels if necessary
   df_long$stim_name <- NA
   df_long$stim <- factor(df_long$stim, levels = c("low", "med", "high"))
@@ -202,7 +203,7 @@ load_process_acc_data <- function(data_dir, roi_name) {
     withinvars = c(iv1, iv2),
     idvar = subject
   )
-
+  
   acc_groupwise$score <- "acc"
   return(acc_groupwise)
 }
@@ -210,20 +211,20 @@ load_process_acc_data <- function(data_dir, roi_name) {
 calculate_best_offset <- function(data_bar, data_line, mean_bar, mean_line, error_bar, error_line) {
   # Find the top of the highest bar plot (including error)
   max_bar_with_error <- max(data_bar[[mean_bar]] + data_bar[[error_bar]], na.rm = TRUE)
-
+  
   # Find the bottom of the lowest line plot (considering error)
   min_line_with_error <- min(data_line[[mean_line]] - data_line[[error_line]], na.rm = TRUE)
-
+  
   # Calculate offset as the difference if bars go higher than lines, otherwise, set a default minimum offset
   if (max_bar_with_error > min_line_with_error) {
     offset <- max_bar_with_error - min_line_with_error
   } else {
     offset <- abs(min_line_with_error) * 0.1  # Default offset of 10% of the line range
   }
-
+  
   # Adding a small buffer to ensure clear separation
   offset <- offset + abs(min_line_with_error) * 0.05
-
+  
   return(offset)
 }
 ####################################
@@ -232,12 +233,12 @@ calculate_best_offset <- function(data_bar, data_line, mean_bar, mean_line, erro
 plot_combined <- function(data_bar, data_line, iv1, iv2, mean_bar, mean_line, error_bar, error_line, color_line, xlab, ylab_bar, ylab_line, offset, positiondodge, title) {
       bar_width <- 0.7  # Decrease this value to make bars narrower
     dodge_width <- 0.05  # Decrease this value to reduce space between bars within groups
-
+    
     # Add the offset to line plot data for visual separation
     data_line$mean_line_adj <- data_line[[mean_line]] + offset
     data_line$ymin_adj <- data_line[[mean_line]] - data_line[[error_line]] + offset
     data_line$ymax_adj <- data_line[[mean_line]] + data_line[[error_line]] + offset
-
+    
     # Create the ggplot object
     g <- ggplot() +
         # Bar plot for BOLD scores _____________________________________________
@@ -276,13 +277,16 @@ plot_combined <- function(data_bar, data_line, iv1, iv2, mean_bar, mean_line, er
 
 ```
 
+
+
+
 ```{r}
 data_dir = "/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv04_NPSdecoding"
 # roi_name <- "npspos_rdpIns"  # Replace with your actual ROI name
 roi_list <- c( "npsneg_rIPL")
-#,"npsneg_pgACC","npsneg_rLOC", "npsneg_lLOC",
+#,"npsneg_pgACC","npsneg_rLOC", "npsneg_lLOC", 
 #            "npspos_dACC", "npspos_rdpIns", "npspos_rS2_Op", "npspos_rV1", "npspos_vermis")
-roi_title <- c( "IPL (R)",  "pgACC","LOC (R)", "LOC (L)",
+roi_title <- c( "IPL (R)",  "pgACC","LOC (R)", "LOC (L)", 
             "dACC", "dpIns (R)", "S2 & Op (R)", "V1 (R)", "Vermis")
 
 for (i in seq_along(roi_list)) {
@@ -324,12 +328,18 @@ print(combined_plot)
 ggsave(paste0("/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv04_NPSdecoding/boldf1-", roi_name, ".svg"), combined_plot, width = 8, height = 4, dpi=300)
 }
 ```
+
+```{r}
+f1_data
+```
+
+
 ```{r}
 data_dir = "/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv04_NPSdecoding"
 # roi_name <- "npspos_rdpIns"  # Replace with your actual ROI name
-roi_list <- c( "npsneg_rIPL", "npsneg_pgACC","npsneg_rLOC", "npsneg_lLOC",
+roi_list <- c( "npsneg_rIPL", "npsneg_pgACC","npsneg_rLOC", "npsneg_lLOC", 
            "npspos_dACC", "npspos_rdpIns", "npspos_rS2_Op", "npspos_rV1", "npspos_vermis")
-roi_title <- c( "IPL (R)",  "pgACC","LOC (R)", "LOC (L)",
+roi_title <- c( "IPL (R)",  "pgACC","LOC (R)", "LOC (L)", 
             "dACC", "dpIns (R)", "S2 & Op (R)", "V1 (R)", "Vermis")
 
 for (i in 8) {#seq_along(roi_list)) {
@@ -374,14 +384,13 @@ ggsave(paste0("/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/ni
 ```
 
 ## accuracy {.unlisted .unnumbered}
-
 ```{r}
 data_dir = "/Users/h/Documents/projects_local/cue_expectancy/analysis/fmri/nilearn/deriv04_NPSdecoding"
 # load data ____________________________________________________________________
 low_fname <- file.path(data_dir, "roi-npspos_dACC_cue-low_accuracy.tsv") #roi-npspos_dACC_cue-high_cue
 lowdf <- readr::read_tsv(low_fname)
 lowdf$cue <- "low cue"
-high_fname <- file.path(data_dir, "roi-npspos_dACC_cue-high_accuracy.tsv")
+high_fname <- file.path(data_dir, "roi-npspos_dACC_cue-high_accuracy.tsv") 
 highdf <- readr::read_tsv(high_fname)
 highdf$cue <- "high cue"
 df <- rbind(lowdf, highdf)
@@ -389,9 +398,9 @@ df <- rbind(lowdf, highdf)
 
 # pivot wide to long ___________________________________________________________
 df_long <- pivot_longer(
-  data = df,
-  cols = c(Accuracy_high, Accuracy_med, Accuracy_low),
-  names_to = "stim",
+  data = df, 
+  cols = c(Accuracy_high, Accuracy_med, Accuracy_low), 
+  names_to = "stim", 
   values_to = "accuracy",
   names_prefix = "Accuracy_"
 )
@@ -428,7 +437,7 @@ acc_groupwise$score <- "acc"
 g <- plot_lineplot_twofactor(acc_groupwise,# taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c( "low cue" = "#3E61EC"),
+                        color = c("low cue" = "#3E61EC","high cue" = "#FF0000"), 
                         ggtitle = "Decoding dACC",
                         xlab = "Stimulus intensity", ylab = "Accuracy")
 g + theme(aspect.ratio=.8,
@@ -440,3 +449,9 @@ g + theme(aspect.ratio=.8,
   geom_line(size = 1) + # Adjust line thickness
   geom_point(size = 3)  # Adjust point size
 ```
+
+
+
+
+
+
