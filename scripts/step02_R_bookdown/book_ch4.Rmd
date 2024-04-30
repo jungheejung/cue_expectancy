@@ -458,10 +458,10 @@ PEdf$trial_index <- PEdf$trial_index_runwise
 PEnpsdf <- merge(dfmerge, PEdf, by = c("src_subject_id", "session_id", "param_run_num", "trial_index"))
 print(PEnpsdf)
 
-PE.model <- lmer(nps ~ PE_mdl2 + (PE_mdl2 | sub), data=PEnpsdf, control = lmerControl(optimizer = "nmkbw"))
+PE.model <- lmer(nps ~ PE_mdl2 + (1 | sub), data=PEnpsdf, control = lmerControl(optimizer = "nmkbw"))
 summary(PE.model)
 sjPlot::tab_model(PE.model,
-                  title = "Multilevel-modeling: \nlmer(NPS ~ PE + (CUE + STIM | sub), data = pain)",
+                  title = "Multilevel-modeling: \nlmer(NPS ~ PE + (PE | sub), data = pain)",
                   CSS = list(css.table = '+font-size: 12;'))
 equatiomatic::extract_eq(PE.model)
 sink("/Users/h/Desktop/PEnps_output.txt")  # Redirects output to 'my_output.txt'
