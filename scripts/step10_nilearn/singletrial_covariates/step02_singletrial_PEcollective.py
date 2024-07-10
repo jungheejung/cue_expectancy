@@ -2,18 +2,15 @@
 import numpy as np
 import os, glob, re
 import json
-import pathlib
-import statsmodels 
+
+
 import pandas as pd
-from statsmodels.stats import multitest
+
 import scipy
 import nilearn
-from scipy import stats
-from nilearn.image import resample_to_img, math_img
-from nilearn import image
-from nilearn import plotting
+
 import argparse
-from nilearn.image import new_img_like
+from nilearn.image import new_img_like, concat_imgs, load_img
 import matplotlib.pyplot as plt
 from itertools import product
 from os.path import join
@@ -21,28 +18,10 @@ import numpy.ma as ma
 from pathlib import Path
 import nibabel as nib
 
-# %% DEP
-def extract_ses_and_run(flist):
-    # Initialize empty sets to store unique values of 'ses' and 'run'
-    unique_ses = set()
-    unique_run = set()
-
-    # Loop through each file path and extract 'ses-##' and 'run-##' using regular expressions
-    for path in flist:
-        # Extract 'ses-##' using regular expression
-        ses_match = re.search(r'ses-(\d+)', path)
-        if ses_match:
-            unique_ses.add(ses_match.group(0))
-
-        # Extract 'run-##' using regular expression
-        run_match = re.search(r'run-(\d+)', path)
-        if run_match:
-            unique_run.add(run_match.group(0))
-
-    # Print the unique values of 'ses' and 'run'
-    print(f"Unique ses values: {sorted(unique_ses)}")
-    print(f"Unique run values: {sorted(unique_run)}")
-    return list(sorted(unique_ses)), list(sorted(unique_run))
+"""
+run a parametric modulation with trial by trial PE
+look for voxels that covary with PE variability
+"""
 # %% -------------------------------------------------------------------
 #                               argparse
 # ----------------------------------------------------------------------
@@ -74,7 +53,7 @@ current_dir = os.getcwd()
 main_dir = Path(current_dir).parents[2] # discovery: /dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_social
 
 #main_dir = '/Volumes/spacetop_projects_cue'
-beta_dir = join(main_dir, 'analysis', 'fmri', 'nilearn', 'deriv05_singletrialnpy')
+beta_dir = join(main_dir, 'analysis', 'fmri', 'nilearn', 'singletrial_rampupplateau')
 beh_dir = join(main_dir, 'data', 'beh', 'beh02_preproc')
 canlab_dir = '/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore'
 #canlab_dir = '/Users/h/Documents/MATLAB/CanlabCore'
@@ -104,9 +83,9 @@ for subject, runs in bad_dict.items():
 # We also use sample single trial as target shape and target affine
 imgfname = join(main_dir, 'analysis', 'fmri', 'nilearn', 'singletrial', 'sub-0060', 
                 f'sub-0060_ses-01_run-05_runtype-vicarious_event-{fmri_event}_trial-011_cuetype-low_stimintensity-low.nii.gz')
-ref_img = image.load_img(imgfname)
+ref_img = load_img(imgfname)
 
-mask = image.load_img(join(canlab_dir, 'CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask_canlab.nii'))
+mask = load_img(join(canlab_dir, 'CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask_canlab.nii'))
 mask_img = nilearn.masking.compute_epi_mask(mask, 
                                             target_affine=ref_img.affine, 
                                             target_shape=ref_img.shape)
@@ -121,15 +100,33 @@ nifti_masker = nilearn.maskers.NiftiMasker(mask_img=mask_img,
 # %% -------------------------------------------------------------------
 #                        main correlation
 # ----------------------------------------------------------------------
-#for sub in sub_list:
 print(f"_____________{sub}_____________")
-subwise_stack = []
 # 01 glob files filter if needed using bad_json ____________________
-nii_flist = sorted(glob.glob(os.path.join(beta_dir, sub, f"{sub}_*{task}*{fmri_event}*.npy")))
+nii_flist = sorted(glob.glob(os.path.join(beta_dir, sub, f"{sub}_*{task}*.nii.gz")))
+# beta_img = concat_imgs(nii_flist)
 filtered_files = [file_path for file_path in nii_flist 
                       if not any(subject in file_path and run in file_path 
                                  for subject, runs in padded_dict.items() 
                                  for run in runs)]
+        # np.save(
+        #     os.path.join( save_betanpy, f"{sub}_task-{task}.npy" ),
+        #     beta_img.get_fdata(),
+        # )
+        # json_fname = os.path.join( save_betanpy, f"{sub}_task-{task}.json" )
+        # data_to_save = {'filenames': flist}
+        # with open(json_fname, 'w') as json_file:
+        #     json.dump(data_to_save, json_file, indent=4)
+
+
+#for sub in sub_list:
+print(f"_____________{sub}_____________")
+subwise_stack = []
+# 01 glob files filter if needed using bad_json ____________________
+# nii_flist = sorted(glob.glob(os.path.join(beta_dir, sub, f"{sub}_*{task}*{fmri_event}*.npy")))
+# filtered_files = [file_path for file_path in nii_flist 
+#                       if not any(subject in file_path and run in file_path 
+#                                  for subject, runs in padded_dict.items() 
+#                                  for run in runs)]
 # %%02 extract metadata from filenames _______________________________
 keyword_names = ["sub", "ses", "run", "runtype", "event", "trial", "cuetype", "stimintensity"] # Define the desired keyword names
 dfs = [
@@ -144,14 +141,28 @@ for column in ['sub', 'ses', 'run', 'trial']:
     metadf[column] = metadf[column].apply(lambda x: x.strip('0') if x != '000' else '0') # Strip leading zeros from specific columns
 
 # %% 03 load behavioral data ___________________________________________
-beh_flist = sorted(glob.glob(
-    join(main_dir, 'data', 'beh', 'beh02_preproc', sub, '**', f"{sub}_*{task}_beh.csv"), recursive=True))
-dfs = [pd.read_csv(beh_fname) for beh_fname in beh_flist]
-behdf = pd.concat(dfs, axis=0)
-behdf['trial'] = behdf.groupby('param_run_num').cumcount()
-behdf['sub'] = behdf['src_subject_id']
-behdf['ses'] = behdf['session_id']
-behdf['run'] = behdf['param_run_num']
+# beh_flist = sorted(glob.glob(
+#     join(main_dir, 'data', 'beh', 'beh02_preproc', sub, '**', f"{sub}_*{task}_beh.csv"), recursive=True))
+# dfs = [pd.read_csv(beh_fname) for beh_fname in beh_flist]
+# behdf = pd.concat(dfs, axis=0)
+# behdf['trial'] = behdf.groupby('param_run_num').cumcount()
+# behdf['sub'] = behdf['src_subject_id']
+# behdf['ses'] = behdf['session_id']
+# behdf['run'] = behdf['param_run_num']
+keyword = 'pain'
+if task == 'vicarious':
+    keyword = 'vic'
+elif task == 'cognitive':
+    keyword = 'cog' 
+beh_fname = join(main_dir,f'data/RL/modelfit_jepma_0525/table_{keyword}.csv')
+behdf = pd.read_csv(beh_fname)
+# count trials based on transition
+behdf['trial'] = behdf.groupby(['src_subject_id', 'session_id', 'param_run_num']).cumcount()
+new_columns = {'src_subject_id': 'sub', 
+               'session_id': 'ses', 
+               'param_run_num': 'run',
+               }
+behdf = behdf.rename(columns=new_columns)
 
 # %% 04 grab intersection of metadata and behavioral data ______________
 metadf = metadf.reset_index(drop=True)
@@ -167,7 +178,8 @@ intersection.to_csv(join(save_dir, f"{sub}_intersection.csv"))
 # %% 05 using intersection, grab nifti/npy _____________________________
 for index, row in intersection.iterrows():
     fname = sorted(glob.glob(join(beta_dir, sub, 
-                                  f"sub-{row['sub']:04d}_ses-{row['ses']:02d}_run-{row['run']:02d}_runtype-{row['runtype']}_event-{row['event']}_trial-{row['trial']:03d}_*.npy")))
+                                  f"sub-{row['sub']:04d}_ses-{row['ses']:02d}_run-{row['run']:02d}_runtype-{row['runtype']}_event-{row['event']}_trial-{row['trial']:03d}_*.nii.gz")))
+    beta_img = concat_imgs(nii_flist)
     flist.append(fname)
 flatlist=[]
 for sublist in flist:
