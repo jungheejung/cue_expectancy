@@ -3,7 +3,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=12
 #SBATCH --mem-per-cpu=20gb
-#SBATCH --time=01:00:00
+#SBATCH --time=03:00:00
 #SBATCH -o ./log_glm/GLM_%A_%a.o
 #SBATCH -e ./log_glm/GLM_%A_%a.e
 #SBATCH --account=DBIC

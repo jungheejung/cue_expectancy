@@ -1,11 +1,11 @@
 #!/bin/bash -l
 #SBATCH --job-name=parcel
 #SBATCH --nodes=1
-#SBATCH --ntasks=1
+#SBATCH --ntasks=8
 #SBATCH --mem-per-cpu=16gb
 #SBATCH --time=06:00:00
-#SBATCH -o ./dartfs-hpc/scratch/f0042x1/parcel/GLM_%A_%a.o
-#SBATCH -e ./dartfs-hpc/scratch/f0042x1/parcel/GLM_%A_%a.e
+#SBATCH -o /dartfs-hpc/scratch/f0042x1/parcel/GLM_%A_%a.o
+#SBATCH -e /dartfs-hpc/scratch/f0042x1/parcel/GLM_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
 
