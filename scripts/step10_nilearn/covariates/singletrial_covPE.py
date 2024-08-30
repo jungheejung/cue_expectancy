@@ -11,19 +11,28 @@ We can use the behaviorally extract PE values per trial and correlate with singl
 - Intersect Brain Data with Behavioral Data
 """
 
-
-
-
+import os
 import re
 import json
 import numpy as np
 from pathlib import Path
 import pandas as pd
-from nilearn import image, plotting
+import argparse
+from nilearn import image, plotting, surface, maskers, masking
 from nilearn.image import new_img_like
-import numpy.ma as ma
-# Example function to extract metadata
+from nilearn.datasets import fetch_surf_fsaverage
+from sklearn.linear_model import LinearRegression
+
 def extract_metadata(filename):
+    """
+    Extract metadata from the filename using regex.
+
+    Parameters:
+    filename (str): The filename to extract metadata from.
+
+    Returns:
+    dict: Extracted metadata as a dictionary, or None if not matched.
+    """
     # Regular expression pattern to match the filename structure
     pattern = (r"(?P<sub>sub-\d+)_"
                r"(?P<ses>ses-\d+)_"
@@ -43,198 +52,220 @@ def extract_metadata(filename):
         return metadata
     else:
         return None
+
+def load_bad_data_metadata(bad_data_file):
+    """
+    Load and reformat the bad data metadata.
+
+    Parameters:
+    bad_data_file (str): Path to the JSON file containing bad data metadata.
+
+    Returns:
+    dict: Padded dictionary with reformatted bad data metadata.
+    """
+    with open(bad_data_file, "r") as json_file:
+        bad_dict = json.load(json_file)
+
+    padded_dict = {}
+    for subject, runs in bad_dict.items():
+        padded_runs = []
+        for run in runs:
+            parts = run.split('_')
+            if len(parts) < 2:
+                print(f"Unexpected format in run: {run}")
+                continue
+            sub_parts = parts[1].split('-')
+            if len(sub_parts) < 2:
+                print(f"Unexpected format in run: {run}")
+                continue
+            padded_run = f"{parts[0]}_{sub_parts[0]}-{sub_parts[1].zfill(2)}"
+            padded_runs.append(padded_run)
+        padded_dict[subject] = padded_runs
+    return padded_dict
+
+def get_unique_sub_ids(directory):
+    """
+    Extracts and returns a sorted list of unique 'sub-0000' IDs from filenames in a given directory.
+
+    Parameters:
+    directory (str): The path to the directory containing the files.
+
+    Returns:
+    list: A sorted list of unique 'sub-0000' IDs.
+    """
+    unique_sub_ids = set()
+    pattern = r"(sub-\d{4})"
     
+    # Loop through all files in the directory
+    for filename in os.listdir(directory):
+        # Only process files that match the pattern
+        match = re.search(pattern, filename)
+        if match:
+            unique_sub_ids.add(match.group(1))
 
-# parameters ___________________________________________________________________
-numpy_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv04_covariate/numpy_data'
-canlab_dir = '/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore'
+    # Convert the set to a sorted list
+    unique_sub_ids_list = sorted(unique_sub_ids)
+    return unique_sub_ids_list
 
-main_dir = '/Volumes/spacetop_projects_cue'
-numpy_dir = Path(main_dir) / 'analysis' /'fmri'/'nilearn'/'deriv04_covariate'/'numpy_data'
-fmri_event= 'stimulus'
+def filter_filenames(filenames, bad_dict):
+    """
+    Filter filenames based on bad data metadata and specific conditions.
 
-canlab_dir = '/Users/h/Documents/MATLAB/CanlabCore'
-beh_regressor = 'PE_mdl2'
+    Parameters:
+    filenames (list): List of filenames to filter.
+    bad_dict (dict): Dictionary containing bad data metadata.
 
-# 1. Load Data from Numpy Directory ____________________________________________
+    Returns:
+    list: List of filtered filenames.
+    """
+    filtered_filenames = []
+    for f in filenames:
+        match = re.search(r'(sub-\d+).*(ses-\d+).*(_run-\d+)', f)
+        if match:
+            sub, ses, run = match.groups()
+            ses_run = f"{ses}{run}"
+            if sub in bad_dict and ses_run not in bad_dict[sub]:
+                filtered_filenames.append(f)
+            elif sub not in bad_dict:
+                filtered_filenames.append(f)
+    return filtered_filenames
+
+# %% argparse __________________________________________________________________
+parser = argparse.ArgumentParser()
+parser.add_argument("--slurm-id", type=int,
+                    help="specify slurm array id")
+parser.add_argument("-t", "--tasktype",
+                    choices=['pain','vicarious','cognitive','all'], help="specify runtype name (e.g. pain, cognitive, variance)")
+parser.add_argument("--fmri-event", 
+                    choices=['cue','stimulus'], help="which fmri epoch event are you selecting?")
+parser.add_argument("--beh-regressor", type=str, 
+                    help="specify regressor that you'll correlate")
+parser.add_argument("--beh-savename", type=str, 
+                    help="specify covariate name for saving files")
+parser.add_argument("--maindir", type=str, 
+                    help="directory where the main directory of this repo is")
+parser.add_argument("--savedir", type=str, 
+                    help="directory where the beta maps will live")
+parser.add_argument("--canlabcore", type=str, 
+                    help="directory where the canlab core module is - need brain mask from canlab core")
+args = parser.parse_args()
+# args.slurm_id = args.args.slurm_id 
+task = args.tasktype 
 
 
-# Load JSON file
-sub = 'sub-0073'
-json_fname = Path(numpy_dir) / f'{sub}_task-pain.json'
-npy_fname = Path(numpy_dir) / f'{sub}_task-pain.npy'
+
+# %% 1. Load Data from Numpy Directory ____________________________________________
+numpy_dir = Path(args.maindir) / 'analysis'/'fmri'/'nilearn'/'deriv04_covariate'
+sub_list = get_unique_sub_ids(args.numpydir)
+sub = sub_list[args.args.slurm_id]
+
+json_fname = Path(args.numpydir) / f'{sub}_task-pain.json'
+npy_fname = Path(args.numpydir) / f'{sub}_task-pain.npy'
 with open(json_fname, 'r') as f:
     flist = json.load(f)
-
 filenames = flist['filenames']
 data_array = np.load(npy_fname)
 
 
-# %% -------------------------------------------------------------------
-#                        load bad_dict and reformat 
-# ----------------------------------------------------------------------
+# %% load bad_dict and reformat ______________________________________________________________________________
 # This json file keeps track of all the runs and subjects we need to exclude
 # we need to reformat becase the dictionary values are aligned with the fmriprep output filenames
 # in other words, we need to zeropad some elements so that they are harmonized with the nilearn single trials
 print("load bad data metadata")
-print("Load bad data metadata")
-badruns_json_fname = '/Users/h/Documents/projects_local/cue_expectancy/scripts/bad_runs.json'
-with open(badruns_json_fname, "r") as json_file:
-    bad_dict = json.load(json_file)
-
-padded_dict = {}
-for subject, runs in bad_dict.items():
-    padded_runs = []
-    for run in runs:
-        # Split run by '_'
-        parts = run.split('_')
-        if len(parts) < 2:
-            print(f"Unexpected format in run: {run}")
-            continue
-        
-        # Further split the second part by '-'
-        sub_parts = parts[1].split('-')
-        if len(sub_parts) < 2:
-            print(f"Unexpected format in run: {run}")
-            continue
-        
-        # Pad the second part and reassemble
-        padded_run = f"{parts[0]}_{sub_parts[0]}-{sub_parts[1].zfill(2)}"
-        padded_runs.append(padded_run)
-    
-    padded_dict[subject] = padded_runs
-
-print("Padded dictionary:", padded_dict)
+badruns_json_fname = Path(args.maindir) / 'scripts'/ 'bad_runs.json'
+bad_dict = load_bad_data_metadata(badruns_json_fname)
 
 
-# %% 2. Filter Rows Based on JSON Selection _______________________________________
+# %% 2. Filter Rows Based on JSON Selection and extract corresponding data array _______________________________________
 # filter filenames that contain a specific condition, e.g. event-stimulus,
 # find indices of those filtered filenames and apply that index to the numpy data
-filtered_filenames = []
-# cross check with bad_runs.json
-for f in filenames:
-    # if 'event-stimulus' in f:
-        # Extract the sub, ses, and run using regex
-    match = re.search(r'(sub-\d+).*(ses-\d+).*(_run-\d+)', f)
-    if match:
-        sub, ses, run = match.groups()
-        ses_run = f"{ses}{run}"
-        if sub in bad_dict and ses_run not in bad_dict[sub]:
-            filtered_filenames.append(f)
-        elif sub not in bad_dict:
-            filtered_filenames.append(f)
-
-print(filtered_filenames)
-
-# extract indices from filtered files
+filtered_filenames = filter_filenames(filenames, bad_dict)
 filtered_indices = [filenames.index(f) for f in filtered_filenames]
-
-
-# 3. Extract Corresponding Rows from Numpy Array _______________________________
 filtered_data_array = data_array[:, :, :, filtered_indices]
 
-# 4. Concatenate with Metadata Extracted from Filenames ________________________
+
+# %% 3. Concatenate with Metadata Extracted from Filenames ________________________
 metadata_list = [extract_metadata(f) for f in filenames]
 metadata_df = pd.DataFrame(metadata_list)
-# filtered_metadata_indices = [i for i, meta in enumerate(metadata_list) if meta['sub'] == '0002' and meta['event'] == 'stimulus']
-metadata_filtered = metadata_df[(metadata_df['sub'] == sub) & (metadata_df['event'] == 'stimulus')]
+metadata_filtered = metadata_df[(metadata_df['sub'] == sub) & (metadata_df['event'] == args.args.fmri_event)]
 filtered_metadata_indices = metadata_filtered.index.tolist()
 print(metadata_filtered.head())
 print(filtered_metadata_indices)
-# Filter the NumPy array based on these indices
+
+
+# %% 4. Filter the NumPy array based on these indices
 braindata_filtered = data_array[:,:,:,filtered_metadata_indices]
 print(f"Filtered data: original {data_array.shape} -> filtered {braindata_filtered.shape}")
 
-# 5. Apply Brain Mask to Numpy Data ____________________________________________
-imgfname = Path(main_dir) / 'analysis' / 'fmri'/ 'nilearn'/ 'singletrial_rampupplateau'/ 'sub-0060'/f'sub-0060_ses-01_run-01_runtype-pain_event-{fmri_event}_trial-005_cuetype-high_stimintensity-high.nii.gz'
+
+# %% 5. Apply Brain Mask to Numpy Data ____________________________________________
+imgfname = Path(args.maindir) / 'analysis' / 'fmri'/ 'nilearn'/ 'singletrial_rampupplateau'/ 'sub-0060'/f'sub-0060_ses-01_run-01_runtype-pain_event-{args.fmri_event}_trial-005_cuetype-high_stimintensity-high.nii.gz'
 ref_img = image.load_img(imgfname)
 
-mask = image.load_img(join(canlab_dir, 'CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask_canlab.nii'))
-mask_img = nilearn.masking.compute_epi_mask(mask, target_affine = ref_img.affine, target_shape = ref_img.shape)
-
-nifti_masker = nilearn.maskers.NiftiMasker(mask_img= mask_img,
+mask = image.load_img(os.path.joinjoin(args.canlabcore, 'CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask_canlab.nii'))
+mask_img = masking.compute_epi_mask(mask, target_affine = ref_img.affine, target_shape = ref_img.shape)
+nifti_masker = maskers.NiftiMasker(mask_img= mask_img,
                                            smoothing_fwhm=6,
                             target_affine = ref_img.affine, target_shape = ref_img.shape, 
                     memory="nilearn_cache", memory_level=1)
 
 
-# 6. Intersect Brain Data with Behavioral Data _________________________________
-# load behavioral data
+# %% 6. Intersect Brain Data with Behavioral Data _________________________________
 # TODO filepath
-beh_fname = '/Users/h/Documents/projects_local/cue_expectancy/data/RL/July2024_Heejung_fMRI_paper/table_pain.csv'
+beh_fname = Path(args.maindir) / 'data/RL/July2024_Heejung_fMRI_paper' / 'table_pain.csv'
 behdf = pd.read_csv(beh_fname)
-# reformat behdf to match metadata
 behdf['trial'] = behdf.groupby(['src_subject_id', 'ses', 'param_run_num']).cumcount()
-new_columns = {'src_subject_id': 'sub', 
-               'param_run_num': 'run',
-               }
-behdf = behdf.rename(columns=new_columns)
+behdf.rename(columns={'src_subject_id': 'sub', 'param_run_num': 'run', 'param_cue_type': 'cuetype', 'param_stimulus_type': 'stimintensity'}, inplace=True)
 behdf['sub'] = behdf['sub'].apply(lambda x: f"sub-{int(x):04d}")
 behdf['run'] =  behdf['run'].apply(lambda x: f"run-{int(x):02d}")
-behdf.rename(columns={'param_cue_type': 'cuetype', 'param_stimulus_type': 'stimintensity'}, inplace=True)
+# TODO: drop rows where args.beh_regressor is NA
 beh_subset = behdf[(behdf['sub'] == sub)] #& (behdf['ses'] == ses) & (behdf['run'] == run)]
-# intersect brain data and beh data
 metadata_filtered = metadata_filtered.reset_index(drop=True)
-behdf = behdf.reset_index(drop=True)
-keys = ['sub', 'ses', 'run', 'trial_index'] #, 'cuetype', 'stimintensity']
-# metadata_filtered[keys] = metadata_filtered[keys].astype(int)
-# behdf[keys] = behdf[keys].astype(int)
-intersection = pd.merge(behdf, metadata_filtered, on=keys) #, how='inner')
-intersection['beh_demean'] = intersection[beh_regressor].sub(intersection[beh_regressor].mean())
-# flist = []
-# TODO
-intersection.to_csv(join(save_dir,beh_savename, task, f"{sub}_task-{task}_beh-{beh_savename}_intersection.csv"))
+beh_subset = beh_subset.reset_index(drop=True)
 
+# Remove rows with NA in the behavioral regressor
+behdf = behdf.dropna(subset=[args.args.beh_regressor])
 
-# # %% 05 using intersection, grab nifti/npy _____________________________
+keys = ['sub', 'ses', 'run', 'trial_index'] 
+intersection = pd.merge(beh_subset, metadata_filtered, on=keys) #, how='inner')
+intersection.to_csv(Path(args.savedir, args.beh_savename, task, f"{sub}_task-{task}_beh-{args.beh_savename}_intersection.csv"))
+
 intersection_indices = intersection.index.tolist()
 subwise = braindata_filtered[:, :, :, intersection_indices]
-# brain_y = subwise.reshape(-1, subwise.shape[-1])
-
 print(f"Filtered data: original {braindata_filtered.shape} -> filtered {subwise.shape}")
 
-# %% 06 apply mask _____________________________________________________
+
+# %% 7. apply mask to 4D _____________________________________________________
 # extract shape information from filtered brain data
 x, y, z, n_timepoints = subwise.shape
-
-# Flatten the 4D brain data along the spatial dimensions
-brain_y_flat = subwise.reshape(-1, n_timepoints)  # Shape: (x*y*z, n_timepoints)
-
-# Mask the entire 4D data
 masked_y = nifti_masker.fit_transform(new_img_like(ref_img, subwise))
 
 
-# %% 07 calculate correlation with behavioral value ____________________
+# %% 8. Perform linear regression behavioral value ____________________
+model = LinearRegression()  # Initialize the model
+intersection['ses_run'] = intersection['ses'] + "_" + intersection['run']
+# intersection['ses_run_dummies'] = pd.get_dummies(intersection['ses_run'], drop_first=True)
+ses_run_dummies = pd.get_dummies(intersection['ses_run'], drop_first=True)
 
-from sklearn.linear_model import LinearRegression
-import numpy as np
+intersection['beh_demean'] = intersection[args.beh_regressor].sub(intersection[args.beh_regressor].mean())
+# intersection['beh_demean'] = intersection[beh_regressor].sub(intersection[beh_regressor].mean())
+beh_X = pd.concat([intersection['beh_demean'], ses_run_dummies], axis=1)
 
-# Assuming brain_data has shape (73, 86, 73, 69)
-# Flatten the spatial dimensions: (73, 86, 73, 69) -> (num_voxels, 69)
-
-# Initialize the model
-model = LinearRegression()
-
-# Fit the model to the behavioral data
-# brain_data_flat.T has shape (69, num_voxels), so we transpose it for sklearn
-beh_X = intersection['beh_demean'].values.reshape(-1, 1)
+# beh_X = intersection[['beh_demean', 'ses_run_dummies']].values.reshape(-1, 1)
 model.fit(beh_X, masked_y)
 
-# Get the beta coefficients
-beta_coefficients = model.coef_
-beta_img = nifti_masker.inverse_transform(beta_coefficients.T)#beta_map)
-plotting.plot_stat_map(beta_img) #, display_mode='lyrz', threshold=2.0, title="NIfTI Image")
+# Get the beta coefficients and transform it into 3d brain volume
+beta_coefficients = model.coef_[0]
+beta_img = nifti_masker.inverse_transform(beta_coefficients.T)
+plot = plotting.plot_stat_map(beta_img,  display_mode = 'mosaic', title = f'task-{task} corr w/ {args.fmri_event} and {args.beh_savename}', cut_coords = 8)
+plot.savefig(os.path.join(args.savedir ,args.beh_savename, task, f'{sub}_task-{task}_beta_x-{args.beh_savename}_y-{args.fmri_event}.png'))
+beta_img.to_filename(os.path.join(args.savedir, args.beh_savename, task, f'{sub}_task-{task}_beta_x-{args.beh_savename}_y-{args.fmri_event}.nii.gz'))
 
 # plot surface
-from nilearn.datasets import fetch_surf_fsaverage
-from nilearn import surface, plotting
 fsaverage = fetch_surf_fsaverage()
-
-# Project the 3D NIfTI image onto the fsaverage surface
 texture = surface.vol_to_surf(beta_img, fsaverage.pial_left)
-
-# Plot the surface
 plotting.plot_surf_stat_map(fsaverage.infl_left, texture, hemi='left', title='Surface Plot', colorbar=True)
+plot.savefig(os.path.join(args.savedir ,args.beh_savename, task, f'{sub}_task-{task}_beta_x-{args.beh_savename}_y-{args.fmri_event}_surf.png'))
 
 
 
@@ -246,7 +277,7 @@ plotting.plot_surf_stat_map(fsaverage.infl_left, texture, hemi='left', title='Su
 #     print(run, run_indices)
 #     beh_subset = intersection['beh_demean'].iloc[run_indices]
 #     fmri_subset = fmri_masked_single[run_indices, :]
-#     # if there's a nan in the beh_regressor, mask it
+#     # if there's a nan in the args.beh_regressor, mask it
 #     b=ma.masked_invalid(beh_subset)
 #     msk = (~b.mask)
 #     model = LinearRegression()
@@ -266,6 +297,3 @@ plotting.plot_surf_stat_map(fsaverage.infl_left, texture, hemi='left', title='Su
 
 # # %% Save the resampled image using the reference affine
 # resampled_image = image.resample_to_img(corr_subjectnifti, ref_img)
-# plot = plotting.plot_stat_map(resampled_image,  display_mode = 'mosaic', title = f'task-{task} corr w/ {fmri_event} and {beh_savename}', cut_coords = 8)
-# plot.savefig(join(save_dir ,beh_savename, task, f'{sub}_task-{task}_corr_x-{fmri_event}_y-{beh_savename}.png'))
-# resampled_image.to_filename(join(save_dir, beh_savename, task, f'{sub}_task-{task}_corr_x-{fmri_event}_y-{beh_savename}.nii.gz'))
