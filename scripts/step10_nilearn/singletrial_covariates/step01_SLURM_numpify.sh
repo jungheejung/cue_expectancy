@@ -11,11 +11,6 @@
 #SBATCH --array=1-133
 ##20-133%100
 
-# TODO:
-# [x] submit PE per participant
-# [x] make sure log dir name changed
-# [x] mkdir log dir
-# [ ] other parameters to change?
 conda activate spacetop_env
 echo "SLURMSARRAY: " ${SLURM_ARRAY_TASK_ID}
 ID=$((SLURM_ARRAY_TASK_ID-1))
