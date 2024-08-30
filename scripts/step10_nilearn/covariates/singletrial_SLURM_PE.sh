@@ -18,7 +18,7 @@ MAINDIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue"
 SAVEDIR="${MAINDIR}/analysis/fmri/nilearn/deriv04_covariate/"
 CANLABCORE="/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore"
 python ${MAINDIR}/scripts/step10_nilearn/covariates/singletrial_covPE.py \
---slurm_id ${ID} \
+--slurm-id ${ID} \
 --tasktype "pain" \
 --fmri-event "stimulus" \
 --beh-regressor "PE_mdl2" \
