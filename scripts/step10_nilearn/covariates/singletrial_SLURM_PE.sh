@@ -5,7 +5,7 @@
 #SBATCH --mem-per-cpu=12gb
 #SBATCH --time=01:00:00
 #SBATCH -o ./log_PE/PE_%A_%a.o
-#SBATCH -e ./log/PE_%A_%a.e
+#SBATCH -e ./log_PE/PE_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
 #SBATCH --array=1-5
