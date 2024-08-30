@@ -30,7 +30,7 @@ switch dir_location
     case 'discovery'
         matlab_moduledir = '/dartfs-hpc/rc/lab/C/CANlab/modules';
         main_dir =  '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue';
-        singletrial_dir = fullfile('/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupplateau');
+        singletrial_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/uncompressed_singletrial_rampupplateau';
         beh_dir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupplateau/beh';
         NPS_fname = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau/signature-NPS_sub-all_runtype-pvc_event-stimulus.tsv';
         graymatter_mask = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/scripts/step05_mediation/gray_matter_mask.nii';
@@ -65,6 +65,7 @@ eventlist = {'stim'};
 
 task = 'pain';
 fprintf('step 1. parameter setup')
+
 
 % -------------------------------------------------------------------------
 % construct dataframes for mediation analysis
@@ -254,8 +255,6 @@ l2m_filtered = l2m_temp(~isnan(l2m_temp)); % Remove NaNs to filter
 fprintf('step 2. X, Y, M fully set up');
 
 
-brain_check = fmri_data('/Users/h/Documents/projects_local/sandbox/smooth-6mm_sub-0064_ses-01_run-02_runtype-pain_event-stimulus_trial-000_cuetype-low_stimintensity-med.nii');
-montage(brain_check)
 %% -------------------------------------------------------------------------
 % start mediation analysis
 % -------------------------------------------------------------------------

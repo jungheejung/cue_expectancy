@@ -16,7 +16,7 @@ function s02_contrast_6cond_highlowcue(sub, input_dir, main_dir, save_dir)
     % I also scale the contrasts and filter the bad runs
 % NOTE 01 start jobs
 disp('...STARTING JOBS');
-
+sub='sub-0032';
 rootgroup = settings; rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = 'v7.3'
 
 numscans = 56;
