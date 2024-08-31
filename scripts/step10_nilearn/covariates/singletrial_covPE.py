@@ -156,11 +156,11 @@ task = args.tasktype
 
 # %% 1. Load Data from Numpy Directory ____________________________________________
 numpy_dir = Path(args.maindir) / 'analysis'/'fmri'/'nilearn'/'deriv04_covariate'
-sub_list = get_unique_sub_ids(args.numpydir)
-sub = sub_list[args.args.slurm_id]
+sub_list = get_unique_sub_ids(numpy_dir)
+sub = sub_list[args.slurm_id]
 
-json_fname = Path(args.numpydir) / f'{sub}_task-pain.json'
-npy_fname = Path(args.numpydir) / f'{sub}_task-pain.npy'
+json_fname = Path(numpy_dir) / f'{sub}_task-pain.json'
+npy_fname = Path(numpy_dir) / f'{sub}_task-pain.npy'
 with open(json_fname, 'r') as f:
     flist = json.load(f)
 filenames = flist['filenames']
@@ -187,7 +187,7 @@ filtered_data_array = data_array[:, :, :, filtered_indices]
 # %% 3. Concatenate with Metadata Extracted from Filenames ________________________
 metadata_list = [extract_metadata(f) for f in filenames]
 metadata_df = pd.DataFrame(metadata_list)
-metadata_filtered = metadata_df[(metadata_df['sub'] == sub) & (metadata_df['event'] == args.args.fmri_event)]
+metadata_filtered = metadata_df[(metadata_df['sub'] == sub) & (metadata_df['event'] == args.fmri_event)]
 filtered_metadata_indices = metadata_filtered.index.tolist()
 print(metadata_filtered.head())
 print(filtered_metadata_indices)
@@ -224,7 +224,7 @@ metadata_filtered = metadata_filtered.reset_index(drop=True)
 beh_subset = beh_subset.reset_index(drop=True)
 
 # Remove rows with NA in the behavioral regressor
-behdf = behdf.dropna(subset=[args.args.beh_regressor])
+behdf = behdf.dropna(subset=[args.beh_regressor])
 
 keys = ['sub', 'ses', 'run', 'trial_index'] 
 intersection = pd.merge(beh_subset, metadata_filtered, on=keys) #, how='inner')
