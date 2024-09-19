@@ -269,8 +269,8 @@ beta_img.to_filename(os.path.join(savedir, beh_savename, task, f'{sub}_task-{tas
 # plot surface
 fsaverage = fetch_surf_fsaverage()
 texture = surface.vol_to_surf(beta_img, fsaverage.pial_left)
-plotting.plot_surf_stat_map(fsaverage.infl_left, texture, hemi='left', title='Surface Plot', colorbar=True)
-plot.savefig(os.path.join(savedir ,beh_savename, task, f'{sub}_task-{task}_beta_x-{beh_savename}_y-{fmri_event}_surf.png'))
+surf = plotting.plot_surf_stat_map(fsaverage.infl_left, texture, hemi='left', title='Surface Plot', colorbar=True)
+surf.savefig(os.path.join(savedir ,beh_savename, task, f'{sub}_task-{task}_beta_x-{beh_savename}_y-{fmri_event}_surf.png'))
 
 
 
