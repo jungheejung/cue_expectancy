@@ -197,7 +197,7 @@ print(metadata_filtered.head())
 print(filtered_metadata_indices)
 
 
-# %% 4. Filter the NumPy array based on these indices, cross comparing bad data
+# %% 4. Filter the NumPy array based on these bad run indices, cross comparing bad data
 braindata_filtered = data_array[:,:,:,filtered_metadata_indices]
 print(f"Filtered data: original {data_array.shape} -> filtered {braindata_filtered.shape}")
 
@@ -215,20 +215,25 @@ nifti_masker = maskers.NiftiMasker(mask_img= mask_img,
 
 
 # %% 6. Intersect Brain Data with Behavioral Data _________________________________
-# TODO filepath
+# TODO Find a better place to host these files; update filepath
 beh_fname = Path(maindir) / 'data/RL/July2024_Heejung_fMRI_paper' / 'table_pain.csv'
 behdf = pd.read_csv(beh_fname)
 behdf['trial'] = behdf.groupby(['src_subject_id', 'ses', 'param_run_num']).cumcount()
 behdf.rename(columns={'src_subject_id': 'sub', 'param_run_num': 'run', 'param_cue_type': 'cuetype', 'param_stimulus_type': 'stimintensity'}, inplace=True)
 behdf['sub'] = behdf['sub'].apply(lambda x: f"sub-{int(x):04d}")
 behdf['run'] =  behdf['run'].apply(lambda x: f"run-{int(x):02d}")
-# TODO: drop rows where beh_regressor is NA
-beh_subset = behdf[(behdf['sub'] == sub)] #& (behdf['ses'] == ses) & (behdf['run'] == run)]
+
+# NOTE: drop rows where beh_regressor is NA
+behdf = behdf.dropna(subset=[beh_regressor])
+
+# NOTE: drop rows where pain_stimulus_delivery_success != 'success'
+behdf_success = behdf[behdf['pain_stimulus_delivery_success'] == 'success']
+
+beh_subset = behdf_success[(behdf_success['sub'] == sub)] #& (behdf['ses'] == ses) & (behdf['run'] == run)]
 metadata_filtered = metadata_filtered.reset_index(drop=True)
 beh_subset = beh_subset.reset_index(drop=True)
 
-# Remove rows with NA in the behavioral regressor
-behdf = behdf.dropna(subset=[beh_regressor])
+
 
 keys = ['sub', 'ses', 'run', 'trial_index'] 
 intersection = pd.merge(beh_subset, metadata_filtered, on=keys) #, how='inner')
