@@ -149,18 +149,33 @@ parser.add_argument("--savedir", type=str,
 parser.add_argument("--canlabcore", type=str, 
                     help="directory where the canlab core module is - need brain mask from canlab core")
 args = parser.parse_args()
-# args.slurm_id = args.args.slurm_id 
+slurm_id = args.slurm_id 
+maindir = args.maindir
 task = args.tasktype 
+fmri_event = args.fmri_event
+beh_regressor = args.beh_regressor
+beh_savename = args.beh_savename
+savedir = args.savedir
+canlabcore = args.canlabcore
 
-
+# local test ###################################################################
+slurm_id = 4
+task = 'pain'
+fmri_event = 'stimulus'
+beh_regressor = 'PE_mdl2'
+maindir = '/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue'
+beh_savename = 'cov_PE'
+savedir = os.path.join(maindir, 'analysis/fmri/nilearn/deriv04_covariate')
+canlabcore = '/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore'
+################################################################################
 
 # %% 1. Load Data from Numpy Directory ____________________________________________
-numpy_dir = Path(args.maindir) / 'analysis'/'fmri'/'nilearn'/'deriv04_covariate'
-sub_list = get_unique_sub_ids(args.numpydir)
-sub = sub_list[args.slurm_id]
+numpy_dir = Path(maindir) / 'analysis'/'fmri'/'nilearn'/'deriv04_covariate' / 'numpy_data'
+sub_list = get_unique_sub_ids(numpy_dir)
+sub = sub_list[slurm_id]
 
-json_fname = Path(args.numpydir) / f'{sub}_task-pain.json'
-npy_fname = Path(args.numpydir) / f'{sub}_task-pain.npy'
+json_fname = Path(numpy_dir) / f'{sub}_task-pain.json'
+npy_fname = Path(numpy_dir) / f'{sub}_task-pain.npy'
 with open(json_fname, 'r') as f:
     flist = json.load(f)
 filenames = flist['filenames']
@@ -172,7 +187,7 @@ data_array = np.load(npy_fname)
 # we need to reformat becase the dictionary values are aligned with the fmriprep output filenames
 # in other words, we need to zeropad some elements so that they are harmonized with the nilearn single trials
 print("load bad data metadata")
-badruns_json_fname = Path(args.maindir) / 'scripts'/ 'bad_runs.json'
+badruns_json_fname = Path(maindir) / 'scripts'/ 'bad_runs.json'
 bad_dict = load_bad_data_metadata(badruns_json_fname)
 
 
@@ -187,22 +202,22 @@ filtered_data_array = data_array[:, :, :, filtered_indices]
 # %% 3. Concatenate with Metadata Extracted from Filenames ________________________
 metadata_list = [extract_metadata(f) for f in filenames]
 metadata_df = pd.DataFrame(metadata_list)
-metadata_filtered = metadata_df[(metadata_df['sub'] == sub) & (metadata_df['event'] == args.args.fmri_event)]
+metadata_filtered = metadata_df[(metadata_df['sub'] == sub) & (metadata_df['event'] == fmri_event)]
 filtered_metadata_indices = metadata_filtered.index.tolist()
 print(metadata_filtered.head())
 print(filtered_metadata_indices)
 
 
-# %% 4. Filter the NumPy array based on these indices
+# %% 4. Filter the NumPy array based on these indices, cross comparing bad data
 braindata_filtered = data_array[:,:,:,filtered_metadata_indices]
 print(f"Filtered data: original {data_array.shape} -> filtered {braindata_filtered.shape}")
 
 
 # %% 5. Apply Brain Mask to Numpy Data ____________________________________________
-imgfname = Path(args.maindir) / 'analysis' / 'fmri'/ 'nilearn'/ 'singletrial_rampupplateau'/ 'sub-0060'/f'sub-0060_ses-01_run-01_runtype-pain_event-{args.fmri_event}_trial-005_cuetype-high_stimintensity-high.nii.gz'
+imgfname = Path(maindir) / 'analysis' / 'fmri'/ 'nilearn'/ 'singletrial_rampupplateau'/ 'sub-0060'/f'sub-0060_ses-01_run-01_runtype-pain_event-{fmri_event}_trial-005_cuetype-high_stimintensity-high.nii.gz'
 ref_img = image.load_img(imgfname)
 
-mask = image.load_img(os.path.joinjoin(args.canlabcore, 'CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask_canlab.nii'))
+mask = image.load_img(os.path.join(canlabcore, 'CanlabCore/canlab_canonical_brains/Canonical_brains_surfaces/brainmask_canlab.nii'))
 mask_img = masking.compute_epi_mask(mask, target_affine = ref_img.affine, target_shape = ref_img.shape)
 nifti_masker = maskers.NiftiMasker(mask_img= mask_img,
                                            smoothing_fwhm=6,
@@ -212,23 +227,24 @@ nifti_masker = maskers.NiftiMasker(mask_img= mask_img,
 
 # %% 6. Intersect Brain Data with Behavioral Data _________________________________
 # TODO filepath
-beh_fname = Path(args.maindir) / 'data/RL/July2024_Heejung_fMRI_paper' / 'table_pain.csv'
+beh_fname = Path(maindir) / 'data/RL/July2024_Heejung_fMRI_paper' / 'table_pain.csv'
 behdf = pd.read_csv(beh_fname)
 behdf['trial'] = behdf.groupby(['src_subject_id', 'ses', 'param_run_num']).cumcount()
 behdf.rename(columns={'src_subject_id': 'sub', 'param_run_num': 'run', 'param_cue_type': 'cuetype', 'param_stimulus_type': 'stimintensity'}, inplace=True)
 behdf['sub'] = behdf['sub'].apply(lambda x: f"sub-{int(x):04d}")
 behdf['run'] =  behdf['run'].apply(lambda x: f"run-{int(x):02d}")
-# TODO: drop rows where args.beh_regressor is NA
+# TODO: drop rows where beh_regressor is NA
 beh_subset = behdf[(behdf['sub'] == sub)] #& (behdf['ses'] == ses) & (behdf['run'] == run)]
 metadata_filtered = metadata_filtered.reset_index(drop=True)
 beh_subset = beh_subset.reset_index(drop=True)
 
 # Remove rows with NA in the behavioral regressor
-behdf = behdf.dropna(subset=[args.args.beh_regressor])
+behdf = behdf.dropna(subset=[beh_regressor])
 
 keys = ['sub', 'ses', 'run', 'trial_index'] 
 intersection = pd.merge(beh_subset, metadata_filtered, on=keys) #, how='inner')
-intersection.to_csv(Path(args.savedir, args.beh_savename, task, f"{sub}_task-{task}_beh-{args.beh_savename}_intersection.csv"))
+Path(os.path.join(savedir, beh_savename, task)).mkdir(exist_ok=True,parents=True)
+intersection.to_csv(Path(savedir, beh_savename, task, f"{sub}_task-{task}_beh-{beh_savename}_intersection.csv"))
 
 intersection_indices = intersection.index.tolist()
 subwise = braindata_filtered[:, :, :, intersection_indices]
@@ -247,7 +263,7 @@ intersection['ses_run'] = intersection['ses'] + "_" + intersection['run']
 # intersection['ses_run_dummies'] = pd.get_dummies(intersection['ses_run'], drop_first=True)
 ses_run_dummies = pd.get_dummies(intersection['ses_run'], drop_first=True)
 
-intersection['beh_demean'] = intersection[args.beh_regressor].sub(intersection[args.beh_regressor].mean())
+intersection['beh_demean'] = intersection[beh_regressor].sub(intersection[beh_regressor].mean())
 # intersection['beh_demean'] = intersection[beh_regressor].sub(intersection[beh_regressor].mean())
 beh_X = pd.concat([intersection['beh_demean'], ses_run_dummies], axis=1)
 
@@ -255,17 +271,17 @@ beh_X = pd.concat([intersection['beh_demean'], ses_run_dummies], axis=1)
 model.fit(beh_X, masked_y)
 
 # Get the beta coefficients and transform it into 3d brain volume
-beta_coefficients = model.coef_[0]
+beta_coefficients = model.coef_[:,0]
 beta_img = nifti_masker.inverse_transform(beta_coefficients.T)
-plot = plotting.plot_stat_map(beta_img,  display_mode = 'mosaic', title = f'task-{task} corr w/ {args.fmri_event} and {args.beh_savename}', cut_coords = 8)
-plot.savefig(os.path.join(args.savedir ,args.beh_savename, task, f'{sub}_task-{task}_beta_x-{args.beh_savename}_y-{args.fmri_event}.png'))
-beta_img.to_filename(os.path.join(args.savedir, args.beh_savename, task, f'{sub}_task-{task}_beta_x-{args.beh_savename}_y-{args.fmri_event}.nii.gz'))
+plot = plotting.plot_stat_map(beta_img,  display_mode = 'mosaic', title = f'task-{task} corr w/ {fmri_event} and {beh_savename}', cut_coords = 8)
+plot.savefig(os.path.join(savedir ,beh_savename, task, f'{sub}_task-{task}_beta_x-{beh_savename}_y-{fmri_event}.png'))
+beta_img.to_filename(os.path.join(savedir, beh_savename, task, f'{sub}_task-{task}_beta_x-{beh_savename}_y-{fmri_event}.nii.gz'))
 
 # plot surface
 fsaverage = fetch_surf_fsaverage()
 texture = surface.vol_to_surf(beta_img, fsaverage.pial_left)
 plotting.plot_surf_stat_map(fsaverage.infl_left, texture, hemi='left', title='Surface Plot', colorbar=True)
-plot.savefig(os.path.join(args.savedir ,args.beh_savename, task, f'{sub}_task-{task}_beta_x-{args.beh_savename}_y-{args.fmri_event}_surf.png'))
+plot.savefig(os.path.join(savedir ,beh_savename, task, f'{sub}_task-{task}_beta_x-{beh_savename}_y-{fmri_event}_surf.png'))
 
 
 
