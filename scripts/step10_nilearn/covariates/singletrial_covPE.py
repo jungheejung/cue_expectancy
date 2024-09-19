@@ -157,7 +157,8 @@ task = args.tasktype
 # %% 1. Load Data from Numpy Directory ____________________________________________
 numpy_dir = Path(args.maindir) / 'analysis'/'fmri'/'nilearn'/'deriv04_covariate'
 sub_list = get_unique_sub_ids(numpy_dir)
-sub = sub_list[args.slurm_id]
+print(f"type of slurmid argument: {args.slurm_id}")
+sub = sub_list[int(args.slurm_id)]
 
 json_fname = Path(numpy_dir) / f'{sub}_task-pain.json'
 npy_fname = Path(numpy_dir) / f'{sub}_task-pain.npy'
