@@ -17,7 +17,7 @@ ID=$((SLURM_ARRAY_TASK_ID-1))
 MAINDIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue"
 BETADIR="${MAINDIR}/analysis/fmri/nilearn/singletrial_rampupplateau"
 SAVEDIR="${MAINDIR}/analysis/fmri/nilearn/deriv04_covariate/numpy_data"
-python ${MAINDIR}/scripts/step10_nilearn/singletrial_covariates/step01_numpify.py \
+python ${MAINDIR}/scripts/step10_nilearn/covariates/step01_numpify.py \
 --slurm-id ${ID} \
 --input-betadir ${BETADIR} \
 --save-npydir ${SAVEDIR}
