@@ -21,3 +21,7 @@ Inclusion criteria for RL
 
 # SOURCE LINK
 https://drive.google.com/drive/folders/1mCsUwmRI7bbBFzmUdqAlMnUYUDxE4p1H
+
+# Updated PE values from Aryan
+- source code:
+- communication: emailed to heejung.jung@dartmouth.edu, tables of the model outputs 09/18/2024
