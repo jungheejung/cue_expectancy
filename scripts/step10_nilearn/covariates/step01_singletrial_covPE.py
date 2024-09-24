@@ -216,6 +216,7 @@ nifti_masker = maskers.NiftiMasker(mask_img= mask_img,
 
 # %% 6. Intersect Brain Data with Behavioral Data _________________________________
 # TODO Find a better place to host these files; update filepath
+# input from Aryan: tables of the model outputs
 beh_fname = Path(maindir) / 'data/RL/July2024_Heejung_fMRI_paper' / 'table_pain.csv'
 behdf = pd.read_csv(beh_fname)
 behdf['trial'] = behdf.groupby(['src_subject_id', 'ses', 'param_run_num']).cumcount()
