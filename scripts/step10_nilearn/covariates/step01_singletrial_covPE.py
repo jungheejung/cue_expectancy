@@ -158,6 +158,9 @@ beh_savename = args.beh_savename
 savedir = args.savedir
 canlabcore = args.canlabcore
 
+table_dict = {'pain': 'pain',
+              'vicarious': 'vic',
+              'cognitive': 'cog'}
 # %% 1. Load Data from Numpy Directory ____________________________________________
 numpy_dir = Path(maindir) / 'analysis'/'fmri'/'nilearn'/'deriv04_covariate' / 'numpy_data'
 sub_list = get_unique_sub_ids(numpy_dir)
@@ -217,7 +220,7 @@ nifti_masker = maskers.NiftiMasker(mask_img= mask_img,
 # %% 6. Intersect Brain Data with Behavioral Data _________________________________
 # TODO Find a better place to host these files; update filepath
 # input from Aryan: tables of the model outputs
-beh_fname = Path(maindir) / 'data/RL/July2024_Heejung_fMRI_paper' / f'table_{task}.csv'
+beh_fname = Path(maindir) / 'data/RL/July2024_Heejung_fMRI_paper' / f'table_{table_dict[task]}.csv'
 behdf = pd.read_csv(beh_fname)
 behdf['trial'] = behdf.groupby(['src_subject_id', 'ses', 'param_run_num']).cumcount()
 behdf.rename(columns={'src_subject_id': 'sub', 'param_run_num': 'run', 'param_cue_type': 'cuetype', 'param_stimulus_type': 'stimintensity'}, inplace=True)
