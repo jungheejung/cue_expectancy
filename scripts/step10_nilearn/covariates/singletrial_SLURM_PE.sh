@@ -3,13 +3,12 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=4
 #SBATCH --mem-per-cpu=12gb
-#SBATCH --time=01:00:00
+#SBATCH --time=00:10:00
 #SBATCH -o ./log_PE/PE_%A_%a.o
 #SBATCH -e ./log_PE/PE_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1-5
-##20-133%100
+#SBATCH --array=1-133%100
 
 conda activate spacetop_env
 echo "SLURMSARRAY: " ${SLURM_ARRAY_TASK_ID}
