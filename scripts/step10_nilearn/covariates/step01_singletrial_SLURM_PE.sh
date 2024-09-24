@@ -4,8 +4,8 @@
 #SBATCH --ntasks=4
 #SBATCH --mem-per-cpu=12gb
 #SBATCH --time=00:10:00
-#SBATCH -o ./log_PE_c/PE_%A_%a.o
-#SBATCH -e ./log_PE_c/PE_%A_%a.e
+#SBATCH -o ./log_PE_v/PE_%A_%a.o
+#SBATCH -e ./log_PE_v/PE_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
 #SBATCH --array=1-133%100
@@ -19,7 +19,7 @@ CANLABCORE="/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore"
 # task options: 'pain','vicarious','cognitive'
 python ${MAINDIR}/scripts/step10_nilearn/covariates/step01_singletrial_covPE.py \
 --slurm-id ${ID} \
---tasktype "cognitive" \
+--tasktype "vicarious" \
 --fmri-event "stimulus" \
 --beh-regressor "PE_mdl2" \
 --beh-savename "cov_PE" \
