@@ -163,8 +163,8 @@ numpy_dir = Path(maindir) / 'analysis'/'fmri'/'nilearn'/'deriv04_covariate' / 'n
 sub_list = get_unique_sub_ids(numpy_dir)
 sub = sub_list[slurm_id]
 
-json_fname = Path(numpy_dir) / f'{sub}_task-pain.json'
-npy_fname = Path(numpy_dir) / f'{sub}_task-pain.npy'
+json_fname = Path(numpy_dir) / f'{sub}_task-{task}.json'
+npy_fname = Path(numpy_dir) / f'{sub}_task-{task}.npy'
 with open(json_fname, 'r') as f:
     flist = json.load(f)
 filenames = flist['filenames']
@@ -217,7 +217,7 @@ nifti_masker = maskers.NiftiMasker(mask_img= mask_img,
 # %% 6. Intersect Brain Data with Behavioral Data _________________________________
 # TODO Find a better place to host these files; update filepath
 # input from Aryan: tables of the model outputs
-beh_fname = Path(maindir) / 'data/RL/July2024_Heejung_fMRI_paper' / 'table_pain.csv'
+beh_fname = Path(maindir) / 'data/RL/July2024_Heejung_fMRI_paper' / f'table_{task}.csv'
 behdf = pd.read_csv(beh_fname)
 behdf['trial'] = behdf.groupby(['src_subject_id', 'ses', 'param_run_num']).cumcount()
 behdf.rename(columns={'src_subject_id': 'sub', 'param_run_num': 'run', 'param_cue_type': 'cuetype', 'param_stimulus_type': 'stimintensity'}, inplace=True)
@@ -228,12 +228,15 @@ behdf['run'] =  behdf['run'].apply(lambda x: f"run-{int(x):02d}")
 behdf = behdf.dropna(subset=[beh_regressor])
 
 # NOTE: drop rows where pain_stimulus_delivery_success != 'success'
-behdf_success = behdf[behdf['pain_stimulus_delivery_success'] == 'success']
+if task == 'pain':
+    behdf_success = behdf[behdf['pain_stimulus_delivery_success'] == 'success']
 
-beh_subset = behdf_success[(behdf_success['sub'] == sub)] #& (behdf['ses'] == ses) & (behdf['run'] == run)]
-metadata_filtered = metadata_filtered.reset_index(drop=True)
-beh_subset = beh_subset.reset_index(drop=True)
-
+    beh_subset = behdf_success[(behdf_success['sub'] == sub)] #& (behdf['ses'] == ses) & (behdf['run'] == run)]
+    metadata_filtered = metadata_filtered.reset_index(drop=True)
+    beh_subset = beh_subset.reset_index(drop=True)
+else:
+    behdf = beh_subset
+    beh_subset = beh_subset.reset_index(drop=True)
 
 
 keys = ['sub', 'ses', 'run', 'trial_index'] 
