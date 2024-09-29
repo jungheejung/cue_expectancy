@@ -293,7 +293,7 @@ def load_and_stack_dataframes(filenames, beh_regressor):
 # beh_flist = sorted(glob.glob(
 #     join(main_dir, 'data', 'beh', 'beh02_preproc', sub, '**', f"{sub}_*{task}_beh.csv"), recursive=True))
 beh_flist = sorted(glob.glob(
-    join(main_dir, 'data', 'beh', sub, '**', f"{sub}_*{task}_events.tsv"), recursive=True))
+    join(maindir, 'data', 'beh', sub, '**', f"{sub}_*{task}_events.tsv"), recursive=True))
 
 # dfs = [pd.read_csv(beh_fname) for beh_fname in beh_flist]
 # behdf = pd.concat(dfs, axis=0)
