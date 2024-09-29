@@ -20,7 +20,7 @@ CANLABCORE="/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore"
 
 # task options: 'pain','vicarious','cognitive'
 # beh-regressors options 'expectrating' 'coutomerating'
-python ${MAINDIR}/scripts/step10_nilearn/covariates/step01_singletrial_covPE.py \
+python ${MAINDIR}/scripts/step10_nilearn/covariates/step01_singletrial_covbeh.py \
 --slurm-id ${ID} \
 --tasktype "vicarious" \
 --fmri-event "stimulus" \
