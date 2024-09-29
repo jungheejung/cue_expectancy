@@ -295,7 +295,7 @@ beh_flist = sorted(glob.glob(
 
 # dfs = [pd.read_csv(beh_fname) for beh_fname in beh_flist]
 # behdf = pd.concat(dfs, axis=0)
-beh_regressor = 'expectrating'
+# beh_regressor = 'expectrating'
 behdf = load_and_stack_dataframes(beh_flist, beh_regressor)
 
 # behdf = pd.read_csv(beh_fname)
