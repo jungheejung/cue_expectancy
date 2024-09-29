@@ -346,7 +346,7 @@ intersection['ses_run'] = intersection['ses'] + "_" + intersection['run']
 # intersection['ses_run_dummies'] = pd.get_dummies(intersection['ses_run'], drop_first=True)
 ses_run_dummies = pd.get_dummies(intersection['ses_run'], drop_first=True)
 
-intersection['beh_demean'] = intersection[beh_regressor].sub(intersection[beh_regressor].mean())
+intersection['beh_demean'] = intersection['rating_value_fillna'].sub(intersection['rating_value_fillna'].mean())
 # intersection['beh_demean'] = intersection[beh_regressor].sub(intersection[beh_regressor].mean())
 beh_X = pd.concat([intersection['beh_demean'], ses_run_dummies], axis=1)
 
