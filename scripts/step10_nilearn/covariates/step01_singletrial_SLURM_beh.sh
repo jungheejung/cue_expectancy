@@ -8,7 +8,7 @@
 #SBATCH -e ./log_PE_v/PE_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=1-5%100
+#SBATCH --array=1-133%100
 
 conda activate spacetop_env
 echo "SLURMSARRAY: " ${SLURM_ARRAY_TASK_ID}
@@ -25,7 +25,7 @@ python ${MAINDIR}/scripts/step10_nilearn/covariates/step01_singletrial_covbeh.py
 --tasktype "vicarious" \
 --fmri-event "stimulus" \
 --beh-regressor "outcomerating" \
---beh-savename "outcomerating" \
+--beh-savename "cov_outcomerating" \
 --maindir ${MAINDIR} \
 --savedir ${SAVEDIR} \
 --canlabcore ${CANLABCORE}
