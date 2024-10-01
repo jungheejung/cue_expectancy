@@ -315,7 +315,7 @@ behdf = load_and_stack_dataframes(beh_flist, beh_regressor)
 behdf_na = behdf.dropna(subset=['rating_value_fillna'])
 # NOTE: drop rows where pain_stimulus_delivery_success != 'success'
 if task == 'pain':
-    behdf_success = behdf_na[behdf_na['pain_stimulus_delivery_success'] == 'success']
+    behdf_success = behdf_na[behdf_na['stimulus_delivery_success'] == 'success']
     beh_subset = behdf_success[(behdf_success['sub'] == sub)] #& (behdf['ses'] == ses) & (behdf['run'] == run)]
     metadata_filtered = metadata_filtered.reset_index(drop=True)
     beh_subset = beh_subset.reset_index(drop=True)
