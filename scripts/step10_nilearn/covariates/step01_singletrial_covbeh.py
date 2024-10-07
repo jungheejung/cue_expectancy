@@ -9,13 +9,6 @@ We can use the behaviorally extract PE values per trial and correlate with singl
 - Concatenate with Metadata Extracted from Filenames
 - Apply Brain Mask to Numpy Data
 - Intersect Brain Data with Behavioral Data
-
-
-TODO 09/27/2024:
-I want to use the full behavioral data. 
-The PE data is only a subset of participants. What's the best way to move forward?
-Which files do I need to grab?
-
 """
 
 import os
@@ -225,27 +218,107 @@ nifti_masker = maskers.NiftiMasker(mask_img= mask_img,
 
 
 # %% 6. Intersect Brain Data with Behavioral Data _________________________________
-beh_fname = Path(maindir) / 'data/RL/July2024_Heejung_fMRI_paper' / f'table_{table_dict[task]}.csv'
-# TODO 09/27/2024: Here's where I think the behavioral data needs to be pulled in and concatenated for a given dataframe
 
-behdf = pd.read_csv(beh_fname)
-behdf['trial'] = behdf.groupby(['src_subject_id', 'ses', 'param_run_num']).cumcount()
-behdf.rename(columns={'src_subject_id': 'sub', 'param_run_num': 'run', 'param_cue_type': 'cuetype', 'param_stimulus_type': 'stimintensity'}, inplace=True)
-behdf['sub'] = behdf['sub'].apply(lambda x: f"sub-{int(x):04d}")
-behdf['run'] =  behdf['run'].apply(lambda x: f"run-{int(x):02d}")
+def extract_metadata_from_filename(filename):
+    """
+    Extracts subject, session, run, and task metadata from the given filename.
+    e.g. sub-0002_ses-03_task-cue_acq-mb8_run-01_desc-vicarious_events.tsv
+    Args:
+    filename (str): The filename from which to extract the metadata.
+    
+    Returns:
+    dict: A dictionary containing the extracted metadata.
+    """
+    pattern = r"sub-(\d+)_ses-(\d+)_task-(\w+)_acq-\w+_run-(\d+)_desc-(\w+)_events\.tsv"
+    match = re.search(pattern, filename)
+    
+    if match:
+        sub = f"sub-{match.group(1)}"
+        ses = f"ses-{match.group(2)}"
+        task = match.group(5)
+        run = f"run-{match.group(4)}"
+        return {'sub': sub, 'ses': ses, 'run': run, 'task': task}
+    else:
+        raise ValueError("Filename pattern doesn't match the expected format.")
+
+def process_dataframe(df, filename):
+    """
+    Processes the dataframe by adding metadata from the filename and filtering rows based on a specific behavior regressor.
+    
+    Args:
+    df (pd.DataFrame): The dataframe to process.
+    filename (str): The filename from which to extract metadata.
+    
+    Returns:
+    pd.DataFrame: The processed dataframe with metadata columns and filtered rows.
+    """
+    # Extract metadata from the filename
+    metadata = extract_metadata_from_filename(filename)
+    
+    # Add metadata as new columns to the dataframe
+    df['sub'] = metadata['sub']
+    df['ses'] = metadata['ses']
+    df['run'] = metadata['run']
+    df['task'] = metadata['task']
+    
+    return df
+
+def load_and_stack_dataframes(filenames, beh_regressor):
+    """
+    Loads multiple dataframes, extracts metadata from filenames, and filters rows based on the given behavior regressor.
+    
+    Args:
+    filenames (list of str): List of filenames to load and process.
+    beh_regressor (str): The behavior regressor to filter on.
+    
+    Returns:
+    pd.DataFrame: The concatenated dataframe after processing and filtering.
+    """
+    df_list = []
+    
+    for filename in filenames:
+        df = pd.read_csv(filename, sep='\t')
+        processed_df = process_dataframe(df, filename) #(extract metadata and filter rows)
+        # Filter rows where 'trial_type' matches the behavior regressor
+        filtered_df = processed_df[processed_df['trial_type'] == beh_regressor]
+        df_list.append(filtered_df) # append dataframe
+    stacked_df = pd.concat(df_list, ignore_index=True)
+    return stacked_df
+
+# TODO Find a better place to host these files; update filepath
+# input from Aryan: tables of the model outputs
+# beh_fname = Path(maindir) / 'data/RL/July2024_Heejung_fMRI_paper' / f'table_{table_dict[task]}.csv'
+# beh_flist = sorted(glob.glob(
+#     join(main_dir, 'data', 'beh', 'beh02_preproc', sub, '**', f"{sub}_*{task}_beh.csv"), recursive=True))
+beh_flist = sorted(glob.glob(
+    join(main_dir, 'data', 'beh', sub, '**', f"{sub}_*{task}_events.tsv"), recursive=True))
+
+# dfs = [pd.read_csv(beh_fname) for beh_fname in beh_flist]
+# behdf = pd.concat(dfs, axis=0)
+# beh_regressor = 'expectrating'
+behdf = load_and_stack_dataframes(beh_flist, beh_regressor)
+
+# behdf = pd.read_csv(beh_fname)
+# behdf['trial'] = behdf.groupby(['src_subject_id', 'ses', 'param_run_num']).cumcount()
+
+# behdf['sub'] = behdf['sub'].apply(lambda x: f"sub-{int(x):04d}")
+# behdf['run'] =  behdf['run'].apply(lambda x: f"run-{int(x):02d}")
+# behdf['trial'] = behdf.groupby('param_run_num').cumcount()
+# behdf['sub'] = behdf['src_subject_id']
+# behdf['ses'] = behdf['session_id']
+# behdf['run'] = behdf['param_run_num']
 
 # NOTE: drop rows where beh_regressor is NA
-behdf = behdf.dropna(subset=[beh_regressor])
-
+# behdf = behdf.dropna(subset=[beh_regressor])
+behdf_na = behdf.dropna(subset=['rating_value_fillna'])
 # NOTE: drop rows where pain_stimulus_delivery_success != 'success'
 if task == 'pain':
-    behdf_success = behdf[behdf['pain_stimulus_delivery_success'] == 'success']
-
+    behdf_success = behdf_na[behdf_na['pain_stimulus_delivery_success'] == 'success']
     beh_subset = behdf_success[(behdf_success['sub'] == sub)] #& (behdf['ses'] == ses) & (behdf['run'] == run)]
     metadata_filtered = metadata_filtered.reset_index(drop=True)
     beh_subset = beh_subset.reset_index(drop=True)
 else:
-    behdf = beh_subset
+    beh_subset = behdf_na
     beh_subset = beh_subset.reset_index(drop=True)
 
 
@@ -271,7 +344,7 @@ intersection['ses_run'] = intersection['ses'] + "_" + intersection['run']
 # intersection['ses_run_dummies'] = pd.get_dummies(intersection['ses_run'], drop_first=True)
 ses_run_dummies = pd.get_dummies(intersection['ses_run'], drop_first=True)
 
-intersection['beh_demean'] = intersection[beh_regressor].sub(intersection[beh_regressor].mean())
+intersection['beh_demean'] = intersection['rating_value_fillna'].sub(intersection['rating_value_fillna'].mean())
 # intersection['beh_demean'] = intersection[beh_regressor].sub(intersection[beh_regressor].mean())
 beh_X = pd.concat([intersection['beh_demean'], ses_run_dummies], axis=1)
 

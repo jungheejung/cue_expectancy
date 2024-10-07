@@ -238,7 +238,7 @@ if task == 'pain':
     metadata_filtered = metadata_filtered.reset_index(drop=True)
     beh_subset = beh_subset.reset_index(drop=True)
 else:
-    behdf = beh_subset
+    beh_subset = behdf
     beh_subset = beh_subset.reset_index(drop=True)
 
 
