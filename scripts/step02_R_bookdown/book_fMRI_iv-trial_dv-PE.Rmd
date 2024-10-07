@@ -1,0 +1,717 @@
+# [fMRI] PE ~ per trial {#fmri_nps_per_trial}
+
+## What is the purpose of this notebook? {.unlisted .unnumbered}
+
+- Here, I plot NPS dot products as a function of trial order, in order to visualize the progression of nociceptive values across time and session
+
+
+```{r libraries_nps_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+library(car)
+library(lme4)
+library(optimx)
+library(minqa)
+library(dfoptim)
+library(psych)
+library(reshape)
+library(dplyr)
+library(tidyselect)
+library(tidyr)
+library(stringr)
+library(lmerTest)
+library(gghalves)
+library(plyr)
+library(ggpubr)
+library(r2mlm)
+library(effectsize)
+library(devtools)
+options(es.use_symbols = TRUE) # get nice symbols when printing! (On Windows, requires R >= 4.2.0)
+library(EMAtools)
+library(emmeans)
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
+library(DT)
+library(raincloudplots)
+# devtools::source_url("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/tutorial_R/R_rainclouds.R")
+# devtools::source_url("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/tutorial_R/summarySE.R")
+
+devtools::source_url("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+library(r2mlm)
+main_dir <- dirname(dirname(getwd()))
+file.sources = list.files(file.path(main_dir, 'scripts', 'step02_R', 'utils'),
+                          pattern="*.R",
+                          full.names=TRUE,
+                          ignore.case=TRUE)
+sapply(file.sources,source,.GlobalEnv)
+
+```
+
+## function
+```{r}
+plot_per_sub <- function(df, iv, dv, sub, xlab_str, ylab_str, taskname, ncol_num, nrow_num, page) {
+  # convert IV, DV, sub
+  iv <- sym(iv)  
+  dv <- sym(dv)  
+  sub <- sym(sub) 
+
+  g <- ggplot(
+    data = df, 
+    aes(x = as.numeric(!!iv), 
+        y = as.numeric(!!dv),  
+        group = !!sub)) +
+    geom_line(size = 0.5) + 
+    geom_point(size = 1.5) + 
+    scale_shape_manual(values = c(21, 16)) +
+    xlab(xlab_str) + 
+    ylab(ylab_str) + 
+    labs(title = paste0(taskname, " (N = ", length(unique(df[[rlang::as_name(sub)]])), ")"))  + 
+    theme_classic2() + 
+    theme(
+      axis.text.x = element_text(size = 5), 
+      axis.text.y = element_text(size = 5), 
+      axis.title.x = element_text(size = 10), 
+      axis.title.y = element_text(size = 10), 
+      plot.title = element_text(size = 12), 
+      strip.text = element_text(size = 6)) +
+    ggforce::facet_wrap_paginate(~sub, scales = "free_y", ncol = ncol_num, nrow = nrow_num, page = page)
+  return(g) 
+}
+```
+
+
+```{r}
+plot_per_cuesub <- function(df, iv, dv, sub, cue, xlab_str, ylab_str, taskname, ncol_num, nrow_num, page) {
+  # convert IV, DV, sub, and cue
+  iv <- sym(iv)  
+  dv <- sym(dv)  
+  sub <- sym(sub) 
+  cue <- sym(cue)
+
+  g <- ggplot(
+    data = df, 
+    aes(
+      x = as.numeric(!!iv), 
+      y = as.numeric(!!dv),  
+      group = !!sub,
+      color = !!cue  # Adding the color aesthetic based on cue levels
+    )
+  ) +
+    geom_line(size = 0.5) + 
+    geom_point(size = 1.5) + 
+    scale_shape_manual(values = c(21, 16)) +
+    xlab(xlab_str) + 
+    ylab(ylab_str) + 
+    labs(title = paste0(taskname, " (N = ", length(unique(df[[rlang::as_name(sub)]])), ")"))  + 
+    theme_classic2() + 
+    theme(
+      axis.text.x = element_text(size = 5), 
+      axis.text.y = element_text(size = 5), 
+      axis.title.x = element_text(size = 10), 
+      axis.title.y = element_text(size = 10), 
+      plot.title = element_text(size = 12), 
+      strip.text = element_text(size = 6)
+    ) +
+    ggforce::facet_wrap_paginate(~sub, scales = "free_y", ncol = ncol_num, nrow = nrow_num, page = page)
+  
+  return(g) 
+}
+
+```
+
+
+
+```{r}
+plot_per_cuesub <- function(df, iv, dv, sub, cue, colors, xlab_str, ylab_str, taskname, ncol_num, nrow_num, page) {
+  # convert IV, DV, sub, and cue
+  iv <- sym(iv)  
+  dv <- sym(dv)  
+  sub <- sym(sub) 
+  cue <- sym(cue)
+
+  g <- ggplot(
+    data = df, 
+    aes(
+      x = as.numeric(!!iv), 
+      y = as.numeric(!!dv),  
+      group = !!sub,
+      color = !!cue  # Adding the color aesthetic based on cue levels
+    )
+  ) +
+    geom_line(size = 0.5) + 
+    geom_point(size = 1.5) + 
+    scale_color_manual(values = colors) +  # Use scale_color_manual to designate colors
+    scale_shape_manual(values = c(21, 16)) +
+    xlab(xlab_str) + 
+    ylab(ylab_str) + 
+    labs(title = paste0(taskname, " (N = ", length(unique(df[[rlang::as_name(sub)]])), ")"))  + 
+    theme_classic2() + 
+    theme(
+      axis.text.x = element_text(size = 5), 
+      axis.text.y = element_text(size = 5), 
+      axis.title.x = element_text(size = 10), 
+      axis.title.y = element_text(size = 10), 
+      plot.title = element_text(size = 12), 
+      strip.text = element_text(size = 6)
+    ) +
+    ggforce::facet_wrap_paginate(~sub, scales = "free_y", ncol = ncol_num, nrow = nrow_num, page = page)
+  
+  return(g) 
+}
+
+```
+
+
+## 0. load data and find intersection between behavioral and nps dataframes
+```{r}
+# load events.tsv
+analysis_folder <- "fmri_PE"
+
+beh <- readr::read_tsv(file.path(main_dir, "data/beh/sub-all_task-all_events.tsv"))
+# load nps tsv
+pe <- read.csv(file.path(main_dir, "data/RL/July2024_Heejung_fMRI_paper/table_pain.csv"), sep = ",")
+# pe$sub <- sprintf("sub-%04d", pe$src_subject_id)
+# pe$run <- sprintf("run-%02d", pe$param_run_num)
+
+pe$singletrial_fname <- sprintf(
+  "sub-%04d_%s_run-%02d_runtype-%s_event-stimulus_trial-%03d_cuetype-%s_stimintensity-%s.nii.gz", 
+  pe$src_subject_id, 
+  pe$ses, 
+  pe$param_run_num, 
+  pe$runtype, 
+  pe$trial_index -1,
+  gsub("_cue", "", pe$param_cue_type),       # Remove "_cue" from param_cue_type
+  gsub("_stim", "", pe$param_stimulus_type)  # Remove "_stim" from param_stimulus_type
+
+  # pe$param_cue_type, 
+  # pe$param_stimulus_type
+)
+
+# intersect
+# Assuming df1 and df2 are your data frames and 'key_column' is the name of your key column
+df_merge <- inner_join(beh, pe, by = "singletrial_fname")
+df_merge <- df_merge %>%
+  select(-ends_with(".x"), -ends_with(".y"))
+taskname <- "pain"
+```
+
+```{r}
+# data <-df_merge[df_merge$runtype == "pain" ,]
+data <- df_merge
+# contrast code ________________________________________________________________
+data$stim <- NA; data$STIM_linear <- NA; data$STIM_quadratic <- NA; 
+data$CUE_high_gt_low <- NA;
+data$SES_linear <- NA;data$SES_quadratic <- NA
+data$stim[data$stimulusintensity == "low_stim"] <-  -0.5 # social influence task
+data$stim[data$stimulusintensity == "med_stim"] <- 0 # no influence task
+data$stim[data$stimulusintensity == "high_stim"] <-  0.5 # no influence task
+
+data$STIM <- factor(data$stimulusintensity)
+
+# contrast code 1 linear
+data$STIM_linear[data$stimulusintensity == "low_stim"] <- -0.5
+data$STIM_linear[data$stimulusintensity == "med_stim"] <- 0
+data$STIM_linear[data$stimulusintensity == "high_stim"] <- 0.5
+
+# contrast code 2 quadratic
+data$STIM_quadratic[data$stimulusintensity == "low_stim"] <- -0.33
+data$STIM_quadratic[data$stimulusintensity == "med_stim"] <- 0.66
+data$STIM_quadratic[data$stimulusintensity == "high_stim"] <- -0.33
+
+# social cude contrast
+data$CUE_high_gt_low[data$cue == "low_cue"] <-  -0.5 # social influence task
+data$CUE_high_gt_low[data$cue == "high_cue"] <-  0.5 # no influence task
+
+data$EXPECT <- data$expectrating
+data$OUTCOME <- data$outcomerating
+
+
+data$SES_linear[data$ses == "ses-01"] <- -0.5
+data$SES_linear[data$ses == "ses-03"] <- 0
+data$SES_linear[data$ses == "ses-04"] <- 0.5
+
+# contrast code 2 quadratic
+data$SES_quadratic[data$ses == "ses-01"] <- -0.33
+data$SES_quadratic[data$ses == "ses-03"] <- 0.66
+data$SES_quadratic[data$ses == "ses-04"] <- -0.33
+
+stim_con1 <- "STIM_linear"
+stim_con2 <- "STIM_quadratic"
+iv1 <- "CUE_high_gt_low"
+dv <- "NPS"
+dv_keyword <- "NPS"
+
+# filter data __________________________________________________________________
+# Make sure that each condition cell has adequate amount of trials
+subjects_with_inadequate_data <- data %>%
+  group_by(sub, CUE_high_gt_low, SES_linear, STIM_linear) %>%
+  dplyr::summarise(count = n(), .groups = 'drop') %>%
+  filter(count < 3) %>%
+  distinct(sub) %>%
+  pull(sub)
+df_filter <- data %>%
+  filter(!(sub %in% subjects_with_inadequate_data))
+```
+
+
+
+## 1. NPS ~ trial x cue
+```{r echo=FALSE}
+
+
+subjects_with_inadequate_data <- data %>%
+  group_by(sub, CUE_high_gt_low, STIM_linear) %>% #SES_linear, 
+  dplyr::summarise(count = n(), .groups = 'drop') %>%
+  filter(count < 3) %>%
+  distinct(sub) %>%
+  pull(sub)
+df_filter <- data %>%
+  filter(!(sub %in% subjects_with_inadequate_data))
+
+df_clean <- df_filter %>%
+  group_by(sub) %>%
+  mutate(trial_index_sub = row_number()) %>%
+  ungroup()
+
+df_clean <- df_clean %>%
+  group_by(sub) %>% 
+  mutate(trial_index_sub = row_number()) %>%
+  ungroup()
+count_trial <- df_clean %>% count("sub")
+
+# Subset the data frame to include only the listed IDs
+
+data_p2_long = df_clean %>%
+  pivot_longer(cols = c( 'PE_mdl2'),
+               names_to = "rating_type",
+               values_to = "rating_value")
+
+    data_p2_long$cue_name[data_p2_long$cue == "high_cue"] <- "high cue"
+    data_p2_long$cue_name[data_p2_long$cue == "low_cue"] <- "low cue"
+
+    data_p2_long$stim_name[data_p2_long$stimulusintensity == "high_stim"] <- "high"
+    data_p2_long$stim_name[data_p2_long$stimulusintensity == "med_stim"] <- "med"
+    data_p2_long$stim_name[data_p2_long$stimulusintensity == "low_stim"] <- "low"
+
+    data_p2_long$stim_ordered <- factor(
+        data_p2_long$stim_name,
+        levels = c("low", "med", "high")
+    )
+    data_p2_long$cue_ordered <- factor(
+        data_p2_long$cue_name,
+        levels = c("low cue", "high cue")
+    )
+    model_iv1 <- "stim_ordered"
+    model_iv2 <- "cue_ordered"
+    dv <- "rating_value"
+    subject = "trial_index_sub"
+    trialorder_subjectwise_p2 <- meanSummary(
+        data_p2_long,
+        c( model_iv2,  model_iv1, "trial_index_sub"), dv
+    )
+    trialorder_subjectwise_p2 <- replace(trialorder_subjectwise_p2, is.na(trialorder_subjectwise_p2), 0)
+    trialorder_subjectwise_p2 <- subset(trialorder_subjectwise_p2, trial_index_sub < 73)
+    trialorder_groupwise_p2 <- summarySEwithin(
+        data = trialorder_subjectwise_p2,
+        measurevar = "mean_per_sub",
+        withinvars = c("cue_ordered", "trial_index_sub" ),
+    )
+trialorder_subjectwise_p2 <- subset(trialorder_subjectwise_p2, trial_index_sub < 73)
+# * dataset: trialorder_groupwise_p2
+# * x-axis: trial_index (sorted)
+# * y-axis: rating
+# * group: cue_ordered, rating_type
+# * DV: mean_per_sub_norm_mean
+# * error bar: se
+
+iv1 = "trial_index_sub"
+iv2 = "cue_ordered"
+
+g <- ggplot(
+  data = trialorder_groupwise_p2,
+  aes(x = as.numeric(trial_index_sub),
+      y = mean_per_sub_norm_mean,
+      color = cue_ordered,
+      )
+  ) +
+  geom_smooth(
+    method = "lm",
+    data = trialorder_groupwise_p2,
+    aes(
+      x = as.numeric(trial_index_sub),
+      y = mean_per_sub_norm_mean,
+      color = cue_ordered,
+      )) +
+    geom_point(
+    data = trialorder_groupwise_p2,
+    aes(
+      x =as.numeric(trial_index_sub),
+      y = mean_per_sub_norm_mean,
+      color = cue_ordered
+      ),
+    size = 2.5
+    ) +
+  scale_shape_manual(values=c(21, 16))+
+  geom_errorbar(
+    data = trialorder_groupwise_p2,
+    aes(
+      x = as.numeric(trial_index_sub),
+      y = mean_per_sub_mean,
+      colour = cue_ordered,
+      ymin = mean_per_sub_norm_mean - se,
+      ymax = mean_per_sub_norm_mean + se), width = .1, size = 0.2
+    ) +
+  scale_color_manual(values = c("high cue" = "red", #"#009411",
+                                "low cue" = "blue" #5D5C5C"
+                                )) +
+  xlab("No. of trials") +
+  ylab("PE") +
+  labs(title = paste0(taskname, " (N = ", length(unique(data_p2_long$sub)), ")"))+
+  theme_classic2() +
+theme(aspect.ratio = .7) +
+        theme(    axis.text.x = element_text(size = 20),
+    axis.text.y = element_text(size = 20),
+    axis.title.x = element_text(size = 25),
+    axis.title.y = element_text(size = 25),
+    axis.title = element_text(size = 40))
+g
+```
+
+
+## 2. PE ~ trial (N > 60) x cue 
+```{r echo=FALSE}
+
+count_trial <- df_clean %>% count("sub")
+valid_subs <- count_trial %>%
+  filter(freq >= 60 & freq <= 72)
+# Subset the data frame to include only the listed IDs
+df_subset <- df_clean %>%
+  filter(sub %in% valid_subs$sub)
+data_p2_long = df_subset %>%
+  pivot_longer(cols = c( 'PE_mdl2'),
+               names_to = "rating_type",
+               values_to = "rating_value")
+    data_p2_long$cue_name[data_p2_long$cue == "high_cue"] <- "high cue"
+    data_p2_long$cue_name[data_p2_long$cue == "low_cue"] <- "low cue"
+
+    data_p2_long$stim_name[data_p2_long$stimulusintensity == "high_stim"] <- "high"
+    data_p2_long$stim_name[data_p2_long$stimulusintensity == "med_stim"] <- "med"
+    data_p2_long$stim_name[data_p2_long$stimulusintensity == "low_stim"] <- "low"
+
+    data_p2_long$stim_ordered <- factor(
+        data_p2_long$stim_name,
+        levels = c("low", "med", "high")
+    )
+    data_p2_long$cue_ordered <- factor(
+        data_p2_long$cue_name,
+        levels = c("low cue", "high cue")
+    )
+    model_iv1 <- "stim_ordered"
+    model_iv2 <- "cue_ordered"
+    dv <- "rating_value"
+    subject = "trial_index_sub"
+    trialorder_subjectwise_p2 <- meanSummary(
+        data_p2_long,
+        c( model_iv2,  model_iv1, "trial_index_sub"), dv
+    )
+    trialorder_subjectwise_p2 <- replace(trialorder_subjectwise_p2, is.na(trialorder_subjectwise_p2), 0)
+    trialorder_subjectwise_p2 <- subset(trialorder_subjectwise_p2, trial_index_sub < 73)
+    trialorder_groupwise_p2 <- summarySEwithin(
+        data = trialorder_subjectwise_p2,
+        measurevar = "mean_per_sub",
+        withinvars = c("cue_ordered", "trial_index_sub" ),
+    )
+trialorder_subjectwise_p2 <- subset(trialorder_subjectwise_p2, trial_index_sub < 73)
+# * dataset: trialorder_groupwise_p2
+# * x-axis: trial_index (sorted)
+# * y-axis: rating
+# * group: cue_ordered, rating_type
+# * DV: mean_per_sub_norm_mean
+# * error bar: se
+
+iv1 = "trial_index_sub"
+iv2 = "cue_ordered"
+data =
+g <- ggplot(
+  data = trialorder_groupwise_p2,
+  aes(x = as.numeric(trial_index_sub),
+      y = mean_per_sub_norm_mean,
+      color = cue_ordered,
+      )
+  ) +
+  geom_smooth(
+    method = "lm",
+    data = trialorder_groupwise_p2,
+    aes(
+      x = as.numeric(trial_index_sub),
+      y = mean_per_sub_norm_mean,
+      color = cue_ordered,
+      )) +
+    geom_point(
+    data = trialorder_groupwise_p2,
+    aes(
+      x =as.numeric(trial_index_sub),
+      y = mean_per_sub_norm_mean,
+      color = cue_ordered
+      ),
+    size = 2.5
+    ) +
+  scale_shape_manual(values=c(21, 16))+
+  geom_errorbar(
+    data = trialorder_groupwise_p2,
+    aes(
+      x = as.numeric(trial_index_sub),
+      y = mean_per_sub_mean,
+      colour = cue_ordered,
+      ymin = mean_per_sub_norm_mean - se,
+      ymax = mean_per_sub_norm_mean + se), width = .1, size = 0.2
+    ) +
+  scale_color_manual(values = c("high cue" = "red", #"#009411",
+                                "low cue" = "blue" #5D5C5C"
+                                )) +
+  xlab("No. of trials") +
+  ylab("PE") +
+  labs(title = paste0(taskname, " (N = ", length(unique(data_p2_long$sub)), ")"))+
+  theme_classic2() +
+theme(aspect.ratio = .7) +
+        theme(    axis.text.x = element_text(size = 20),
+    axis.text.y = element_text(size = 20),
+    axis.title.x = element_text(size = 25),
+    axis.title.y = element_text(size = 25),
+    axis.title = element_text(size = 40))
+g
+```
+
+## 3. NPS ~ trial
+```{r echo=FALSE}
+
+count_trial <- df_clean %>% count("sub")
+valid_subs <- count_trial %>%
+  filter(freq >= 60 & freq <= 72)
+# Subset the data frame to include only the listed IDs
+df_subset <- df_clean %>%
+  filter(sub %in% valid_subs$sub)
+data_p2_long = df_subset %>%
+  pivot_longer(cols = c( 'PE_mdl2'),
+               names_to = "rating_type",
+               values_to = "rating_value")
+    data_p2_long$cue_name[data_p2_long$cue == "high_cue"] <- "high cue"
+    data_p2_long$cue_name[data_p2_long$cue == "low_cue"] <- "low cue"
+
+    data_p2_long$stim_name[data_p2_long$stimulusintensity == "high_stim"] <- "high"
+    data_p2_long$stim_name[data_p2_long$stimulusintensity == "med_stim"] <- "med"
+    data_p2_long$stim_name[data_p2_long$stimulusintensity == "low_stim"] <- "low"
+
+    data_p2_long$stim_ordered <- factor(
+        data_p2_long$stim_name,
+        levels = c("low", "med", "high")
+    )
+    data_p2_long$cue_ordered <- factor(
+        data_p2_long$cue_name,
+        levels = c("low cue", "high cue")
+    )
+    model_iv1 <- "stim_ordered"
+    model_iv2 <- "cue_ordered"
+    dv <- "rating_value"
+    subject = "trial_index_sub"
+    trialorder_subjectwise_p2 <- meanSummary(
+        data_p2_long,
+        c( model_iv2,  model_iv1, "trial_index_sub"), dv
+    )
+    trialorder_subjectwise_p2 <- replace(trialorder_subjectwise_p2, is.na(trialorder_subjectwise_p2), 0)
+    trialorder_subjectwise_p2 <- subset(trialorder_subjectwise_p2, trial_index_sub < 73)
+    trialorder_groupwise_p2 <- summarySEwithin(
+        data = trialorder_subjectwise_p2,
+        measurevar = "mean_per_sub",
+        withinvars = c("trial_index_sub" ), #"cue_ordered", 
+    )
+trialorder_subjectwise_p2 <- subset(trialorder_subjectwise_p2, trial_index_sub < 73)
+# * dataset: trialorder_groupwise_p2
+# * x-axis: trial_index (sorted)
+# * y-axis: rating
+# * group: cue_ordered, rating_type
+# * DV: mean_per_sub_norm_mean
+# * error bar: se
+
+iv1 = "trial_index_sub"
+iv2 = "cue_ordered"
+data =
+g <- ggplot(
+  data = trialorder_groupwise_p2,
+  aes(x = as.numeric(trial_index_sub),
+      y = mean_per_sub_norm_mean,
+      #color = cue_ordered,
+      )
+  ) +
+  geom_smooth(
+    method = "lm",
+    data = trialorder_groupwise_p2,
+    aes(
+      x = as.numeric(trial_index_sub),
+      y = mean_per_sub_norm_mean,
+      #color = cue_ordered,
+      )) +
+    geom_point(
+    data = trialorder_groupwise_p2,
+    aes(
+      x =as.numeric(trial_index_sub),
+      y = mean_per_sub_norm_mean,
+      #color = cue_ordered
+      ),
+    size = 2.5
+    ) +
+  scale_shape_manual(values=c(21, 16))+
+  geom_errorbar(
+    data = trialorder_groupwise_p2,
+    aes(
+      x = as.numeric(trial_index_sub),
+      y = mean_per_sub_mean,
+     # colour = cue_ordered,
+      ymin = mean_per_sub_norm_mean - se,
+      ymax = mean_per_sub_norm_mean + se), width = .1, size = 0.2
+    ) +
+  scale_color_manual(values = c("high cue" = "red", #"#009411",
+                                "low cue" = "blue" #5D5C5C"
+                                )) +
+  xlab("No. of trials") +
+  ylab("PE") +
+  labs(title = paste0(taskname, " (N = ", length(unique(data_p2_long$sub)), ")"))+
+  theme_classic2() +
+theme(aspect.ratio = .7) +
+        theme(    axis.text.x = element_text(size = 20),
+    axis.text.y = element_text(size = 20),
+    axis.title.x = element_text(size = 25),
+    axis.title.y = element_text(size = 25),
+    axis.title = element_text(size = 40))
+g
+```
+
+
+## 4. plot PE as a function of subjects (removing first trial)
+```{r}
+
+## extract metadata "ses" and "trial_index"
+data_extracted <- df_clean %>%
+  mutate(
+    ses = str_extract(singletrial_fname, "ses-\\d{2}") %>% str_remove("ses-") %>% as.integer(),
+    trial_extract = str_extract(singletrial_fname, "trial-\\d{3}") %>% str_remove("trial-") %>% as.integer()
+  )
+
+data_extracted$trial_index <- data_extracted$trial_extract + 1
+df_filter.no1 <- data_extracted[data_extracted$trial_index != 1, ]
+
+# Prepare data
+df_clean.no1 <- df_filter.no1 %>%
+  group_by(sub) %>%
+  mutate(trial_index_sub = row_number()) %>%
+  ungroup()
+taskname <- "pain"
+# Set parameters for pagination
+ncol_num <- 4
+nrow_num <- 3
+total_pages <- ceiling(length(unique(df_clean.no1$sub)) / (ncol_num * nrow_num))
+
+# Loop through pages and render the plot
+for (p in 1:total_pages) {
+  # print(plot_per_sub(df_clean.no1, taskname, ncol_num, nrow_num, p))
+  g <- plot_per_sub(df_clean.no1, "trial_index_sub", dv = "PE_mdl2", sub = "sub", xlab_str = "No. of trials",
+             ylab_str = "PE", taskname, ncol_num, nrow_num, p)
+  print(g)
+}
+```
+
+
+## 5. NPS ~ sub trial cue
+
+```{r}
+# df_clean.no1 <- df_filter.no1 %>%
+#   group_by(sub) %>%
+#   mutate(trial_index_sub = row_number()) %>%
+#   ungroup()
+taskname <- "pain"
+# Set parameters for pagination
+ncol_num <- 4
+nrow_num <- 3
+total_pages <- ceiling(length(unique(df_clean.no1$sub)) / (ncol_num * nrow_num))
+cue_colors <- c("low_cue" = "blue","high_cue" = "red")
+
+# Loop through pages and render the plot
+for (p in 1:total_pages) {
+  # print(plot_per_sub(df_clean.no1, taskname, ncol_num, nrow_num, p))
+  g <- plot_per_cuesub(df_clean.no1, "trial_index_sub", 
+                       dv = "PE_mdl2", 
+                       sub = "sub", 
+                       cue = "cue",
+                       colors = cue_colors,
+                       xlab_str = "No. of trials",
+                       ylab_str = "PE", taskname, ncol_num, nrow_num, p)
+  print(g)
+}
+```
+
+
+```{r echo=FALSE}
+
+
+library(ggforce)
+
+# Plot with pagination using facet_wrap_paginate
+g <- ggplot(
+  data = df_clean, 
+  aes(x = as.numeric(trial_index_sub), 
+      y = NPS, 
+      group = factor(sub),
+      color = cue
+      )) + 
+  geom_line(size = 0.5) + # Thinner lines for clarity
+  geom_point(size = 1.5) + # Smaller points
+  scale_shape_manual(values = c(21, 16)) +
+  scale_color_manual(values = c("high_cue" = "red", 
+                                "low_cue" = "blue")) + 
+  xlab("No. of trials") + 
+  ylab("NPS") + 
+  labs(title = paste0(taskname, " (N = ", length(unique(df_clean$sub)), ")")) + 
+  theme_classic2() + 
+  theme(
+    axis.text.x = element_text(size = 5), 
+    axis.text.y = element_text(size = 5), 
+    axis.title.x = element_text(size = 10), 
+    axis.title.y = element_text(size = 10), 
+    plot.title = element_text(size = 12), 
+    strip.text = element_text(size = 6)) +
+  ggforce::facet_wrap_paginate(~sub, scales = "free_y", ncol = 10, nrow = 10, page = 1) # Adjust columns, rows, and page
+
+# Increase plot size
+options(repr.plot.width = 20, repr.plot.height = 60) # Adjust as needed
+
+g
+```
+
+## 6. why do we see outlierlike values
+Let's plot each trial and its distribution
+```{r}
+# Filter data for trials 40 to 72
+df_trials_40_72 <- df_subset %>%
+  filter(trial_index_sub >= 40 & trial_index_sub <= 72)
+# Filter the data for trials 40 to 72
+
+# Plot the density plot for each trial index with faceting
+ggplot(df_trials_40_72, aes(x = NPS, fill = cue)) +
+  geom_density(alpha = 0.6) +
+  facet_wrap(~ trial_index_sub, ncol = 4) + # Create a facet for each trial
+  scale_fill_manual(values = c("high_cue" = "red", "low_cue" = "blue")) +
+  xlab("NPS") +
+  ylab("Density") +
+  labs(title = "Density of NPS per Trial (40 to 72)") +
+  theme_classic() +
+  theme(
+    strip.text = element_text(size = 5),
+    axis.text = element_text(size = 10),
+    axis.title = element_text(size = 12),
+    legend.title = element_text(size = 5),
+    panel.spacing = unit(0.5, "lines"), 
+    aspect.ratio = 0.8
+  )
+
+```
+
+
