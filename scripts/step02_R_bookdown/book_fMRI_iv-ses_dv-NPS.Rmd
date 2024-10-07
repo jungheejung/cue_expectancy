@@ -1,10 +1,10 @@
-# [fMRI] NPS ~ session {#nps_ses}
+# [fMRI] NPS \~ session {#nps_ses}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
-- Here, I model NPS dot products as a function of cue, stimulus intensity and expectation ratings.
-- One of the findings is that low cues lead to higher NPS dotproducts in the high intensity group, and that this effect becomes non-significant across sessions.
-- 03/23/2023: For now, I'm grabbing participants that have complete data, i.e. 18 runs, all three sessions.
+-   Here, I model NPS dot products as a function of cue, stimulus intensity and expectation ratings.
+-   One of the findings is that low cues lead to higher NPS dotproducts in the high intensity group, and that this effect becomes non-significant across sessions.
+-   03/23/2023: For now, I'm grabbing participants that have complete data, i.e. 18 runs, all three sessions.
 
 ```{r libraries_nps_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(car)
@@ -49,13 +49,48 @@ sapply(file.sources,source,.GlobalEnv)
 
 ```
 
+## Function
+
+```{r}
+plot_per_sub <- function(df, iv, dv, sub, xlab_str, ylab_str, taskname, ncol_num, nrow_num, page) {
+  # convert IV, DV, sub
+  iv <- sym(iv)  
+  dv <- sym(dv)  
+  sub <- sym(sub) 
+
+  g <- ggplot(
+    data = df, 
+    aes(x = as.numeric(!!iv), 
+        y = as.numeric(!!dv),  
+        group = !!sub)) +
+    geom_line(size = 0.5) + 
+    geom_point(size = 1.5) + 
+    scale_shape_manual(values = c(21, 16)) +
+    xlab(xlab_str) + 
+    ylab(ylab_str) + 
+    labs(title = paste0(taskname, " (N = ", length(unique(df[[rlang::as_name(sub)]])), ")"))  + 
+    theme_classic2() + 
+    theme(
+      axis.text.x = element_text(size = 5), 
+      axis.text.y = element_text(size = 5), 
+      axis.title.x = element_text(size = 10), 
+      axis.title.y = element_text(size = 10), 
+      plot.title = element_text(size = 12), 
+      strip.text = element_text(size = 6)) +
+    ggforce::facet_wrap_paginate(~sub, scales = "free_y", ncol = ncol_num, nrow = nrow_num, page = page)
+  return(g) 
+}
+```
+
 ## 0. load data and find intersection between behavioral and nps dataframes
+
 ```{r}
 # load events.tsv
 analysis_folder <- "fmri_nps"
 beh <- readr::read_tsv(file.path(main_dir, "data/beh/sub-all_task-all_events.tsv"))
 # load nps tsv
-nps <- read.csv(file.path("/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau/signature-NPS_sub-all_runtype-pvc_event-stimulus.tsv"), sep = ",")
+
+nps <- read.csv(file.path(main_dir, "analysis/fmri/nilearn/deriv01_signature/rampup_plateau/signature-NPS_sub-all_runtype-pvc_event-stimulus.tsv"), sep = ",")
 # intersect
 # Assuming df1 and df2 are your data frames and 'key_column' is the name of your key column
 df_merge <- inner_join(beh, nps, by = "singletrial_fname")
@@ -122,8 +157,8 @@ df_filter <- data %>%
 print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(data$sub)), length(unique(df_filter$sub)) ))
 ```
 
+\## QC. check NPS distribution
 
-  ## QC. check NPS distribution
 ```{r}
 df_filter.NA <- df_filter %>% filter(!is.na(NPS))  # Remove NA values
 head(df_filter.NA)
@@ -151,7 +186,6 @@ g_plotly <- ggplotly(ggplot_largetext(g), tooltip = c("x", "y"))
 g_plotly
 ```
 
-
 ```{r function::summary_for_plots_pvc, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 summary_for_plots_PVC <- function(df, groupwise_measurevar, subject_keyword, model_iv1, model_iv2, dv) {
     #  [ PLOT ] calculate mean and se  _________________________
@@ -168,7 +202,6 @@ summary_for_plots_PVC <- function(df, groupwise_measurevar, subject_keyword, mod
     return(list(subjectwise,groupwise))
 }
 ```
-
 
 ```{r function::NPS_lineplot_34, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 two_factor_lineplot <-
@@ -223,8 +256,8 @@ two_factor_lineplot <-
   }
 ```
 
-
 #### Contrast weight table {.unlisted .unnumbered}
+
 ```{r echo=FALSE}
 tab <- matrix(c(0, .5, -.5,
                 .66, -.34, -.34), ncol=3, byrow=TRUE)
@@ -236,10 +269,12 @@ kableExtra::kable_styling(
   "striped", position = "left", font_size = 15)
 ```
 
+## 1. NPS \~ paintask: 2 cue x 3 stimulus_intensity
 
-## 2. NPS ~ paintask: 2 cue x 3 stimulus_intensity
 ### Q. Within pain task, Does stimulus intenisty level and cue level significantly predict NPS dotproducts? {.unlisted .unnumbered}
+
 # 03/10/2024
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 # combined_psig <- data.frame()
@@ -358,8 +393,7 @@ g <- plot_halfrainclouds_twofactor(
 g
 ```
 
-### Lineplots with only low cue {.unlisted .unnumbered}
-
+### 1. Plots :: Lineplots with only low cue {.unlisted .unnumbered}
 ```{r echo=FALSE, warning=FALSE}
 subsetNPS <- NPSstimcue_groupwise[NPSstimcue_groupwise$cue_ordered == "low cue",]
 g <- plot_lineplot_twofactor_subset(subsetNPS, taskname = "pain",
@@ -370,8 +404,7 @@ g <- plot_lineplot_twofactor_subset(subsetNPS, taskname = "pain",
 g + theme(aspect.ratio=.8)
 ```
 
-### Lineplots {.unlisted .unnumbered}
-
+### 1. Plots :: Lineplots {.unlisted .unnumbered}
 ```{r echo=FALSE, warning=FALSE}
 g <- plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
@@ -399,8 +432,7 @@ g
   
 ```
 
-### Lineplots tilt axis {.unlisted .unnumbered}
-
+### 1. Plots :: Lineplots tilt axis {.unlisted .unnumbered}
 ```{r echo=FALSE, warning=FALSE}
 g <- plot_lineplot_twofactor(NPSstimcue_groupwise,
                         iv2 = "stim_ordered", iv1 = "cue_ordered",
@@ -413,10 +445,12 @@ g <- plot_lineplot_twofactor(NPSstimcue_groupwise,
 g + theme(aspect.ratio=.8)
 ```
 
-## Linear model results (NPS ~ paintask: 2 cue x 3 stimulus_intensity)
-> Modeling random slopes and random cues, we find a significnat effect of cue  and stimintensity  on NPS dot products. The greater the stimulus intensity, the greater the NPS values (b = -0.31, SE = 0.13, t(131.98) = -2.355, p < .020). Higher cues lead to lower NPS values ( b = 1.29, SE = 0.16, t(140.04) = 8.024, p < .001) 
+## 1. lmer :: Linear model results (NPS \~ paintask: 2 cue x 3 stimulus_intensity)
+
+> Modeling random slopes and random cues, we find a significnat effect of cue and stimintensity on NPS dot products. The greater the stimulus intensity, the greater the NPS values (b = -0.31, SE = 0.13, t(131.98) = -2.355, p \< .020). Higher cues lead to lower NPS values ( b = 1.29, SE = 0.16, t(140.04) = 8.024, p \< .001)
 
 lmer
+
 ```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
 
 model.npscuestim <- lmer(NPS ~
@@ -453,9 +487,8 @@ model.npscuestim.summarystats.group <- summarySEwithin(
 model.npscuestim.summarystats.group
 ```
 
+### 1. lmer :: optimizers
 
-
-### optimizers
 ```{r}
 
 library(parallel)
@@ -465,12 +498,12 @@ diff_optims <- allFit(model.npscuestim, maxfun = 1e5, parallel = 'multicore', nc
 diff_optims_OK <- diff_optims[sapply(diff_optims, is, "merMod")]
 lapply(diff_optims_OK, function(x) x@optinfo$conv$lme4$messages)
 ```
+
 ```{r}
 diff_optims <- allFit(model.npscuestim, maxfun = 1e5)
 ```
 
-
-### model converge [OK: optimizer nmkbw]
+### 1. lmer :: model converge [OK: optimizer nmkbw]
 
 ```{r}
 library(optimx)
@@ -485,16 +518,14 @@ model.npscuestim <- lmer(NPS ~
 summary(model.npscuestim)
 ```
 
-```
+```         
 lmer(NPS ~
                           CUE_high_gt_low*STIM_linear +CUE_high_gt_low * STIM_quadratic +
                           (CUE_high_gt_low+STIM|sub), data = data
                     )
 ```
 
-
-
-#### Linear model eta-squared {.unlisted .unnumbered}
+#### 1. lmer :: Linear model eta-squared {.unlisted .unnumbered}
 
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 kableExtra::kable_styling(
@@ -504,7 +535,7 @@ kableExtra::kable_styling(
 #parameters::model_parameters(model.npscuestim)
 ```
 
-#### Linear model Cohen's d: NPS stimulus_intensity d = 1.16, cue d = 0.45 {.unlisted .unnumbered}
+#### 1. lmer :: Linear model Cohen's d: NPS stimulus_intensity d = 1.16, cue d = 0.45 {.unlisted .unnumbered}
 
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 
@@ -514,14 +545,140 @@ kableExtra::kable_styling(
     "html"), "striped", position = "left", font_size = 12)
 ```
 
-## 3. NPS ~ SES _ CUE _ STIM
+
+## 2. NPS (remove 1st trial) \~ CUE \* STIM
+
+1st trials are known to have larger NPS values compared to other trials "habituation" Here, I check whether the effects above still hold, after removing the first trials
+
+```{r echo=FALSE, warning=FALSE}
+# TODO: remove the first trial _________________________________________________
+df_filter.no1 <- df_filter[df_filter$trial_index != 1, ]
+
+#  [ PLOT ] calculate mean and se  _____________________________________________
+subject <- "sub"
+model_iv1 <- "stim_ordered"
+model_iv2 <- "cue_ordered"
+
+NPSstimcue_subjectwise <- meanSummary(df_filter.no1,
+                                      c(subject, model_iv1, model_iv2), dv)
+NPSstimcue_groupwise <- summarySEwithin(
+  data = NPSstimcue_subjectwise,
+  measurevar = "mean_per_sub",
+  withinvars = c(model_iv1, model_iv2),
+  idvar = subject
+)
+NPSstimcue_groupwise$task <- taskname
+# https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+
+
+g <- plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain",
+                        iv1 = "stim_ordered", iv2 = "cue_ordered",
+                        mean = "mean_per_sub_norm_mean", error = "se",
+                        color = c("low cue" = "#3E61EC","high cue" = "#FF0000"), 
+                        ggtitle = "",
+                        xlab = "Stimulus intensity", ylab = "NPS")
+g <- g + theme(aspect.ratio=1,
+          text = element_text(size = 18), # Default text size for the plot
+          axis.title = element_text(size = 22, ), # Axis titles
+          axis.text = element_text(size = 15), # Axis text (x and y)
+          plot.title = element_text(size = 24, hjust = 0.5) # Plot title
+          ) +
+  # geom_line(size = 1) + # Adjust line thickness
+  geom_point(size = 2)  # Adjust point size
+  
+
+#   print(arranged_plot)
+  plot_filename = file.path(analysis_dir,
+  paste('lineplot_task-all_rating-', dv_keyword,taskname, '.svg', sep = ""))
+
+g
+
+  ggsave(plot_filename, g, width = 8, height = 4, dpi=300)
+  
+```
+
+
+### 2. lmer :: Linear model after 1st trial removal
+
+```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
+
+model.npscuestim.no1 <- lmer(NPS ~
+                          CUE_high_gt_low*STIM_linear + CUE_high_gt_low*STIM_quadratic +
+                          (CUE_high_gt_low+STIM_linear|sub), data = df_filter.no1, 
+                         control = lmerControl(optimizer = "nmkbw")
+                    )
+
+summary(model.npscuestim.no1)
+sjPlot::tab_model(model.npscuestim.no1,
+                  title = "Multilevel-modeling: \nlmer(NPS ~ CUE * STIM + (CUE + STIM | sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+
+```
+
+## 3. NPS trial wise
+
+Let's look at the progression of NPS dot values over time. Is it indicative of convergence, and perhaps a learned effect? This will help us link the results back to prediction error.
+
+```{r}
+# count trial indices per subject, ignoring sessions
+# Prepare data
+df_clean <- df_filter %>%
+  group_by(sub) %>%
+  mutate(trial_index_sub = row_number()) %>%
+  ungroup()
+
+# Set parameters for pagination
+ncol_num <- 5
+nrow_num <- 3
+total_pages <- ceiling(length(unique(df_clean$sub)) / (ncol_num * nrow_num))
+
+# Loop through pages and render the plot
+for (p in 1:total_pages) {
+  # print(plot_per_sub(df_clean.no1, taskname, ncol_num, nrow_num, p))
+  g <- plot_per_sub(df_clean, "trial_index_sub", dv = "NPS", sub = "sub", xlab_str = "No. of trials",
+             ylab_str = "NPS", taskname, ncol_num, nrow_num, p)
+  print(g)
+}
+
+```
+
+## 3. NPS trialwise without first trial
+
+Same as above, but we'll remove the first trial "per each run" to make the results more robust
+
+```{r}
+# Prepare data
+df_clean.no1 <- df_filter.no1 %>%
+  group_by(sub) %>%
+  mutate(trial_index_sub = row_number()) %>%
+  ungroup()
+
+# Set parameters for pagination
+ncol_num <- 5
+nrow_num <- 3
+total_pages <- ceiling(length(unique(df_clean.no1$sub)) / (ncol_num * nrow_num))
+
+# Loop through pages and render the plot
+for (p in 1:total_pages) {
+  # print(plot_per_sub(df_clean.no1, taskname, ncol_num, nrow_num, p))
+  g <- plot_per_sub(df_clean.no1, "trial_index_sub", dv = "NPS", sub = "sub", xlab_str = "No. of trials",
+             ylab_str = "NPS", taskname, ncol_num, nrow_num, p)
+  print(g)
+}
+
+```
+
+``` ############################################################################
+```
+
+## 4. NPS \~ SES \_ CUE \_ STIM
 
 ### Q. Is the cue effect on NPS different across sessions? {.unlisted .unnumbered}
 
-> Quick answer: Yes, the cue effect in session 1 (for high intensity group) is significantly different; whereas this different becomes non significant in session 4.
-> To unpack, a participant was informed to experience a low stimulus intensity, when in fact they were delivered a high intensity stimulus. This violation presumably leads to a higher NPS response, given that they were delivered a much painful stimulus than expected. The fact that the cue effect is almost non significant during the last session indicates that the cue effects are not just an anchoring effect.
+> Quick answer: Yes, the cue effect in session 1 (for high intensity group) is significantly different; whereas this different becomes non significant in session 4. To unpack, a participant was informed to experience a low stimulus intensity, when in fact they were delivered a high intensity stimulus. This violation presumably leads to a higher NPS response, given that they were delivered a much painful stimulus than expected. The fact that the cue effect is almost non significant during the last session indicates that the cue effects are not just an anchoring effect.
 
 ### filter with including session
+
 ```{r}
 subjects_with_inadequate_data <- data %>%
   group_by(sub, CUE_high_gt_low, STIM_linear, SES_linear) %>% 
@@ -534,7 +691,6 @@ df_filter_ses <- data %>%
 
 print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(data$sub)), length(unique(df_filter_ses$sub)) ))
 ```
-
 
 ```{r}
 model.npsses <- lmer(NPS ~
@@ -553,7 +709,8 @@ sjPlot::tab_model(model.npsses,
                   title = "Multilevel-modeling: \nlmer(NPS ~ CUE * STIM * SES + (CUE + STIM + SES| sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
 ```
-> Using nmkbw optimizer, random slopes of cue, stimulus intensity, and sessions are modeled using orthogonal contrast codes. Cue effects on NPS are significant (b = -0.28, SE = 0.13, t(95.65) = -2.09, CI = [-0.54, -0.02], p = 0.037), where higher cues lead to lower NPS values. Stimulus intensity effects are significant; higher temperature leads to greater NPS response (b =  1.33, SE = 0.15, t(279.51) = 8.63, p < .001)
+
+> Using nmkbw optimizer, random slopes of cue, stimulus intensity, and sessions are modeled using orthogonal contrast codes. Cue effects on NPS are significant (b = -0.28, SE = 0.13, t(95.65) = -2.09, CI = [-0.54, -0.02], p = 0.037), where higher cues lead to lower NPS values. Stimulus intensity effects are significant; higher temperature leads to greater NPS response (b = 1.33, SE = 0.15, t(279.51) = 8.63, p \< .001)
 
 ```{r}
 library(parallel)
@@ -563,6 +720,7 @@ diff_optims <- allFit(model.npsses, maxfun = 1e5, parallel = 'multicore', ncpus 
 diff_optims_OK <- diff_optims[sapply(diff_optims, is, "merMod")]
 lapply(diff_optims_OK, function(x) x@optinfo$conv$lme4$messages)
 ```
+
 ### model converge [OK: optimizer nmkbw]
 
 ```{r}
@@ -584,6 +742,7 @@ summary(model.npscuestim)
 ```
 
 ### convergence
+
 ```{r}
 optimx_options <- c("L-BFGS-B", "nlminb", "nlm", "bobyqa", "nmkb", "hjkb")
 for(i in 1:length(optimx_options)){
@@ -622,7 +781,6 @@ for(i in 1:length(optimx_options)){
   }
 }
 ```
-
 
 #### eta squared {.unlisted .unnumbered}
 
@@ -843,8 +1001,202 @@ ggsave(plot_filename, width = 8, height = 4)
   paste('lineplot_task-all_rating-', dv_keyword,taskname, '.svg', sep = ""))
   ggsave(plot_filename, arranged_plot, width = 8, height = 4, dpi=300)
 ```
+## 5. NPS session effect without the first trials
+```{r}
+
+################################################################################
+#                                 lmer
+################################################################################
+subjects_with_inadequate_data <- df_clean.no1 %>%
+  group_by(sub, CUE_high_gt_low, STIM_linear, SES_linear) %>% 
+  dplyr::summarise(count = n(), .groups = 'drop') %>%
+  filter(count < 3) %>%
+  distinct(sub) %>%
+  pull(sub)
+df_filter_ses <- data %>%
+  filter(!(sub %in% subjects_with_inadequate_data))
+
+df_filter_ses$SES_linear[df_filter_ses$ses == "ses-01"] <- -0.5
+df_filter_ses$SES_linear[df_filter_ses$ses == "ses-03"] <- 0
+df_filter_ses$SES_linear[df_filter_ses$ses == "ses-04"] <- 0.5
+
+# contrast code 2 quadratic
+df_filter_ses$SES_quadratic[df_filter_ses$ses == "ses-01"] <- -0.33
+df_filter_ses$SES_quadratic[df_filter_ses$ses == "ses-03"] <- 0.66
+df_filter_ses$SES_quadratic[df_filter_ses$ses == "ses-04"] <- -0.33
+
+
+print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(data$sub)), length(unique(df_filter_ses$sub)) ))
+
+model.npsses <- lmer(NPS ~
+                          CUE_high_gt_low*STIM_linear*SES_linear +
+                          CUE_high_gt_low*STIM_quadratic*SES_linear +
+                          CUE_high_gt_low*STIM_linear*SES_quadratic +
+                          CUE_high_gt_low*STIM_quadratic*SES_quadratic +
+                          (CUE_high_gt_low +SES_quadratic + STIM_linear |
+         sub), data = df_filter_ses,
+         control = lmerControl(optimizer = "nmkbw")
+                    )
+
+summary(model.npsses)
+# CUE_high_gt_low+STIM+EXPECT_demean
+sjPlot::tab_model(model.npsses,
+                  title = "Multilevel-modeling: \nlmer(NPS ~ CUE * STIM * SES + (CUE + STIM + SES| sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+
+
+
+
+################################################################################
+#                               raincloud plots
+################################################################################
+combined_se_calc_cooksd <- data.frame()
+for (sesname in c("ses-01", "ses-03", "ses-04")) {
+taskname = "pain"
+    ggtitle <- paste(taskname, " - actual judgment (degree)")
+    title <- paste(taskname, " - actual")
+    subject <- "sub"
+    w <- 10
+    h <- 6
+s1.sig <- df_filter_ses[df_filter_ses$runtype == "pain" & df_filter_ses$ses == sesname,]
+# data <- s1.sig
+stim_con1 <- "STIM_linear"
+stim_con2 <- "STIM_quadratic"
+iv1 <- "CUE_high_gt_low"
+dv <- "NPS"
+
+    # [ MODEL ] _________________________________________________ # nolint
+    model_savefname <- file.path(
+        analysis_dir,
+        paste("lmer_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), "_cooksd_firsttrialNA.txt",
+            sep = ""
+        )
+    )
+
+
+    # [ PLOT ] reordering for plots _________________________ # nolint
+    s1.sig$cue_name[s1.sig$cue == "high_cue"] <- "high cue"
+    s1.sig$cue_name[s1.sig$cue == "low_cue"] <- "low cue"
+
+    s1.sig$stim_name[s1.sig$stimulusintensity == "high_stim"] <- "High"
+    s1.sig$stim_name[s1.sig$stimulusintensity == "med_stim"] <- "Med"
+    s1.sig$stim_name[s1.sig$stimulusintensity == "low_stim"] <- "Low"
+
+    # DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
+
+    s1.sig$stim_ordered <- factor(
+        s1.sig$stim_name,
+        levels = c("Low", "Med", "High")
+    )
+    s1.sig$cue_ordered <- factor(
+        s1.sig$cue_name,
+        levels = c("low cue", "high cue")
+    )
+    model_iv1 <- "stim_ordered"
+    model_iv2 <- "cue_ordered"
+
+    #  [ PLOT ] calculate mean and se  _________________________
+    actual_subjectwise <- meanSummary(
+        s1.sig,
+        c(subject, model_iv1, model_iv2), dv
+    )
+    actual_groupwise <- summarySEwithin(
+        data = actual_subjectwise,
+        measurevar = "mean_per_sub",
+        withinvars = c(model_iv1, model_iv2), idvar = subject
+    )
+    actual_groupwise$task <- taskname
+    actual_groupwise$ses <- sesname
+    # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+
+    combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, actual_groupwise)
+   # calculate mean and se
+    sub_mean <- "mean_per_sub"
+    group_mean <- "mean_per_sub_norm_mean"
+    se <- "se"
+    subject <- "sub"
+    ggtitle <- paste(str_to_title(taskname), " - NPS Cooksd removed ", sesname )
+    title <- paste(str_to_title(taskname), " - cue level")
+    xlab <- ""
+    ylab <- "NPS (degree)"
+    ylim <- c(-10,60)
+    dv_keyword <- "NPS"
+    if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color <- c("#1B9E77", "#D95F02")
+    } else {
+        color <- c("#4575B4", "#D73027")
+    } # if keyword starts with
+    plot_savefname <- file.path(
+        analysis_dir,
+        paste("raincloud_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), "_cooksd.png",
+            sep = ""
+        )
+    )
+    g <- plot_halfrainclouds_twofactor(
+        actual_subjectwise, actual_groupwise, model_iv1, model_iv2,
+        sub_mean, group_mean, se, subject,
+        ggtitle, title, xlab, ylab, taskname,ylim,
+        w, h, dv_keyword, color, plot_savefname
+    )
+print(g)
+}
+
+
+################################################################################
+#                                 line plot
+################################################################################
+  DATA = as.data.frame(combined_se_calc_cooksd)
+  color <- c("#4C77ED", "#ED220D")
+  model_iv1 <- "stim_ordered"
+  model_iv2 <- "ses_ordered"
+  LINEIV1 <- "stim_ordered"
+  LINEIV2 <- "cue_ordered"
+  MEAN <- "mean_per_sub_norm_mean"
+  ERROR <- "se"
+  dv_keyword <- "NPS"
+  line_thickness <- 0.2
+  ylim <- c(4, 8)
+  p1 <- plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-01" , ], taskname,
+                               LINEIV1, LINEIV2, MEAN, ERROR, color, 
+                               ggtitle = 'Visit 1', ylab = "Outcome rating", 
+                               ylim=ylim)
+  p1 <- p1 + theme(
+  aspect.ratio = 1, # Adjust this as needed
+  axis.line = element_line(size = line_thickness)
+)
+  p2 = plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-03", ], taskname,
+                               LINEIV1, LINEIV2, MEAN, ERROR, color,
+                               ggtitle = 'Visit 2', ylab = "Outcome rating", 
+                               ylim=ylim)
+    p2 <- p2 + theme(
+  aspect.ratio = 1, # Adjust this as needed
+  axis.line = element_line(size = line_thickness)
+)
+  p3 = plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-04", ], taskname,
+                               LINEIV1, LINEIV2, MEAN,ERROR, color,
+                               ggtitle = 'Visit 3', ylab = "Outcome rating", 
+                               ylim=ylim)
+    p3 <- p3 + theme(
+  aspect.ratio = 1, # Adjust this as needed
+  axis.line = element_line(size = line_thickness)
+)
+  arranged_plot <- ggpubr::ggarrange(
+    p1, p2, p3, ncol = 3, nrow = 1, common.legend = TRUE, legend = "bottom"
+  )
+  print(arranged_plot)
+  plot_filename = file.path(analysis_dir,
+  paste('lineplot_task-all_rating-', dv_keyword,taskname, '.svg', sep = ""))
+  ggsave(plot_filename, arranged_plot, width = 8, height = 4, dpi=300)
+```
+
+
 
 ## NPS across tasks
+
 ## SIIPS across tasks
 
 ```{r}
@@ -1017,7 +1369,6 @@ ggsave(file.path(analysis_dir, paste0("NPS_maineffect_task-",taskname, "_", as.c
 # g
 ```
 
-
 ```{r}
   DATA = as.data.frame(combined_se_calc_cooksd)
   color <- c("#4C77ED", "#ED220D")
@@ -1064,5 +1415,3 @@ ggsave(file.path(analysis_dir, paste0("NPS_maineffect_task-",taskname, "_", as.c
   paste('lineplot_task-all_rating-', dv_keyword, '_alltasks.svg', sep = ""))
   ggsave(plot_filename, arranged_plot, width = 8, height = 4, dpi=300)
 ```
-
-
