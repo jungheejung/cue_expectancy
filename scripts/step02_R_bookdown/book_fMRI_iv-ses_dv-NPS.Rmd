@@ -85,14 +85,10 @@ plot_per_sub <- function(df, iv, dv, sub, xlab_str, ylab_str, taskname, ncol_num
 ## 0. load data and find intersection between behavioral and nps dataframes
 
 ```{r}
-# load events.tsv
+# load behavioral and NPS data and grab the intersection
 analysis_folder <- "fmri_nps"
 beh <- readr::read_tsv(file.path(main_dir, "data/beh/sub-all_task-all_events.tsv"))
-# load nps tsv
-
 nps <- read.csv(file.path(main_dir, "analysis/fmri/nilearn/deriv01_signature/rampup_plateau/signature-NPS_sub-all_runtype-pvc_event-stimulus.tsv"), sep = ",")
-# intersect
-# Assuming df1 and df2 are your data frames and 'key_column' is the name of your key column
 df_merge <- inner_join(beh, nps, by = "singletrial_fname")
 ```
 
@@ -143,8 +139,7 @@ dv <- "NPS"
 dv_keyword <- "NPS"
 
 # filter data __________________________________________________________________
-# Make sure that each condition cell has adequate amount of trials
-
+# Make sure that each condition cell has adequate amount of trials per cell
 subjects_with_inadequate_data <- data %>%
   group_by(sub, CUE_high_gt_low, STIM_linear) %>% #SES_linear, 
   dplyr::summarise(count = n(), .groups = 'drop') %>%
@@ -157,7 +152,7 @@ df_filter <- data %>%
 print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(data$sub)), length(unique(df_filter$sub)) ))
 ```
 
-\## QC. check NPS distribution
+## QC. check NPS distribution
 
 ```{r}
 df_filter.NA <- df_filter %>% filter(!is.na(NPS))  # Remove NA values
@@ -228,15 +223,9 @@ two_factor_lineplot <-
       ggtitle(ggtitle) +
       xlab(xlab) +
       ylab(ylab) +
-      #scale_color_manual(values = color) +
       theme_classic() +
-
       theme(aspect.ratio = .6) +
       expand_limits(x = 3.25) +
-      #guides(fill = "none") +
-      #guides(color = TRUE) +
-      #guides(fill = guide_legend(title = "title")) +
-      #scale_fill_manual(values = color) +
       scale_color_manual("",
                          values =  c(
                            "pain" = "#941100",
@@ -257,7 +246,6 @@ two_factor_lineplot <-
 ```
 
 #### Contrast weight table {.unlisted .unnumbered}
-
 ```{r echo=FALSE}
 tab <- matrix(c(0, .5, -.5,
                 .66, -.34, -.34), ncol=3, byrow=TRUE)
@@ -269,38 +257,24 @@ kableExtra::kable_styling(
   "striped", position = "left", font_size = 15)
 ```
 
+
 ## 1. NPS \~ paintask: 2 cue x 3 stimulus_intensity
 
 ### Q. Within pain task, Does stimulus intenisty level and cue level significantly predict NPS dotproducts? {.unlisted .unnumbered}
 
-# 03/10/2024
-
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# set parameters _______________________________________________________________
 combined_se_calc_cooksd <- data.frame()
-# combined_psig <- data.frame()
-taskname = "pain"
-ggtitle <- paste(taskname, " - NPS (degree)")
-title <- paste(taskname, " - actual")
-subject <- "sub"
-w <- 10
-h <- 6
-# p.sig <- df_merge[df_merge$runtype == "pain" ,]
+taskname <- "pain"; subject <- "sub"
+ggtitle <- paste(taskname, " - NPS (degree)"); title <- paste(taskname, " - actual")
+w <- 10; h <- 6
 
 analysis_dir <-
-  file.path(main_dir,
-            "analysis",
-            "mixedeffect",
-            analysis_folder,
-            as.character(Sys.Date())) # nolint
-dir.create(analysis_dir,
-           showWarnings = FALSE,
-           recursive = TRUE)
+  file.path(main_dir, "analysis", "mixedeffect", analysis_folder, as.character(Sys.Date()))
+dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 savedir <- analysis_dir
-# combined_psig <-
-#   rbind(combined_psig, p.sig)
 
-
-# lmer model __________________________________________________________________
+# lmer model ___________________________________________________________________
 model_savefname <- file.path(
   analysis_dir,
   paste(
@@ -310,7 +284,7 @@ model_savefname <- file.path(
 )
 
 
-# [ PLOT ] reordering for plots _________________________ # nolint
+# Plot :: reordering variables for plots _______________________________________
 df_filter$cue_name[df_filter$cue == "high_cue"] <-
   "high cue"
 df_filter$cue_name[df_filter$cue == "low_cue"] <-
@@ -323,8 +297,6 @@ df_filter$stim_name[df_filter$stimulusintensity == "med_stim"] <-
 df_filter$stim_name[df_filter$stimulusintensity == "low_stim"] <-
   "Low"
 
-# DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
-
 df_filter$stim_ordered <- factor(df_filter$stim_name,
                                    levels = c("Low", "Med", "High"))
 df_filter$cue_ordered <- factor(df_filter$cue_name,
@@ -332,7 +304,7 @@ df_filter$cue_ordered <- factor(df_filter$cue_name,
 model_iv1 <- "stim_ordered"
 model_iv2 <- "cue_ordered"
 
-#  [ PLOT ] calculate mean and se  _________________________
+# Plot :: calculate mean and se  _______________________________________________
 NPSstimcue_subjectwise <- meanSummary(df_filter,
                                       c(subject, model_iv1, model_iv2), dv)
 NPSstimcue_groupwise <- summarySEwithin(
@@ -346,17 +318,13 @@ NPSstimcue_groupwise$task <- taskname
 
 combined_se_calc_cooksd <-
   rbind(combined_se_calc_cooksd, NPSstimcue_groupwise)
-# calculate mean and se
-sub_mean <- "mean_per_sub"
-group_mean <- "mean_per_sub_norm_mean"
-se <- "se"
-subject <- "sub"
-ggtitle <- paste(taskname, " - NPS Cooksd removed")
-title <- paste(taskname, " - NPS")
-xlab <- ""
-ylab <- "NPS (degree)"
+# Plot parameters :: ___________________________________________________________
+sub_mean <- "mean_per_sub"; group_mean <- "mean_per_sub_norm_mean"; dv_keyword <- "NPS"
+se <- "se"; subject <- "sub"; 
+ggtitle <- paste(taskname, " - NPS Cooksd removed"); title <- paste(taskname, " - NPS")
+xlab <- ""; ylab <- "NPS (degree)";
 ylim <- c(-10, 60)
-dv_keyword <- "NPS"
+
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
@@ -654,8 +622,8 @@ df_clean.no1 <- df_filter.no1 %>%
   ungroup()
 
 # Set parameters for pagination
-ncol_num <- 5
-nrow_num <- 3
+ncol_num <- 3
+nrow_num <- 4
 total_pages <- ceiling(length(unique(df_clean.no1$sub)) / (ncol_num * nrow_num))
 
 # Loop through pages and render the plot

@@ -53,9 +53,10 @@ plot_per_sub <- function(df, iv, dv, sub, xlab_str, ylab_str, taskname, ncol_num
   iv <- sym(iv)  
   dv <- sym(dv)  
   sub <- sym(sub) 
+  df_task <- df[df$runtype == taskname, ]
 
   g <- ggplot(
-    data = df, 
+    data = df_task, 
     aes(x = as.numeric(!!iv), 
         y = as.numeric(!!dv),  
         group = !!sub)) +
@@ -164,39 +165,34 @@ plot_per_cuesub <- function(df, iv, dv, sub, cue, colors, xlab_str, ylab_str, ta
 ## 0. load data and find intersection between behavioral and nps dataframes
 ```{r}
 # load events.tsv
-analysis_folder <- "fmri_PE"
+analysis_folder <- "fmri_outcome"
 
 beh <- readr::read_tsv(file.path(main_dir, "data/beh/sub-all_task-all_events.tsv"))
 # load nps tsv
-pe <- read.csv(file.path(main_dir, "data/RL/July2024_Heejung_fMRI_paper/table_pain.csv"), sep = ",")
-# pe$sub <- sprintf("sub-%04d", pe$src_subject_id)
-# pe$run <- sprintf("run-%02d", pe$param_run_num)
+# pe <- read.csv(file.path(main_dir, "data/RL/July2024_Heejung_fMRI_paper/table_pain.csv"), sep = ",")
 
-pe$singletrial_fname <- sprintf(
-  "sub-%04d_%s_run-%02d_runtype-%s_event-stimulus_trial-%03d_cuetype-%s_stimintensity-%s.nii.gz", 
-  pe$src_subject_id, 
-  pe$ses, 
-  pe$param_run_num, 
-  pe$runtype, 
-  pe$trial_index -1,
-  gsub("_cue", "", pe$param_cue_type),       # Remove "_cue" from param_cue_type
-  gsub("_stim", "", pe$param_stimulus_type)  # Remove "_stim" from param_stimulus_type
-
-  # pe$param_cue_type, 
-  # pe$param_stimulus_type
-)
+# pe$singletrial_fname <- sprintf(
+#   "sub-%04d_%s_run-%02d_runtype-%s_event-stimulus_trial-%03d_cuetype-%s_stimintensity-%s.nii.gz", 
+#   pe$src_subject_id, 
+#   pe$ses, 
+#   pe$param_run_num, 
+#   pe$runtype, 
+#   pe$trial_index -1,
+#   gsub("_cue", "", pe$param_cue_type),       # Remove "_cue" from param_cue_type
+#   gsub("_stim", "", pe$param_stimulus_type)  # Remove "_stim" from param_stimulus_type
+# )
 
 # intersect
 # Assuming df1 and df2 are your data frames and 'key_column' is the name of your key column
-df_merge <- inner_join(beh, pe, by = "singletrial_fname")
-df_merge <- df_merge %>%
-  select(-ends_with(".x"), -ends_with(".y"))
+# df_merge <- inner_join(beh, pe, by = "singletrial_fname")
+# df_merge <- df_merge %>%
+#   select(-ends_with(".x"), -ends_with(".y"))
 taskname <- "pain"
 ```
 
 ```{r}
 # data <-df_merge[df_merge$runtype == "pain" ,]
-data <- df_merge
+data <- beh
 # contrast code ________________________________________________________________
 data$stim <- NA; data$STIM_linear <- NA; data$STIM_quadratic <- NA; 
 data$CUE_high_gt_low <- NA;
@@ -254,7 +250,7 @@ df_filter <- data %>%
 
 
 
-## 1. NPS ~ trial x cue
+## 1. outcome ~ trial x cue
 ```{r echo=FALSE}
 
 
@@ -281,7 +277,7 @@ count_trial <- df_clean %>% count("sub")
 # Subset the data frame to include only the listed IDs
 
 data_p2_long = df_clean %>%
-  pivot_longer(cols = c( 'PE_mdl2'),
+  pivot_longer(cols = c( 'outcomerating'),
                names_to = "rating_type",
                values_to = "rating_value")
 
@@ -364,7 +360,7 @@ g <- ggplot(
                                 "low cue" = "blue" #5D5C5C"
                                 )) +
   xlab("No. of trials") +
-  ylab("PE") +
+  ylab("outcome rating") +
   labs(title = paste0(taskname, " (N = ", length(unique(data_p2_long$sub)), ")"))+
   theme_classic2() +
 theme(aspect.ratio = .7) +
@@ -387,7 +383,7 @@ valid_subs <- count_trial %>%
 df_subset <- df_clean %>%
   filter(sub %in% valid_subs$sub)
 data_p2_long = df_subset %>%
-  pivot_longer(cols = c( 'PE_mdl2'),
+  pivot_longer(cols = c( 'outcomerating'),
                names_to = "rating_type",
                values_to = "rating_value")
     data_p2_long$cue_name[data_p2_long$cue == "high_cue"] <- "high cue"
@@ -469,7 +465,7 @@ g <- ggplot(
                                 "low cue" = "blue" #5D5C5C"
                                 )) +
   xlab("No. of trials") +
-  ylab("PE") +
+  ylab("Outcome rating") +
   labs(title = paste0(taskname, " (N = ", length(unique(data_p2_long$sub)), ")"))+
   theme_classic2() +
 theme(aspect.ratio = .7) +
@@ -491,7 +487,7 @@ valid_subs <- count_trial %>%
 df_subset <- df_clean %>%
   filter(sub %in% valid_subs$sub)
 data_p2_long = df_subset %>%
-  pivot_longer(cols = c( 'PE_mdl2'),
+  pivot_longer(cols = c( 'outcomerating'),
                names_to = "rating_type",
                values_to = "rating_value")
     data_p2_long$cue_name[data_p2_long$cue == "high_cue"] <- "high cue"
@@ -573,7 +569,7 @@ g <- ggplot(
                                 "low cue" = "blue" #5D5C5C"
                                 )) +
   xlab("No. of trials") +
-  ylab("PE") +
+  ylab("Outcome rating") +
   labs(title = paste0(taskname, " (N = ", length(unique(data_p2_long$sub)), ")"))+
   theme_classic2() +
 theme(aspect.ratio = .7) +
@@ -586,35 +582,51 @@ g
 ```
 
 
-## 4. plot PE as a function of subjects (removing first trial)
+## 4. plot Outcome rating as a function of subjects (removing first trial)
 ```{r}
+## extract metadata "ses" and "trial_index"
+taskname <- "pain"
+data_extracted <- df_clean %>%
+  mutate(
+    ses = str_extract(singletrial_fname, "ses-\\d{2}") %>% str_remove("ses-") %>% as.integer(),
+    trial_extract = str_extract(singletrial_fname, "trial-\\d{3}") %>% str_remove("trial-") %>% as.integer()
+  )
+data_extracted$trial_index <- data_extracted$trial_extract + 1
+df_filter.no1 <- data_extracted[data_extracted$trial_index != 1, ]
+df_filter.no1.pain <- df_filter.no1[df_filter.no1$runtype == taskname,]
+## Prepare data
+df_clean.no1.pain <- df_filter.no1.pain %>%  group_by(sub) %>%  mutate(trial_index_sub = row_number()) %>%  ungroup()
 
+ncol_num <- 3; nrow_num <- 4 # Set parameters for pagination
+total_pages <- ceiling(length(unique(df_clean.no1$sub)) / (ncol_num * nrow_num))
+
+## Loop through pages and render the plot
+for (p in 1:total_pages) {
+  g <- plot_per_sub(df_clean.no1, "trial_index_sub", dv = "outcomerating", sub = "sub", xlab_str = "No. of trials",
+             ylab_str = "Outcome rating", taskname, ncol_num, nrow_num, p)
+  print(g)
+}
+```
+
+```{r}
 ## extract metadata "ses" and "trial_index"
 data_extracted <- df_clean %>%
   mutate(
     ses = str_extract(singletrial_fname, "ses-\\d{2}") %>% str_remove("ses-") %>% as.integer(),
     trial_extract = str_extract(singletrial_fname, "trial-\\d{3}") %>% str_remove("trial-") %>% as.integer()
   )
-
 data_extracted$trial_index <- data_extracted$trial_extract + 1
 df_filter.no1 <- data_extracted[data_extracted$trial_index != 1, ]
-
-# Prepare data
-df_clean.no1 <- df_filter.no1 %>%
-  group_by(sub) %>%
-  mutate(trial_index_sub = row_number()) %>%
-  ungroup()
+## Prepare data
+df_clean.no1 <- df_filter.no1 %>%  group_by(sub) %>%  mutate(trial_index_sub = row_number()) %>%  ungroup()
 taskname <- "pain"
-# Set parameters for pagination
-ncol_num <- 3
-nrow_num <- 4
+ncol_num <- 3; nrow_num <- 4 # Set parameters for pagination
 total_pages <- ceiling(length(unique(df_clean.no1$sub)) / (ncol_num * nrow_num))
 
-# Loop through pages and render the plot
+## Loop through pages and render the plot
 for (p in 1:total_pages) {
-  # print(plot_per_sub(df_clean.no1, taskname, ncol_num, nrow_num, p))
-  g <- plot_per_sub(df_clean.no1, "trial_index_sub", dv = "PE_mdl2", sub = "sub", xlab_str = "No. of trials",
-             ylab_str = "PE", taskname, ncol_num, nrow_num, p)
+  g <- plot_per_sub(df_clean.no1, "trial_index_sub", dv = "outcomerating", sub = "sub", xlab_str = "No. of trials",
+             ylab_str = "Outcome rating", taskname, ncol_num, nrow_num, p)
   print(g)
 }
 ```
@@ -633,19 +645,19 @@ taskname <- "pain"
 # Set parameters for pagination
 ncol_num <- 3
 nrow_num <- 4
-total_pages <- ceiling(length(unique(df_clean.no1$sub)) / (ncol_num * nrow_num))
+total_pages <- ceiling(length(unique(df_clean.no1.pain$sub)) / (ncol_num * nrow_num))
 cue_colors <- c("low_cue" = "blue","high_cue" = "red")
 
 # Loop through pages and render the plot
 for (p in 1:total_pages) {
   # print(plot_per_sub(df_clean.no1, taskname, ncol_num, nrow_num, p))
-  g <- plot_per_cuesub(df_clean.no1, "trial_index_sub", 
-                       dv = "PE_mdl2", 
+  g <- plot_per_cuesub(df_clean.no1.pain, "trial_index_sub", 
+                       dv = "outcomerating", 
                        sub = "sub", 
                        cue = "cue",
                        colors = cue_colors,
                        xlab_str = "No. of trials",
-                       ylab_str = "PE", taskname, ncol_num, nrow_num, p)
+                       ylab_str = "Outcome rating", taskname, ncol_num, nrow_num, p)
   print(g)
 }
 ```
@@ -661,13 +673,13 @@ df_trials_40_72 <- df_subset %>%
 # Filter the data for trials 40 to 72
 
 # Plot the density plot for each trial index with faceting
-ggplot(df_trials_40_72, aes(x = NPS, fill = cue)) +
+ggplot(df_trials_40_72, aes(x = outcomerating, fill = cue)) +
   geom_density(alpha = 0.6) +
   facet_wrap(~ trial_index_sub, ncol = 4) + # Create a facet for each trial
   scale_fill_manual(values = c("high_cue" = "red", "low_cue" = "blue")) +
-  xlab("NPS") +
+  xlab("Outcome rating") +
   ylab("Density") +
-  labs(title = "Density of NPS per Trial (40 to 72)") +
+  labs(title = "Density of Outcome rating per Trial (40 to 72)") +
   theme_classic() +
   theme(
     strip.text = element_text(size = 5),
