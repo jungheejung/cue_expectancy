@@ -1,0 +1,201 @@
+---
+title: "book_fMRI_iv_stim_dv-NPS_PE.Rmd"
+author: "Heejung Jung"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# TODO: 10/10/24 fix the squiggly lines
+
+# [fMRI] NPS \~ PE controlling for partialling out Stimulus effects {#nps_pe_stim}
+
+## What is the purpose of this notebook? {.unlisted .unnumbered}
+
+-   We're curious whether the Neurologic pain signature (NPS) can be explained by prediction errors (PE), after removing for stimulus effects
+
+```{r libraries_nps_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+library(car)
+library(psych)
+library(lme4)
+library(dplyr)
+devtools::source_url("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+library(r2mlm)
+main_dir <- dirname(dirname(getwd()))
+file.sources = list.files(file.path(main_dir, 'scripts', 'step02_R', 'utils'),
+                          pattern="*.R",
+                          full.names=TRUE,
+                          ignore.case=TRUE)
+sapply(file.sources,source,.GlobalEnv)
+
+```
+
+## 0. load data and find intersection between behavioral and nps dataframes
+
+```{r}
+# load behavioral, PE data, and NPS data  ______________________________________
+analysis_folder <- "fmri_npspebeh"
+beh <- readr::read_tsv(file.path(main_dir, "data/beh/sub-all_task-all_events.tsv"))
+nps <- read.csv(file.path(main_dir, "analysis/fmri/nilearn/deriv01_signature/rampup_plateau/signature-NPS_sub-all_runtype-pvc_event-stimulus.tsv"), sep = ",")
+pe <- read.csv(file.path(main_dir, "data/RL/July2024_Heejung_fMRI_paper/table_pain.csv"), sep = ",")
+# reconstruct column based on metadata _________________________________________
+pe$singletrial_fname <- sprintf(
+  "sub-%04d_%s_run-%02d_runtype-%s_event-stimulus_trial-%03d_cuetype-%s_stimintensity-%s.nii.gz", 
+  pe$src_subject_id, 
+  pe$ses, 
+  pe$param_run_num, 
+  pe$runtype, 
+  pe$trial_index -1,
+  gsub("_cue", "", pe$param_cue_type),       # Remove "_cue" from param_cue_type
+  gsub("_stim", "", pe$param_stimulus_type)  # Remove "_stim" from param_stimulus_type
+)
+
+# merge dataframes and prevent duplicate columns _______________________________
+dfmerge <- beh %>%
+  inner_join(nps, by = "singletrial_fname") %>%
+  inner_join(pe %>% select(-c(ses, runtype, trial_index, expectrating, expectlabel, outcomerating, outcomelabel)), by = "singletrial_fname")
+```
+
+```{r}
+# fit lmer 
+# NPS ~ stimeffect
+# remove first trial index
+# get resid
+# resid ~ PE?
+
+# 0. filter data
+data <-dfmerge[dfmerge$runtype == "pain" ,]
+
+# contrast code ________________________________________________________________
+data$stim <- NA; data$STIM_linear <- NA; data$STIM_quadratic <- NA; 
+data$CUE_high_gt_low <- NA;
+data$SES_linear <- NA;data$SES_quadratic <- NA
+data$stim[data$stimulusintensity == "low_stim"] <-  -0.5 # social influence task
+data$stim[data$stimulusintensity == "med_stim"] <- 0 # no influence task
+data$stim[data$stimulusintensity == "high_stim"] <-  0.5 # no influence task
+
+data$STIM <- factor(data$stimulusintensity)
+
+# contrast code 1 linear
+data$STIM_linear[data$stimulusintensity == "low_stim"] <- -0.5
+data$STIM_linear[data$stimulusintensity == "med_stim"] <- 0
+data$STIM_linear[data$stimulusintensity == "high_stim"] <- 0.5
+
+# contrast code 2 quadratic
+data$STIM_quadratic[data$stimulusintensity == "low_stim"] <- -0.33
+data$STIM_quadratic[data$stimulusintensity == "med_stim"] <- 0.66
+data$STIM_quadratic[data$stimulusintensity == "high_stim"] <- -0.33
+
+# social cude contrast
+data$CUE_high_gt_low[data$cue == "low_cue"] <-  -0.5 # social influence task
+data$CUE_high_gt_low[data$cue == "high_cue"] <-  0.5 # no influence task
+
+data$EXPECT <- data$expectrating
+data$OUTCOME <- data$outcomerating
+
+
+data$SES_linear[data$ses == "ses-01"] <- -0.5
+data$SES_linear[data$ses == "ses-03"] <- 0
+data$SES_linear[data$ses == "ses-04"] <- 0.5
+
+# contrast code 2 quadratic
+data$SES_quadratic[data$ses == "ses-01"] <- -0.33
+data$SES_quadratic[data$ses == "ses-03"] <- 0.66
+data$SES_quadratic[data$ses == "ses-04"] <- -0.33
+
+stim_con1 <- "STIM_linear"
+stim_con2 <- "STIM_quadratic"
+iv1 <- "CUE_high_gt_low"
+dv <- "NPS"
+dv_keyword <- "NPS"
+subjects_with_inadequate_data <- data %>%
+  group_by(sub, CUE_high_gt_low, STIM_linear) %>% #SES_linear, 
+  dplyr::summarise(count = n(), .groups = 'drop') %>%
+  filter(count < 3) %>%
+  distinct(sub) %>%
+  pull(sub)
+df_filter <- data %>%
+  filter(!(sub %in% subjects_with_inadequate_data))
+
+df_filter.no1 <- df_filter[df_filter$trial_index != 1, ]
+
+df_clean.no1 <- df_filter.no1 %>%
+  group_by(sub) %>%
+  mutate(trial_index_sub = row_number()) %>%
+  ungroup()
+
+# fit data
+model.npsstimresid <- lmer(NPS ~ STIM_linear + STIM_quadratic + (1|sub), data = df_clean.no1)
+summary(model.npsstimresid)
+
+# residuals, after accounting for stimulus effects!
+df_clean.no1 <- df_clean.no1 %>%
+  mutate(NPSresid = resid(model.npsstimresid))
+# df_clean.no1$NPSresid <- residuals(model.npsstimresid)
+model.residnpspe <- lmer(NPSresid ~ PE_mdl2 + (PE_mdl2|sub), data = df_clean.no1)
+summary(model.residnpspe)
+
+# PLOT 1 ______________________________________________________________________
+fixed_effect <- fixef(model.residnpspe)
+random_effects <- ranef(model.residnpspe)$sub
+ggplot(df_clean.no1, aes(x = PE_mdl2, y = NPSresid)) +
+  geom_point(alpha = 0.5) +  # Scatter plot of raw data points
+  geom_abline(intercept = fixed_effect[1], slope = fixed_effect[2], color = "red", size = 1.2, linetype = "dashed") +  # Group-level slope
+  # Add individual slopes per random effect
+  geom_abline(
+    data = random_effects,
+    aes(intercept = fixed_effect[1] + `(Intercept)`, slope = fixed_effect[2] + PE_mdl2),
+    color = "blue", alpha = 0.6
+  ) +
+  theme_minimal() +
+  labs(
+    title = "Scatter Plot with Group-Level and Random Slopes",
+    x = "Predictor (PE_mdl2)",
+    y = "Response (NPSresid)"
+  )
+
+
+
+# Plot 2 ______________________________________________________________________
+df_clean.no1 <- df_clean.no1 %>%
+  mutate(fit.m = predict(model.residnpspe, re.form = NA),
+         fit.c = predict(model.residnpspe, re.form = NULL))
+
+# RESOURCE: https://www.azandisresearch.com/2022/12/31/visualize-mixed-effect-regressions-in-r-with-ggplot2/
+df_clean.no1 %>%
+  ggplot(aes(x = PE_mdl2, y = NPSresid, col = sub)) +
+  geom_point(pch=20, size=0.5) +
+  geom_smooth(method = 'lm', se = F) +
+  geom_line(aes(y=fit.m), col = 1, size = 2) +
+  geom_line(aes(y = fit.c, col = sub), size = 1)
+
+
+# Plot 3 ______________________________________________________________________
+# display the conditional residuals around the fixed effects
+df_clean.no1 %>%
+  ggplot(aes(x = PE_mdl2, y = fit.m + NPSresid, col = sub)) +
+  geom_point(pch = 20, size = 0.5) +
+  geom_line(aes(y = fit.m), col = 1, size = 2) 
+
+# Plt 4 fixed effect and random slopes ______________________________________________________________________
+df_clean.no1 %>%
+  ggplot(aes(x = PE_mdl2, y = fit.m + NPSresid)) +
+  geom_line(aes(y = fit.c, col = sub), size = 5) +
+  geom_point(pch = 20, size = 0.5, col = "grey") +
+  geom_line(aes(y = fit.m), col = 1, size = 2)
+```
+
+```{r}
+df_clean.no1 <- df_clean.no1 %>%
+  arrange(sub,trial_index_sub, PE_mdl2) %>%
+  mutate(fit2.m = predict(model.npsstimresid, re.form = NA),
+         fit2.c = predict(model.npsstimresid, re.form = NULL),
+         resid2 = resid(model.npsstimresid))
+
+df_clean.no1 %>%
+  ggplot(aes(x = PE_mdl2, y = fit2.m + resid2)) +
+  geom_line(aes(y = fit2.c, col = sub), size = 1) +
+  geom_point(pch = 16, col = "grey") +
+  geom_line(aes(y = fit2.m), col = 1, size = 2)
+```
+
+
