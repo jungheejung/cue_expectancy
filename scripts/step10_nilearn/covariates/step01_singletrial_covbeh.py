@@ -14,7 +14,9 @@ We can use the behaviorally extract PE values per trial and correlate with singl
 import os
 import re
 import json
+import glob
 import numpy as np
+from os.path import join
 from pathlib import Path
 import pandas as pd
 import argparse
@@ -291,7 +293,7 @@ def load_and_stack_dataframes(filenames, beh_regressor):
 # beh_flist = sorted(glob.glob(
 #     join(main_dir, 'data', 'beh', 'beh02_preproc', sub, '**', f"{sub}_*{task}_beh.csv"), recursive=True))
 beh_flist = sorted(glob.glob(
-    join(main_dir, 'data', 'beh', sub, '**', f"{sub}_*{task}_events.tsv"), recursive=True))
+    join(maindir, 'data', 'beh', sub, '**', f"{sub}_*{task}_events.tsv"), recursive=True))
 
 # dfs = [pd.read_csv(beh_fname) for beh_fname in beh_flist]
 # behdf = pd.concat(dfs, axis=0)
@@ -313,7 +315,7 @@ behdf = load_and_stack_dataframes(beh_flist, beh_regressor)
 behdf_na = behdf.dropna(subset=['rating_value_fillna'])
 # NOTE: drop rows where pain_stimulus_delivery_success != 'success'
 if task == 'pain':
-    behdf_success = behdf_na[behdf_na['pain_stimulus_delivery_success'] == 'success']
+    behdf_success = behdf_na[behdf_na['stimulus_delivery_success'] == 'success']
     beh_subset = behdf_success[(behdf_success['sub'] == sub)] #& (behdf['ses'] == ses) & (behdf['run'] == run)]
     metadata_filtered = metadata_filtered.reset_index(drop=True)
     beh_subset = beh_subset.reset_index(drop=True)
