@@ -265,7 +265,7 @@ intersection['ses_run'] = intersection['ses'] + "_" + intersection['run']
 ses_run_dummies = pd.get_dummies(intersection['ses_run'], drop_first=True)
 
 intersection['beh_demean'] = intersection[beh_regressor].sub(intersection[beh_regressor].mean())
-# intersection['beh_demean'] = intersection[beh_regressor].sub(intersection[beh_regressor].mean())
+# intersection['beh_demea'] = intersection[beh_regressor].sub(intersection[beh_regressor].mean())
 beh_X = pd.concat([intersection['beh_demean'], ses_run_dummies], axis=1)
 
 # beh_X = intersection[['beh_demean', 'ses_run_dummies']].values.reshape(-1, 1)
@@ -284,33 +284,3 @@ texture = surface.vol_to_surf(beta_img, fsaverage.pial_left)
 surf = plotting.plot_surf_stat_map(fsaverage.infl_left, texture, hemi='left', title='Surface Plot', colorbar=True)
 surf.savefig(os.path.join(savedir ,beh_savename, task, f'{sub}_task-{task}_beta_x-{beh_savename}_y-{fmri_event}_surf.png'))
 
-
-
-# TODO prototype
-
-
-# runwise_correlations = []
-# for run, run_indices in intersection.groupby(['ses', 'run']).groups.items():
-#     print(run, run_indices)
-#     beh_subset = intersection['beh_demean'].iloc[run_indices]
-#     fmri_subset = fmri_masked_single[run_indices, :]
-#     # if there's a nan in the args.beh_regressor, mask it
-#     b=ma.masked_invalid(beh_subset)
-#     msk = (~b.mask)
-#     model = LinearRegression()
-#     model.fit(behregressor, brain_data)
-
-#     # Extract the coefficients
-#     beta_coefficients = model.coef_
-
-#     # correlations = np.apply_along_axis(lambda col: np.corrcoef(col, beh_subset[msk].squeeze())[0, 1], axis=0, arr=fmri_subset[msk])
-#     # fisherz_run = np.arctanh(correlations)
-#     # runwise_correlations.append(fisherz_run)
-# avg_run = np.mean(np.vstack(runwise_correlations), axis = 0)
-# corr_subjectnifti = nifti_masker.inverse_transform(avg_run)
-# print(corr_subjectnifti.shape)
-# print(corr_subjectnifti)
-
-
-# # %% Save the resampled image using the reference affine
-# resampled_image = image.resample_to_img(corr_subjectnifti, ref_img)

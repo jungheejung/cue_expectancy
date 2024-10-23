@@ -1,0 +1,462 @@
+# [physio] SCL {#glm_SCL}
+
+
+## Outline
+### load data
+### subjectwise, groupwise mean
+
+```{r message=TRUE, warning=TRUE, include=FALSE}
+library(car)
+library(psych)
+library(reshape)
+library(plyr); library(dplyr)
+# library(tidyselect)
+library(tidyr)
+library(stringr)
+library(lme4)
+library(lmerTest)
+library(gghalves)
+source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+main_dir = dirname(dirname(getwd()))
+file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
+                          pattern="*.R", 
+                          full.names=TRUE, 
+                          ignore.case=TRUE)
+sapply(file.sources,source,.GlobalEnv)
+```
+
+```{r function::simple_contrasts_singletrial, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+simple_contrasts_singletrial <- function(df) {
+# [ CONTRASTS ]  ________________________________________________________________________________ # nolint
+# contrast code ________________________________________
+df$cue_factor <- factor(df$cue)
+
+# # contrast code 1 linear
+df$STIM_linear[df$stim == "low_stim"] <-  -0.5
+df$STIM_linear[df$stim == "med_stim"] <-  0
+df$STIM_linear[df$stim == "high_stim"] <-  0.5
+#
+# # contrast code 2 quadratic
+df$STIM_quadratic[df$stim == "low_stim"] <-  -0.33
+df$STIM_quadratic[df$stim == "med_stim"] <-  0.66
+df$STIM_quadratic[df$stim == "high_stim"] <-  -0.33
+
+df$stim_name[df$stim == "low_stim"] <- "low"
+df$stim_name[df$stim == "med_stim"] <-  "med"
+df$stim_name[df$stim == "high_stim"] <-  "high"
+
+# cue contrast
+df$cue_con[df$cue == "low_cue"] <- -0.5
+df$cue_con[df$cue == "high_cue"] <- 0.5
+
+# df$cue_name[df$cue == "intercept"] <- "intercept"
+df$cue_name[df$cue == "low_cue"] <- "low"
+df$cue_name[df$cue == "high_cue"] <- "high"
+
+df$stim_ordered <- factor(
+        df$stim_name,
+        levels = c("low", "med", "high")
+    )
+
+df$cue_ordered <- factor(
+        df$cue_name,
+        levels = c("low", "high")
+    )
+
+return(df)
+}
+```
+
+```{r}
+main_dir
+```
+
+
+## How was this dataframe generated?
+via [https://github.com/jungheejung/spacetop_biopac/tree/main/scripts/p03_glm](https://github.com/jungheejung/spacetop_biopac/tree/main/scripts/p03_glm/glm_singletrial)
+```{r}
+
+taskname <- "pain"
+# 1. load data _________________________________________________________________
+beta <- read.table(file = file.path(paste0(main_dir, "/analysis/physio/nobaseline/glm_singletrial/glm-singletrial_task-", taskname, "_scr.tsv")), sep = '\t', header = TRUE)
+```
+
+
+## 1) stim x cue effect
+```{r}
+# 2. summarize data frame ______________________________________________________ 
+# beta_long <- beta %>%
+#   gather(key = "stim_cue", value = "beta", starts_with("high_stim"), starts_with("med_stim"), starts_with("low_stim")) %>%
+#   separate(stim_cue, into = c("stim", "cue"), sep = "\\.")
+beta$stim <- beta$stimtype
+beta$cue <- beta$cuetype
+beta_con <- simple_contrasts_singletrial(beta)
+
+```
+
+```{r}
+subjects_with_inadequate_data <- beta_con %>%
+  group_by(sub, cue_factor, STIM_linear) %>% 
+  dplyr::summarise(count = n(), .groups = 'drop') %>%
+  filter(count < 1) %>%
+  distinct(sub) %>%
+  pull(sub)
+df_filter <- beta_con %>%
+  filter(!(sub %in% subjects_with_inadequate_data))
+
+print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(beta_con$sub)), length(unique(df_filter$sub)) ))
+```
+
+
+```{r}
+# 3. linear model ______________________________________________________________ 
+model.factorial <- lmer(beta ~ STIM_linear*cue_factor + STIM_quadratic*cue_factor + (cue_factor |sub), data = beta_con)
+# summary(model.factorial)
+sjPlot::tab_model(model.factorial,
+              title = paste0(tools::toTitleCase(taskname), ": \nlmer(SCR beta ~ Stim * Cue + (Cue + Stim | sub), data = beta)"),
+              CSS = list(css.table = '+font-size: 12;'))
+summary(model.factorial)
+```
+
+```{r}
+
+# 4. plot parameters _____________________________________________________________
+subject <- "sub"
+model_iv1 <- "stim_ordered"
+model_iv2 <- "cue_ordered"
+dv <- "beta"
+dv_keyword <- "sclbeta"
+taskname <- "pain"
+# model_iv2 <- "cue_ordered"
+analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "book_scr")
+beta_con$taskname <- taskname
+
+
+
+# 5. summary stats _____________________________________________________________
+SCLstim_subjectwise <- meanSummary(beta_con,
+                                      c(subject, model_iv1, model_iv2), dv)
+SCLstim_groupwise <- summarySEwithin(
+  data = SCLstim_subjectwise,
+  measurevar = "mean_per_sub",
+  withinvars = c(model_iv1, model_iv2),
+  idvar = subject
+)
+SCLstim_groupwise$task <- taskname
+# https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+
+# 6. more plot parameters ______________________________________________________
+sub_mean <- "mean_per_sub"
+group_mean <- "mean_per_sub_norm_mean"
+se <- "se"
+subject <- "sub"
+ggtitle <- paste(taskname, " - ", dv)
+title <- paste(taskname, " - ", dv)
+xlab <- ""
+ylab <- "SCL beta coefficients (A.U.)"
+ylim <- c(-10, 60)
+
+if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+  color <- c("#1B9E77", "#D95F02")
+} else {
+  color <- c("#4575B4", "#D73027")
+} # if keyword starts with
+plot_savefname <- file.path(
+  analysis_dir,
+  paste(
+    "raincloud_task-", taskname, "_rating-", dv_keyword, "_", as.character(Sys.Date()), "_cooksd.png",
+    sep = ""
+  )
+)
+if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+  color <- c( "blue",  "red")
+} else {
+  color <- c( "blue", "red")
+} # if keyword starts with
+plot_savefname <- file.path(
+  analysis_dir,
+  paste(
+    "raincloud_qc-", dv_keyword, "_", as.character(Sys.Date()), "_cooksd.png",
+    sep = ""
+  )
+)
+
+# 7. raincloudplots ____________________________________________________________
+# TODO: 
+# * change the range of the figure
+# * change the x-axis
+# * drop the NA conditions
+# * change theme
+# * adjust the box plots
+
+ylim <- c(-1, 1)
+# taskname = "pain"
+w <- 10; h <- 5
+g <- plot_halfrainclouds_twofactor(
+  SCLstim_subjectwise,
+  SCLstim_groupwise,
+  model_iv1, model_iv2,
+  sub_mean,
+  group_mean,
+  se,
+  subject,
+  ggtitle,
+  title,
+  xlab,
+  ylab,
+  taskname,
+  ylim,
+  w,
+  h,
+  dv_keyword,
+  color,
+  plot_savefname
+)
+g <- g + theme_bw() + theme_classic()
+print(g)
+SCLstim_groupwise$task = taskname
+
+k <- plot_lineplot_twofactor(SCLstim_groupwise,
+                             # taskname="pain", 
+                        iv1="stim_ordered",
+                        iv2="cue_ordered",
+                        mean = "mean_per_sub_norm_mean", error = "se",
+                        color = c( "high" = "red",
+                                  "low" = "#4C77ED"), 
+                        ggtitle = title, 
+                        xlab = "Stimulus intensity", ylab = "SCR")
+# k <- k + theme(aspect.ratio=.8) +   geom_line(size = 1) + # Adjust line thickness
+#   geom_point(size = 3)  # Adjust point size
+k <- k + theme(aspect.ratio=1,
+          text = element_text(size = 18), # Default text size for the plot
+          axis.title = element_text(size = 22, ), # Axis titles
+          axis.text = element_text(size = 15), # Axis text (x and y)
+          plot.title = element_text(size = 24, hjust = 0.5) # Plot title
+          ) +
+  # geom_line(size = 1) + # Adjust line thickness
+  geom_point(size = 2)  # Adjust point size
+
+ggsave(file.path(analysis_dir, paste0("SCR_maineffect", as.character(Sys.Date()), ".svg")), width = 8, height = 4, dpi=300) 
+
+print(k)
+```
+
+
+## 2) across sessions?
+```{r}
+
+# code session
+# contrast code 1 linear
+beta_long$STIM_linear[beta_long$stim == "low_stim"] <- -0.5
+beta_long$STIM_linear[beta_long$stim == "med_stim"] <- 0
+beta_long$STIM_linear[beta_long$stim == "high_stim"] <- 0.5
+
+# contrast code 2 quadratic
+beta_long$STIM_quadratic[beta_long$stim == "low_stim"] <- -0.33
+beta_long$STIM_quadratic[beta_long$stim == "med_stim"] <- 0.66
+beta_long$STIM_quadratic[beta_long$stim == "high_stim"] <- -0.33
+
+# contrast code 1 linear
+beta_long$SES_linear[beta_long$ses == "ses-01"] <- -0.5
+beta_long$SES_linear[beta_long$ses == "ses-03"] <- 0
+beta_long$SES_linear[beta_long$ses == "ses-04"] <- 0.5
+
+# contrast code 2 quadratic
+beta_long$SES_quadratic[beta_long$ses == "ses-01"] <- -0.33
+beta_long$SES_quadratic[beta_long$ses == "ses-03"] <- 0.66
+beta_long$SES_quadratic[beta_long$ses == "ses-04"] <- -0.33
+
+beta_long$CUE_high_gt_low[beta_long$cue == "high_cue"] <- 0.5
+beta_long$CUE_high_gt_low[beta_long$cue == "low_cue"] <- -0.5
+
+model.betases <- lmer(beta ~
+                          CUE_high_gt_low*STIM_linear*SES_linear +
+                          CUE_high_gt_low*STIM_quadratic*SES_linear +
+                          CUE_high_gt_low*STIM_linear*SES_quadratic +
+                          CUE_high_gt_low*STIM_quadratic*SES_quadratic +
+                          (CUE_high_gt_low + STIM_linear + SES_linear|sub), data = beta_long
+                    )
+# CUE_high_gt_low+STIM+EXPECT_demean
+sjPlot::tab_model(model.betases,
+                  title = "Multilevel-modeling: \nlmer(beta ~ CUE * STIM * SES + (1| sub), data = pvc)",
+                  CSS = list(css.table = '+font-size: 12;'))
+summary(model.betases)
+equatiomatic::extract_eq(model.betases)
+```
+
+
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+combined_se_calc_cooksd <- data.frame()
+for (sesname in c("ses-01", "ses-03", "ses-04")) {
+
+    ggtitle <- paste(taskname, " - SCR betas")
+    title <- paste(taskname, " - SCR betas")
+    subject <- "sub"
+    w <- 10
+    h <- 6
+  data <- beta_long[ beta_long$ses == sesname,]
+
+
+    stim_con1 <- "STIM_linear"
+    stim_con2 <- "STIM_quadratic"
+    iv1 <- "CUE_high_gt_low"
+    dv <- "beta"
+
+    # [ MODEL ] _________________________________________________ # nolint
+    model_savefname <- file.path(
+        analysis_dir,
+        paste("lmer_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), "_cooksd.txt",
+            sep = ""
+        )
+    )
+
+    # [ PLOT ] reordering for plots _________________________ # nolint
+    data$cue_name <- NA
+    data$cue_name[data$cue == "high_cue"] <- "high cue"
+    data$cue_name[data$cue == "low_cue"] <- "low cue"
+
+    data$stim_name[data$stim == "high_stim"] <- "High"
+    data$stim_name[data$stim == "med_stim"] <- "Med"
+    data$stim_name[data$stim == "low_stim"] <- "Low"
+
+    # DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
+
+    data$stim_ordered <- factor(
+        data$stim_name,
+        levels = c("Low", "Med", "High")
+    )
+    data$cue_ordered <- factor(
+        data$cue_name,
+        levels = c("low cue", "high cue")
+    )
+    model_iv1 <- "stim_ordered"
+    model_iv2 <- "cue_ordered"
+
+    #  [ PLOT ] calculate mean and se  _________________________
+    actual_subjectwise <- meanSummary(
+        data,
+        c(subject, model_iv1, model_iv2), dv
+    )
+    actual_groupwise <- summarySEwithin(
+        data = actual_subjectwise,
+        measurevar = "mean_per_sub",
+        withinvars = c(model_iv1, model_iv2), idvar = subject
+    )
+    actual_groupwise$task <- taskname
+    actual_groupwise$ses <- sesname
+    # https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+
+    combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, actual_groupwise)
+   # calculate mean and se
+    sub_mean <- "mean_per_sub"
+    group_mean <- "mean_per_sub_norm_mean"
+    se <- "se"
+    subject <- "sub"
+    ggtitle <- paste(str_to_title(taskname), " - SCR ", sesname )
+    title <- paste(str_to_title(taskname), " - cue level")
+    xlab <- ""
+    ylab <- "SCR (a.u.)"
+    ylim <- c(-10,60)
+    dv_keyword <- "SCR"
+    if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
+        color <- c("#1B9E77", "#D95F02")
+    } else {
+        color <- c("#4575B4", "#D73027")
+    } # if keyword starts with
+    plot_savefname <- file.path(
+        analysis_dir,
+        paste("raincloud_task-", taskname,
+            "_rating-", dv_keyword,
+            "_", as.character(Sys.Date()), "_cooksd.png",
+            sep = ""
+        )
+    )
+    g <- plot_halfrainclouds_twofactor(
+        actual_subjectwise, actual_groupwise, model_iv1, model_iv2,
+        sub_mean, group_mean, se, subject,
+        ggtitle, title, xlab, ylab, taskname,ylim,
+        w, h, dv_keyword, color, plot_savefname
+    )
+print(g)
+}
+```
+
+#### session wise line plots {.unlisted .unnumbered}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# lineplot per session
+
+DATA = as.data.frame(combined_se_calc_cooksd)
+color = c("#4C77ED", "#ED220D")
+model_iv1 <- "stim_ordered"
+model_iv2 <- "ses_ordered"
+LINEIV1 = "stim_ordered"
+LINEIV2 = "cue_ordered"
+MEAN = "mean_per_sub_norm_mean"
+ERROR = "se"
+dv_keyword = "actual"
+p1 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-01",],
+               LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'ses-01',
+               ylab = "SCR (A.U.)" )
+p2 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-03",],
+               LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = 'ses-03',
+               ylab = "SCR (A.U.)")
+p3 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-04",],
+               LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = 'ses-04',
+               ylab = "SCR (A.U.)")
+
+ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
+plot_filename = file.path(analysis_dir,
+                          paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
+ggsave(plot_filename, width = 8, height = 4)
+```
+```{r}
+  DATA = as.data.frame(combined_se_calc_cooksd)
+  color <- c("#4C77ED", "#ED220D")
+  model_iv1 <- "stim_ordered"
+  model_iv2 <- "ses_ordered"
+  LINEIV1 <- "stim_ordered"
+  LINEIV2 <- "cue_ordered"
+  MEAN <- "mean_per_sub_norm_mean"
+  ERROR <- "se"
+  dv_keyword <- "SCR"
+  line_thickness <- 0.2
+  ylim <- c(1.3, 2.4)
+  p1 <- plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-01" , ], taskname,
+                               LINEIV1, LINEIV2, MEAN, ERROR, color, 
+                               ggtitle = 'Visit 1', ylab = "SCR", 
+                               ylim=ylim)
+  p1 <- p1 + theme(
+  aspect.ratio = 1, # Adjust this as needed
+  axis.line = element_line(size = line_thickness)
+)
+  p2 = plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-03", ], taskname,
+                               LINEIV1, LINEIV2, MEAN, ERROR, color,
+                               ggtitle = 'Visit 2', ylab = "SCR", 
+                               ylim=ylim)
+    p2 <- p2 + theme(
+  aspect.ratio = 1, # Adjust this as needed
+  axis.line = element_line(size = line_thickness)
+)
+  p3 = plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-04", ], taskname,
+                               LINEIV1, LINEIV2, MEAN,ERROR, color,
+                               ggtitle = 'Visit 3', ylab = "SCR", 
+                               ylim=ylim)
+    p3 <- p3 + theme(
+  aspect.ratio = 1, # Adjust this as needed
+  axis.line = element_line(size = line_thickness)
+)
+  arranged_plot <- ggpubr::ggarrange(
+    p1, p2, p3, ncol = 3, nrow = 1, common.legend = TRUE, legend = "bottom"
+  )
+  print(arranged_plot)
+  plot_filename = file.path(analysis_dir,
+  paste('lineplot_task-all_rating-', dv_keyword,taskname, '.svg', sep = ""))
+  ggsave(plot_filename, arranged_plot, width = 8, height = 4, dpi=300)
+```
