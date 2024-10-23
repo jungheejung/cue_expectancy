@@ -67,24 +67,31 @@ return(df)
 }
 ```
 
+```{r}
+main_dir
+```
+
 
 ## How was this dataframe generated?
-via [https://github.com/jungheejung/spacetop_biopac/tree/main/scripts/p03_glm](https://github.com/jungheejung/spacetop_biopac/tree/main/scripts/p03_glm)
+via [https://github.com/jungheejung/spacetop_biopac/tree/main/scripts/p03_glm](https://github.com/jungheejung/spacetop_biopac/tree/main/scripts/p03_glm/glm_singletrial)
 ```{r}
 
 taskname <- "pain"
 # 1. load data _________________________________________________________________
-beta <- read.table(file = file.path(paste0("/Volumes/spacetop_projects_cue/analysis/physio/nobaseline/glm/glm-factorial_task-", taskname, "_scr.tsv")), sep = '\t', header = TRUE)
+beta <- read.table(file = file.path(paste0(main_dir, "/analysis/physio/nobaseline/glm_singletrial/glm-singletrial_task-", taskname, "_scr.tsv")), sep = '\t', header = TRUE)
 ```
 
 
 ## 1) stim x cue effect
 ```{r}
 # 2. summarize data frame ______________________________________________________ 
-beta_long <- beta %>%
-  gather(key = "stim_cue", value = "beta", starts_with("high_stim"), starts_with("med_stim"), starts_with("low_stim")) %>%
-  separate(stim_cue, into = c("stim", "cue"), sep = "\\.")
-beta_con <- simple_contrasts_singletrial(beta_long)
+# beta_long <- beta %>%
+#   gather(key = "stim_cue", value = "beta", starts_with("high_stim"), starts_with("med_stim"), starts_with("low_stim")) %>%
+#   separate(stim_cue, into = c("stim", "cue"), sep = "\\.")
+beta$stim <- beta$stimtype
+beta$cue <- beta$cuetype
+beta_con <- simple_contrasts_singletrial(beta)
+
 ```
 
 ```{r}
