@@ -18,6 +18,7 @@ library(car)
 library(psych)
 library(lme4)
 library(dplyr)
+library(scico)
 devtools::source_url("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 library(r2mlm)
 main_dir <- dirname(dirname(getwd()))
@@ -37,6 +38,8 @@ analysis_folder <- "fmri_npspebeh"
 beh <- readr::read_tsv(file.path(main_dir, "data/beh/sub-all_task-all_events.tsv"))
 nps <- read.csv(file.path(main_dir, "analysis/fmri/nilearn/deriv01_signature/rampup_plateau/signature-NPS_sub-all_runtype-pvc_event-stimulus.tsv"), sep = ",")
 pe <- read.csv(file.path(main_dir, "data/RL/July2024_Heejung_fMRI_paper/table_pain.csv"), sep = ",")
+
+
 # reconstruct column based on metadata _________________________________________
 pe$singletrial_fname <- sprintf(
   "sub-%04d_%s_run-%02d_runtype-%s_event-stimulus_trial-%03d_cuetype-%s_stimintensity-%s.nii.gz", 
@@ -48,6 +51,7 @@ pe$singletrial_fname <- sprintf(
   gsub("_cue", "", pe$param_cue_type),       # Remove "_cue" from param_cue_type
   gsub("_stim", "", pe$param_stimulus_type)  # Remove "_stim" from param_stimulus_type
 )
+
 
 # merge dataframes and prevent duplicate columns _______________________________
 dfmerge <- beh %>%
@@ -107,6 +111,9 @@ stim_con2 <- "STIM_quadratic"
 iv1 <- "CUE_high_gt_low"
 dv <- "NPS"
 dv_keyword <- "NPS"
+
+
+# filter data only if there are three trials per cue x stim cell
 subjects_with_inadequate_data <- data %>%
   group_by(sub, CUE_high_gt_low, STIM_linear) %>% #SES_linear, 
   dplyr::summarise(count = n(), .groups = 'drop') %>%
@@ -116,6 +123,8 @@ subjects_with_inadequate_data <- data %>%
 df_filter <- data %>%
   filter(!(sub %in% subjects_with_inadequate_data))
 
+
+# filter data - remove first trials
 df_filter.no1 <- df_filter[df_filter$trial_index != 1, ]
 
 df_clean.no1 <- df_filter.no1 %>%
@@ -123,79 +132,84 @@ df_clean.no1 <- df_filter.no1 %>%
   mutate(trial_index_sub = row_number()) %>%
   ungroup()
 
-# fit data
-model.npsstimresid <- lmer(NPS ~ STIM_linear + STIM_quadratic + (1|sub), data = df_clean.no1)
+# lmer :: NPS, fit with PE _______________________________________
+model.npspe <- lmer(NPS ~ PE_mdl2 + (PE_mdl2|sub), data = df_clean.no1)
+cat(strrep("-", 50),"\nmodel: NPS ~ PE + (PE|sub)\n",strrep("-", 50),"\n")
+summary(model.npspe)
+
+
+# lmer :: fit NPS with stim ____________________________________________________
+model.npsstimresid <- lmer(NPS ~ STIM_linear + STIM_quadratic + (STIM_linear|sub), data = df_clean.no1)
+cat(strrep("-", 50),"\nmodel: NPS ~ stim + (stim|sub)\n",strrep("-", 50),"\n")
 summary(model.npsstimresid)
 
 # residuals, after accounting for stimulus effects!
 df_clean.no1 <- df_clean.no1 %>%
   mutate(NPSresid = resid(model.npsstimresid))
-# df_clean.no1$NPSresid <- residuals(model.npsstimresid)
+
+# lmer :: stim residual NPS, fit with PE _______________________________________
 model.residnpspe <- lmer(NPSresid ~ PE_mdl2 + (PE_mdl2|sub), data = df_clean.no1)
+cat(strrep("-", 50),"\nmodel: NPS residuals ~ PE + (PE|sub)\n",strrep("-", 50),"\n")
 summary(model.residnpspe)
 
-# PLOT 1 ______________________________________________________________________
-fixed_effect <- fixef(model.residnpspe)
-random_effects <- ranef(model.residnpspe)$sub
-ggplot(df_clean.no1, aes(x = PE_mdl2, y = NPSresid)) +
-  geom_point(alpha = 0.5) +  # Scatter plot of raw data points
-  geom_abline(intercept = fixed_effect[1], slope = fixed_effect[2], color = "red", size = 1.2, linetype = "dashed") +  # Group-level slope
-  # Add individual slopes per random effect
-  geom_abline(
-    data = random_effects,
-    aes(intercept = fixed_effect[1] + `(Intercept)`, slope = fixed_effect[2] + PE_mdl2),
-    color = "blue", alpha = 0.6
-  ) +
-  theme_minimal() +
-  labs(
-    title = "Scatter Plot with Group-Level and Random Slopes",
-    x = "Predictor (PE_mdl2)",
-    y = "Response (NPSresid)"
-  )
-
-
-
-# Plot 2 ______________________________________________________________________
-df_clean.no1 <- df_clean.no1 %>%
-  mutate(fit.m = predict(model.residnpspe, re.form = NA),
-         fit.c = predict(model.residnpspe, re.form = NULL))
-
-# RESOURCE: https://www.azandisresearch.com/2022/12/31/visualize-mixed-effect-regressions-in-r-with-ggplot2/
-df_clean.no1 %>%
-  ggplot(aes(x = PE_mdl2, y = NPSresid, col = sub)) +
-  geom_point(pch=20, size=0.5) +
-  geom_smooth(method = 'lm', se = F) +
-  geom_line(aes(y=fit.m), col = 1, size = 2) +
-  geom_line(aes(y = fit.c, col = sub), size = 1)
-
-
-# Plot 3 ______________________________________________________________________
-# display the conditional residuals around the fixed effects
-df_clean.no1 %>%
-  ggplot(aes(x = PE_mdl2, y = fit.m + NPSresid, col = sub)) +
-  geom_point(pch = 20, size = 0.5) +
-  geom_line(aes(y = fit.m), col = 1, size = 2) 
-
-# Plt 4 fixed effect and random slopes ______________________________________________________________________
-df_clean.no1 %>%
-  ggplot(aes(x = PE_mdl2, y = fit.m + NPSresid)) +
-  geom_line(aes(y = fit.c, col = sub), size = 5) +
-  geom_point(pch = 20, size = 0.5, col = "grey") +
-  geom_line(aes(y = fit.m), col = 1, size = 2)
 ```
 
+## plot NPS as a function of PE
+## plot residual values per subject
 ```{r}
+
 df_clean.no1 <- df_clean.no1 %>%
-  arrange(sub,trial_index_sub, PE_mdl2) %>%
-  mutate(fit2.m = predict(model.npsstimresid, re.form = NA),
-         fit2.c = predict(model.npsstimresid, re.form = NULL),
-         resid2 = resid(model.npsstimresid))
+  arrange(sub, trial_index_sub, PE_mdl2) %>%
+  mutate(fit1.m = predict(model.npspe, re.form = NA),
+         fit1.c = predict(model.npspe, re.form = NULL),
+         resid1 = resid(model.npspe))
+n_subjects <- length(unique(df_clean.no1$sub))
+batlow_colors <- scico(n_subjects, palette = "batlow")
+
+df_clean.no1 %>%
+  ggplot(aes(x = PE_mdl2, y = fit1.m + resid1)) +
+  scale_color_manual(values = batlow_colors) +
+  geom_point(pch = 16, aes(col = sub, group = sub), size = .25, alpha = .5) + 
+  geom_line(aes(y = fit1.c, color = sub, group = sub), size = .5, alpha = .75) +  # Group lines by subject
+  geom_line(aes(y = fit1.m), col = 1, size = 1.5, alpha = .9) +  # Group-level fit
+  theme_classic2() +
+  labs(
+    title = "Scatter Plot with Individual and Group-Level Slopes",
+    x = "PE_mdl2",
+    y = "Fitted Values"
+  ) 
+# +
+# coord_cartesian(ylim = c(-20, 20)) 
+
+
+
+```
+
+## plot NPSresidualstim as a function of PE values per subject
+```{r}
+
+
+summary(model.residnpspe)$varcor
+df_clean.no1 <- df_clean.no1 %>%
+  arrange(sub, trial_index_sub, PE_mdl2) %>%
+  mutate(fit2.m = predict(model.residnpspe, re.form = NA),
+         fit2.c = predict(model.residnpspe, re.form = NULL),
+         resid2 = resid(model.residnpspe))
 
 df_clean.no1 %>%
   ggplot(aes(x = PE_mdl2, y = fit2.m + resid2)) +
-  geom_line(aes(y = fit2.c, col = sub), size = 1) +
-  geom_point(pch = 16, col = "grey") +
-  geom_line(aes(y = fit2.m), col = 1, size = 2)
+  geom_point(pch = 16, aes(col = sub, group = sub), size = .25) + 
+  geom_line(aes(y = fit2.c, color = sub, group = sub), size = .5) +  # Group lines by subject
+  #geom_line(aes(y = fit2.m), col = 1, size = 1) +  # Group-level fit
+  theme_minimal() +
+  labs(
+    title = "Scatter Plot with Individual and Group-Level Slopes",
+    x = "PE_mdl2",
+    y = "Fitted Values"
+  ) +
+coord_cartesian(ylim = c(-20, 20))
+
+
 ```
 
 
