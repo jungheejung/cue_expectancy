@@ -148,7 +148,7 @@ df_clean.no1 <- df_clean.no1 %>%
   mutate(NPSresid = resid(model.npsstimresid))
 
 # lmer :: stim residual NPS, fit with PE _______________________________________
-model.residnpspe <- lmer(NPSresid ~ PE_mdl2 + (PE_mdl2|sub), data = df_clean.no1)
+model.residnpspe <- lmer(NPSresid ~ PE_mdl2 + (0 + PE_mdl2|sub), data = df_clean.no1)
 cat(strrep("-", 50),"\nmodel: NPS residuals ~ PE + (PE|sub)\n",strrep("-", 50),"\n")
 summary(model.residnpspe)
 
