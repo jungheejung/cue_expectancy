@@ -1,11 +1,11 @@
-# [fMRI] NPScorr \~ session {#npscorr_ses}
+# [fMRI] NPScosine \~ session {#NPScosine_ses}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
--   Here, I model NPS correlation values as a function of cue, stimulus intensity and expectation ratings.
--   One of the findings is that low cues lead to higher NPS correlation in the high intensity group, and that this effect becomes non-significant across sessions.
--   11/12/2024: Updated based on NPS corr values
--   inputs from ./scripts/step10_nilearn/signature/step02_apply_NPS_corr.m
+-   Here, I model NPS cosine values as a function of cue, stimulus intensity and expectation ratings.
+-   
+-   11/29/2024: Updated based on NPS corr values
+-   inputs from ./scripts/step10_nilearn/signature/step02_apply_nps_cosine.m
 
 ```{r libraries_nps_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(car)
@@ -166,7 +166,7 @@ summary_for_plots_PVC <- function(df, groupwise_measurevar, subject_keyword, mod
 
 ```{r}
 # load behavioral and NPS data and grab the intersection
-analysis_folder <- "fmri_npscorr"
+analysis_folder <- "fmri_npscosine"
 beh <- readr::read_tsv(file.path(main_dir, "data/beh/sub-all_task-all_events.tsv"))
 file_list <- list.files(path =file.path('/Volumes/spacetop_projects_cue', "analysis/fmri/nilearn/deriv01_signature/rampup_plateau/NPS"), pattern = "*.csv", full.names = TRUE)
 # Read and combine all CSV files
@@ -221,8 +221,8 @@ data$SES_quadratic[data$ses == "ses-04"] <- -0.33
 stim_con1 <- "STIM_linear"
 stim_con2 <- "STIM_quadratic"
 iv1 <- "CUE_high_gt_low"
-dv <- "nps_corr"
-dv_keyword <- "NPScorr"
+dv <- "nps_cosine"
+dv_keyword <- "NPScosine"
 
 # filter data __________________________________________________________________
 # Make sure that each condition cell has adequate amount of trials per cell
@@ -242,12 +242,12 @@ print(sprintf("after filtering out subjects that have less than %d trials in cel
 ## QC. check NPS distribution
 
 ```{r}
-df_filter.NA <- df_filter %>% filter(!is.na(nps_corr))  # Remove NA values
+df_filter.NA <- df_filter %>% filter(!is.na(nps_cosine))  # Remove NA values
 head(df_filter.NA)
 # Sort the data by median "outcome" in ascending order
 sorted_data <- df_filter.NA %>%
   group_by(sub) %>%
-  dplyr::summarize(median_nps = median(nps_corr, na.rm = TRUE)) %>%
+  dplyr::summarize(median_nps = median(nps_cosine, na.rm = TRUE)) %>%
   arrange(median_nps) %>%
   select(sub)
 
@@ -255,10 +255,10 @@ sorted_data <- df_filter.NA %>%
 df_filter.NA$sub <- factor(df_filter.NA$sub, levels = sorted_data$sub)
 
 # Create the ggplot
-g <- ggplot(df_filter.NA, aes(x = sub, y = nps_corr, fill = sub)) +
+g <- ggplot(df_filter.NA, aes(x = sub, y = nps_cosine, fill = sub)) +
   geom_boxplot(outlier.shape = NA, width = 1.2, position = position_dodge(2)) +  
   geom_jitter(width = .1, alpha = 0, size = 1) +
-  labs(x = "Subject", y = "nps_corr") +
+  labs(x = "Subject", y = "nps_cosine") +
   theme_classic() +
   theme(legend.position = "none") +
   scale_x_discrete(breaks = NULL) 
@@ -330,7 +330,7 @@ NPSstimcue_groupwise$task <- taskname
 combined_se <-
   rbind(combined_se, NPSstimcue_groupwise)
 # Plot parameters :: ___________________________________________________________
-sub_mean <- "mean_per_sub"; group_mean <- "mean_per_sub_norm_mean"; dv_keyword <- "NPScorr"
+sub_mean <- "mean_per_sub"; group_mean <- "mean_per_sub_norm_mean"; dv_keyword <- "NPScosine"
 se <- "se"; subject <- "sub"; 
 ggtitle <- paste(taskname, " - NPS correlation"); title <- paste(taskname, " - NPS")
 xlab <- ""; ylab <- "NPS (corr)";
@@ -434,7 +434,7 @@ g + theme(aspect.ratio=.8)
 
 ```{r echo=TRUE, warning=TRUE, paged.print=FALSE}
 
-model.npscuestim <- lmer(nps_corr ~
+model.npscuestim <- lmer(nps_cosine ~
                           CUE_high_gt_low*STIM_linear + CUE_high_gt_low*STIM_quadratic +
                           (STIM_linear|sub), data = df_filter, 
                          control = lmerControl(optimizer = "nmkbw")
@@ -442,13 +442,21 @@ model.npscuestim <- lmer(nps_corr ~
 
 summary(model.npscuestim)
 sjPlot::tab_model(model.npscuestim,
-                  title = "Multilevel-modeling: \nlmer(NPScorr ~ CUE * STIM + (CUE + STIM | sub), data = pvc)",
+                  title = "Multilevel-modeling: \nlmer(NPScosine ~ CUE * STIM + (CUE + STIM | sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
 
 
-model.singular <- lmer(nps_corr ~
+model.singular <- lmer(nps_cosine ~
                           CUE_high_gt_low*STIM_linear + CUE_high_gt_low*STIM_quadratic +
                           (CUE_high_gt_low + STIM_linear|sub), data = data, 
+                         control = lmerControl(optimizer = "nmkbw")
+                    )
+
+summary(model.singular)
+
+model.singular <- lmer(nps_cosine ~
+                          CUE_high_gt_low*STIM_linear + CUE_high_gt_low*STIM_quadratic +
+                          (CUE_high_gt_low * STIM_linear|sub), data = data, 
                          control = lmerControl(optimizer = "nmkbw")
                     )
 
@@ -459,7 +467,7 @@ summary(model.singular)
 ```{r}
 
 model.npscuestim.summarystats.sub <- meanSummary(df_filter,
-                                      c("sub", "CUE_high_gt_low"), "nps_corr")
+                                      c("sub", "CUE_high_gt_low"), "nps_cosine")
 model.npscuestim.summarystats.group <- summarySEwithin(
   data = model.npscuestim.summarystats.sub,
   measurevar = "mean_per_sub",
@@ -489,7 +497,7 @@ diff_optims <- allFit(model.npscuestim, maxfun = 1e5)
 
 ```{r}
 library(optimx)
-model.npscuestim <- lmer(nps_corr ~
+model.npscuestim <- lmer(nps_cosine ~
                           CUE_high_gt_low*STIM_linear +
                           CUE_high_gt_low*STIM_quadratic +
                           (STIM_linear|sub), data = df_filter,
@@ -542,7 +550,7 @@ model_iv1 <- "stim_ordered"
 model_iv2 <- "cue_ordered"
 
 NPSstimcue_subjectwise <- meanSummary(df_filter.no1,
-                                      c(subject, model_iv1, model_iv2), "nps_corr")
+                                      c(subject, model_iv1, model_iv2), "nps_cosine")
 NPSstimcue_groupwise <- summarySEwithin(
   data = NPSstimcue_subjectwise,
   measurevar = "mean_per_sub",
@@ -586,7 +594,7 @@ Once we remove cue effect, convergence warning is solved
 
 ```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
 
-model.npscuestim.no1 <- lmer(nps_corr ~
+model.npscuestim.no1 <- lmer(nps_cosine ~
                           CUE_high_gt_low*STIM_linear + CUE_high_gt_low*STIM_quadratic +
                           (STIM_linear|sub), data = df_filter.no1, 
                          control = lmerControl(optimizer = "nmkbw")
@@ -594,7 +602,7 @@ model.npscuestim.no1 <- lmer(nps_corr ~
 
 summary(model.npscuestim.no1)
 sjPlot::tab_model(model.npscuestim.no1,
-                  title = "Multilevel-modeling: \nlmer(NPScorr ~ CUE * STIM + (CUE + STIM | sub), data = pvc)",
+                  title = "Multilevel-modeling: \nlmer(NPScosine ~ CUE * STIM + (CUE + STIM | sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
 
 ```
@@ -619,8 +627,8 @@ total_pages <- ceiling(length(unique(df_clean$sub)) / (ncol_num * nrow_num))
 # Loop through pages and render the plot
 for (p in 1:total_pages) {
   # print(plot_per_sub(df_clean.no1, taskname, ncol_num, nrow_num, p))
-  g <- plot_per_sub(df_clean, "trial_index_sub", dv = "nps_corr", sub = "sub", xlab_str = "No. of trials",
-             ylab_str = "NPS (corr)", taskname, ncol_num, nrow_num, p)
+  g <- plot_per_sub(df_clean, "trial_index_sub", dv = "nps_cosine", sub = "sub", xlab_str = "No. of trials",
+             ylab_str = "NPS (cosine)", taskname, ncol_num, nrow_num, p)
   print(g)
 }
 
@@ -645,7 +653,7 @@ total_pages <- ceiling(length(unique(df_clean.no1$sub)) / (ncol_num * nrow_num))
 # Loop through pages and render the plot
 for (p in 1:total_pages) {
   # print(plot_per_sub(df_clean.no1, taskname, ncol_num, nrow_num, p))
-  g <- plot_per_sub(df_clean.no1, "trial_index_sub", dv = "nps_corr", sub = "sub", xlab_str = "No. of trials",
+  g <- plot_per_sub(df_clean.no1, "trial_index_sub", dv = "nps_cosine", sub = "sub", xlab_str = "No. of trials",
              ylab_str = "NPS (corr)", taskname, ncol_num, nrow_num, p)
   print(g)
 }
@@ -680,7 +688,7 @@ print(sprintf("after filtering out subjects that have less than %d trials in cel
 ```
 
 ```{r}
-model.npsses <- lmer(nps_corr ~
+model.npsses <- lmer(nps_cosine ~
                           CUE_high_gt_low*STIM_linear*SES_linear +
                           CUE_high_gt_low*STIM_quadratic*SES_linear +
                           CUE_high_gt_low*STIM_linear*SES_quadratic +
@@ -693,7 +701,7 @@ model.npsses <- lmer(nps_corr ~
 summary(model.npsses)
 # CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.npsses,
-                  title = "Multilevel-modeling: \nlmer(NPScorr ~ CUE * STIM * SES + (CUE + STIM + SES| sub), data = pvc)",
+                  title = "Multilevel-modeling: \nlmer(NPScosine ~ CUE * STIM * SES + (CUE + STIM + SES| sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
 ```
 
@@ -713,7 +721,7 @@ lapply(diff_optims_OK, function(x) x@optinfo$conv$lme4$messages)
 ```{r}
 library(optimx)
 model.npscuestim <- lmer(
-  nps_corr ~
+  nps_cosine ~
     CUE_high_gt_low * STIM_linear * SES_linear +
     CUE_high_gt_low * STIM_quadratic * SES_linear +
     CUE_high_gt_low * STIM_linear * SES_quadratic +
@@ -735,7 +743,7 @@ optimx_options <- c("L-BFGS-B", "nlminb", "nlm", "bobyqa", "nmkb", "hjkb")
 for(i in 1:length(optimx_options)){
   print(paste0("Testing optimx: ", optimx_options[i]))
   model_flex <-   lmer(
-    nps_corr ~
+    nps_cosine ~
       CUE_high_gt_low * STIM_linear * SES_linear +
       CUE_high_gt_low * STIM_quadratic * SES_linear +
       CUE_high_gt_low * STIM_linear * SES_quadratic +
@@ -801,7 +809,7 @@ data_ses <- df_filter_ses[df_filter_ses$runtype == "pain" & df_filter_ses$ses ==
 stim_con1 <- "STIM_linear"
 stim_con2 <- "STIM_quadratic"
 iv1 <- "CUE_high_gt_low"
-dv <- "nps_corr"
+dv <- "nps_cosine"
 
     # [ MODEL ] _________________________________________________ # nolint
     model_savefname <- file.path(
@@ -860,7 +868,7 @@ dv <- "nps_corr"
     xlab <- ""
     ylab <- "NPS (corr)"
     ylim <- c(-.1, .25)
-    dv_keyword <- "NPScorr"
+    dv_keyword <- "NPScosine"
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
@@ -931,7 +939,7 @@ ggsave(plot_filename, width = 8, height = 4)
   LINEIV2 <- "cue_ordered"
   MEAN <- "mean_per_sub_norm_mean"
   ERROR <- "se"
-  dv_keyword <- "NPScorr"
+  dv_keyword <- "NPScosine"
   line_thickness <- 0.2
   ylim <- c(0.06, .1)
   p1 <- plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-01" , ], taskname,
@@ -999,7 +1007,7 @@ print(sprintf("after filtering out subjects that have less than 3 trials in cell
 
 
 
-model.npsses <- lmer(nps_corr ~
+model.npsses <- lmer(nps_cosine ~
                           CUE_high_gt_low*STIM_linear*SES_linear +
                           CUE_high_gt_low*STIM_quadratic*SES_linear +
                           CUE_high_gt_low*STIM_linear*SES_quadratic +
@@ -1012,7 +1020,7 @@ model.npsses <- lmer(nps_corr ~
 summary(model.npsses)
 # CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.npsses,
-                  title = "Multilevel-modeling: \nlmer(NPScorr ~ CUE * STIM * SES + (CUE + STIM + SES| sub), data = pain)",
+                  title = "Multilevel-modeling: \nlmer(NPScosine ~ CUE * STIM * SES + (CUE + STIM + SES| sub), data = pain)",
                   CSS = list(css.table = '+font-size: 12;'))
 
 # Model 2: Arch tan transform the correlation values into normally distributed values. 
@@ -1021,10 +1029,10 @@ df_filter_ses <- df_filter_ses %>%
 
 df_filter_ses <- df_filter_ses %>%
   group_by(sub, ses_run_id) %>%
-  mutate(z_nps_corr = atanh(nps_corr)) %>%
+  mutate(z_nps_cosine = atanh(nps_cosine)) %>%
   ungroup()
 
-model.npsses2 <- lmer(z_nps_corr ~
+model.npsses2 <- lmer(z_nps_cosine ~
                           CUE_high_gt_low*STIM_linear*SES_linear +
                           CUE_high_gt_low*STIM_quadratic*SES_linear +
                           CUE_high_gt_low*STIM_linear*SES_quadratic +
@@ -1037,11 +1045,11 @@ model.npsses2 <- lmer(z_nps_corr ~
 summary(model.npsses2)
 # CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.npsses2,
-                  title = "Multilevel-modeling: \nlmer(ArcTanhNPScorr ~ CUE * STIM * SES + (CUE + STIM + SES| sub), data = pain)",
+                  title = "Multilevel-modeling: \nlmer(ArcTanhNPScosine ~ CUE * STIM * SES + (CUE + STIM + SES| sub), data = pain)",
                   CSS = list(css.table = '+font-size: 12;'))
 
 #### model 3 Archtanh. control for stim effect and see if the residual is cue * ses
-model.npsses3 <- lmer(z_nps_corr ~
+model.npsses3 <- lmer(z_nps_cosine ~
                           CUE_high_gt_low*SES_linear*STIM_linear +
                           CUE_high_gt_low*SES_quadratic*STIM_linear +
                           (1   |
@@ -1052,11 +1060,11 @@ model.npsses3 <- lmer(z_nps_corr ~
 summary(model.npsses3)
 # CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.npsses3,
-                  title = "Multilevel-modeling: \nlmer(ArcTanhNPScorr3 ~ CUE * STIM * SES + (CUE + STIM + SES| sub), data = pain)",
+                  title = "Multilevel-modeling: \nlmer(ArcTanhNPScosine3 ~ CUE * STIM * SES + (CUE + STIM + SES| sub), data = pain)",
                   CSS = list(css.table = '+font-size: 12;'))
 
 # model 4
-model.npsses4 <- lmer(z_nps_corr ~
+model.npsses4 <- lmer(z_nps_cosine ~
                           CUE_high_gt_low*STIM_linear +
                           CUE_high_gt_low*STIM_quadratic + SES_linear + 
                           (CUE_high_gt_low + STIM_linear   |
@@ -1067,7 +1075,7 @@ model.npsses4 <- lmer(z_nps_corr ~
 summary(model.npsses4)
 # CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.npsses4,
-                  title = "Multilevel-modeling: \nlmer(ArcTanhNPScorr4 ~ CUE * STIM + SES + (CUE + STIM | sub), data = pain)",
+                  title = "Multilevel-modeling: \nlmer(ArcTanhNPScosine4 ~ CUE * STIM + SES + (CUE + STIM | sub), data = pain)",
                   CSS = list(css.table = '+font-size: 12;'))
 ```
 
@@ -1080,7 +1088,7 @@ combined_se <- data.frame()
 for (sesname in c("ses-01", "ses-03", "ses-04")) {
 taskname = "pain"
     ggtitle <- paste(taskname, " - NPS corr")
-    title <- paste(taskname, " - NPScorr")
+    title <- paste(taskname, " - NPScosine")
     subject <- "sub"
     w <- 10
     h <- 6
@@ -1089,7 +1097,7 @@ taskname = "pain"
   stim_con1 <- "STIM_linear"
   stim_con2 <- "STIM_quadratic"
   iv1 <- "CUE_high_gt_low"
-  dv <- "nps_corr"
+  dv <- "nps_cosine"
 
     # [ MODEL ] _________________________________________________ # nolint
     model_savefname <- file.path(
@@ -1148,7 +1156,7 @@ taskname = "pain"
     xlab <- ""
     ylab <- "NPS (corr)"
     ylim <- c(-.1,.25)
-    dv_keyword <- "NPScorr"
+    dv_keyword <- "NPScosine"
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
@@ -1183,7 +1191,7 @@ print(g)
   LINEIV2 <- "cue_ordered"
   MEAN <- "mean_per_sub_norm_mean"
   ERROR <- "se"
-  dv_keyword <- "NPScorr"
+  dv_keyword <- "NPScosine"
   line_thickness <- 0.2
   ylim <- c(.06, .1)
   p1 <- plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-01" , ], taskname,
