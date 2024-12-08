@@ -160,14 +160,10 @@ SIIPS <- read.csv(file.path("/Volumes/spacetop_projects_cue/analysis/fmri/nilear
 # merge the three dataframes ___________________________________________________
 df_merge1 <- inner_join(beh, NPS, by = "singletrial_fname")
 dfmerge <- inner_join(df_merge1, SIIPS, by = "singletrial_fname")
-
-
-
 # df_merge <- inner_join(beh, all_data, by = "singletrial_fname")
 
 
 dfmerge <- dfmerge %>%
-  # mutate(singletrial_fname = basename(Filenames))
   mutate(singletrial_fname = as.character(singletrial_fname)) %>%
   
   extract(singletrial_fname, into = c("sub", "ses", "run", "runtype", "event", "trial", "cuetype", "stimintensity"),

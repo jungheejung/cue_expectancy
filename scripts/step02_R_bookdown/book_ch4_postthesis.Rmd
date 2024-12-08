@@ -37,6 +37,7 @@ library(raincloudplots)
 # devtools::source_url("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/tutorial_R/R_rainclouds.R")
 # devtools::source_url("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/tutorial_R/summarySE.R")
 library(broom)
+library(MuMIn)
 # devtools::source_url("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 library(r2mlm)
 main_dir <- dirname(dirname(getwd()))
@@ -327,7 +328,7 @@ k
 ggsave(file.path(analysis_dir, paste0("beh_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300) 
 ```
 
-## 2 NPS
+## 2 NPS (df_filter)
 
 ### NPS linear analysis
 ```{r}
@@ -434,7 +435,7 @@ k
 ggsave(file.path(analysis_dir, paste0("NPS_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300) 
 ```
 
-### NPS pos
+### NPS pos (df_filter)
 ```{r}
 dv <- "npspos"
 taskname <- "pain"
@@ -613,7 +614,7 @@ ggsave(file.path(analysis_dir, paste0("NPSneg_maineffect", as.character(Sys.Date
 ```
 
 
-## 3 PE 
+## 3 PE (PEmerge)
 ```{r}
 PEdf <- read.csv("/Users/h/Documents/projects_local/cue_expectancy/data/RL/modelfit_072024/table_pain.csv")
 
@@ -711,7 +712,7 @@ sjPlot::tab_model(NPSPEpos,
 equatiomatic::extract_eq(NPSPEpos)
 ```
 
-## 4 NPS nociceptive ROI
+## 4 NPS nociceptive ROI (df_filter.NA)
 ```{r}
 # STEP 0. filter data __________________________________________________________
 # Make sure that each condition cell has adequate amount of trials
@@ -816,7 +817,7 @@ print(opt.summary)
 
 
 # R2 ___________________________________________________________________________
-r_squared <- r.squaredGLMM(model.npscuestim)
+r_squared <- MuMIn::r.squaredGLMM(model.npscuestim)
 R2m = r_squared[1] # Marginal R-squared
 R2c = r_squared[2]  # Conditional R-squared
 
@@ -901,11 +902,15 @@ print(g)
 }
 ```
 
-## 5 SIIPS
+## 5 SIIPS (df_filter.NA)
 ### SIIPS linear analysis
 ```{r}
+
+
 model.SIIPS <- lmer(SIIPS ~ CUE_high_gt_low*STIM_linear +
-       CUE_high_gt_low*STIM_quadratic + (CUE_high_gt_low+STIM_linear|sub), data = df_filter)
+       CUE_high_gt_low*STIM_quadratic + (CUE_high_gt_low*STIM_linear|sub), 
+       data = df_filter.NA,
+       control=lmerControl(check.conv.singular = .makeCC(action = "ignore",  tol = 1e-4)))
 summary(model.SIIPS)
 sjPlot::tab_model(model.SIIPS,
                   title = "Multilevel-modeling: \nlmer(SIIPS ~ CUE * STIM + (CUE + STIM | sub), data = pain)",
@@ -928,7 +933,7 @@ df_filter$cue_name[df_filter$cue == "low_cue"] <-  "low cue"
 df_filter$stim_name[df_filter$stimulusintensity == "high_stim"] <-  "High"
 df_filter$stim_name[df_filter$stimulusintensity == "med_stim"] <-  "Med"
 df_filter$stim_name[df_filter$stimulusintensity == "low_stim"] <-  "Low"
-# DATA$levels_ordered <- factor(DATA$param_stimulus_type, levels=c("low", "med", "high"))
+
 df_filter$stim_ordered <- factor(df_filter$stim_name, levels = c("Low", "Med", "High"))
 df_filter$cue_ordered <- factor(df_filter$cue_name, levels = c("low cue", "high cue"))
 model_iv1 <- "stim_ordered"
@@ -1006,17 +1011,19 @@ ggsave(file.path(analysis_dir, paste0("SIIPS_maineffect", as.character(Sys.Date(
 ```
 
 
-## 3-3 SIIPS and PE
+## 5-3 SIIPS and PE (PEmerge)
 
 ```{r}
-SIIPSPE <- lmer(SIIPS ~ cuetype + stimintensity + PE_mdl2 + (cuetype   |sub), 
-     data = PEmerge)
+
+SIIPSPE <- lmer(SIIPS ~ CUE_high_gt_low + STIM_linear + PE_mdl2 + (CUE_high_gt_low + STIM_linear   |sub),
+     data = PEmerge, 
+     control=lmerControl(check.conv.singular = .makeCC(action = "ignore",  tol = 1e-4)))
 summary(SIIPSPE)
 vif(SIIPSPE)
 ```
 
 
-## Session wise filter
+## Session wise filter 
 ```{r}
 subjects_with_inadequate_data <- data %>%
   group_by(sub, CUE_high_gt_low, STIM_linear, SES_linear) %>% #SES_linear, 
@@ -1039,13 +1046,19 @@ model.behses <- lmer(outcomerating_impute ~
                           CUE_high_gt_low*STIM_quadratic*SES_quadratic +
                           (CUE_high_gt_low + STIM_linear + SES_linear |
          sub), data = df_filter_ses,
-         control = lmerControl(optimizer = "nmkbw"
-                               ))
+         control=lmerControl(check.conv.singular = .makeCC(action = "ignore",  tol = 1e-4)))
+         # control = lmerControl(optimizer = "nmkbw"
+                               # ))
 summary(model.behses)
 sjPlot::tab_model(model.behses,
                   title = "Multilevel-modeling: \nlmer(BEH ~ CUE * STIM *SES + (CUE + STIM + SES | sub), data = pain)",
                   CSS = list(css.table = '+font-size: 12;'))
 equatiomatic::extract_eq(model.behses)
+
+# Check why convergence is negative ____________________________________________
+abeh <- lme4::allFit(model.behses)
+opt.summary <- glance(abeh) |> select(optimizer, AIC, NLL_rel) |> arrange(NLL_rel)
+print(opt.summary)
 ```
 
 ## 5 Sessionwise NPS
