@@ -1,0 +1,21 @@
+{
+  "FileName": ["native_tsv_file"],
+  "Description": ["This file includes NPS cosine, correlation, and cosine similarity values with pain single trial values."],
+  "ColumnInfo": [],
+  "GeneratedFrom": {
+    "Code": [
+      {
+        "CodeName": ["step02_apply_nps"],
+        "CodePath": ["scripts/step10_nilearn/signature/step02_apply_nps.m"],
+        "Description": ["This code applies NPS to extracted single trials from fMRI data, loading fMRI single-trial filenames, applying NPS correlations, and saving results as a CSV file."],
+        "InputFilesDirectory": ["/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupplateau"],
+        "OutputDirectory": ["/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau/NPS"]
+      }
+    ],
+    "Steps": [
+      ["Load behavioral data from a TSV file: beh <- readr::read_tsv(file.path(main_dir, 'data/beh/sub-all_task-all_events.tsv'))"],
+      ["List and load CSV files from the directory: file_list <- list.files(path = file.path('/Volumes/spacetop_projects_cue', 'analysis/fmri/nilearn/deriv01_signature/rampup_plateau/NPS'), pattern = '*.csv', full.names = TRUE)"],
+      ["Combine CSV files: nps <- file_list %>% lapply(read.csv) %>% bind_rows()"]
+    ]
+  }
+}
