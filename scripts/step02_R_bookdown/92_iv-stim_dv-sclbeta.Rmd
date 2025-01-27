@@ -1,12 +1,17 @@
 # [physio] SCL {#ch92_SCL}
+
 ---
+
 title: "92_SCL_beta"
 output: html_document
 date: "2023-07-20"
+
 ---
 
 ## Outline
+
 ### load data
+
 ### subjectwise, groupwise mean
 
 ```{r message=TRUE, warning=TRUE, include=FALSE}
@@ -22,8 +27,8 @@ library(gghalves)
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 ```
@@ -62,12 +67,12 @@ return(df)
 beta <- read.table(file = "/Volumes/spacetop_projects_cue/analysis/physio/glm/pmod-stimintensity/glm-pmodintenisy_task-pain_scr.tsv", sep = '\t', header = TRUE)
 
 ```
+
 ```{r}
 beta_long <- gather(beta, key = "stim_type", value = "scl_value", intercept, low_stim, med_stim, high_stim)
 beta_con <- simple_contrasts_singletrial(beta_long)
 
 ```
-
 
 ```{r}
 
@@ -110,7 +115,7 @@ ylim <- c(-10, 60)
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
-  color <- c("#4575B4", "#D73027")
+  color <- c("#4274AD", "#C5263A")
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -152,7 +157,7 @@ plot_savefname <- file.path(
 # ----------------------------------------------------------------------
 #                            raincloudplots
 # ----------------------------------------------------------------------
-# TODO: 
+# TODO:
 # * change the range of the figure
 # * change the x-axis
 # * drop the NA conditions
@@ -193,16 +198,9 @@ k <- plot_lineplot_onefactorthick(SCLstim_groupwise,
                         color = c("intercept" = "gray",
                                   "high" = "red",
                                   "med" = "orange",
-                                  "low" = "blue"), 
-                        ggtitle = title, 
+                                  "low" = "blue"),
+                        ggtitle = title,
                         xlab = "Stimulus intensity", ylab = "ROI average activation (A.U.)")
 k <- k + theme(aspect.ratio=.8)
 print(k)
 ```
-
-
-
-
-
-
-

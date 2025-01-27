@@ -13,8 +13,9 @@ Here, I plot the outcome ratings as a function of stimulus intensity
 FIX: plot statistics in random effect plot - what is broken?
 
 ::::{.refbox}
-* https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
-::::
+
+- https://stackoverflow.com/questions/29402528/append-data-frames-together-in-a-for-loop/29419402
+  ::::
 
 ```{r load_libraries_3, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(psych)
@@ -68,24 +69,22 @@ analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", paste0("model04_i
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 ```
 
-
 ### Load data across tasks and designate common plot variables {.unlisted .unnumbered}
+
 ```{r}
 # 1. load data and rename columns ______________________________________________
 pvc <- cueR::df_load_pvc_beh(datadir, subject_varkey = "src_subject_id", iv = "param_cue_type", dv = "event02_expect_angle", exclude = "sub-0001")
 
 pvc <- cueR::simple_contrast_beh(pvc)
 
-column_mapping <- c("event04_actual_angle" = "OUTCOME", 
-                    "event02_expect_angle" = "EXPECT", 
+column_mapping <- c("event04_actual_angle" = "OUTCOME",
+                    "event02_expect_angle" = "EXPECT",
                     "src_subject_id" = "sub")
 pvc <- cueR::df_rename_columns(pvc, column_mapping)
 # dropping NA values
 pvc <- pvc[!is.na(pvc$OUTCOME), ]
 
 ```
-
-
 
 ```{r}
 combined_summary <- data.frame()
@@ -96,8 +95,7 @@ combined_summary <- data.frame()
 ### For the pain task, what is the effect of stimulus intensity on outcome ratings? {.unlisted .unnumbered}
 
 > Stimulus intensity effect is significant. What's also evident is that there is wide variablity in terms of indviduals differences
-The linear effect is reassuring and is similar to that of C-fiber profiles from 
-
+> The linear effect is reassuring and is similar to that of C-fiber profiles from
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 taskname <- 'pain'
@@ -115,10 +113,10 @@ title <- paste0(tools::toTitleCase(taskname), " - ", tools::toTitleCase(dv_keywo
 xlab <- "Stimulus Intensity type";               ylab <- "Outcome Ratings (degree)"
 ylim <- c(-10,190);               w = 5; h = 3;
 plot_savefname <- file.path(analysis_dir,
-                            paste0("raincloud_task-", taskname,"_iv-", iv_keyword, 
+                            paste0("raincloud_task-", taskname,"_iv-", iv_keyword,
                                    "_dv-rating-", dv_keyword,"_", as.character(Sys.Date()), ".png")
                             )
-color <- c("#FFA79A", "#CA5C4D", "#941100") #c("#4575B4", "#D73027")
+color <- c("#FFA79A", "#CA5C4D", "#941100") #c("#4274AD", "#C5263A")
 
 
 data <- pvc[pvc$task==taskname, ]
@@ -140,8 +138,8 @@ combined_summary <- rbind(combined_summary, outcome_groupwise)
 # 2. plot parameters _____________________________________________________________
 g <- cueR::plot_cueexpectancy_onefactor(
         outcome_subjectwise, outcome_groupwise, iv,
-        sub_mean, group_mean, se, subject, ggtitle, title, 
-        xlab="", ylab, taskname, 
+        sub_mean, group_mean, se, subject, ggtitle, title,
+        xlab="", ylab, taskname,
         w, h, dv_keyword, color, plot_savefname,
         expand_x = TRUE,
         xlim = c(NA, 3), ylim = c(-20, 200),
@@ -178,12 +176,11 @@ randeffect.P <- cueR::compute_randomeffects(model.painexpect, rand_savefname = r
                                       new_fix_names =  c("fix_intercept", "fix_stimlinear", "fix_stimquad"))
 ```
 
-
 ## Vicarious
 
 ### For the vicarious task, what is the effect of stimulus intensity on outcome ratings? {.unlisted .unnumbered}
 
-> Stimulus intensity effects are signficant. This is a great manipulation check, as the video of the vicarious pain condition are categorized in the low/med/high based on a combination of patient ratings and observer ratings. 
+> Stimulus intensity effects are signficant. This is a great manipulation check, as the video of the vicarious pain condition are categorized in the low/med/high based on a combination of patient ratings and observer ratings.
 
 ```{r vicarious_iv-stim_dv-outcome, echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 taskname <- 'vicarious'
@@ -200,7 +197,7 @@ title <- paste0(tools::toTitleCase(taskname), " - ", tools::toTitleCase(dv_keywo
 xlab <- "Stimulus Intensity type";               ylab <- "Outcome Ratings (degree)"
 ylim <- c(-10,190);               w = 5; h = 3;
 plot_savefname <- file.path(analysis_dir,
-                            paste0("raincloud_task-", taskname,"_iv-", iv_keyword, 
+                            paste0("raincloud_task-", taskname,"_iv-", iv_keyword,
                                    "_dv-rating-", dv_keyword,"_", as.character(Sys.Date()), ".png")
                             )
 color <- c("#C6FF8A", "#63C76E", "#008F51")
@@ -225,8 +222,8 @@ combined_summary <- rbind(combined_summary, outcome_groupwise)
 # 2. plot parameters _____________________________________________________________
 g <- cueR::plot_cueexpectancy_onefactor(
         outcome_subjectwise, outcome_groupwise, iv,
-        sub_mean, group_mean, se, subject, ggtitle, title, 
-        xlab="", ylab, taskname, 
+        sub_mean, group_mean, se, subject, ggtitle, title,
+        xlab="", ylab, taskname,
         w, h, dv_keyword, color, plot_savefname,
         expand_x = TRUE,
         xlim = c(NA, 3), ylim = c(-20, 200),
@@ -267,7 +264,7 @@ randeffect.V <- cueR::compute_randomeffects(model.vicexpect, rand_savefname = ra
 
 ### For the cognitive task, what is the effect of stimulus intensity on outcome ratings? {.unlisted .unnumbered}
 
-> Stimulus intensity effects, both linear and quadratic effects, are signfiicant. However, the plots indicate that the medium and high levels are almost similarly processed, except for that one participant that has a linear trend. 
+> Stimulus intensity effects, both linear and quadratic effects, are signfiicant. However, the plots indicate that the medium and high levels are almost similarly processed, except for that one participant that has a linear trend.
 
 ```{r cognitive_iv-stim_dv-outcome, echo=FALSE, message=TRUE, warning=TRUE, paged.print=FALSE}
 
@@ -285,7 +282,7 @@ title <- paste0(tools::toTitleCase(taskname), " - ", tools::toTitleCase(dv_keywo
 xlab <- "Stimulus Intensity type";               ylab <- "Outcome Ratings (degree)"
 ylim <- c(-10,190);               w = 5; h = 3;
 plot_savefname <- file.path(analysis_dir,
-                            paste0("raincloud_task-", taskname,"_iv-", iv_keyword, 
+                            paste0("raincloud_task-", taskname,"_iv-", iv_keyword,
                                    "_dv-rating-", dv_keyword,"_", as.character(Sys.Date()), ".png")
                             )
 color <- c("#8EA1FF", "#485DC8", "#011891")
@@ -310,8 +307,8 @@ combined_summary <- rbind(combined_summary, outcome_groupwise)
 # 2. plot parameters _____________________________________________________________
 g <- cueR::plot_cueexpectancy_onefactor(
         outcome_subjectwise, outcome_groupwise, iv,
-        sub_mean, group_mean, se, subject, ggtitle, title, 
-        xlab="", ylab, taskname, 
+        sub_mean, group_mean, se, subject, ggtitle, title,
+        xlab="", ylab, taskname,
         w, h, dv_keyword, color, plot_savefname,
         expand_x = TRUE,
         xlim = c(NA, 3), ylim = c(-20, 200),
@@ -348,8 +345,6 @@ randeffect.C <- cueR::compute_randomeffects(model.cogexpect, rand_savefname = ra
                                       new_fix_names =  c("fix_intercept", "fix_stimlinear", "fix_stimquad"))
 ```
 
-
-
 ## Lineplot
 
 > plotting line plots; identical to raincloud plots above, just different form
@@ -378,10 +373,9 @@ ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bo
 # ggsave(plot_filename, width = 15, height = 6)
 ```
 
-
 ## individual differences in outcome rating stim effect
 
-> random effects of stimulus intensity effects across tasks. 
+> random effects of stimulus intensity effects across tasks.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 

@@ -50,26 +50,24 @@ analysis_dir <- file.path(main_dir, "analysis", "mixedeffect", "model03_iv-cue_d
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 ```
 
-
 ### Load data across tasks and designate common plot variables {.unlisted .unnumbered}
+
 ```{r}
 # 1. load data and rename columns ______________________________________________
 pvc <- cueR::df_load_pvc_beh(datadir, subject_varkey = "src_subject_id", iv = "param_cue_type", dv = "event02_expect_angle", exclude = "sub-0001")
 pvc <- cueR::simple_contrast_beh(pvc)
 
-column_mapping <- c("event04_actual_angle" = "OUTCOME", 
-                    "event02_expect_angle" = "EXPECT", 
+column_mapping <- c("event04_actual_angle" = "OUTCOME",
+                    "event02_expect_angle" = "EXPECT",
                     "src_subject_id" = "sub")
 pvc <- cueR::df_rename_columns(pvc, column_mapping)
 ```
-
-
 
 ## Pain
 
 ### For the vicarious task, what is the effect of cue on outcome ratings? {.unlisted .unnumbered}
 
-> There is a signficiant effect of cue on outcome ratings. High cues lead to greater outcome ratings on average. 
+> There is a signficiant effect of cue on outcome ratings. High cues lead to greater outcome ratings on average.
 
 ```{r pain_iv-cue_dv-outcome, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # taskname = 'pain'
@@ -95,10 +93,10 @@ title <- paste0(tools::toTitleCase(taskname), " - ", tools::toTitleCase(dv_keywo
 xlab <- "Cue type";               ylab <- "Outcome Ratings (degree)"
 ylim <- c(-10,190);               w = 5; h = 3;
 plot_savefname <- file.path(analysis_dir,
-                            paste0("raincloud_task-", taskname,"_iv-", iv_keyword, 
+                            paste0("raincloud_task-", taskname,"_iv-", iv_keyword,
                                    "_dv-rating-", dv_keyword,"_", as.character(Sys.Date()), ".png")
                             )
-color <- c("#4575B4", "#D73027")
+color <- c("#4274AD", "#C5263A")
 
 
 data <- pvc[pvc$task==taskname, ]
@@ -117,8 +115,8 @@ outcome_groupwise <- cueR::summarySEwithin(
 # 2. plot parameters _____________________________________________________________
 g <- cueR::plot_cueexpectancy_onefactor(
         outcome_subjectwise, outcome_groupwise, iv,
-        sub_mean, group_mean, se, subject, ggtitle, title, 
-        xlab="", ylab, taskname, 
+        sub_mean, group_mean, se, subject, ggtitle, title,
+        xlab="", ylab, taskname,
         w, h, dv_keyword, color, plot_savefname,
         expand_x = TRUE,
         xlim = c(NA, 3), ylim = c(-20, 200),
@@ -155,12 +153,11 @@ randeffect.P <- cueR::compute_randomeffects(model.painexpect, rand_savefname = r
                                       new_fix_names =  c("fix_intercept", "fix_cue"))
 ```
 
-
 ## Vicarious
 
 ### For the vicarious task, what is the effect of cue on outcome ratings? {.unlisted .unnumbered}
 
-> Cue effects are significant even in the outcome rating domain. Note that the outcome ratings are measured after the stimulus delivery, and the cue-related data points are no longer visible on screen. 
+> Cue effects are significant even in the outcome rating domain. Note that the outcome ratings are measured after the stimulus delivery, and the cue-related data points are no longer visible on screen.
 
 ```{r vicarious_iv-cue_dv-outcome, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # taskname = 'vicarious'
@@ -186,10 +183,10 @@ title <- paste0(tools::toTitleCase(taskname), " - ", tools::toTitleCase(dv_keywo
 xlab <- "Cue type";               ylab <- "Outcome Ratings (degree)"
 ylim <- c(-10,190);               w = 5; h = 3;
 plot_savefname <- file.path(analysis_dir,
-                            paste0("raincloud_task-", taskname,"_iv-", iv_keyword, 
+                            paste0("raincloud_task-", taskname,"_iv-", iv_keyword,
                                    "_dv-rating-", dv_keyword,"_", as.character(Sys.Date()), ".png")
                             )
-color <- c("#4575B4", "#D73027")
+color <- c("#4274AD", "#C5263A")
 
 
 data <- pvc[pvc$task==taskname, ]
@@ -208,8 +205,8 @@ outcome_groupwise <- cueR::summarySEwithin(
 # 2. plot parameters _____________________________________________________________
 g <- cueR::plot_cueexpectancy_onefactor(
         outcome_subjectwise, outcome_groupwise, iv,
-        sub_mean, group_mean, se, subject, ggtitle, title, 
-        xlab="", ylab, taskname, 
+        sub_mean, group_mean, se, subject, ggtitle, title,
+        xlab="", ylab, taskname,
         w, h, dv_keyword, color, plot_savefname,
         expand_x = TRUE,
         xlim = c(NA, 3), ylim = c(-20, 200),
@@ -250,9 +247,7 @@ randeffect.V <- cueR::compute_randomeffects(model.vicexpect, rand_savefname = ra
 
 ### For the cognitive task, what is the effect of cue on outcome ratings? {.unlisted .unnumbered}
 
-> Cue effects are significant even in the outcome rating domain. Note that the outcome ratings are measured after the stimulus delivery, and the cue-related data points are no longer visible on screen. 
-
-
+> Cue effects are significant even in the outcome rating domain. Note that the outcome ratings are measured after the stimulus delivery, and the cue-related data points are no longer visible on screen.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 taskname <- 'cognitive'
@@ -270,10 +265,10 @@ title <- paste0(tools::toTitleCase(taskname), " - ", tools::toTitleCase(dv_keywo
 xlab <- "Cue type";               ylab <- "Outcome Ratings (degree)"
 ylim <- c(-10,190);               w = 5; h = 3;
 plot_savefname <- file.path(analysis_dir,
-                            paste0("raincloud_task-", taskname,"_iv-", iv_keyword, 
+                            paste0("raincloud_task-", taskname,"_iv-", iv_keyword,
                                    "_dv-rating-", dv_keyword,"_", as.character(Sys.Date()), ".png")
                             )
-color <- c("#4575B4", "#D73027")
+color <- c("#4274AD", "#C5263A")
 
 
 data <- pvc[pvc$task==taskname, ]
@@ -292,8 +287,8 @@ outcome_groupwise <- cueR::summarySEwithin(
 # 2. plot parameters _____________________________________________________________
 g <- cueR::plot_cueexpectancy_onefactor(
         outcome_subjectwise, outcome_groupwise, iv,
-        sub_mean, group_mean, se, subject, ggtitle, title, 
-        xlab="", ylab, taskname, 
+        sub_mean, group_mean, se, subject, ggtitle, title,
+        xlab="", ylab, taskname,
         w, h, dv_keyword, color, plot_savefname,
         expand_x = TRUE,
         xlim = c(NA, 3), ylim = c(-20, 200),
@@ -329,11 +324,6 @@ randeffect.C <- cueR::compute_randomeffects(model.cogexpect, rand_savefname = ra
                                       new_rand_names = c("rand_intercept", "rand_cue"),
                                       new_fix_names =  c("fix_intercept", "fix_cue"))
 ```
-
-
-
-
-
 
 ## Individual differences analysis: random cue effects
 
@@ -386,5 +376,3 @@ plots
 # )
 # ggsave(save_plotname, width = 10, height = 3)
 ```
-
-
