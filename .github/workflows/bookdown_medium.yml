@@ -29,7 +29,7 @@ jobs:
       - name: Render Book
         #run: Rscript -e "setwd('scripts/step02_R_bookdown'); bookdown::render_book('index.Rmd', 'bookdown::gitbook')"
         run: Rscript -e "setwd('scripts/step02_R_bookdown'); bookdown::render_book('index.Rmd', 'bookdown::bs4_book')"
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v3
         with:
           name: _book
           path: scripts/step02_R_bookdown/_book/
@@ -46,7 +46,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@master
       - name: Download artifact
-        uses: actions/download-artifact@v1.0.0
+        uses: actions/download-artifact@v3
         with:
           # Artifact name
           name: _book #scripts/step02_R_bookdown/_book  # optional
