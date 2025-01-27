@@ -1,7 +1,7 @@
 # [physio] SCL singletrial {#glm_SCL}
 
-In this notebook, we model SCR reponses trial-by-trial. Using canonical SCR functions, 
-we extract beta coefficients, which allow us to explore the relationship between skin conductance and 
+In this notebook, we model SCR reponses trial-by-trial. Using canonical SCR functions,
+we extract beta coefficients, which allow us to explore the relationship between skin conductance and
 SIIPS, NPS, PE, and outcome ratings.
 
 ```{r message=TRUE, warning=TRUE, include=FALSE}
@@ -21,8 +21,8 @@ library(bookdown)
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 ```
@@ -71,9 +71,10 @@ return(df)
 main_dir
 ```
 
-
 ## How was this dataframe generated?
+
 via [https://github.com/jungheejung/spacetop_biopac/tree/main/scripts/p03_glm](https://github.com/jungheejung/spacetop_biopac/tree/main/scripts/p03_glm/glm_singletrial)
+
 ```{r}
 
 taskname <- "pain"
@@ -81,10 +82,10 @@ taskname <- "pain"
 beta <- read.table(file = file.path(paste0(main_dir, "/analysis/physio/nobaseline/glm_singletrial/glm-singletrial_task-", taskname, "_scr.tsv")), sep = '\t', header = TRUE)
 ```
 
-
 ## 1. stim x cue effect
+
 ```{r}
-# 2. summarize data frame ______________________________________________________ 
+# 2. summarize data frame ______________________________________________________
 # beta_con <- beta %>%
 #   gather(key = "stim_cue", value = "beta", starts_with("high_stim"), starts_with("med_stim"), starts_with("low_stim")) %>%
 #   separate(stim_cue, into = c("stim", "cue"), sep = "\\.")
@@ -96,7 +97,7 @@ beta_con <- beta_contrast[beta_contrast$singletrial_index != "trial-001", ]
 
 ```{r}
 subjects_with_inadequate_data <- beta_con %>%
-  group_by(sub, cue_factor, STIM_linear) %>% 
+  group_by(sub, cue_factor, STIM_linear) %>%
   dplyr::summarise(count = n(), .groups = 'drop') %>%
   filter(count < 1) %>%
   distinct(sub) %>%
@@ -107,9 +108,8 @@ df_filter <- beta_con %>%
 print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(beta_con$sub)), length(unique(df_filter$sub)) ))
 ```
 
-
 ```{r}
-# 3. linear model ______________________________________________________________ 
+# 3. linear model ______________________________________________________________
 model.factorial <- lmer(beta ~ STIM_linear*cue_factor + STIM_quadratic*cue_factor + (cue_factor |sub), data = beta_con)
 
 sjPlot::tab_model(model.factorial,
@@ -159,7 +159,7 @@ ylim <- c(-10, 60)
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
-  color <- c("#4575B4", "#D73027")
+  color <- c("#4274AD", "#C5263A")
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -182,7 +182,7 @@ plot_savefname <- file.path(
 )
 
 # 7. raincloudplots ____________________________________________________________
-# TODO: 
+# TODO:
 # * change the range of the figure
 # * change the x-axis
 # * drop the NA conditions
@@ -217,13 +217,13 @@ print(g)
 SCLstim_groupwise$task = taskname
 
 k <- plot_lineplot_twofactor(SCLstim_groupwise,
-                             # taskname="pain", 
+                             # taskname="pain",
                         iv1="stim_ordered",
                         iv2="cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c( "high" = "red",
-                                  "low" = "#4C77ED"), 
-                        ggtitle = title, 
+                                  "low" = "#4C77ED"),
+                        ggtitle = title,
                         xlab = "Stimulus intensity", ylab = "SCR")
 # k <- k + theme(aspect.ratio=.8) +   geom_line(size = 1) + # Adjust line thickness
 #   geom_point(size = 3)  # Adjust point size
@@ -236,13 +236,13 @@ k <- k + theme(aspect.ratio=1,
   # geom_line(size = 1) + # Adjust line thickness
   geom_point(size = 2)  # Adjust point size
 
-ggsave(file.path(analysis_dir, paste0("SCR_maineffect", as.character(Sys.Date()), ".svg")), width = 8, height = 4, dpi=300) 
+ggsave(file.path(analysis_dir, paste0("SCR_maineffect", as.character(Sys.Date()), ".svg")), width = 8, height = 4, dpi=300)
 
 print(k)
 ```
 
-
 ## 2. across sessions?
+
 ```{r}
 
 
@@ -273,10 +273,6 @@ sjPlot::tab_model(model.betases,
 summary(model.betases)
 equatiomatic::extract_eq(model.betases)
 ```
-
-
-
-
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
@@ -310,7 +306,7 @@ for (sesname in c("ses-01", "ses-03", "ses-04")) {
     data$cue_name <- NA
     data$cue_name[data$cue == "high"] <- "high cue"
     data$cue_name[data$cue == "low"] <- "low cue"
-    # 
+    #
     # data$stim_name[data$stim == "high_stim"] <- "High"
     # data$stim_name[data$stim == "med_stim"] <- "Med"
     # data$stim_name[data$stim == "low_stim"] <- "Low"
@@ -357,7 +353,7 @@ for (sesname in c("ses-01", "ses-03", "ses-04")) {
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
-        color <- c("#4575B4", "#D73027")
+        color <- c("#4274AD", "#C5263A")
     } # if keyword starts with
     plot_savefname <- file.path(
         analysis_dir,
@@ -406,6 +402,7 @@ plot_filename = file.path(analysis_dir,
                           paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
 ggsave(plot_filename, width = 8, height = 4)
 ```
+
 ```{r}
   DATA = as.data.frame(combined_se_calc_cooksd)
   color <- c("#4C77ED", "#ED220D")
@@ -419,8 +416,8 @@ ggsave(plot_filename, width = 8, height = 4)
   line_thickness <- 0.2
   ylim <- c(1.1, 2.4)
   p1 <- plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-01" , ], taskname,
-                               LINEIV1, LINEIV2, MEAN, ERROR, color, 
-                               ggtitle = 'Visit 1', ylab = "SCR", 
+                               LINEIV1, LINEIV2, MEAN, ERROR, color,
+                               ggtitle = 'Visit 1', ylab = "SCR",
                                ylim=ylim)
   p1 <- p1 + theme(
   aspect.ratio = 1, # Adjust this as needed
@@ -428,7 +425,7 @@ ggsave(plot_filename, width = 8, height = 4)
 )
   p2 = plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-03", ], taskname,
                                LINEIV1, LINEIV2, MEAN, ERROR, color,
-                               ggtitle = 'Visit 2', ylab = "SCR", 
+                               ggtitle = 'Visit 2', ylab = "SCR",
                                ylim=ylim)
     p2 <- p2 + theme(
   aspect.ratio = 1, # Adjust this as needed
@@ -436,7 +433,7 @@ ggsave(plot_filename, width = 8, height = 4)
 )
   p3 = plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-04", ], taskname,
                                LINEIV1, LINEIV2, MEAN,ERROR, color,
-                               ggtitle = 'Visit 3', ylab = "SCR", 
+                               ggtitle = 'Visit 3', ylab = "SCR",
                                ylim=ylim)
     p3 <- p3 + theme(
   aspect.ratio = 1, # Adjust this as needed
@@ -451,19 +448,19 @@ ggsave(plot_filename, width = 8, height = 4)
   ggsave(plot_filename, arranged_plot, width = 8, height = 4, dpi=300)
 ```
 
-
 ## 3. Singletrial SCR and PE
 
 ### merge dataframe
+
 ```{r}
 analysis_folder <- "physio_singletrial"
 pe <- read.csv(file.path(main_dir, "data/RL/July2024_Heejung_fMRI_paper/table_pain.csv"), sep = ",")
 pe$singletrial_fname <- sprintf(
-  "sub-%04d_%s_run-%02d_runtype-%s_event-stimulus_trial-%03d_cuetype-%s_stimintensity-%s.nii.gz", 
-  pe$src_subject_id, 
-  pe$ses, 
-  pe$param_run_num, 
-  pe$runtype, 
+  "sub-%04d_%s_run-%02d_runtype-%s_event-stimulus_trial-%03d_cuetype-%s_stimintensity-%s.nii.gz",
+  pe$src_subject_id,
+  pe$ses,
+  pe$param_run_num,
+  pe$runtype,
   pe$trial_index -1,
   gsub("_cue", "", pe$param_cue_type),       # Remove "_cue" from param_cue_type
   gsub("_stim", "", pe$param_stimulus_type)  # Remove "_stim" from param_stimulus_type
@@ -471,14 +468,14 @@ pe$singletrial_fname <- sprintf(
 
 beta_con$trialind <- as.numeric(gsub("trial-", "", beta_con$singletrial_index))
 beta_con$singletrial_fname <- sprintf(
-  "%s_%s_%s_runtype-%s_event-stimulus_trial-%03d_cuetype-%s_stimintensity-%s.nii.gz", 
-  beta_con$sub, 
-  beta_con$ses, 
-  beta_con$run, 
-  beta_con$runtype, 
+  "%s_%s_%s_runtype-%s_event-stimulus_trial-%03d_cuetype-%s_stimintensity-%s.nii.gz",
+  beta_con$sub,
+  beta_con$ses,
+  beta_con$run,
+  beta_con$runtype,
   beta_con$trialind -1,
-  beta_con$cuetype,   
-  beta_con$stimtype  
+  beta_con$cuetype,
+  beta_con$stimtype
 )
 
 # intersect ____________________________________________________________________
@@ -497,11 +494,12 @@ summary(model.scrpe)
 ```
 
 ## 4. Singletrial SCR ~ NPS
+
 ```{r}
 nps <- read.csv(file.path(main_dir, "analysis/fmri/nilearn/deriv01_signature/rampup_plateau/signature-NPS_sub-all_runtype-pvc_event-stimulus.tsv"), sep = ",")
 # intersect
 # Assuming df1 and df2 are your data frames and 'key_column' is the name of your key column
-df.scrnpspe <- inner_join(df_merge, nps, by = "singletrial_fname") 
+df.scrnpspe <- inner_join(df_merge, nps, by = "singletrial_fname")
 
 model.scrpe <- lmer(beta ~ NPS + (NPS |sub), data = df.scrnpspe)
 
@@ -511,7 +509,8 @@ sjPlot::tab_model(model.scrpe,
 summary(model.scrpe)
 ```
 
-## 5. Singletrial SCR ~ SIIPS 
+## 5. Singletrial SCR ~ SIIPS
+
 ```{r}
 SIIPS <- read.csv(file.path("/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau/signature-SIIPS_sub-all_runtype-pvc_event-stimulus.tsv"), sep = ",")
 # intersect
@@ -527,6 +526,7 @@ summary(model.scr_SIIPS)
 ```
 
 ## 6. Singletrial SCR ~ NPS + SIIPS
+
 ```{r}
 model.scr_signature <- lmer(beta ~ SIIPS + NPS + (SIIPS + NPS |sub), data = df.scr)
 
@@ -537,6 +537,7 @@ summary(model.scr_signature)
 ```
 
 ## 7-1. Singletrial SCR and SIIPS resid, correlate with PE?
+
 > After modeling SCR with SIIPS, the residuals do not correlate with PE
 
 ```{r}
@@ -548,9 +549,8 @@ model.residSIIPSpe <- lmer(SIIPSresid ~ PE_mdl2 + (PE_mdl2|sub), data = df.scr)
 summary(model.residSIIPSpe)
 ```
 
-
-
 ## 7-2. Singletrial SCR and SIIPS resid, correlate with NPS?
+
 > After modeling SCR with SIIPS, the residuals do not correlate with PE
 
 ```{r}

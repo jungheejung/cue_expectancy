@@ -1,8 +1,9 @@
 # [physio] SCL {#glm_SCL}
 
-
 ## Outline
+
 ### load data
+
 ### subjectwise, groupwise mean
 
 ```{r message=TRUE, warning=TRUE, include=FALSE}
@@ -19,8 +20,8 @@ library(gghalves)
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 ```
@@ -67,9 +68,10 @@ return(df)
 }
 ```
 
-
 ## How was this dataframe generated?
+
 via [https://github.com/jungheejung/spacetop_biopac/tree/main/scripts/p03_glm](https://github.com/jungheejung/spacetop_biopac/tree/main/scripts/p03_glm)
+
 ```{r}
 
 taskname <- "pain"
@@ -77,10 +79,10 @@ taskname <- "pain"
 beta <- read.table(file = file.path(paste0("/Volumes/spacetop_projects_cue/analysis/physio/nobaseline/glm/glm-factorial_task-", taskname, "_scr.tsv")), sep = '\t', header = TRUE)
 ```
 
-
 ## 1) stim x cue effect
+
 ```{r}
-# 2. summarize data frame ______________________________________________________ 
+# 2. summarize data frame ______________________________________________________
 beta_long <- beta %>%
   gather(key = "stim_cue", value = "beta", starts_with("high_stim"), starts_with("med_stim"), starts_with("low_stim")) %>%
   separate(stim_cue, into = c("stim", "cue"), sep = "\\.")
@@ -89,7 +91,7 @@ beta_con <- simple_contrasts_singletrial(beta_long)
 
 ```{r}
 subjects_with_inadequate_data <- beta_con %>%
-  group_by(sub, cue_factor, STIM_linear) %>% 
+  group_by(sub, cue_factor, STIM_linear) %>%
   dplyr::summarise(count = n(), .groups = 'drop') %>%
   filter(count < 1) %>%
   distinct(sub) %>%
@@ -100,9 +102,8 @@ df_filter <- beta_con %>%
 print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(beta_con$sub)), length(unique(df_filter$sub)) ))
 ```
 
-
 ```{r}
-# 3. linear model ______________________________________________________________ 
+# 3. linear model ______________________________________________________________
 model.factorial <- lmer(beta ~ STIM_linear*cue_factor + STIM_quadratic*cue_factor + (cue_factor |sub), data = beta_con)
 # summary(model.factorial)
 sjPlot::tab_model(model.factorial,
@@ -152,7 +153,7 @@ ylim <- c(-10, 60)
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
-  color <- c("#4575B4", "#D73027")
+  color <- c("#4274AD", "#C5263A")
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -175,7 +176,7 @@ plot_savefname <- file.path(
 )
 
 # 7. raincloudplots ____________________________________________________________
-# TODO: 
+# TODO:
 # * change the range of the figure
 # * change the x-axis
 # * drop the NA conditions
@@ -210,13 +211,13 @@ print(g)
 SCLstim_groupwise$task = taskname
 
 k <- plot_lineplot_twofactor(SCLstim_groupwise,
-                             # taskname="pain", 
+                             # taskname="pain",
                         iv1="stim_ordered",
                         iv2="cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c( "high" = "red",
-                                  "low" = "#4C77ED"), 
-                        ggtitle = title, 
+                                  "low" = "#4C77ED"),
+                        ggtitle = title,
                         xlab = "Stimulus intensity", ylab = "SCR")
 # k <- k + theme(aspect.ratio=.8) +   geom_line(size = 1) + # Adjust line thickness
 #   geom_point(size = 3)  # Adjust point size
@@ -229,13 +230,13 @@ k <- k + theme(aspect.ratio=1,
   # geom_line(size = 1) + # Adjust line thickness
   geom_point(size = 2)  # Adjust point size
 
-ggsave(file.path(analysis_dir, paste0("SCR_maineffect", as.character(Sys.Date()), ".svg")), width = 8, height = 4, dpi=300) 
+ggsave(file.path(analysis_dir, paste0("SCR_maineffect", as.character(Sys.Date()), ".svg")), width = 8, height = 4, dpi=300)
 
 print(k)
 ```
 
-
 ## 2) across sessions?
+
 ```{r}
 
 # code session
@@ -276,10 +277,6 @@ sjPlot::tab_model(model.betases,
 summary(model.betases)
 equatiomatic::extract_eq(model.betases)
 ```
-
-
-
-
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
@@ -360,7 +357,7 @@ for (sesname in c("ses-01", "ses-03", "ses-04")) {
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
-        color <- c("#4575B4", "#D73027")
+        color <- c("#4274AD", "#C5263A")
     } # if keyword starts with
     plot_savefname <- file.path(
         analysis_dir,
@@ -409,6 +406,7 @@ plot_filename = file.path(analysis_dir,
                           paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
 ggsave(plot_filename, width = 8, height = 4)
 ```
+
 ```{r}
   DATA = as.data.frame(combined_se_calc_cooksd)
   color <- c("#4C77ED", "#ED220D")
@@ -422,8 +420,8 @@ ggsave(plot_filename, width = 8, height = 4)
   line_thickness <- 0.2
   ylim <- c(1.3, 2.4)
   p1 <- plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-01" , ], taskname,
-                               LINEIV1, LINEIV2, MEAN, ERROR, color, 
-                               ggtitle = 'Visit 1', ylab = "SCR", 
+                               LINEIV1, LINEIV2, MEAN, ERROR, color,
+                               ggtitle = 'Visit 1', ylab = "SCR",
                                ylim=ylim)
   p1 <- p1 + theme(
   aspect.ratio = 1, # Adjust this as needed
@@ -431,7 +429,7 @@ ggsave(plot_filename, width = 8, height = 4)
 )
   p2 = plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-03", ], taskname,
                                LINEIV1, LINEIV2, MEAN, ERROR, color,
-                               ggtitle = 'Visit 2', ylab = "SCR", 
+                               ggtitle = 'Visit 2', ylab = "SCR",
                                ylim=ylim)
     p2 <- p2 + theme(
   aspect.ratio = 1, # Adjust this as needed
@@ -439,7 +437,7 @@ ggsave(plot_filename, width = 8, height = 4)
 )
   p3 = plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-04", ], taskname,
                                LINEIV1, LINEIV2, MEAN,ERROR, color,
-                               ggtitle = 'Visit 3', ylab = "SCR", 
+                               ggtitle = 'Visit 3', ylab = "SCR",
                                ylim=ylim)
     p3 <- p3 + theme(
   aspect.ratio = 1, # Adjust this as needed

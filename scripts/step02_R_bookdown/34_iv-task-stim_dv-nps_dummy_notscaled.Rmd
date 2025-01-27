@@ -1,15 +1,15 @@
-# [fMRI] NPSdummy ~ stim * task (contrast-notscaled-error) {#nps_stim_error}
+# [fMRI] NPSdummy ~ stim \* task (contrast-notscaled-error) {#nps_stim_error}
 
 ```
 author: "Heejung Jung"
 date: "2023-02-02"
 ```
 
-## Overview  {.unlisted .unnumbered}
-* Dummy contrasts (pain > rest, cognitive > rest, vicarious > rest) were constructed in SPM for the stimulus phase
-* Afterwards, I calculate the dot product betweeen average subjectwise dummy contrasts and NPS weightmap
-* Here, results are plotted as a function of stimulus intensity and task.
+## Overview {.unlisted .unnumbered}
 
+- Dummy contrasts (pain > rest, cognitive > rest, vicarious > rest) were constructed in SPM for the stimulus phase
+- Afterwards, I calculate the dot product betweeen average subjectwise dummy contrasts and NPS weightmap
+- Here, results are plotted as a function of stimulus intensity and task.
 
 ```{r libraries_nps_stim_nonscaled, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(car)
@@ -19,12 +19,11 @@ library(gghalves)
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 ```
-
 
 ```{r function::simple_contrasts_nonscaled_34, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 simple_contrast_NPS <- function(df) {
@@ -76,7 +75,7 @@ two_factor_lineplot <-
       ylab(ylab) +
       #scale_color_manual(values = color) +
       theme_classic() +
-      
+
       theme(aspect.ratio = .6) +
       expand_limits(x = 3.25) +
       #guides(fill = "none") +
@@ -96,11 +95,10 @@ two_factor_lineplot <-
         legend.margin = margin(6, 6, 6, 6)
       ) +
       theme(legend.key = element_rect(fill = "white", colour = "white"))
-    
+
     return(g)
   }
 ```
-
 
 ```{r common_parameters_34_nonscaled, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 main_dir = dirname(dirname(getwd()))
@@ -111,7 +109,6 @@ savedir <- analysis_dir
 
 npsdir = file.path(main_dir,'analysis','fmri','spm','univariate','model01_6cond_nonscaled','extract_nps')
 ```
-
 
 ```{r load_df_stack_34_nonscaled, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 pain_keys <- list(contrast_name = "P_simple", taskname = "pain",con_list = c(32,33,34,35,36,37), npsdir = npsdir)
@@ -167,8 +164,8 @@ plot_keys <- list(sub_mean = "mean_per_sub",group_mean = "mean_per_sub_norm_mean
 ```
 
 ```{r include=FALSE}
-summary <- compute_summary_NPS(df = pvc, 
-                             
+summary <- compute_summary_NPS(df = pvc,
+
                              groupwise_measurevar = "mean_per_sub",
                              subject_keyword = "subject",
                              model_iv1 = "task",
@@ -178,11 +175,12 @@ groupwise <-as.data.frame(summary[[2]])
     if (any(startsWith(plot_keys$dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
-        color <- c("#4575B4", "#D73027")
-    } 
+        color <- c("#4274AD", "#C5263A")
+    }
 ```
 
 ### Raincloud plots
+
 ```{r echo=FALSE}
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02", "#D95F02")
@@ -207,8 +205,8 @@ groupwise <-as.data.frame(summary[[2]])
         )
     )
 p <- plot_halfrainclouds_twofactor(
-      subjectwise, groupwise, iv1 = "task", iv2 = "stim_ordered", 
-      subject_mean, group_mean, se, subject, 
+      subjectwise, groupwise, iv1 = "task", iv2 = "stim_ordered",
+      subject_mean, group_mean, se, subject,
       ggtitle, title, xlab, ylab, taskname, ylim,
       w, h, dv_keyword, color, plot2_savefname)
 p
@@ -216,6 +214,7 @@ p
 ```
 
 ### Line plots
+
 ```{r echo=FALSE}
 
 g<-two_factor_lineplot(df = groupwise,  iv1 = "stim_ordered",iv2 = "task", mean = "mean_per_sub_norm_mean", error = "se",
@@ -223,6 +222,3 @@ g<-two_factor_lineplot(df = groupwise,  iv1 = "stim_ordered",iv2 = "task", mean 
                        ylab = dv)
 g
 ```
-
-
-

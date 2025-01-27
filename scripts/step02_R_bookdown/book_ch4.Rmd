@@ -54,19 +54,17 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-
-
 ```{r}
 analysis_folder <- "fmri_nps_canlab"
 beh <- readr::read_tsv(file.path(main_dir, "data/beh/sub-all_task-all_events.tsv"))
 dv <- "nps"
 base_dir <- "/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau_canlab"
 file_paths <- list.files(base_dir, pattern =  "sub-.*_signature-NPSroi_.*\\.csv$", full.names = TRUE, recursive = TRUE)
-all_data <- file_paths %>% 
+all_data <- file_paths %>%
   map_dfr(~read_csv(.x, show_col_types = FALSE), .id = "file_path")
 
 file_paths <- list.files(base_dir, pattern =  "sub-.*_roi-SIIPS.*\\.csv$", full.names = TRUE, recursive = TRUE)
-all_siips <- file_paths %>% 
+all_siips <- file_paths %>%
   map_dfr(~read_csv(.x, show_col_types = FALSE), .id = "file_path")
 
 
@@ -86,7 +84,7 @@ df_merge <- inner_join(beh, all_data, by = "singletrial_fname")
 df_merge <- df_merge %>%
   # mutate(singletrial_fname = basename(Filenames))
   mutate(singletrial_fname = as.character(singletrial_fname)) %>%
-  
+
   extract(singletrial_fname, into = c("sub", "ses", "run", "runtype", "event", "trial", "cuetype", "stimintensity"),
           regex = "^(sub-\\d+)_(ses-\\d+)_(run-\\d+)_runtype-(pain|vicarious|cognitive)_event-(cue|stimulus)_trial-(\\d+)_cuetype-(high|low)(?:_stimintensity-(high|med|low))?\\.nii.gz$",
           remove = FALSE)
@@ -97,7 +95,7 @@ df_merge$stimintensity[df_merge$stimintensity == ""] <- NA
 data <-df_merge[df_merge$runtype == "pain" ,]
 
 # contrast code ________________________________________________________________
-data$stim <- NA; data$STIM_linear <- NA; data$STIM_quadratic <- NA; 
+data$stim <- NA; data$STIM_linear <- NA; data$STIM_quadratic <- NA;
 data$CUE_high_gt_low <- NA;
 data$SES_linear <- NA;data$SES_quadratic <- NA
 data$stim[data$stimulusintensity == "low_stim"] <-  -0.5 # social influence task
@@ -140,7 +138,6 @@ dv <- "nps"
 dv_keyword <- "NPS"
 ```
 
-
 ```{r}
 # load dataframes ______________________________________________________________
 beh <- readr::read_tsv(file.path(main_dir, "data/beh/sub-all_task-all_events.tsv"))
@@ -148,12 +145,12 @@ beh <- readr::read_tsv(file.path(main_dir, "data/beh/sub-all_task-all_events.tsv
 
 base_dir <- "/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau_canlab"
 file_paths <- list.files(base_dir, pattern =  "sub-.*_signature-NPSroi_.*\\.csv$", full.names = TRUE, recursive = TRUE)
-NPS <- file_paths %>% 
+NPS <- file_paths %>%
   map_dfr(~read_csv(.x, show_col_types = FALSE), .id = "file_path")
 SIIPS <- read.csv(file.path("/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau_canlab/signature-SIIPS_sub-all_runtype-pain_event-stimulus.csv"), sep = ",")
-# SIIPS <- siips %>% 
+# SIIPS <- siips %>%
 #   select(-X)
-# NPS <- nps %>% 
+# NPS <- nps %>%
 #   select(-X)
 
 
@@ -165,7 +162,7 @@ dfmerge <- inner_join(df_merge1, SIIPS, by = "singletrial_fname")
 
 dfmerge <- dfmerge %>%
   mutate(singletrial_fname = as.character(singletrial_fname)) %>%
-  
+
   extract(singletrial_fname, into = c("sub", "ses", "run", "runtype", "event", "trial", "cuetype", "stimintensity"),
           regex = "^(sub-\\d+)_(ses-\\d+)_(run-\\d+)_runtype-(pain|vicarious|cognitive)_event-(cue|stimulus)_trial-(\\d+)_cuetype-(high|low)(?:_stimintensity-(high|med|low))?\\.nii.gz$",
           remove = FALSE)
@@ -177,15 +174,15 @@ dir.create(analysis_dir,
            showWarnings = FALSE,
            recursive = TRUE)
 savedir <- analysis_dir
-lowcuehex <-  "#3E61EC" # "#575a5e"
-highcuehex <-  "#FF0000" #"#FEAE00"
+lowcuehex <-  "#0b5fa6" # "#575a5e"
+highcuehex <-  "#C5263A" #"#FEAE00"
 ```
 
 ```{r}
 data <-dfmerge[dfmerge$runtype == "pain" ,]
 
 # contrast code ________________________________________________________________
-data$stim <- NA; data$STIM_linear <- NA; data$STIM_quadratic <- NA; 
+data$stim <- NA; data$STIM_linear <- NA; data$STIM_quadratic <- NA;
 data$CUE_high_gt_low <- NA;
 data$SES_linear <- NA;data$SES_quadratic <- NA
 data$stim[data$stimulusintensity == "low_stim"] <-  -0.5 # social influence task
@@ -226,7 +223,7 @@ stim_con2 <- "STIM_quadratic"
 iv1 <- "CUE_high_gt_low"
 
 subjects_with_inadequate_data <- data %>%
-  group_by(sub, CUE_high_gt_low, STIM_linear) %>% #SES_linear, 
+  group_by(sub, CUE_high_gt_low, STIM_linear) %>% #SES_linear,
   dplyr::summarise(count = n(), .groups = 'drop') %>%
   filter(count < 3) %>%
   distinct(sub) %>%
@@ -238,7 +235,9 @@ print(sprintf("after filtering out subjects that have less than 3 trials in cell
 ```
 
 ## 1 Beh
+
 ### Beh linear analysis
+
 ```{r}
 model.beh <- lmer(outcomerating ~ CUE_high_gt_low*STIM_linear +
        CUE_high_gt_low*STIM_quadratic + (CUE_high_gt_low+STIM_linear|sub), data = df_filter)
@@ -248,7 +247,9 @@ sjPlot::tab_model(model.beh,
                   CSS = list(css.table = '+font-size: 12;'))
 equatiomatic::extract_eq(model.beh)
 ```
+
 ### Beh lineplot
+
 ```{r}
 dv <- "outcomerating"
 taskname <- "pain"
@@ -302,7 +303,7 @@ plot_savefname <- file.path(
   )
 )
 subset <- stimcue_groupwise[stimcue_groupwise$cue_ordered == "low cue",]
-g <- plot_lineplot_twofactor(subset, 
+g <- plot_lineplot_twofactor(subset,
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("low cue" = lowcuehex), ggtitle = "Within pain task: Outcome rating",
@@ -316,13 +317,13 @@ g <- g + theme(aspect.ratio=1,
   # geom_line(size = 1) + # Adjust line thickness
   geom_point(size = 2) + # Adjust point size
    ylim(42, 87)
-ggsave(file.path(analysis_dir, paste0("beh_maineffect", as.character(Sys.Date()), "_lowcue.svg")), plot=g, w=4, h=4, dpi=300) 
+ggsave(file.path(analysis_dir, paste0("beh_maineffect", as.character(Sys.Date()), "_lowcue.svg")), plot=g, w=4, h=4, dpi=300)
 
 
 k <- plot_lineplot_twofactor(stimcue_groupwise,# taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = lowcuehex,"high cue" = highcuehex), 
+                        color = c("low cue" = lowcuehex,"high cue" = highcuehex),
                         ggtitle = paste0("Beh N =", length(unique(stimcue_subjectwise$sub))),
                         xlab = "Stimulus intensity", ylab = "Outcome rating")
 k<- k+ theme(aspect.ratio=1,
@@ -335,11 +336,13 @@ k<- k+ theme(aspect.ratio=1,
   geom_point(size = 2) + # Adjust point size
  ylim(42, 87)
 k
-ggsave(file.path(analysis_dir, paste0("beh_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300) 
+ggsave(file.path(analysis_dir, paste0("beh_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300)
 ```
 
 ## 2 NPS
+
 ### NPS linear analysis
+
 ```{r}
 model.NPS <- lmer(NPS ~ CUE_high_gt_low*STIM_linear +
        CUE_high_gt_low*STIM_quadratic + (CUE_high_gt_low+STIM_linear|sub), data = df_filter)
@@ -354,6 +357,7 @@ sink(NULL)  #
 ```
 
 ### lineplot
+
 ```{r}
 dv <- "NPS"
 taskname <- "pain"
@@ -407,7 +411,7 @@ plot_savefname <- file.path(
   )
 )
 NPSsubset <- NPSstimcue_groupwise[NPSstimcue_groupwise$cue_ordered == "low cue",]
-g <- plot_lineplot_twofactor(NPSsubset, 
+g <- plot_lineplot_twofactor(NPSsubset,
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("low cue" = lowcuehex), ggtitle = paste0("NPS N =", length(unique(NPSstimcue_subjectwise$sub))),
@@ -421,13 +425,13 @@ g <- g + theme(aspect.ratio=1,
   # geom_line(size = 1) + # Adjust line thickness
   geom_point(size = 2) + # Adjust point size
    ylim( 3,6)
-ggsave(file.path(analysis_dir, paste0("NPS_maineffect", as.character(Sys.Date()), "_lowcue.svg")), plot=g, w=4, h=4, dpi=300) 
+ggsave(file.path(analysis_dir, paste0("NPS_maineffect", as.character(Sys.Date()), "_lowcue.svg")), plot=g, w=4, h=4, dpi=300)
 
 
 k <- plot_lineplot_twofactor(NPSstimcue_groupwise,# taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = lowcuehex,"high cue" = highcuehex), 
+                        color = c("low cue" = lowcuehex,"high cue" = highcuehex),
                         ggtitle = paste0("NPS N =", length(unique(NPSstimcue_subjectwise$sub))),
                         xlab = "Stimulus intensity", ylab = "NPS")
 k<- k+ theme(aspect.ratio=1,
@@ -440,10 +444,11 @@ k<- k+ theme(aspect.ratio=1,
   geom_point(size = 2) + # Adjust point size
   ylim( 4,6)
 k
-ggsave(file.path(analysis_dir, paste0("NPS_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300) 
+ggsave(file.path(analysis_dir, paste0("NPS_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300)
 ```
 
 ### NPS pos
+
 ```{r}
 dv <- "npspos"
 taskname <- "pain"
@@ -497,7 +502,7 @@ plot_savefname <- file.path(
   )
 )
 NPSsubset <- NPSstimcue_groupwise[NPSstimcue_groupwise$cue_ordered == "low cue",]
-g <- plot_lineplot_twofactor(NPSsubset, 
+g <- plot_lineplot_twofactor(NPSsubset,
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("low cue" = lowcuehex), ggtitle = paste0("NPS N =", length(unique(NPSstimcue_subjectwise$sub))),
@@ -511,13 +516,13 @@ g <- g + theme(aspect.ratio=1,
   # geom_line(size = 1) + # Adjust line thickness
   geom_point(size = 2) + # Adjust point size
    ylim( 3,6)
-ggsave(file.path(analysis_dir, paste0("NPS_maineffect", as.character(Sys.Date()), "_lowcue.svg")), plot=g, w=4, h=4, dpi=300) 
+ggsave(file.path(analysis_dir, paste0("NPS_maineffect", as.character(Sys.Date()), "_lowcue.svg")), plot=g, w=4, h=4, dpi=300)
 
 
 k <- plot_lineplot_twofactor(NPSstimcue_groupwise,# taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = lowcuehex,"high cue" = highcuehex), 
+                        color = c("low cue" = lowcuehex,"high cue" = highcuehex),
                         ggtitle = paste0("NPS N =", length(unique(NPSstimcue_subjectwise$sub))),
                         xlab = "Stimulus intensity", ylab = "NPS")
 k<- k+ theme(aspect.ratio=1,
@@ -527,12 +532,13 @@ k<- k+ theme(aspect.ratio=1,
           plot.title = element_text(size = 24, hjust = 0.5) # Plot title
           ) +
   # geom_line(size = 1) + # Adjust line thickness
-  geom_point(size = 2) 
+  geom_point(size = 2)
 k
-ggsave(file.path(analysis_dir, paste0("NPSpos_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300) 
+ggsave(file.path(analysis_dir, paste0("NPSpos_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300)
 ```
 
 ### NPS neg
+
 ```{r}
 dv <- "npsneg"
 taskname <- "pain"
@@ -586,7 +592,7 @@ plot_savefname <- file.path(
   )
 )
 NPSsubset <- NPSstimcue_groupwise[NPSstimcue_groupwise$cue_ordered == "low cue",]
-g <- plot_lineplot_twofactor(NPSsubset, 
+g <- plot_lineplot_twofactor(NPSsubset,
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("low cue" = lowcuehex), ggtitle = paste0("NPS N =", length(unique(NPSstimcue_subjectwise$sub))),
@@ -600,13 +606,13 @@ g <- g + theme(aspect.ratio=1,
   # geom_line(size = 1) + # Adjust line thickness
   geom_point(size = 2) + # Adjust point size
    ylim( 3,6)
-ggsave(file.path(analysis_dir, paste0("NPS_maineffect", as.character(Sys.Date()), "_lowcue.svg")), plot=g, w=4, h=4, dpi=300) 
+ggsave(file.path(analysis_dir, paste0("NPS_maineffect", as.character(Sys.Date()), "_lowcue.svg")), plot=g, w=4, h=4, dpi=300)
 
 
 k <- plot_lineplot_twofactor(NPSstimcue_groupwise,# taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = lowcuehex,"high cue" = highcuehex), 
+                        color = c("low cue" = lowcuehex,"high cue" = highcuehex),
                         ggtitle = paste0("NPSneg N =", length(unique(NPSstimcue_subjectwise$sub))),
                         xlab = "Stimulus intensity", ylab = "NPSneg")
 k<- k+ theme(aspect.ratio=1,
@@ -616,13 +622,13 @@ k<- k+ theme(aspect.ratio=1,
           plot.title = element_text(size = 24, hjust = 0.5) # Plot title
           ) +
   # geom_line(size = 1) + # Adjust line thickness
-  geom_point(size = 2) 
+  geom_point(size = 2)
 k
-ggsave(file.path(analysis_dir, paste0("NPSneg_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300) 
+ggsave(file.path(analysis_dir, paste0("NPSneg_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300)
 ```
 
+### PE
 
-### PE 
 ```{r}
 PEdf <- read.csv("/Users/h/Documents/projects_local/cue_expectancy/data/RL/modelfit_jepma_0525/table_pain.csv")
 
@@ -662,8 +668,8 @@ xlab("PE") +
           axis.title = element_text(size = 24, ), # Axis titles
           axis.text = element_text(size = 18), # Axis text (x and y)
           plot.title = element_text(size = 24, hjust = 0.5),# Plot title
-         legend.position = "none"  
-          ) 
+         legend.position = "none"
+          )
 plot.PE_NPS
 ggsave("/Users/h/Documents/projects_local/cue_expectancy/resources/plots_dissertation/ch4/ch4_NPSPE.png",plot.PE_NPS, w=5, h=4, dpi=300)
 
@@ -677,12 +683,11 @@ cor_matrix <- cor(subset, use = "pairwise.complete.obs")
 corrplot(cor_matrix, method = "circle")
 ```
 
-
 ```{r}
 # cor_5 <- rcorr(as.matrix(mtcars))
 # M <- cor_5$r
 # p_mat <- cor_5$P
-# corrplot(M, type = "upper", order = "hclust", 
+# corrplot(M, type = "upper", order = "hclust",
 #          p.mat = p_mat, sig.level = 0.01)
 
 library(Hmisc)
@@ -691,37 +696,39 @@ cor_matrix <- cor_results$r
 
 # Extract the p-values
 p_values <- cor_results$P
-corrplot(cor_matrix, 
+corrplot(cor_matrix,
          p.mat = p_values, sig.level = 0.01)
 
 # Print the correlation matrix
 # print(cor_matrix)
-# 
+#
 # # Print the p-values
 # print(p_values)
 ```
 
 ## Tor suggestion lmer with PD
+
 ```{r}
-NPSPE <- lmer(NPS~cuetype + stimintensity + PE_mdl2 + (1|sub), 
+NPSPE <- lmer(NPS~cuetype + stimintensity + PE_mdl2 + (1|sub),
      data = PEnpsdf)
 summary(NPSPE)
 
-NPSPEpos <- lmer(npspos~cuetype + stimintensity + PE_mdl2 + (1|sub), 
+NPSPEpos <- lmer(npspos~cuetype + stimintensity + PE_mdl2 + (1|sub),
      data = PEnpsdf)
 summary(NPSPEpos)
 vif(NPSPEpos)
 ```
 
 ## 3 nociceptive ROI
+
 ```{r}
 # filter data __________________________________________________________________
 # Make sure that each condition cell has adequate amount of trials
-dependent_vars <- c("nps","npspos","npsneg", 
+dependent_vars <- c("nps","npspos","npsneg",
                     "pos_nps_vermis","pos_nps_rIns","pos_nps_rV1","pos_nps_rThal",
                     "pos_nps_lIns","pos_nps_rdpIns","pos_nps_rS2_Op","pos_nps_dACC",
                     "neg_nps_rLOC","neg_nps_lLOC","neg_nps_rpLOC","neg_nps_pgACC","neg_nps_lSTS","neg_nps_rIPL","neg_nps_PCC"  )  # Update this with your actual DVs
-newlist <- c("NPS","NPS positive weights","NPS negative weights", 
+newlist <- c("NPS","NPS positive weights","NPS negative weights",
                     "Vermis","rIns","rV1","rThal",
                     "lIns","rdpIns","rS2 & Op","dACC",
                     "neg_nps_rLOC","neg_nps_lLOC","rpLOC","pgACC","lSTS","rIPL","PCC"  )  # Update this with your actual DVs
@@ -733,7 +740,7 @@ for (i in seq_along(dependent_vars)) {
   dv_title <- newlist[i]
 # for (dv in dependent_vars) {
 subjects_with_inadequate_data <- data %>%
-  group_by(sub, CUE_high_gt_low, STIM_linear) %>% #SES_linear, 
+  group_by(sub, CUE_high_gt_low, STIM_linear) %>% #SES_linear,
   dplyr::summarise(count = n(), .groups = 'drop') %>%
   filter(count < 3) %>%
   distinct(sub) %>%
@@ -831,7 +838,7 @@ dv_keyword <- "NPS"
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
-  color <- c("#4575B4", "#D73027")
+  color <- c("#4274AD", "#C5263A")
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -848,7 +855,7 @@ subsetNPS <- NPSstimcue_groupwise[NPSstimcue_groupwise$cue_ordered == "low cue",
 g <- plot_lineplot_twofactor_subset(subsetNPS, taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = "#3E61EC", "#D73027"), 
+                        color = c("low cue" = "#0b5fa6", "#D73027"),
                         ggtitle = dv_title,
                         xlab = "Stimulus intensity", ylab = "Mean score")
 g + theme(aspect.ratio=.8)
@@ -858,7 +865,7 @@ g + theme(aspect.ratio=.8)
 g <- plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = "#3E61EC","high cue" = "#FF0000"), 
+                        color = c("low cue" = "#0b5fa6","high cue" = "#C5263A"),
                         ggtitle = dv_title,
                         xlab = "Stimulus intensity", ylab = "Mean score")
 g <- g + theme(aspect.ratio=1,
@@ -869,7 +876,7 @@ g <- g + theme(aspect.ratio=1,
           ) +
   # geom_line(size = 1) + # Adjust line thickness
   geom_point(size = 2)  # Adjust point size
-  
+
 
 #   print(arranged_plot)
   plot_filename = file.path(analysis_dir,
@@ -882,7 +889,9 @@ g
 ```
 
 ## 3 SIIPS
+
 ### SIIPS linear analysis
+
 ```{r}
 model.SIIPS <- lmer(SIIPS ~ CUE_high_gt_low*STIM_linear +
        CUE_high_gt_low*STIM_quadratic + (CUE_high_gt_low+STIM_linear|sub), data = df_filter)
@@ -896,6 +905,7 @@ summary(model.SIIPS)
 equatiomatic::extract_eq(model.SIIPS)
 sink(NULL)  #
 ```
+
 ```{r}
 dv <- "SIIPS"
 taskname <- "pain"
@@ -948,7 +958,7 @@ plot_savefname <- file.path(
   )
 )
 SIIPSsubset <- SIIPS_groupwise[SIIPS_groupwise$cue_ordered == "low cue",]
-g <- plot_lineplot_twofactor(SIIPSsubset, 
+g <- plot_lineplot_twofactor(SIIPSsubset,
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("low cue" = lowcuehex), ggtitle = paste0("NPS N =", length(unique(SIIPS_subjectwise$sub))),
@@ -962,13 +972,13 @@ g <- g + theme(aspect.ratio=1,
   # geom_line(size = 1) + # Adjust line thickness
   geom_point(size = 2) + # Adjust point size
    ylim(465, 650)
-ggsave(file.path(analysis_dir, paste0("SIIPS_maineffect", as.character(Sys.Date()), "_lowcue.svg")), plot=g, w=4, h=4, dpi=300) 
+ggsave(file.path(analysis_dir, paste0("SIIPS_maineffect", as.character(Sys.Date()), "_lowcue.svg")), plot=g, w=4, h=4, dpi=300)
 
 
 k <- plot_lineplot_twofactor(SIIPS_groupwise,# taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = lowcuehex,"high cue" = highcuehex), 
+                        color = c("low cue" = lowcuehex,"high cue" = highcuehex),
                         ggtitle = paste0("SIIPS N =", length(unique(SIIPS_subjectwise$sub))),
                         xlab = "Stimulus intensity", ylab = "SIIPS")
 k<- k+ theme(aspect.ratio=1,
@@ -981,24 +991,23 @@ k<- k+ theme(aspect.ratio=1,
   geom_point(size = 2) + # Adjust point size
  ylim(465, 650)
 k
-ggsave(file.path(analysis_dir, paste0("SIIPS_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300) 
+ggsave(file.path(analysis_dir, paste0("SIIPS_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300)
 ```
+
 # 3-3 SIIPS and PE
 
-
-
 ```{r}
-SIIPSPE <- lmer(SIIPS ~ cuetype + stimintensity + PE_mdl2 + (cuetype   |sub), 
+SIIPSPE <- lmer(SIIPS ~ cuetype + stimintensity + PE_mdl2 + (cuetype   |sub),
      data = PEnpsdf)
 summary(SIIPSPE)
 vif(SIIPSPE)
 ```
 
-
 ## Session wise filter
+
 ```{r}
 subjects_with_inadequate_data <- data %>%
-  group_by(sub, CUE_high_gt_low, STIM_linear, SES_linear) %>% #SES_linear, 
+  group_by(sub, CUE_high_gt_low, STIM_linear, SES_linear) %>% #SES_linear,
   dplyr::summarise(count = n(), .groups = 'drop') %>%
   filter(count < 4) %>%
   distinct(sub) %>%
@@ -1010,6 +1019,7 @@ print(sprintf("after filtering out subjects that have less than 3 trials in cell
 ```
 
 ## 4 Sessionwise Beh
+
 ```{r}
 model.behses <- lmer(outcomerating ~
                           CUE_high_gt_low*STIM_linear*SES_linear +
@@ -1095,11 +1105,9 @@ for(i in 1:length(optimx_options)){
 }
 ```
 
-
-
 ## 6 Sessionwise SIIPS
-> random slopes of cue effects were colinear with random intercepts with a correlation of 1, therefore estimating the idnvidual difference baseline and dindividual difference of cue effects were impossible
 
+> random slopes of cue effects were colinear with random intercepts with a correlation of 1, therefore estimating the idnvidual difference baseline and dindividual difference of cue effects were impossible
 
 ```{r}
 with(df_filter_ses, table(CUE_high_gt_low, STIM_linear, SES_linear))
@@ -1117,14 +1125,15 @@ model.SIIPSses <- lmer(SIIPS ~
          data = df_filter_ses,
                   control = lmerControl(optimizer = "nmkbw"
                                ))
-              
-         
+
+
 summary(model.SIIPSses)
 sjPlot::tab_model(model.SIIPSses,
                   title = "Multilevel-modeling: \nlmer(SIIPS ~ CUE * STIM * SES+ (CUE + STIM *SES | sub), data = pain)",
                   CSS = list(css.table = '+font-size: 12;'))
 equatiomatic::extract_eq(model.SIIPSses)
 ```
+
 > Session is inversly colinear with stimulus intensity, which makes the random slopes impossible to estimate
 
 ```{r}
@@ -1139,14 +1148,14 @@ equatiomatic::extract_eq(model.SIIPSses)
 #             data = Data_table_for_analysis_Character_studyarea,
 #             control=lmerControl(optimizer="Nelder_Mead",
 #                                  optCtrl=list(maxfun=1e4)))
-# 
+#
 # (ggplot(dd, aes(spm,terrsize,colour=studyarea))
 #     +geom_point()
 #     +geom_encircle(aes(group=teriid))
 #     +theme(legend.position="none")
 #     + scale_y_log10()
-  
-  
+
+
 library(ggplot2); theme_set(theme_bw())
 library(ggalt)
 (ggplot(df_filter_ses, aes(STIM_linear,SIIPS,SES_linear,colour=CUE_high_gt_low))
@@ -1158,6 +1167,7 @@ library(ggalt)
 ```
 
 ### linear estimator
+
 ```{r}
 optimx_options <- c("L-BFGS-B", "nlminb", "nlm", "bobyqa", "nmkb", "hjkb")
 for(i in 1:length(optimx_options)){
@@ -1196,7 +1206,6 @@ for(i in 1:length(optimx_options)){
   }
 }
 ```
-
 
 ```{r}
 # non linear options
@@ -1299,7 +1308,7 @@ plot_savefname <- file.path(
   )
 )
 # SIIPSsubset <- SIIPS_groupwise[SIIPS_groupwise$cue_ordered == "low cue",]
-# g <- plot_lineplot_twofactor(SIIPSsubset, 
+# g <- plot_lineplot_twofactor(SIIPSsubset,
 #                         iv1 = "stim_ordered", iv2 = "cue_ordered",
 #                         mean = "mean_per_sub_norm_mean", error = "se",
 #                         color = c("low cue" = lowcuehex), ggtitle = paste0("NPS N =", length(unique(SIIPS_subjectwise$sub))),
@@ -1313,13 +1322,13 @@ plot_savefname <- file.path(
 #   # geom_line(size = 1) + # Adjust line thickness
 #   geom_point(size = 2) + # Adjust point size
 #    ylim(465, 650)
-# ggsave(file.path(analysis_dir, paste0("SIIPS_maineffect", as.character(Sys.Date()), "_lowcue.svg")), plot=g, w=4, h=4, dpi=300) 
-# 
-# 
+# ggsave(file.path(analysis_dir, paste0("SIIPS_maineffect", as.character(Sys.Date()), "_lowcue.svg")), plot=g, w=4, h=4, dpi=300)
+#
+#
 # k <- plot_lineplot_twofactor(SIIPS_groupwise,# taskname = "pain",
 #                         iv1 = "stim_ordered", iv2 = "cue_ordered",
 #                         mean = "mean_per_sub_norm_mean", error = "se",
-#                         color = c("low cue" = lowcuehex,"high cue" = highcuehex), 
+#                         color = c("low cue" = lowcuehex,"high cue" = highcuehex),
 #                         ggtitle = paste0("NPS N =", length(unique(SIIPS_subjectwise$sub))),
 #                         xlab = "Stimulus intensity", ylab = "SIIPS")
 # k<- k+ theme(aspect.ratio=1,
@@ -1332,6 +1341,5 @@ plot_savefname <- file.path(
 #   geom_point(size = 2) + # Adjust point size
 #  ylim(465, 650)
 # k
-# ggsave(file.path(analysis_dir, paste0("SIIPS_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300) 
+# ggsave(file.path(analysis_dir, paste0("SIIPS_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300)
 ```
-

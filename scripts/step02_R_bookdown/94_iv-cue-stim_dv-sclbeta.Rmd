@@ -1,8 +1,9 @@
 # [physio] SCL {#glmSCL}
 
-
 ## Outline
+
 ### load data
+
 ### subjectwise, groupwise mean
 
 ```{r message=TRUE, warning=TRUE, include=FALSE}
@@ -19,8 +20,8 @@ library(gghalves)
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 ```
@@ -67,9 +68,10 @@ return(df)
 }
 ```
 
-
 ## How was this dataframe generated?
+
 via [https://github.com/jungheejung/spacetop_biopac/tree/main/scripts/p03_glm](https://github.com/jungheejung/spacetop_biopac/tree/main/scripts/p03_glm)
+
 ```{r}
 
 taskname <- "pain"
@@ -80,10 +82,10 @@ beta <- read.table(file = file.path(
   ), sep = '\t', header = TRUE)
 ```
 
-
 ## 1) stim x cue effect
+
 ```{r}
-# 2. summarize data frame ______________________________________________________ 
+# 2. summarize data frame ______________________________________________________
 beta_subset <- beta[,c("X","filename","sub","ses","run","runtype","intercept","high_stim.high_cue" ,"high_stim.low_cue", "med_stim.high_cue","med_stim.low_cue","low_stim.high_cue","low_stim.low_cue")]
 beta_long <- beta %>%
   gather(key = "stim_cue", value = "beta", starts_with("high_stim"), starts_with("med_stim"), starts_with("low_stim")) %>%
@@ -91,9 +93,8 @@ beta_long <- beta %>%
 beta_con <- simple_contrasts_singletrial(beta_long)
 ```
 
-
 ```{r}
-# 3. linear model ______________________________________________________________ 
+# 3. linear model ______________________________________________________________
 
 model.factorial <- lmer(beta ~ STIM_linear*cue_factor + STIM_quadratic*cue_factor + (STIM_linear + cue_factor|sub), data = beta_con)
 
@@ -146,7 +147,7 @@ ylim <- c(-10, 60)
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
-  color <- c("#4575B4", "#D73027")
+  color <- c("#4274AD", "#C5263A")
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -169,7 +170,7 @@ plot_savefname <- file.path(
 )
 
 # 7. raincloudplots ____________________________________________________________
-# TODO: 
+# TODO:
 # * change the range of the figure
 # * change the x-axis
 # * drop the NA conditions
@@ -204,20 +205,20 @@ print(g)
 SCLstim_groupwise$task = taskname
 
 k <- plot_lineplot_twofactor_subsetthick(SCLstim_groupwise,
-                             taskname="pain", 
+                             taskname="pain",
                         iv1="stim_ordered",
                         iv2="cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c( "high" = "#fd0000",
-                                  "low" = "#365af1"), 
-                        ggtitle = title, 
+                                  "low" = "#365af1"),
+                        ggtitle = title,
                         xlab = "Stimulus Intensity", ylab = "SCR beta coefficients (A.U.)")
 k <- k + theme(aspect.ratio=.8)
 print(k)
 ```
 
-
 ## 2) across sessions?
+
 ```{r}
 
 # code session
@@ -288,7 +289,6 @@ diff_optims_OK <- diff_optims[sapply(diff_optims, is, "merMod")]
 lapply(diff_optims_OK, function(x) x@optinfo$conv$lme4$messages)
 ```
 
-
 ```{r}
 convergence_results <- lapply(diff_optims_OK, function(x) x@optinfo$conv$lme4$messages)
 working_indices <- sapply(convergence_results, is.null)
@@ -300,7 +300,6 @@ if(sum(working_indices) == 0){
 }
 first_fit
 ```
-
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
@@ -381,7 +380,7 @@ for (sesname in c("ses-01", "ses-03", "ses-04")) {
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
-        color <- c("#4575B4", "#D73027")
+        color <- c("#4274AD", "#C5263A")
     } # if keyword starts with
     plot_savefname <- file.path(
         analysis_dir,
@@ -430,4 +429,3 @@ plot_filename = file.path(analysis_dir,
                           paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
 ggsave(plot_filename, width = 8, height = 4)
 ```
-
