@@ -46,8 +46,11 @@ file.sources = list.files(file.path(main_dir, 'scripts', 'step02_R', 'utils'),
 sapply(file.sources,source,.GlobalEnv)
 
 ```
+
 # F. check CANLAB extract ROI
+
 ## F-1. load data
+
 ```{r}
 
 main_dir <- dirname(dirname(getwd()))
@@ -73,7 +76,7 @@ dir.create(analysis_dir,
            recursive = TRUE)
 savedir <- analysis_dir
 # Read and stack the CSV files
-all_data <- file_paths %>% 
+all_data <- file_paths %>%
   map_dfr(~read_csv(.x, show_col_types = FALSE), .id = "file_path")
 
 
@@ -93,7 +96,7 @@ df_merge <- inner_join(beh, all_data, by = "singletrial_fname")
 df_merge <- df_merge %>%
   # mutate(singletrial_fname = basename(Filenames))
   mutate(singletrial_fname = as.character(singletrial_fname)) %>%
-  
+
   extract(singletrial_fname, into = c("sub", "ses", "run", "runtype", "event", "trial", "cuetype", "stimintensity"),
           regex = "^(sub-\\d+)_(ses-\\d+)_(run-\\d+)_runtype-(pain|vicarious|cognitive)_event-(cue|stimulus)_trial-(\\d+)_cuetype-(high|low)(?:_stimintensity-(high|med|low))?\\.nii.gz$",
           remove = FALSE)
@@ -104,7 +107,7 @@ df_merge$stimintensity[df_merge$stimintensity == ""] <- NA
 data <-df_merge[df_merge$runtype == "pain" ,]
 
 # contrast code ________________________________________________________________
-data$stim <- NA; data$STIM_linear <- NA; data$STIM_quadratic <- NA; 
+data$stim <- NA; data$STIM_linear <- NA; data$STIM_quadratic <- NA;
 data$CUE_high_gt_low <- NA;
 data$SES_linear <- NA;data$SES_quadratic <- NA
 data$stim[data$stimulusintensity == "low_stim"] <-  -0.5 # social influence task
@@ -148,14 +151,15 @@ dv_keyword <- "NPS"
 ```
 
 ## F-2. Filter data and plot
+
 ```{r}
 # filter data __________________________________________________________________
 # Make sure that each condition cell has adequate amount of trials
-dependent_vars <- c("Thal_VPLM_L","Thal_VPLM_R","Thal_IL","Thal_MD","Hythal","pbn_R","pbn_L","Bstem_PAG","rvm_R","Amy_R"            
-,"Amy_L","dpIns_L","dpIns_R","S2_L","S2_R","mIns_L","mIns_R","aIns_L","aIns_R"      ,     
+dependent_vars <- c("Thal_VPLM_L","Thal_VPLM_R","Thal_IL","Thal_MD","Hythal","pbn_R","pbn_L","Bstem_PAG","rvm_R","Amy_R"
+,"Amy_L","dpIns_L","dpIns_R","S2_L","S2_R","mIns_L","mIns_R","aIns_L","aIns_R"      ,
 "aMCC_MPFC","s1_foot_L","s1_foot_R","s1_handplus_L","s1_handplus_R"    )  # Update this with your actual DVs
-newlist <- c("Thal_VPLM (L)", "Thal_VPLM (R)", "Thal_IL","Thal_MD","Hythal","PBN (R)","PBN (L)","Bstem & PAG","RVM (R)","Amy (R)"            
-,"Amy (L)","dpIns (L)","dpIns (R)","SII (L)","SII (R)","mIns (L)","mIns (R)","aIns (L)","aIns (R)"      ,     
+newlist <- c("Thal_VPLM (L)", "Thal_VPLM (R)", "Thal_IL","Thal_MD","Hythal","PBN (R)","PBN (L)","Bstem & PAG","RVM (R)","Amy (R)"
+,"Amy (L)","dpIns (L)","dpIns (R)","SII (L)","SII (R)","mIns (L)","mIns (R)","aIns (L)","aIns (R)"      ,
 "aMCC & MPFC","SI foot (L)","SI foot (R)","SI handplus (L)","SI handplus (R)"    )  # Update this with your actual DVs
 
 
@@ -167,7 +171,7 @@ for (i in seq_along(dependent_vars)) {
   dv_title <- newlist[i]
 # for (dv in dependent_vars) {
 subjects_with_inadequate_data <- data %>%
-  group_by(sub, CUE_high_gt_low, STIM_linear) %>% #SES_linear, 
+  group_by(sub, CUE_high_gt_low, STIM_linear) %>% #SES_linear,
   dplyr::summarise(count = n(), .groups = 'drop') %>%
   filter(count < 2) %>%
   distinct(sub) %>%
@@ -230,8 +234,8 @@ model_savefname <- file.path(
     sep = ""
   )
 )
-formula_string <- paste(dv, "~ CUE_high_gt_low * STIM_linear + CUE_high_gt_low * STIM_quadratic + (1|sub)") 
-model_formula <- as.formula(formula_string) 
+formula_string <- paste(dv, "~ CUE_high_gt_low * STIM_linear + CUE_high_gt_low * STIM_quadratic + (1|sub)")
+model_formula <- as.formula(formula_string)
 # Fit the model
 sink(model_savefname)
 model.npscuestim <- lmer(model_formula, data = df_filter.NA, control = lmerControl(
@@ -276,7 +280,7 @@ dv_keyword <- "NPS"
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
-  color <- c("#3E61EC", "#3E61EC")
+  color <- c("#0b5fa6", "#0b5fa6")
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -293,7 +297,7 @@ subsetNPS <- NPSstimcue_groupwise[NPSstimcue_groupwise$cue_ordered == "low cue",
 g <- plot_lineplot_twofactor_subset(subsetNPS, taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = "#3E61EC", "#3E61EC"), 
+                        color = c("low cue" = "#0b5fa6", "#0b5fa6"),
                         ggtitle = dv_title,
                         xlab = "Stimulus intensity", ylab = "Mean score")
 g + theme(aspect.ratio=.8)
@@ -303,7 +307,7 @@ g + theme(aspect.ratio=.8)
 g <- plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = "#3E61EC","high cue" = "#FF0000"), 
+                        color = c("low cue" = "#0b5fa6","high cue" = "#C5263A"),
                         ggtitle = dv_title, ylim=c(0, 0.55),
                         xlab = "Stimulus intensity", ylab = "Mean score")
 g <- g + theme(aspect.ratio=1,
@@ -314,7 +318,7 @@ g <- g + theme(aspect.ratio=1,
           ) +
    geom_line(size = 1) + # Adjust line thickness
   geom_point(size = 3)  # Adjust point size
-  
+
 
 #   print(arranged_plot)
   plot_filename = file.path(analysis_dir,
@@ -326,7 +330,6 @@ print(g)
 }
 
 ```
-
 
 ```{r}
 library(ggplot2)
@@ -350,17 +353,17 @@ generate_plots <- function(dv) {
   # Construct the model formula dynamically
   formula_string <- paste(dv, "~ CUE_high_gt_low * STIM_linear  + CUE_high_gt_low * STIM_quadratic+ (CUE_high_gt_low + STIM_linear|sub)")
   model <- lmer(as.formula(formula_string), data = df_filtered)
-  
+
   # Generate predictions for plotting
   preds <- ggpredict(model, terms = c("CUE_high_gt_low", "STIM_linear"))
-  
+
   # Create the plot
   p <- ggplot(preds, aes(x = x, y = predicted, color = group)) +
     geom_line() +
     geom_point() +
     labs(title = dv, y = "Predicted Value", x = "Stimulus Linear") +
     theme_minimal()
-  
+
   return(p)
 }
 
@@ -373,15 +376,14 @@ grid.arrange(grobs = plots, ncol = 4)  # Adjust the number of columns as needed
 
 ```
 
-
 ```{r}
 # filter data __________________________________________________________________
 # Make sure that each condition cell has adequate amount of trials
-dependent_vars <- c("Thal_VPLM_L","Thal_VPLM_R","Thal_IL","Thal_MD","Hythal","pbn_R","pbn_L","Bstem_PAG","rvm_R","Amy_R"            
-,"Amy_L","dpIns_L","dpIns_R","S2_L","S2_R","mIns_L","mIns_R","aIns_L","aIns_R"      ,     
+dependent_vars <- c("Thal_VPLM_L","Thal_VPLM_R","Thal_IL","Thal_MD","Hythal","pbn_R","pbn_L","Bstem_PAG","rvm_R","Amy_R"
+,"Amy_L","dpIns_L","dpIns_R","S2_L","S2_R","mIns_L","mIns_R","aIns_L","aIns_R"      ,
 "aMCC_MPFC","s1_foot_L","s1_foot_R","s1_handplus_L","s1_handplus_R"    )  # Update this with your actual DVs
-newlist <- c("Thal_VPLM (L)", "Thal_VPLM (R)", "Thal_IL","Thal_MD","Hythal","PBN (R)","PBN (L)","Bstem & PAG","RVM (R)","Amy (R)"            
-,"Amy (L)","dpIns (L)","dpIns (R)","SII (L)","SII (R)","mIns (L)","mIns (R)","aIns (L)","aIns (R)"      ,     
+newlist <- c("Thal_VPLM (L)", "Thal_VPLM (R)", "Thal_IL","Thal_MD","Hythal","PBN (R)","PBN (L)","Bstem & PAG","RVM (R)","Amy (R)"
+,"Amy (L)","dpIns (L)","dpIns (R)","SII (L)","SII (R)","mIns (L)","mIns (R)","aIns (L)","aIns (R)"      ,
 "aMCC & MPFC","SI foot (L)","SI foot (R)","SI handplus (L)","SI handplus (R)"    )  # Update this with your actual DVs
 
 
@@ -393,7 +395,7 @@ for (i in seq_along(dependent_vars)) {
   dv_title <- newlist[i]
 # for (dv in dependent_vars) {
 subjects_with_inadequate_data <- data %>%
-  group_by(sub, CUE_high_gt_low, STIM_linear) %>% #SES_linear, 
+  group_by(sub, CUE_high_gt_low, STIM_linear) %>% #SES_linear,
   dplyr::summarise(count = n(), .groups = 'drop') %>%
   filter(count < 2) %>%
   distinct(sub) %>%
@@ -456,8 +458,8 @@ model_savefname <- file.path(
     sep = ""
   )
 )
-formula_string <- paste(dv, "~ CUE_high_gt_low * STIM_linear + CUE_high_gt_low * STIM_quadratic + (CUE_high_gt_low + STIM_linear|sub)") 
-model_formula <- as.formula(formula_string) 
+formula_string <- paste(dv, "~ CUE_high_gt_low * STIM_linear + CUE_high_gt_low * STIM_quadratic + (CUE_high_gt_low + STIM_linear|sub)")
+model_formula <- as.formula(formula_string)
 # Fit the model
 sink(model_savefname)
 model.npscuestim <- lmer(model_formula, data = df_filter.NA, control = lmerControl(
@@ -502,7 +504,7 @@ dv_keyword <- "NPS"
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
-  color <- c("#3E61EC", "#3E61EC")
+  color <- c("#0b5fa6", "#0b5fa6")
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -519,7 +521,7 @@ subsetNPS <- NPSstimcue_groupwise[NPSstimcue_groupwise$cue_ordered == "low cue",
 g <- plot_lineplot_twofactor_subset(subsetNPS, taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = "#3E61EC", "#3E61EC"), 
+                        color = c("low cue" = "#0b5fa6", "#0b5fa6"),
                         ggtitle = dv_title,
                         xlab = "Stimulus intensity", ylab = "Average BOLD")
 g + theme(aspect.ratio=.8)
@@ -529,8 +531,8 @@ g + theme(aspect.ratio=.8)
 g <- plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = "#3E61EC","high cue" = "#FF0000"), 
-                        ggtitle = dv_title, 
+                        color = c("low cue" = "#0b5fa6","high cue" = "#C5263A"),
+                        ggtitle = dv_title,
                         xlab = "Stimulus intensity", ylab = "Average BOLD")
 g <- g + theme(aspect.ratio=1,
           text = element_text(size = 18), # Default text size for the plot
@@ -540,7 +542,7 @@ g <- g + theme(aspect.ratio=1,
           ) +
    geom_line(size = 1) + # Adjust line thickness
   geom_point(size = 3)  # Adjust point size
-  
+
 
 #   print(arranged_plot)
   plot_filename = file.path(analysis_dir,
@@ -551,4 +553,3 @@ print(g)
   ggsave(paste0("/Users/h/Documents/projects_local/cue_expectancy/resources/plots_dissertation/ch4/painpathway_cue_",dv,".svg"), g, width = 4, height = 4, dpi=300)
 }
 ```
-
