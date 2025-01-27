@@ -119,6 +119,12 @@ def update_columns(row):
         row['expectrating_impute'] = 'n/a'
         row['expectlabel_impute'] = 'n/a'
     return row
+
+def clean_text(text):
+    text = text.replace('_cue', '')
+    text = text.replace('_stim', '')
+    return text
+
 # Iterate over all subdirectories and files
 for root, dirs, files in os.walk(base_dir):
     # Filter directories that start with "sub-"
@@ -163,11 +169,13 @@ for root, dirs, files in os.walk(base_dir):
                         df_selected['ses'] = ses
                         df_selected['run'] = run
                         df_selected['runtype'] = runtype
-                        # Add empty columns for the final output structure
-                        df_selected['singletrial_fname'] = df_selected.apply(
-                            lambda row: f'{sub}_{ses}_{run}_runtype-{runtype}_event-stimulus_trial-{int(row["trial_index"]-1):03d}_cuetype-{row["cue"]}_stimintensity-{row["stimulusintensity"]}_stim.nii.gz', axis=1
-                        )
+                        # # Add empty columns for the final output structure
+                        # df_selected['singletrial_fname'] = df_selected.apply(
+                        #     lambda row: f'{sub}_{ses}_{run}_runtype-{runtype}_event-stimulus_trial-{int(row["trial_index"]-1):03d}_cuetype-{row["cue"]}_stimintensity-{row["stimulusintensity"]}_stim.nii.gz', axis=1
+                        # )
                     
+                        df_selected['singletrial_fname'] = df_selected.apply(
+                        lambda row: f'{sub}_{ses}_{run}_runtype-{runtype}_event-stimulus_trial-{int(row["trial_index"]-1):03d}_cuetype-{clean_text(row["cue"])}_stimintensity-{clean_text(row["stimulusintensity"])}.nii.gz', axis=1)
                         df_selected['expectrating'] = df_expect['expectrating'].values
                         df_selected['expectlabel'] = df_expect['expectlabel'].values
                         df_selected['expectrating_impute'] = df_expect['expectrating_impute'].values
