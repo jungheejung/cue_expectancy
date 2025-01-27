@@ -17,7 +17,7 @@ jobs:
       - uses: r-lib/actions/setup-pandoc@v2
       - name: Install R packages
         env:
-          GITHUB_PAT: ${{ secrets.GH_PAT }}
+          GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: |
           Rscript -e 'install.packages(c("remotes", "devtools"))' 
           Rscript -e 'install.packages(c("afex", "bayestestR", "bookdown", "bbmle", "bitops", "boot", "brms", "broom", "broom.mixed", "car", "caTools", "correlation", "cowplot", "DescTools", "devtools","downlit", "dplyr", "DT", "effectsize", "EMAtools", "emmeans", "extrafont", "FactoMineR", "GGally", "gghalves", "ggplot2", "ggpubr", "ggrepel", "ggtext", "glmmTMB","grid", "gridExtra", "htmltools", "ICC", "jsonlite", "knitr", "kableExtra", "lavaan", "lme4", "lmerTest", "magrittr", "Matrix", "MBESS", "mediation", "merTools", "optimx", "patchwork", "plotly", "plyr", "png", "psych", "PupillometryR", "purrr", "r2mlm", "RColorBrewer", "RCurl", "readr", "reghelper", "reshape", "rmarkdown", "Rmisc", "rstan", "rstanarm", "scico", "semPlot", "sjlabelled", "sjmisc", "sjPlot", "sjstats", "stats", "stringr", "tidyr", "tidyselect", "tidyverse", "TMB","webshot", "yaml"))'
@@ -44,7 +44,7 @@ jobs:
     needs: bookdown
     steps:
       - name: Checkout
-        uses: actions/checkout@master
+        uses: actions/checkout@v3
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:
