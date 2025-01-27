@@ -1660,15 +1660,13 @@ plotly_subjectwise <- meanSummary(
 
 ```{r}
 library(plotly)
-# lmer(NPS ~ CUE_high_gt_low*STIM_linear*event02_expect_angle + CUE_high_gt_low*STIM_quadratic*event02_expect_angle + (CUE_high_gt_low|sub), data = data_screen)
+
 ses1 = p.demean[p.demean$ses == "ses-01",]
 x <- seq_len(nrow(volcano)) + 100
 y <- seq_len(ncol(volcano)) + 500
-fig <- plot_ly(ses1, x = ~cuetype, y = ~EXPECT_demean, z = ~NPS) %>% #colors = c('#BF382A','yellow', '#0C4B8E'))
-  # group_by(STIM) %>%
+fig <- plot_ly(ses1, x = ~cuetype, y = ~EXPECT_demean, z = ~NPS) %>% 
   group_by(STIM_linear) %>%
-  # add_markers(color = ~STIM_linear) %>%
-  # group_by(cuetype) %>%
+
   add_lines(color = ~STIM_linear)
 
 fig <- fig %>% layout(scene = list
