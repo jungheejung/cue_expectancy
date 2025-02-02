@@ -418,12 +418,13 @@ wide_dataframe <- data.frame()
 # filter with cue x stim trial combination _____________________________________
 for (taskname in c("pain", "vicarious", "cognitive")) {
   # 1. filter based on SPM intersecting subject ids
+      # "scripts/step04_SPM/6cond_highlowcue_rampupplateau/SPM_6condrampup_vicarious_contrast_BIDSid.csv
   subid_df <-
+
     read.csv(file.path(
       main_dir,
       paste0(
-        "resources/plots_dissertation/SPM_6condrampup_",
-        taskname,
+        "scripts/step04_SPM/6cond_highlowcue_rampupplateau/SPM_6condrampup_",        taskname,
         "_contrast_BIDSid.csv"
       )
     ))
@@ -630,7 +631,7 @@ subject <- "sub"
     read.csv(file.path(
       main_dir,
       paste0(
-        "resources/plots_dissertation/SPM_6condrampup_",
+        "scripts/step04_SPM/6cond_highlowcue_rampupplateau/SPM_6condrampup_",
         taskname,
         "_contrast_BIDSid.csv"
       )
@@ -876,11 +877,11 @@ DATA = as.data.frame(combined_se_calc_cooksd)
   MEAN <- "mean_per_sub_norm_mean"
   ERROR <- "se"
   dv_keyword <- "outcomerating"
-  line_thickness <- 0.2
-  p1 <- plot_lineplot_twofactor_subset(DATA, "pain",
+  line_thickness <- 1
+  p1 <- cueR::plot_lineplot_twofactor_subset(DATA, "pain",
                                LINEIV1, LINEIV2, MEAN, ERROR, color,
-                               ggtitle = 'Pain', ylab = "Outcome rating",
-                               ylim=c(40, 90))
+                               ggtitle = 'Pain', ylab = "Outcome rating")#,
+                               #ylim=c(40, 90))
   p1 <-p1 + theme(
           text = element_text(size = 18), # Default text size for the plot
           axis.title = element_text(size = 22, ), # Axis titles
@@ -888,7 +889,7 @@ DATA = as.data.frame(combined_se_calc_cooksd)
           plot.title = element_text(size = 24, hjust = 0.5), # Plot title
             aspect.ratio = 1 # Adjust this as needed
 
-          ) +geom_point(size = 2)
+          ) +geom_point(size = 1)
 
 #
 
@@ -1090,7 +1091,7 @@ for (sesname in c("ses-01", "ses-03", "ses-04")) {
 data.ses <- beh[ beh$ses == sesname & beh$runtype == taskname,]
 
 data.ses <- data.ses %>% filter(!is.na(outcomerating))
-
+data.ses$sub <- as.factor(data.ses$sub)
 
   stim_con1 <- "STIM_linear"
   stim_con2 <- "STIM_quadratic"
@@ -1128,6 +1129,9 @@ data.ses <- data.ses %>% filter(!is.na(outcomerating))
   model_iv1 <- "stim_ordered"
   model_iv2 <- "cue_ordered"
 subject <- "sub"
+data.ses$stim_ordered <- as.factor(data.ses$stim_ordered)
+data.ses$cue_ordered <- as.factor(data.ses$cue_ordered)
+data.ses$sub <- as.factor(data.ses$sub)
   #  [ PLOT ] calculate mean and se  _________________________
   actual_subjectwise <- meanSummary(
       data.ses,
@@ -1167,7 +1171,8 @@ subject <- "sub"
           sep = ""
       )
   )
-  g <- plot_halfrainclouds_twofactor(
+
+  g <- plot_halfrainclouds_twofactorthick(
       actual_subjectwise, actual_groupwise, model_iv1, model_iv2,
       sub_mean, group_mean, se, subject,
       ggtitle, title, xlab, ylab, taskname,ylim,
@@ -1210,7 +1215,7 @@ sjPlot::tab_model(model.ses,
 ses.summarystat <- as.data.frame(combined_se_calc_cooksd)
 for (taskname in c("pain", "vicarious", "cognitive")) {
   DATA <- ses.summarystat #[ses.summarystat$task == taskname,]
-  color <- c("#4C77ED", "#ED220D")
+  color <- c("#4274AD", "#ED220D")
   model_iv1 <- "stim_ordered"
   model_iv2 <- "ses_ordered"
   LINEIV1 <- "stim_ordered"
