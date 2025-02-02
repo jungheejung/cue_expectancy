@@ -151,7 +151,7 @@ plot_cueexpectancy_twofactor <- function(
   g <- ggplot()
 
 
-  g <- plot_halfrainclouds_twofactor(
+  g <- plot_halfrainclouds_twofactorthick(
     subjectwise, groupwise, model_iv1, model_iv2,
     sub_mean, group_mean, se, subject,
     ggtitle, title, xlab, ylab, taskname, ylim,
@@ -201,180 +201,6 @@ plot_cueexpectancy_twofactor <- function(
 }
 ```
 
-```{r}
-#' Plot Half Rainclouds for Two Factors
-#'
-#' This function creates a half raincloud plot for a given two-factor dataset. It combines
-#' violin plots, box plots, and individual data points to provide a comprehensive view of
-#' the data distribution across two independent variables.
-#'
-#' @param subjectwise A dataframe containing subject-wise data.
-#' @param groupwise A dataframe containing group-wise summary statistics.
-#' @param iv1 The name of the first independent variable in the dataframe.
-#' @param iv2 The name of the second independent variable in the dataframe.
-#' @param sub_mean The name of the subject-wise mean variable in the dataframe.
-#' @param group_mean The name of the group mean variable in the dataframe.
-#' @param se The name of the standard error variable in the dataframe.
-#' @param subject The name of the subject identifier variable in the dataframe.
-#' @param ggtitle Title for the ggplot.
-#' @param legend_title Title for the legend.
-#' @param xlab Label for the x-axis.
-#' @param ylab Label for the y-axis.
-#' @param task_name Name of the task (unused in function).
-#' @param ylim y-axis limits for the plot.
-#' @param w Width of the saved plot.
-#' @param h Height of the saved plot.
-#' @param dv_keyword Keyword associated with the dependent variable (unused in function).
-#' @param color Color scheme for the plot, specified as a named vector of colors.
-#' @param save_fname Filename for saving the plot.
-#'
-#' @return A ggplot object representing the customized half raincloud plot.
-#'
-#' @examples
-#' # Example usage (assuming appropriate data frames 'subjectwise' and 'groupwise'):
-#' plot_halfrainclouds_twofactor(subjectwise, groupwise, "IV1", "IV2",
-#'                               "SubMean", "GroupMean",
-#' @import ggplot2
-#' @export
-plot_halfrainclouds_twofactor <- function(subjectwise, groupwise,
-                                      iv1, iv2, sub_mean, group_mean, se, subject,
-                                      ggtitle, legend_title, xlab, ylab, task_name, ylim,
-                                      w, h, dv_keyword, color, save_fname) {
-  dodge_width <- 0.1
-  subjectwise$adjusted_x <- as.numeric(as.factor(subjectwise[[iv1]])) +
-                          ifelse(subjectwise[[iv2]] == "low cue", -0.3, -0.2)  # Adjust these offsets as needed
-  groupwise$adjusted_groupx <- as.numeric(as.factor(groupwise[[iv1]])) +
-                          ifelse(groupwise[[iv2]] == "low cue", -0.3, -0.2)  # Adjust these offsets as needed
-
-#   subjectwise$adjusted_box <- as.numeric(as.factor(groupwise[[iv1]])) +
-#                           ifelse(subjectwise[[iv2]] == "high cue", -0.15, -0.05)
-#                           # (as.numeric(as.factor(subjectwise[[iv2]])) - 1) * dodge_width
-#
-# #
-    g <- ggplot(
-        data = subjectwise,
-        aes(
-            y = .data[[sub_mean]],
-            x = .data[[iv1]],
-            fill = .data[[iv2]]
-        )
-    ) +
-
-        # geom_half_violin(
-        #     data = subjectwise,
-        # aes(color = .data[[iv2]]),
-        # side = 'r',
-        # position = position_nudge(x = .2, y = 0),
-        # adjust = 1.5,
-        # trim = FALSE,
-        # alpha = .3,
-        # colour = NA
-        # ) +
-
-
-    geom_line(
-        data = groupwise,
-        aes(
-            x = adjusted_groupx, #as.numeric(as.factor(.data[[iv1]])) ,
-            y = .data[[group_mean]],
-            group = .data[[iv2]],
-            color = .data[[iv2]]
-        ),
-        size = .7,
-        alpha = 1,
-        linetype = "solid",
-        #position = position_nudge(x = .2, y = 0)
-    ) +
-
-
-
-        # geom_line(
-        #     data = subjectwise,
-        #     aes(
-        #         group = .data[[subject]],
-        #         y = .data[[sub_mean]],
-        #         x = as.numeric(as.factor(.data[[iv1]])) - .15,
-        #         color = .data[[iv2]]
-        #     ),
-        #     linetype = 3, color = "grey", alpha = .3
-        # ) +
-        geom_point(
-            data = subjectwise,
-            aes(
-                x = adjusted_x, #as.numeric(as.factor(.data[[iv1]])) - .15,
-                y = .data[[sub_mean]],
-                color = .data[[iv2]]
-            ),
-            position = position_jitter(width = .05),
-            size = .7, alpha = 0.3, shape = 21,
-            # colour = NA
-        ) +
-
-
-        geom_boxplot(
-          data = subjectwise,
-          aes(x = .data[[iv1]] ,
-              y = .data[[sub_mean]],
-              fill = .data[[iv2]]),
-          # position = position_nudge(x = -0.1),
-          # position = position_dodge(0.05),
-        outlier.shape = NA,
-        alpha = .8,
-        width = .25, #dodge_width,
-        notch = FALSE,
-        notchwidth = 0,
-        varwidth = FALSE,
-        colour = "black",
-        ) +
-
-        # use summary stats ____________________________________________________
-
-        geom_errorbar(
-            data = groupwise,
-            aes(x = adjusted_groupx,
-                # x = as.numeric(as.factor(.data[[iv1]])),
-                y = .data[[group_mean]],
-                group = .data[[iv2]],
-                #colour = c("white", "white"),#.data[[iv2]],
-                ymin = .data[[group_mean]] - .data[[se]],
-                ymax = .data[[group_mean]] + .data[[se]]
-            ), width = .1,color = "black"
-            # position = position_nudge(x = .2, y = 0),
-            # position = position_nudge(x = -0.05)
-        ) +
-
-
-        # legend stuff _________________________________________________________
-        expand_limits(x = 3.5) +
-        guides(fill = "none") +
-        guides(color = "none") +
-        guides(fill = guide_legend(title = legend_title)) +
-        # geom_text()
-
-
-        scale_fill_manual(values = color) +
-        scale_color_manual(values = color) +
-        ggtitle(ggtitle) +
-        # coord_flip() + #vertical vs horizontal
-        xlab(xlab) +
-        ylab(ylab) +
-        theme_classic()
-        #theme(text = element_text(size = 30))   +
-        theme(text = element_text(size = 15)) +theme(aspect.ratio=1) +
-        theme(axis.line = element_line(colour = "black"),
-            panel.background = element_blank(),
-            plot.subtitle = ggtext::element_textbox_simple(size= 11))
-
-    if (!is.null(ylim)) {
-        g <- g + ylim(ylim)
-    } else {
-        g <- g
-    }
-    #ggsave(save_fname, width = w, height = h)
-    return(g)
-}
-
-```
 
 ```{r parameters_4, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 main_dir = dirname(dirname(getwd()))
@@ -422,7 +248,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     read.csv(file.path(
       main_dir,
       paste0(
-        "resources/plots_dissertation/SPM_6condrampup_",
+        "/scripts/step04_SPM/6cond_highlowcue_rampupplateau/SPM_6condrampup_",
         taskname,
         "_contrast_BIDSid.csv"
       )
@@ -630,7 +456,7 @@ subject <- "sub"
     read.csv(file.path(
       main_dir,
       paste0(
-        "resources/plots_dissertation/SPM_6condrampup_",
+        "/scripts/step04_SPM/6cond_highlowcue_rampupplateau/SPM_6condrampup_",
         taskname,
         "_contrast_BIDSid.csv"
       )
@@ -843,8 +669,87 @@ print(model_summaries[["cognitive"]]) # singular
 
 Instead of the rain cloud plots, here, I plot the lines and confidence interval
 for each cue x stim combination. Plotted per task.
+```{r}
+cueR::plot_lineplot_twofactor_subset
+```
+```{r}
+#' Plot a Two-Factor Line Plot with Optional Subsetting
+#'
+#' This function creates a line plot for data with two factors. It allows for optional subsetting of the data based on a specified task name. If the 'taskname' column does not exist or 'taskname' is NULL, the function uses the entire dataset. It utilizes ggplot2 for plotting.
+#'
+#' @param data A data frame containing the dataset to be plotted.
+#' @param taskname A string specifying the task name for subsetting the data, or NULL to use the entire dataset.
+#' @param iv1 The name of the first independent variable (factor) for the x-axis.
+#' @param iv2 The name of the second independent variable (factor) used for grouping and coloring.
+#' @param mean The name of the column containing mean values to be plotted on the y-axis.
+#' @param error The name of the column containing error values for error bars.
+#' @param color A vector of colors to be used for the different groups represented by `iv2`.
+#' @param ggtitle The title of the plot.
+#' @param xlab Label for the x-axis. Default is "Stimulus Intensity".
+#' @param ylab Label for the y-axis. Default is "Outcome Rating".
+#'
+#' @return A ggplot object representing the line plot.
+#'
+#' @import ggplot2
+#' @export
+#'
+#' @examples
+#' # Example usage with taskname specified:
+#' p1 = plot_lineplot_twofactor_subset(data = mydata, taskname = "task1",
+#'               iv1 = "intensity", iv2 = "cue", mean = "mean_score", error = "ci",
+#'               color = c("red", "blue"), ggtitle = "My Plot")
+#'
+#' # Example usage without taskname (using entire dataset):
+#' p2 = plot_lineplot_twofactor_subset(data = mydata, taskname = NULL,
+#'               iv1 = "intensity", iv2 = "cue", mean = "mean_score", error = "ci",
+#'               color = c("red", "blue"), ggtitle = "My Plot")
+#' [Example plot](TODO)
+plot_lineplot_twofactor_subset <- function(data, taskname, iv1, iv2, mean, error,
+                      color, ggtitle, xlab = NULL, ylab = NULL) {
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+    # Check if 'taskname' column exists in 'data'
+    if ("task" %in% names(data) && !is.null(taskname)) {
+        subset <- data[which(data$task == taskname), ]
+    } else {
+        # If 'taskname' column does not exist or 'taskname' is NULL, use the entire dataframe
+        subset <- data
+    }
+
+      # Use default labels if none are provided
+    if (is.null(xlab)) xlab <- "Stimulus intensity"
+    if (is.null(ylab)) ylab <- "Outcome rating"
+
+    g <- ggplot(data = subset, aes(
+        x = .data[[iv1]],
+        y = .data[[mean]],
+        group = as.factor(.data[[iv2]]),
+        color = as.factor(.data[[iv2]])
+    ), cex.lab = 1.5, cex.axis = 2, cex.main = 1.5, cex.sub = 1.5) +
+      geom_pointrange(aes(
+            ymin = (.data[[mean]] - .data[[error]]),
+            ymax = (.data[[mean]] + .data[[error]])
+        ), 
+        size = .4,  # Increased thickness for the error bars
+        # size = .5, 
+        width = 1  # Slightly wider horizontal caps
+        ) +
+        geom_line(linewidth=1, aes(linetype = as.factor(.data[[iv2]]) )) + # change back to geom_line() +
+        # geom_point(size = .5) +
+        ggtitle(ggtitle) +
+        xlab(xlab) +
+        ylab(ylab) +
+        scale_color_manual(values = color) +
+        scale_linetype_manual(values = c("solid", "solid")) +
+        theme_classic() +
+
+        theme(aspect.ratio = 1 ,
+              axis.line = element_line(size = 0.2),
+              axis.ticks = element_line(size = 0.2), # Thin tick marks
+              # axis.ticks.length = unit(3, "pt"),
+              axis.ticks.length = unit(-3, "pt"),
+              legend.position = "none")
+    return(g)
+}
 
 DATA = as.data.frame(combined_se_calc_cooksd)
 color = c( "#4575B4", "#D73027")
@@ -853,12 +758,13 @@ LINEIV2 = "cue_ordered"
 MEAN = "mean_per_sub_norm_mean"
 ERROR = "ci"
 dv_keyword = "outcome"
-p1 = plot_lineplot_twofactor_subset(DATA, 'pain',
-             LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = tools::toTitleCase('pain'), ylim=c(10,90))
+p1 = cueR::plot_lineplot_twofactor_subset(DATA, 'pain',
+             LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = tools::toTitleCase('pain'), xlab = "Stimulus intensity", ylab = "Outcome Rating")
+# , ylim=c(10,90))
 p2 = plot_lineplot_twofactor_subset(DATA,'vicarious',
-             LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = tools::toTitleCase("vicarious"), ylim=c(10,90))
+             LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = tools::toTitleCase("vicarious")) #, ylim=c(10,90))
 p3 = plot_lineplot_twofactor_subset(DATA, 'cognitive',
-             LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = tools::toTitleCase('cognitive'), ylim=c(10,90))
+             LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = tools::toTitleCase('cognitive')) #, ylim=c(10,90))
 
 ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
 # plot_filename = file.path(analysis_dir,                        paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
@@ -1188,15 +1094,9 @@ model.ses <- lmer(outcomerating ~
                         CUE_high_gt_low*STIM_quadratic*SES_quadratic +
                         (CUE_high_gt_low+STIM_linear+SES_quadratic|sub), data = beh[beh$runtype =="pain",]
                   )
-# model.betases <- lmer(beta ~
-#                           CUE_high_gt_low*STIM_linear*SES_linear +
-#                           CUE_high_gt_low*STIM_quadratic*SES_linear +
-#                           CUE_high_gt_low*STIM_linear*SES_quadratic +
-#                           CUE_high_gt_low*STIM_quadratic*SES_quadratic +
-#                           (1|sub), data = beta_long
-#                     )
+
 summary(model.ses)
-# CUE_high_gt_low+STIM+EXPECT_demean
+
 sjPlot::tab_model(model.ses,
                   title = "Multilevel-modeling: \nlmer(beta ~ CUE * STIM * SES + (1| sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
@@ -1208,9 +1108,15 @@ sjPlot::tab_model(model.ses,
 # lineplot per session
 
 ses.summarystat <- as.data.frame(combined_se_calc_cooksd)
+ylim_values <- list(
+  "pain" = c(40, 90),
+  "vicarious" = c(0, 60),
+  "cognitive" = c(0, 60)
+)
+
 for (taskname in c("pain", "vicarious", "cognitive")) {
   DATA <- ses.summarystat #[ses.summarystat$task == taskname,]
-  color <- c("#4C77ED", "#ED220D")
+  color <- c("#4274AD", "#ED220D")
   model_iv1 <- "stim_ordered"
   model_iv2 <- "ses_ordered"
   LINEIV1 <- "stim_ordered"
@@ -1219,10 +1125,11 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
   ERROR <- "se"
   dv_keyword <- "outcomerating"
   line_thickness <- 0.2
+  ylim_current <- ylim_values[[taskname]]
   p1 <- plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-01" , ], taskname,
                                LINEIV1, LINEIV2, MEAN, ERROR, color,
                                ggtitle = 'Visit 1', ylab = "Outcome rating",
-                               ylim=c(40, 90))
+                               ylim=ylim_current)#c(40, 90))
   p1 <- p1 + theme(
   aspect.ratio = 1, # Adjust this as needed
   axis.line = element_line(size = line_thickness)
@@ -1230,7 +1137,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
   p2 = plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-03", ], taskname,
                                LINEIV1, LINEIV2, MEAN, ERROR, color,
                                ggtitle = 'Visit 2', ylab = "Outcome rating",
-                               ylim=c(40, 90))
+                               ylim=ylim_current)#c(40, 90))
     p2 <- p2 + theme(
   aspect.ratio = 1, # Adjust this as needed
   axis.line = element_line(size = line_thickness)
@@ -1238,7 +1145,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
   p3 = plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-04", ], taskname,
                                LINEIV1, LINEIV2, MEAN,ERROR, color,
                                ggtitle = 'Visit 3', ylab = "Outcome rating",
-                               ylim=c(40, 90))
+                               ylim=ylim_current)#c(40, 90))
     p3 <- p3 + theme(
   aspect.ratio = 1, # Adjust this as needed
   axis.line = element_line(size = line_thickness)
