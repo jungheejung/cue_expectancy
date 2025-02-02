@@ -539,9 +539,9 @@ dv_keyword = "outcome"
 p1 = cueR::plot_lineplot_twofactor_subset(DATA, 'pain',
              LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = tools::toTitleCase('pain'), xlab = "Stimulus intensity", ylab = "Outcome Rating")
 # , ylim=c(10,90))
-p2 = plot_lineplot_twofactor_subset(DATA,'vicarious',
+p2 = cueR::plot_lineplot_twofactor_subset(DATA,'vicarious',
              LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = tools::toTitleCase("vicarious")) #, ylim=c(10,90))
-p3 = plot_lineplot_twofactor_subset(DATA, 'cognitive',
+p3 = cueR::plot_lineplot_twofactor_subset(DATA, 'cognitive',
              LINEIV1, LINEIV2, MEAN, ERROR, color,ggtitle = tools::toTitleCase('cognitive')) #, ylim=c(10,90))
 
 ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
@@ -561,7 +561,7 @@ DATA = as.data.frame(combined_se_calc_cooksd)
   ERROR <- "se"
   dv_keyword <- "outcomerating"
   line_thickness <- 0.2
-  p1 <- plot_lineplot_twofactor_subset(DATA, "pain",
+  p1 <- cueR::plot_lineplot_twofactor_subset(DATA, "pain",
                                LINEIV1, LINEIV2, MEAN, ERROR, color,
                                ggtitle = 'Pain', ylab = "Outcome rating",
                                ylim=c(40, 90))
@@ -904,7 +904,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
   dv_keyword <- "outcomerating"
   line_thickness <- 0.2
   ylim_current <- ylim_values[[taskname]]
-  p1 <- plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-01" , ], taskname,
+  p1 <- cueR::plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-01" , ], taskname,
                                LINEIV1, LINEIV2, MEAN, ERROR, color,
                                ggtitle = 'Visit 1', ylab = "Outcome rating",
                                ylim=ylim_current)#c(40, 90))
@@ -912,7 +912,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
   aspect.ratio = 1, # Adjust this as needed
   axis.line = element_line(size = line_thickness)
 )
-  p2 = plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-03", ], taskname,
+  p2 = cueR::plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-03", ], taskname,
                                LINEIV1, LINEIV2, MEAN, ERROR, color,
                                ggtitle = 'Visit 2', ylab = "Outcome rating",
                                ylim=ylim_current)#c(40, 90))
@@ -920,7 +920,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
   aspect.ratio = 1, # Adjust this as needed
   axis.line = element_line(size = line_thickness)
 )
-  p3 = plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-04", ], taskname,
+  p3 = cueR::plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-04", ], taskname,
                                LINEIV1, LINEIV2, MEAN,ERROR, color,
                                ggtitle = 'Visit 3', ylab = "Outcome rating",
                                ylim=ylim_current)#c(40, 90))
