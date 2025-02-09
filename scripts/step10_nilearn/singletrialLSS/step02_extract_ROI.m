@@ -1,12 +1,10 @@
 function step02_extract_ROI()
-%% flatten right left hemisphere ROIs
-% we extract beta weights from a masked region of interest
-% we use Wager pain pathway object
-% Neuroimaging_Pattern_Masks/Atlases_and_parcellations/2019_Wager_pain_pathways/pain_pathways_atlas_obj.mat
+%% Extract ROI beta weights for pain pathways from single-trial fMRI data
+% This function applies the Wager pain pathway atlas to extract beta weights
+% from preprocessed single-trial fMRI data. The extracted values are saved
+% in a TSV file along with metadata in a JSON file.
+% PATH of pain pathway: Neuroimaging_Pattern_Masks/Atlases_and_parcellations/2019_Wager_pain_pathways/pain_pathways_atlas_obj.mat
 
-
-
-% Purpose of this code: to apply NPS to the extracted singletrials.
 %% 1. load filenames as fmri_data
 current_dir = pwd;
 main_dir = fileparts(fileparts(fileparts(current_dir)));
@@ -25,7 +23,6 @@ output_table = cell2table(flist4table', "VariableNames",  ["singletrial_fname"])
 
 dat = fmri_data(filenames(fname_template));
 %% 2. load pain pathwy object
-
 roi_name = {'Thal_VPLM','Thal_IL','Thal_MD',...
     'Hythal','pbn','Bstem_PAG','rvm','Amy','dpIns','S2','mIns',...
     'aIns','aMCC_MPFC','s1_foot','s1_handplus'};
@@ -36,7 +33,7 @@ for roi_ind = 1:length(roi_name)
     output_table = [ table(pain_pathways_mean.dat, 'VariableNames', roi.labels)  output_table];
 end
 table_fname = fullfile(output_dir, strcat('roi-painpathway_sub-all_runtype-pvc_event-', event, '.tsv'));
-writetable(output_table, table_fname, 'Delimiter',' ');
+writetable(output_table, table_fname, 'FileType', 'text', 'Delimiter', '\t');
 
 % pain_pathways = pain_pathways.select_atlas_subset({'Thal_VPLM_R','Thal_VPLM_L','Thal_IL','Thal_MD',...
 % 'Hythal','pbn_R','pbn_L','Bstem_PAG','rvm_R','Amy_R','Amy_L','dpIns_L','dpIns_R','S2_L','S2_R','mIns_L','mIns_R',...
@@ -47,8 +44,7 @@ writetable(output_table, table_fname, 'Delimiter',' ');
 % pain_pathways_mean = extract_roi_averages(dat, fmri_data(pain_pathways), 'unique_mask_values', 'nonorm');
 
 
-
-% Define the structure
+%% 3. Save metadata (json)
 json.code_generated = "scripts/step10_nilearn/singletrialLSS/step02_extract_ROI.m";
 json.input_data = singletrial_dir;
 json.atlas = "CANlab pain pathway object - Neuroimaging_Pattern_Masks/Atlases_and_parcellations/2019_Wager_pain_pathways/pain_pathways_atlas_obj.mat";
@@ -59,12 +55,8 @@ json.matlab_functions = {
     "CanlabCore/Data_extraction/load_atlas" ...
     };
 
-% Convert structure to JSON format
 jsonStr = jsonencode(json);
-
-% Specify output filename
-
-jsonFilename = fullfile(output_dir, 'extract_painpathway.json');  % Saves in the current working directory
+jsonFilename = fullfile(output_dir, 'extract_painpathway.json');
 
 % Write JSON to file
 fid = fopen(jsonFilename, 'w');
