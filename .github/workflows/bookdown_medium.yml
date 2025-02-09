@@ -19,8 +19,8 @@ jobs:
       - name: Install System Dependencies
         run: |
           brew update
-          brew install pkg-config || echo "pkg-config already installed"
           brew install qpdf pkgconf checkbashisms ghostscript || echo "Dependencies already installed"
+          brew link --overwrite pkg-config
           echo "Checking installed dependencies:"
           brew list
       - name: Check R Package Dependencies

@@ -1,8 +1,17 @@
----
-title: "pain pathway"
-output: html_document
-date: "2024-04-16"
----
+# beh :: painpathway ROI ~ cue \* stim {#upgrade_beh-outcome-cueXstim}
+
+## What is the purpose of this notebook? {.unlisted .unnumbered}
+
+We investigate the profile of painpathway ROIs as a function of cue and stimulus intensity
+
+- Main model: `lmer(outcome_rating ~ cue * stim)`
+- Main question: do outcome ratings differ as a function of cue type and Stimulus intensity?
+- If there is a main effect of cue on outcome ratings, does this cue effect differ depending on task type?
+- Is there an interaction between the two factors?
+- IV:
+- cue (high / low)
+- stim (high / med / low)
+- DV: outcome rating
 
 ```{r libraries_nps_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(car)
@@ -58,7 +67,7 @@ analysis_folder <- "fmri_painpathway"
 beh <- readr::read_tsv(file.path(main_dir, "data/beh/sub-all_task-all_events.tsv"))
 dv <- "nps"
 base_dir <- "/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau_painpathway"
-
+# TODO: instead of VPN, need to push to github
 # List all CSV files matching the pattern
 file_paths <- list.files(base_dir, pattern =  "sub-.*roi-painpathway_runtype-pain.*\\.csv$", full.names = TRUE, recursive = TRUE)
 
@@ -79,24 +88,10 @@ savedir <- analysis_dir
 all_data <- file_paths %>%
   map_dfr(~read_csv(.x, show_col_types = FALSE), .id = "file_path")
 
-
-# nps_brainmask_fname = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau_brainmask/CANlab_applyNPS_singletrial_rampupplateau.csv'
-# nps_singletrial_fname = '/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau_brainmask/list_of_test_files.csv'
-# nps_brainmask <- read.csv(nps_brainmask_fname, sep = ",")
-# nps_fname <- read.csv(nps_singletrial_fname, sep = ",")
-# nps_fname$singletrial_fname <-  basename(nps_fname$Filenames)
-
-# nps_brainmask$singletrial_fname <- canlabnpsdf$filename
-# nps_brainmask$singletrial_fname <- nps_fname$singletrial_fname
-# intersect
-# Assuming df1 and df2 are your data frames and 'key_column' is the name of your key column
 df_merge <- inner_join(beh, all_data, by = "singletrial_fname")
 
-
 df_merge <- df_merge %>%
-  # mutate(singletrial_fname = basename(Filenames))
   mutate(singletrial_fname = as.character(singletrial_fname)) %>%
-
   extract(singletrial_fname, into = c("sub", "ses", "run", "runtype", "event", "trial", "cuetype", "stimintensity"),
           regex = "^(sub-\\d+)_(ses-\\d+)_(run-\\d+)_runtype-(pain|vicarious|cognitive)_event-(cue|stimulus)_trial-(\\d+)_cuetype-(high|low)(?:_stimintensity-(high|med|low))?\\.nii.gz$",
           remove = FALSE)
@@ -518,20 +513,20 @@ plot_savefname <- file.path(
 
 ### Lineplots with only low cue ____________________________________
 subsetNPS <- NPSstimcue_groupwise[NPSstimcue_groupwise$cue_ordered == "low cue",]
-g <- plot_lineplot_twofactor_subset(subsetNPS, taskname = "pain",
+g <- cueR::plot_lineplot_twofactor_subset(subsetNPS, taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = "#0b5fa6", "#0b5fa6"),
+                        color = c("low cue" = "#4274AD", "#4274AD"),
                         ggtitle = dv_title,
                         xlab = "Stimulus intensity", ylab = "Average BOLD")
 g + theme(aspect.ratio=.8)
 
 
 ### Lineplots________________________________________________________________________
-g <- plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain",
+g <- cueR::plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c("low cue" = "#0b5fa6","high cue" = "#C5263A"),
+                        color = c("low cue" = "#4274AD","high cue" = "#C5263A"),
                         ggtitle = dv_title,
                         xlab = "Stimulus intensity", ylab = "Average BOLD")
 g <- g + theme(aspect.ratio=1,
