@@ -1,14 +1,14 @@
 ---
 title: "model09_iv-temp_dv-scl"
 author: "Heejung Jung"
-date: '2022-12-07'
+date: "2022-12-07"
 output:
   html_document:
     toc: true
     theme: united
     code_folding: hide
-editor_options: 
-  markdown: 
+editor_options:
+  markdown:
     wrap: 72
 ---
 
@@ -17,11 +17,13 @@ split data into task (full -> P, v, c subset)
 push code to git
 create code map
 log transform
-* SCL: mean signal
-* SCR: log transform
+
+- SCL: mean signal
+- SCR: log transform
+
 # Overview
 
-The purpose of this notebook is to analyze biopac phasic data. 
+The purpose of this notebook is to analyze biopac phasic data.
 Data has been preprocessed with neurokit
 
 We load a dataframe that contains the following outcome measures:
@@ -29,14 +31,14 @@ We load a dataframe that contains the following outcome measures:
 'SCR_Peak_Amplitude_Time', 'SCR_RiseTime', 'SCR_RecoveryTime'
 
 We model this as a function of "cue" and "stimulus intensity",
-while allowing for random effects from participants. 
+while allowing for random effects from participants.
 
-------------------------------------------------------------------------
+---
 
 # Why use multilevel models?
 
--   content copied from
-    <http://www.bristol.ac.uk/cmm/learning/multilevel-models/what-why.html>
+- content copied from
+  <http://www.bristol.ac.uk/cmm/learning/multilevel-models/what-why.html>
 
 > There are a number of reasons for using multilevel models:
 >
@@ -75,7 +77,7 @@ while allowing for random effects from participants.
 >     population of groups. Using a fixed effects model, inferences
 >     cannot be made beyond the groups in the sample.
 
-------------------------------------------------------------------------
+---
 
 load libraries
 
@@ -137,8 +139,8 @@ library(brms)
 library(r2mlm)
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                         pattern="*.R", 
-                          full.names=TRUE, 
+                         pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 ```
@@ -147,37 +149,37 @@ sapply(file.sources,source,.GlobalEnv)
 
 factor
 
-:   In experimental designs, factor is the equivalent of independent
-    variable. In R, one can factorize a categorical variable by using
-    the `factor` function. Thereby we interchangeably use the term
-    factor in lieu of independent variable.
+: In experimental designs, factor is the equivalent of independent
+variable. In R, one can factorize a categorical variable by using
+the `factor` function. Thereby we interchangeably use the term
+factor in lieu of independent variable.
 
     From this, the term `factorial design` originates.
 
 level
 
-:   within each independent variable, a researcher may determine
-    different levels. Since the purpose of linear models is to compare
-    at least one condition to another, a factor contains more than one
-    level.
+: within each independent variable, a researcher may determine
+different levels. Since the purpose of linear models is to compare
+at least one condition to another, a factor contains more than one
+level.
 
 group variable
 
-:   Unit of analysis. In most fMRI experiments that collect individual
-    data, the group variable would be the individual participant.
-    However, in other research questions, the group variable could
-    easily be more than one individual. For instance, a dyad of
-    participants that carry out conversations, multiple patients that
-    see an identical doctor, a classroom full of individuals, or voting
-    districts could serve as a grouping variable, depending on the
-    research question.
+: Unit of analysis. In most fMRI experiments that collect individual
+data, the group variable would be the individual participant.
+However, in other research questions, the group variable could
+easily be more than one individual. For instance, a dyad of
+participants that carry out conversations, multiple patients that
+see an identical doctor, a classroom full of individuals, or voting
+districts could serve as a grouping variable, depending on the
+research question.
 
--   <div>
+- <div>
 
-        factor:
-        group
+      factor:
+      group
 
-    </div>
+  </div>
 
 # Model versions {.tabset}
 
@@ -185,19 +187,18 @@ group variable
 
 ### Method 1: repeated measures and `one-sample t-tests`
 
--   Data Matrix: Wide form
-    -   row (83 subject)
-    -   column (6 conditions: highCue x highStim, highCue x medStim,
-        highCue x lowStim, lowCue x highStim,lowCue x medStim, lowCue x
-        lowStim)
--   Model: Use "lm". One-sample t-test
--   Effect size (cohen's d): mean / sd (intersubject slope) \> use
-    degrees of freedom.
+- Data Matrix: Wide form
+  - row (83 subject)
+  - column (6 conditions: highCue x highStim, highCue x medStim,
+    highCue x lowStim, lowCue x highStim,lowCue x medStim, lowCue x
+    lowStim)
+- Model: Use "lm". One-sample t-test
+- Effect size (cohen's d): mean / sd (intersubject slope) \> use
+  degrees of freedom.
 
-### 
+###
+
 load data and combine participant data
-
-
 
 ```{r load data and exclude}
 main_dir = dirname(dirname(getwd()))
@@ -208,7 +209,6 @@ dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 ```{r}
 analysis_dir
 ```
-
 
 ```{r}
 # parameters _____________________________________ # nolint
@@ -222,25 +222,24 @@ This is the data that we will use
 head(tonic)
 ```
 
-
 ## Method 3 multilevel modeling
 
 ### Method 3 multilevel modeling
 
--   Data Matrix: Long form
-    -   Row (5412: 83 subject \* 2 cue \* 3 stimulus intensity \* 12 trials)
-    -   Columns (4: subject, session, task type, run_num, cue type, stimulus intensity type,
-        EDA metrics)
--   Model: Use "lmer" multilevel-modeling
-    -   grouping variable: subjects (i.e. src_subject_id)
-    -   fixed effects - cue (2 levels, contrast-coded [high, low: 1,
-        -1]) - stim_linear (3 levels, [low, med, high: -1, 0, 1]) -
-        stim_quadratic (3 levels, [low, med, high: -1, 2, -1])
-    -   random effects - cue - stim_linear - cue\*stim_linear
-    -   NOTE: due to convergence failure, cue\*stim_quadratic term was
-        removed
--   Effect size (cohen's d): beta_coefficient/ sqrt(sum of all random
-    variance)
+- Data Matrix: Long form
+  - Row (5412: 83 subject \* 2 cue \* 3 stimulus intensity \* 12 trials)
+  - Columns (4: subject, session, task type, run_num, cue type, stimulus intensity type,
+    EDA metrics)
+- Model: Use "lmer" multilevel-modeling
+  - grouping variable: subjects (i.e. src_subject_id)
+  - fixed effects - cue (2 levels, contrast-coded [high, low: 1,
+    -1]) - stim_linear (3 levels, [low, med, high: -1, 0, 1]) -
+    stim_quadratic (3 levels, [low, med, high: -1, 2, -1])
+  - random effects - cue - stim_linear - cue\*stim_linear
+  - NOTE: due to convergence failure, cue\*stim_quadratic term was
+    removed
+- Effect size (cohen's d): beta_coefficient/ sqrt(sum of all random
+  variance)
 
 contrast-coding for multi-level modeling (code-hidden)
 
@@ -274,7 +273,7 @@ dv_keyword <- "scl_peak"
 xlab <- ""
 taskname <- "full"
 #ylim = c(-1,1)
-#tonic_task = 
+#tonic_task =
 ```
 
 multi-level modeling using **lmer**
@@ -286,8 +285,6 @@ fullmodel = lmer(mean_signal ~ 1+ cue_factor + stim_con_linear + stim_con_quad +
 summary(fullmodel)
 
 ```
-
-
 
 ```{r plot results}
 
@@ -318,19 +315,19 @@ groupwise <- summarySEwithin(
         idvar = "subject"
     )
 
-subjectwise_mean <- "mean_per_sub";    
+subjectwise_mean <- "mean_per_sub";
 group_mean <- "mean_per_sub_norm_mean"
-se <- "se";   
-ggtitle <- paste(taskname, dv_keyword);    
+se <- "se";
+ggtitle <- paste(taskname, dv_keyword);
 title <- paste(taskname, " - RT")
-xlab <- "";    
-ylab <- "SCL peak amplitude ";    
-w = 5; h = 3; 
+xlab <- "";
+ylab <- "SCL peak amplitude ";
+w = 5; h = 3;
 ylim = c(-1,3)
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
-        color <- c("#4575B4", "#D73027")
+        color <- c("#4274AD", "#C5263A")
     }
 plot_savefname <- file.path(
         analysis_dir,
@@ -348,6 +345,7 @@ plot_rainclouds_twofactor(
     )
 
 ```
+
 # Temperature predicting rating
 
 ```{r temperature fullmodel, class.source = 'fold-show'}
@@ -357,29 +355,30 @@ temp_pain = lmer(event02_expect_angle ~ 1+ stim_con_linear + stim_con_quad + (1 
 summary(temp_pain)
 
 ```
+
 ```{r}
 key = 'actual'
 if (any(startsWith(key, c("expect", "Expect")))) {
         dv = 'event02_expect_angle'
         dv_keyword = 'expect_rating'
-        ylab <- "expect rating "; 
+        ylab <- "expect rating ";
     } else {
         dv = 'event04_actual_angle'
         dv_keyword = 'actual_rating'
-        ylab <- "actual rating "; 
+        ylab <- "actual rating ";
     }
 # dv = 'event02_expect_angle'
 iv_keyword = 'temp'
 # dv_keyword = 'expect_rating'
 task_name = 'pain'
-subjectwise_mean <- "mean_per_sub";    
+subjectwise_mean <- "mean_per_sub";
 group_mean <- "mean_per_sub_norm_mean"
-se <- "se";   
-ggtitle <- paste(task_name, dv_keyword);    
+se <- "se";
+ggtitle <- paste(task_name, dv_keyword);
 title <- paste(task_name, " - temperature")
-xlab <- "";    
-# ylab <- "expect rating ";    
-w = 5; h = 3; 
+xlab <- "";
+# ylab <- "expect rating ";
+w = 5; h = 3;
 ylim = c(-1,180)
 
 
@@ -423,12 +422,10 @@ plot_savefname <- file.path(
     )
 plot_rainclouds_onefactor(
         subjectwise = try, groupwise = groupwise_temp,
-        iv = model_iv1, subjectwise_mean = subjectwise_mean, group_mean = group_mean, 
+        iv = model_iv1, subjectwise_mean = subjectwise_mean, group_mean = group_mean,
         se = se, subject = "subject",
         ggtitle = ggtitle, title = title, xlab = xlab, ylab = ylab, taskname = task_name, ylim = ylim,
         w = w, h = h, dv_keyword = dv_keyword, color, plot_savefname
     )
 
 ```
-
-
