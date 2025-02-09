@@ -9,7 +9,11 @@ function step02_extract_ROI()
 current_dir = pwd;
 main_dir = fileparts(fileparts(fileparts(current_dir)));
 singletrial_dir = fullfile(main_dir, 'analysis', 'fmri', 'nilearn', 'singletrial_rampupplateau');
-output_dir = fullfile(main_dir, 'analysis', 'fmri', 'deriv01_signature', 'rampup_plateau_painpathway');
+output_dir = fullfile(main_dir, 'analysis', 'fmri','nilearn', 'deriv01_signature', 'rampup_plateau_painpathway');
+if ~exist(output_dir, 'dir')
+    mkdir(output_dir);
+end
+
 d = dir(singletrial_dir);
 dfolders = d([d(:).isdir]);
 dfolders_remove = dfolders(~ismember({dfolders(:).name},{'.','..','sub-0000','sub-0002'}));
