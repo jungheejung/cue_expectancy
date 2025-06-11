@@ -5,12 +5,12 @@
 Here, I plot the outcome ratings as a function of cue and Stimulus intensity.
 
 - Main model: `lmer(outcome_rating ~ cue * stim)`
-- Main question: do outcome ratings differ as a function of cue type and Stimulus intensity?
+- Main question: Do outcome ratings differ as a function of cue type and Stimulus intensity?
 - If there is a main effect of cue on outcome ratings, does this cue effect differ depending on task type?
 - Is there an interaction between the two factors?
 - IV:
-- cue (high / low)
-- stim (high / med / low)
+  - cue (high / low)
+  - stim (high / med / low)
 - DV: outcome rating
 
 ```{r load_libraries_4, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
@@ -85,7 +85,6 @@ trial_per_condition <- 3
 ```
 
 ## load subject information from SPM contrast data
-
 We'll grab the intersection of the data
 
 ## 1. Cue X stim (cue effect)
@@ -95,10 +94,9 @@ We'll grab the intersection of the data
 model_summaries <- data.frame()
 combined_se_calc_cooksd <- data.frame()
 wide_dataframe <- data.frame()
-# , "vicarious", "cognitive"
-# filter with cue x stim trial combination _____________________________________
+
 for (taskname in c("pain", "vicarious", "cognitive")) {
-  # 1. filter based on SPM intersecting subject ids
+  # 1. filter based on SPM intersecting subject ids _____________________________________
   subid_df <-
     read.csv(file.path(
       main_dir,
@@ -113,7 +111,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
   unique_sub_ids <- unique(df.na$sub)
   print(paste("1. beh :: N=", length(unique_sub_ids)))
   intersection_sub_ids <- intersect(subid_df$sub, unique_sub_ids)
-  # 2. identify how many would be removed if we grab the intersection
+  # 2. identify how many would be removed if we grab the intersection # _____________________________________
   num_removed <- length(subid_df$sub) - length(intersection_sub_ids)
   subjects_to_be_removed <-
     setdiff(subid_df$sub, intersection_sub_ids)
@@ -122,7 +120,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
   ))
   print(paste0("2-1. Subjects to be removed: ", subjects_to_be_removed))
   df_intersect <- df.na[df.na$sub %in% intersection_sub_ids,]
-  # 3. identify how many trials are present in each condition
+  # 3. identify how many trials are present in each condition # _____________________________________
   df.task <- df_intersect[df_intersect$runtype == taskname, ]
   df.task_clean <- df.task[complete.cases(df.task$outcomerating),]
   subjects_with_inadequate_data <- df.task_clean %>%
@@ -163,7 +161,7 @@ h <- 6
 
 
 
-# 3. calculate difference scores and summarize _____________________________
+# 4. calculate difference scores and summarize _____________________________
 beh$run_number <- as.integer(str_extract(beh$run, "\\d+"))
 
 beh$run_order[beh$run_number > 3] <- "a"
@@ -191,8 +189,8 @@ wide$stim_ordered <- factor(wide$stim_name,
 wide$task <- taskname
 wide_dataframe <- rbind(wide_dataframe, wide)
 
-# for (taskname in c("pain", "vicarious", "cognitive")) {
-# 4. summary stats _____________________________________________________________
+
+# 5. summary stats _____________________________________________________________
 subjectwise_diff <- meanSummary(wide, c("sub", "stim_ordered"), "diff")
 subjectwise_diff$stim_ordered <- factor(subjectwise_diff$stim_ordered,
     levels = c("low", "med", "high")
@@ -204,8 +202,8 @@ groupwise_diff <- summarySEwithin(
     idvar = "sub"
 )
 
-# 4. plot results
-# 4-1. parameters __________________________________________________________
+# 6. plot results
+# 6-1. parameters __________________________________________________________
 subjectwise <- subjectwise_diff
 
 groupwise <- groupwise_diff
@@ -238,7 +236,7 @@ if (any(startsWith(taskname, c("pain", "Pain")))) { # red
     color <- c("#0237C9", "#0237C9", "#0237C9")
 }
 
-# 4-2. plot rain cloud plots _______________________________________________
+# 6-2. plot rain cloud plots _______________________________________________
 g <- plot_halfrainclouds_onefactor(
     subjectwise, groupwise, iv, subject_mean, group_mean, p1.se,
     subject, p1.ggtitle, p1.title, p1.xlab, p1.ylab, taskname, ylim,
@@ -254,7 +252,7 @@ g <- g + geom_hline(yintercept = 0, size = 0.5, linetype = "dashed") +
 print(g)
 ggsave(p1.save_fname, plot = g)
 
-# 4-3.  plot geom range ____________________________________________________
+# 6-3.  plot geom range ____________________________________________________
 p2.se <- "sd" # se, sd, ci
 p2.xlab <- "Stimulus intensity"
 p2.ylab <- "Cue effect"
@@ -292,10 +290,13 @@ ggsave(p2.save_fname, plot = r)
 - IV: Cue x stim
 - DV: Outcome rating
 
+
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 combined_se_calc_cooksd <- data.frame()
+combined_subjectwise <- data.frame()
 model_summaries <- list()
-# , "vicarious", "cognitive")
+
 for (taskname in c("pain",  "vicarious", "cognitive")) {
 
 
@@ -453,8 +454,10 @@ outcome_groupwise <- summarySEwithin(
     measurevar = "mean_per_sub",
     withinvars = c(model_iv1, model_iv2), idvar = subject
 )
+outcome_subjectwise$task <- taskname
 outcome_groupwise$task <- taskname
 combined_se_calc_cooksd <- rbind(combined_se_calc_cooksd, outcome_groupwise)
+combined_subjectwise <- rbind(combined_subjectwise, outcome_subjectwise)
 
 
 # 6. plot related parameters _______________________________________________
@@ -522,21 +525,454 @@ print(model_summaries[["cognitive"]]) # singular
 
 ### Cue X Stim Lineplot {.unlisted .unnumbered}
 
-Instead of the rain cloud plots, here, I plot the lines and confidence interval
-for each cue x stim combination. Plotted per task.
+Instead of the rain cloud plots, here, I plot the lines and confidence interval for each cue x stim combination. Plotted per task.
+
 ```{r}
-cueR::plot_lineplot_twofactor_subset
+#' Plot a Two-Factor Line Plot with Optional Subsetting
+#'
+#' This function creates a line plot for data with two factors. It allows for optional subsetting of the data based on a specified task name. If the 'taskname' column does not exist or 'taskname' is NULL, the function uses the entire dataset. It utilizes ggplot2 for plotting.
+#'
+#' @param data A data frame containing the dataset to be plotted.
+#' @param taskname A string specifying the task name for subsetting the data, or NULL to use the entire dataset.
+#' @param iv1 The name of the first independent variable (factor) for the x-axis.
+#' @param iv2 The name of the second independent variable (factor) used for grouping and coloring.
+#' @param mean The name of the column containing mean values to be plotted on the y-axis.
+#' @param error The name of the column containing error values for error bars.
+#' @param color A vector of colors to be used for the different groups represented by `iv2`.
+#' @param ggtitle The title of the plot.
+#' @param xlab Label for the x-axis. Default is "Stimulus Intensity".
+#' @param ylab Label for the y-axis. Default is "Outcome Rating".
+#'
+#' @return A ggplot object representing the line plot.
+#'
+#' @import ggplot2
+#' @export
+#'
+#' @examples
+#' # Example usage with taskname specified:
+#' p1 = plot_lineplot_twofactor_subset(data = mydata, taskname = "task1",
+#'               iv1 = "intensity", iv2 = "cue", mean = "mean_score", error = "ci",
+#'               color = c("red", "blue"), ggtitle = "My Plot")
+#'
+#' # Example usage without taskname (using entire dataset):
+#' p2 = plot_lineplot_twofactor_subset(data = mydata, taskname = NULL,
+#'               iv1 = "intensity", iv2 = "cue", mean = "mean_score", error = "ci",
+#'               color = c("red", "blue"), ggtitle = "My Plot")
+#' [Example plot](TODO)
+plot_lineplot_twofactor_subset <- function(data, taskname, iv1, iv2, mean, error,
+                                           color, ggtitle, xlab = NULL, ylab = NULL) {
+  
+  # Check if 'taskname' column exists in 'data'
+  if ("task" %in% names(data) && !is.null(taskname)) {
+    subset <- data[which(data$task == taskname), ]
+  } else {
+    # If 'taskname' column does not exist or 'taskname' is NULL, use the entire dataframe
+    subset <- data
+  }
+  
+  # Use default labels if none are provided
+  if (is.null(xlab)) xlab <- "Stimulus intensity"
+  if (is.null(ylab)) ylab <- "Outcome rating"
+  
+  g <- ggplot(data = subset, aes(
+    x = .data[[iv1]],
+    y = .data[[mean]],
+    group = as.factor(.data[[iv2]]),
+    color = as.factor(.data[[iv2]])
+  ), cex.lab = 1.5, cex.axis = 2, cex.main = 1.5, cex.sub = 1.5) +
+    geom_pointrange(aes(
+      ymin = (.data[[mean]] - .data[[error]]),
+      ymax = (.data[[mean]] + .data[[error]])
+    ), 
+    size = .4,  # Increased thickness for the error bars
+    width = 1  # Slightly wider horizontal caps
+    ) +
+    geom_line(linewidth=1, aes(linetype = as.factor(.data[[iv2]]) )) + # change back to geom_line() +
+    ggtitle(ggtitle) +
+    xlab(xlab) +
+    ylab(ylab) +
+    scale_color_manual(values = color) +
+    scale_linetype_manual(values = c("solid", "solid")) +
+    theme_classic() +
+    ylim(40, 90)+
+    theme(aspect.ratio = 1 ,
+          axis.line = element_line(size = 0.2),
+          axis.ticks = element_line(size = 0.2), # Thin tick marks
+          axis.ticks.length = unit(-3, "pt"),
+          legend.position = "none")
+  return(g)
+}
 ```
+
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+plot_lineplot_twofactor_subset_SCATTER <- function(subjectwise, groupwise, taskname, iv1, iv2, 
+                                              sub_mean, group_mean, error, subject_col, 
+                                              color, ggtitle, xlab = NULL, ylab = NULL, 
+                                              shift_width = 0.1) {
+  
+  # Ensure the inputs are data frames
+  subjectwise <- as.data.frame(subjectwise)
+  groupwise <- as.data.frame(groupwise)
+  
+  # Check if 'taskname' column exists in 'groupwise' and 'subjectwise'
+  if ("task" %in% names(groupwise) && !is.null(taskname)) {
+    group_subset <- groupwise %>% filter(task == taskname)
+    subject_subset <- subjectwise %>% filter(task == taskname)
+  } else {
+    group_subset <- groupwise
+    subject_subset <- subjectwise
+  }
+  
+  # Use default labels if none are provided
+  if (is.null(xlab)) xlab <- "Stimulus intensity"
+  if (is.null(ylab)) ylab <- "Outcome rating"
+  
+  # Define shifting factor: shift both 'red' and 'blue' conditions
+  subject_subset <- subject_subset %>%
+    mutate(x_shift = as.numeric(as.factor(.data[[iv1]])) + 
+                     ifelse(.data[[iv2]] == "red", -shift_width, 
+                     ifelse(.data[[iv2]] == "blue", shift_width, 0)))
+  
+  group_subset <- group_subset %>%
+    mutate(x_shift = as.numeric(as.factor(.data[[iv1]])) + 
+                     ifelse(.data[[iv2]] == "red", -shift_width, 
+                     ifelse(.data[[iv2]] == "blue", shift_width, 0)))
+  
+  # Base plot with group means
+  g <- ggplot(data = group_subset, aes(
+    x = x_shift, 
+    y = .data[[group_mean]],
+    group = as.factor(.data[[iv2]]),
+    color = as.factor(.data[[iv2]])
+  )) +
+    
+    # Subject-wise means as tiny scatter points (shifted for both 'red' and 'blue')
+    geom_point(data = subject_subset, aes(
+      x = x_shift,
+      y = .data[[sub_mean]],
+      group = as.factor(.data[[iv2]]),
+      color = as.factor(.data[[iv2]])
+    ), size = 1, alpha = 0.3, position = position_jitter(width = 0.02, height = 0)) +
+    
+    # Error bars for group means
+    geom_pointrange(aes(
+      ymin = (.data[[group_mean]] - .data[[error]]),
+      ymax = (.data[[group_mean]] + .data[[error]])
+    ), size = 0.4, width = 0.1) +
+    
+    # Line plot for group means
+    geom_line(linewidth = 1, aes(linetype = as.factor(.data[[iv2]]))) + 
+    
+    ggtitle(ggtitle) +
+    xlab(xlab) +
+    ylab(ylab) +
+    scale_x_continuous(breaks = unique(as.numeric(as.factor(group_subset[[iv1]]))), 
+                       labels = unique(group_subset[[iv1]])) +
+    scale_color_manual(values = color) +
+    scale_linetype_manual(values = c("solid", "solid")) +
+    
+    theme_classic() +
+    # ylim(40, 90) +
+    theme(
+      aspect.ratio = 1,
+      axis.line = element_line(size = 0.2),
+      axis.ticks = element_line(size = 0.2),
+      axis.ticks.length = unit(-3, "pt"),
+      legend.position = "none"
+    )
+  
+  return(g)
+}
+
+```
+
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(ggplot2)
+library(dplyr)
+library(ggplot2)
+library(dplyr)
+library(ggplot2)
+library(dplyr)
+library(ggplot2)
+library(dplyr)
+library(ggplot2)
+library(dplyr)
+library(ggplot2)
+library(dplyr)
+
+plot_lineplot_twofactor_subset_LINE <- function(subjectwise, groupwise, taskname, iv1, iv2, 
+                                              sub_mean, group_mean, error, subject_col, 
+                                              color, ggtitle, xlab = NULL, ylab = NULL, 
+                                              shift_width = 0.1) {
+  
+  # Ensure the inputs are data frames
+  subjectwise <- as.data.frame(subjectwise)
+  groupwise <- as.data.frame(groupwise)
+  
+  # Check if 'taskname' column exists in 'groupwise' and 'subjectwise'
+  if ("task" %in% names(groupwise) && !is.null(taskname)) {
+    group_subset <- groupwise %>% filter(task == taskname)
+    subject_subset <- subjectwise %>% filter(task == taskname)
+  } else {
+    group_subset <- groupwise
+    subject_subset <- subjectwise
+  }
+  
+  # Ensure required columns exist before renaming
+  required_subject_cols <- c("stim_ordered", "cue_ordered", "mean_per_sub", "sub")
+  required_group_cols <- c("stim_ordered", "cue_ordered", "mean_per_sub_norm_mean", "se")
+  
+  if (!all(required_subject_cols %in% names(subject_subset))) {
+    stop("subjectwise data is missing required columns: ", paste(setdiff(required_subject_cols, names(subject_subset)), collapse=", "))
+  }
+  if (!all(required_group_cols %in% names(group_subset))) {
+    stop("groupwise data is missing required columns: ", paste(setdiff(required_group_cols, names(group_subset)), collapse=", "))
+  }
+  
+  # Rename columns to match expected input
+  subject_subset <- subject_subset %>%
+    rename(
+      iv1 = stim_ordered,
+      iv2 = cue_ordered,
+      sub_mean = mean_per_sub,
+      subject_col = sub
+    )
+  
+  group_subset <- group_subset %>%
+    rename(
+      iv1 = stim_ordered,
+      iv2 = cue_ordered,
+      group_mean = mean_per_sub_norm_mean,
+      error = se
+    )
+  
+  # Ensure iv1 is treated as a factor with correct ordering (Low -> Med -> High)
+  level_order <- c("Low", "Med", "High")
+  subject_subset <- subject_subset %>%
+    mutate(iv1_factor = factor(iv1, levels = level_order, ordered = TRUE))
+  
+  group_subset <- group_subset %>%
+    mutate(iv1_factor = factor(iv1, levels = level_order, ordered = TRUE))
+  
+  # Define shifting factor: shift both 'red' and 'blue' conditions consistently
+  subject_subset <- subject_subset %>%
+    mutate(x_shift = as.numeric(iv1_factor) + 
+                     ifelse(iv2 == "high cue", -shift_width, 
+                     ifelse(iv2 == "low cue", shift_width, 0)))
+  
+  group_subset <- group_subset %>%
+    mutate(x_shift = as.numeric(iv1_factor) + 
+                     ifelse(iv2 == "high cue", -shift_width, 
+                     ifelse(iv2 == "low cue", shift_width, 0)))
+  
+  # Ensure individual subject lines are properly grouped and connected
+  subject_subset <- subject_subset %>%
+    group_by(subject_col, iv2) %>%
+    arrange(iv1_factor)
+  
+  # Base plot with group means
+  g <- ggplot(data = group_subset, aes(
+    x = x_shift, 
+    y = group_mean,
+    group = as.factor(iv2),
+    color = as.factor(iv2)
+  )) +
+    
+    # Subject-wise lines connecting all iv1 levels properly
+    geom_line(data = subject_subset, aes(
+      x = x_shift,
+      y = sub_mean,
+      group = interaction(subject_col, iv2),
+      color = as.factor(iv2)),
+      alpha = 0.4, size = 0.5) +
+    
+    # Error bars for group means
+    geom_pointrange(aes(
+      ymin = (group_mean - error),
+      ymax = (group_mean + error)
+    ), size = 0.4, width = 0.1) +
+    
+    # Line plot for group means
+    geom_line(data = group_subset, aes(
+      x = x_shift, 
+      y = group_mean,
+      group = as.factor(iv2),
+      linetype = as.factor(iv2)), 
+      linewidth = 1) +
+    
+    ggtitle(ggtitle) +
+    xlab(xlab) +
+    ylab(ylab) +
+    scale_x_continuous(breaks = unique(as.numeric(group_subset$iv1_factor)), 
+                       labels = level_order) +
+    scale_color_manual(values = color) +
+    scale_linetype_manual(values = c("solid", "solid")) +
+    
+    theme_classic() +
+    ylim(40, 90) +
+    theme(
+      aspect.ratio = 1,
+      axis.line = element_line(size = 0.2),
+      axis.ticks = element_line(size = 0.2),
+      axis.ticks.length = unit(-3, "pt"),
+      legend.position = "none"
+    )
+  
+  return(g)
+}
+
+# Example Usage:
+# subjectwise_data <- read.csv("subjectwise_data.csv")
+# groupwise_data <- read.csv("groupwise_data.csv")
+# plot_lineplot_twofactor_subset_LINE(subjectwise_data, groupwise_data, taskname = "pain", iv1 = "stim_ordered", iv2 = "cue_ordered", 
+#                                     sub_mean = "mean_per_sub", group_mean = "mean_per_sub_norm_mean", error = "se", 
+#                                     subject_col = "sub", color = c("red", "blue"), ggtitle = "Pain", xlab = "Stimulus intensity", ylab = "Outcome Rating")
+
+
+```
+
+```{r}
+plot_lineplot_twofactor_subset_LINE_DEP <- function(subjectwise, groupwise, taskname, iv1, iv2, 
+                                              sub_mean, group_mean, error, subject_col, 
+                                              color, ggtitle, xlab = NULL, ylab = NULL, 
+                                              shift_width = 0.1) {
+  
+  # Ensure the inputs are data frames
+  subjectwise <- as.data.frame(subjectwise)
+  groupwise <- as.data.frame(groupwise)
+  
+  # Check if 'taskname' column exists in 'groupwise' and 'subjectwise'
+  if ("task" %in% names(groupwise) && !is.null(taskname)) {
+    group_subset <- groupwise %>% filter(task == taskname)
+    subject_subset <- subjectwise %>% filter(task == taskname)
+  } else {
+    group_subset <- groupwise
+    subject_subset <- subjectwise
+  }
+  
+  # Use default labels if none are provided
+  if (is.null(xlab)) xlab <- "Stimulus intensity"
+  if (is.null(ylab)) ylab <- "Outcome rating"
+  
+  # Ensure iv1 is treated as a factor with correct ordering
+  subject_subset <- subject_subset %>%
+    mutate(iv1_factor = factor(.data[[iv1]], levels = unique(.data[[iv1]])))
+  
+  group_subset <- group_subset %>%
+    mutate(iv1_factor = factor(.data[[iv1]], levels = unique(.data[[iv1]])))
+  
+  # Define shifting factor: shift both 'red' and 'blue' conditions consistently
+  subject_subset <- subject_subset %>%
+    mutate(x_shift = as.numeric(iv1_factor) + 
+                     ifelse(.data[[iv2]] == "red", -shift_width, 
+                     ifelse(.data[[iv2]] == "blue", shift_width, 0)))
+  
+  group_subset <- group_subset %>%
+    mutate(x_shift = as.numeric(iv1_factor) + 
+                     ifelse(.data[[iv2]] == "red", -shift_width, 
+                     ifelse(.data[[iv2]] == "blue", shift_width, 0)))
+  
+  # Ensure individual subject lines are properly grouped and connected
+  subject_subset <- subject_subset %>%
+    group_by(.data[[subject_col]], .data[[iv2]]) %>%
+    arrange(iv1_factor)
+  
+  # Base plot with group means
+  g <- ggplot(data = group_subset, aes(
+    x = x_shift, 
+    y = .data[[group_mean]],
+    group = as.factor(.data[[iv2]]),
+    color = as.factor(.data[[iv2]])
+  )) +
+    
+    # Subject-wise lines connecting all iv1 levels properly
+    geom_line(data = subject_subset, aes(
+      x = x_shift,
+      y = .data[[sub_mean]],
+      group = interaction(.data[[subject_col]], .data[[iv2]]),
+      color = as.factor(.data[[iv2]])),
+      alpha = 0.4, size = 0.5) +
+    
+    # Error bars for group means
+    geom_pointrange(aes(
+      ymin = (.data[[group_mean]] - .data[[error]]),
+      ymax = (.data[[group_mean]] + .data[[error]])
+    ), size = 0.4, width = 0.1) +
+    
+    # Line plot for group means
+    geom_line(data = group_subset, aes(
+      x = x_shift, 
+      y = .data[[group_mean]],
+      group = as.factor(.data[[iv2]]),
+      linetype = as.factor(.data[[iv2]])), 
+      linewidth = 1) +
+    
+    ggtitle(ggtitle) +
+    xlab(xlab) +
+    ylab(ylab) +
+    scale_x_continuous(breaks = unique(as.numeric(group_subset$iv1_factor)), 
+                       labels = levels(group_subset$iv1_factor)) +
+    scale_color_manual(values = color) +
+    scale_linetype_manual(values = c("solid", "solid")) +
+    
+    theme_classic() +
+    ylim(40, 90) +
+    theme(
+      aspect.ratio = 1,
+      axis.line = element_line(size = 0.2),
+      axis.ticks = element_line(size = 0.2),
+      axis.ticks.length = unit(-3, "pt"),
+      legend.position = "none"
+    )
+  
+  return(g)
+}
+
+
+
+```
+
+```{r}
+DATA = as.data.frame(combined_se_calc_cooksd)
+SUBJECT = as.data.frame(combined_subjectwise)
+SUB_MEAN= "mean_per_sub"
+GROUP_MEAN= "mean_per_sub_norm_mean"
+ERROR="se"
+SUBJECT_COL="sub"
+color = c( "#4575B4", "#D73027")
+LINEIV1 = "stim_ordered"
+LINEIV2 = "cue_ordered"
+p1 = plot_lineplot_twofactor_subset_LINE(SUBJECT, DATA, 
+                                         taskname = 'pain',
+                                         iv1 = LINEIV1, iv2 = LINEIV2, 
+                                         sub_mean = SUB_MEAN, group_mean = GROUP_MEAN, 
+                                         error = ERROR, subject_col = SUBJECT_COL,
+                                         color = color, ggtitle = tools::toTitleCase('pain'), 
+                                         xlab = "Stimulus intensity", ylab = "Outcome Rating",
+                                         shift_width = 0.1)
+# p1 = plot_lineplot_twofactor_subset( DATA, 'pain',
+#              LINEIV1, LINEIV2, GROUP_MEAN, ERROR, color, ggtitle = tools::toTitleCase('pain'), xlab = "Stimulus intensity", ylab = "Outcome Rating")
+p1
+```
+
 ```{r}
 
 DATA = as.data.frame(combined_se_calc_cooksd)
+SUBJECT = as.data.frame(combined_subjectwise)
 color = c( "#4575B4", "#D73027")
 LINEIV1 = "stim_ordered"
 LINEIV2 = "cue_ordered"
 MEAN = "mean_per_sub_norm_mean"
 ERROR = "ci"
 dv_keyword = "outcome"
-p1 = cueR::plot_lineplot_twofactor_subset(DATA, 'pain',
+p1 = plot_lineplot_twofactor_subset_TEST(DATA, 'pain',
              LINEIV1, LINEIV2, MEAN, ERROR, color, ggtitle = tools::toTitleCase('pain'), xlab = "Stimulus intensity", ylab = "Outcome Rating")
 # , ylim=c(10,90))
 p2 = cueR::plot_lineplot_twofactor_subset(DATA,'vicarious',
