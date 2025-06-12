@@ -4,14 +4,14 @@
 
 We investigate the profile of painpathway ROIs as a function of cue and stimulus intensity
 
-- Main model: `lmer(outcome_rating ~ cue * stim)`
-- Main question: do outcome ratings differ as a function of cue type and Stimulus intensity?
-- If there is a main effect of cue on outcome ratings, does this cue effect differ depending on task type?
+- Main model: `lmer(pain_pathway_beta ~ cue * stim)`
+- Main question: do pain pathway ROI betas differ as a function of cue type and Stimulus intensity?
+- If there is a main effect of cue on ROIs, does this cue effect differ depending on task type?
 - Is there an interaction between the two factors?
 - IV:
 - cue (high / low)
 - stim (high / med / low)
-- DV: outcome rating
+- DV: pain pathway average betas
 
 ```{r libraries_nps_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(car)
@@ -66,7 +66,8 @@ main_dir <- dirname(dirname(getwd()))
 analysis_folder <- "fmri_painpathway"
 beh <- readr::read_tsv(file.path(main_dir, "data/beh/sub-all_task-all_events.tsv"))
 dv <- "nps"
-base_dir <- "/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau_painpathway"
+base_dir <- file.path(main_dir, '/analysis/fmri/nilearn/deriv01_signature/rampup_plateau_painpathway')
+#"/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau_painpathway"
 # TODO: instead of VPN, need to push to github
 # List all CSV files matching the pattern
 file_paths <- list.files(base_dir, pattern =  "sub-.*roi-painpathway_runtype-pain.*\\.csv$", full.names = TRUE, recursive = TRUE)
@@ -233,17 +234,18 @@ formula_string <- paste(dv, "~ CUE_high_gt_low * STIM_linear + CUE_high_gt_low *
 model_formula <- as.formula(formula_string)
 # Fit the model
 sink(model_savefname)
-model.npscuestim <- lmer(model_formula, data = df_filter.NA, control = lmerControl(
-      optimizer = "optimx",
-      optCtrl = list(
-        method = "nmkb",
-        maxit = 1e9,
-        maxfun = 1e9,
-        maxeval = 1e7,
-        xtol_abs = 1e-9,
-        ftol_abs = 1e-9
-      )
-    ))
+model.npscuestim <- lmer(model_formula, data = df_filter.NA)
+# , control = lmerControl(
+#       optimizer = "optimx",
+#       optCtrl = list(
+#         method = "nmkb",
+#         maxit = 1e9,
+#         maxfun = 1e9,
+#         maxeval = 1e7,
+#         xtol_abs = 1e-9,
+#         ftol_abs = 1e-9
+#       )
+#     ))
 
 print(summary(model.npscuestim))
 sink()
