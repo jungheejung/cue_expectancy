@@ -1,11 +1,12 @@
 ---
 title: "ch4_painprocessing"
 output: html_document
-date: "2024-07-17"
+date: "2025-07-17"
 ---
 
 ```{r libraries_SIIPS_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(car)
+library(cueR)
 library(lme4)
 library(optimx)
 library(minqa)
@@ -49,6 +50,10 @@ sapply(file.sources,source,.GlobalEnv)
 
 ```
 
+```{r}
+dirname(dirname(getwd()))
+```
+
 ### Prepare dataframe
 
 ```{r}
@@ -56,9 +61,9 @@ analysis_folder <- "fmri_nps_canlab"
 
 beh <- readr::read_tsv(file.path(main_dir, "analysis/fmri/nilearn/singletrial_rampupplateau/beh/sub-all_task-all_events.tsv"))
 dv <- "nps"
-base_dir <- "/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau_canlab"
-all_nps <- read.csv("/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau_canlab/signature-NPS_sub-all_runtype-pvc_event-stimulus.csv")
-all_siips <-  read.csv("/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau_canlab/signature-SIIPS_sub-all_runtype-pain_event-stimulus.csv")
+base_dir <- file.path(main_dir, "analysis/fmri/nilearn/deriv01_signature/rampup_plateau_canlab")
+all_nps <- read.csv(file.path(base_dir, "signature-NPS_sub-all_runtype-pvc_event-stimulus.csv"))
+all_siips <-  read.csv(file.path(base_dir, "signature-SIIPS_sub-all_runtype-pain_event-stimulus.csv"))
 
 ############# NOTE: run once; concatenate all csv files ########################
 # file_paths <- list.files(base_dir, pattern =  "sub-.*_signature-NPSroi_.*\\.csv$", full.names = TRUE, recursive = TRUE)
@@ -134,9 +139,9 @@ dv_keyword <- "NPS"
 # NPS <- nps %>%
 #   select(-X)
 beh <- readr::read_tsv(file.path(main_dir, "analysis/fmri/nilearn/singletrial_rampupplateau/beh/sub-all_task-all_events.tsv"))
-base_dir <- "/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau_canlab"
-NPS <- read.csv("/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau_canlab/signature-NPS_sub-all_runtype-pvc_event-stimulus.csv")
-SIIPS <-  read.csv("/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau_canlab/signature-SIIPS_sub-all_runtype-pain_event-stimulus.csv")
+# base_dir <- "/Volumes/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau_canlab"
+NPS <- read.csv(file.path(main_dir, "analysis/fmri/nilearn/deriv01_signature/rampup_plateau_canlab/signature-NPS_sub-all_runtype-pvc_event-stimulus.csv"))
+SIIPS <-  read.csv(file.path(main_dir, "analysis/fmri/nilearn/deriv01_signature/rampup_plateau_canlab/signature-SIIPS_sub-all_runtype-pain_event-stimulus.csv"))
 
 # merge the three dataframes ___________________________________________________
 df_merge1 <- inner_join(beh, NPS, by = "singletrial_fname")
@@ -312,7 +317,8 @@ g <- g + theme(aspect.ratio=1,
 ggsave(file.path(analysis_dir, paste0("beh_maineffect", as.character(Sys.Date()), "_lowcue.svg")), plot=g, w=4, h=4, dpi=300)
 
 
-k <- plot_lineplot_twofactor(stimcue_groupwise,# taskname = "pain",
+k <- cueR::plot_lineplot_twofactor_subset(stimcue_groupwise,
+                                    taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("low cue" = lowcuehex,"high cue" = highcuehex),
@@ -421,7 +427,7 @@ g <- g + theme(aspect.ratio=1,
 ggsave(file.path(analysis_dir, paste0("NPS_maineffect", as.character(Sys.Date()), "_lowcue.svg")), plot=g, w=4, h=4, dpi=300)
 
 
-k <- plot_lineplot_twofactor(NPSstimcue_groupwise,# taskname = "pain",
+k <- cueR::plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("low cue" = lowcuehex,"high cue" = highcuehex),
@@ -509,14 +515,14 @@ g <- g + theme(aspect.ratio=1,
   # geom_line(size = 1) + # Adjust line thickness
   geom_point(size = 2) + # Adjust point size
    ylim( 3,6)
-ggsave(file.path(analysis_dir, paste0("NPS_maineffect", as.character(Sys.Date()), "_lowcue.svg")), plot=g, w=4, h=4, dpi=300)
+ggsave(file.path(analysis_dir, paste0("NPSpos_maineffect", as.character(Sys.Date()), "_lowcue.svg")), plot=g, w=4, h=4, dpi=300)
 
 
-k <- plot_lineplot_twofactor(NPSstimcue_groupwise,# taskname = "pain",
+k <- cueR::plot_lineplot_twofactor_subset(NPSstimcue_groupwise,taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("low cue" = lowcuehex,"high cue" = highcuehex),
-                        ggtitle = paste0("NPS N =", length(unique(NPSstimcue_subjectwise$sub))),
+                        ggtitle = paste0("NPS (pos) N =", length(unique(NPSstimcue_subjectwise$sub))),
                         xlab = "Stimulus intensity", ylab = "NPS")
 k<- k+ theme(aspect.ratio=1,
           text = element_text(size = 18), # Default text size for the plot
@@ -599,10 +605,10 @@ g <- g + theme(aspect.ratio=1,
   # geom_line(size = 1) + # Adjust line thickness
   geom_point(size = 2) + # Adjust point size
    ylim( 3,6)
-ggsave(file.path(analysis_dir, paste0("NPS_maineffect", as.character(Sys.Date()), "_lowcue.svg")), plot=g, w=4, h=4, dpi=300)
+ggsave(file.path(analysis_dir, paste0("NPSneg_maineffect", as.character(Sys.Date()), "_lowcue.svg")), plot=g, w=4, h=4, dpi=300)
 
 
-k <- plot_lineplot_twofactor(NPSstimcue_groupwise,# taskname = "pain",
+k <- cueR::plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("low cue" = lowcuehex,"high cue" = highcuehex),
@@ -681,8 +687,9 @@ TODO: can we indicate correlation based on significance
 
 ```{r}
 library(corrplot)
+PEmerge$cuetype_numeric <- as.numeric(as.factor(PEmerge$cuetype))
 PEmerge$beh_PE <- PEmerge$outcomerating_impute - PEmerge$expectrating_impute
-subset <- PEmerge[, c( "outcomerating_impute", "expectrating_impute", "PE_mdl2","beh_PE", "nps", "npspos") ]
+subset <- PEmerge[, c( "outcomerating_impute", "expectrating_impute", "PE_mdl2","beh_PE", "nps", "npspos",  "npsneg", "cuetype_numeric") ]
 cor_matrix <- cor(subset, use = "pairwise.complete.obs")
 corrplot(cor_matrix, method = "circle")
 ```
@@ -691,29 +698,85 @@ corrplot(cor_matrix, method = "circle")
 
 > What to do when model fit is singular
 > https://stackoverflow.com/questions/54597496/how-to-cope-with-a-singular-fit-in-a-linear-mixed-model-lme4
+> Singular. it means 
+* one or more random effect variances are near zero, 
+* and the model is overfitting or overparameterized (can't estimate all the random slopes reliably).
+> suggestion. Simplify the random effect structure
 
-```{r}
+Q. Why would i have a singular random effets structure?
+A1. when you have too many variables you're fitting. You include too many random slopes relative to the amount of data
+A2. the predictors are highly collinear (PE is similar to cue)
+
+NPS pos is predicted by cue and stim
+Once PE comes into the picture, matrix is singular
+```{r echo=TRUE}
 #
-NPSPE <- lmer(NPS ~ cuetype + stimintensity + PE_mdl2 + (cuetype + stimintensity |sub),
-     data = PEmerge,
-     control=lmerControl(check.conv.singular = .makeCC(action = "ignore",  tol = 1e-4)))
+NPSPE <- lmer(NPS ~ cuetype + stimintensity  + PE_mdl2 + (1 + PE_mdl2   |sub),
+     data = PEmerge)
+     # control=lmerControl(isSingular(NPSPE, tol = 1e-4)))
+       # check.conv.singular = .makeCC(action = "ignore",  tol = 1e-4)))
 summary(NPSPE)
 sjPlot::tab_model(NPSPE,
                   title = "model 2: \nlmer(NPS ~ cue + stim + PE + (cue + stim | sub), data = pain)",
                   CSS = list(css.table = '+font-size: 12;'))
 equatiomatic::extract_eq(NPSPE)
 
+library(sjPlot)
 
-# model 2: NPS PE positive values
-NPSPEpos <- lmer(npspos~ cuetype + stimintensity + PE_mdl2 + (cuetype + stimintensity|sub),
-     data = PEmerge,
-     control=lmerControl(check.conv.singular = .makeCC(action = "ignore",  tol = 1e-4)))
-summary(NPSPEpos)
-vif(NPSPEpos)
-sjPlot::tab_model(NPSPEpos,
-                  title = "model 2: \nlmer(NPSpos ~ cue + stim + PE + (cue + stim | sub), data = pain)",
-                  CSS = list(css.table = '+font-size: 12;'))
-equatiomatic::extract_eq(NPSPEpos)
+# Plot marginal effect (partial slope) for PE
+library(ggplot2)
+
+# Plot fitted values by subject
+PEmerge$predicted_NPS <- predict(NPSPE)
+# ggplot(PEmerge, aes(x = PE_mdl2, y = predicted_NPS, color = sub)) +
+#   geom_line(aes(group = sub), alpha = 0.4) +
+#   labs(title = "Subject-specific predicted slopes for Prediction Error",
+#        x = "Prediction Error (PE_mdl2)",
+#        y = "Predicted NPS") +
+#   theme_minimal(base_size = 14) +
+#   theme(legend.position = "none")
+library(dplyr)
+
+PEmerge_sorted <- PEmerge %>%
+  arrange(sub, PE_mdl2)
+
+ggplot(PEmerge_sorted, aes(x = PE_mdl2, y = predicted_NPS, color = sub)) +
+  geom_line(aes(group = sub), alpha = 0.4) +
+  labs(title = "Subject-specific predicted slopes for Prediction Error",
+       x = "Prediction Error (PE_mdl2)",
+       y = "Predicted NPS") +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none")
+
+library(ggeffects)
+library(ggplot2)
+
+# Get predicted values for PE across its range
+pe_pred <- ggpredict(NPSPE, terms = "PE_mdl2")
+
+# Plot
+ggplot(pe_pred, aes(x = x, y = predicted)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.2) +
+  labs(title = "Partial Effect of Prediction Error on NPS",
+       x = "Prediction Error (PE_mdl2)",
+       y = "Predicted NPS") +
+  theme_minimal(base_size = 14)
+
+plot_model(NPSPE, type = "eff", terms = c( "stimintensity", "cuetype","PE_mdl2"))
+
+
+
+# # model 2: NPS PE positive values
+# NPSPEpos <- lmer(npspos~ cuetype + stimintensity + PE_mdl2 + (cuetype + stimintensity|sub),
+#      data = PEmerge,
+#      control=lmerControl(check.conv.singular = .makeCC(action = "ignore",  tol = 1e-4)))
+# summary(NPSPEpos)
+# vif(NPSPEpos)
+# sjPlot::tab_model(NPSPEpos,
+#                   title = "model 2: \nlmer(NPSpos ~ cue + stim + PE + (cue + stim | sub), data = pain)",
+#                   CSS = list(css.table = '+font-size: 12;'))
+# equatiomatic::extract_eq(NPSPEpos)
 ```
 
 ## 4 NPS nociceptive ROI (df_filter.NA)
@@ -871,7 +934,7 @@ plot_savefname <- file.path(
 
 ### Lineplots with only low cue ____________________________________
 subsetNPS <- NPSstimcue_groupwise[NPSstimcue_groupwise$cue_ordered == "low cue",]
-g <- plot_lineplot_twofactor_subset(subsetNPS, taskname = "pain",
+g <- cueR::plot_lineplot_twofactor_subset(subsetNPS, taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("low cue" = "#4274AD", "#D73027"),
@@ -881,7 +944,7 @@ g + theme(aspect.ratio=.8)
 
 
 ### Lineplots________________________________________________________________________
-g <- plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain",
+g <- cueR::plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("low cue" = "#4274AD","high cue" = "#C5263A"),
@@ -998,8 +1061,7 @@ g <- g + theme(aspect.ratio=1,
    ylim(465, 650)
 ggsave(file.path(analysis_dir, paste0("SIIPS_maineffect", as.character(Sys.Date()), "_lowcue.svg")), plot=g, w=4, h=4, dpi=300)
 
-
-k <- plot_lineplot_twofactor(SIIPS_groupwise,# taskname = "pain",
+k <- cueR::plot_lineplot_twofactor_subset(SIIPS_groupwise, taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("low cue" = lowcuehex,"high cue" = highcuehex),
