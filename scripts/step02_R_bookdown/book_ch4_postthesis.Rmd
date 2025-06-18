@@ -692,6 +692,14 @@ PEmerge$beh_PE <- PEmerge$outcomerating_impute - PEmerge$expectrating_impute
 subset <- PEmerge[, c( "outcomerating_impute", "expectrating_impute", "PE_mdl2","beh_PE", "nps", "npspos",  "npsneg", "cuetype_numeric") ]
 cor_matrix <- cor(subset, use = "pairwise.complete.obs")
 corrplot(cor_matrix, method = "circle")
+
+# Correlation between cuetype and model-based PE
+correlation_model <- cor_matrix["cuetype_numeric", "PE_mdl2"]
+print(correlation_model)
+
+# Correlation between cuetype and behavioral PE
+correlation_behavioral <- cor_matrix["cuetype_numeric", "beh_PE"]
+print(correlation_behavioral)
 ```
 
 ### Tor suggestion lmer with PE
@@ -709,12 +717,20 @@ A2. the predictors are highly collinear (PE is similar to cue)
 
 NPS pos is predicted by cue and stim
 Once PE comes into the picture, matrix is singular
+```{r message=TRUE, warning=TRUE}
+summary(NPSPE)
+```
+
 ```{r echo=TRUE}
 #
-NPSPE <- lmer(NPS ~ cuetype + stimintensity  + PE_mdl2 + (1 + PE_mdl2   |sub),
+# model.NPS <- lmer(NPS ~ CUE_high_gt_low*STIM_linear +
+#        CUE_high_gt_low*STIM_quadratic + (CUE_high_gt_low+STIM_linear|sub), data = df_filter)
+
+NPSPE <- lmer(NPS ~ CUE_high_gt_low + STIM_linear +
+       STIM_quadratic  + scale(PE_mdl2) + (1  | sub),
      data = PEmerge)
      # control=lmerControl(isSingular(NPSPE, tol = 1e-4)))
-       # check.conv.singular = .makeCC(action = "ignore",  tol = 1e-4)))
+     # check.conv.singular = .makeCC(action = "ignore",  tol = 1e-4)))
 summary(NPSPE)
 sjPlot::tab_model(NPSPE,
                   title = "model 2: \nlmer(NPS ~ cue + stim + PE + (cue + stim | sub), data = pain)",
@@ -728,13 +744,7 @@ library(ggplot2)
 
 # Plot fitted values by subject
 PEmerge$predicted_NPS <- predict(NPSPE)
-# ggplot(PEmerge, aes(x = PE_mdl2, y = predicted_NPS, color = sub)) +
-#   geom_line(aes(group = sub), alpha = 0.4) +
-#   labs(title = "Subject-specific predicted slopes for Prediction Error",
-#        x = "Prediction Error (PE_mdl2)",
-#        y = "Predicted NPS") +
-#   theme_minimal(base_size = 14) +
-#   theme(legend.position = "none")
+
 library(dplyr)
 
 PEmerge_sorted <- PEmerge %>%
@@ -752,7 +762,7 @@ library(ggeffects)
 library(ggplot2)
 
 # Get predicted values for PE across its range
-pe_pred <- ggpredict(NPSPE, terms = "PE_mdl2")
+pe_pred <- ggpredict(NPSPE, terms = "CUE_high_gt_low")
 
 # Plot
 ggplot(pe_pred, aes(x = x, y = predicted)) +
@@ -763,20 +773,8 @@ ggplot(pe_pred, aes(x = x, y = predicted)) +
        y = "Predicted NPS") +
   theme_minimal(base_size = 14)
 
-plot_model(NPSPE, type = "eff", terms = c( "stimintensity", "cuetype","PE_mdl2"))
+plot_model(NPSPE, type = "eff", terms = c( "STIM_linear","PE_mdl2"))
 
-
-
-# # model 2: NPS PE positive values
-# NPSPEpos <- lmer(npspos~ cuetype + stimintensity + PE_mdl2 + (cuetype + stimintensity|sub),
-#      data = PEmerge,
-#      control=lmerControl(check.conv.singular = .makeCC(action = "ignore",  tol = 1e-4)))
-# summary(NPSPEpos)
-# vif(NPSPEpos)
-# sjPlot::tab_model(NPSPEpos,
-#                   title = "model 2: \nlmer(NPSpos ~ cue + stim + PE + (cue + stim | sub), data = pain)",
-#                   CSS = list(css.table = '+font-size: 12;'))
-# equatiomatic::extract_eq(NPSPEpos)
 ```
 
 ## 4 NPS nociceptive ROI (df_filter.NA)
