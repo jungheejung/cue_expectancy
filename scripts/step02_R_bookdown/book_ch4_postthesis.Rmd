@@ -685,21 +685,27 @@ ggsave("/Users/h/Documents/projects_local/cue_expectancy/resources/plots_dissert
 Q. How correlated are the outcome ratings and NPS values??
 TODO: can we indicate correlation based on significance
 
+## Correlation plot
+
 ```{r}
 library(corrplot)
-PEmerge$cuetype_numeric <- as.numeric(as.factor(PEmerge$cuetype))
-PEmerge$beh_PE <- PEmerge$outcomerating_impute - PEmerge$expectrating_impute
-subset <- PEmerge[, c( "outcomerating_impute", "expectrating_impute", "PE_mdl2","beh_PE", "nps", "npspos",  "npsneg", "cuetype_numeric") ]
-cor_matrix <- cor(subset, use = "pairwise.complete.obs")
+# PEmerge$cuetype_numeric <- as.numeric(as.factor(PEmerge$cue))
+PEmerge$cue_coded <- ifelse(PEmerge$cue == "high_cue", 1, -1)
+vars_to_center <- c("outcomerating_impute", "expectrating_impute", "PE_mdl2", "beh_PE", "nps", "npspos", "npsneg", "cue_coded")
+centered_vars <- as.data.frame(scale(PEmerge[, vars_to_center], center = TRUE, scale = FALSE))
+
+centered_vars$beh_PE <- PEmerge$outcomerating_impute - PEmerge$expectrating_impute
+# subset <- PEmerge[, c( "outcomerating_impute", "expectrating_impute", "PE_mdl2","beh_PE", "nps", "npspos",  "npsneg", "cuetype_numeric") ]
+cor_matrix <- cor(centered_vars, use = "pairwise.complete.obs")
 corrplot(cor_matrix, method = "circle")
 
 # Correlation between cuetype and model-based PE
-correlation_model <- cor_matrix["cuetype_numeric", "PE_mdl2"]
-print(correlation_model)
-
-# Correlation between cuetype and behavioral PE
-correlation_behavioral <- cor_matrix["cuetype_numeric", "beh_PE"]
-print(correlation_behavioral)
+# correlation_model <- cor_matrix["cuetype_numeric", "PE_mdl2"]
+# print(correlation_model)
+# 
+# # Correlation between cuetype and behavioral PE
+# correlation_behavioral <- cor_matrix["cuetype_numeric", "beh_PE"]
+# print(correlation_behavioral)
 ```
 
 ### Tor suggestion lmer with PE
@@ -776,6 +782,35 @@ ggplot(pe_pred, aes(x = x, y = predicted)) +
 plot_model(NPSPE, type = "eff", terms = c( "STIM_linear","PE_mdl2"))
 
 ```
+
+## 06/26/2025
+After slack discussion
+
+One more note for now.  Putting cue and PE into the same linear model, as you did for SIIPS (finding pos effects of both), requires some nuance to interpret and i'm not sure we want to go that route.
+This is because cue is a main driver of PEs: high cue -> high predicted pain -> more negative aversive PEs/positive appetitive PEs.  If you partial that out and then look at effects of PE, you're looking at effects of worse-than-expected pain independent of cue. That's interesting but driven by trial-to-trial fluctuations independent of cue, which are probably smaller effects than the cue effects.
+Overall, SIIPS activity is not consistent with aversive PEs, because it assimilates to cued values, rather than the opposite. Aversive PEs would show contrast from cued values like NPSpos does.
+A model comparison way to approach this could be the following:
+Test separate models with {cue}, {stim}, {pe}, {cue + stim}, and {cue + stim + pe} predictors. pe is a derived variable caused by negative effects of cue and positive effects of stim.
+Save residual variances for each subject for each model. Transform these to residual std by taking square root
+Perform sign tests on pairs of these residual std values (or paired t-tests, if approx normally dstributed) across models.  lower variance means a better model.
+A brain variable that codes for aversive PEs will show (a) pe < cue only and pe < stim only in terms of error, (b) negative effects of cue and positive effects of stim in {cue, stim} model, and possibly (c) {cue, stim, pe} < {cue, stim} in residual error. If (c) holds, the trial-to-trial PE predicts the outcome above and beyond the average cue and stim effects.  Also, if error for {pe alone} = error for {cue, stim} it means the trial-to-trial PE model captures the joint effects of cue and stim (ingredients of PE) adequately.
+
+```{r}
+############### STEP 01. model each factor
+NPSpos ~  cue 
+NPSpos ~ stim 
+NPSpos ~ PE 
+NPSpos ~ cue + stim 
+NPSpos ~ cue + stim + PE 
+
+############### STEP 02. residual values
+residual_values 
+
+############### STEP 03. signed tests
+
+############### STEP 04. interpretation
+```
+
 
 ## 4 NPS nociceptive ROI (df_filter.NA)
 
