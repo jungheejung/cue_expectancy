@@ -24,6 +24,7 @@ library(plyr)
 library(ggpubr)
 library(r2mlm)
 library(effectsize)
+library(BSDA)
 # library(devtools)
 options(es.use_symbols = TRUE) # get nice symbols when printing! (On Windows, requires R >= 4.2.0)
 library(EMAtools)
@@ -37,6 +38,7 @@ library(scico)
 library(raincloudplots)
 # devtools::source_url("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/tutorial_R/R_rainclouds.R")
 # devtools::source_url("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/tutorial_R/summarySE.R")
+library(BSDA)
 library(broom)
 library(MuMIn)
 # devtools::source_url("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
@@ -536,6 +538,7 @@ k
 ggsave(file.path(analysis_dir, paste0("NPSpos_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300)
 ```
 
+
 ### NPS neg
 
 ```{r}
@@ -626,7 +629,13 @@ k
 ggsave(file.path(analysis_dir, paste0("NPSneg_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300)
 ```
 
-## 3 PE (PEmerge)
+#### Tor comments
+```
+Some of the NPS neg regions show the hallmarks of appetitive PEs, better-than-expected signals.  higher with high expectations for a given stim intensity, and lower (more negative) with higher pain. here's an especially nice-looking one.
+I think from this that the NPSneg was calculated by taking an average over relevant voxels/regions, rather than by applying a pattern mask with (mostly) negative weights. This inference is because the NPSneg pattern response looks a lot like the region averages you show for individual regions, rather than the opposite (i.e., if you apply neg weights to an image with decreased activity you get a pos response, which would be what you get applying the NPSneg as a pattern). Also, the NPSneg pattern response should go *up* with stim intensity but the mean activity in NPSneg regions should go *down*.  It would be great to confirm how the values were calculated and whether this interpretation of what you did is correct.
+```
+
+## 3. PE (PEmerge)
 
 ```{r}
 PEdf <- read.csv("/Users/h/Documents/projects_local/cue_expectancy/data/RL/modelfit_072024/table_pain.csv")
@@ -685,16 +694,19 @@ ggsave("/Users/h/Documents/projects_local/cue_expectancy/resources/plots_dissert
 Q. How correlated are the outcome ratings and NPS values??
 TODO: can we indicate correlation based on significance
 
-## Correlation plot
+## 4. Correlation plot 
+* Update 07/06/2025: change contrast coding so that "high cue" is greater than "low cue"
+Previously, levels were coded alphabetically, making high cue lower. 
 
 ```{r}
 library(corrplot)
 # PEmerge$cuetype_numeric <- as.numeric(as.factor(PEmerge$cue))
 PEmerge$cue_coded <- ifelse(PEmerge$cue == "high_cue", 1, -1)
+PEmerge$beh_PE <- PEmerge$outcomerating_impute - PEmerge$expectrating_impute
 vars_to_center <- c("outcomerating_impute", "expectrating_impute", "PE_mdl2", "beh_PE", "nps", "npspos", "npsneg", "cue_coded")
 centered_vars <- as.data.frame(scale(PEmerge[, vars_to_center], center = TRUE, scale = FALSE))
 
-centered_vars$beh_PE <- PEmerge$outcomerating_impute - PEmerge$expectrating_impute
+
 # subset <- PEmerge[, c( "outcomerating_impute", "expectrating_impute", "PE_mdl2","beh_PE", "nps", "npspos",  "npsneg", "cuetype_numeric") ]
 cor_matrix <- cor(centered_vars, use = "pairwise.complete.obs")
 corrplot(cor_matrix, method = "circle")
@@ -708,7 +720,205 @@ corrplot(cor_matrix, method = "circle")
 # print(correlation_behavioral)
 ```
 
-### Tor suggestion lmer with PE
+# Correlation plot [ Update ]
+* Update 07/09. After meeting with Tor, we discussed that the correlations should be calculated within participant rather than across the entire dataset. 
+* Below, I normalize within subjects, calculate correlation, then apply a t-test on the group aggregated subjectwise correlatin matrices
+
+```{r}
+library(Hmisc)
+#Normalize (center and/or scale) variables WITHIN each subject
+vars_to_normalize <- c("CUE_high_gt_low", "STIM_linear", "expectrating_impute", "outcomerating_impute", "PE_mdl2", "nps", "npspos", "npsneg", "SIIPS")
+
+PEmerge_normalized_within_sub <- PEmerge %>%
+  group_by(sub) %>%
+  mutate(across(all_of(vars_to_normalize), ~ scale(., center = TRUE, scale = FALSE)[,1])) %>%
+  ungroup() # Ungroup after normalization to avoid issues with subsequent operations if not grouped
+
+new_labels <- c(
+  "CUE_high_gt_low" = "Cue",
+  "STIM_linear" = "Stimulus",
+  "expectrating_impute" = "Expected Rating",
+  "outcomerating_impute" = "Outcome Rating",
+  "PE_mdl2" = "Prediction Error",
+  "nps" = "NPS Score",
+  "npspos" = "NPS Positive",
+  "npsneg" = "NPS Negative",
+  "SIIPS" = "SIIPS Score"
+)
+
+# Ensure all vars_to_normalize have a corresponding new_label
+if (!all(vars_to_normalize %in% names(new_labels))) {
+  stop("Not all variables in 'vars_to_normalize' have a corresponding entry in 'new_labels'. Please define labels for all variables.")
+}
+
+# ___ 2. calculate correlation matrix per subject _____________________________
+correlation_results_nested <- PEmerge_normalized_within_sub %>%
+  group_by(sub) %>%
+  nest() %>% # Nests the data for each subject into a list-column named 'data'
+  mutate(
+    cor_stats = map(data, ~ { # Apply a function to each nested dataframe
+      sub_data <- .[, vars_to_normalize]
+      
+      cor_results <- rcorr(as.matrix(sub_data), type = "pearson")
+      
+      # --- Apply new labels to correlation matrix names HERE ---
+      cor_matrix_labeled <- cor_results$r
+      rownames(cor_matrix_labeled) <- new_labels[rownames(cor_matrix_labeled)]
+      colnames(cor_matrix_labeled) <- new_labels[colnames(cor_matrix_labeled)]
+
+      p_matrix_labeled <- cor_results$P
+      rownames(p_matrix_labeled) <- new_labels[rownames(p_matrix_labeled)]
+      colnames(p_matrix_labeled) <- new_labels[colnames(p_matrix_labeled)]
+      
+      list(
+        cor_matrix = cor_matrix_labeled,
+        p_matrix = p_matrix_labeled,
+        n_observations = cor_results$n[1,1] # Number of observations for this sub
+      )
+    })
+  ) %>%
+  ungroup() # Ungroup the results
+
+# ___ 3. pull data ____________________________________________________________
+correlation_matrices_by_sub_list_named <- correlation_results_nested %>%
+  pull(cor_stats) %>% # Extract the 'cor_stats' list-column
+  map("cor_matrix") %>% # Extract 'cor_matrix' from each element in 'cor_stats'
+  set_names(correlation_results_nested$sub) # Set names from the 'sub' column
+
+p_matrices_by_sub_list_named <- correlation_results_nested %>%
+  pull(cor_stats) %>%
+  map("p_matrix") %>%
+  set_names(correlation_results_nested$sub)
+
+n_obs_by_sub_list_named <- correlation_results_nested %>%
+  pull(cor_stats) %>%
+  map("n_observations") %>%
+  set_names(correlation_results_nested$sub)
+
+# ___ 4. fisher z transform ___________________________________________________
+fisher_z_matrices_by_sub <- map(correlation_matrices_by_sub_list_named, function(mat) {
+  # Apply Fisher's Z transformation element-wise
+  # Handle NA values gracefully, Fisher's Z is undefined for r = 1 or r = -1 as well
+  z_mat <- 0.5 * log((1 + mat) / (1 - mat))
+  # Propagate NAs where the original correlation was NA or invalid for Z-transform
+  z_mat[is.na(mat)] <- NA # Ensure NA where original r was NA
+  z_mat[mat == 1 | mat == -1] <- NA # Undefined for r=1 or r=-1
+  return(z_mat)
+})
+
+
+# Get dimensions from the first valid matrix
+num_vars <- nrow(fisher_z_matrices_by_sub[[1]])
+var_names <- rownames(fisher_z_matrices_by_sub[[1]])
+
+# Initialize an empty matrix to sum Fisher Z scores
+sum_fisher_z_matrix <- matrix(0, nrow = num_vars, ncol = num_vars, dimnames = list(var_names, var_names))
+# Initialize a count matrix to keep track of how many subjects contributed to each cell
+count_matrix <- matrix(0, nrow = num_vars, ncol = num_vars, dimnames = list(var_names, var_names))
+
+
+# ___ 5. Sum Fisher Z scores and count valid contributions ____________________
+for (z_mat in fisher_z_matrices_by_sub) {
+  for (r in 1:num_vars) {
+    for (c in 1:num_vars) {
+      if (!is.na(z_mat[r, c])) {
+        sum_fisher_z_matrix[r, c] <- sum_fisher_z_matrix[r, c] + z_mat[r, c]
+        count_matrix[r, c] <- count_matrix[r, c] + 1
+      }
+    }
+  }
+}
+
+# ___ 6. get average fisherz matrix ___________________________________________
+average_fisher_z_matrix <- sum_fisher_z_matrix / count_matrix
+# Replace NaNs (from division by zero if a correlation was always NA) with actual NA
+average_fisher_z_matrix[is.nan(average_fisher_z_matrix)] <- NA
+
+# ___ 7. revert fisherz back to corr __________________________________________
+average_r_matrix <- (exp(2 * average_fisher_z_matrix) - 1) / (exp(2 * average_fisher_z_matrix) + 1)
+diag(average_r_matrix) <- 1
+# Ensure symmetry (minor floating point differences can occur)
+average_r_matrix[lower.tri(average_r_matrix)] <- t(average_r_matrix)[lower.tri(average_r_matrix)]
+
+cat("\n--- Average Correlation Matrix (Fisher Z transformed and back-transformed) ---\n")
+print(round(average_r_matrix, 3))
+
+# ___ 8. visualize __________________________________________________________
+# Visualize the average correlation matrix
+corrplot(average_r_matrix, method = "circle",
+         main = "Average Correlation Matrix Across All Participants")
+
+
+
+# ___ 9. validate this ________________________________________________________
+
+# Perform T-tests for each element (correlation) against zero
+# We need to collect all individual Fisher Z scores for each specific correlation pair.
+
+# Create a list to store results of t-tests for each unique correlation pair
+t_test_results_matrix <- matrix(NA, nrow = num_vars, ncol = num_vars, dimnames = list(var_names, var_names))
+p_value_results_matrix <- matrix(NA, nrow = num_vars, ncol = num_vars, dimnames = list(var_names, var_names))
+
+cat("\n--- T-test Results (p-values) for Each Correlation in the Average Matrix vs. Zero ---\n")
+
+# Iterate through the upper triangle (excluding diagonal) to avoid redundant tests
+for (i in 1:(num_vars - 1)) {
+  for (j in (i + 1):num_vars) {
+    var1 <- var_names[i]
+    var2 <- var_names[j]
+
+    # Collect all valid Fisher Z scores for this specific pair across subjects
+    z_scores_for_pair <- map_dbl(fisher_z_matrices_by_sub, ~ .x[var1, var2], .null = NA)
+    z_scores_for_pair <- z_scores_for_pair[!is.na(z_scores_for_pair)] # Remove NAs
+
+    if (length(z_scores_for_pair) < 2) { # Need at least 2 observations for a t-test
+      message(sprintf("  Not enough valid Z-scores for %s vs %s (N = %d). Skipping t-test.", var1, var2, length(z_scores_for_pair)))
+      next
+    }
+
+    # Perform one-sample t-test against mu = 0
+    test_result <- t.test(z_scores_for_pair, mu = 0)
+    
+    t_test_results_matrix[i, j] <- test_result$statistic
+    t_test_results_matrix[j, i] <- test_result$statistic # Ensure symmetry
+    p_value_results_matrix[i, j] <- test_result$p.value
+    p_value_results_matrix[j, i] <- test_result$p.value # Ensure symmetry
+
+    # Print results for significant ones (or all, if you prefer)
+    if (test_result$p.value < 0.05) {
+      cat(sprintf("  Correlation %s - %s: Avg_r = %.3f, Avg_Z = %.3f, t(%.0f) = %.3f, p = %.3f (Significant)\n",
+                  var1, var2, average_r_matrix[i,j], average_fisher_z_matrix[i,j],
+                  test_result$parameter, test_result$statistic, test_result$p.value))
+    } else {
+       cat(sprintf("  Correlation %s - %s: Avg_r = %.3f, Avg_Z = %.3f, t(%.0f) = %.3f, p = %.3f\n",
+                  var1, var2, average_r_matrix[i,j], average_fisher_z_matrix[i,j],
+                  test_result$parameter, test_result$statistic, test_result$p.value))
+    }
+  }
+}
+
+cat("\n--- P-value Matrix for Average Correlations vs. Zero ---\n")
+print(round(p_value_results_matrix, 3))
+
+# You can also visualize the p-value matrix (e.g., as a heatmap or using corrplot's p-value masking)
+# Example using corrplot with p-values:
+# Set diagonal to 0 or 1 for display purposes (no p-value for self-correlation)
+diag(p_value_results_matrix) <- 1 # Or 0, depending on how you want to mask
+# Mask non-significant correlations with X
+corrplot(average_r_matrix, p.mat = p_value_results_matrix, 
+         sig.level = c(0.001, 0.01, 0.05), insig = "label_sig",
+         pch.cex = 0.9,
+         method = "color", main = "Group average Correlation Matrix")
+```
+
+
+
+#### Tor comments on correlation plot
+```
+Going through more of your output. the NPSpos clearly seems to track PE and is worth reporting. I like the correlation plot, though there are a couple of strange (reversed?) relationships if i am reading it right, and it makes me wonder if you mean-centered each variable for each subject before calculating the correlation matrix. this centering would then plot the average within-person relationships. Otherwise, between-person correlations will be mixed into this plot, perhaps resulting in a few weird things. but please correct me if I am mis-reading things. otherwise, this is very nice to include. you could do a within-person and a between-person correlation plot where you plot the correlations among the subject-wise mean values.
+```
+
+
 
 > What to do when model fit is singular
 > https://stackoverflow.com/questions/54597496/how-to-cope-with-a-singular-fit-in-a-linear-mixed-model-lme4
@@ -722,10 +932,38 @@ A1. when you have too many variables you're fitting. You include too many random
 A2. the predictors are highly collinear (PE is similar to cue)
 
 NPS pos is predicted by cue and stim
-Once PE comes into the picture, matrix is singular
-```{r message=TRUE, warning=TRUE}
-summary(NPSPE)
+Once PE comes into the picture, matrix is singular. 
+It doesn't quite make sense to throw everything into the model, because PE is a linear combination of cue and stim. The variables are bound to be collinear. 
+
+Remedy: Model comparison. see section 6. Model comparisons
+
+## 5. Partial effects [ Update ] 
+* Update 07/06/2025: Plot partial effects of PE on NPS, while controlling for other 
+factors, instead of simply plotting the effect of PE on NPS. That doesn't capture the full picture. 
+```{r}
+library(sjPlot)
+library(ggplot2) # Ensure ggplot2 is loaded for plotting
+
+# Your model as defined previously:
+NPSPE <- lmer(NPS ~ CUE_high_gt_low + STIM_linear + STIM_quadratic + scale(PE_mdl2) + (1 | sub),
+             data = PEmerge)
+
+# Generate the plot for the partial effect of PE_mdl2, conditional on STIM_linear
+# PE_mdl2 will be on the x-axis, and STIM_linear will define the different lines.
+plot_PE_by_STIM <- plot_model(NPSPE, type = "eff", terms = c("PE_mdl2", "STIM_linear"))
+
+# You can further customize this plot using ggplot2 syntax,
+# for example, by adding a title or adjusting theme elements.
+plot_PE_by_STIM +
+  labs(title = "Partial Effect of Prediction Error on NPS, by Stimulus Level",
+       x = "Prediction Error (PE_mdl2)",
+       y = "Predicted NPS") +
+  theme_minimal(base_size = 14) +
+  theme(legend.title = element_text(size = 12),
+        legend.text = element_text(size = 10)) +
+  theme_classic2()
 ```
+
 
 ```{r echo=TRUE}
 #
@@ -764,6 +1002,30 @@ ggplot(PEmerge_sorted, aes(x = PE_mdl2, y = predicted_NPS, color = sub)) +
   theme_minimal(base_size = 14) +
   theme(legend.position = "none")
 
+
+#########
+min_value <- -40
+max_value <- 40
+PEmerge$sub <- factor(PEmerge$sub)
+plot.PE_NPS <- ggplot(PEmerge, aes(x = PE_mdl2, y = NPS)) +
+  geom_point(aes(colour = sub), size = .1) +  # Points colored by subject
+  geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .3, linetype = "dashed") +  # Subject-wise regression lines
+  geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = .5, color = "black") +  # Group regression line
+  # ylim(min_value, max_value) +  # Set y-axis limits
+  # xlim(min_value, max_value)
+  theme_classic2()  +# Use a theme with a white background
+xlab("PE") +
+   theme(aspect.ratio=1,
+          text = element_text(size = 18), # Default text size for the plot
+          axis.title = element_text(size = 24, ), # Axis titles
+          axis.text = element_text(size = 18), # Axis text (x and y)
+          plot.title = element_text(size = 24, hjust = 0.5),# Plot title
+         legend.position = "none"
+          )
+plot.PE_NPS
+
+######
+
 library(ggeffects)
 library(ggplot2)
 
@@ -783,9 +1045,15 @@ plot_model(NPSPE, type = "eff", terms = c( "STIM_linear","PE_mdl2"))
 
 ```
 
-## 06/26/2025
-After slack discussion
+## 6. Model comparisons with PE [ Update ]  
+We examined whether including trial-by-trial prediction errors (PE) improves model fit relative to models with only cue, stimulus, or cue + stimulus predictors. This was evaluated by comparing subject-wise residual standard deviations (residual std) across models using nonparametric sign tests on median differences.
 
+* Update 07/25/2025: instead of testing the PE effect on NPSpos as a simple linear regression, 
+I implement model comparison to test to combination of different factors and quantify the residual variance.
+
+
+#### Tor comments from Slack 06/26/2025
+```
 One more note for now.  Putting cue and PE into the same linear model, as you did for SIIPS (finding pos effects of both), requires some nuance to interpret and i'm not sure we want to go that route.
 This is because cue is a main driver of PEs: high cue -> high predicted pain -> more negative aversive PEs/positive appetitive PEs.  If you partial that out and then look at effects of PE, you're looking at effects of worse-than-expected pain independent of cue. That's interesting but driven by trial-to-trial fluctuations independent of cue, which are probably smaller effects than the cue effects.
 Overall, SIIPS activity is not consistent with aversive PEs, because it assimilates to cued values, rather than the opposite. Aversive PEs would show contrast from cued values like NPSpos does.
@@ -794,25 +1062,121 @@ Test separate models with {cue}, {stim}, {pe}, {cue + stim}, and {cue + stim + p
 Save residual variances for each subject for each model. Transform these to residual std by taking square root
 Perform sign tests on pairs of these residual std values (or paired t-tests, if approx normally dstributed) across models.  lower variance means a better model.
 A brain variable that codes for aversive PEs will show (a) pe < cue only and pe < stim only in terms of error, (b) negative effects of cue and positive effects of stim in {cue, stim} model, and possibly (c) {cue, stim, pe} < {cue, stim} in residual error. If (c) holds, the trial-to-trial PE predicts the outcome above and beyond the average cue and stim effects.  Also, if error for {pe alone} = error for {cue, stim} it means the trial-to-trial PE model captures the joint effects of cue and stim (ingredients of PE) adequately.
+```
 
-```{r}
-############### STEP 01. model each factor
-NPSpos ~  cue 
-NPSpos ~ stim 
-NPSpos ~ PE 
-NPSpos ~ cue + stim 
-NPSpos ~ cue + stim + PE 
+```{r message=TRUE, warning=TRUE, paged.print=TRUE}
+######################### STEP 01. model each factor ########################### 
+model.cue <- lmer(npspos ~ cue_coded + (1|sub), data = PEmerge)
+model.stim <- lmer(npspos ~ stim + (1|sub), data = PEmerge)
+model.PE <- lmer(npspos ~ PE_mdl2 + (1|sub), data = PEmerge)
+model.cuestim <- lmer(npspos ~ cue_coded + stim + (1|sub), data = PEmerge)
+model.cuePE <- lmer(npspos ~ cue_coded + PE_mdl2 + (1|sub), data = PEmerge)
+model.cuestimPE <- lmer(npspos ~ cue_coded + stim + PE_mdl2 + (1|sub), data = PEmerge)
+# NPSpos ~ stim 
+# NPSpos ~ PE 
+# NPSpos ~ cue + stim 
+# NPSpos ~ cue + stim + PE 
+# NPSPE <- lmer(NPS ~ CUE_high_gt_low + STIM_linear +
+#        STIM_quadratic  + scale(PE_mdl2) + (1  | sub),
+#      data = PEmerge)
 
-############### STEP 02. residual values
-residual_values 
 
-############### STEP 03. signed tests
+######################### STEP 02. residual values ######################### 
+# Function to get residual std for each subject from a model
+get_sub_res_std <- function(model, data_frame, subject_var = "sub") {
+  data_frame$residuals <- residuals(model)
+  
+  residual_std_per_sub <- data_frame %>%
+    group_by(across(all_of(subject_var))) %>%
+    summarise(residual_std = sd(residuals, na.rm = TRUE)) %>%
+    ungroup()
+  
+  return(residual_std_per_sub)
+}
 
-############### STEP 04. interpretation
+# Calculate residual standard deviations for each model
+res_std_cue <- get_sub_res_std(model.cue, PEmerge)
+res_std_stim <- get_sub_res_std(model.stim, PEmerge)
+res_std_PE <- get_sub_res_std(model.PE, PEmerge)
+res_std_cuestim <- get_sub_res_std(model.cuestim, PEmerge)
+res_std_cuePE <- get_sub_res_std(model.cuePE, PEmerge)
+res_std_cuestimPE <- get_sub_res_std(model.cuestimPE, PEmerge)
+
+# Merge these into a single data frame
+all_res_std <- res_std_cue %>%
+  rename(res_std_cue = residual_std) %>%
+  left_join(res_std_stim %>% rename(res_std_stim = residual_std), by = "sub") %>%
+  left_join(res_std_PE %>% rename(res_std_PE = residual_std), by = "sub") %>%
+  left_join(res_std_cuestim %>% rename(res_std_cuestim = residual_std), by = "sub") %>%
+  left_join(res_std_cuePE %>% rename(res_std_cuePE = residual_std), by = "sub") %>%
+  left_join(res_std_cuestimPE %>% rename(res_std_cuestimPE = residual_std), by = "sub")
+
+# head(all_res_std)
+
+
+#########################  NOTE  ######################### 
+# residuals(model) for lmer by default gives you the conditional residuals, which 
+# are the raw observed minus fitted values (where fitted values include both fixed 
+# and random effects). This is typically what you want for model diagnostics and 
+# comparisons of this nature.
+
+
+
+######################### STEP 03. signed tests  ######################### 
+# Comparison (a): PE < Cue only
+# Calculate the differences: (res_std_cue - res_std_PE)
+# We expect this difference to be positive if PE alone is a better model (lower residual std)
+# median(cue - PE) > 0
+# diff_cue_PE <- all_res_std$res_std_cue - all_res_std$res_std_PE
+model.cue_PE <- SIGN.test(all_res_std$res_std_cue, all_res_std$res_std_PE, alternative = "greater")
+print("======= (a) Nonparametric test on median differences Cue, PE model. \nIs the median of if (Cue - PE) > 0 =======")
+print(model.cue_PE)
+
+# Comparison (b): PE < Stim only
+# diff_cue_PE <- all_res_std$res_std_stim - all_res_std$res_std_PE
+comp.stim_PE <- SIGN.test(all_res_std$res_std_stim, all_res_std$res_std_PE, alternative = "greater")
+print("======= (b) Nonparametric test on median differences Stim, PE model. \nIs the median of if (stim - PE) > 0 =======")
+print(comp.stim_PE)
+
+# Comparison (c): {cue, stim, PE} < {cue, stim}
+comp.cuestimPE <- SIGN.test(all_res_std$res_std_cuestimPE, all_res_std$res_std_cuestim, alternative = "greater")
+print("======= (c) Nonparametric test on median differences Stim, PE model. \nIs the median of if (cuestimPE - cuestim) > 0 =======")
+print(comp.cuestimPE)
+
+# Comparison (d): {cue, PE} < {cue, stim}
+comp.cuePE <- SIGN.test(all_res_std$res_std_cuePE, all_res_std$res_std_cuestim, alternative = "greater")
+print("======= Nonparametric test on median differences Stim, PE model. \nIs the median of if (cuestimPE - cuestim) > 0 =======")
+print(comp.cuePE)
+######################### STEP 04. interpretation  ######################### 
+
+# Comparison (a) cue vs. PE only model
+# -> significant difference in medial for cue model and PE model. cue model more error. 
+# In other words, PE is a better predictor of NPS positive weights, compared to cue alone. 
+# 69 subjects had greater res_std_cue than res_std_PE. prediction error captures variance in NPS responses that cue alone does not
+# 
+# Comparison (b) stim vs. PE. 
+# -> no difference. stim or PE, no statistical difference in the variance explained. 
+# 
+# Comparison (c) cue + stim + PE vs. cue + stim
+# We tested if the median residual standard deviation of the cue + stim + PE model was significantly greater than that of the cue + stim model (i.e., median(res_std_cuestimPE - res_std_cuestim) > 0)
+# No statistical difference. In otherwords, adding PE to a model with cue and stim does not increase or decrease residual error; Additional PE does not provide statistically significant reduction in residual error, over and beyond what cue and stim already explains. 
+
+# Comparison (d) cue + PE vs. cue + stim
+# cue + PE has greater residual varaince than the `cue + stim` model. Overall, cue + stim is a better model for NPS activity. 
+
+# ######################### Alternative tests ######################### 
+# cat("\nSign Test: Residual Std (Cue only) vs. Residual Std (PE only)\n")
+# PE_cue <- binom.test(sum(diff_cue_PE > 0), length(diff_cue_PE[diff_cue_PE != 0]), p = 0.5, alternative = "greater")
+# print(PE_cue)
+# Alternative = "greater" because we are testing if res_std_cue is GREATER than res_std_PE
+
+
+
 ```
 
 
-## 4 NPS nociceptive ROI (df_filter.NA)
+
+## 7. NPS nociceptive ROI (df_filter.NA)
 
 ```{r}
 # STEP 0. filter data __________________________________________________________
@@ -1003,7 +1367,7 @@ print(g)
 }
 ```
 
-## 5 SIIPS (df_filter.NA)
+## 8. SIIPS (df_filter.NA)
 
 ### SIIPS linear analysis
 
@@ -1113,7 +1477,7 @@ k
 ggsave(file.path(analysis_dir, paste0("SIIPS_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300)
 ```
 
-## 5-3 SIIPS and PE (PEmerge)
+## 8-3 SIIPS and PE (PEmerge)
 
 ```{r}
 
@@ -1139,7 +1503,7 @@ df_filter_ses <- data %>%
 print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(data$sub)), length(unique(df_filter_ses$sub)) ))
 ```
 
-## 4 Sessionwise Beh
+## 9. Sessionwise Beh
 
 ```{r}
 model.behses <- lmer(outcomerating_impute ~
@@ -1164,7 +1528,7 @@ opt.summary <- glance(abeh) |> select(optimizer, AIC, NLL_rel) |> arrange(NLL_re
 print(opt.summary)
 ```
 
-## 5 Sessionwise NPS
+## 10. Sessionwise NPS
 
 ```{r}
 model.NPSses <- lmer(NPS ~
@@ -1227,7 +1591,7 @@ for(i in 1:length(optimx_options)){
 }
 ```
 
-## 6 Sessionwise SIIPS
+## 11. Sessionwise SIIPS
 
 > random slopes of cue effects were colinear with random intercepts with a correlation of 1, therefore estimating the idnvidual difference baseline and dindividual difference of cue effects were impossible
 
