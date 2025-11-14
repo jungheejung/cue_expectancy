@@ -337,6 +337,8 @@ k<- k+ theme(aspect.ratio=1,
  ylim(42, 87)
 k
 ggsave(file.path(analysis_dir, paste0("beh_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300)
+
+ggsave(file.path('/Users/h/Dropbox (Personal)/2025_Jung_SpaceTop_PVC_pain_CueFx_Signatures_ROIs/Figure', paste0("fig1_beh_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300)
 ```
 
 ## 2 NPS (df_filter)
@@ -905,10 +907,13 @@ print(round(p_value_results_matrix, 3))
 # Set diagonal to 0 or 1 for display purposes (no p-value for self-correlation)
 diag(p_value_results_matrix) <- 1 # Or 0, depending on how you want to mask
 # Mask non-significant correlations with X
+svg("/Users/h/Dropbox (Personal)/2025_Jung_SpaceTop_PVC_pain_CueFx_Signatures_ROIs/Figure/fig4_correlation.svg", width = 8, height = 8)
+
 corrplot(average_r_matrix, p.mat = p_value_results_matrix, 
          sig.level = c(0.001, 0.01, 0.05), insig = "label_sig",
          pch.cex = 0.9,
          method = "color", main = "Group average Correlation Matrix")
+dev.off()
 ```
 
 
