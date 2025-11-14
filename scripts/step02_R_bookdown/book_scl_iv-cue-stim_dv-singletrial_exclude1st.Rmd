@@ -216,14 +216,23 @@ g <- g + theme_bw() + theme_classic()
 print(g)
 SCLstim_groupwise$task = taskname
 
-k <- plot_lineplot_twofactor(SCLstim_groupwise,
-                             # taskname="pain",
+# k <- plot_lineplot_twofactor(SCLstim_groupwise,
+#                              # taskname="pain",
+#                         iv1="stim_ordered",
+#                         iv2="cue_ordered",
+#                         mean = "mean_per_sub_norm_mean", error = "se",
+#                         color = c( "high" = "#C5263A",
+#                                   "low" = "#4274AD"),
+#                         ggtitle = title,
+#                         xlab = "Stimulus intensity", ylab = "SCR")
+k <- cueR::plot_lineplot_twofactor_subset(SCLstim_groupwise,
+                             taskname="pain",
                         iv1="stim_ordered",
                         iv2="cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
-                        color = c( "high" = "red",
+                        color = c( "high" = "#C5263A",
                                   "low" = "#4274AD"),
-                        ggtitle = title,
+                        ggtitle = paste0("SCR N = ", length(unique(SCLstim_subjectwise$sub))),
                         xlab = "Stimulus intensity", ylab = "SCR")
 # k <- k + theme(aspect.ratio=.8) +   geom_line(size = 1) + # Adjust line thickness
 #   geom_point(size = 3)  # Adjust point size
@@ -237,6 +246,7 @@ k <- k + theme(aspect.ratio=1,
   geom_point(size = 2)  # Adjust point size
 
 ggsave(file.path(analysis_dir, paste0("SCR_maineffect", as.character(Sys.Date()), ".svg")), width = 8, height = 4, dpi=300)
+ggsave(file.path('/Users/h/Dropbox (Personal)/2025_Jung_SpaceTop_PVC_pain_CueFx_Signatures_ROIs/Figure', paste0("fig1_SCR_maineffect", as.character(Sys.Date()), ".svg")), width = 8, height = 4, dpi=300)
 
 print(k)
 ```
