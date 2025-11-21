@@ -1,5 +1,15 @@
-function FIR_spm_ttl2_parallel_pervoxel(sub, onset_dir, main_dir, fmriprep_dir, badruns_json, save_dir)
+function FIR_spm_ttl2_parallel_atlas(sub, onset_dir, main_dir, fmriprep_dir, badruns_json, save_dir)
 disp(strcat('--------------------',sub,'----------------'));
+rmpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip/compat/matlablt2010b');
+rmpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip/compat/matlablt2010b');
+%rmpath(genpath('/Users/h/Documents/MATLAB/spm12/external/fieldtrip'));
+%rmpath(genpath('/Users/h/Documents/MATLAB/spm12/external/fieldtrip/external/stats'));
+rmpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip/compat/matlablt2017b');
+rmpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip/compat/matlablt2013b');
+%addpath(genpath('/Users/h/Documents/MATLAB/CanlabCore'));
+%addpath(genpath('/Users/h/Documents/MATLAB/spm12'));
+
+
 addpath(genpath(fullfile(fmriprep_dir, sub)));
 TR = 0.46;
 T = 20;
@@ -20,6 +30,10 @@ niilist = dir(fullfile(fmriprep_dir, sub,  '*/func/*task-social*_bold.nii'));
 nT = struct2table(niilist);
 sortedT = sortrows(nT, 'name');
 disp(sortedT);
+
+if ~iscellstr(sortedT.name)
+    sortedT.name = cellstr(sortedT.name);
+end
 sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
 sortedT.ses_num(:) = str2double(extractBetween(sortedT.name, 'ses-', '_'));
 sortedT.run_num(:) = str2double(extractBetween(sortedT.name, 'run-', '_'));
