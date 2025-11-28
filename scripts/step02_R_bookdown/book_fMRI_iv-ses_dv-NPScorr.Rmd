@@ -1,11 +1,11 @@
-# [fMRI] NPScorr \~ session {#npscorr_ses}
+# [fMRI] NPScorr \~ session {#NPScorr_ses}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
--   Here, I model NPS correlation values as a function of cue, stimulus intensity and expectation ratings.
--   One of the findings is that low cues lead to higher NPS correlation in the high intensity group, and that this effect becomes non-significant across sessions.
--   11/12/2024: Updated based on NPS corr values
--   inputs from ./scripts/step10_nilearn/signature/step02_apply_NPS_corr.m
+-   Here, I model NPS dot product values as a function of cue, stimulus intensity and expectation ratings.
+-   One of the findings is that low cues lead to higher NPS dotproducts in the high intensity group, and that this effect becomes non-significant across sessions.
+-   11/12/2024: Updated based on NPS dot product values
+-   inputs from ./scripts/step10_nilearn/signature/step02_apply_nps.m
 
 ```{r libraries_nps_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(car)
@@ -164,19 +164,89 @@ summary_for_plots_PVC <- function(df, groupwise_measurevar, subject_keyword, mod
 
 ## 0. load data and find intersection between behavioral and nps dataframes
 
+TODO: make the NPS values available on github, to bypass VPN remote access to the csv files. 
 ```{r}
-# load behavioral and NPS data and grab the intersection
-analysis_folder <- "fmri_npscorr"
+analysis_folder <- "fmri_NPScorr"          
 beh <- readr::read_tsv(file.path(main_dir, "data/beh/sub-all_task-all_events.tsv"))
-file_list <- list.files(path =file.path('/Volumes/spacetop_projects_cue', "analysis/fmri/nilearn/deriv01_signature/rampup_plateau/NPS"), pattern = "*.csv", full.names = TRUE)
-# Read and combine all CSV files
-nps <- file_list %>%
-  lapply(read.csv) %>%    
-  bind_rows()            
 
-df_merge <- inner_join(beh, nps, by = "singletrial_fname")
+################################################################################
+# RUN ONCE: concatenate NPS values
+
+# load behavioral and NPS data and grab the intersection
+
+# file_list <- list.files(path =file.path('/Volumes/spacetop_projects_cue', "analysis/fmri/nilearn/deriv01_signature/rampup_plateau/NPS"), 
+#                         pattern = "^sub-\\d+_signature-NPScorr_runtype-pvc_event-stimulus\\.csv$", full.names = TRUE)
+# 
+# # # Read and combine all CSV files
+# nps <- file_list %>%
+#   lapply(read.csv) %>%
+#   bind_rows()
+# # 
+# df_merge <- inner_join(beh, nps, by = "singletrial_fname")
+# remote_dir = '/Volumes/spacetop_projects_cue'
+# 
+# native_tsv = file.path(main_dir, 'analysis', 'fmri', 'nilearn', 'deriv01_signature', 'rampup_plateau', 'sub-all_signature-NPS_runtype-pain_event-stimulus.tsv')
+# native_json = file.path(main_dir, 'analysis', 'fmri', 'nilearn', 'deriv01_signature', 'rampup_plateau', 'sub-all_signature-NPS_runtype-pain_event-stimulus.json')
+# curated_tsv_file = file.path(main_dir, 'data', 'curated', 'sub-all_signature-NPS_runtype-pain_event-stimulus.tsv')
+# curated_json = file.path(main_dir, 'data', 'curated', 'sub-all_signature-NPS_runtype-pain_event-stimulus.json')
+# 
+# remote_tsv = file.path(remote_dir, 'analysis', 'fmri', 'nilearn', 'deriv01_signature', 'rampup_plateau', 'sub-all_signature-NPS_runtype-pain_event-stimulus.tsv')
+# remote_json = file.path(remote_dir, 'analysis', 'fmri', 'nilearn', 'deriv01_signature', 'rampup_plateau', 'sub-all_signature-NPS_runtype-pain_event-stimulus.json')
+# remote_curated_tsv_file = file.path(remote_dir, 'data', 'curated', 'sub-all_signature-NPS_runtype-pain_event-stimulus.tsv')
+# remote_curated_json = file.path(remote_dir, 'data', 'curated', 'sub-all_signature-NPS_runtype-pain_event-stimulus.json')
+# 
+# write.table(df_merge, file = native_tsv, sep = "\t", row.names = FALSE, quote = FALSE)
+# write.table(df_merge, file = curated_tsv_file, sep = "\t", row.names = FALSE, quote = FALSE)
+# write.table(df_merge, file = remote_tsv, sep = "\t", row.names = FALSE, quote = FALSE)
+# write.table(df_merge, file = remote_curated_tsv_file, sep = "\t", row.names = FALSE, quote = FALSE)
+# 
+# 
+# library(jsonlite)
+# 
+# # Metadata construction
+# metadata <- list(
+#   FileName = "native_tsv_file",
+#   Description = "This file includes NPS dotproduct, correlation, and cosine similarity values with pain single trial values.",
+#   ColumnInfo = lapply(names(df), function(col_name) {
+#     list(
+#       ColumnName = col_name,
+#       DataType = class(df[[col_name]])
+#     )
+#   }),
+#   GeneratedFrom = list(
+#     Code = list(
+#       list(
+#         CodeName = "step02_apply_nps",
+#         CodePath = "scripts/step10_nilearn/signature/step02_apply_nps.m",
+#         Description = "This code applies NPS to extracted single trials from fMRI data, loading fMRI single-trial filenames, applying NPS correlations, and saving results as a CSV file.",
+#         InputFilesDirectory = "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/singletrial_rampupplateau",
+#         OutputDirectory = "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/analysis/fmri/nilearn/deriv01_signature/rampup_plateau/NPS"
+#       )
+#     ),
+#     Steps = list(
+#       "Load behavioral data from a TSV file: beh <- readr::read_tsv(file.path(main_dir, 'data/beh/sub-all_task-all_events.tsv'))",
+#       "List and load CSV files from the directory: file_list <- list.files(path = file.path('/Volumes/spacetop_projects_cue', 'analysis/fmri/nilearn/deriv01_signature/rampup_plateau/NPS'), pattern = '*.csv', full.names = TRUE)",
+#       "Combine CSV files: nps <- file_list %>% lapply(read.csv) %>% bind_rows()"
+#     )
+#   )
+# )
+# 
+# # Save metadata to JSON file
+# json_file <- "metadata.json"
+# write_json(metadata, native_json, pretty = TRUE)
+# write_json(metadata, curated_json, pretty = TRUE)
+# write_json(metadata, remote_json, pretty = TRUE)
+# write_json(metadata, remote_curated_json, pretty = TRUE)
+# cat("Metadata JSON file saved as:", native_json)
+###############################################################################
+df_merge <- readr::read_tsv(file.path(main_dir, "data/curated/sub-all_signature-NPS_runtype-pain_event-stimulus.tsv"))
+
+
 ```
 
+
+
+`data` is a subset of `data_merge`, only filtering out "pain" trials
 ```{r}
 data <-df_merge[df_merge$runtype == "pain" ,]
 # data <- pain_data[pain_data$trial_index != 1, ]
@@ -226,7 +296,7 @@ dv_keyword <- "NPScorr"
 
 # filter data __________________________________________________________________
 # Make sure that each condition cell has adequate amount of trials per cell
-minimum_trials_per_cell <- 5
+minimum_trials_per_cell <- 2
 subjects_with_inadequate_data <- data %>%
   group_by(sub, CUE_high_gt_low, STIM_linear) %>% #SES_linear, 
   dplyr::summarise(count = n(), .groups = 'drop') %>%
@@ -255,10 +325,10 @@ sorted_data <- df_filter.NA %>%
 df_filter.NA$sub <- factor(df_filter.NA$sub, levels = sorted_data$sub)
 
 # Create the ggplot
-g <- ggplot(df_filter.NA, aes(x = sub, y = nps_corr, fill = sub)) +
+g <- ggplot(df_filter.NA, aes(x = sub, y = nps, fill = sub)) +
   geom_boxplot(outlier.shape = NA, width = 1.2, position = position_dodge(2)) +  
   geom_jitter(width = .1, alpha = 0, size = 1) +
-  labs(x = "Subject", y = "nps_corr") +
+  labs(x = "Subject", y = "nps") +
   theme_classic() +
   theme(legend.position = "none") +
   scale_x_discrete(breaks = NULL) 
@@ -269,7 +339,7 @@ g_plotly
 ```
 
 
-## 1. NPS \~ paintask: 2 cue x 3 stimulus_intensity
+## 1. NPScorr \~ paintask: 2 cue x 3 stimulus_intensity
 
 ### Q. Within pain task, Does stimulus intenisty level and cue level significantly predict NPS dotproducts? {.unlisted .unnumbered}
 
@@ -277,7 +347,7 @@ g_plotly
 # set parameters _______________________________________________________________
 combined_se <- data.frame()
 taskname <- "pain"; subject <- "sub"
-ggtitle <- paste(taskname, " - NPS corr (degree)"); title <- paste(taskname, " - actual")
+ggtitle <- paste(taskname, " - NPS dot (degree)"); title <- paste(taskname, " - actual")
 w <- 10; h <- 6
 
 analysis_dir <-
@@ -296,27 +366,27 @@ model_savefname <- file.path(
 
 
 # Plot :: reordering variables for plots _______________________________________
-df_filter$cue_name[df_filter$cue == "high_cue"] <-
+df_filter.NA$cue_name[df_filter.NA$cue == "high_cue"] <-
   "high cue"
-df_filter$cue_name[df_filter$cue == "low_cue"] <-
+df_filter.NA$cue_name[df_filter.NA$cue == "low_cue"] <-
   "low cue"
 
-df_filter$stim_name[df_filter$stimulusintensity == "high_stim"] <-
+df_filter.NA$stim_name[df_filter.NA$stimulusintensity == "high_stim"] <-
   "High"
-df_filter$stim_name[df_filter$stimulusintensity == "med_stim"] <-
+df_filter.NA$stim_name[df_filter.NA$stimulusintensity == "med_stim"] <-
   "Med"
-df_filter$stim_name[df_filter$stimulusintensity == "low_stim"] <-
+df_filter.NA$stim_name[df_filter.NA$stimulusintensity == "low_stim"] <-
   "Low"
 
-df_filter$stim_ordered <- factor(df_filter$stim_name,
+df_filter.NA$stim_ordered <- factor(df_filter.NA$stim_name,
                                    levels = c("Low", "Med", "High"))
-df_filter$cue_ordered <- factor(df_filter$cue_name,
+df_filter.NA$cue_ordered <- factor(df_filter.NA$cue_name,
                                   levels = c("low cue", "high cue"))
 model_iv1 <- "stim_ordered"
 model_iv2 <- "cue_ordered"
 
 # Plot :: calculate mean and se  _______________________________________________
-NPSstimcue_subjectwise <- meanSummary(df_filter,
+NPSstimcue_subjectwise <- meanSummary(df_filter.NA,
                                       c(subject, model_iv1, model_iv2), dv)
 NPSstimcue_groupwise <- summarySEwithin(
   data = NPSstimcue_subjectwise,
@@ -330,11 +400,11 @@ NPSstimcue_groupwise$task <- taskname
 combined_se <-
   rbind(combined_se, NPSstimcue_groupwise)
 # Plot parameters :: ___________________________________________________________
-sub_mean <- "mean_per_sub"; group_mean <- "mean_per_sub_norm_mean"; dv_keyword <- "NPScorr"
+sub_mean <- "mean_per_sub"; group_mean <- "mean_per_sub_norm_mean"; dv_keyword <- "NPSdot"
 se <- "se"; subject <- "sub"; 
-ggtitle <- paste(taskname, " - NPS correlation"); title <- paste(taskname, " - NPS")
+ggtitle <- paste(taskname, " - NPS dot products"); title <- paste(taskname, " - NPS")
 xlab <- ""; ylab <- "NPS (corr)";
-ylim <- c(-.1, .25)
+ylim <- c(-1, 1)
 
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
@@ -425,9 +495,9 @@ g <- plot_lineplot_twofactor(NPSstimcue_groupwise,
 g + theme(aspect.ratio=.8)
 ```
 
-## 1. lmer :: Linear model results (NPS \~ paintask: 2 cue x 3 stimulus_intensity)
-
-> Modeling random slopes and random cues, we find a significant effect of stimintensity on NPS correlation values, but not cue effects. The greater the stimulus intensity, the greater the NPS values (b = 0.008, SE = 0.002, t(X) = -X, p \< X). Higher cues lead to lower NPS values ( b = X, SE = X, t(X) = X, p \< .X)
+## 1. lmer :: Linear model results (NPScorr \~ paintask: 2 cue x 3 stimulus_intensity)
+t-tests use Satterthwaite's method ['lmerModLmerTest']
+> Modeling random slopes of intensity effects, we find a significant effect of stimintensity on NPS dot product values, but not cue effects. The greater the stimulus intensity, the greater the NPS values (b = 0.004, SE = 0.002, t(98.89) =  2.027, p < .05). There is no significant cue effect
 
 > I had to remove Cue effect from random slope estimates - they were correlated with the intercept and stim effect. Those with a bigger cue effect have on average higher nps responses. 
 
@@ -436,7 +506,7 @@ g + theme(aspect.ratio=.8)
 
 model.npscuestim <- lmer(nps_corr ~
                           CUE_high_gt_low*STIM_linear + CUE_high_gt_low*STIM_quadratic +
-                          (STIM_linear|sub), data = df_filter, 
+                          (1 + STIM_linear|sub), data = df_filter.NA, 
                          control = lmerControl(optimizer = "nmkbw")
                     )
 
@@ -448,7 +518,7 @@ sjPlot::tab_model(model.npscuestim,
 
 model.singular <- lmer(nps_corr ~
                           CUE_high_gt_low*STIM_linear + CUE_high_gt_low*STIM_quadratic +
-                          (CUE_high_gt_low + STIM_linear|sub), data = data, 
+                          (CUE_high_gt_low + STIM_linear|sub), data = df_filter.NA, 
                          control = lmerControl(optimizer = "nmkbw")
                     )
 
@@ -458,8 +528,8 @@ summary(model.singular)
 
 ```{r}
 
-model.npscuestim.summarystats.sub <- meanSummary(df_filter,
-                                      c("sub", "CUE_high_gt_low"), "nps_corr")
+model.npscuestim.summarystats.sub <- meanSummary(df_filter.NA,
+                                      c("sub", "CUE_high_gt_low"), "nps")
 model.npscuestim.summarystats.group <- summarySEwithin(
   data = model.npscuestim.summarystats.sub,
   measurevar = "mean_per_sub",
@@ -492,7 +562,8 @@ library(optimx)
 model.npscuestim <- lmer(nps_corr ~
                           CUE_high_gt_low*STIM_linear +
                           CUE_high_gt_low*STIM_quadratic +
-                          (STIM_linear|sub), data = df_filter,
+                          ( STIM_quadratic|sub), data = df_filter,
+                         # control = lmerControl(optimizer = "nloptwrap", optCtrl = list(algorithm = "NLOPT_LN_BOBYQA")))
                                     control=lmerControl(optimizer="nmkbw"
                                  ))
                          # control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 1e5)))
@@ -501,7 +572,7 @@ summary(model.npscuestim)
 ```
 
 ```         
-lmer(NPS ~
+lmer(nps_corr ~
                           CUE_high_gt_low*STIM_linear +CUE_high_gt_low * STIM_quadratic +
                           (CUE_high_gt_low+STIM|sub), data = data
                     )
@@ -528,13 +599,13 @@ kableExtra::kable_styling(
 ```
 
 
-## 2. NPS (remove 1st trial) \~ CUE \* STIM
+## 2. NPScorr (remove 1st trial) \~ CUE \* STIM
 
 1st trials are known to have larger NPS values compared to other trials "habituation" Here, I check whether the effects above still hold, after removing the first trials
 
 ```{r echo=FALSE, warning=FALSE}
 # TODO: remove the first trial _________________________________________________
-df_filter.no1 <- df_filter[df_filter$trial_index != 1, ]
+df_filter.no1 <- df_filter.NA[df_filter.NA$trial_index != 1, ]
 
 #  [ PLOT ] calculate mean and se  _____________________________________________
 subject <- "sub"
@@ -542,7 +613,7 @@ model_iv1 <- "stim_ordered"
 model_iv2 <- "cue_ordered"
 
 NPSstimcue_subjectwise <- meanSummary(df_filter.no1,
-                                      c(subject, model_iv1, model_iv2), "nps_corr")
+                                      c(subject, model_iv1, model_iv2), dv)
 NPSstimcue_groupwise <- summarySEwithin(
   data = NPSstimcue_subjectwise,
   measurevar = "mean_per_sub",
@@ -588,8 +659,9 @@ Once we remove cue effect, convergence warning is solved
 
 model.npscuestim.no1 <- lmer(nps_corr ~
                           CUE_high_gt_low*STIM_linear + CUE_high_gt_low*STIM_quadratic +
-                          (STIM_linear|sub), data = df_filter.no1, 
-                         control = lmerControl(optimizer = "nmkbw")
+                          (STIM_linear + CUE_high_gt_low|sub), data = df_filter.no1, 
+                          control = lmerControl(optimizer = "nloptwrap", optCtrl = list(algorithm = "NLOPT_LN_BOBYQA"))
+                         #control = lmerControl(optimizer = "nmkbw")
                     )
 
 summary(model.npscuestim.no1)
@@ -601,7 +673,7 @@ sjPlot::tab_model(model.npscuestim.no1,
 
 ## 3. NPS trial wise plot
 
-Let's look at the progression of NPS correlation over time. Is it indicative of convergence, and perhaps a learned effect? This will help us link the results back to prediction error.
+Let's look at the progression of NPS dot products over time. Is it indicative of convergence, and perhaps a learned effect? This will help us link the results back to prediction error.
 
 ```{r}
 # count trial indices per subject, ignoring sessions
@@ -655,7 +727,7 @@ for (p in 1:total_pages) {
 ``` ############################################################################
 ```
 
-## 4. NPS \~ SES \_ CUE \_ STIM
+## 4. NPScorr \~ SES \_ CUE \_ STIM
 
 ### Q. Is the cue effect on NPS different across sessions? {.unlisted .unnumbered}
 
@@ -666,7 +738,7 @@ for (p in 1:total_pages) {
 ### filter with including session
 
 ```{r}
-minimum_trials_per_cell <- 2
+minimum_trials_per_cell <- 3
 subjects_with_inadequate_data <- data %>%
   group_by(sub, CUE_high_gt_low, STIM_linear, SES_linear) %>% 
   dplyr::summarise(count = n(), .groups = 'drop') %>%
@@ -685,19 +757,20 @@ model.npsses <- lmer(nps_corr ~
                           CUE_high_gt_low*STIM_quadratic*SES_linear +
                           CUE_high_gt_low*STIM_linear*SES_quadratic +
                           CUE_high_gt_low*STIM_quadratic*SES_quadratic +
-                          (CUE_high_gt_low  + STIM_linear |
+                          (STIM_linear + SES_linear |
          sub), data = df_filter_ses,
-         control = lmerControl(optimizer = "nmkbw")
+         control = lmerControl(optimizer = "nloptwrap", optCtrl = list(algorithm = "NLOPT_LN_BOBYQA"))
+         # control = lmerControl(optimizer = "nmkbw")
                     )
 
 summary(model.npsses)
 # CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.npsses,
-                  title = "Multilevel-modeling: \nlmer(NPScorr ~ CUE * STIM * SES + (CUE + STIM + SES| sub), data = pvc)",
+                  title = "Multilevel-modeling: \nlmer(NPScorr ~ CUE * STIM * SES + (STIM + SES | sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
 ```
 
-> Using nmkbw optimizer, random slopes of cue, stimulus intensity are modeled using orthogonal contrast codes. Cue effects on NPS correlation values are non-significant. Stimulus intensity effects are significant; higher temperature leads to greater NPS response (b = 0.004, SE = 0.002, t(X) = X, p \< X), as are session effects. The NPS values decrease over time. 
+> Using nloptwrap.NLOPT_LN_BOBYQA optimizer, random slopes of stimulus intensity and session, are modeled using orthogonal contrast codes. Cue effects on NPS dot product values are significant for average stim and average session (b = -0.228, SE = 0.112, t(3743) = -2.031, p = 0.042). Stimulus intensity effects are significant; higher temperature leads to greater NPS response (b = 1.174, SE = 0.137, t(3310) = 8.547, p < 0.001), also, quadratic effects of stimulu inensity (b = 0.343, SE = 0.120, t(3743) = 2.862, p = 0.004). Quadratic session effects are also marginally signfiicant, in that the middle session was perceived more painful (b = -0.250, SE = 0.132, t(3307) = -1.899, p = 0.058) The NPS values decrease over time. 
 
 ```{r}
 library(parallel)
@@ -718,10 +791,10 @@ model.npscuestim <- lmer(
     CUE_high_gt_low * STIM_quadratic * SES_linear +
     CUE_high_gt_low * STIM_linear * SES_quadratic +
     CUE_high_gt_low * STIM_quadratic * SES_quadratic +
-    (CUE_high_gt_low  + STIM_linear |
+    ( STIM_linear + SES_linear |
        sub),
   data = df_filter_ses,
-  control = lmerControl(optimizer = "nmkbw")
+  control = lmerControl(optimizer = "nlminbwrap")
 )
                          # control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 1e5)))
 
@@ -740,7 +813,7 @@ for(i in 1:length(optimx_options)){
       CUE_high_gt_low * STIM_quadratic * SES_linear +
       CUE_high_gt_low * STIM_linear * SES_quadratic +
       CUE_high_gt_low * STIM_quadratic * SES_quadratic +
-      (CUE_high_gt_low + SES_linear + STIM_linear |
+      (SES_linear + STIM_linear |
          sub),
     data = df_filter_ses,
     control = lmerControl(
@@ -859,7 +932,7 @@ dv <- "nps_corr"
     title <- paste(str_to_title(taskname), " - cue level")
     xlab <- ""
     ylab <- "NPS (corr)"
-    ylim <- c(-.1, .25)
+    ylim <- c(-5, 15)
     dv_keyword <- "NPScorr"
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
@@ -898,7 +971,7 @@ LINEIV1 = "stim_ordered"
 LINEIV2 = "cue_ordered"
 MEAN = "mean_per_sub_norm_mean"
 ERROR = "se"
-dv_keyword = "actual"
+dv_keyword = "npscorr"
 
 
 p1 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-01",],
@@ -933,7 +1006,7 @@ ggsave(plot_filename, width = 8, height = 4)
   ERROR <- "se"
   dv_keyword <- "NPScorr"
   line_thickness <- 0.2
-  ylim <- c(0.06, .1)
+  ylim <- c(3, 7)
   p1 <- plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-01" , ], taskname,
                                LINEIV1, LINEIV2, MEAN, ERROR, color, 
                                ggtitle = 'Visit 1', ylab = "Outcome rating", 
@@ -975,28 +1048,6 @@ ggsave(plot_filename, width = 8, height = 4)
 #                                 lmer
 ################################################################################
 
-subjects_with_inadequate_data <- df_filter.no1 %>%
-  group_by(sub, CUE_high_gt_low, STIM_linear, SES_linear) %>% 
-  dplyr::summarise(count = n(), .groups = 'drop') %>%
-  filter(count < 2) %>%
-  distinct(sub) %>%
-  pull(sub)
-df_filter_ses <- data %>%
-  filter(!(sub %in% subjects_with_inadequate_data))
-
-df_filter_ses$SES_linear[df_filter_ses$ses == "ses-01"] <- -0.5
-df_filter_ses$SES_linear[df_filter_ses$ses == "ses-03"] <- 0
-df_filter_ses$SES_linear[df_filter_ses$ses == "ses-04"] <- 0.5
-
-# contrast code 2 quadratic
-df_filter_ses$SES_quadratic[df_filter_ses$ses == "ses-01"] <- -0.33
-df_filter_ses$SES_quadratic[df_filter_ses$ses == "ses-03"] <- 0.66
-df_filter_ses$SES_quadratic[df_filter_ses$ses == "ses-04"] <- -0.33
-
-
-print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(data$sub)), length(unique(df_filter_ses$sub)) ))
-
-
 
 
 model.npsses <- lmer(nps_corr ~
@@ -1006,7 +1057,7 @@ model.npsses <- lmer(nps_corr ~
                           CUE_high_gt_low*STIM_quadratic*SES_quadratic +
                           (STIM_linear  |
          sub), data = df_filter_ses,
-         control = lmerControl(optimizer = "nmkbw")
+         control = lmerControl(optimizer = "nlminbwrap")
                     )
 
 summary(model.npsses)
@@ -1019,56 +1070,6 @@ sjPlot::tab_model(model.npsses,
 df_filter_ses <- df_filter_ses %>%
   mutate(ses_run_id = paste(ses, run, sep = "_")) # combines ses and run for a unique index
 
-df_filter_ses <- df_filter_ses %>%
-  group_by(sub, ses_run_id) %>%
-  mutate(z_nps_corr = atanh(nps_corr)) %>%
-  ungroup()
-
-model.npsses2 <- lmer(z_nps_corr ~
-                          CUE_high_gt_low*STIM_linear*SES_linear +
-                          CUE_high_gt_low*STIM_quadratic*SES_linear +
-                          CUE_high_gt_low*STIM_linear*SES_quadratic +
-                          CUE_high_gt_low*STIM_quadratic*SES_quadratic +
-                          (STIM_linear  |
-         sub), data = df_filter_ses,
-         control = lmerControl(optimizer = "nmkbw")
-                    )
-
-summary(model.npsses2)
-# CUE_high_gt_low+STIM+EXPECT_demean
-sjPlot::tab_model(model.npsses2,
-                  title = "Multilevel-modeling: \nlmer(ArcTanhNPScorr ~ CUE * STIM * SES + (CUE + STIM + SES| sub), data = pain)",
-                  CSS = list(css.table = '+font-size: 12;'))
-
-#### model 3 Archtanh. control for stim effect and see if the residual is cue * ses
-model.npsses3 <- lmer(z_nps_corr ~
-                          CUE_high_gt_low*SES_linear*STIM_linear +
-                          CUE_high_gt_low*SES_quadratic*STIM_linear +
-                          (1   |
-         sub), data = df_filter_ses,
-         control = lmerControl(optimizer = "nmkbw")
-                    )
-
-summary(model.npsses3)
-# CUE_high_gt_low+STIM+EXPECT_demean
-sjPlot::tab_model(model.npsses3,
-                  title = "Multilevel-modeling: \nlmer(ArcTanhNPScorr3 ~ CUE * STIM * SES + (CUE + STIM + SES| sub), data = pain)",
-                  CSS = list(css.table = '+font-size: 12;'))
-
-# model 4
-model.npsses4 <- lmer(z_nps_corr ~
-                          CUE_high_gt_low*STIM_linear +
-                          CUE_high_gt_low*STIM_quadratic + SES_linear + 
-                          (CUE_high_gt_low + STIM_linear   |
-         sub), data = df_filter_ses,
-         control = lmerControl(optimizer = "nmkbw")
-                    )
-
-summary(model.npsses4)
-# CUE_high_gt_low+STIM+EXPECT_demean
-sjPlot::tab_model(model.npsses4,
-                  title = "Multilevel-modeling: \nlmer(ArcTanhNPScorr4 ~ CUE * STIM + SES + (CUE + STIM | sub), data = pain)",
-                  CSS = list(css.table = '+font-size: 12;'))
 ```
 
 
@@ -1185,7 +1186,7 @@ print(g)
   ERROR <- "se"
   dv_keyword <- "NPScorr"
   line_thickness <- 0.2
-  ylim <- c(.06, .1)
+  ylim <- c(0.05, 0.125)
   p1 <- plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-01" , ], taskname,
                                LINEIV1, LINEIV2, MEAN, ERROR, color, 
                                ggtitle = 'Visit 1', ylab = "NPS (corr)", 
