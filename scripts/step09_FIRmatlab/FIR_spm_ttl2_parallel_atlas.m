@@ -321,7 +321,7 @@ try
 
 catch
     disp('Error reading badruns JSON file.');
-end s
+end
 end
 
 
