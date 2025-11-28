@@ -1,35 +1,37 @@
-# [beh] outcome_demean_per_run ~ cue x stim x expectrating x n-1outcomerating  {#ch16_demean_per_run}
-
+# [beh] outcome_demean_per_run ~ cue x stim x expectrating x n-1outcomerating {#ch16_demean_per_run}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
-Here, I model the outcome ratings as a function of cue, stimulus intensity, expectation ratings, N-1 outcome rating. 
-* As opposed to notebook 15, I want to check if the demeaning process should be for runs as opposed to subjects. 
-* In other words, calculate the average within run and subtract ratings 
-* Main model: `lmer(outcome_rating ~ cue * stim * expectation rating + N-1 outcomerating)` 
-* Main question: What constitutes a reported outcome rating? 
-* Sub questions:
+
+Here, I model the outcome ratings as a function of cue, stimulus intensity, expectation ratings, N-1 outcome rating.
+
+- As opposed to notebook 15, I want to check if the demeaning process should be for runs as opposed to subjects.
+- In other words, calculate the average within run and subtract ratings
+- Main model: `lmer(outcome_rating ~ cue * stim * expectation rating + N-1 outcomerating)`
+- Main question: What constitutes a reported outcome rating?
+- Sub questions:
+
   - If there is a linear relationship between expectation rating and outcome rating, does this differ as a function of cue?
-  - How does a N-1 outcome rating affect current expectation ratings? 
+  - How does a N-1 outcome rating affect current expectation ratings?
   - Later, is this effect different across tasks or are they similar?
 
-* IV: 
+- IV:
   stim (high / med / low)
   cue (high / low)
   expectation rating (continuous)
   N-1 outcome rating (continuous)
-* DV: outcome rating
+- DV: outcome rating
 
 ### Some thoughts, TODOs {.unlisted .unnumbered}
 
-* Standardized coefficients
-* Slope difference? Intercept difference? ( cue and expectantion rating)
-* Correct for the range (within participant)
-hypothesis:
+- Standardized coefficients
+- Slope difference? Intercept difference? ( cue and expectantion rating)
+- Correct for the range (within participant)
+  hypothesis:
+
 1. Larger expectation leads to prediction error
 2. Individual differences in ratings
 3. Outcome experience, based on behavioral experience
-What are the brain maps associated with each component.  
-
+   What are the brain maps associated with each component.
 
 ```{r load_libraries_15, message=FALSE, warning=FALSE, include=FALSE, paged.print=TRUE}
 library(psych)
@@ -54,7 +56,7 @@ library(lme4)
 library(gghalves)
 library(effectsize)
 library(devtools)
-library(visibly) # 
+library(visibly) #
 library(plotly) #plot
 library(scico) # plot
 library(emmeans) # v. 1.7.0
@@ -65,8 +67,8 @@ library(sjPlot)
 library(r2mlm)
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 ```
@@ -74,6 +76,7 @@ sapply(file.sources,source,.GlobalEnv)
 load data and combine participant data
 
 ## Pain
+
 ```{r load_data_and_exclude_m1, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 main_dir = dirname(dirname(getwd()))
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
@@ -102,24 +105,26 @@ summary(data[, c("event02_expect_RT", "event04_actual_RT", "event02_expect_angle
 ```
 
 ### Covariance matrix: ratings and RT {.unlisted .unnumbered}
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # data(data, package = 'visibly')
 
-myvars <- names(data) %in% 
+myvars <- names(data) %in%
   c( "event02_expect_angle", "event02_expect_RT", "event04_actual_angle", "event04_actual_RT", "event01_cue_onset")
 newdata <- data[myvars]
-# numdata  <- unlist(lapply(data, is.numeric), use.names = FALSE) 
+# numdata  <- unlist(lapply(data, is.numeric), use.names = FALSE)
 data_naomit <- na.omit(newdata)
 cor_matrix = cor(data_naomit)
 corr_heat(cor_matrix)
 ```
 
 ### Covariance matrix: fixation durations (e.g. ISIs) {.unlisted .unnumbered}
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-ISIvars <- names(data) %in% 
+ISIvars <- names(data) %in%
   c( "ISI01_duration", "ISI02_duration", "ISI03_duration")
 ISIdata <- data[ISIvars]
-# numdata  <- unlist(lapply(data, is.numeric), use.names = FALSE) 
+# numdata  <- unlist(lapply(data, is.numeric), use.names = FALSE)
 ISIdata_naomit <- na.omit(ISIdata)
 ISIcor_matrix = cor(ISIdata_naomit)
 corr_heat(ISIcor_matrix)
@@ -161,7 +166,6 @@ return(df)
 }
 ```
 
-
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 maindata <- data %>%
 group_by(src_subject_id, session_id, param_run_num) %>%
@@ -176,11 +180,11 @@ data_p2= maindata %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number())
-data_a3 <- data_p2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_a3 <- data_p2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num))
 
-data_a3lag <- 
+data_a3lag <-
     data_a3 %>%
     group_by(src_subject_id, session_id, param_run_num) %>%
     mutate(lag.demean_outcome = dplyr::lag(demean_outcome, n = 1, default = NA))
@@ -191,6 +195,7 @@ pvc <- simple_contrasts_beh(df)
 ```
 
 ## Linear model with three factors: cue X stim X expectation rating
+
 ```{r echo=FALSE, message=TRUE, warning=TRUE, paged.print=FALSE}
 model.factorize_demean = lmer(demean_outcome~ CUE_high_gt_low*stim_con_linear*demean_expect+CUE_high_gt_low*stim_con_quad*demean_expect+lag.demean_outcome+ (CUE_high_gt_low*demean_expect|src_subject_id), data = pvc)
 
@@ -198,8 +203,8 @@ summary(model.factorize_demean)
 # sjPlot::tab_model(model.factorize_demean, p.val = "kr", show.df = TRUE)
 ```
 
-
 ## Pain run, collapsed across stimulus intensity
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 df_dropna <-
   pvc[!is.na(pvc$demean_expect) & !is.na(pvc$event02_expect_angle),] # demean_outcome
@@ -213,13 +218,14 @@ total <-
     subject = "src_subject_id",
     xmin=-50, xmax=50, ymin=-50, ymax=50,
     xlab = "expectation rating",
-    ylab = "outcome rating", 
-    ggtitle = "all stimulus intensity", 
+    ylab = "outcome rating",
+    ggtitle = "all stimulus intensity",
     color_scheme = c("high_cue" ="#941100","low_cue" =  "#5D5C5C"),
     alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line=TRUE, size=NULL
   )
 total
 ```
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 df_dropna <- pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
 iv1 = "demean_expect";    iv2 = "demean_outcome"
@@ -267,21 +273,22 @@ plots
 ```
 
 ### Q. Are those overestimating for high cues also underestimators for low cues? {.unlisted .unnumbered}
+
 Here, I calculate Orthogonal distance from the 1:1 slope. Based on that, we test whether the absolute ODR distance is equivalent across cues. If a participant equally overestimates for a high cue and underestimates a stimuli for a low cue, their ODR distance should be the same. This is reflected in the subject-level slopes, which are parallel
 
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 
 pvc$odr_expectoutcome = abs(pvc$demean_expect + pvc$demean_outcome) / sqrt(2)
 cooksd = lmer_onefactor_cooksd(pvc, "pain", iv = "cue_name", dv= "odr_expectoutcome", subject_keyword = "src_subject_id",
-                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TEST.txt"), print_lmer_output = TRUE) 
+                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TEST.txt"), print_lmer_output = TRUE)
 ```
-Can you test if the slopes are the same? That might tell us something about whether, expectancies translate into outcomes with the same efficacy across all three tasks. 
 
+Can you test if the slopes are the same? That might tell us something about whether, expectancies translate into outcomes with the same efficacy across all three tasks.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 pvc$odr_expectoutcome = abs(pvc$demean_expect + pvc$demean_outcome) / sqrt(2)
 cooksd = lmer_onefactor_cooksd(pvc, "pain", iv = "cue_name", dv= "odr_expectoutcome", subject_keyword = "src_subject_id",
-                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TEST.txt"), print_lmer_output = TRUE) 
+                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TEST.txt"), print_lmer_output = TRUE)
 
 subject_keyword = "src_subject_id"
 model_iv1 = "cue_name"
@@ -295,7 +302,7 @@ exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 subjectwise_mean <- "mean_per_sub"; group_mean <- "mean_per_sub_norm_mean"; se <- "se"
 subjectwise <- meanSummary(
         pvc,
-        c(subject_keyword, model_iv1), dv 
+        c(subject_keyword, model_iv1), dv
     )
 groupwise <- summarySEwithin(
         data = subjectwise,
@@ -308,7 +315,7 @@ title = "cue"
   color_scheme <-     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color_scheme <- c("#1B9E77", "#D95F02")
     } else {
-        # color_scheme <- c("#4575B4", "#D73027")
+        # color_scheme <- c("#4274AD", "#C5263A")
         color_scheme <- c("#941100","#5D5C5C")
     }
 
@@ -320,11 +327,8 @@ p <- plot_halfrainclouds_onefactor(subjectwise, groupwise, iv,
 p
 ```
 
-
-
-
-
 ## Vicarious
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 main_dir = dirname(dirname(getwd()))
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
@@ -355,11 +359,11 @@ data_p2= maindata %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number())
-data_a3 <- data_p2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_a3 <- data_p2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num))
 
-data_a3lag <- 
+data_a3lag <-
     data_a3 %>%
     group_by(src_subject_id, session_id, param_run_num) %>%
     mutate(lag.demean_outcome = dplyr::lag(demean_outcome, n = 1, default = NA))
@@ -370,6 +374,7 @@ pvc <- simple_contrasts_beh(df)
 
 
 ```
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 df_dropna <-
   pvc[!is.na(pvc$demean_expect) & !is.na(pvc$demean_outcome),]
@@ -382,7 +387,7 @@ total <-
     subject = "src_subject_id",
     xmin=-50, xmax=50, ymin=-50, ymax=50,
     xlab = "expectation rating",
-    ylab = "outcome rating", 
+    ylab = "outcome rating",
     ggtitle = paste(taskname, "all stimulus intensity"),
     color_scheme = c("high_cue" ="#009411","low_cue" =  "#5D5C5C"),
     alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line=TRUE, size=NULL
@@ -437,11 +442,12 @@ plots_title <- annotate_figure(vic_plots, top = text_grob("individual difference
 vic_plots
 
 ```
+
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 pvc$odr_expectoutcome = abs(pvc$demean_expect + pvc$demean_outcome) / sqrt(2)
 
 cooksd <- lmer_onefactor_cooksd(pvc, "pain", iv = "cue_name", dv= "odr_expectoutcome", subject_keyword = "src_subject_id",
-                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TEST.txt"), print_lmer_output = TRUE) 
+                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TEST.txt"), print_lmer_output = TRUE)
 
 subject_keyword = "src_subject_id"
 model_iv1 = "cue_name"
@@ -455,7 +461,7 @@ exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 subjectwise_mean <- "mean_per_sub"; group_mean <- "mean_per_sub_norm_mean"; se <- "se"
 subjectwise <- meanSummary(
         pvc,
-        c(subject_keyword, model_iv1), dv 
+        c(subject_keyword, model_iv1), dv
     )
 groupwise <- summarySEwithin(
         data = subjectwise,
@@ -468,7 +474,7 @@ title = "cue"
   color_scheme <-     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color_scheme <- c("#1B9E77", "#D95F02")
     } else {
-        # color_scheme <- c("#4575B4", "#D73027")
+        # color_scheme <- c("#4274AD", "#C5263A")
         color_scheme <- c("#009411","#5D5C5C")
     }
 
@@ -481,6 +487,7 @@ p
 ```
 
 ## Cognitive
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 main_dir = dirname(dirname(getwd()))
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
@@ -509,11 +516,11 @@ data_p2= maindata %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number())
-data_a3 <- data_p2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_a3 <- data_p2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num))
 
-data_a3lag <- 
+data_a3lag <-
     data_a3 %>%
     group_by(src_subject_id, session_id, param_run_num) %>%
     mutate(lag.demean_outcome = dplyr::lag(demean_outcome, n = 1, default = NA))
@@ -533,7 +540,7 @@ total <-
     subject = "src_subject_id",
     xmin=-50, xmax=50, ymin=-50, ymax=50,
     xlab = "expectation rating",
-    ylab = "outcome rating", 
+    ylab = "outcome rating",
     ggtitle = "all stimulus intensity",
     color_scheme = c("high_cue" ="#110094","low_cue" =  "#5D5C5C"),
     alpha = .8, fit_lm = TRUE, lm_method = "lm", identity_line=TRUE, size=NULL
@@ -583,12 +590,11 @@ plots_title <- annotate_figure(cog_plots, top = text_grob(paste(taskname, "indiv
 cog_plots
 ```
 
-
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 pvc$odr_expectoutcome = abs(pvc$demean_expect + pvc$demean_outcome) / sqrt(2)
 
 cooksd = lmer_onefactor_cooksd(pvc, "pain", iv = "cue_name", dv= "odr_expectoutcome", subject_keyword = "src_subject_id",
-                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TEST.txt"), print_lmer_output = TRUE) 
+                                  dv_keyword = "distance from 1:1", model_savefname = file.path(analysis_dir, "TEST.txt"), print_lmer_output = TRUE)
 
 subject_keyword = "src_subject_id"
 model_iv1 = "cue_name"
@@ -602,7 +608,7 @@ exclude <- "sub-0001|sub-0003|sub-0004|sub-0005|sub-0025|sub-0999"
 subjectwise_mean <- "mean_per_sub"; group_mean <- "mean_per_sub_norm_mean"; se <- "se"
 subjectwise <- meanSummary(
         pvc,
-        c(subject_keyword, model_iv1), dv 
+        c(subject_keyword, model_iv1), dv
     )
 groupwise <- summarySEwithin(
         data = subjectwise,
@@ -615,7 +621,7 @@ title = "cue"
   color_scheme <-     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color_scheme <- c("#1B9E77", "#D95F02")
     } else {
-        # color_scheme <- c("#4575B4", "#D73027")
+        # color_scheme <- c("#4274AD", "#C5263A")
         color_scheme <- c("#110094","#5D5C5C")
     }
 
@@ -632,22 +638,26 @@ p
 # plot_ly(x=subjectwise_naomit_2dv$param_cue_type, y=subjectwise_naomit_2dv$DV1_mean_per_sub, z=subjectwise_naomit_2dv$DV2_mean_per_sub, type="scatter3d", mode="markers", color=subjectwise_naomit_2dv$param_cue_type)
 ```
 
-## across tasks (PVC), is the  slope for (highvslow cue) the same?Tor question
-* Adding "participant" as random effects leads to a singular boundary issue. The reason is because there is no random effects variance across participants. 
-1) If I add task as a random effect, in other words, allowing for differences across tasks, I get the following results: 
-* expectancy-outcome relationship differs across tasks, taskname_lin:demean_expect, t(14130) = 4.317, p < .001
-* expectancy-outcome relationship differs across cue and tasks, "taskname_lin:CUE_high_gt_low:demean_expect", t(14130) = 5.758, p < .001
-taskname_lin:CUE_high_gt_low                -3.790e+00  1.448e+00  1.413e+04  -2.618  0.00886 ** 
-++ taskname_lin:demean_expect           9.854e-02  2.283e-02  1.413e+04   4.317 1.59e-05 ***
-CUE_high_gt_low:demean_expect               -9.077e-02  1.987e-02  1.413e+04  -4.569 4.95e-06 ***
-CUE_high_gt_low:taskname_quad                5.352e+00  1.334e+00  1.413e+04   4.012 6.04e-05 ***
-demean_expect:taskname_quad         -1.596e-01  2.253e-02  1.413e+04  -7.084 1.47e-12 ***
-taskname_lin:CUE_high_gt_low:demean_expect   2.629e-01  4.565e-02  1.413e+04   5.758 8.67e-09 ***
-CUE_high_gt_low:demean_expect:taskname_quad -1.021e-01  4.505e-02  1.413e+04  -2.266  0.02348 *  
+## across tasks (PVC), is the slope for (highvslow cue) the same?Tor question
 
-2) If I add sub as random effect and ignore singular. Plus, if I remove the cue contrast...
-* expectancy-outcome relationship differs across tasks, factor(param_task_name):demean_expect, F(2, 14136) = 54.765, p < .001
- 
+- Adding "participant" as random effects leads to a singular boundary issue. The reason is because there is no random effects variance across participants.
+
+1. If I add task as a random effect, in other words, allowing for differences across tasks, I get the following results:
+
+- expectancy-outcome relationship differs across tasks, taskname_lin:demean_expect, t(14130) = 4.317, p < .001
+- expectancy-outcome relationship differs across cue and tasks, "taskname_lin:CUE_high_gt_low:demean_expect", t(14130) = 5.758, p < .001
+  taskname_lin:CUE_high_gt_low -3.790e+00 1.448e+00 1.413e+04 -2.618 0.00886 **
+  ++ taskname_lin:demean_expect 9.854e-02 2.283e-02 1.413e+04 4.317 1.59e-05 \***
+  CUE_high_gt_low:demean_expect -9.077e-02 1.987e-02 1.413e+04 -4.569 4.95e-06 **_
+  CUE_high_gt_low:taskname_quad 5.352e+00 1.334e+00 1.413e+04 4.012 6.04e-05 _**
+  demean_expect:taskname_quad -1.596e-01 2.253e-02 1.413e+04 -7.084 1.47e-12 **_
+  taskname_lin:CUE_high_gt_low:demean_expect 2.629e-01 4.565e-02 1.413e+04 5.758 8.67e-09 _**
+  CUE_high_gt_low:demean_expect:taskname_quad -1.021e-01 4.505e-02 1.413e+04 -2.266 0.02348 \*
+
+2. If I add sub as random effect and ignore singular. Plus, if I remove the cue contrast...
+
+- expectancy-outcome relationship differs across tasks, factor(param_task_name):demean_expect, F(2, 14136) = 54.765, p < .001
+
 ```{r}
 p <- df_load_beh(datadir, taskname = 'pain', subject_varkey = subject_varkey, iv = iv, exclude = exclude)
 v <- df_load_beh(datadir, taskname = 'vicarious', subject_varkey = subject_varkey, iv = iv, exclude = exclude)
@@ -672,11 +682,11 @@ data_p2= maindata %>%
   arrange(src_subject_id ) %>%
   group_by(src_subject_id) %>%
   mutate(trial_index = row_number())
-data_a3 <- data_p2 %>% 
-  group_by(src_subject_id, session_id, param_run_num) %>% 
+data_a3 <- data_p2 %>%
+  group_by(src_subject_id, session_id, param_run_num) %>%
   mutate(trial_index = row_number(param_run_num))
 
-data_a3lag <- 
+data_a3lag <-
     data_a3 %>%
     group_by(src_subject_id, session_id, param_run_num) %>%
     mutate(lag.demean_outcome = dplyr::lag(demean_outcome, n = 1, default = NA))
@@ -722,4 +732,3 @@ library(emmeans)
 # emm1 = emmeans(model_task, specs = pairwise ~ stimintensity:task)
 # emm1
 ```
-

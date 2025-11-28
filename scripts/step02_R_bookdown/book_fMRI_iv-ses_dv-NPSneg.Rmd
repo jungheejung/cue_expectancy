@@ -5,7 +5,6 @@
 - Here, I model NPSneg dot products as a function of cue, stimulus intensity and expectation ratings.
 - One of the findings is that low cues lead to higher NPSneg dotproducts in the high intensity group, and that this effect becomes non-significant across sessions.
 
-
 ```{r libraries_NPSneg_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(car)
 library(lme4)
@@ -51,10 +50,10 @@ sapply(file.sources,source,.GlobalEnv)
 
 ```
 
-
-
 ############################################# {.unlisted .unnumbered}
+
 ## 0. load data and find intersection between behavioral and NPSneg dataframes
+
 ############################################# {.unlisted .unnumbered}
 
 ```{r}
@@ -73,7 +72,7 @@ df_merge <- inner_join(beh, NPSneg, by = "singletrial_fname")
 data <-df_merge[df_merge$runtype == "pain" ,]
 
 # contrast code ________________________________________________________________
-data$stim <- NA; data$STIM_linear <- NA; data$STIM_quadratic <- NA; 
+data$stim <- NA; data$STIM_linear <- NA; data$STIM_quadratic <- NA;
 data$CUE_high_gt_low <- NA;
 data$SES_linear <- NA;data$SES_quadratic <- NA
 data$stim[data$stimulusintensity == "low_stim"] <-  -0.5 # social influence task
@@ -119,7 +118,7 @@ dv_keyword <- "NPSneg"
 # Make sure that each condition cell has adequate amount of trials
 
 subjects_with_inadequate_data <- data %>%
-  group_by(sub, CUE_high_gt_low, STIM_linear) %>% #SES_linear, 
+  group_by(sub, CUE_high_gt_low, STIM_linear) %>% #SES_linear,
   dplyr::summarise(count = n(), .groups = 'drop') %>%
   filter(count < 3) %>%
   distinct(sub) %>%
@@ -130,8 +129,8 @@ df_filter <- data %>%
 print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(data$sub)), length(unique(df_filter$sub)) ))
 ```
 
-
 ### QC. check NPSneg distribution
+
 ```{r}
 df_filter.NA <- df_filter %>% filter(!is.na(NPSneg))  # Remove NA values
 head(df_filter.NA)
@@ -147,18 +146,17 @@ df_filter.NA$sub <- factor(df_filter.NA$sub, levels = sorted_data$sub)
 
 # Create the ggplot
 g <- ggplot(df_filter.NA, aes(x = sub, y = NPSneg, fill = sub)) +
-  geom_boxplot(outlier.shape = NA, width = 1.2, position = position_dodge(2)) +  
+  geom_boxplot(outlier.shape = NA, width = 1.2, position = position_dodge(2)) +
   geom_jitter(width = .1, alpha = 0, size = 1) +
   labs(x = "Subject", y = "NPSneg") +
   theme_classic() +
   theme(legend.position = "none") +
-  scale_x_discrete(breaks = NULL) 
+  scale_x_discrete(breaks = NULL)
 
 # Convert ggplot object to a plotly object with hover information
 g_plotly <- ggplotly(ggplot_largetext(g), tooltip = c("x", "y"))
 g_plotly
 ```
-
 
 ```{r function::summary_for_plots_pvc, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 summary_for_plots_PVC <- function(df, groupwise_measurevar, subject_keyword, model_iv1, model_iv2, dv) {
@@ -266,8 +264,8 @@ two_factor_lineplot <-
   }
 ```
 
-
 ### Contrast weight table {.unlisted .unnumbered}
+
 ```{r echo=FALSE}
 tab <- matrix(c(0, .5, -.5,
                 .66, -.34, -.34), ncol=3, byrow=TRUE)
@@ -280,11 +278,15 @@ kableExtra::kable_styling(
 ```
 
 ############################################# {.unlisted .unnumbered}
+
 ## 2. NPSneg ~ paintask: 2 cue x 3 stimulus_intensity
+
 ############################################# {.unlisted .unnumbered}
 
 ### Q. Within pain task, Does stimulus intenisty level and cue level significantly predict NPSneg dotproducts? {.unlisted .unnumbered}
+
 # 03/10/2024
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 # combined_psig <- data.frame()
@@ -371,7 +373,7 @@ dv_keyword <- "NPSneg"
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
-  color <- c("#4575B4", "#D73027")
+  color <- c("#4274AD", "#C5263A")
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -403,7 +405,6 @@ g <- plot_halfrainclouds_twofactor(
 )
 g
 ```
-
 
 ### Lineplots with only low cue {.unlisted .unnumbered}
 
@@ -444,7 +445,7 @@ g + theme(aspect.ratio=.8)
 
 ## Table lmer. Linear model results (NPSneg ~ paintask: 2 cue x 3 stimulus_intensity)
 
-> modeling random slopes of cue and stimulus intensity, we find a signfiicant effect of cue and stimulus effect on NPS negative weights (bcue = 0.03, p < .05, bstimlinear = -0.14, p < .001) Model used optimizer Nelder Mead. 
+> modeling random slopes of cue and stimulus intensity, we find a signfiicant effect of cue and stimulus effect on NPS negative weights (bcue = 0.03, p < .05, bstimlinear = -0.14, p < .001) Model used optimizer Nelder Mead.
 
 ```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
 
@@ -459,8 +460,8 @@ sjPlot::tab_model(model.NPSnegcuestim,
                   CSS = list(css.table = '+font-size: 12;'))
 ```
 
-
 ### optimizers
+
 ```{r}
 
 library(parallel)
@@ -470,10 +471,10 @@ diff_optims <- allFit(model.NPSnegcuestim, maxfun = 1e5, parallel = 'multicore',
 diff_optims_OK <- diff_optims[sapply(diff_optims, is, "merMod")]
 lapply(diff_optims_OK, function(x) x@optinfo$conv$lme4$messages)
 ```
+
 ```{r}
 diff_optims <- allFit(model.NPSnegcuestim, maxfun = 1e5)
 ```
-
 
 ### model converge [OK: optimizer nmkbw]
 
@@ -497,8 +498,6 @@ lmer(NPSneg ~
                     )
 ```
 
-
-
 #### Linear model eta-squared {.unlisted .unnumbered}
 
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
@@ -510,8 +509,10 @@ kableExtra::kable_styling(
 ```
 
 #### Linear model Cohen's d: {.unlisted .unnumbered}
-> * NPSneg cue d = 0.21
-* NPSneg stimulus_intensity d = -1.42
+
+> - NPSneg cue d = 0.21
+
+- NPSneg stimulus_intensity d = -1.42
 
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 
@@ -521,23 +522,22 @@ kableExtra::kable_styling(
     "html"), "striped", position = "left", font_size = 12)
 ```
 
+############################################# {.unlisted .unnumbered}
 
-
-
-
+## 3. NPSneg ~ SES _ CUE _ STIM
 
 ############################################# {.unlisted .unnumbered}
-## 3. NPSneg ~ SES * CUE * STIM
-############################################# {.unlisted .unnumbered}
+
 ### Q. Is the cue effect on NPSneg different across sessions? {.unlisted .unnumbered}
 
 > Quick answer: Yes, the cue effect in session 1 (for high intensity group) is significantly different; whereas this different becomes non significant in session 4.
 > To unpack, a participant was informed to experience a low stimulus intensity, when in fact they were delivered a high intensity stimulus. This violation presumably leads to a higher NPSneg response, given that they were delivered a much painful stimulus than expected. The fact that the cue effect is almost non significant during the last session indicates that the cue effects are not just an anchoring effect.
 
 ### filter per sub/cue/stim/ses at least 3 trials per combination {.unlisted .unnumbered}
+
 ```{r}
 subjects_with_inadequate_data <- data %>%
-  group_by(sub, CUE_high_gt_low, STIM_linear, SES_linear) %>% 
+  group_by(sub, CUE_high_gt_low, STIM_linear, SES_linear) %>%
   dplyr::summarise(count = n(), .groups = 'drop') %>%
   filter(count < 3) %>%
   distinct(sub) %>%
@@ -548,19 +548,19 @@ df_filter_ses <- data %>%
 print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(data$sub)), length(unique(df_filter_ses$sub)) ))
 ```
 
-
 ### Table lmer. NPS ~ SES
+
 > Modeling random slopes of cue, ses, stimulus intensity, we find signficant cue effects (b = 0.04, p < .05), stimulus effects (b = -0.13, p < .001) and session effects (b = -0.04, p < .05). However, the session wise interaction was marginally signficant; cue x ses (quadratic): b = 0.062, se = 0.034, t(4570) = 1.784, p = 0.075 stimlinear x sesquadratic b = 0.078, se = 0.043, t(4484) = 1.827, p = 0.067.
 
-b se 
-CUE_high_gt_low:SES_quadratic                 6.200e-02  3.475e-02
-STIM_linear:SES_quadratic                     7.809e-02  4.275e-02
+b se
+CUE_high_gt_low:SES_quadratic 6.200e-02 3.475e-02
+STIM_linear:SES_quadratic 7.809e-02 4.275e-02
 df t p
-CUE_high_gt_low:SES_quadratic                 4.570e+03   1.784   0.0745
-STIM_linear:SES_quadratic                     4.484e+03   1.827   0.0678
-
+CUE_high_gt_low:SES_quadratic 4.570e+03 1.784 0.0745
+STIM_linear:SES_quadratic 4.484e+03 1.827 0.0678
 
 Using NLOPT_LN_NELDERMEAD nloptwrap optimizer
+
 ```{r}
 model.NPSnegses <- lmer(
   NPSneg ~
@@ -582,8 +582,8 @@ model.NPSnegses <- lmer(
     )
   )
 )
-  
-summary(model.NPSnegses)                  
+
+summary(model.NPSnegses)
 # CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.NPSnegses,
                   title = "Multilevel-modeling: \nlmer(NPSneg ~ CUE * STIM * SES + (CUE + SES + STIM| sub), data = pvc)",
@@ -598,11 +598,11 @@ diff_optims <- allFit(model.NPSnegses, maxfun = 1e5, parallel = 'multicore', ncp
 diff_optims_OK <- diff_optims[sapply(diff_optims, is, "merMod")]
 lapply(diff_optims_OK, function(x) x@optinfo$conv$lme4$messages)
 ```
+
 ### model converge [OK: optimizer nmkbw]
 
-
-
 ### convergence
+
 ```{r}
 optimx_options <- c("L-BFGS-B", "nlminb", "nlm", "bobyqa", "nmkb", "hjkb")
 for(i in 1:length(optimx_options)){
@@ -642,7 +642,6 @@ for(i in 1:length(optimx_options)){
 }
 ```
 
-
 #### eta squared {.unlisted .unnumbered}
 
 ```{r echo=FALSE, warning=TRUE}
@@ -653,6 +652,7 @@ kableExtra::kable_styling(
 ```
 
 #### Cohen's d {.unlisted .unnumbered}
+
 > cue: stim: -1.39
 
 ```{r echo=FALSE, warning=TRUE}
@@ -683,7 +683,7 @@ stim_con2 <- "STIM_quadratic"
 iv1 <- "CUE_high_gt_low"
 dv <- "NPSneg"
 
-    # [ MODEL ] _______________________________________________________________ 
+    # [ MODEL ] _______________________________________________________________
     model_savefname <- file.path(
         analysis_dir,
         paste("lmer_task-", taskname,
@@ -744,7 +744,7 @@ dv <- "NPSneg"
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
-        color <- c("#4575B4", "#D73027")
+        color <- c("#4274AD", "#C5263A")
     } # if keyword starts with
     plot_savefname <- file.path(
         analysis_dir,
@@ -770,7 +770,7 @@ print(g)
 # lineplot per session
 
 DATA = as.data.frame(combined_se_calc_cooksd)
-color = c("#4C77ED", "#ED220D")
+color = c("#4274AD", "#ED220D")
 model_iv1 <- "stim_ordered"
 model_iv2 <- "ses_ordered"
 LINEIV1 = "stim_ordered"
@@ -789,12 +789,10 @@ p3 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-04",],
                ylab = "NPSneg (dot products)")
 
 ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
- 
+
 plot_filename = file.path(analysis_dir,
                           paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
 ggsave(plot_filename, width = 8, height = 4)
 ```
 
 ---
-
-

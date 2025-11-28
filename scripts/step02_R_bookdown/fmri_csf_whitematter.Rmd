@@ -1,8 +1,7 @@
 # QC :: white matter csf {#whitematter-csf}
 
-
-The method I use is 
-../scripts/step10_nilearn/whitematter_csf/whitematter_csf.m 
+The method I use is
+../scripts/step10_nilearn/whitematter_csf/whitematter_csf.m
 I extract white matter csf per single trial and compare the values
 
 ```{r include=FALSE}
@@ -28,8 +27,6 @@ analysis_dir <-
 dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 savedir <- analysis_dir
 ```
-
-
 
 ```{r}
 # 1. load data _________________________________________________________________
@@ -152,7 +149,7 @@ dv_keyword <- "NPSpos"
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
-  color <- c("#4575B4", "#D73027")
+  color <- c("#4274AD", "#C5263A")
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -186,7 +183,6 @@ g.white + theme(aspect.ratio=.8) + ylim(-0.05, 0.27)
 ## CSF
 
 > CSF only show an effect of stimulus intensity. The cue levels do not differ.
-
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
@@ -289,7 +285,7 @@ dv_keyword <- "NPSpos"
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
-  color <- c("#4575B4", "#D73027")
+  color <- c("#4274AD", "#C5263A")
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -319,9 +315,7 @@ g <- plot_lineplot_twofactor_subsetthick(NPSstimcue_groupwise, taskname = "pain"
 g + theme(aspect.ratio=.8) + ylim(-0.05, 0.27)
 ```
 
-
 ## graymatter
-
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
@@ -354,8 +348,8 @@ data$STIM_quadratic[data$stim == "med"] <- 0.66
 data$STIM_quadratic[data$stim == "high"] <- -0.33
 
 # ___ social cude contrast
-data$CUE_high_gt_low[data$cuetype == "cuetype-low"] <-  -0.5 
-data$CUE_high_gt_low[data$cuetype == "cuetype-high"] <-  0.5 
+data$CUE_high_gt_low[data$cuetype == "cuetype-low"] <-  -0.5
+data$CUE_high_gt_low[data$cuetype == "cuetype-high"] <-  0.5
 
 
 # 2. model parameters __________________________________________________________
@@ -418,7 +412,7 @@ dv_keyword <- "NPSpos"
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
-  color <- c("#4575B4", "#D73027")
+  color <- c("#4274AD", "#C5263A")
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -445,6 +439,6 @@ g <- plot_lineplot_twofactor_subsetthick(NPSstimcue_groupwise, taskname = "pain"
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("low cue" = "#5D5C5C","high cue" = "#D73027"), ggtitle = "Within pain task: graymatter as a function of stimulus intensity level and cue",
                         xlab = "Stimulus intensity", ylab = "Average activation (A.U.)")
-g + theme(aspect.ratio=.8) 
+g + theme(aspect.ratio=.8)
 g + theme(aspect.ratio=.8) + ylim(-0.05, 0.27)
 ```

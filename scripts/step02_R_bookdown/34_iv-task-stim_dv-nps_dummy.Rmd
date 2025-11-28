@@ -1,9 +1,10 @@
-# NPSdummy ~ stim * task (contrast-scaled) {#nps_stim_task}
+# NPSdummy ~ stim \* task (contrast-scaled) {#nps_stim_task}
 
 ```
 author: "Heejung Jung"
 date: "2023-02-03"
 ```
+
 ```{r libraries_nps_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(car)
 library(psych)
@@ -11,13 +12,14 @@ library(reshape)
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 ```
 
 ## Function {.unlisted .unnumbered}
+
 ```{r function::summary_for_plots_pvc, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 summary_for_plots_PVC <- function(df, groupwise_measurevar, subject_keyword, model_iv1, model_iv2) {
     df$cue_name[df$cue == "highcue"] <- "high cue"
@@ -101,7 +103,7 @@ two_factor_lineplot <-
       ylab(ylab) +
       #scale_color_manual(values = color) +
       theme_classic() +
-      
+
       theme(aspect.ratio = .6) +
       expand_limits(x = 3.25) +
       #guides(fill = "none") +
@@ -121,13 +123,13 @@ two_factor_lineplot <-
         legend.margin = margin(6, 6, 6, 6)
       ) +
       theme(legend.key = element_rect(fill = "white", colour = "white"))
-    
+
     return(g)
   }
 ```
 
-
 ## Common parameters {.unlisted .unnumbered}
+
 ```{r common_parameters_34, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 main_dir = dirname(dirname(getwd()))
 datadir = file.path(main_dir, 'data', 'beh', 'beh02_preproc')
@@ -137,7 +139,6 @@ savedir <- analysis_dir
 
 npsdir = file.path(main_dir,'analysis','fmri','spm','univariate','model01_6cond','extract_nps')
 ```
-
 
 ```{r load_df_stack_34, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 pain_keys <- list(contrast_name = "P_simple", taskname = "pain",con_list = c(32,33,34,35,36,37), npsdir = npsdir)
@@ -151,13 +152,13 @@ pvc <- reshape::merge_recurse(list(p,v,c))
 ```
 
 ```{r}
-only_select_18runs = pvc 
+only_select_18runs = pvc
 t = pvc[pvc$subject %in% c("sub-0032", "sub-0033", "sub-0036", "sub-0037", "sub-0038", "sub-0039",
                        "sub-0052", "sub-0056", "sub-0057", "sub-0060",
                        "sub-0061", "sub-0062",
-                       "sub-0078", "sub-0080", 
-                       "sub-0086", "sub-0093", "sub-0095", "sub-0098", 
-                       "sub-0101", "sub-0104", "sub-0106", "sub-0107", "sub-0109", "sub-0115", "sub-0116", 
+                       "sub-0078", "sub-0080",
+                       "sub-0086", "sub-0093", "sub-0095", "sub-0098",
+                       "sub-0101", "sub-0104", "sub-0106", "sub-0107", "sub-0109", "sub-0115", "sub-0116",
                        "sub-0124", "sub-0126", "sub-0128", "sub-0129", "sub-0130", "sub-0132"),]
 ```
 
@@ -205,13 +206,12 @@ plot_keys <- list(sub_mean = "mean_per_sub",group_mean = "mean_per_sub_norm_mean
     model_iv2 = "cue_ordered")
 ```
 
-
 ```{r summary_pvc, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 
 groupwise = data.frame()
 subjectwise = data.frame()
-summary <- summary_for_plots_PVC(df = pvc, 
-                             #taskname = taskname, 
+summary <- summary_for_plots_PVC(df = pvc,
+                             #taskname = taskname,
                              groupwise_measurevar = "mean_per_sub",
                              subject_keyword = "subject",
                              model_iv1 = "task",
@@ -221,11 +221,12 @@ groupwise <-as.data.frame(summary[[2]])
     if (any(startsWith(plot_keys$dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
-        color <- c("#4575B4", "#D73027")
-    } 
+        color <- c("#4274AD", "#C5263A")
+    }
 ```
 
 ## Raincloud plots
+
 ```{r plot_PVC, echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02", "#D95F02")
@@ -250,13 +251,14 @@ groupwise <-as.data.frame(summary[[2]])
         )
     )
     plot_rainclouds_twofactor(
-      subjectwise, groupwise, iv1, iv2, 
-      subject_mean, group_mean, se, subject, 
+      subjectwise, groupwise, iv1, iv2,
+      subject_mean, group_mean, se, subject,
       ggtitle, title, xlab, ylab, taskname, ylim,
       w = plot_keys$w, h = plot_keys$h, dv_keyword, color, plot2_savefname)
 ```
 
 ## Line plots
+
 ```{r lineplot_PVC, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
 g<-two_factor_lineplot(df = groupwise,  iv1 = "stim_ordered",iv2 = "task", mean = "mean_per_sub_norm_mean", error = "se",
@@ -264,6 +266,3 @@ g<-two_factor_lineplot(df = groupwise,  iv1 = "stim_ordered",iv2 = "task", mean 
                        ylab = dv)
 g
 ```
-
-
-

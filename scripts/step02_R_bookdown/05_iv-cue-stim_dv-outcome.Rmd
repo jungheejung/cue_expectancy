@@ -240,6 +240,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
 ```
 
 01/26/2024
+
 ```{r}
 model.full <- lmer(OUTCOME ~ CUE_high_gt_low * STIM + (CUE * STIM|subject), data = data)
 summary(model.full)
@@ -248,27 +249,27 @@ plot(model.full$fitted.values, model.full$residuals, xlab="Fitted", ylab="residu
 car::qqPlot(model.full)
 ```
 
-
 ## CHECK number of data
+
 ```{r}
 library(dplyr)
-# 
+#
 # # Assuming your data frame is named 'data' and it contains the variables 'subject', 'CUE_high_gt_low', and 'STIM_linear'
 # data_points_check <- data %>%
 #   group_by(subject, CUE_high_gt_low, STIM_linear) %>%
 #   summarise(count = n(), .groups = 'drop') %>%
 #   arrange(subject, CUE_high_gt_low, STIM_linear)
-# 
+#
 # # Check if any group has fewer than 3 data points
 # data_points_check$adequate_data <- ifelse(data_points_check$count >= 3, TRUE, FALSE)
-# 
+#
 # # View the summary to see which combinations are lacking data
 # print(data_points_check)
-# 
+#
 # # Optionally, check if any subject-cue-stim combinations have less than 3 data points
 # inadequate_data_combinations <- filter(data_points_check, count < 3)
 # print(inadequate_data_combinations)
-# 
+#
 # # General check
 # if(all(data_points_check$adequate_data)) {
 #   cat("All subject-cue-stim combinations have at least 3 data points.\n")
@@ -294,6 +295,7 @@ morethan21 <- data %>%
 
 
 ```
+
 ```{r}
 length(unique(data$subject))
 length(unique(morethan21$subject))
@@ -304,6 +306,7 @@ length(unique(morethan21$subject))
 ```
 
 ## different optimizer
+
 ```{r}
 library(parallel)
 ncores <- detectCores()
@@ -314,9 +317,9 @@ lapply(diff_optims_OK, function(x) x@optinfo$conv$lme4$messages)
 ```
 
 ```{r}
-model_flex <-  lmer(OUTCOME ~ CUE_high_gt_low * STIM_linear + 
-                      CUE_high_gt_low * STIM_quadratic + 
-                      (CUE_high_gt_low * STIM_linear|subject), 
+model_flex <-  lmer(OUTCOME ~ CUE_high_gt_low * STIM_linear +
+                      CUE_high_gt_low * STIM_quadratic +
+                      (CUE_high_gt_low * STIM_linear|subject),
                     data = morethan21,
                                           control = lmerControl(optimizer = "nmkbw"))
                                            # optCtrl = list(algorithm = "NLOPT_LN_NELDERMEAD",
@@ -333,6 +336,7 @@ model_flex <-  lmer(OUTCOME ~ CUE_high_gt_low * STIM_linear +
 ```
 
 ## loop optimizer
+
 ```{r}
 
 
@@ -360,9 +364,6 @@ for(i in 1:length(optimx_options)){
 }
 ```
 
-
-
-
 ```{r}
 library(ggplot2)
 library(lme4)
@@ -382,8 +383,6 @@ ggplot(re_df, aes(x = `(Intercept)`, y = `STIM_linear`)) +
        title = "Correlation between Random Intercept and Slope")
 
 ```
-
-
 
 ## TODO: model 03 3-2. individual differences
 
@@ -556,7 +555,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
-        color <- c("#4575B4", "#D73027")
+        color <- c("#4274AD", "#C5263A")
     }
     plot_savefname <- file.path(
         analysis_dir,
@@ -734,9 +733,8 @@ plot_filename = file.path(analysis_dir,
 ggsave(plot_filename, width = 8, height = 4)
 ```
 
-
-
 ## cue x stim x ses lineplot (with all trials)
+
 ```{r}
 taskname <- "pain"
     ggtitle <- paste(taskname, " - outcome judgment (degree)")
@@ -889,7 +887,7 @@ for (sesname in c(1,3,4)) {
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
-        color <- c("#4575B4", "#D73027")
+        color <- c("#4274AD", "#C5263A")
     } # if keyword starts with
     plot_savefname <- file.path(
         analysis_dir,
@@ -908,7 +906,6 @@ for (sesname in c(1,3,4)) {
 print(g)
 }
 ```
-
 
 ## cue x stim x ses lineplot (with 6trials per cell)
 
@@ -1090,7 +1087,7 @@ for (sesname in c(1,3,4)) {
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
-        color <- c("#4575B4", "#D73027")
+        color <- c("#4274AD", "#C5263A")
     } # if keyword starts with
     plot_savefname <- file.path(
         analysis_dir,
@@ -1111,6 +1108,7 @@ print(g)
 ```
 
 # CHECK optimizer
+
 ```{r}
     # 2. contrasts codes _______________________________________________________
     morethan21$stim[morethan21$STIM == "low_stim"] <- -0.5
@@ -1175,14 +1173,13 @@ for(i in 1:length(optimx_options)){
 }
 ```
 
-
 #### session wise line plots {.unlisted .unnumbered}
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 # lineplot per session
 
 DATA = as.data.frame(combined_se_calc_cooksd)
-color = c("#4C77ED", "#ED220D")
+color = c("#4274AD", "#ED220D")
 model_iv1 <- "stim_ordered"
 model_iv2 <- "ses_ordered"
 LINEIV1 = "stim_ordered"
@@ -1250,7 +1247,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
     ])
     data_screen <- data[-influential, ]
 
-    # ___ 3) calculate difference scores and summarize _______________________________ 
+    # ___ 3) calculate difference scores and summarize _______________________________
     # TODO: within param_run_num
     data$run_order[data$param_run_num > 3] <- "a"
     data$run_order[data$param_run_num <= 3] <- "b"
@@ -1299,6 +1296,7 @@ for (taskname in c("pain", "vicarious", "cognitive")) {
 
 }
 ```
+
 ```{r}
 head(data)
 ```
@@ -1308,12 +1306,12 @@ If a model fails to converge, what are your steps for checking issues?
 Is there a diagnostic plot that would inform me?
 I'd like to know what your workflow is
 
-Question: 
+Question:
 If the inclusion of a parameter doesn't make a difference
 determined by the anova function
 is it safe to remove?
-The experiment has these structures and we know that some other dependent variables changed across time, 
-so it would be best to include just so that we have starts and compare. 
+The experiment has these structures and we know that some other dependent variables changed across time,
+so it would be best to include just so that we have starts and compare.
 
 Question:
 what if the levels are somewhat correlated within factors
@@ -1329,6 +1327,7 @@ ggplot(data, aes(y = event04_actual_angle, x = param_cue_type)) +
 ```
 
 ## LMER
+
 ```{r}
 # 1. remove trials less than 10, per participant _______________________________
 data_filtered <- data %>%
@@ -1375,8 +1374,7 @@ icc <- random_effect_variance / (random_effect_variance + residual_variance) # 0
 
 ```
 
-> ICC is 0.38 for a model with cue and stim. 
-
+> ICC is 0.38 for a model with cue and stim.
 
 ## cue contrast average across expectation
 

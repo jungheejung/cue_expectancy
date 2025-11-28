@@ -1,16 +1,20 @@
 # QC :: fdmean {#QCfdmean}
 
 ---
+
 title: "fdmean"
 output: html_document
 date: "2023-07-18"
+
 ---
 
 ## Does FD differ as a function of task (pain/vicarious/cognitive)?
-> Framewise displacement does differ as a function. comparing Pain vs. non-pain tasks, the FD means are significantly differ. 
-However, as we can see, this effect is driven by a handful of participants
+
+> Framewise displacement does differ as a function. comparing Pain vs. non-pain tasks, the FD means are significantly differ.
+> However, as we can see, this effect is driven by a handful of participants
 
 ## Method: where do the FEmean values come from?
+
 They are from mriqc. The analysis to compile all the framewise displacement values live here: [ INSERT LINK ]
 
 ```{r warning=FALSE, include=FALSE}
@@ -26,9 +30,6 @@ library(lmerTest)
 library(gghalves)
 library(cueR)
 ```
-
-
-
 
 ```{r echo=FALSE}
 main_dir = dirname(dirname(getwd()))
@@ -91,7 +92,7 @@ dv_keyword <- "fdmean"
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
-  color <- c("#4575B4", "#D73027")
+  color <- c("#4274AD", "#C5263A")
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -135,7 +136,7 @@ print(g)
 # 7. lineplot __________________________________________________________________
 k <- cueR::plot_lineplot_onefactor(groupwise,
                         iv = "pain_ordered",
-                        mean = "mean_per_sub_norm_mean", 
+                        mean = "mean_per_sub_norm_mean",
                         error = "se",
                         color = c("pain" = "red",
                                   "non-pain" = "gray"),
@@ -145,4 +146,3 @@ k <- cueR::plot_lineplot_onefactor(groupwise,
                                   # "med" = "orange",
 print(k)
 ```
-

@@ -572,7 +572,7 @@ dv_keyword <- "NPSpos"
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
-  color <- c("#4575B4", "#D73027")
+  color <- c("#4274AD", "#C5263A")
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -847,7 +847,7 @@ data$STIM_quadratic[data$stimintensity == "high"] <- -0.33
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
-        color <- c("#4575B4", "#D73027")
+        color <- c("#4274AD", "#C5263A")
     } # if keyword starts with
     plot_savefname <- file.path(
         analysis_dir,
@@ -873,7 +873,7 @@ print(g)
 # lineplot per session
 
 DATA = as.data.frame(combined_se_calc_cooksd)
-color = c("#4C77ED", "#ED220D")
+color = c("#4274AD", "#ED220D")
 model_iv1 <- "stim_ordered"
 model_iv2 <- "ses_ordered"
 LINEIV1 = "stim_ordered"
@@ -1014,7 +1014,7 @@ total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos 
           )
 ```
 
-### 6-2. outcome_rating _ stimulus_intensity _ cue
+### 6-2. outcome*rating * stimulus*intensity * cue
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 iv2 = "event04_actual_angle"; iv1 = "NPSpos"
@@ -1196,7 +1196,7 @@ ggplot(aes(x=iv1, y=iv2, group = "sub"), data=demean_dropna) +
   xlab("relDuration")
 ```
 
-### 6-4. demeaned_outcome_rating _ stimulus_intensity _ cue
+### 6-4. demeaned*outcome_rating * stimulus*intensity * cue
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 iv2 = "OUTCOME_demean"; iv1 = "NPSpos" # "NPSpos"
@@ -1311,7 +1311,7 @@ total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos 
 
 ```
 
-### 6-6. demeaned_outcome_rating ~ stimulus_intensity _ cue _ NPS demean
+### 6-6. demeaned*outcome_rating ~ stimulus_intensity * cue \_ NPS demean
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 iv2 ="event04_actual_angle" #"OUTCOME_demean";
@@ -1575,7 +1575,7 @@ total + labs(title =paste0("task-",taskname, "- What is the pattern for NPS pos 
 
 ```
 
-### 7-2. [ correct ] NPS ~ demeaned_expect _ cue _ stim {.unlisted .unnumbered}
+### 7-2. [ correct ] NPS ~ demeaned*expect * cue \_ stim {.unlisted .unnumbered}
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 iv1 = "EXPECT_demean"; iv2 = "NPSpos" # "NPS_demean"
@@ -1626,7 +1626,7 @@ plots_title <- annotate_figure(plots, top = text_grob(paste(str_to_title(tasknam
 plots_title
 ```
 
-### 7-3. NPS_demean ~ demeaned_expect _ cue _ stim {.unlisted .unnumbered}
+### 7-3. NPS*demean ~ demeaned_expect * cue \_ stim {.unlisted .unnumbered}
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 iv1 = "EXPECT_demean"; iv2 = "NPS_demean" # "NPS_demean"
@@ -1785,7 +1785,7 @@ demean_dropna$SES_quadratic[demean_dropna$ses == "ses-04"] <- -0.33
 
 ```
 
-#### 8-1. [ correct ] NPS ~ EXPECT_demean _ CUE _ STIM + CMC (Session as covariate)
+#### 8-1. [ correct ] NPS ~ EXPECT*demean * CUE \_ STIM + CMC (Session as covariate)
 
 ```{r echo=TRUE, message=TRUE, warning=TRUE, paged.print=FALSE}
 
@@ -1804,7 +1804,7 @@ sjPlot::tab_model(model.npsexpectdemean.sescontrol,
                   CSS = list(css.table = '+font-size: 12;'))
 ```
 
-#### 8-2. [ correct ] NPS ~ EXPECT_demean _ CUE _ STIM \* SES + CMC (Session as interaction)
+#### 8-2. [ correct ] NPS ~ EXPECT*demean * CUE \_ STIM \* SES + CMC (Session as interaction)
 
 ```{r echo=TRUE, message=TRUE, warning=TRUE, paged.print=FALSE}
 
@@ -2092,7 +2092,7 @@ ggplot(aes(x=EXPECT_demean, y=NPSpos, color = CUE_high_gt_low, shape =), data=de
 
 ```
 
-#### NPSpos ~ EXPECT_demean _ STIM _ CUE
+#### NPSpos ~ EXPECT*demean * STIM \_ CUE
 
 ```{r}
 iv1 = "EXPECT_demean" #"event02_expect_angle";

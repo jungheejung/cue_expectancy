@@ -52,6 +52,7 @@ sapply(file.sources,source,.GlobalEnv)
 ```
 
 ## 0. load data and find intersection between behavioral and NPSpos dataframes
+
 ```{r}
 # load events.tsv
 analysis_folder <- "fmri_NPSpos"
@@ -68,7 +69,7 @@ df_merge <- inner_join(beh, NPSpos, by = "singletrial_fname")
 data <-df_merge[df_merge$runtype == "pain" ,]
 
 # contrast code ________________________________________________________________
-data$stim <- NA; data$STIM_linear <- NA; data$STIM_quadratic <- NA; 
+data$stim <- NA; data$STIM_linear <- NA; data$STIM_quadratic <- NA;
 data$CUE_high_gt_low <- NA;
 data$SES_linear <- NA;data$SES_quadratic <- NA
 data$stim[data$stimulusintensity == "low_stim"] <-  -0.5 # social influence task
@@ -114,7 +115,7 @@ dv_keyword <- "NPSpos"
 # Make sure that each condition cell has adequate amount of trials
 
 subjects_with_inadequate_data <- data %>%
-  group_by(sub, CUE_high_gt_low, STIM_linear) %>% #SES_linear, 
+  group_by(sub, CUE_high_gt_low, STIM_linear) %>% #SES_linear,
   dplyr::summarise(count = n(), .groups = 'drop') %>%
   filter(count < 3) %>%
   distinct(sub) %>%
@@ -125,8 +126,8 @@ df_filter <- data %>%
 print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(data$sub)), length(unique(df_filter$sub)) ))
 ```
 
-
 ## QC. check NPSpos distribution
+
 ```{r}
 df_filter.NA <- df_filter %>% filter(!is.na(NPSpos))  # Remove NA values
 head(df_filter.NA)
@@ -142,18 +143,17 @@ df_filter.NA$sub <- factor(df_filter.NA$sub, levels = sorted_data$sub)
 
 # Create the ggplot
 g <- ggplot(df_filter.NA, aes(x = sub, y = NPSpos, fill = sub)) +
-  geom_boxplot(outlier.shape = NA, width = 1.2, position = position_dodge(2)) +  
+  geom_boxplot(outlier.shape = NA, width = 1.2, position = position_dodge(2)) +
   geom_jitter(width = .1, alpha = 0, size = 1) +
   labs(x = "Subject", y = "NPSpos") +
   theme_classic() +
   theme(legend.position = "none") +
-  scale_x_discrete(breaks = NULL) 
+  scale_x_discrete(breaks = NULL)
 
 # Convert ggplot object to a plotly object with hover information
 g_plotly <- ggplotly(ggplot_largetext(g), tooltip = c("x", "y"))
 g_plotly
 ```
-
 
 ```{r function::summary_for_plots_pvc, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 summary_for_plots_PVC <- function(df, groupwise_measurevar, subject_keyword, model_iv1, model_iv2, dv) {
@@ -261,8 +261,8 @@ two_factor_lineplot <-
   }
 ```
 
-
 #### Contrast weight table {.unlisted .unnumbered}
+
 ```{r echo=FALSE}
 tab <- matrix(c(0, .5, -.5,
                 .66, -.34, -.34), ncol=3, byrow=TRUE)
@@ -274,10 +274,12 @@ kableExtra::kable_styling(
   "striped", position = "left", font_size = 15)
 ```
 
-
 ## 2. NPSpos ~ paintask: 2 cue x 3 stimulus_intensity
+
 ### Q. Within pain task, Does stimulus intenisty level and cue level significantly predict NPSpos dotproducts? {.unlisted .unnumbered}
+
 # 03/10/2024
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 combined_se_calc_cooksd <- data.frame()
 # combined_psig <- data.frame()
@@ -364,7 +366,7 @@ dv_keyword <- "NPSpos"
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
-  color <- c("#4575B4", "#D73027")
+  color <- c("#4274AD", "#C5263A")
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -437,6 +439,7 @@ g + theme(aspect.ratio=.8)
 ## Linear model results (NPSpos ~ paintask: 2 cue x 3 stimulus_intensity)
 
 lmer
+
 ```{r echo=TRUE, message=FALSE, warning=TRUE, paged.print=FALSE}
 
 model.NPSposcuestim <- lmer(NPSpos ~
@@ -448,8 +451,8 @@ sjPlot::tab_model(model.NPSposcuestim,
                   CSS = list(css.table = '+font-size: 12;'))
 ```
 
-
 ### optimizers
+
 ```{r}
 
 library(parallel)
@@ -459,10 +462,10 @@ diff_optims <- allFit(model.NPSposcuestim, maxfun = 1e5, parallel = 'multicore',
 diff_optims_OK <- diff_optims[sapply(diff_optims, is, "merMod")]
 lapply(diff_optims_OK, function(x) x@optinfo$conv$lme4$messages)
 ```
+
 ```{r}
 diff_optims <- allFit(model.NPSposcuestim, maxfun = 1e5)
 ```
-
 
 ### model converge [OK: optimizer nmkbw]
 
@@ -485,8 +488,6 @@ lmer(NPSpos ~
                           (CUE_high_gt_low+STIM|sub), data = data
                     )
 ```
-
-
 
 #### Linear model eta-squared {.unlisted .unnumbered}
 
@@ -516,9 +517,10 @@ kableExtra::kable_styling(
 > To unpack, a participant was informed to experience a low stimulus intensity, when in fact they were delivered a high intensity stimulus. This violation presumably leads to a higher NPSpos response, given that they were delivered a much painful stimulus than expected. The fact that the cue effect is almost non significant during the last session indicates that the cue effects are not just an anchoring effect.
 
 ### filter with including session
+
 ```{r}
 subjects_with_inadequate_data <- data %>%
-  group_by(sub, CUE_high_gt_low, STIM_linear, SES_linear) %>% 
+  group_by(sub, CUE_high_gt_low, STIM_linear, SES_linear) %>%
   dplyr::summarise(count = n(), .groups = 'drop') %>%
   filter(count < 3) %>%
   distinct(sub) %>%
@@ -528,7 +530,6 @@ df_filter_ses <- data %>%
 
 print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(data$sub)), length(unique(df_filter_ses$sub)) ))
 ```
-
 
 ```{r}
 model.NPSposses <- lmer(NPSpos ~
@@ -553,6 +554,7 @@ diff_optims <- allFit(model.NPSposses, maxfun = 1e5, parallel = 'multicore', ncp
 diff_optims_OK <- diff_optims[sapply(diff_optims, is, "merMod")]
 lapply(diff_optims_OK, function(x) x@optinfo$conv$lme4$messages)
 ```
+
 ### model converge [OK: optimizer nmkbw]
 
 ```{r}
@@ -574,6 +576,7 @@ summary(model.NPSposcuestim)
 ```
 
 ### convergence
+
 ```{r}
 optimx_options <- c("L-BFGS-B", "nlminb", "nlm", "bobyqa", "nmkb", "hjkb")
 for(i in 1:length(optimx_options)){
@@ -612,7 +615,6 @@ for(i in 1:length(optimx_options)){
   }
 }
 ```
-
 
 #### eta squared {.unlisted .unnumbered}
 
@@ -653,7 +655,7 @@ stim_con2 <- "STIM_quadratic"
 iv1 <- "CUE_high_gt_low"
 dv <- "NPSpos"
 
-    # [ MODEL ] _______________________________________________________________ 
+    # [ MODEL ] _______________________________________________________________
     model_savefname <- file.path(
         analysis_dir,
         paste("lmer_task-", taskname,
@@ -714,7 +716,7 @@ dv <- "NPSpos"
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
-        color <- c("#4575B4", "#D73027")
+        color <- c("#4274AD", "#C5263A")
     } # if keyword starts with
     plot_savefname <- file.path(
         analysis_dir,
@@ -740,7 +742,7 @@ print(g)
 # lineplot per session
 
 DATA = as.data.frame(combined_se_calc_cooksd)
-color = c("#4C77ED", "#ED220D")
+color = c("#4274AD", "#ED220D")
 model_iv1 <- "stim_ordered"
 model_iv2 <- "ses_ordered"
 LINEIV1 = "stim_ordered"
@@ -759,12 +761,10 @@ p3 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-04",],
                ylab = "NPSpos (dot products)")
 
 ggpubr::ggarrange(p1,p2,p3,ncol = 3, nrow = 1, common.legend = TRUE,legend = "bottom")
- 
+
 plot_filename = file.path(analysis_dir,
                           paste('lineplot_task-all_rating-',dv_keyword,'.png', sep = ""))
 ggsave(plot_filename, width = 8, height = 4)
 ```
 
 ---
-
-

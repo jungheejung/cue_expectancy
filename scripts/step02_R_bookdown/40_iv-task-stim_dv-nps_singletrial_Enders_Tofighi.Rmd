@@ -1,7 +1,6 @@
 # fMRI :: NPS EndersTofighi {#NPS_EndersTofighi}
 
-03/23/2023
----
+## 03/23/2023
 
 title: "[fMRI] NPS ~ singletrial"
 output:
@@ -524,8 +523,6 @@ lmer(NPSpos ~
                     )
 ```
 
-
-
 #### Linear model eta-squared {.unlisted .unnumbered}
 
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
@@ -567,8 +564,8 @@ combined_psig <-
 
 # 2. contrast code ________________________________________________________________
 data$stim[data$stimintensity == "low"] <-  -0.5
-data$stim[data$stimintensity == "med"] <- 0 
-data$stim[data$stimintensity == "high"] <-  0.5 
+data$stim[data$stimintensity == "med"] <- 0
+data$stim[data$stimintensity == "high"] <-  0.5
 
 data$STIM <- factor(data$stimintensity)
 
@@ -631,7 +628,7 @@ data_screen <- data[-influential,]
 
 
 
-# 4. reordering for plots ______________________________________________________ 
+# 4. reordering for plots ______________________________________________________
 data$cue_name[data$cuetype == "cuetype-high"] <-  "high cue"
 data$cue_name[data$cuetype == "cuetype-low"] <-  "low cue"
 
@@ -675,7 +672,7 @@ dv_keyword <- "NPSpos"
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
-  color <- c("#4575B4", "#D73027")
+  color <- c("#4274AD", "#C5263A")
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -732,8 +729,6 @@ g <- plot_lineplot_twofactor_subsetthick(NPSstimcue_groupwise, taskname = "pain"
                         xlab = "Stimulus intensity", ylab = "NPSpos (dot product)")
 g + theme(aspect.ratio=.8)
 ```
-
-
 
 ### Lineplots in a different scheme {.unlisted .unnumbered}
 
@@ -823,10 +818,12 @@ kableExtra::kable_styling(
     "html"), "striped", position = "left", font_size = 12)
 ```
 
-#### Cohen's d  {.unlisted .unnumbered}
-* stimulus intensity d = 0.26, 
-* cue d = -0.09 {.unlisted .unnumbered}
-* session effect, d = .1
+#### Cohen's d {.unlisted .unnumbered}
+
+- stimulus intensity d = 0.26,
+- cue d = -0.09 {.unlisted .unnumbered}
+- session effect, d = .1
+
 ```{r echo=FALSE, warning=TRUE}
 kableExtra::kable_styling(
   knitr::kable(
@@ -946,7 +943,7 @@ data$STIM_quadratic[data$stimintensity == "high"] <- -0.33
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
-        color <- c("#4575B4", "#D73027")
+        color <- c("#4274AD", "#C5263A")
     } # if keyword starts with
     plot_savefname <- file.path(
         analysis_dir,
@@ -972,7 +969,7 @@ print(g)
 # lineplot per session
 
 DATA = as.data.frame(combined_se_calc_cooksd)
-color = c("#4C77ED", "#ED220D")
+color = c("#4274AD", "#ED220D")
 model_iv1 <- "stim_ordered"
 model_iv2 <- "ses_ordered"
 LINEIV1 = "stim_ordered"
@@ -1039,8 +1036,7 @@ kableExtra::kable_styling(
 
 ### Q. Do higher NPS values indicate higher outcome ratings? (Pain task only) {.unlisted .unnumbered}
 
->  Yes, Higher NPS values are associated with higher outcome ratings. The linear relationship between NPS value and outcome ratings are stronger for conditions where cue level is congruent with stimulus intensity levels. In other words, NPS-outcome rating relationship is stringent in the low cue-low intensity group, as is the case for high cue-ghigh intensity group.
-
+> Yes, Higher NPS values are associated with higher outcome ratings. The linear relationship between NPS value and outcome ratings are stronger for conditions where cue level is congruent with stimulus intensity levels. In other words, NPS-outcome rating relationship is stringent in the low cue-low intensity group, as is the case for high cue-ghigh intensity group.
 
 ```{r}
 signature_key <- "NPSpos"
@@ -1059,8 +1055,8 @@ demean_dropna <- cueR::compute_enderstofighi(data = subset_rename, sub = "sub", 
   mutate(avg_NPS = mean(NPSpos, na.rm = TRUE)) %>%
   mutate(NPS_demean = NPSpos - avg_NPS) %>%
     ungroup %>%
-  mutate(NPS_cmc = avg_NPS - mean(avg_NPS)) 
-  # mutate(NPS_gmc = NPSpos - mean(NPSpos)) 
+  mutate(NPS_cmc = avg_NPS - mean(avg_NPS))
+  # mutate(NPS_gmc = NPSpos - mean(NPSpos))
 
 p.demean <- p.demean %>%
   mutate(OUTCOME_gmc = OUTCOME - mean(OUTCOME))
@@ -1069,8 +1065,8 @@ p.demean <- p.demean %>%
 ### Linear model (without CMC subjectwise mean) {.unlisted .unnumbered}
 
 > Cue, Stimulus intensity, and NPS values positively predict the within subject variability of Outcome ratings
-> Also, Outcome rating (demean) differs as a function of stimulus intensity and NPS values, the greater the NPS value, the lower the Outcome rating as stimulus intensity increases. 
-> Outcome rating also differs as a function of cue and stimulus intensity. 
+> Also, Outcome rating (demean) differs as a function of stimulus intensity and NPS values, the greater the NPS value, the lower the Outcome rating as stimulus intensity increases.
+> Outcome rating also differs as a function of cue and stimulus intensity.
 
 ```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 # DEPRECATE DEPRECATE DEPRECATE DEPRECATE DEPRECATEDEPRECATEDEPRECATE
@@ -1085,8 +1081,7 @@ sjPlot::tab_model(model.npsoutcome,
                   CSS = list(css.table = '+font-size: 12;'))
 ```
 
-
-### Does outcome rating differ as a function of cue, stim, and NPS? 
+### Does outcome rating differ as a function of cue, stim, and NPS?
 
 > This model is expected to be better, given the demean and CMC variables
 
@@ -1160,8 +1155,9 @@ g
 > Outcome rating is best predicted by the NPS clustermeans
 
 ::::{.todolist}
-* Need to plot subjecwise slopes, not cluster meanse
-::::
+
+- Need to plot subjecwise slopes, not cluster meanse
+  ::::
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 p.sig <- df_merge[df_merge$runtype == "runtype-pain",]
@@ -1232,8 +1228,8 @@ plots_title
 
 ### 6-3. OUTCOMEgmc \~ NPScmc \* cue {.unlisted .unnumbered}
 
-> NPS (cluster means) , i.e. between subject effects predict outcome ratings well.. 
-There is interaction between cue levels
+> NPS (cluster means) , i.e. between subject effects predict outcome ratings well..
+> There is interaction between cue levels
 
 ```{r echo=FALSE}
 # plot parameters
@@ -1640,8 +1636,10 @@ ggplot(p.demean, aes(x = NPS_demean,
 ### 7-2. [TODO] NPSgmc \~ EXPECTdemean \* cue \* stim {.unlisted .unnumbered}
 
 ::::{.todolist}
-* plot subjectwise slopes
-::::
+
+- plot subjectwise slopes
+  ::::
+
 ```{r echo=FALSE, message=FALSE, warning=TRUE, paged.print=FALSE}
 
 # plot parameters
@@ -1819,10 +1817,11 @@ plots_title
 ```
 
 ::::{.refbox}
+
 - <https://stats.stackexchange.com/questions/365466/significance-of-slope-different-than-zero-in-triple-interaction-with-factors>
 - <https://stats.stackexchange.com/questions/586748/calculating-trends-with-emtrends-for-three-way-interaction-model-results-in-sa>
 - emtrends(model.npsexpectdemean, var = 'EXPECT_demean', lmer.df = "asymptotic")
-::::
+  ::::
 
 ### 7-5. ICC
 
@@ -1855,16 +1854,16 @@ kableExtra::kable_styling(
 
 ### Cohen's d {.unlisted .unnumbered}
 
-> expectation ratings (between subject cluster means) 
-across paritipcnats predict NPS values across participants. d = .62 (medium effect)
+> expectation ratings (between subject cluster means)
+> across paritipcnats predict NPS values across participants. d = .62 (medium effect)
 > Stimulus effect, d = .19 (small effect)
 
 model.npsexpectdemean <- lmer(NPS_gmc ~
-                          CUE_high_gt_low*STIM_linear*EXPECT_demean +
-                          CUE_high_gt_low*STIM_quadratic*EXPECT_demean +
-                          EXPECT_cmc +
-                          (1 |sub), data = p.demean, REML = FALSE
-                          
+CUE_high_gt_low*STIM_linear*EXPECT_demean +
+CUE_high_gt_low*STIM_quadratic*EXPECT_demean +
+EXPECT_cmc +
+(1 |sub), data = p.demean, REML = FALSE
+
 ```{r echo=FALSE, warning=TRUE}
 kableExtra::kable_styling(
   knitr::kable(
@@ -1935,10 +1934,10 @@ sjPlot::tab_model(model.npsexpectdemean.sescontrol,
 
 #### 8-2. [correct] NPS \~ EXPECT_demean \* CUE \* STIM \* SES + CMC (Session as interaction) {.unlisted .unnumbered}
 
-> Cue X Stim X Expectation (within subject cenering) X Session * p = .014
-Cue effect (p = .031)
-STIM (p < .001)
-EXPECT Cluster means (p = .006)
+> Cue X Stim X Expectation (within subject cenering) X Session \* p = .014
+> Cue effect (p = .031)
+> STIM (p < .001)
+> EXPECT Cluster means (p = .006)
 
 ```{r echo=TRUE, message=TRUE, warning=TRUE, paged.print=FALSE}
 
@@ -2210,8 +2209,6 @@ plots_title <- annotate_figure(plots,
 plots_title
 
 ```
-
-
 
 #### NPSpos \~ EXPECT_demean \* STIM \* CUE {.unlisted .unnumbered}
 

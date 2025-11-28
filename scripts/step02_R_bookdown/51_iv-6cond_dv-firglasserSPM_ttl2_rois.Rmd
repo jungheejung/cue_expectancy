@@ -758,3 +758,567 @@ combined_plot
 ggsave(file.path(save_dir, paste0("taskwise-",run_type, "_epoch-stim_desc-stimcuecomparison.png")), combined_plot, width = 12, height = 4)
 }
 ```
+
+
+
+```{r}
+# ------------------------------------------------------------------------------
+#                    3x2 GRID: CUE EPOCH + STIM EPOCH
+# ------------------------------------------------------------------------------
+
+run_types <- c("pain", "vicarious", "cognitive")
+TR_length <- 42
+
+for (run_type in run_types) {
+  
+  # ============================================================================
+  # PREPARE DATA - Get both cue and stim epochs
+  # ============================================================================
+  
+  # Get STIM epoch data (exclude rating and cue conditions)
+  filtered_df_stim <- df[!(df$condition == "rating" | | df$runtype != run_type), ]
+  
+  # Get CUE epoch data (only cue condition, but we need to match it to trial info)
+  # Since cue condition doesn't have stim info, we need to get it from the trial structure
+  # Assuming your data has a way to link cue trials to their corresponding stim conditions
+  
+  # If your dataframe has cue trials as separate rows with condition == "cue",
+  # but they're linked to stim trials through trial numbers or similar:
+  filtered_df_cue <- df[df$condition == "cue" & df$runtype == run_type, ]
+  
+  # If cue trials don't exist as separate rows, we'll use the stim trials 
+  # but select only the cue epoch TRs (typically the first few TRs)
+  # Let me show both approaches:
+  
+  # ============================================================================
+  # APPROACH: Use stim epoch data but separate by TR timing
+  # ============================================================================
+  # Assuming TRs 1-4 are cue epoch, TRs 5-42 are stim epoch (adjust as needed)
+  
+  cue_TR_range <- 1:42  # Adjust based on your experimental design
+  stim_TR_range <- 1:42  # Adjust based on your experimental design
+  
+  # Prepare stim data
+  parsed_df_stim <- filtered_df_stim %>%
+    separate(condition, into = c("cue", "stim"), sep = "_", remove = FALSE)
+  
+  df_long_stim <- pivot_longer(parsed_df_stim, 
+                               cols = starts_with("tr"), 
+                               names_to = "tr_num", 
+                               values_to = "tr_value")
+  
+  # Clean factors for STIM
+  df_long_stim$tr_ordered <- factor(df_long_stim$tr_num, 
+                                     levels = c(paste0("tr", 1:TR_length)))
+  df_long_stim$sixcond <- factor(df_long_stim$condition,
+                                  levels = c("cueH_stimH", "cueL_stimH",
+                                           "cueH_stimM", "cueL_stimM",
+                                           "cueH_stimL", "cueL_stimL"))
+  
+  # Filter for STIM epoch TRs only
+  df_long_stim <- df_long_stim %>%
+    filter(tr_num %in% paste0("tr", stim_TR_range))
+  
+  # Prepare CUE data (same df but filter for cue TRs)
+  df_long_cue <- pivot_longer(parsed_df_stim, 
+                               cols = starts_with("tr"), 
+                               names_to = "tr_num", 
+                               values_to = "tr_value")
+  
+  df_long_cue$tr_ordered <- factor(df_long_cue$tr_num, 
+                                   levels = c(paste0("tr", 1:TR_length)))
+  df_long_cue$sixcond <- factor(df_long_cue$condition,
+                                levels = c("cueH_stimH", "cueL_stimH",
+                                         "cueH_stimM", "cueL_stimM",
+                                         "cueH_stimL", "cueL_stimL"))
+  
+  # Filter for CUE epoch TRs only
+  df_long_cue <- df_long_cue %>%
+    filter(tr_num %in% paste0("tr", cue_TR_range))
+  
+  # ============================================================================
+  # SUMMARY STATISTICS - STIM EPOCH
+  # ============================================================================
+  
+  subjectwise_stim <- meanSummary(df_long_stim, 
+                                  c("sub", "tr_ordered", "sixcond"), 
+                                  "tr_value")
+  groupwise_stim <- summarySEwithin(
+    data = subjectwise_stim,
+    measurevar = "mean_per_sub",
+    withinvars = c("sixcond", "tr_ordered"),
+    idvar = "sub"
+  )
+  groupwise_stim$task <- taskname
+  
+  # ============================================================================
+  # SUMMARY STATISTICS - CUE EPOCH
+  # ============================================================================
+  
+  subjectwise_cue <- meanSummary(df_long_cue, 
+                                 c("sub", "tr_ordered", "sixcond"), 
+                                 "tr_value")
+  groupwise_cue <- summarySEwithin(
+    data = subjectwise_cue,
+    measurevar = "mean_per_sub",
+    withinvars = c("sixcond", "tr_ordered"),
+    idvar = "sub"
+  )
+  groupwise_cue$task <- taskname
+  
+  # ============================================================================
+  # PLOTTING PARAMETERS
+  # ============================================================================
+  
+  LINEIV1 = "tr_ordered"
+  LINEIV2 = "sixcond"
+  MEAN = "mean_per_sub_norm_mean"
+  ERROR = "se"
+  
+  # ============================================================================
+  # ROW 1: HIGH INTENSITY
+  # ============================================================================
+  
+  # CUE epoch - High intensity (cueH_stimH vs cueL_stimH)
+  p_cue_H <- plot_timeseries_bar(groupwise_cue,
+                LINEIV1, LINEIV2, MEAN, ERROR,
+                xlab = "TRs (Cue Epoch)", 
+                ylab = "Activation (a.u.)",
+                ggtitle = paste0("CUE: High Intensity (N = ", unique(groupwise_cue$N), ")"),
+                color = c("red", "#5f0f40", "gray", "gray", "gray", "gray")) + 
+    theme_classic()
+  
+  # STIM epoch - High intensity
+  p_stim_H <- plot_timeseries_bar(groupwise_stim,
+                LINEIV1, LINEIV2, MEAN, ERROR,
+                xlab = "TRs (Stim Epoch)", 
+                ylab = "Activation (a.u.)",
+                ggtitle = paste0("STIM: High Intensity (N = ", unique(groupwise_stim$N), ")"),
+                color = c("red", "#5f0f40", "gray", "gray", "gray", "gray")) + 
+    theme_classic()
+  
+  # ============================================================================
+  # ROW 2: MEDIUM INTENSITY
+  # ============================================================================
+  
+  # CUE epoch - Medium intensity (cueH_stimM vs cueL_stimM)
+  p_cue_M <- plot_timeseries_bar(groupwise_cue,
+                LINEIV1, LINEIV2, MEAN, ERROR,
+                xlab = "TRs (Cue Epoch)", 
+                ylab = "Activation (a.u.)",
+                ggtitle = paste0("CUE: Medium Intensity (N = ", unique(groupwise_cue$N), ")"),
+                color = c("#d6d6d6", "#d6d6d6", "#bc3908", "#f6aa1c", "gray", "gray")) + 
+    theme_classic()
+  
+  # STIM epoch - Medium intensity
+  p_stim_M <- plot_timeseries_bar(groupwise_stim,
+                LINEIV1, LINEIV2, MEAN, ERROR,
+                xlab = "TRs (Stim Epoch)", 
+                ylab = "Activation (a.u.)",
+                ggtitle = paste0("STIM: Medium Intensity (N = ", unique(groupwise_stim$N), ")"),
+                color = c("#d6d6d6", "#d6d6d6", "#bc3908", "#f6aa1c", "gray", "gray")) + 
+    theme_classic()
+  
+  # ============================================================================
+  # ROW 3: LOW INTENSITY
+  # ============================================================================
+  
+  # CUE epoch - Low intensity (cueH_stimL vs cueL_stimL)
+  p_cue_L <- plot_timeseries_bar(groupwise_cue,
+                LINEIV1, LINEIV2, MEAN, ERROR,
+                xlab = "TRs (Cue Epoch)", 
+                ylab = "Activation (a.u.)",
+                ggtitle = paste0("CUE: Low Intensity (N = ", unique(groupwise_cue$N), ")"),
+                color = c("gray", "gray", "gray", "gray", "#2541b2", "#00a6fb")) + 
+    theme_classic()
+  
+  # STIM epoch - Low intensity
+  p_stim_L <- plot_timeseries_bar(groupwise_stim,
+                LINEIV1, LINEIV2, MEAN, ERROR,
+                xlab = "TRs (Stim Epoch)", 
+                ylab = "Activation (a.u.)",
+                ggtitle = paste0("STIM: Low Intensity (N = ", unique(groupwise_stim$N), ")"),
+                color = c("gray", "gray", "gray", "gray", "#2541b2", "#00a6fb")) + 
+    theme_classic()
+  
+  # ============================================================================
+  # COMBINE INTO 3x2 GRID
+  # ============================================================================
+  
+  library(gridExtra)
+  library(ggpubr)
+  
+  # List of all plots
+  plots <- list(p_cue_H, p_stim_H,    # Row 1
+                p_cue_M, p_stim_M,    # Row 2
+                p_cue_L, p_stim_L)    # Row 3
+  
+  # Adjust margins
+  plots <- lapply(plots, function(plot) {
+    plot + theme(plot.margin = margin(5, 5, 5, 5))
+  })
+  
+  # Arrange in 3 rows x 2 columns
+  combined_plot <- ggarrange(
+    plots[[1]], plots[[2]],  # Row 1: High intensity
+    plots[[3]], plots[[4]],  # Row 2: Medium intensity
+    plots[[5]], plots[[6]],  # Row 3: Low intensity
+    common.legend = FALSE,
+    legend = "bottom",
+    ncol = 2, 
+    nrow = 3,
+    widths = c(1, 1),
+    heights = c(1, 1, 1),
+    align = "hv",
+    labels = c("A. Cue", "B. Stimulus", "", "", "", ""),
+    font.label = list(size = 12, face = "bold")
+  )
+  
+  combined_plot
+  
+  # Save
+  ggsave(
+    file.path(save_dir, 
+              paste0("taskwise-", run_type, 
+                    "_epoch-cue-and-stim_3x2grid.png")),
+    combined_plot, 
+    width = 14, 
+    height = 12
+  )
+}
+```
+
+
+# cue shift?
+```{r}
+# ------------------------------------------------------------------------------
+#                    epoch stim, high cue vs low cue BY RUN ORDER
+# ------------------------------------------------------------------------------
+# ----------------------------- clean factor -----------------------------------
+df_long$tr_ordered <- factor(
+        df_long$tr_num,
+        levels = c(paste0("tr", 1:TR_length))
+    )
+df_long$cue_ordered <- factor(
+        df_long$cue,
+        levels = c("cueH", "cueL")
+    )
+df_long$stim_ordered <- factor(
+        df_long$stim,
+        levels = c("stimH", "stimM", "stimL")
+    )
+df_long$sixcond <- factor(
+        df_long$condition,
+        levels = c("cueH_stimH", "cueL_stimH",
+                   "cueH_stimM", "cueL_stimM",
+                   "cueH_stimL", "cueL_stimL")
+)
+
+# Add a numeric TR variable for proper sorting
+df_long$tr_numeric <- as.numeric(gsub("tr", "", df_long$tr_num))
+
+# Extract numeric run value
+df_long$run_numeric <- as.numeric(gsub("run-", "", df_long$run))
+
+# For each subject and session, determine which run came first (1) vs second (2)
+df_long <- df_long %>%
+    group_by(sub, ses) %>%
+    mutate(run_within_session = rank(run_numeric)) %>%  # 1 = first run, 2 = second run
+    ungroup()
+
+# Create global run order: session order (1,3,4) * 2 runs each = 6 runs total
+df_long <- df_long %>%
+    mutate(
+        session_order = case_when(
+            ses == "ses-01" ~ 1,
+            ses == "ses-03" ~ 2,
+            ses == "ses-04" ~ 3,
+            TRUE ~ NA_real_
+        ),
+        run_order_global = as.integer((session_order - 1) * 2 + run_within_session)  # FORCE INTEGER
+    )
+
+# Filter for only high intensity stimuli (cueH_stimH and cueL_stimH)
+df_high <- df_long %>%
+    filter(sixcond %in% c("cueH_stimH", "cueL_stimH"))  # FIXED: was cueH_stimL
+
+# --------------------------- summary statistics BY RUN ORDER -------------------
+# Calculate subject-wise means for each GLOBAL RUN ORDER (not by session!)
+subjectwise_run <- meanSummary(df_high,
+                               c("sub", "run_order_global", "tr_ordered", "tr_numeric", "sixcond"), 
+                               "tr_value")
+
+# Calculate group-wise statistics - only group by run_order_global, NOT by session
+groupwise_run <- summarySEwithin(
+    data = subjectwise_run,
+    measurevar = "mean_per_sub",
+    withinvars = c("sixcond", "tr_ordered", "tr_numeric", "run_order_global"),
+    idvar = "sub"
+)
+groupwise_run$task <- taskname
+
+# Sort by run order and TR
+groupwise_run <- groupwise_run %>%
+    arrange(run_order_global, sixcond, tr_numeric)
+
+# --------------------------------- plot each run ------------------------------
+LINEIV1 = "tr_ordered"
+LINEIV2 = "sixcond"
+MEAN = "mean_per_sub_norm_mean"
+ERROR = "se"
+
+# Create a list to store plots - USE STANDARD LIST
+plot_list <- list()
+
+# Get unique runs in order
+run_orders <- sort(unique(groupwise_run$run_order_global))
+
+# Create labels for each run
+run_labels <- c(
+    "Run 1: Session 1, 1st run",
+    "Run 2: Session 1, 2nd run",
+    "Run 3: Session 3, 1st run",
+    "Run 4: Session 3, 2nd run",
+    "Run 5: Session 4, 1st run",
+    "Run 6: Session 4, 2nd run"
+)
+
+for (i in run_orders) {
+    # Subset data for this run
+    run_data <- groupwise_run %>% 
+        filter(run_order_global == i) %>%
+        arrange(sixcond, tr_numeric)
+    
+    # Recreate tr_ordered with ONLY the levels present, in correct order
+    unique_trs <- run_data %>%
+        distinct(tr_ordered, tr_numeric) %>%
+        arrange(tr_numeric) %>%
+        pull(tr_ordered)
+    
+    run_data$tr_ordered <- factor(run_data$tr_ordered, levels = unique_trs)
+    
+    # Create plot
+    p <- plot_timeseries_bar(
+        run_data,
+        LINEIV1, LINEIV2, MEAN, ERROR,
+        xlab = "Time (seconds)",
+        ylab = "Brain Activity (AU)",
+        ggtitle = paste0(run_labels[i], " (N = ", unique(run_data$N), ")"),
+        color = c("red", "#5f0f40")
+    )
+    
+    # Create time labels
+    n_trs <- length(unique_trs)
+    time_points <- seq(0, (n_trs - 1) * 0.46, 0.46)
+    time_labels <- round(time_points, 2)
+    
+    p <- p + 
+        scale_x_discrete(labels = time_labels) +
+        theme_classic() +
+        theme(legend.position = "bottom")
+    
+    # Store with NUMERIC index, not the value of i
+    plot_list[[length(plot_list) + 1]] <- p
+    
+    # Print the plot
+    print(p)
+}
+
+# Create a combined figure with all 6 runs
+library(gridExtra)
+combined_plot <- grid.arrange(grobs = plot_list, ncol = 2, nrow = 3)
+
+# To view the combined plot
+print(combined_plot)
+```
+
+```{r}
+roi_list <- c('rINS', 'TPJ', 'dACC', 'PHG', 'V1', 'SM', 'MT', 'RSC', 'LOC', 'FFC', 'PIT', 'pSTS', 'AIP', 'premotor')
+run_types <- c("pain", "vicarious", "cognitive")
+TR_length <- 42
+
+for (ROI in roi_list) {
+    datadir = file.path(main_dir, "analysis/fmri/spm/fir/ttl2par")
+    taskname = 'pain'
+    exclude <- "sub-0001"
+    filename <- paste0("sub-*", "*roi-", ROI, "_tr-42.csv")
+    common_path <- Sys.glob(file.path(datadir, "sub-*", filename))
+    filter_path <- common_path[!str_detect(common_path, pattern = exclude)]
+    
+    df <- do.call("rbind.fill", lapply(filter_path, FUN = function(files) {
+        read.table(files, header = TRUE, sep = ",")
+    }))
+    
+    for (run_type in run_types) {
+        print(paste0("Processing ROI: ", ROI, " - Run type: ", run_type))
+        
+        filtered_df <- df[!(df$condition == "rating" | df$condition == "cue" | df$runtype != run_type), ]
+        parsed_df <- filtered_df %>%
+            separate(condition, into = c("cue", "stim"), sep = "_", remove = FALSE)
+        
+        # --------------------- subset regions based on ROI ----------------------------
+        df_long <- pivot_longer(parsed_df, cols = starts_with("tr"), names_to = "tr_num", values_to = "tr_value")
+        
+        # ===============================================================================
+        # START: RUN ORDER ANALYSIS
+        # ===============================================================================
+        
+        # ----------------------------- clean factor -----------------------------------
+        df_long$tr_ordered <- factor(
+            df_long$tr_num,
+            levels = c(paste0("tr", 1:TR_length))
+        )
+        df_long$cue_ordered <- factor(
+            df_long$cue,
+            levels = c("cueH", "cueL")
+        )
+        df_long$stim_ordered <- factor(
+            df_long$stim,
+            levels = c("stimH", "stimM", "stimL")
+        )
+        df_long$sixcond <- factor(
+            df_long$condition,
+            levels = c("cueH_stimH", "cueL_stimH",
+                       "cueH_stimM", "cueL_stimM",
+                       "cueH_stimL", "cueL_stimL")
+        )
+        
+        # Add a numeric TR variable for proper sorting
+        df_long$tr_numeric <- as.numeric(gsub("tr", "", df_long$tr_num))
+        
+        # Extract numeric run value
+        df_long$run_numeric <- as.numeric(gsub("run-", "", df_long$run))
+        
+        # For each subject and session, determine which run came first (1) vs second (2)
+        df_long <- df_long %>%
+            group_by(sub, ses) %>%
+            mutate(run_within_session = rank(run_numeric)) %>%  # 1 = first run, 2 = second run
+            ungroup()
+        
+        # Create global run order: session order (1,3,4) * 2 runs each = 6 runs total
+        df_long <- df_long %>%
+            mutate(
+                session_order = case_when(
+                    ses == "ses-01" ~ 1,
+                    ses == "ses-03" ~ 2,
+                    ses == "ses-04" ~ 3,
+                    TRUE ~ NA_real_
+                ),
+                run_order_global = as.integer((session_order - 1) * 2 + run_within_session)
+            )
+        
+        # Filter for only high intensity stimuli (cueH_stimH and cueL_stimH)
+        df_high <- df_long %>%
+            filter(sixcond %in% c("cueH_stimH", "cueL_stimH"))
+        
+        # --------------------------- summary statistics BY RUN ORDER -------------------
+        # Calculate subject-wise means for each GLOBAL RUN ORDER (not by session!)
+        subjectwise_run <- meanSummary(df_high,
+                                       c("sub", "run_order_global", "tr_ordered", "tr_numeric", "sixcond"), 
+                                       "tr_value")
+        
+        # Calculate group-wise statistics - only group by run_order_global, NOT by session
+        groupwise_run <- summarySEwithin(
+            data = subjectwise_run,
+            measurevar = "mean_per_sub",
+            withinvars = c("sixcond", "tr_ordered", "tr_numeric", "run_order_global"),
+            idvar = "sub"
+        )
+        groupwise_run$task <- taskname
+        
+        # Sort by run order and TR
+        groupwise_run <- groupwise_run %>%
+            arrange(run_order_global, sixcond, tr_numeric)
+        
+        # --------------------------------- plot each run ------------------------------
+        LINEIV1 = "tr_ordered"
+        LINEIV2 = "sixcond"
+        MEAN = "mean_per_sub_norm_mean"
+        ERROR = "se"
+        
+        # Create a list to store plots
+        plot_list <- list()
+        
+        # Get unique runs in order
+        run_orders <- sort(unique(groupwise_run$run_order_global))
+        
+        # Create labels for each run
+        run_labels <- c(
+            "Run 1: Session 1, 1st run",
+            "Run 2: Session 1, 2nd run",
+            "Run 3: Session 3, 1st run",
+            "Run 4: Session 3, 2nd run",
+            "Run 5: Session 4, 1st run",
+            "Run 6: Session 4, 2nd run"
+        )
+        
+        for (i in run_orders) {
+            # Subset data for this run
+            run_data <- groupwise_run %>% 
+                filter(run_order_global == i) %>%
+                arrange(sixcond, tr_numeric)
+            
+            # Recreate tr_ordered with ONLY the levels present, in correct order
+            unique_trs <- run_data %>%
+                distinct(tr_ordered, tr_numeric) %>%
+                arrange(tr_numeric) %>%
+                pull(tr_ordered)
+            
+            run_data$tr_ordered <- factor(run_data$tr_ordered, levels = unique_trs)
+            
+            # Create plot
+            p <- plot_timeseries_bar(
+                run_data,
+                LINEIV1, LINEIV2, MEAN, ERROR,
+                xlab = "Time (seconds)",
+                ylab = "Brain Activity (AU)",
+                ggtitle = paste0(ROI, " - ", run_type, " - ", run_labels[i], " (N = ", unique(run_data$N), ")"),
+                color = c("red", "#5f0f40")
+            )
+            
+            # Create time labels
+            n_trs <- length(unique_trs)
+            time_points <- seq(0, (n_trs - 1) * 0.46, 0.46)
+            time_labels <- round(time_points, 2)
+            
+            p <- p + 
+                scale_x_discrete(labels = time_labels) +
+                theme_classic() +
+                theme(legend.position = "bottom")
+            
+            # Store plot
+            plot_list[[length(plot_list) + 1]] <- p
+            
+            # Print the plot
+            print(p)
+        }
+        
+        # Create a combined figure with all 6 runs
+        library(gridExtra)
+        combined_plot <- grid.arrange(
+            grobs = plot_list, 
+            ncol = 2, 
+            nrow = 3,
+            top = textGrob(paste0("ROI: ", ROI, " - ", run_type, " - All Runs"), 
+                           gp = gpar(fontsize = 16, fontface = "bold"))
+        )
+        
+        # Print the combined plot
+        print(combined_plot)
+        
+        # Optional: Save the combined plot
+        ggsave(
+            filename = paste0("roi_", ROI, "_", run_type, "_all_runs.png"),
+            plot = combined_plot,
+            width = 12,
+            height = 14,
+            dpi = 300
+        )
+        
+        # ===============================================================================
+        # END: RUN ORDER ANALYSIS
+        # ===============================================================================
+    }
+}
+```
+

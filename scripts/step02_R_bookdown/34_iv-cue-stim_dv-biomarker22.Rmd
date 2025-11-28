@@ -1,4 +1,5 @@
-# [fMRI] 2022NPS ~ cue * stim (2022) {#ch34nps_22}
+# [fMRI] 2022NPS ~ cue \* stim (2022) {#ch34nps_22}
+
 ```
 author: "Heejung Jung"
 date: "6/12/2022"
@@ -6,6 +7,7 @@ output: html_document
 ```
 
 ## load libraries
+
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(psych)
 library(car)
@@ -44,13 +46,14 @@ library(ggpubr)
 # source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 main_dir = dirname(dirname(getwd()))
 file.sources = list.files(file.path(main_dir, "scripts/step02_R/utils"),
-                          pattern="*.R", 
-                          full.names=TRUE, 
+                          pattern="*.R",
+                          full.names=TRUE,
                           ignore.case=TRUE)
 sapply(file.sources,source,.GlobalEnv)
 ```
 
 ### NPS load csv file {.unlisted .unnumbered}
+
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 main_dir = dirname(dirname(getwd()))
 c = read.csv(file.path(main_dir, "analysis/mixedeffect/extract_biomarker/biomarker_metadata/extract-NPS_task-cognitive_metadata.csv"))
@@ -59,11 +62,13 @@ p = read.csv(file.path(main_dir, "analysis/mixedeffect/extract_biomarker/biomark
 ```
 
 ### NPS run 2 factor model (task x cue) {.unlisted .unnumbered}
+
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 pvc <- merge_recurse(list(p,v,c))
 ```
 
 ### NPS cue effect
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 pvc$task[pvc$run_type == "pain-ptb"] <- "pain"
 pvc$task[pvc$run_type == "pain-plateau"] <- "pain"
@@ -96,7 +101,7 @@ dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
     # [ MODEL ] ----------------------------------------------------------------------------
 
-    
+
 
     # summary stats
     subjectwise <- meanSummary(pvc, c(subject, iv1, iv2), dv)
@@ -110,7 +115,7 @@ dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
-        color <- c("#4575B4", "#D73027")
+        color <- c("#4274AD", "#C5263A")
     }
     subject_mean <- "mean_per_sub"
     group_mean <- "mean_per_sub_norm_mean"
@@ -130,14 +135,15 @@ dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
         )
     )
     plot_rainclouds_twofactor(
-      subjectwise, groupwise, iv1, iv2, 
-      subject_mean, group_mean, se, subject, 
+      subjectwise, groupwise, iv1, iv2,
+      subject_mean, group_mean, se, subject,
       ggtitle, title, xlab, ylab, taskname, ylim,
       w, h, dv_keyword, color, plot2_savefname)
 
 ```
 
 ## NPS stim effect
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
 pvc$task[pvc$run_type == "pain-ptb"] <- "pain"
@@ -172,7 +178,7 @@ dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
 
     # [ MODEL ] ----------------------------------------------------------------------------
 
-    
+
 
     # summary stats
     subjectwise <- meanSummary(pvc, c(subject, iv1, iv2), dv)
@@ -206,16 +212,17 @@ dir.create(analysis_dir, showWarnings = FALSE, recursive = TRUE)
         )
     )
     plot_rainclouds_twofactor(
-      subjectwise, groupwise, iv1, iv2, 
-      subject_mean, group_mean, se, subject, 
+      subjectwise, groupwise, iv1, iv2,
+      subject_mean, group_mean, se, subject,
       ggtitle, title, xlab, ylab, taskname, ylim,
       w, h, dv_keyword, color, plot2_savefname)
 
 ```
 
-
 ## VPS
+
 ### VPS load csv file {.unlisted .unnumbered}
+
 ```{r include=FALSE}
 main_dir = dirname(dirname(getwd()))
 
@@ -225,11 +232,13 @@ p = read.csv(file.path(main_dir, "analysis/mixedeffect/extract_biomarker/biomark
 ```
 
 ### VPS run 2 factor model (task x cue) {.unlisted .unnumbered}
+
 ```{r include=FALSE}
 vps_pvc <- merge_recurse(list(p,v,c))
 ```
 
 ## VPS cue effect
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 vps_pvc$task[vps_pvc$run_type == "pain-ptb"] <- "pain"
 vps_pvc$task[vps_pvc$run_type == "pain-plateau"] <- "pain"
@@ -261,7 +270,7 @@ main_dir = dirname(dirname(getwd()))
 
     # [ MODEL ] ----------------------------------------------------------------------------
 
-    
+
 
     # summary stats
     subjectwise <- meanSummary(vps_pvc, c(subject, iv1, iv2), dv)
@@ -275,7 +284,7 @@ main_dir = dirname(dirname(getwd()))
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
     } else {
-        color <- c("#4575B4", "#D73027")
+        color <- c("#4274AD", "#C5263A")
     }
     subject_mean <- "mean_per_sub"
     group_mean <- "mean_per_sub_norm_mean"
@@ -295,14 +304,15 @@ main_dir = dirname(dirname(getwd()))
         )
     )
     plot_rainclouds_twofactor(
-      subjectwise, groupwise, iv1, iv2, 
-      subject_mean, group_mean, se, subject, 
+      subjectwise, groupwise, iv1, iv2,
+      subject_mean, group_mean, se, subject,
       ggtitle, title, xlab, ylab, taskname, ylim,
       w, h, dv_keyword, color, plot2_savefname)
 
 ```
 
 ## VPS stim effect
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 
 vps_pvc$task[vps_pvc$run_type == "pain-ptb"] <- "pain"
@@ -336,7 +346,7 @@ main_dir = dirname(dirname(getwd()))
 
     # [ MODEL ] ----------------------------------------------------------------------------
 
-    
+
 
     # summary stats
     subjectwise <- meanSummary(vps_pvc, c(subject, iv1, iv2), dv)
@@ -370,10 +380,9 @@ main_dir = dirname(dirname(getwd()))
         )
     )
     plot_rainclouds_twofactor(
-      subjectwise, groupwise, iv1, iv2, 
-      subject_mean, group_mean, se, subject, 
+      subjectwise, groupwise, iv1, iv2,
+      subject_mean, group_mean, se, subject,
       ggtitle, title, xlab, ylab, taskname, ylim,
       w, h, dv_keyword, color, plot2_savefname)
 
 ```
-
