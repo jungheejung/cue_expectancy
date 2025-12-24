@@ -31,8 +31,19 @@ nT = struct2table(niilist);
 sortedT = sortrows(nT, 'name');
 disp(sortedT);
 
-if ~iscellstr(sortedT.name)
-    sortedT.name = cellstr(sortedT.name);
+%if ~iscellstr(sortedT.name)
+%    sortedT.name = cellstr(sortedT.name);
+%end
+% Ensure name is a cell array of chars
+sortedT.name = string(sortedT.name);
+sortedT.name = cellstr(sortedT.name);
+
+disp('Checking sortedT.name data type:');
+disp(class(sortedT.name));
+disp(sortedT.name);
+
+if isempty(niilist)
+    niilist = dir(fullfile(fmriprep_dir, sub, '*/func/*task-social*_bold.nii.gz'));
 end
 sortedT.sub_num(:) = str2double(extractBetween(sortedT.name, 'sub-', '_'));
 sortedT.ses_num(:) = str2double(extractBetween(sortedT.name, 'ses-', '_'));
