@@ -215,7 +215,26 @@ for run_ind = 1:size(A, 1)
     % Save with "allparcels" in filename
     disp(stackedDataTable);
     save_fname = fullfile(save_dir, sub, strcat(sub,'_',ses,'_',run,'_runtype-',runtype{1},'_roi-allparcels_tr-42.csv'));
-    writetable(stackedDataTable, save_fname);
+    % writetable(stackedDataTable, save_fname);
+
+    try
+        disp(['Saving to: ', save_fname]);
+        disp(['Table size: ', num2str(size(stackedDataTable))]);
+        writetable(stackedDataTable, save_fname);
+        disp('Write successful!');
+        
+        % Verify file was created
+        if exist(save_fname, 'file')
+            file_info = dir(save_fname);
+            disp(['File created with size: ', num2str(file_info.bytes), ' bytes']);
+        else
+            disp('ERROR: File does not exist after write!');
+        end
+    catch ME
+        disp('ERROR writing file:');
+        disp(ME.message);
+        disp(ME.stack);
+    end
 
 end
 
