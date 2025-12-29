@@ -1,18 +1,18 @@
 # [physio] SCL {#ch92_SCL}
+
 ---
+
 title: "92_SCL_beta"
 output: html_document
 date: "2023-07-20"
+
 ---
 
 ## Outline
+
 ### load data
+
 ### subjectwise, groupwise mean
-
-
-
-
-
 
 ```r
 # df <- read.csv("/Users/h/Documents/summer/summer_RA/fdmean_run_type.tsv")
@@ -23,8 +23,6 @@ beta <- read.table(file = "/Volumes/spacetop_projects_cue/analysis/physio/glm/pm
 beta_long <- gather(beta, key = "stim_type", value = "scl_value", intercept, low_stim, med_stim, high_stim)
 beta_con <- simple_contrasts_singletrial(beta_long)
 ```
-
-
 
 ```r
 # ----------------------------------------------------------------------
@@ -51,13 +49,13 @@ SCLstim_groupwise <- summarySEwithin(
 ```
 
 ```
-## 
+##
 ## Attaching package: 'raincloudplots'
 ```
 
 ```
 ## The following object is masked _by_ '.GlobalEnv':
-## 
+##
 ##     GeomFlatViolin
 ```
 
@@ -80,7 +78,7 @@ ylim <- c(-10, 60)
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
-  color <- c("#4575B4", "#D73027")
+  color <- c("#4274AD", "#C5263A")
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -122,7 +120,7 @@ plot_savefname <- file.path(
 # ----------------------------------------------------------------------
 #                            raincloudplots
 # ----------------------------------------------------------------------
-# TODO: 
+# TODO:
 # * change the range of the figure
 # * change the x-axis
 # * drop the NA conditions
@@ -176,8 +174,8 @@ k <- plot_lineplot_onefactorthick(SCLstim_groupwise,
                         color = c("intercept" = "gray",
                                   "high" = "red",
                                   "med" = "orange",
-                                  "low" = "blue"), 
-                        ggtitle = title, 
+                                  "low" = "blue"),
+                        ggtitle = title,
                         xlab = "Stimulus intensity", ylab = "ROI average activation (A.U.)")
 ```
 
@@ -195,10 +193,3 @@ print(k)
 ```
 
 <img src="92_iv-stim_dv-sclbeta_files/figure-html/unnamed-chunk-4-2.png" width="672" />
-
-
-
-
-
-
-

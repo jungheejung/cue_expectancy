@@ -3,22 +3,18 @@ title: "singletrial_cerebellum"
 output: html_document
 date: "2023-07-28"
 ---
+
 # [fMRI] singletrial ~ subcortex {#ch435_singletrial_cerebellum}
 
 ```
 author: "Heejung Jung"
 date: "2023-07-17"
 ```
+
 TODO: run and load for every participant
 TODO: for loop for roi of interest
 
-
 ## Function {.unlisted .unnumbered}
-
-
-
-
-
 
 ##TODO: outline
 
@@ -43,7 +39,6 @@ df$cuetype <- sub("^.*(cuetype-\\w+)_.*", "\\1", df$filename)
 df$stimintensity <- sub("^.*(stimintensity-\\w+).*", "\\1", df$filename)
 ```
 
-
 ```r
 # parameters
 main_dir <- dirname(dirname(getwd()))
@@ -59,8 +54,6 @@ dir.create(analysis_dir,
            recursive = TRUE)
 savedir <- analysis_dir
 ```
-
-
 
 ```r
 pvc <- simple_contrasts_singletrial(df)
@@ -90,7 +83,7 @@ data <- pvc
 data <- pvc[complete.cases(pvc[[dv]]), ]
 
 model_savefname <- file.path(
-  analysis_dir,  
+  analysis_dir,
   paste(
     "lmer_task-",taskname,"_rating-",dv_keyword,"_",as.character(Sys.Date()),"_cooksd.txt",
     sep = ""
@@ -147,7 +140,7 @@ ylim <- c(-10, 60)
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
-  color <- c("#4575B4", "#D73027")
+  color <- c("#4274AD", "#C5263A")
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -186,12 +179,12 @@ g
 print(g)
 
 k <- plot_lineplot_twofactor(NPSstimcue_groupwise,
-                        iv1 = "stim_ordered", iv2 = "cue_ordered", 
+                        iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("high" = "red",
                                   # "med" = "orange",
-                                  "low" = "gray"), 
-                        ggtitle = title, 
+                                  "low" = "gray"),
+                        ggtitle = title,
                         xlab = "Stimulus intensity", ylab = "Average activation (A.U.)")
 k <- k + theme(aspect.ratio=.8)
 print(k)
@@ -199,15 +192,14 @@ print(k)
 ```
 
 ```
-## 
+##
 ## Attaching package: 'raincloudplots'
 ```
 
 ```
 ## The following object is masked _by_ '.GlobalEnv':
-## 
+##
 ##     GeomFlatViolin
 ```
 
 <img src="43_iv-cue-stim_dv-singletrialcerebellum_files/figure-html/unnamed-chunk-5-1.png" width="672" /><img src="43_iv-cue-stim_dv-singletrialcerebellum_files/figure-html/unnamed-chunk-5-2.png" width="672" /><img src="43_iv-cue-stim_dv-singletrialcerebellum_files/figure-html/unnamed-chunk-5-3.png" width="672" /><img src="43_iv-cue-stim_dv-singletrialcerebellum_files/figure-html/unnamed-chunk-5-4.png" width="672" /><img src="43_iv-cue-stim_dv-singletrialcerebellum_files/figure-html/unnamed-chunk-5-5.png" width="672" /><img src="43_iv-cue-stim_dv-singletrialcerebellum_files/figure-html/unnamed-chunk-5-6.png" width="672" /><img src="43_iv-cue-stim_dv-singletrialcerebellum_files/figure-html/unnamed-chunk-5-7.png" width="672" /><img src="43_iv-cue-stim_dv-singletrialcerebellum_files/figure-html/unnamed-chunk-5-8.png" width="672" /><img src="43_iv-cue-stim_dv-singletrialcerebellum_files/figure-html/unnamed-chunk-5-9.png" width="672" /><img src="43_iv-cue-stim_dv-singletrialcerebellum_files/figure-html/unnamed-chunk-5-10.png" width="672" /><img src="43_iv-cue-stim_dv-singletrialcerebellum_files/figure-html/unnamed-chunk-5-11.png" width="672" /><img src="43_iv-cue-stim_dv-singletrialcerebellum_files/figure-html/unnamed-chunk-5-12.png" width="672" /><img src="43_iv-cue-stim_dv-singletrialcerebellum_files/figure-html/unnamed-chunk-5-13.png" width="672" /><img src="43_iv-cue-stim_dv-singletrialcerebellum_files/figure-html/unnamed-chunk-5-14.png" width="672" /><img src="43_iv-cue-stim_dv-singletrialcerebellum_files/figure-html/unnamed-chunk-5-15.png" width="672" /><img src="43_iv-cue-stim_dv-singletrialcerebellum_files/figure-html/unnamed-chunk-5-16.png" width="672" /><img src="43_iv-cue-stim_dv-singletrialcerebellum_files/figure-html/unnamed-chunk-5-17.png" width="672" /><img src="43_iv-cue-stim_dv-singletrialcerebellum_files/figure-html/unnamed-chunk-5-18.png" width="672" /><img src="43_iv-cue-stim_dv-singletrialcerebellum_files/figure-html/unnamed-chunk-5-19.png" width="672" /><img src="43_iv-cue-stim_dv-singletrialcerebellum_files/figure-html/unnamed-chunk-5-20.png" width="672" />
-

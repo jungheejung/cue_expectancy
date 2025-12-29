@@ -1,19 +1,18 @@
 # [physio] SCL {#ch93_SCL}
+
 ---
+
 title: "93_iv-cue_dv-sclbeta"
 output: html_document
 date: "2023-07-20"
+
 ---
 
-
 ## Outline
+
 ## load data
+
 ## subjectwise, groupwise mean
-
-
-
-
-
 
 ```r
 beta <- read.table(file = "/Volumes/spacetop_projects_cue/analysis/physio/glm/pmod-cue/glm-pmodcue_task-pain_scr.tsv", sep = '\t', header = TRUE)
@@ -21,8 +20,6 @@ beta <- read.table(file = "/Volumes/spacetop_projects_cue/analysis/physio/glm/pm
 beta_long <- gather(beta, key = "cue_type", value = "scl_value", intercept, low_cue, high_cue)
 beta_con <- simple_contrasts_singletrial(beta_long)
 ```
-
-
 
 ```r
 # ----------------------------------------------------------------------
@@ -47,13 +44,13 @@ SCLcue_groupwise <- summarySEwithin(
 ```
 
 ```
-## 
+##
 ## Attaching package: 'raincloudplots'
 ```
 
 ```
 ## The following object is masked _by_ '.GlobalEnv':
-## 
+##
 ##     GeomFlatViolin
 ```
 
@@ -76,7 +73,7 @@ ylim <- c(-10, 60)
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
 } else {
-  color <- c("#4575B4", "#D73027")
+  color <- c("#4274AD", "#C5263A")
 } # if keyword starts with
 plot_savefname <- file.path(
   analysis_dir,
@@ -161,13 +158,13 @@ print(g)
 SCLcue_groupwise$task = taskname
 
 k <- plot_lineplot_onefactorthick(SCLcue_groupwise,
-                             taskname = "pain", 
+                             taskname = "pain",
                         iv = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("intercept" = "gray",
                                   "high" = "red",
-                                  "low" = "blue"), 
-                        ggtitle = title, 
+                                  "low" = "blue"),
+                        ggtitle = title,
                         xlab = "Cue level", ylab = "SCL activation (A.U.)")
 ```
 
@@ -185,5 +182,3 @@ print(k)
 ```
 
 <img src="93_iv-cue_dv-sclbeta_files/figure-html/unnamed-chunk-3-2.png" width="672" />
-
-
