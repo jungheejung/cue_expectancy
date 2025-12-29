@@ -1,4 +1,4 @@
-# [fMRI] NPScorr \~ session {#npscorr_ses}
+# [fMRI] NPScorr \~ session {#NPScorr_ses}
 
 ## What is the purpose of this notebook? {.unlisted .unnumbered}
 
@@ -163,9 +163,9 @@ summary_for_plots_PVC <- function(df, groupwise_measurevar, subject_keyword, mod
 
 ## 0. load data and find intersection between behavioral and nps dataframes
 
+TODO: make the NPS values available on github, to bypass VPN remote access to the csv files. 
 ```{r}
-# load behavioral and NPS data and grab the intersection
-analysis_folder <- "fmri_npscorr"
+analysis_folder <- "fmri_NPScorr"          
 beh <- readr::read_tsv(file.path(main_dir, "data/beh/sub-all_task-all_events.tsv"))
 nps <- readr::read_tsv(file.path(main_dir, "analysis/fmri/nilearn/deriv01_signature/rampup_plateau/sub-all_signature-NPS_runtype-pain_event-stimulus.tsv"))
 nps$runtype <- "pain"
@@ -260,7 +260,7 @@ df_filter.NA$sub <- factor(df_filter.NA$sub, levels = sorted_data$sub)
 g <- ggplot(df_filter.NA, aes(x = sub, y = nps_corr, fill = sub)) +
   geom_boxplot(outlier.shape = NA, width = 1.2, position = position_dodge(2)) +
   geom_jitter(width = .1, alpha = 0, size = 1) +
-  labs(x = "Subject", y = "nps_corr") +
+  labs(x = "Subject", y = "nps") +
   theme_classic() +
   theme(legend.position = "none") +
   scale_x_discrete(breaks = NULL)
@@ -278,7 +278,7 @@ g_plotly
 # set parameters _______________________________________________________________
 combined_se <- data.frame()
 taskname <- "pain"; subject <- "sub"
-ggtitle <- paste(taskname, " - NPS corr (degree)"); title <- paste(taskname, " - actual")
+ggtitle <- paste(taskname, " - NPS dot (degree)"); title <- paste(taskname, " - actual")
 w <- 10; h <- 6
 
 analysis_dir <-
@@ -297,27 +297,27 @@ model_savefname <- file.path(
 
 
 # Plot :: reordering variables for plots _______________________________________
-df_filter$cue_name[df_filter$cue == "high_cue"] <-
+df_filter.NA$cue_name[df_filter.NA$cue == "high_cue"] <-
   "high cue"
-df_filter$cue_name[df_filter$cue == "low_cue"] <-
+df_filter.NA$cue_name[df_filter.NA$cue == "low_cue"] <-
   "low cue"
 
-df_filter$stim_name[df_filter$stimulusintensity == "high_stim"] <-
+df_filter.NA$stim_name[df_filter.NA$stimulusintensity == "high_stim"] <-
   "High"
-df_filter$stim_name[df_filter$stimulusintensity == "med_stim"] <-
+df_filter.NA$stim_name[df_filter.NA$stimulusintensity == "med_stim"] <-
   "Med"
-df_filter$stim_name[df_filter$stimulusintensity == "low_stim"] <-
+df_filter.NA$stim_name[df_filter.NA$stimulusintensity == "low_stim"] <-
   "Low"
 
-df_filter$stim_ordered <- factor(df_filter$stim_name,
+df_filter.NA$stim_ordered <- factor(df_filter.NA$stim_name,
                                    levels = c("Low", "Med", "High"))
-df_filter$cue_ordered <- factor(df_filter$cue_name,
+df_filter.NA$cue_ordered <- factor(df_filter.NA$cue_name,
                                   levels = c("low cue", "high cue"))
 model_iv1 <- "stim_ordered"
 model_iv2 <- "cue_ordered"
 
 # Plot :: calculate mean and se  _______________________________________________
-NPSstimcue_subjectwise <- meanSummary(df_filter,
+NPSstimcue_subjectwise <- meanSummary(df_filter.NA,
                                       c(subject, model_iv1, model_iv2), dv)
 NPSstimcue_groupwise <- summarySEwithin(
   data = NPSstimcue_subjectwise,
@@ -335,7 +335,7 @@ sub_mean <- "mean_per_sub"; group_mean <- "mean_per_sub_norm_mean"; dv_keyword <
 se <- "se"; subject <- "sub";
 ggtitle <- paste(taskname, " - NPS correlation"); title <- paste(taskname, " - NPS")
 xlab <- ""; ylab <- "NPS (corr)";
-ylim <- c(-.1, .25)
+ylim <- c(-1, 1)
 
 if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c("#1B9E77", "#D95F02")
@@ -429,9 +429,9 @@ g <- plot_lineplot_twofactor(NPSstimcue_groupwise,
 g + theme(aspect.ratio=.8)
 ```
 
-## 1. lmer :: Linear model results (NPS \~ paintask: 2 cue x 3 stimulus_intensity)
-
-> Modeling random slopes and random cues, we find a significant effect of stimintensity on NPS correlation values, but not cue effects. The greater the stimulus intensity, the greater the NPS values (b = 0.008, SE = 0.002, t(X) = -X, p \< X). Higher cues lead to lower NPS values ( b = X, SE = X, t(X) = X, p \< .X)
+## 1. lmer :: Linear model results (NPScorr \~ paintask: 2 cue x 3 stimulus_intensity)
+t-tests use Satterthwaite's method ['lmerModLmerTest']
+> Modeling random slopes of intensity effects, we find a significant effect of stimintensity on NPS dot product values, but not cue effects. The greater the stimulus intensity, the greater the NPS values (b = 0.004, SE = 0.002, t(98.89) =  2.027, p < .05). There is no significant cue effect
 
 > I had to remove Cue effect from random slope estimates - they were correlated with the intercept and stim effect. Those with a bigger cue effect have on average higher nps responses.
 
@@ -461,8 +461,8 @@ summary(model.singular)
 
 ```{r}
 
-model.npscuestim.summarystats.sub <- meanSummary(df_filter,
-                                      c("sub", "CUE_high_gt_low"), "nps_corr")
+model.npscuestim.summarystats.sub <- meanSummary(df_filter.NA,
+                                      c("sub", "CUE_high_gt_low"), "nps")
 model.npscuestim.summarystats.group <- summarySEwithin(
   data = model.npscuestim.summarystats.sub,
   measurevar = "mean_per_sub",
@@ -496,7 +496,8 @@ library(optimx)
 model.npscuestim <- lmer(nps_corr ~
                           CUE_high_gt_low*STIM_linear +
                           CUE_high_gt_low*STIM_quadratic +
-                          (STIM_linear|sub), data = df_filter,
+                          ( STIM_quadratic|sub), data = df_filter,
+                         # control = lmerControl(optimizer = "nloptwrap", optCtrl = list(algorithm = "NLOPT_LN_BOBYQA")))
                                     control=lmerControl(optimizer="nmkbw"
                                  ))
                          # control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 1e5)))
@@ -537,7 +538,7 @@ kableExtra::kable_styling(
 
 ```{r echo=FALSE, warning=FALSE}
 # TODO: remove the first trial _________________________________________________
-df_filter.no1 <- df_filter[df_filter$trial_index != 1, ]
+df_filter.no1 <- df_filter.NA[df_filter.NA$trial_index != 1, ]
 
 #  [ PLOT ] calculate mean and se  _____________________________________________
 subject <- "sub"
@@ -545,7 +546,7 @@ model_iv1 <- "stim_ordered"
 model_iv2 <- "cue_ordered"
 
 NPSstimcue_subjectwise <- meanSummary(df_filter.no1,
-                                      c(subject, model_iv1, model_iv2), "nps_corr")
+                                      c(subject, model_iv1, model_iv2), dv)
 NPSstimcue_groupwise <- summarySEwithin(
   data = NPSstimcue_subjectwise,
   measurevar = "mean_per_sub",
@@ -604,7 +605,7 @@ sjPlot::tab_model(model.npscuestim.no1,
 
 ## 3. NPS trial wise plot
 
-Let's look at the progression of NPS correlation over time. Is it indicative of convergence, and perhaps a learned effect? This will help us link the results back to prediction error.
+Let's look at the progression of NPS dot products over time. Is it indicative of convergence, and perhaps a learned effect? This will help us link the results back to prediction error.
 
 ```{r}
 # count trial indices per subject, ignoring sessions
@@ -659,7 +660,7 @@ for (p in 1:total_pages) {
 
 ```
 
-## 4. NPS \~ SES \_ CUE \_ STIM
+## 4. NPScorr \~ SES \_ CUE \_ STIM
 
 ### Q. Is the cue effect on NPS different across sessions? {.unlisted .unnumbered}
 
@@ -668,7 +669,7 @@ for (p in 1:total_pages) {
 ### filter with including session
 
 ```{r}
-minimum_trials_per_cell <- 2
+minimum_trials_per_cell <- 3
 subjects_with_inadequate_data <- data %>%
   group_by(sub, CUE_high_gt_low, STIM_linear, SES_linear) %>%
   dplyr::summarise(count = n(), .groups = 'drop') %>%
@@ -687,15 +688,16 @@ model.npsses <- lmer(nps_corr ~
                           CUE_high_gt_low*STIM_quadratic*SES_linear +
                           CUE_high_gt_low*STIM_linear*SES_quadratic +
                           CUE_high_gt_low*STIM_quadratic*SES_quadratic +
-                          (CUE_high_gt_low  + STIM_linear |
+                          (STIM_linear + SES_linear |
          sub), data = df_filter_ses,
-         control = lmerControl(optimizer = "nmkbw")
+         control = lmerControl(optimizer = "nloptwrap", optCtrl = list(algorithm = "NLOPT_LN_BOBYQA"))
+         # control = lmerControl(optimizer = "nmkbw")
                     )
 
 summary(model.npsses)
 # CUE_high_gt_low+STIM+EXPECT_demean
 sjPlot::tab_model(model.npsses,
-                  title = "Multilevel-modeling: \nlmer(NPScorr ~ CUE * STIM * SES + (CUE + STIM + SES| sub), data = pvc)",
+                  title = "Multilevel-modeling: \nlmer(NPScorr ~ CUE * STIM * SES + (STIM + SES | sub), data = pvc)",
                   CSS = list(css.table = '+font-size: 12;'))
 ```
 
@@ -720,10 +722,10 @@ model.npscuestim <- lmer(
     CUE_high_gt_low * STIM_quadratic * SES_linear +
     CUE_high_gt_low * STIM_linear * SES_quadratic +
     CUE_high_gt_low * STIM_quadratic * SES_quadratic +
-    (CUE_high_gt_low  + STIM_linear |
+    ( STIM_linear + SES_linear |
        sub),
   data = df_filter_ses,
-  control = lmerControl(optimizer = "nmkbw")
+  control = lmerControl(optimizer = "nlminbwrap")
 )
                          # control = lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 1e5)))
 
@@ -742,7 +744,7 @@ for(i in 1:length(optimx_options)){
       CUE_high_gt_low * STIM_quadratic * SES_linear +
       CUE_high_gt_low * STIM_linear * SES_quadratic +
       CUE_high_gt_low * STIM_quadratic * SES_quadratic +
-      (CUE_high_gt_low + SES_linear + STIM_linear |
+      (SES_linear + STIM_linear |
          sub),
     data = df_filter_ses,
     control = lmerControl(
@@ -861,7 +863,7 @@ dv <- "nps_corr"
     title <- paste(str_to_title(taskname), " - cue level")
     xlab <- ""
     ylab <- "NPS (corr)"
-    ylim <- c(-.1, .25)
+    ylim <- c(-5, 15)
     dv_keyword <- "NPScorr"
     if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
         color <- c("#1B9E77", "#D95F02")
@@ -900,7 +902,7 @@ LINEIV1 = "stim_ordered"
 LINEIV2 = "cue_ordered"
 MEAN = "mean_per_sub_norm_mean"
 ERROR = "se"
-dv_keyword = "actual"
+dv_keyword = "npscorr"
 
 
 p1 = plot_lineplot_twofactor(DATA[DATA$ses == "ses-01",],
@@ -935,7 +937,7 @@ ggsave(plot_filename, width = 8, height = 4)
   ERROR <- "se"
   dv_keyword <- "NPScorr"
   line_thickness <- 0.2
-  ylim <- c(0.06, .1)
+  ylim <- c(3, 7)
   p1 <- plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-01" , ], taskname,
                                LINEIV1, LINEIV2, MEAN, ERROR, color,
                                ggtitle = 'Visit 1', ylab = "Outcome rating",
@@ -1009,7 +1011,7 @@ model.npsses <- lmer(nps_corr ~
                           CUE_high_gt_low*STIM_quadratic*SES_quadratic +
                           (STIM_linear  |
          sub), data = df_filter_ses,
-         control = lmerControl(optimizer = "nmkbw")
+         control = lmerControl(optimizer = "nlminbwrap")
                     )
 
 summary(model.npsses)
@@ -1187,7 +1189,7 @@ print(g)
   ERROR <- "se"
   dv_keyword <- "NPScorr"
   line_thickness <- 0.2
-  ylim <- c(.06, .1)
+  ylim <- c(0.05, 0.125)
   p1 <- plot_lineplot_twofactor_subset(DATA[DATA$ses == "ses-01" , ], taskname,
                                LINEIV1, LINEIV2, MEAN, ERROR, color,
                                ggtitle = 'Visit 1', ylab = "NPS (corr)",
