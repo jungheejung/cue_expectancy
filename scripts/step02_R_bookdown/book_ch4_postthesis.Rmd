@@ -40,7 +40,7 @@ library(raincloudplots)
 # devtools::source_url("https://raw.githubusercontent.com/RainCloudPlots/RainCloudPlots/master/tutorial_R/summarySE.R")
 library(BSDA)
 library(broom)
-library(MuMIn)
+# library(MuMIn)
 # devtools::source_url("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 library(r2mlm)
 main_dir <- dirname(dirname(getwd()))
@@ -246,7 +246,11 @@ sjPlot::tab_model(model.beh,
 equatiomatic::extract_eq(model.beh)
 ```
 
-### Beh lineplot
+### lineplot Beh
+```{r}
+library(cueR)
+```
+
 
 ```{r}
 dv <- "outcomerating_impute"
@@ -302,7 +306,7 @@ plot_savefname <- file.path(
   )
 )
 subset <- stimcue_groupwise[stimcue_groupwise$cue_ordered == "low cue",]
-g <- plot_lineplot_twofactor(subset,
+g <- plot_lineplot_twofactor_subset(subset,taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("low cue" = lowcuehex), ggtitle = "Within pain task: Outcome rating",
@@ -338,7 +342,9 @@ k<- k+ theme(aspect.ratio=1,
 k
 ggsave(file.path(analysis_dir, paste0("beh_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300)
 
-ggsave(file.path('/Users/h/Dropbox (Personal)/2025_Jung_SpaceTop_PVC_pain_CueFx_Signatures_ROIs/Figure', paste0("fig1_beh_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300)
+ggsave(file.path('/Users/h/Dropbox (Personal)/2025_Jung_SpaceTop_PVC_pain_CueFx_Signatures_ROIs/Figure/fig1', paste0("fig1_beh_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300)
+
+g
 ```
 
 ## 2 NPS (df_filter)
@@ -358,9 +364,10 @@ summary(model.NPS)
 sink(NULL)  #
 ```
 
-### lineplot
+### lineplot NPS
 
 ```{r}
+library(cueR)
 dv <- "NPS"
 taskname <- "pain"
 subject <- "sub"
@@ -448,6 +455,8 @@ k<- k+ theme(aspect.ratio=1,
   ylim( 4,6)
 k
 ggsave(file.path(analysis_dir, paste0("NPS_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300)
+
+ggsave(file.path('/Users/h/Dropbox (Personal)/2025_Jung_SpaceTop_PVC_pain_CueFx_Signatures_ROIs/Figure/fig2', paste0("NPS_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300)
 ```
 
 ### NPS pos (df_filter)
@@ -538,6 +547,8 @@ k<- k+ theme(aspect.ratio=1,
   geom_point(size = 2)
 k
 ggsave(file.path(analysis_dir, paste0("NPSpos_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300)
+
+ggsave(file.path('/Users/h/Dropbox (Personal)/2025_Jung_SpaceTop_PVC_pain_CueFx_Signatures_ROIs/Figure/fig2', paste0("NPSpos_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300)
 ```
 
 
@@ -629,6 +640,8 @@ k<- k+ theme(aspect.ratio=1,
   geom_point(size = 2)
 k
 ggsave(file.path(analysis_dir, paste0("NPSneg_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300)
+
+ggsave(file.path('/Users/h/Dropbox (Personal)/2025_Jung_SpaceTop_PVC_pain_CueFx_Signatures_ROIs/Figure/fig2', paste0("NPSneg_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300)
 ```
 
 #### Tor comments
@@ -638,9 +651,13 @@ I think from this that the NPSneg was calculated by taking an average over relev
 ```
 
 ## 3. PE (PEmerge)
+```{r}
+base_dir
+```
+
 
 ```{r}
-PEdf <- read.csv("/Users/h/Documents/projects_local/cue_expectancy/data/RL/modelfit_072024/table_pain.csv")
+PEdf <- read.csv(file.path(main_dir, "data/RL/modelfit_072024/table_pain.csv"))
 
 
 clean_filename <- function(filename) {
@@ -651,9 +668,36 @@ clean_filename <- function(filename) {
   return(filename)
 }
 
-# Apply the function to the singletrial_fname column
+
+
+# Clean BOTH dataframes
 PEdf$singletrial_fname <- sapply(PEdf$singletrial_fname, clean_filename)
-PEmerge<- inner_join(df_filter, PEdf, by = "singletrial_fname")
+df_filter$singletrial_fname <- sapply(df_filter$singletrial_fname, clean_filename)  # ADD THIS
+
+# Then proceed with your overlap check and join
+overlapping_cols <- intersect(names(df_filter), names(PEdf))
+overlapping_cols <- setdiff(overlapping_cols, "singletrial_fname")
+PEdf_clean <- PEdf %>% select(-all_of(overlapping_cols))
+PEmerge <- inner_join(df_filter, PEdf_clean, by = "singletrial_fname")
+
+# write CSV and metadata
+write.csv(PEmerge, file.path(main_dir, "data/curated/sub-all_runtype-pain_merge.tsv"), sep = "\t", row.names = FALSE)
+library(jsonlite)
+
+# Create the list/data structure
+metadata <- list(
+  code_name = "~/scripts/step02_R_bookdown/book_ch4_postthesis.Rmd",
+  code_path = "~/scripts/step02_R_bookdown/book_ch4_postthesis.Rmd",
+  description = "This code compiles NPS, SIIPS, behavioral, and model-fitted RL data in one dataframe while removing NA values.",
+  input_files_directory = "~/analysis/fmri/nilearn",
+  output_directory = "/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue/data/durated"
+)
+
+# Save as JSON (pretty formatted)
+write_json(metadata, file.path(main_dir, "data/curated/sub-all_runtype-pain_merge.json"), pretty = TRUE, auto_unbox = TRUE)
+
+# PEdf$singletrial_fname <- sapply(PEdf$singletrial_fname, clean_filename)
+# PEmerge<- inner_join(df_filter, PEdf, by = "singletrial_fname")
 #
 # PEmerge <- merge(dfmerge, PEdf, by = c("src_subject_id", "session_id", "param_run_num", "trial_index"))
 print(PEmerge)
@@ -690,6 +734,8 @@ xlab("PE") +
           )
 plot.PE_NPS
 ggsave("/Users/h/Documents/projects_local/cue_expectancy/resources/plots_dissertation/ch4/ch4_NPSPE.png",plot.PE_NPS, w=5, h=4, dpi=300)
+
+ggsave(file.path('/Users/h/Dropbox (Personal)/2025_Jung_SpaceTop_PVC_pain_CueFx_Signatures_ROIs/Figure/fig4', paste0("NPS_PE", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300)
 
 ```
 
@@ -914,6 +960,8 @@ corrplot(average_r_matrix, p.mat = p_value_results_matrix,
          pch.cex = 0.9,
          method = "color", main = "Group average Correlation Matrix")
 dev.off()
+
+ggsave(file.path('/Users/h/Dropbox (Personal)/2025_Jung_SpaceTop_PVC_pain_CueFx_Signatures_ROIs/Figure/supp', paste0("correlation", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300)
 ```
 
 
@@ -1035,7 +1083,9 @@ library(ggeffects)
 library(ggplot2)
 
 # Get predicted values for PE across its range
-pe_pred <- ggpredict(NPSPE, terms = "CUE_high_gt_low")
+# pe_pred <- ggpredict(NPSPE, terms = "CUE_high_gt_low")
+
+pe_pred <- ggpredict(NPSPE, terms = c("PE_mdl2", "CUE_high_gt_low"))
 
 # Plot
 ggplot(pe_pred, aes(x = x, y = predicted)) +
@@ -1282,12 +1332,20 @@ sink()
 
 # Check why convergence is negative ____________________________________________
 aa <- lme4::allFit(model.npscuestim)
-opt.summary <- glance(aa) |> select(optimizer, AIC, NLL_rel) |> arrange(NLL_rel)
+# opt.summary <- glance(aa) |> select(optimizer, AIC, NLL_rel) |> arrange(NLL_rel)
+# print(opt.summary)
+# Extract the summary properly
+opt.summary <- summary(aa)
 print(opt.summary)
+
+# Or if you want a data frame:
+opt.df <- as.data.frame(summary(aa)$fixef)
+print(opt.df)
 
 
 # R2 ___________________________________________________________________________
-r_squared <- MuMIn::r.squaredGLMM(model.npscuestim)
+# r_squared <- MuMIn::r.squaredGLMM(model.npscuestim)
+r_squared <- performance::r2(model.npscuestim)
 R2m = r_squared[1] # Marginal R-squared
 R2c = r_squared[2]  # Conditional R-squared
 
@@ -1369,6 +1427,100 @@ g <- g + theme(aspect.ratio=1,
 print(g)
 
   ggsave(plot_filename, g, width = 8, height = 4, dpi=300)
+  
+  ggsave(file.path('/Users/h/Dropbox (Personal)/2025_Jung_SpaceTop_PVC_pain_CueFx_Signatures_ROIs/Figure/fig3', paste0('lineplot_task-all_rating-', dv_keyword,dv, '.svg', sep = "")), plot=k, w=4, h=4, dpi=300)
+  
+  
+}
+```
+
+#### 7-2. plot ROI per session. 
+```{r}
+#### plot sessionwise ROIs [ Update ]
+library(ggplot2)
+library(dplyr)
+
+# Loop through all ROIs
+dependent_vars <- c("nps","npspos","npsneg",
+                    "pos_nps_vermis","pos_nps_rIns","pos_nps_rV1","pos_nps_rThal",
+                    "pos_nps_lIns","pos_nps_rdpIns","pos_nps_rS2_Op","pos_nps_dACC",
+                    "neg_nps_rLOC","neg_nps_lLOC","neg_nps_rpLOC","neg_nps_pgACC",
+                    "neg_nps_lSTS","neg_nps_rIPL","neg_nps_PCC")
+
+newlist <- c("NPS","NPS positive weights","NPS negative weights",
+             "Vermis","rIns","rV1","rThal",
+             "lIns","rdpIns","rS2 & Op","dACC",
+             "rLOC","lLOC","rpLOC","pgACC","lSTS","rIPL","PCC")
+
+for (i in seq_along(dependent_vars)) {
+  dv <- dependent_vars[i]
+  dv_title <- newlist[i]
+  
+  print(paste("Plotting", dv_title, "across sessions..."))
+  
+  # 1. Prepare data with session labels
+  df_filter_ses$ses_name <- factor(df_filter_ses$ses,
+                                    levels = c("ses-01", "ses-03", "ses-04"),
+                                    labels = c("Session 1", "Session 2", "Session 3"))
+  
+  df_filter_ses$cue_name <- ifelse(df_filter_ses$cue == "high_cue", "High cue", "Low cue")
+  
+  df_filter_ses$stim_name <- case_when(
+    df_filter_ses$stimulusintensity == "low_stim" ~ "Low",
+    df_filter_ses$stimulusintensity == "med_stim" ~ "Med",
+    df_filter_ses$stimulusintensity == "high_stim" ~ "High"
+  )
+  
+  df_filter_ses$stim_ordered <- factor(df_filter_ses$stim_name, 
+                                        levels = c("Low", "Med", "High"))
+  df_filter_ses$cue_ordered <- factor(df_filter_ses$cue_name, 
+                                       levels = c("Low cue", "High cue"))
+  
+  # 2. Calculate summary statistics for this ROI
+  ROI_summary <- df_filter_ses %>%
+    group_by(ses_name, stim_ordered, cue_ordered, sub) %>%
+    summarise(mean_per_sub = mean(!!sym(dv), na.rm = TRUE), .groups = "drop") %>%
+    group_by(ses_name, stim_ordered, cue_ordered) %>%
+    summarise(
+      mean = mean(mean_per_sub, na.rm = TRUE),
+      se = sd(mean_per_sub, na.rm = TRUE) / sqrt(n()),
+      .groups = "drop"
+    )
+  
+  # 3. Plot with facets by session
+  p <- ggplot(ROI_summary, aes(x = stim_ordered, y = mean, 
+                                  color = cue_ordered, group = cue_ordered)) +
+    geom_linerange(aes(ymin = mean - se, ymax = mean + se), 
+                   linewidth = 0.5) +
+    geom_line(linewidth = 1) +
+    geom_point(size = 4, shape = 16) +
+    facet_wrap(~ ses_name, ncol = 3) +
+    scale_color_manual(values = c("Low cue" = lowcuehex, "High cue" = highcuehex)) +
+    labs(
+      title = paste(dv_title, "Across Sessions"),
+      x = "Stimulus Intensity",
+      y = dv_title,
+      color = "Cue Type"
+    ) +
+    theme_classic() +
+    theme(
+      aspect.ratio = 0.8,
+      axis.line = element_line(linewidth = 0.5),
+      axis.text = element_text(size = 12),
+      axis.title = element_text(size = 14),
+      plot.title = element_text(size = 16, hjust = 0.5),
+      strip.background = element_blank(),
+      strip.text = element_text(size = 14, face = "bold"),
+      legend.position = "bottom"
+    )
+  
+  print(p)
+  
+  # Save
+  ggsave(file.path(analysis_dir, paste0(dv, "_by_session_", Sys.Date(), ".svg")),
+         plot = p, width = 10, height = 4, dpi = 300)
+  
+    ggsave(file.path('/Users/h/Dropbox (Personal)/2025_Jung_SpaceTop_PVC_pain_CueFx_Signatures_ROIs/Figure/supp', paste0("roi-", dv, "_bysession_", Sys.Date(), ".svg")), plot=k, w=4, h=4, dpi=300)
 }
 ```
 
@@ -1388,7 +1540,7 @@ sjPlot::tab_model(model.SIIPS,
                   title = "Multilevel-modeling: \nlmer(SIIPS ~ CUE * STIM + (CUE + STIM | sub), data = pain)",
                   CSS = list(css.table = '+font-size: 12;'))
 
-sink("/Users/h/Desktop/SIIPS_output.txt")  # Redirects output to 'my_output.txt'
+sink(file.path(savedir, "lmer_SIIPS_output.txt"))  # Redirects output to 'my_output.txt'
 summary(model.SIIPS)
 equatiomatic::extract_eq(model.SIIPS)
 sink(NULL)  #
@@ -1447,7 +1599,7 @@ plot_savefname <- file.path(
   )
 )
 SIIPSsubset <- SIIPS_groupwise[SIIPS_groupwise$cue_ordered == "low cue",]
-g <- plot_lineplot_twofactor(SIIPSsubset,
+g <- cueR::plot_lineplot_twofactor_subset(SIIPS_groupwise, task = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("low cue" = lowcuehex), ggtitle = paste0("NPS N =", length(unique(SIIPS_subjectwise$sub))),
@@ -1480,6 +1632,8 @@ k<- k+ theme(aspect.ratio=1,
  ylim(465, 650)
 k
 ggsave(file.path(analysis_dir, paste0("SIIPS_maineffect", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300)
+
+    ggsave(file.path('/Users/h/Dropbox (Personal)/2025_Jung_SpaceTop_PVC_pain_CueFx_Signatures_ROIs/Figure/supp', paste0("SIIPS_by_session_", Sys.Date(), ".svg")), plot=k, w=4, h=4, dpi=300)
 ```
 
 ## 8-3 SIIPS and PE (PEmerge)
@@ -1499,13 +1653,13 @@ vif(SIIPSPE)
 subjects_with_inadequate_data <- data %>%
   group_by(sub, CUE_high_gt_low, STIM_linear, SES_linear) %>% #SES_linear,
   dplyr::summarise(count = n(), .groups = 'drop') %>%
-  filter(count < 4) %>%
+  filter(count < 3) %>%
   distinct(sub) %>%
   pull(sub)
 df_filter_ses <- data %>%
   filter(!(sub %in% subjects_with_inadequate_data))
 
-print(sprintf("after filtering out subjects that have less than 3 trials in cell, we have N=%d -> N=%d",length(unique(data$sub)), length(unique(df_filter_ses$sub)) ))
+print(sprintf("after filtering out subjects that have less than 2 trials in cell, we have N=%d -> N=%d",length(unique(data$sub)), length(unique(df_filter_ses$sub)) ))
 ```
 
 ## 9. Sessionwise Beh
@@ -1533,7 +1687,81 @@ opt.summary <- glance(abeh) |> select(optimizer, AIC, NLL_rel) |> arrange(NLL_re
 print(opt.summary)
 ```
 
-## 10. Sessionwise NPS
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# 1. Prepare data with session labels
+df_filter_ses$ses_name <- factor(df_filter_ses$ses,
+                                   levels = c("ses-01", "ses-03", "ses-04"),
+                                   labels = c("Session 1", "Session 2", "Session 3"))
+
+df_filter_ses$cue_name <- ifelse(df_filter_ses$cue == "high_cue", "High cue", "Low cue")
+df_filter_ses$stim_name <- case_when(
+  df_filter_ses$stimulusintensity == "low_stim" ~ "Low",
+  df_filter_ses$stimulusintensity == "med_stim" ~ "Med",
+  df_filter_ses$stimulusintensity == "high_stim" ~ "High"
+)
+
+df_filter_ses$stim_ordered <- factor(df_filter_ses$stim_name, 
+                                      levels = c("Low", "Med", "High"))
+df_filter_ses$cue_ordered <- factor(df_filter_ses$cue_name, 
+                                     levels = c("Low cue", "High cue"))
+
+# 2. Calculate summary statistics
+beh_summary <- df_filter_ses %>%
+  group_by(ses_name, stim_ordered, cue_ordered, sub) %>%
+  summarise(mean_per_sub = mean(outcomerating_impute, na.rm = TRUE), .groups = "drop") %>%
+  group_by(ses_name, stim_ordered, cue_ordered) %>%
+  summarise(
+    mean = mean(mean_per_sub, na.rm = TRUE),
+    se = sd(mean_per_sub, na.rm = TRUE) / sqrt(n()),
+    .groups = "drop"
+  )
+
+# 3. Plot with facets by session
+p <- ggplot(beh_summary, aes(x = stim_ordered, y = mean, 
+                                color = cue_ordered, group = cue_ordered)) +
+  geom_linerange(aes(ymin = mean - se, ymax = mean + se), 
+                 linewidth = 0.5) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 4, shape = 16) +
+  facet_wrap(~ ses_name, ncol = 3) +
+  scale_color_manual(values = c("Low cue" = lowcuehex, "High cue" = highcuehex)) +
+  labs(
+    title = "Beh Across Sessions",
+    x = "Stimulus Intensity",
+    y = "Beh",
+    color = "Cue Type"
+  ) +
+  theme_classic() +
+  theme(
+    aspect.ratio = 0.8,
+    axis.line = element_line(linewidth = 0.5),
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    plot.title = element_text(size = 16, hjust = 0.5),
+    strip.background = element_blank(),
+    strip.text = element_text(size = 12, face = "bold"),
+    legend.position = "bottom"
+  )
+
+print(p)
+
+# Save
+ggsave(file.path(analysis_dir, paste0("beh_by_session_", Sys.Date(), ".svg")),
+       plot = p, width = 10, height = 4, dpi = 300)
+
+    ggsave(file.path('/Users/h/Dropbox (Personal)/2025_Jung_SpaceTop_PVC_pain_CueFx_Signatures_ROIs/Figure/supp', paste0("beh_by_session_", Sys.Date(), ".svg")), plot=k, w=4, h=4, dpi=300)
+```
+
+
+## 10. Sessionwise NPS [ Update ]
+
+> 
+* instead of | I'm using || to keep the correlation across random slopes 0.
+* This effectively reduces the parameter space from 10 -> 4
+* Even so, the model is singular
 
 ```{r}
 model.NPSses <- lmer(NPS ~
@@ -1541,7 +1769,7 @@ model.NPSses <- lmer(NPS ~
                           CUE_high_gt_low*STIM_quadratic*SES_linear +
                           CUE_high_gt_low*STIM_linear*SES_quadratic +
                           CUE_high_gt_low*STIM_quadratic*SES_quadratic +
-                          (CUE_high_gt_low + STIM_linear +SES_linear |
+                          (CUE_high_gt_low + STIM_linear +SES_linear ||
          sub), data = df_filter_ses,
     control = lmerControl(
       optimizer = "optimx",
@@ -1557,10 +1785,54 @@ model.NPSses <- lmer(NPS ~
   )
 summary(model.NPSses)
 sjPlot::tab_model(model.NPSses,
-                  title = "Multilevel-modeling: \nlmer(NPS ~ CUE * STIM * SES+ (CUE + STIM + SES| sub), data = pain)",
+                  title = "Multilevel-modeling: \nlmer(NPS ~ CUE * STIM * SES+ (CUE + STIM + SES|| sub), data = pain)",
                   CSS = list(css.table = '+font-size: 12;'))
 equatiomatic::extract_eq(model.NPSses)
 ```
+Let's check the correlation across variables
+```{r}
+VarCorr(model.NPSses)
+
+```
+> Cue and stimulus intensity, essentially zero variability across participants. 
+Subjects don't vary in their CUE response
+Subjects don't vary in their STIM response
+Subjects DO vary in their SES response (Std.Dev = 1.81) and baseline (1.52)
+
+
+> Therefore, I adjust to model to simply include the SES random slopes
+
+> Interpretation: the cue and stimulu interaction effect (prehpas predictive coding) differs as a function of session. the stimulus response becomes increasingly nonlinear from session 1 to session 3, while in the low cue condition this pattern is attenuated or reversed.
+
+```{r}
+model.NPSses <- lmer(NPS ~
+                          CUE_high_gt_low*STIM_linear*SES_linear +
+                          CUE_high_gt_low*STIM_quadratic*SES_linear +
+                          CUE_high_gt_low*STIM_linear*SES_quadratic +
+                          CUE_high_gt_low*STIM_quadratic*SES_quadratic +
+                          (SES_linear ||
+         sub), data = df_filter_ses,
+    control = lmerControl(
+      optimizer = "optimx",
+      optCtrl = list(
+        method = "nmkb",
+        maxit = 1e9,
+        maxfun = 1e9,
+        maxeval = 1e7,
+        xtol_abs = 1e-9,
+        ftol_abs = 1e-9
+      )
+    )
+  )
+summary(model.NPSses)
+sjPlot::tab_model(model.NPSses,
+                  title = "Multilevel-modeling: \nlmer(NPS ~ CUE * STIM * SES+ (CUE + STIM + SES|| sub), data = pain)",
+                  CSS = list(css.table = '+font-size: 12;'))
+equatiomatic::extract_eq(model.NPSses)
+
+VarCorr(model.NPSses)
+```
+
 
 ```{r}
 optimx_options <- c("L-BFGS-B", "nlminb", "nlm", "bobyqa", "nmkb", "hjkb")
@@ -1572,7 +1844,8 @@ for(i in 1:length(optimx_options)){
       CUE_high_gt_low * STIM_quadratic * SES_linear +
       CUE_high_gt_low * STIM_linear * SES_quadratic +
       CUE_high_gt_low * STIM_quadratic * SES_quadratic +
-      (CUE_high_gt_low + SES_linear + SES_quadratic + STIM_linear + STIM_quadratic |
+      (1 + SES_linear ||
+      # (CUE_high_gt_low + SES_linear  + STIM_linear  |
          sub),
     data = df_filter_ses,
     control = lmerControl(
@@ -1596,13 +1869,208 @@ for(i in 1:length(optimx_options)){
 }
 ```
 
-## 11. Sessionwise SIIPS
+
+
+```{r}
+library(ggeffects)
+
+# Get predicted values
+pred <- ggpredict(model.NPSses, 
+                  terms = c("STIM_quadratic [-0.33, 0, 0.66]", 
+                           
+                           "CUE_high_gt_low [-0.5, 0.5]", "SES_linear [-0.5, 0, 0.5]"))
+
+plot(pred)
+```
+
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# 1. Prepare data with session labels
+df_filter_ses$ses_name <- factor(df_filter_ses$ses,
+                                   levels = c("ses-01", "ses-03", "ses-04"),
+                                   labels = c("Session 1", "Session 2", "Session 3"))
+df_filter_ses$cue_name <- ifelse(df_filter_ses$cue == "high_cue", "High cue", "Low cue")
+df_filter_ses$stim_name <- case_when(
+  df_filter_ses$stimulusintensity == "low_stim" ~ "Low",
+  df_filter_ses$stimulusintensity == "med_stim" ~ "Med",
+  df_filter_ses$stimulusintensity == "high_stim" ~ "High"
+)
+df_filter_ses$stim_ordered <- factor(df_filter_ses$stim_name, 
+                                      levels = c("Low", "Med", "High"))
+df_filter_ses$cue_ordered <- factor(df_filter_ses$cue_name, 
+                                     levels = c("Low cue", "High cue"))
+
+# 2. Calculate summary statistics
+NPS_summary <- df_filter_ses %>%
+  group_by(ses_name, stim_ordered, cue_ordered, sub) %>%
+  summarise(mean_per_sub = mean(NPS, na.rm = TRUE), .groups = "drop") %>%
+  group_by(ses_name, stim_ordered, cue_ordered) %>%
+  summarise(
+    mean = mean(mean_per_sub, na.rm = TRUE),
+    se = sd(mean_per_sub, na.rm = TRUE) / sqrt(n()),
+    .groups = "drop"
+  )
+
+# 3. Plot with facets by session - NO STRIP BARS
+p <- ggplot(NPS_summary, aes(x = stim_ordered, y = mean, 
+                                color = cue_ordered, group = cue_ordered)) +
+  geom_linerange(aes(ymin = mean - se, ymax = mean + se), 
+                 linewidth = 0.5) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 4, shape = 16) +
+  facet_wrap(~ ses_name, ncol = 3) +
+  scale_color_manual(values = c("Low cue" = lowcuehex, "High cue" = highcuehex)) +
+  labs(
+    title = "NPS Across Sessions",
+    x = "Stimulus Intensity",
+    y = "NPS",
+    color = "Cue Type"
+  ) +
+  theme_classic() +
+  theme(
+    aspect.ratio = 0.8,
+    axis.line = element_line(linewidth = 0.5),
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    plot.title = element_text(size = 16, hjust = 0.5),
+    strip.background = element_blank(),  # Remove strip background
+    strip.text = element_text(size = 14, face = "bold"),  # Keep text, remove bar
+    legend.position = "bottom"
+  )
+
+print(p)
+
+# Save
+ggsave(file.path(analysis_dir, paste0("NPS_by_session_", Sys.Date(), ".svg")),
+       plot = p, width = 10, height = 4, dpi = 300)
+
+    ggsave(file.path('/Users/h/Dropbox (Personal)/2025_Jung_SpaceTop_PVC_pain_CueFx_Signatures_ROIs/Figure/supp', paste0("NPS_by_session_", Sys.Date(), ".svg")), plot=k, w=4, h=4, dpi=300)
+```
+
+## 10-2. Session wise NPSpos [ Update ]
+
+> Because the variance of random slopes for cue and stim effect is essentially 0..
+We'll remove them from the random slope estimation.
+
+ Groups   Name            Std.Dev.  
+ sub      (Intercept)     9.4459e-01
+ sub.1    CUE_high_gt_low 2.8995e-10
+ sub.2    STIM_linear     1.5846e-04
+ sub.3    SES_linear      1.2570e+00
+ Residual                 2.0591e+00
+ 
+
+```{r}
+model.NPSposses <- lmer(npspos ~
+                          CUE_high_gt_low*STIM_linear*SES_linear +
+                          CUE_high_gt_low*STIM_quadratic*SES_linear +
+                          CUE_high_gt_low*STIM_linear*SES_quadratic +
+                          CUE_high_gt_low*STIM_quadratic*SES_quadratic +
+                          (1 + SES_quadratic || sub), data = df_filter_ses,
+    control = lmerControl(
+      optimizer = "optimx",
+      optCtrl = list(
+        method = "nmkb",
+        maxit = 1e9,
+        maxfun = 1e9,
+        maxeval = 1e7,
+        xtol_abs = 1e-9,
+        ftol_abs = 1e-9
+      )
+    )
+  )
+summary(model.NPSposses)
+sjPlot::tab_model(model.NPSposses,
+                  title = "Multilevel-modeling: \nlmer(NPS positive weights ~ CUE * STIM * SES+ (CUE + STIM + SES|| sub), data = pain)",
+                  CSS = list(css.table = '+font-size: 12;'))
+equatiomatic::extract_eq(model.NPSposses)
+
+# Check the correlation across random effects
+# VarCorr(model.NPSposses)
+```
+
+#### 10-2a. plot sessionwise NPSpos
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# 1. Prepare data with session labels
+df_filter_ses$ses_name <- factor(df_filter_ses$ses,
+                                   levels = c("ses-01", "ses-03", "ses-04"),
+                                   labels = c("Session 1", "Session 2", "Session 3"))
+
+df_filter_ses$cue_name <- ifelse(df_filter_ses$cue == "high_cue", "High cue", "Low cue")
+df_filter_ses$stim_name <- case_when(
+  df_filter_ses$stimulusintensity == "low_stim" ~ "Low",
+  df_filter_ses$stimulusintensity == "med_stim" ~ "Med",
+  df_filter_ses$stimulusintensity == "high_stim" ~ "High"
+)
+
+df_filter_ses$stim_ordered <- factor(df_filter_ses$stim_name, 
+                                      levels = c("Low", "Med", "High"))
+df_filter_ses$cue_ordered <- factor(df_filter_ses$cue_name, 
+                                     levels = c("Low cue", "High cue"))
+
+# 2. Calculate summary statistics
+NPSpos_summary <- df_filter_ses %>%
+  group_by(ses_name, stim_ordered, cue_ordered, sub) %>%
+  summarise(mean_per_sub = mean(npspos, na.rm = TRUE), .groups = "drop") %>%
+  group_by(ses_name, stim_ordered, cue_ordered) %>%
+  summarise(
+    mean = mean(mean_per_sub, na.rm = TRUE),
+    se = sd(mean_per_sub, na.rm = TRUE) / sqrt(n()),
+    .groups = "drop"
+  )
+
+# 3. Plot with facets by session
+p <- ggplot(NPSpos_summary, aes(x = stim_ordered, y = mean, 
+                                color = cue_ordered, group = cue_ordered)) +
+  geom_linerange(aes(ymin = mean - se, ymax = mean + se), 
+                 linewidth = 0.5) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 4, shape = 16) +
+  facet_wrap(~ ses_name, ncol = 3) +
+  scale_color_manual(values = c("Low cue" = lowcuehex, "High cue" = highcuehex)) +
+  labs(
+    title = "NPS (pos) Across Sessions",
+    x = "Stimulus Intensity",
+    y = "NPS (pos)",
+    color = "Cue Type"
+  ) +
+  theme_classic() +
+  theme(
+    aspect.ratio = 0.8,
+    axis.line = element_line(linewidth = 0.5),
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    plot.title = element_text(size = 16, hjust = 0.5),
+    strip.background = element_blank(),
+    strip.text = element_text(size = 12, face = "bold"),
+    legend.position = "bottom"
+  )
+
+print(p)
+
+# Save
+ggsave(file.path(analysis_dir, paste0("NPSpos_by_session_", Sys.Date(), ".svg")),
+       plot = p, width = 10, height = 4, dpi = 300)
+
+    ggsave(file.path('/Users/h/Dropbox (Personal)/2025_Jung_SpaceTop_PVC_pain_CueFx_Signatures_ROIs/Figure/supp', paste0("NPSpos_by_session_", Sys.Date(), ".svg")), plot=k, w=4, h=4, dpi=300)
+```
+
+
+## 11. Sessionwise SIIPS [ Update ]
 
 > random slopes of cue effects were colinear with random intercepts with a correlation of 1, therefore estimating the idnvidual difference baseline and dindividual difference of cue effects were impossible
 
 ```{r}
 with(df_filter_ses, table(CUE_high_gt_low, STIM_linear, SES_linear))
 ```
+
+
 
 ```{r}
 library(glmmTMB)
@@ -1611,7 +2079,7 @@ model.SIIPSses <- lmer(SIIPS ~
                           CUE_high_gt_low*STIM_quadratic*SES_linear +
                           CUE_high_gt_low*STIM_linear*SES_quadratic +
                           CUE_high_gt_low*STIM_quadratic*SES_quadratic +
-                          (1+ CUE_high_gt_low + STIM_quadratic + SES_linear|sub),
+                          (1+ CUE_high_gt_low + STIM_quadratic + SES_linear||sub),
          data = df_filter_ses,
                   control = lmerControl(optimizer = "nmkbw"
                                ))
@@ -1623,6 +2091,8 @@ sjPlot::tab_model(model.SIIPSses,
                   CSS = list(css.table = '+font-size: 12;'))
 equatiomatic::extract_eq(model.SIIPSses)
 ```
+
+
 
 > Session is inversly colinear with stimulus intensity, which makes the random slopes impossible to estimate
 
@@ -1640,82 +2110,83 @@ library(ggalt)
 ```
 
 ### linear estimator
+> We can drop this since the model above works. This code simply tests different optimizers from the optimx family and the nloptwrap family
 
 ```{r}
-optimx_options <- c("L-BFGS-B", "nlminb", "nlm", "bobyqa", "nmkb", "hjkb")
-for(i in 1:length(optimx_options)){
-  print(paste0("Testing optimx: ", optimx_options[i]))
-  model_flex <-   lmer(
-    SIIPS ~
-      CUE_high_gt_low * STIM_linear * SES_linear +
-      CUE_high_gt_low * STIM_quadratic * SES_linear +
-      CUE_high_gt_low * STIM_linear * SES_quadratic +
-      CUE_high_gt_low * STIM_quadratic * SES_quadratic +
-      (1+ CUE_high_gt_low + STIM_quadratic + SES_linear  |
-         sub),
-    data = df_filter_ses,
-    control = lmerControl(
-      optimizer = "optimx",
-      optCtrl = list(
-        method = optimx_options[i],
-        maxit = 1e9,
-        maxfun = 1e9,
-        maxeval = 1e3,
-        xtol_abs = 1e-3,
-        ftol_abs = 1e-3
-      )
-    )
-  )
-
-  if(is.null(model_flex@optinfo$conv$lme4$messages)){
-    print(paste0("One of the optimx options, ", optimx_options[i],", worked!"))
-    print(model_flex)
-    break
-  }
-}
+# optimx_options <- c("L-BFGS-B", "nlminb", "nlm", "bobyqa", "nmkb", "hjkb")
+# for(i in 1:length(optimx_options)){
+#   print(paste0("Testing optimx: ", optimx_options[i]))
+#   model_flex <-   lmer(
+#     SIIPS ~
+#       CUE_high_gt_low * STIM_linear * SES_linear +
+#       CUE_high_gt_low * STIM_quadratic * SES_linear +
+#       CUE_high_gt_low * STIM_linear * SES_quadratic +
+#       CUE_high_gt_low * STIM_quadratic * SES_quadratic +
+#       (1+ CUE_high_gt_low + STIM_quadratic + SES_linear  |
+#          sub),
+#     data = df_filter_ses,
+#     control = lmerControl(
+#       optimizer = "optimx",
+#       optCtrl = list(
+#         method = optimx_options[i],
+#         maxit = 1e9,
+#         maxfun = 1e9,
+#         maxeval = 1e3,
+#         xtol_abs = 1e-3,
+#         ftol_abs = 1e-3
+#       )
+#     )
+#   )
+# 
+#   if(is.null(model_flex@optinfo$conv$lme4$messages)){
+#     print(paste0("One of the optimx options, ", optimx_options[i],", worked!"))
+#     print(model_flex)
+#     break
+#   }
+# }
 ```
 
 ```{r}
 # non linear options
-algoptions <- c("NLOPT_LN_PRAXIS", "NLOPT_GN_CRS2_LM",
-"NLOPT_LN_COBYLA", "NLOPT_LN_NEWUOA",
-"NLOPT_LN_NEWUOA_BOUND", "NLOPT_LN_NELDERMEAD",
-"NLOPT_LN_SBPLX", "NLOPT_LN_BOBYQA")
-
-for(i in 1:length(algoptions)){
-  print(paste0("Testing nloptwrap: ", algoptions[i]))
-  model_flex <- lmer(    SIIPS ~
-      CUE_high_gt_low * STIM_linear * SES_linear +
-      CUE_high_gt_low * STIM_quadratic * SES_linear +
-      CUE_high_gt_low * STIM_linear * SES_quadratic +
-      CUE_high_gt_low * STIM_quadratic * SES_quadratic +
-      ( 1 +CUE_high_gt_low + STIM_quadratic + SES_linear  |
-         sub),
-                     data = df_filter_ses, REML=FALSE,
-                     control = lmerControl(optimizer = "nloptwrap",
-                                           optCtrl = list(algorithm = algoptions[i],
-                                                          maxit = 1e9,
-                                                          maxfun = 1e9,
-                                                          maxeval = 1e9,
-                                                          xtol_abs = 1e-2,
-                                                          ftol_abs = 1e-2)))
-  if(is.null(model_flex@optinfo$conv$lme4$messages)){
-    print(paste0("One of the nloptwrap options, ", algoptions[i],", worked!"))
-    print(model_flex)
-    break
-  }
-}
+# algoptions <- c("NLOPT_LN_PRAXIS", "NLOPT_GN_CRS2_LM",
+# "NLOPT_LN_COBYLA", "NLOPT_LN_NEWUOA",
+# "NLOPT_LN_NEWUOA_BOUND", "NLOPT_LN_NELDERMEAD",
+# "NLOPT_LN_SBPLX", "NLOPT_LN_BOBYQA")
+# 
+# for(i in 1:length(algoptions)){
+#   print(paste0("Testing nloptwrap: ", algoptions[i]))
+#   model_flex <- lmer(    SIIPS ~
+#       CUE_high_gt_low * STIM_linear * SES_linear +
+#       CUE_high_gt_low * STIM_quadratic * SES_linear +
+#       CUE_high_gt_low * STIM_linear * SES_quadratic +
+#       CUE_high_gt_low * STIM_quadratic * SES_quadratic +
+#       ( 1 +CUE_high_gt_low + STIM_quadratic + SES_linear  |
+#          sub),
+#                      data = df_filter_ses, REML=FALSE,
+#                      control = lmerControl(optimizer = "nloptwrap",
+#                                            optCtrl = list(algorithm = algoptions[i],
+#                                                           maxit = 1e9,
+#                                                           maxfun = 1e9,
+#                                                           maxeval = 1e9,
+#                                                           xtol_abs = 1e-2,
+#                                                           ftol_abs = 1e-2)))
+#   if(is.null(model_flex@optinfo$conv$lme4$messages)){
+#     print(paste0("One of the nloptwrap options, ", algoptions[i],", worked!"))
+#     print(model_flex)
+#     break
+#   }
+# }
 ```
 
 ```{r}
-  model.glmm <- glmmTMB::glmmTMB(    SIIPS ~
-      CUE_high_gt_low * STIM_linear * SES_linear +
-      CUE_high_gt_low * STIM_quadratic * SES_linear +
-      CUE_high_gt_low * STIM_linear * SES_quadratic +
-      CUE_high_gt_low * STIM_quadratic * SES_quadratic +
-      ( CUE_high_gt_low + SES_linear  + STIM_linear  |         sub),
-                     data = df_filter_ses)
-summary(model.glmm)
+#   model.glmm <- glmmTMB::glmmTMB(    SIIPS ~
+#       CUE_high_gt_low * STIM_linear * SES_linear +
+#       CUE_high_gt_low * STIM_quadratic * SES_linear +
+#       CUE_high_gt_low * STIM_linear * SES_quadratic +
+#       CUE_high_gt_low * STIM_quadratic * SES_quadratic +
+#       ( CUE_high_gt_low + SES_linear  + STIM_linear  |         sub),
+#                      data = df_filter_ses)
+# summary(model.glmm)
 ```
 
 ```{r}
@@ -1762,10 +2233,80 @@ if (any(startsWith(dv_keyword, c("expect", "Expect")))) {
   color <- c(lowcuehex, highcuehex)
 } # if keyword starts with
 plot_savefname <- file.path(
-  analysis_dir,
+  savedir,
   paste(
     "raincloud_task-", taskname, "_rating-", dv_keyword, "_", as.character(Sys.Date()), ".png",
     sep = ""
   )
 )
 ```
+
+#### plot sessionwise SIIPS [ Update ]
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# 1. Prepare data with session labels
+df_filter_ses$ses_name <- factor(df_filter_ses$ses,
+                                   levels = c("ses-01", "ses-03", "ses-04"),
+                                   labels = c("Session 1", "Session 2", "Session 3"))
+
+df_filter_ses$cue_name <- ifelse(df_filter_ses$cue == "high_cue", "High cue", "Low cue")
+df_filter_ses$stim_name <- case_when(
+  df_filter_ses$stimulusintensity == "low_stim" ~ "Low",
+  df_filter_ses$stimulusintensity == "med_stim" ~ "Med",
+  df_filter_ses$stimulusintensity == "high_stim" ~ "High"
+)
+
+df_filter_ses$stim_ordered <- factor(df_filter_ses$stim_name, 
+                                      levels = c("Low", "Med", "High"))
+df_filter_ses$cue_ordered <- factor(df_filter_ses$cue_name, 
+                                     levels = c("Low cue", "High cue"))
+
+# 2. Calculate summary statistics
+SIIPS_summary <- df_filter_ses %>%
+  group_by(ses_name, stim_ordered, cue_ordered, sub) %>%
+  summarise(mean_per_sub = mean(SIIPS, na.rm = TRUE), .groups = "drop") %>%
+  group_by(ses_name, stim_ordered, cue_ordered) %>%
+  summarise(
+    mean = mean(mean_per_sub, na.rm = TRUE),
+    se = sd(mean_per_sub, na.rm = TRUE) / sqrt(n()),
+    .groups = "drop"
+  )
+
+# 3. Plot with facets by session
+p <- ggplot(SIIPS_summary, aes(x = stim_ordered, y = mean, 
+                                color = cue_ordered, group = cue_ordered)) +
+  geom_linerange(aes(ymin = mean - se, ymax = mean + se), 
+                 linewidth = 0.5) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 4, shape = 16) +
+  facet_wrap(~ ses_name, ncol = 3) +
+  scale_color_manual(values = c("Low cue" = lowcuehex, "High cue" = highcuehex)) +
+  labs(
+    title = "SIIPS Across Sessions",
+    x = "Stimulus Intensity",
+    y = "SIIPS",
+    color = "Cue Type"
+  ) +
+  theme_classic() +
+  theme(
+    aspect.ratio = 0.8,
+    axis.line = element_line(linewidth = 0.5),
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    plot.title = element_text(size = 16, hjust = 0.5),
+    strip.background = element_blank(),
+    strip.text = element_text(size = 12, face = "bold"),
+    legend.position = "bottom"
+  )
+
+print(p)
+
+# Save
+ggsave(file.path(analysis_dir, paste0("SIIPS_by_session_", Sys.Date(), ".svg")),
+       plot = p, width = 10, height = 4, dpi = 300)
+
+    ggsave(file.path('/Users/h/Dropbox (Personal)/2025_Jung_SpaceTop_PVC_pain_CueFx_Signatures_ROIs/Figure/supp', paste0("SIIPS_by_session_", Sys.Date(), ".svg")), plot=k, w=4, h=4, dpi=300)
+```
+
