@@ -14,7 +14,7 @@ addpath(genpath(fullfile(fmriprep_dir, sub)));
 TR = 0.46;
 T = 20;
 mode = 0;
-atlas_obj = load_atlas('painpathway'); %load_atlas('canlab2018_2mm');
+atlas_obj = load_atlas(which('pain_pathways_atlas_obj.mat'));%load_atlas('painpathway'); %load_atlas('canlab2018_2mm');
 labels = atlas_obj.labels;
 
 % MODIFIED: Instead of selecting specific ROIs, use ALL parcels
