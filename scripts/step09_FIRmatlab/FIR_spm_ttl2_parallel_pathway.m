@@ -26,7 +26,7 @@ if ~exist(fullfile(save_dir, sub), 'dir')
 end
 
 % find nifti files
-niilist = dir(fullfile(fmriprep_dir, sub,  '*/func/*task-social*_bold.nii'));
+niilist = dir(fullfile(fmriprep_dir, sub,  '*/func/*task-social*_bold.nii.gz'));
 nT = struct2table(niilist);
 sortedT = sortrows(nT, 'name');
 disp(sortedT);
@@ -93,7 +93,7 @@ for run_ind = 1:size(A, 1)
 
     disp(strcat('[ STEP 03 ] gunzip and saving nifti...'));
     func = fullfile(fmriprep_dir, sub, ses, 'func',...
-        strcat( sub, '_', ses, '_task-social_acq-mb8_', run01, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
+        strcat( sub, '_', ses, '_task-social_acq-mb8_', run01, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
 
     if ~exist(func, 'file')
         disp(strcat('ABORT [!] ', func, 'does not exist'))
@@ -161,7 +161,7 @@ for run_ind = 1:size(A, 1)
         onset_cueH_stimL_Time, onset_cueL_stimL_Time, onset_rating_Time, onset_cueH_Time, onset_cueL_Time};
 
     % Load fmri data
-    fmriprep_fname = fullfile(fmriprep_dir, sub, ses, 'func', strcat(sub, '_', ses, '_task-social_acq-mb8_',run01, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii'));
+    fmriprep_fname = fullfile(fmriprep_dir, sub, ses, 'func', strcat(sub, '_', ses, '_task-social_acq-mb8_',run01, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
     fmridata = fmri_data(fmriprep_fname);
     [parcel_means, ~, ~, ~, ~, ~] = apply_parcellation(fmridata, atlas_obj);
     disp("------loaded fmriprep image and parcellation! --------")
