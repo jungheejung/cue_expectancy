@@ -4,8 +4,8 @@
 #SBATCH --ntasks-per-node=12
 #SBATCH --mem-per-cpu=16G
 #SBATCH --time=24:00:00
-#SBATCH -o ./log_ttl2_atlas/ttl2_%A_%a.o
-#SBATCH -e ./log_ttl2_atlas/ttl2_%A_%a.e
+#SBATCH -o ./log_ttl2_pathway/ttl2_%A_%a.o
+#SBATCH -e ./log_ttl2_pathway/ttl2_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
 #SBATCH --array=19%50
@@ -25,7 +25,7 @@ echo "* total of ${#mylist[@]} participants in ${INPUT_DIR}"
 echo "* array id: " ${SLURM_ARRAY_TASK_ID}, "subject id: " ${PARTICIPANT_LABEL}
 
 module load matlab/r2024a
-matlab -nodesktop -nosplash -batch 'opengl("save","hardware"); rootgroup = settings;rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = "v7.3"; rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = "v7.3";addpath(genpath('"'${CANLABCORE_DIR}'"'));addpath(genpath('"'${SPM_DIR}'"'));addpath(genpath('"'${ATLAS_DIR}'"'));addpath(genpath('"'${MAIN_DIR}'"'));addpath(genpath('"'${ONSET_DIR}'"'));addpath(genpath('"'${PWD}'"'));FIR_spm_ttl2_parallel_atlas('"'${PARTICIPANT_LABEL}'"','"'${ONSET_DIR}'"','"'${MAIN_DIR}'"', '"'${FMRIPREP_DIR}'"', '"'${BADRUNJSON}'"',  '"'${SAVE_DIR}'"');'
+matlab -nodesktop -nosplash -batch 'opengl("save","hardware"); rootgroup = settings;rootgroup.matlab.general.matfile.SaveFormat.PersonalValue = "v7.3"; rootgroup.matlab.general.matfile.SaveFormat.TemporaryValue = "v7.3";addpath(genpath('"'${CANLABCORE_DIR}'"'));addpath(genpath('"'${SPM_DIR}'"'));addpath(genpath('"'${ATLAS_DIR}'"'));addpath(genpath('"'${MAIN_DIR}'"'));addpath(genpath('"'${ONSET_DIR}'"'));addpath(genpath('"'${PWD}'"'));FIR_spm_ttl2_parallel_pathway('"'${PARTICIPANT_LABEL}'"','"'${ONSET_DIR}'"','"'${MAIN_DIR}'"', '"'${FMRIPREP_DIR}'"', '"'${BADRUNJSON}'"',  '"'${SAVE_DIR}'"');'
 
 echo "\n\nCODE:\nmatlab -nodesktop -nosplash -batch 'opengl("save","hardware"); 
 rootgroup = settings; 
