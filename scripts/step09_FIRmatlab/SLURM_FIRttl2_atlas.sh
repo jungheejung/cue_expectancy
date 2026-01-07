@@ -1,9 +1,9 @@
 #!/bin/bash -l
 #SBATCH --job-name=ttl2
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=12
-#SBATCH --mem-per-cpu=16G
-#SBATCH --time=24:00:00
+#SBATCH --ntasks-per-node=8
+#SBATCH --mem-per-cpu=4G
+#SBATCH --time=12:00:00
 #SBATCH -o ./log_ttl2_atlas/ttl2_%A_%a.o
 #SBATCH -e ./log_ttl2_atlas/ttl2_%A_%a.e
 #SBATCH --account=DBIC
