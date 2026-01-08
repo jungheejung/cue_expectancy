@@ -12,7 +12,10 @@ rmpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip/compat/matl
 
 addpath(genpath(fullfile(fmriprep_dir, sub)));
 TR = 0.46;
-T = 20;
+num_conditions = size(Runc, 2);
+T = 20 * ones(1, num_conditions);  % 20 TRs for each of the 9 conditions
+
+%T = 20;
 mode = 0;
 atlas_obj = load_atlas(which('pain_pathways_atlas_obj.mat'));%load_atlas('painpathway'); %load_atlas('canlab2018_2mm');
 labels = atlas_obj.labels;
@@ -167,7 +170,7 @@ for run_ind = 1:size(A, 1)
     disp("------loaded fmriprep image and parcellation! --------")
 
     num_conditions = size(Runc,2);
-
+    T = 20 * ones(1, num_conditions);
     % MODIFIED: Loop through ALL parcels instead of selected array
     dataTables = cell(1, num_parcels);
 
