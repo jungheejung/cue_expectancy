@@ -408,6 +408,221 @@ print(g)
 
 ```
 
+### Session wise plots
+
+
+1. organize session wiese data frame
+
+```{r}
+#### STEP 1: Create df_filter.NA ONCE before the loop (with all ROIs)
+
+# Filter subjects with inadequate data
+subjects_with_inadequate_data <- data %>%
+  group_by(sub, CUE_high_gt_low, STIM_linear) %>%
+  dplyr::summarise(count = n(), .groups = 'drop') %>%
+  filter(count < 2) %>%
+  distinct(sub) %>%
+  pull(sub)
+
+df_filter <- data %>%
+  filter(!(sub %in% subjects_with_inadequate_data))
+
+print(sprintf("after filtering out subjects that have less than 2 trials in cell, we have N=%d -> N=%d",
+              length(unique(data$sub)), length(unique(df_filter$sub))))
+
+# This is your df_filter.NA for ALL ROIs
+df_filter.NA <- df_filter
+
+#### STEP 2: Create session-filtered version with adequate trials per cell
+subjects_with_inadequate_data_ses <- df_filter.NA %>%
+  group_by(sub, CUE_high_gt_low, STIM_linear, SES_linear) %>%
+  dplyr::summarise(count = n(), .groups = 'drop') %>%
+  filter(count < 3) %>%
+  distinct(sub) %>%
+  pull(sub)
+
+df_filter_ses <- df_filter.NA %>%
+  filter(!(sub %in% subjects_with_inadequate_data_ses))
+
+print(sprintf("after filtering for session analysis (3+ trials per cell), we have N=%d -> N=%d",
+              length(unique(df_filter.NA$sub)), length(unique(df_filter_ses$sub))))
+
+#### STEP 3: Now plot sessionwise Pain Pathway ROIs
+library(ggplot2)
+library(dplyr)
+
+# Define ROIs
+dependent_vars <- c("Thal_VPLM","Thal_IL","Thal_MD","Hythal","pbn","Bstem_PAG","rvm","Amy",
+                    "dpIns","S2","mIns","aIns","aMCC_MPFC","s1_foot","s1_handplus")
+
+newlist <- c("Thal_VPLM","Thal_IL","Thal_MD","Hythal","PBN","Bstem & PAG","RVM","Amygdala",
+             "dpIns","S2","mIns","aIns","aMCC & MPFC","S1 foot","S1 handplus")
+
+# Loop through all ROIs
+for (i in seq_along(dependent_vars)) {
+  dv <- dependent_vars[i]
+  dv_title <- newlist[i]
+  
+  print(paste("Plotting", dv_title, "across sessions..."))
+  
+  # Check if column exists
+  if (!dv %in% names(df_filter_ses)) {
+    print(paste("WARNING: Column", dv, "not found in df_filter_ses - skipping"))
+    next
+  }
+  
+  # 1. Prepare data with session labels
+  df_filter_ses$ses_name <- factor(df_filter_ses$ses,
+                                    levels = c("ses-01", "ses-03", "ses-04"),
+                                    labels = c("Session 1", "Session 2", "Session 3"))
+  
+  df_filter_ses$cue_name <- NA
+  df_filter_ses$cue_name[df_filter_ses$cue == "high_cue"] <- "High cue"
+  df_filter_ses$cue_name[df_filter_ses$cue == "low_cue"] <- "Low cue"
+  
+  df_filter_ses$stim_name <- NA
+  df_filter_ses$stim_name[df_filter_ses$stimulusintensity == "high_stim"] <- "High"
+  df_filter_ses$stim_name[df_filter_ses$stimulusintensity == "med_stim"] <- "Med"
+  df_filter_ses$stim_name[df_filter_ses$stimulusintensity == "low_stim"] <- "Low"
+  
+  df_filter_ses$stim_ordered <- factor(df_filter_ses$stim_name, 
+                                        levels = c("Low", "Med", "High"))
+  df_filter_ses$cue_ordered <- factor(df_filter_ses$cue_name, 
+                                       levels = c("Low cue", "High cue"))
+  
+  # 2. Calculate summary statistics for this ROI
+  ROI_summary <- df_filter_ses %>%
+    group_by(ses_name, stim_ordered, cue_ordered, sub) %>%
+    summarise(mean_per_sub = mean(.data[[dv]], na.rm = TRUE), .groups = "drop") %>%
+    group_by(ses_name, stim_ordered, cue_ordered) %>%
+    summarise(
+      mean = mean(mean_per_sub, na.rm = TRUE),
+      se = sd(mean_per_sub, na.rm = TRUE) / sqrt(n()),
+      .groups = "drop"
+    )
+  
+  # 3. Plot with facets by session
+  p <- ggplot(ROI_summary, aes(x = stim_ordered, y = mean, 
+                                  color = cue_ordered, group = cue_ordered)) +
+    geom_linerange(aes(ymin = mean - se, ymax = mean + se), 
+                   linewidth = 0.5) +
+    geom_line(linewidth = 1) +
+    geom_point(size = 4, shape = 16) +
+    facet_wrap(~ ses_name, ncol = 3) +
+    scale_color_manual(values = c("Low cue" = "#4274AD", "High cue" = "#C5263A")) +
+    labs(
+      title = paste(dv_title, "Across Sessions"),
+      x = "Stimulus Intensity",
+      y = dv_title,
+      color = "Cue Type"
+    ) +
+    theme_classic() +
+    theme(
+      aspect.ratio = 0.8,
+      axis.line = element_line(linewidth = 0.5),
+      axis.text = element_text(size = 12),
+      axis.title = element_text(size = 14),
+      plot.title = element_text(size = 16, hjust = 0.5),
+      strip.background = element_blank(),
+      strip.text = element_text(size = 14, face = "bold"),
+      legend.position = "bottom"
+    )
+  
+  print(p)
+  
+  # Save
+  ggsave(file.path(analysis_dir, paste0("roi-", dv, "_by_session_", Sys.Date(), ".svg")),
+         plot = p, width = 10, height = 4, dpi = 300)
+}
+```
+
+2. plot per session
+```{r}
+#### plot sessionwise Pain Pathway ROIs [ Update ]
+library(ggplot2)
+library(dplyr)
+
+# Define ROIs
+dependent_vars <- c("Thal_VPLM","Thal_IL","Thal_MD","Hythal","pbn","Bstem_PAG","rvm","Amy",
+                    "dpIns","S2","mIns","aIns","aMCC_MPFC","s1_foot","s1_handplus")
+
+newlist <- c("Thal_VPLM","Thal_IL","Thal_MD","Hythal","PBN","Bstem & PAG","RVM","Amygdala",
+             "dpIns","S2","mIns","aIns","aMCC & MPFC","S1 foot","S1 handplus")
+
+# Loop through all ROIs
+for (i in seq_along(dependent_vars)) {
+  dv <- dependent_vars[i]
+  dv_title <- newlist[i]
+  
+  print(paste("Plotting", dv_title, "across sessions..."))
+  
+  # 1. Prepare data with session labels (INSIDE the loop)
+  df_filter_ses$ses_name <- factor(df_filter_ses$ses,
+                                    levels = c("ses-01", "ses-03", "ses-04"),
+                                    labels = c("Session 1", "Session 2", "Session 3"))
+  
+  df_filter_ses$cue_name <- NA
+  df_filter_ses$cue_name[df_filter_ses$cue == "high_cue"] <- "High cue"
+  df_filter_ses$cue_name[df_filter_ses$cue == "low_cue"] <- "Low cue"
+  
+  df_filter_ses$stim_name <- NA
+  df_filter_ses$stim_name[df_filter_ses$stimulusintensity == "high_stim"] <- "High"
+  df_filter_ses$stim_name[df_filter_ses$stimulusintensity == "med_stim"] <- "Med"
+  df_filter_ses$stim_name[df_filter_ses$stimulusintensity == "low_stim"] <- "Low"
+  
+  df_filter_ses$stim_ordered <- factor(df_filter_ses$stim_name, 
+                                        levels = c("Low", "Med", "High"))
+  df_filter_ses$cue_ordered <- factor(df_filter_ses$cue_name, 
+                                       levels = c("Low cue", "High cue"))
+  
+  # 2. Calculate summary statistics for this ROI
+  ROI_summary <- df_filter_ses %>%
+    group_by(ses_name, stim_ordered, cue_ordered, sub) %>%
+    summarise(mean_per_sub = mean(!!sym(dv), na.rm = TRUE), .groups = "drop") %>%
+    group_by(ses_name, stim_ordered, cue_ordered) %>%
+    summarise(
+      mean = mean(mean_per_sub, na.rm = TRUE),
+      se = sd(mean_per_sub, na.rm = TRUE) / sqrt(n()),
+      .groups = "drop"
+    )
+  
+  # 3. Plot with facets by session
+  p <- ggplot(ROI_summary, aes(x = stim_ordered, y = mean, 
+                                  color = cue_ordered, group = cue_ordered)) +
+    geom_linerange(aes(ymin = mean - se, ymax = mean + se), 
+                   linewidth = 0.5) +
+    geom_line(linewidth = 1) +
+    geom_point(size = 4, shape = 16) +
+    facet_wrap(~ ses_name, ncol = 3) +
+    scale_color_manual(values = c("Low cue" = "#4274AD", "High cue" = "#C5263A")) +
+    labs(
+      title = paste(dv_title, "Across Sessions"),
+      x = "Stimulus Intensity",
+      y = dv_title,
+      color = "Cue Type"
+    ) +
+    theme_classic() +
+    theme(
+      aspect.ratio = 0.8,
+      axis.line = element_line(linewidth = 0.5),
+      axis.text = element_text(size = 12),
+      axis.title = element_text(size = 14),
+      plot.title = element_text(size = 16, hjust = 0.5),
+      strip.background = element_blank(),
+      strip.text = element_text(size = 14, face = "bold"),
+      legend.position = "bottom"
+    )
+  
+  print(p)
+  
+  # Save
+  ggsave(file.path(analysis_dir, paste0(dv, "_by_session_", Sys.Date(), ".svg")),
+         plot = p, width = 10, height = 4, dpi = 300)
+}
+```
+
+
+
 ```{r}
 library(ggplot2)
 library(dplyr)
@@ -415,7 +630,7 @@ library(lme4)
 library(ggeffects)
 
 # Assuming 'data' is your dataset already loaded
-dependent_vars <- c("Thal_VPLM_L","Thal_IL","Thal_MD","Hythal","pbn_R","pbn_L","Bstem_PAG","rvm_R",
+dependent_vars <- c("Thal_VPLM","Thal_IL","Thal_MD","Hythal","pbn_R","pbn_L","Bstem_PAG","rvm_R",
                     "Amy_R","Amy_L","dpIns_L","dpIns_R","S2_L","S2_R","mIns_L","mIns_R","aIns_L","aIns_R",
                     "aMCC_MPFC","s1_foot_L","s1_foot_R","s1_handplus_L","s1_handplus_R")
 

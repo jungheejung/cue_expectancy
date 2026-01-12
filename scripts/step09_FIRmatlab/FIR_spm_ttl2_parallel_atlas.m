@@ -35,8 +35,13 @@ disp(sortedT);
 %    sortedT.name = cellstr(sortedT.name);
 %end
 % Ensure name is a cell array of chars
-sortedT.name = string(sortedT.name);
-sortedT.name = cellstr(sortedT.name);
+%sortedT.name = string(sortedT.name);
+%sortedT.name = cellstr(sortedT.name);
+
+if ischar(sortedT.name)
+    % sortedT.name = cellstr(sortedT.name);
+    sortedT.name = cellfun(@char, sortedT.name, 'UniformOutput', false);
+end
 
 disp('Checking sortedT.name data type:');
 disp(class(sortedT.name));
