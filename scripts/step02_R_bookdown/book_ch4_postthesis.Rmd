@@ -160,6 +160,7 @@ dfmerge <- dfmerge %>%
 dfmerge$NPS <- dfmerge$nps
 # create folder to save data ___________________________________________________
 analysis_dir <- "/Users/h/Documents/projects_local/cue_expectancy/resources/plots_dissertation/ch4"
+analysis_dir <- "/Users/h/Dropbox (Personal)/2025_Jung_SpaceTop_PVC_pain_CueFx_Signatures_ROIs/Figure"
 dir.create(analysis_dir,
            showWarnings = FALSE,
            recursive = TRUE)
@@ -650,6 +651,230 @@ Some of the NPS neg regions show the hallmarks of appetitive PEs, better-than-ex
 I think from this that the NPSneg was calculated by taking an average over relevant voxels/regions, rather than by applying a pattern mask with (mostly) negative weights. This inference is because the NPSneg pattern response looks a lot like the region averages you show for individual regions, rather than the opposite (i.e., if you apply neg weights to an image with decreased activity you get a pos response, which would be what you get applying the NPSneg as a pattern). Also, the NPSneg pattern response should go *up* with stim intensity but the mean activity in NPSneg regions should go *down*.  It would be great to confirm how the values were calculated and whether this interpretation of what you did is correct.
 ```
 
+## 2-4. NPS during cue epoch
+load files
+merge with other files
+plot the nps signal from cue epoch
+```{r}
+
+```
+
+
+
+## N. SCR signals
+via [https://github.com/jungheejung/spacetop_biopac/tree/main/scripts/p03_glm](https://github.com/jungheejung/spacetop_biopac/tree/main/scripts/p03_glm)
+```{r}
+library(dplyr)
+# subjects_with_inadequate_data <- data %>%
+#   group_by(sub, CUE_high_gt_low, STIM_linear) %>% #SES_linear,
+#   dplyr::summarise(count = n(), .groups = 'drop') %>%
+#   filter(count < 3) %>%
+#   distinct(sub) %>%
+#   pull(sub)
+# df_filter <- data %>%
+#   filter(!(sub %in% subjects_with_inadequate_data))
+
+
+# load SCR data
+SCR_wide <- read.csv(file.path(main_dir, "analysis/physio/nobaseline/glm/glm-factorial_task-pain_scr.tsv"), sep = "\t")
+# Reshape SCR from wide to long format
+
+# Convert SCR from wide to long format _________________________________________
+SCR_long <- SCR_wide %>%
+  pivot_longer(
+    cols = c(high_stim.high_cue, high_stim.low_cue, 
+             med_stim.high_cue, med_stim.low_cue, 
+             low_stim.high_cue, low_stim.low_cue),
+    names_to = "condition",
+    values_to = "scr"
+  ) %>%
+  separate(condition, into = c("stimulusintensity", "cue"), sep = "\\.") %>%
+  mutate(
+    stimulusintensity = paste0(stimulusintensity),
+    cue = paste0(cue)
+  )
+
+
+# Check overlapping subjects ___________________________________________________
+scr_subjects <- unique(SCR_long$sub)
+data_subjects <- unique(data$sub)
+
+overlapping_subjects <- intersect(scr_subjects, data_subjects)
+cat("Number of overlapping subjects:", length(overlapping_subjects), "\n")
+cat("SCR subjects not in data:", setdiff(scr_subjects, data_subjects), "\n")
+cat("Data subjects not in SCR:", setdiff(data_subjects, scr_subjects), "\n")
+
+# Filter for overlapping subjects only _________________________________________
+SCR_filtered <- SCR_long %>%
+  filter(sub %in% overlapping_subjects)
+
+# Prepare plotting variables ___________________________________________________
+SCR_filtered$cue_name <- ifelse(SCR_filtered$cue == "high_cue", "High cue", "Low cue")
+SCR_filtered$stim_name <- case_when(
+  SCR_filtered$stimulusintensity == "low_stim" ~ "Low",
+  SCR_filtered$stimulusintensity == "med_stim" ~ "Med",
+  SCR_filtered$stimulusintensity == "high_stim" ~ "High"
+)
+
+SCR_filtered$stim_ordered <- factor(SCR_filtered$stim_name, levels = c("Low", "Med", "High"))
+SCR_filtered$cue_ordered <- factor(SCR_filtered$cue_name, levels = c("Low cue", "High cue"))
+
+# Calculate subject-wise means _________________________________________________
+SCR_subjectwise <- SCR_filtered %>%
+  group_by(sub, stim_ordered, cue_ordered) %>%
+  summarise(mean_per_sub = mean(scr, na.rm = TRUE), .groups = "drop")
+
+# Calculate group-level summary ________________________________________________
+SCR_groupwise <- SCR_subjectwise %>%
+  group_by(stim_ordered, cue_ordered) %>%
+  summarise(
+    mean = mean(mean_per_sub, na.rm = TRUE),
+    se = sd(mean_per_sub, na.rm = TRUE) / sqrt(n()),
+    .groups = "drop"
+  )
+
+# Plot _________________________________________________________________________
+# p <- ggplot(SCR_groupwise, aes(x = stim_ordered, y = mean, 
+#                                 color = cue_ordered, group = cue_ordered)) +
+#   geom_linerange(aes(ymin = mean - se, ymax = mean + se), 
+#                  linewidth = 0.5) +
+#   geom_line(linewidth = 1) +
+#   geom_point(size = 4, shape = 16) +
+#   scale_color_manual(values = c("Low cue" = lowcuehex, "High cue" = highcuehex)) +
+#   labs(
+#     title = "SCR",
+#     x = "Stimulus Intensity",
+#     y = "SCR",
+#     color = "Cue Type"
+#   ) +
+#   theme_classic() +
+#   theme(
+#     aspect.ratio = 0.8,
+#     axis.line = element_line(linewidth = 0.5),
+#     axis.text = element_text(size = 12),
+#     axis.title = element_text(size = 14),
+#     plot.title = element_text(size = 16, hjust = 0.5),
+#     legend.position = "bottom"
+#   )
+
+# print(p)
+
+p <- cueR::plot_lineplot_twofactor_subset(SCR_groupwise, taskname = "pain",
+                        iv1 = "stim_ordered", iv2 = "cue_ordered",
+                        mean = "mean_per_sub_norm_mean", error = "se",
+                        color = c("low cue" = lowcuehex,"high cue" = highcuehex),
+                        ggtitle = paste0("SCR N =", length(unique(NPSstimcue_subjectwise$sub))),
+                        xlab = "Stimulus intensity", ylab = "SCR")
+p<- p+ theme(aspect.ratio=1,
+          text = element_text(size = 18), # Default text size for the plot
+          axis.title = element_text(size = 22, ), # Axis titles
+          axis.text = element_text(size = 15), # Axis text (x and y)
+          plot.title = element_text(size = 24, hjust = 0.5) # Plot title
+          ) +
+  # geom_line(size = 1) + # Adjust line thickness
+  geom_point(size = 2)
+
+print(p)
+# Save _________________________________________________________________________
+# ggsave(file.path(analysis_dir, paste0("SCR_maineffect_", Sys.Date(), ".svg")),
+#        plot = p, width = 8, height = 4, dpi = 300)
+
+# Print summary table __________________________________________________________
+print(SCR_groupwise)
+# Save
+ggsave(file.path(analysis_dir, paste0("fig1/SCR_maineffect_", Sys.Date(), ".svg")),
+       plot = p, width = 8, height = 4, dpi = 300)
+```
+
+```{r}
+# Load SCR data
+SCR_wide <- read.csv(file.path(main_dir, "analysis/physio/nobaseline/glm/glm-factorial_task-pain_scr.tsv"), sep = "\t")
+
+# Convert SCR from wide to long format _________________________________________
+SCR_long <- SCR_wide %>%
+  pivot_longer(
+    cols = c(high_stim.high_cue, high_stim.low_cue, 
+             med_stim.high_cue, med_stim.low_cue, 
+             low_stim.high_cue, low_stim.low_cue),
+    names_to = "condition",
+    values_to = "scr"
+  ) %>%
+  separate(condition, into = c("stimulusintensity", "cue"), sep = "\\.") %>%
+  mutate(
+    stimulusintensity = paste0(stimulusintensity),
+    cue = paste0(cue)
+  )
+
+# Check overlapping subjects ___________________________________________________
+scr_subjects <- unique(SCR_long$sub)
+data_subjects <- unique(data$sub)
+
+overlapping_subjects <- intersect(scr_subjects, data_subjects)
+cat("Number of overlapping subjects:", length(overlapping_subjects), "\n")
+cat("SCR subjects not in data:", setdiff(scr_subjects, data_subjects), "\n")
+cat("Data subjects not in SCR:", setdiff(data_subjects, scr_subjects), "\n")
+
+# Filter for overlapping subjects only _________________________________________
+SCR_filtered <- SCR_long %>%
+  filter(sub %in% overlapping_subjects)
+
+# Prepare plotting variables ___________________________________________________
+SCR_filtered$cue_name <- ifelse(SCR_filtered$cue == "high_cue", "high cue", "low cue")
+SCR_filtered$stim_name <- case_when(
+  SCR_filtered$stimulusintensity == "low_stim" ~ "Low",
+  SCR_filtered$stimulusintensity == "med_stim" ~ "Med",
+  SCR_filtered$stimulusintensity == "high_stim" ~ "High"
+)
+
+SCR_filtered$stim_ordered <- factor(SCR_filtered$stim_name, levels = c("Low", "Med", "High"))
+SCR_filtered$cue_ordered <- factor(SCR_filtered$cue_name, levels = c("low cue", "high cue"))
+
+# Calculate subject-wise means _________________________________________________
+SCR_subjectwise <- SCR_filtered %>%
+  group_by(sub, stim_ordered, cue_ordered) %>%
+  summarise(mean_per_sub = mean(scr, na.rm = TRUE), .groups = "drop")
+
+# Calculate group-level summary ________________________________________________
+SCR_groupwise <- SCR_subjectwise %>%
+  group_by(stim_ordered, cue_ordered) %>%
+  summarise(
+    mean_per_sub_norm_mean = mean(mean_per_sub, na.rm = TRUE),  # Changed from "mean"
+    se = sd(mean_per_sub, na.rm = TRUE) / sqrt(n()),
+    .groups = "drop"
+  )
+
+# Plot _________________________________________________________________________
+p <- cueR::plot_lineplot_twofactor_subset(SCR_groupwise, 
+                        taskname = "pain",
+                        iv1 = "stim_ordered", 
+                        iv2 = "cue_ordered",
+                        mean = "mean_per_sub_norm_mean", 
+                        error = "se",
+                        color = c("low cue" = lowcuehex, "high cue" = highcuehex),
+                        ggtitle = paste0("SCR N = ", length(unique(SCR_subjectwise$sub))),
+                        xlab = "Stimulus intensity", 
+                        ylab = "SCR")
+
+p <- p + theme(aspect.ratio = 1,
+          text = element_text(size = 18),
+          axis.title = element_text(size = 22),
+          axis.text = element_text(size = 15),
+          plot.title = element_text(size = 24, hjust = 0.5)
+          ) +
+  geom_point(size = 2)
+
+print(p)
+
+# Print summary table __________________________________________________________
+print(SCR_groupwise)
+
+# Save _________________________________________________________________________
+ggsave(file.path(analysis_dir, paste0("fig1/SCR_maineffect_", Sys.Date(), ".svg")),
+       plot = p, width = 8, height = 4, dpi = 300)
+```
+
+
+
 ## 3. PE (PEmerge)
 ```{r}
 base_dir
@@ -713,17 +938,26 @@ summary(PE.model)
 sink(NULL)  #
 
 library(ggplot2)
+library(scico)
+
+n_subjects <- length(unique(PEmerge$sub))
+batlow_colors <- scico(n = n_subjects, palette = "batlow", begin = 0.1, end = 0.9)
+# viridis - colorblind-friendly, perceptually uniform
+viridis_colors <- viridis::viridis(n = n_subjects, option = "B")  # "D" = viridis
+# or try: option = "C" (plasma), "B" (inferno), "A" (magma)
+
 
 min_value <- -40
 max_value <- 40
 PEmerge$sub <- factor(PEmerge$sub)
 plot.PE_NPS <- ggplot(PEmerge, aes(x = PE_mdl2, y = NPS)) +
-  geom_point(aes(colour = sub), size = .1) +  # Points colored by subject
+  geom_point(aes(colour = sub), size = .1, alpha = .3) +  # Points colored by subject
   geom_smooth(aes(colour = sub), method = 'lm', formula = y ~ x, se = FALSE, size = .3, linetype = "dashed") +  # Subject-wise regression lines
   geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, size = .5, color = "black") +  # Group regression line
   # ylim(min_value, max_value) +  # Set y-axis limits
   # xlim(min_value, max_value)
   theme_classic2()  +# Use a theme with a white background
+  scale_color_manual(values = viridis_colors) +
 xlab("PE") +
    theme(aspect.ratio=1,
           text = element_text(size = 18), # Default text size for the plot
@@ -735,7 +969,7 @@ xlab("PE") +
 plot.PE_NPS
 ggsave("/Users/h/Documents/projects_local/cue_expectancy/resources/plots_dissertation/ch4/ch4_NPSPE.png",plot.PE_NPS, w=5, h=4, dpi=300)
 
-ggsave(file.path('/Users/h/Dropbox (Personal)/2025_Jung_SpaceTop_PVC_pain_CueFx_Signatures_ROIs/Figure/fig4', paste0("NPS_PE", as.character(Sys.Date()), ".svg")), plot=k, w=4, h=4, dpi=300)
+ggsave(file.path('/Users/h/Dropbox (Personal)/2025_Jung_SpaceTop_PVC_pain_CueFx_Signatures_ROIs/Figure/fig4', paste0("NPS_PE", as.character(Sys.Date()), ".svg")), plot=plot.PE_NPS, w=4, h=4, dpi=300)
 
 ```
 
@@ -748,7 +982,7 @@ Previously, levels were coded alphabetically, making high cue lower.
 
 ```{r}
 library(corrplot)
-# PEmerge$cuetype_numeric <- as.numeric(as.factor(PEmerge$cue))
+PEmerge$cuetype_numeric <- as.numeric(as.factor(PEmerge$cue))
 PEmerge$cue_coded <- ifelse(PEmerge$cue == "high_cue", 1, -1)
 PEmerge$beh_PE <- PEmerge$outcomerating_impute - PEmerge$expectrating_impute
 vars_to_center <- c("outcomerating_impute", "expectrating_impute", "PE_mdl2", "beh_PE", "nps", "npspos", "npsneg", "cue_coded")
@@ -760,8 +994,8 @@ cor_matrix <- cor(centered_vars, use = "pairwise.complete.obs")
 corrplot(cor_matrix, method = "circle")
 
 # Correlation between cuetype and model-based PE
-# correlation_model <- cor_matrix["cuetype_numeric", "PE_mdl2"]
-# print(correlation_model)
+correlation_model <- cor_matrix["cuetype_numeric", "PE_mdl2"]
+print(correlation_model)
 # 
 # # Correlation between cuetype and behavioral PE
 # correlation_behavioral <- cor_matrix["cuetype_numeric", "beh_PE"]
