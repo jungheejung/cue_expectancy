@@ -1,14 +1,14 @@
 #!/bin/bash -l
 #SBATCH --job-name=ttl2
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=12
-#SBATCH --mem-per-cpu=16G
-#SBATCH --time=24:00:00
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=4  
+#SBATCH --mem=8G
+#SBATCH --time=5:00:00
 #SBATCH -o ./log_ttl2_pathway/ttl2_%A_%a.o
 #SBATCH -e ./log_ttl2_pathway/ttl2_%A_%a.e
 #SBATCH --account=DBIC
 #SBATCH --partition=standard
-#SBATCH --array=19%50
+#SBATCH --array=1-100%50
 
 CANLABCORE_DIR="/dartfs-hpc/rc/lab/C/CANlab/modules/CanlabCore/CanlabCore"
 MAIN_DIR="/dartfs-hpc/rc/lab/C/CANlab/labdata/projects/spacetop_projects_cue"
