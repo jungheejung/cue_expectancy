@@ -1,0 +1,76 @@
+---
+title: "Analysis logbook: task-cue-expectancy"
+author: "Heejung Jung"
+date: '`r format(Sys.time(), "%d %B, %Y")`'
+site: bookdown::bookdown_site
+documentclass: book
+output:
+  bookdown::bs4_book:
+    repo: https://github.com/jungheejung/cue_expectancy
+    css: docute.css
+    theme:
+      primary: "#0d6efd"
+      # base_font:
+      #   google:
+      #     family: Lato
+      # heading_font:
+      #   google:
+      #     family: Lato
+      #     wght: 200
+      # code_font:
+      #   google:
+      #     family: Oxygen Mono
+      #     local: false
+  bookdown::gitbook:
+    config:
+      toc:
+        collapse: section
+        scroll_highlight: true
+        before: null
+        after: null
+      toolbar:
+        position: fixed
+      edit: null
+      download: null
+      search:
+        engine: lunr
+        options: null
+      fontsettings:
+        theme: white
+        family: sans
+        size: 2
+      info: true
+    css: docute.css
+    code_folding: hide
+    includes:
+      in_header: null
+bibliography:
+  - book.bib
+  - packages.bib
+biblio-style: apalike
+description: "This is a logbook of all the mixed model analyses in one setting."
+link-citations: yes
+github-repo: "jungheejung/cue_expectancy"
+editor_options:
+  markdown:
+    wrap: 72
+---
+
+# About
+
+This is an analysis book written in Markdown. The purpose is to keep track of analyses and summarize findings, while decluttering from result vs. code.
+
+## Usage
+
+Each bookdown chapter is an .Rmd file. This .Rmd is migrated from the git repository cue-expectancy [cue-expectancy](https://github.com/jungheejung/cue_expectancy) and specifically from the folder [**step02_R**](https://github.com/jungheejung/cue_expectancy/tree/main/scripts/step02_R/utils). Each .Rmd file was developed as a standalone analysis pipeline. Once validated, the identical .Rmd is migrated to the bookdown folder and edited for bookdown compiling.
+
+## Order
+
+- Behavioral analysis
+- Reinforcement learning simulations
+- fMRI analysis (signatures)
+- fMRI FIR time series analysis
+
+## TODO
+- [ ] create behavioral file - tedious and not reproducible to compile a dataframe everytime
+- [ ] create script for converting column names
