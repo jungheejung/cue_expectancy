@@ -12,7 +12,8 @@ rmpath('/dartfs-hpc/rc/lab/C/CANlab/modules/spm12/external/fieldtrip/compat/matl
 
 addpath(genpath(fullfile(fmriprep_dir, sub)));
 TR = 0.46;
-num_conditions = size(Runc, 2);
+
+num_conditions = 9;
 T = 20 * ones(1, num_conditions);  % 20 TRs for each of the 9 conditions
 
 %T = 20;
@@ -161,7 +162,7 @@ for run_ind = 1:size(A, 1)
     onset_cueL_Time       = zeros(872,1);   onset_cueL_Time(onset_cueL)=1;
 
     Runc = {onset_cueH_stimH_Time, onset_cueL_stimH_Time, onset_cueH_stimM_Time, onset_cueL_stimM_Time, ...
-        onset_cueH_stimL_Time, onset_cueL_stimL_Time, onset_rating_Time, onset_cueH_Time, onset_cueL_Time};
+    onset_cueH_stimL_Time, onset_cueL_stimL_Time, onset_rating_Time, onset_cueH_Time, onset_cueL_Time};
 
     % Load fmri data
     fmriprep_fname = fullfile(fmriprep_dir, sub, ses, 'func', strcat(sub, '_', ses, '_task-social_acq-mb8_',run01, '_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz'));
