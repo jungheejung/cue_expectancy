@@ -4,14 +4,15 @@
 
 We investigate the profile of painpathway ROIs as a function of cue and stimulus intensity
 
-- Main model: `lmer(outcome_rating ~ cue * stim)`
-- Main question: do outcome ratings differ as a function of cue type and Stimulus intensity?
-- If there is a main effect of cue on outcome ratings, does this cue effect differ depending on task type?
+- Main model: `lmer(ROI ~ cue * stim)`
+- Main question: do ROI beta values, derived from single trial models, differ as a function of cue type and Stimulus intensity?
+- If there is a main effect of cue on pain ROI, does this cue effect differ depending on task type?
 - Is there an interaction between the two factors?
 - IV:
 - cue (high / low)
 - stim (high / med / low)
-- DV: outcome rating
+- DV: ROI beta coeffieints
+- NOTE: "flatten" means that we combine Left and Right hemisphere ROIs from the same region
 
 ```{r libraries_nps_stim, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(car)
@@ -72,8 +73,8 @@ all_data <- readr::read_tsv(file.path(main_dir, "analysis/fmri/nilearn/deriv01_s
 # # TODO: instead of VPN, need to push to github
 # # List all CSV files matching the pattern
 # file_paths <- list.files(base_dir, pattern =  "sub-.*roi-painpathway_runtype-pain.*\\.csv$", full.names = TRUE, recursive = TRUE)
-# 
-# 
+#
+#
 # # save results _________________________________________________________________
 # analysis_folder <- "fmri_painpathway"
 # analysis_dir <-
@@ -146,6 +147,7 @@ iv1 <- "CUE_high_gt_low"
 dv <- "nps"
 dv_keyword <- "NPS"
 ```
+
 ```{r}
 #' Plot a Two-Factor Line Plot with Optional Subsetting
 #'
@@ -180,7 +182,7 @@ dv_keyword <- "NPS"
 #' [Example plot](TODO)
 plot_lineplot_twofactor_subset <- function(data, taskname, iv1, iv2, mean, error,
                                            color, ggtitle, xlab = NULL, ylab = NULL) {
-  
+
   # Check if 'taskname' column exists in 'data'
   if ("runtype" %in% names(data) && !is.null(taskname)) {
     subset <- data[which(data$runtype == taskname), ]
@@ -188,11 +190,11 @@ plot_lineplot_twofactor_subset <- function(data, taskname, iv1, iv2, mean, error
     # If 'taskname' column does not exist or 'taskname' is NULL, use the entire dataframe
     subset <- data
   }
-  
+
   # Use default labels if none are provided
   if (is.null(xlab)) xlab <- "Stimulus intensity"
   if (is.null(ylab)) ylab <- "Outcome rating"
-  
+
   g <- ggplot(data = subset, aes(
     x = .data[[iv1]],
     y = .data[[mean]],
@@ -202,7 +204,7 @@ plot_lineplot_twofactor_subset <- function(data, taskname, iv1, iv2, mean, error
     geom_pointrange(aes(
       ymin = (.data[[mean]] - .data[[error]]),
       ymax = (.data[[mean]] + .data[[error]])
-    ), 
+    ),
     size = 1,  # Increased thickness for the error bars
     width = 3  # Slightly wider horizontal caps
     ) +
@@ -222,6 +224,7 @@ plot_lineplot_twofactor_subset <- function(data, taskname, iv1, iv2, mean, error
   return(g)
 }
 ```
+
 ## F-2. Filter data and plot
 
 ```{r}
@@ -307,7 +310,7 @@ model_iv2 <- "cue_ordered"
 model_savefname <- file.path(
   analysis_dir,
   paste(
-    "lmer_nps-",dv,"_",as.character(Sys.Date()),".txt",
+    "lmer_painpathway-",dv,"_",as.character(Sys.Date()),".txt",
     sep = ""
   )
 )
@@ -385,7 +388,7 @@ g <- plot_lineplot_twofactor_subset(NPSstimcue_groupwise, taskname = "pain",
                         iv1 = "stim_ordered", iv2 = "cue_ordered",
                         mean = "mean_per_sub_norm_mean", error = "se",
                         color = c("low cue" = "#0b5fa6","high cue" = "#C5263A"),
-                        ggtitle = dv_title, 
+                        ggtitle = dv_title,
                         xlab = "Stimulus intensity", ylab = "Mean score")
 g <- g + theme(aspect.ratio=1,
           text = element_text(size = 18), # Default text size for the plot
@@ -408,8 +411,132 @@ print(g)
 
 ```
 
-### Session wise plots
+### significant results
 
+```{r}
+library(dplyr)
+library(stringr)
+
+# Function to parse lmer output text files
+parse_lmer_output <- function(filepath) {
+  # Read the file
+  lines <- readLines(filepath)
+
+  # Find the fixed effects table
+  fixed_start <- which(str_detect(lines, "Fixed effects:"))
+  if (length(fixed_start) == 0) return(NULL)
+
+  # Find where the table ends (usually at "---" or correlation section)
+  fixed_end <- which(str_detect(lines, "^---$|^Signif\\. codes:|^Correlation of Fixed Effects:"))[1]
+
+  # Extract table lines
+  table_lines <- lines[(fixed_start + 1):(fixed_end - 1)]
+  table_lines <- table_lines[table_lines != ""]
+
+  # Parse into data frame
+  results <- list()
+  for (i in 2:length(table_lines)) {  # Skip header
+    line <- table_lines[i]
+    # Split by whitespace
+    parts <- str_trim(unlist(str_split(line, "\\s+")))
+
+    if (length(parts) >= 5) {
+      results[[i-1]] <- data.frame(
+        term = parts[1],
+        estimate = as.numeric(parts[2]),
+        std.error = as.numeric(parts[3]),
+        df = as.numeric(parts[4]),
+        statistic = as.numeric(parts[5]),
+        p.value = as.numeric(parts[6]),
+        stringsAsFactors = FALSE
+      )
+    }
+  }
+
+  # Combine all rows
+  if (length(results) > 0) {
+    return(bind_rows(results))
+  }
+  return(NULL)
+}
+
+# Get all lmer output files
+lmer_files <- list.files(analysis_dir, pattern = "^lmer_painpathway-.*\\.txt$", full.names = TRUE)
+
+# Parse all files and combine
+all_results <- data.frame()
+
+for (file in lmer_files) {
+  # Extract DV name from filename
+  dv_name <- str_extract(basename(file), "(?<=lmer_painpathway-).*(?=_20)")
+
+  # Parse the file
+  results <- parse_lmer_output(file)
+
+  if (!is.null(results)) {
+    results$dv <- dv_name
+    results$dv_label <- dv_name  # You can map to newlist if needed
+    all_results <- bind_rows(all_results, results)
+  }
+}
+
+# Calculate 95% CI
+all_results <- all_results %>%
+  mutate(
+    conf.low = estimate - 1.96 * std.error,
+    conf.high = estimate + 1.96 * std.error
+  )
+
+# Save all results
+write.csv(all_results,
+          file.path(analysis_dir, paste0("all_painpathway_lmer_results_", Sys.Date(), ".csv")),
+          row.names = FALSE)
+
+# Create summary of significant effects (p < 0.05)
+significant_results <- all_results %>%
+  filter(p.value < 0.05, term != "(Intercept)") %>%
+  select(dv, dv_label, term, estimate, std.error, df, statistic, p.value, conf.low, conf.high) %>%
+  arrange(term, p.value)
+
+# Save significant results
+write.csv(significant_results,
+          file.path(analysis_dir, paste0("significant_painpathway_effects_", Sys.Date(), ".csv")),
+          row.names = FALSE)
+
+# Print summary
+cat("\n=== SIGNIFICANT EFFECTS (p < 0.05) ===\n")
+print(significant_results)
+
+# Count significant effects by term
+sig_summary <- significant_results %>%
+  group_by(term) %>%
+  summarise(
+    n_significant = n(),
+    regions = paste(dv, collapse = ", ")
+  )
+
+cat("\n=== SUMMARY BY PREDICTOR ===\n")
+print(sig_summary)
+
+# Highlight very significant effects (p < 0.001)
+highly_sig <- all_results %>%
+  filter(p.value < 0.001, term != "(Intercept)") %>%
+  select(dv, term, estimate, std.error, statistic, p.value, conf.low, conf.high) %>%
+  arrange(p.value)
+
+write.csv(highly_sig,
+          file.path(analysis_dir, paste0("highly_significant_effects_p001_", Sys.Date(), ".csv")),
+          row.names = FALSE)
+
+cat("\n=== HIGHLY SIGNIFICANT EFFECTS (p < 0.001) ===\n")
+print(highly_sig)
+```
+
+```{r}
+analysis_dir
+```
+
+### Session wise plots
 
 1. organize session wiese data frame
 
@@ -462,34 +589,34 @@ newlist <- c("Thal_VPLM","Thal_IL","Thal_MD","Hythal","PBN","Bstem & PAG","RVM",
 for (i in seq_along(dependent_vars)) {
   dv <- dependent_vars[i]
   dv_title <- newlist[i]
-  
+
   print(paste("Plotting", dv_title, "across sessions..."))
-  
+
   # Check if column exists
   if (!dv %in% names(df_filter_ses)) {
     print(paste("WARNING: Column", dv, "not found in df_filter_ses - skipping"))
     next
   }
-  
+
   # 1. Prepare data with session labels
   df_filter_ses$ses_name <- factor(df_filter_ses$ses,
                                     levels = c("ses-01", "ses-03", "ses-04"),
                                     labels = c("Session 1", "Session 2", "Session 3"))
-  
+
   df_filter_ses$cue_name <- NA
   df_filter_ses$cue_name[df_filter_ses$cue == "high_cue"] <- "High cue"
   df_filter_ses$cue_name[df_filter_ses$cue == "low_cue"] <- "Low cue"
-  
+
   df_filter_ses$stim_name <- NA
   df_filter_ses$stim_name[df_filter_ses$stimulusintensity == "high_stim"] <- "High"
   df_filter_ses$stim_name[df_filter_ses$stimulusintensity == "med_stim"] <- "Med"
   df_filter_ses$stim_name[df_filter_ses$stimulusintensity == "low_stim"] <- "Low"
-  
-  df_filter_ses$stim_ordered <- factor(df_filter_ses$stim_name, 
+
+  df_filter_ses$stim_ordered <- factor(df_filter_ses$stim_name,
                                         levels = c("Low", "Med", "High"))
-  df_filter_ses$cue_ordered <- factor(df_filter_ses$cue_name, 
+  df_filter_ses$cue_ordered <- factor(df_filter_ses$cue_name,
                                        levels = c("Low cue", "High cue"))
-  
+
   # 2. Calculate summary statistics for this ROI
   ROI_summary <- df_filter_ses %>%
     group_by(ses_name, stim_ordered, cue_ordered, sub) %>%
@@ -500,11 +627,11 @@ for (i in seq_along(dependent_vars)) {
       se = sd(mean_per_sub, na.rm = TRUE) / sqrt(n()),
       .groups = "drop"
     )
-  
+
   # 3. Plot with facets by session
-  p <- ggplot(ROI_summary, aes(x = stim_ordered, y = mean, 
+  p <- ggplot(ROI_summary, aes(x = stim_ordered, y = mean,
                                   color = cue_ordered, group = cue_ordered)) +
-    geom_linerange(aes(ymin = mean - se, ymax = mean + se), 
+    geom_linerange(aes(ymin = mean - se, ymax = mean + se),
                    linewidth = 0.5) +
     geom_line(linewidth = 1) +
     geom_point(size = 4, shape = 16) +
@@ -527,9 +654,9 @@ for (i in seq_along(dependent_vars)) {
       strip.text = element_text(size = 14, face = "bold"),
       legend.position = "bottom"
     )
-  
+
   print(p)
-  
+
   # Save
   ggsave(file.path(analysis_dir, paste0("roi-", dv, "_by_session_", Sys.Date(), ".svg")),
          plot = p, width = 10, height = 4, dpi = 300)
@@ -537,6 +664,7 @@ for (i in seq_along(dependent_vars)) {
 ```
 
 2. plot per session
+
 ```{r}
 #### plot sessionwise Pain Pathway ROIs [ Update ]
 library(ggplot2)
@@ -553,28 +681,28 @@ newlist <- c("Thal_VPLM","Thal_IL","Thal_MD","Hythal","PBN","Bstem & PAG","RVM",
 for (i in seq_along(dependent_vars)) {
   dv <- dependent_vars[i]
   dv_title <- newlist[i]
-  
+
   print(paste("Plotting", dv_title, "across sessions..."))
-  
+
   # 1. Prepare data with session labels (INSIDE the loop)
   df_filter_ses$ses_name <- factor(df_filter_ses$ses,
                                     levels = c("ses-01", "ses-03", "ses-04"),
                                     labels = c("Session 1", "Session 2", "Session 3"))
-  
+
   df_filter_ses$cue_name <- NA
   df_filter_ses$cue_name[df_filter_ses$cue == "high_cue"] <- "High cue"
   df_filter_ses$cue_name[df_filter_ses$cue == "low_cue"] <- "Low cue"
-  
+
   df_filter_ses$stim_name <- NA
   df_filter_ses$stim_name[df_filter_ses$stimulusintensity == "high_stim"] <- "High"
   df_filter_ses$stim_name[df_filter_ses$stimulusintensity == "med_stim"] <- "Med"
   df_filter_ses$stim_name[df_filter_ses$stimulusintensity == "low_stim"] <- "Low"
-  
-  df_filter_ses$stim_ordered <- factor(df_filter_ses$stim_name, 
+
+  df_filter_ses$stim_ordered <- factor(df_filter_ses$stim_name,
                                         levels = c("Low", "Med", "High"))
-  df_filter_ses$cue_ordered <- factor(df_filter_ses$cue_name, 
+  df_filter_ses$cue_ordered <- factor(df_filter_ses$cue_name,
                                        levels = c("Low cue", "High cue"))
-  
+
   # 2. Calculate summary statistics for this ROI
   ROI_summary <- df_filter_ses %>%
     group_by(ses_name, stim_ordered, cue_ordered, sub) %>%
@@ -585,11 +713,11 @@ for (i in seq_along(dependent_vars)) {
       se = sd(mean_per_sub, na.rm = TRUE) / sqrt(n()),
       .groups = "drop"
     )
-  
+
   # 3. Plot with facets by session
-  p <- ggplot(ROI_summary, aes(x = stim_ordered, y = mean, 
+  p <- ggplot(ROI_summary, aes(x = stim_ordered, y = mean,
                                   color = cue_ordered, group = cue_ordered)) +
-    geom_linerange(aes(ymin = mean - se, ymax = mean + se), 
+    geom_linerange(aes(ymin = mean - se, ymax = mean + se),
                    linewidth = 0.5) +
     geom_line(linewidth = 1) +
     geom_point(size = 4, shape = 16) +
@@ -612,16 +740,14 @@ for (i in seq_along(dependent_vars)) {
       strip.text = element_text(size = 14, face = "bold"),
       legend.position = "bottom"
     )
-  
+
   print(p)
-  
+
   # Save
   ggsave(file.path(analysis_dir, paste0(dv, "_by_session_", Sys.Date(), ".svg")),
          plot = p, width = 10, height = 4, dpi = 300)
 }
 ```
-
-
 
 ```{r}
 library(ggplot2)
@@ -746,7 +872,7 @@ model_iv2 <- "cue_ordered"
 model_savefname <- file.path(
   analysis_dir,
   paste(
-    "lmer_nps-",dv,"_",as.character(Sys.Date()),".txt",
+    "lmer_painpathway-",dv,"_",as.character(Sys.Date()),".txt",
     sep = ""
   )
 )
