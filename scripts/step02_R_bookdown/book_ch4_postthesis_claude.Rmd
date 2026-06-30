@@ -15,14 +15,14 @@ to be IDENTICAL; the changes are structural:
   * Helper functions replace ~10 copy-pasted lineplot blocks and ~5 copy-pasted
     sessionwise faceted-plot blocks.
   * All model summaries and figures are written to a single repo-relative root
-    (results/ch4/...), with manuscript copies still mirrored to Dropbox.
+    (analysis/mixedeffect_revision/ch4/...), with manuscript copies still mirrored to Dropbox.
   * Bug fixes vs. the original:
       - write.csv(..., sep="\t") -> readr::write_tsv() (sep was silently ignored)
       - sessionwise/ROI ggsave(..., plot = k) -> saves the CURRENT plot (was a
         copy-paste bug that mirrored a stale `k` to /supp)
       - df_filter.NA$siip typo / use-before-define chunks removed
       - dead first "Prepare dataframe" block (all_nps/all_siips) removed
-      - all sink()/output paths moved off /Users/h/Desktop into results/ch4
+      - all sink()/output paths moved off /Users/h/Desktop into analysis/mixedeffect_revision/ch4
   * Filenames are stable (no Sys.Date() embedded) so re-renders overwrite rather
     than accumulate dated files. Set USE_DATE_IN_FILENAME <- TRUE to restore the
     old behavior.
@@ -66,7 +66,7 @@ invisible(sapply(file.sources, source, .GlobalEnv))
 
 # ---- output roots ------------------------------------------------------------
 # Canonical (repo-relative) outputs:
-results_root <- file.path(main_dir, "results", "ch4")
+results_root <- file.path(main_dir, "analysis", "mixedeffect_revision", "ch4")
 fig_dir      <- file.path(results_root, "figures")   # .svg / .png figures
 model_dir    <- file.path(results_root, "models")    # lmer .txt summaries
 table_dir    <- file.path(results_root, "tables")    # full-stats HTML + CSV tables
@@ -1042,7 +1042,7 @@ save_fig(p, paste0("SIIPS_by_session", .date_suffix(), ".svg"), dropbox_sub = "s
 ## Model-table index
 
 One HTML that links + embeds every model table generated above, for side-by-side
-stat reporting. Open `results/ch4/tables/index.html`.
+stat reporting. Open `analysis/mixedeffect_revision/ch4/tables/index.html`.
 
 ```{r tables-index}
 idx <- build_tables_index()
