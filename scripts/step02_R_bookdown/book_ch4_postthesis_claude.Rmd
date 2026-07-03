@@ -89,6 +89,11 @@ highcuehex <- "#C5263A"
 cue_colors <- c("low cue" = lowcuehex, "high cue" = highcuehex)          # lineplots
 cue_colors_title <- c("Low cue" = lowcuehex, "High cue" = highcuehex)    # faceted plots
 
+# Single point/circle size for ALL plots (main-effect lineplots, SCR, SIIPS,
+# ROI lineplots, and the sessionwise faceted plots) so circles render at the
+# same radius everywhere — matches the dACC sessionwise look.
+pt_size <- 4
+
 theme_lineplot <- ggplot2::theme(
   aspect.ratio = 1,
   text         = ggplot2::element_text(size = 18),
@@ -202,7 +207,7 @@ make_lineplot <- function(groupwise, ylab, ylim = NULL, ggtitle = "",
     mean = "mean_per_sub_norm_mean", error = "se",
     color = cols, ggtitle = ggtitle,
     xlab = "Stimulus intensity", ylab = ylab
-  ) + theme_lineplot + ggplot2::geom_point(size = 2)
+  ) + theme_lineplot + ggplot2::geom_point(size = pt_size)
   if (!is.null(ylim)) g <- g + ggplot2::ylim(ylim[1], ylim[2])
   g
 }
@@ -231,7 +236,7 @@ sessionwise_plot <- function(df, dv, title, ylab = title) {
   ggplot(summ, aes(x = stim_ordered, y = mean, color = cue_ordered, group = cue_ordered)) +
     geom_linerange(aes(ymin = mean - se, ymax = mean + se), linewidth = 0.5) +
     geom_line(linewidth = 1) +
-    geom_point(size = 4, shape = 16) +
+    geom_point(size = pt_size, shape = 16) +
     facet_wrap(~ ses_name, ncol = 3) +
     scale_color_manual(values = cue_colors_title) +
     labs(title = paste(title, "Across Sessions"), x = "Stimulus Intensity",
@@ -353,6 +358,18 @@ dfmerge$NPS <- dfmerge$nps
 
 # pain only + contrast coding
 data <- contrast_code(dfmerge[dfmerge$runtype == "pain", ])
+
+# ---- restrict to the common analysis sample (beh n NPS n SIIPS n ROI) --------
+# Single shared sample across all neural analyses (SCR handled separately).
+# Written by scripts/step02_R_bookdown/revision_intersection_and_cueepoch.R.
+.isect <- file.path(main_dir, "analysis", "mixedeffect_revision", "participants_intersection.csv")
+if (file.exists(.isect)) {
+  .common <- readr::read_csv(.isect, show_col_types = FALSE)$sub
+  data <- data %>% filter(sub %in% .common)
+  message(sprintf("common analysis sample: N = %d", dplyr::n_distinct(data$sub)))
+} else {
+  warning("participants_intersection.csv not found -- run revision_intersection_and_cueepoch.R first.")
+}
 
 # constants reused downstream
 stim_con1 <- "STIM_linear"
@@ -945,17 +962,26 @@ print(save_model_table(SIIPSPE, "SIIPSPE", "lmer(SIIPS ~ CUE + STIM + PE + (CUE 
 ## 10. Sessionwise Beh
 
 ```{r beh-session}
-model.behses <- fit_report(
+# Fit INLINE (not via fit_report) because allFit() refits the model and needs the
+# stored call to hold a real control expression + the actual data symbol. A model
+# fit inside fit_report stores `control`/`data` as bare arg symbols, which makes
+# allFit error ("object of type 'symbol' is not subsettable") and would otherwise
+# resolve `data` to the wrong global object.
+model.behses <- lmer(
   outcomerating_impute ~
     CUE_high_gt_low * STIM_linear * SES_linear +
     CUE_high_gt_low * STIM_quadratic * SES_linear +
     CUE_high_gt_low * STIM_linear * SES_quadratic +
     CUE_high_gt_low * STIM_quadratic * SES_quadratic +
     (CUE_high_gt_low + STIM_linear + SES_linear | sub),
-  data = df_filter_ses, label = "behses",
-  title = "lmer(BEH ~ CUE * STIM * SES + (CUE + STIM + SES | sub), data = pain)",
+  data = df_filter_ses,
   control = lmerControl(check.conv.singular = .makeCC(action = "ignore", tol = 1e-4))
 )
+print(summary(model.behses))
+print(save_model_table(model.behses, "behses",
+  "lmer(BEH ~ CUE * STIM * SES + (CUE + STIM + SES | sub), data = pain)"))
+try(print(equatiomatic::extract_eq(model.behses)), silent = TRUE)
+
 abeh <- lme4::allFit(model.behses)
 print(glance(abeh) |> select(optimizer, AIC, NLL_rel) |> arrange(NLL_rel))
 
