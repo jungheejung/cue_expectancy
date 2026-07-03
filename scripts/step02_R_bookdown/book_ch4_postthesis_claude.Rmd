@@ -1,0 +1,1076 @@
+---
+title: "ch4_painprocessing (refactored)"
+output: html_document
+date: "2026-06-29"
+---
+
+<!--
+================================================================================
+REFACTOR NOTES (book_ch4_postthesis_claude.Rmd)
+--------------------------------------------------------------------------------
+This is a refactored copy of book_ch4_postthesis.Rmd. The analyses are intended
+to be IDENTICAL; the changes are structural:
+
+  * One config chunk (paths, palette, theme, per-signature labels/ylims).
+  * Helper functions replace ~10 copy-pasted lineplot blocks and ~5 copy-pasted
+    sessionwise faceted-plot blocks.
+  * All model summaries and figures are written to a single repo-relative root
+    (analysis/mixedeffect_revision/ch4/...), with manuscript copies still mirrored to Dropbox.
+  * Bug fixes vs. the original:
+      - write.csv(..., sep="\t") -> readr::write_tsv() (sep was silently ignored)
+      - sessionwise/ROI ggsave(..., plot = k) -> saves the CURRENT plot (was a
+        copy-paste bug that mirrored a stale `k` to /supp)
+      - df_filter.NA$siip typo / use-before-define chunks removed
+      - dead first "Prepare dataframe" block (all_nps/all_siips) removed
+      - all sink()/output paths moved off /Users/h/Desktop into analysis/mixedeffect_revision/ch4
+  * Filenames are stable (no Sys.Date() embedded) so re-renders overwrite rather
+    than accumulate dated files. Set USE_DATE_IN_FILENAME <- TRUE to restore the
+    old behavior.
+
+IMPORTANT: I could not execute R in this environment, so please run once and
+sanity-check before trusting outputs.
+================================================================================
+-->
+
+# Setup
+
+```{r setup, message=FALSE, warning=FALSE, include=FALSE}
+# ---- packages ----------------------------------------------------------------
+pkgs <- c(
+  "car", "cueR", "lme4", "optimx", "minqa", "dfoptim", "tidyverse", "psych",
+  "reshape", "dplyr", "tidyr", "stringr", "lmerTest", "gghalves", "plyr",
+  "ggpubr", "r2mlm", "effectsize", "BSDA", "EMAtools", "emmeans", "sjPlot",
+  "sjmisc", "sjlabelled", "plotly", "DT", "scico", "raincloudplots", "broom",
+  "corrplot", "Hmisc", "jsonlite", "ggeffects", "performance"
+)
+invisible(lapply(pkgs, function(p) suppressPackageStartupMessages(library(p, character.only = TRUE))))
+options(es.use_symbols = TRUE)
+
+# Silence routine noise (package messages, join messages, singular-fit notes,
+# warnings) in the *rendered* document. Set warning/message = TRUE while
+# debugging if you want to see them.
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+
+# ---- source project utils ----------------------------------------------------
+main_dir <- dirname(dirname(getwd()))
+file.sources <- list.files(file.path(main_dir, "scripts", "step02_R", "utils"),
+                           pattern = "*.R", full.names = TRUE, ignore.case = TRUE)
+invisible(sapply(file.sources, source, .GlobalEnv))
+```
+
+```{r config}
+# ==============================================================================
+# CONFIG — single source of truth for paths, colours, theme, and per-signature
+# plotting metadata. Edit here, not in individual chunks.
+# ==============================================================================
+
+# ---- output roots ------------------------------------------------------------
+# Canonical (repo-relative) outputs:
+results_root <- file.path(main_dir, "analysis", "mixedeffect_revision", "ch4")
+fig_dir      <- file.path(results_root, "figures")   # .svg / .png figures
+model_dir    <- file.path(results_root, "models")    # lmer .txt summaries
+table_dir    <- file.path(results_root, "tables")    # full-stats HTML + CSV tables
+curated_dir  <- file.path(main_dir, "data", "curated")
+
+# Manuscript mirror (Dropbox). Set to NULL to skip Dropbox copies entirely.
+dropbox_dir  <- "/Users/h/Dropbox (Personal)/2025_Jung_SpaceTop_PVC_pain_CueFx_Signatures_ROIs/Figure"
+
+for (d in c(results_root, fig_dir, model_dir, table_dir, curated_dir)) {
+  dir.create(d, showWarnings = FALSE, recursive = TRUE)
+}
+
+# ---- filename policy ---------------------------------------------------------
+USE_DATE_IN_FILENAME <- FALSE   # TRUE reproduces the original dated-filename behavior
+.date_suffix <- function() if (USE_DATE_IN_FILENAME) paste0("_", Sys.Date()) else ""
+
+# ---- palette / theme ---------------------------------------------------------
+lowcuehex  <- "#4274AD"
+highcuehex <- "#C5263A"
+cue_colors <- c("low cue" = lowcuehex, "high cue" = highcuehex)          # lineplots
+cue_colors_title <- c("Low cue" = lowcuehex, "High cue" = highcuehex)    # faceted plots
+
+# Single point/circle size for ALL plots (main-effect lineplots, SCR, SIIPS,
+# ROI lineplots, and the sessionwise faceted plots) so circles render at the
+# same radius everywhere — matches the dACC sessionwise look.
+pt_size <- 4
+
+theme_lineplot <- ggplot2::theme(
+  aspect.ratio = 1,
+  text         = ggplot2::element_text(size = 18),
+  axis.title   = ggplot2::element_text(size = 22),
+  axis.text    = ggplot2::element_text(size = 15),
+  plot.title   = ggplot2::element_text(size = 24, hjust = 0.5)
+)
+
+# ---- per-signature metadata (label + y-axis limits for main-effect lineplots) -
+sig_meta <- list(
+  outcomerating_impute = list(ylab = "Outcome rating", ylim = c(42, 87)),
+  NPS                  = list(ylab = "NPS",            ylim = c(4, 6)),
+  npspos               = list(ylab = "NPS (pos)",      ylim = NULL),
+  npsneg               = list(ylab = "NPS (neg)",      ylim = NULL),
+  SIIPS                = list(ylab = "SIIPS",          ylim = c(465, 650))
+)
+```
+
+```{r helpers}
+# ==============================================================================
+# HELPERS
+# ==============================================================================
+
+#' Add contrast-coded columns for the pain task (STIM, CUE, SES) in place.
+contrast_code <- function(df) {
+  df$stim <- NA; df$STIM_linear <- NA; df$STIM_quadratic <- NA
+  df$CUE_high_gt_low <- NA; df$SES_linear <- NA; df$SES_quadratic <- NA
+
+  df$stim[df$stimulusintensity == "low_stim"]  <- -0.5
+  df$stim[df$stimulusintensity == "med_stim"]  <-  0
+  df$stim[df$stimulusintensity == "high_stim"] <-  0.5
+
+  df$STIM <- factor(df$stimulusintensity)
+  df$SUB  <- factor(df$sub)
+
+  df$STIM_linear[df$stimulusintensity == "low_stim"]  <- -0.5
+  df$STIM_linear[df$stimulusintensity == "med_stim"]  <-  0
+  df$STIM_linear[df$stimulusintensity == "high_stim"] <-  0.5
+
+  df$STIM_quadratic[df$stimulusintensity == "low_stim"]  <- -0.33
+  df$STIM_quadratic[df$stimulusintensity == "med_stim"]  <-  0.66
+  df$STIM_quadratic[df$stimulusintensity == "high_stim"] <- -0.33
+
+  df$CUE_high_gt_low[df$cue == "low_cue"]  <- -0.5
+  df$CUE_high_gt_low[df$cue == "high_cue"] <-  0.5
+
+  df$SES_linear[df$ses == "ses-01"] <- -0.5
+  df$SES_linear[df$ses == "ses-03"] <-  0
+  df$SES_linear[df$ses == "ses-04"] <-  0.5
+
+  df$SES_quadratic[df$ses == "ses-01"] <- -0.33
+  df$SES_quadratic[df$ses == "ses-03"] <-  0.66
+  df$SES_quadratic[df$ses == "ses-04"] <- -0.33
+
+  # impute columns sometimes arrive as character "n/a"
+  for (v in c("outcomerating_impute", "expectrating_impute")) {
+    if (v %in% names(df)) {
+      df[[v]][df[[v]] == "n/a"] <- NA
+      df[[v]] <- as.numeric(df[[v]])
+    }
+  }
+  df$EXPECT  <- df$expectrating
+  df$OUTCOME <- df$outcomerating
+  df
+}
+
+#' Add ordered cue/stim factors used by the lineplot helpers (lowercase labels).
+prep_factors <- function(df) {
+  df$cue_name <- NA; df$stim_name <- NA
+  df$cue_name[df$cue == "high_cue"] <- "high cue"
+  df$cue_name[df$cue == "low_cue"]  <- "low cue"
+  df$stim_name[df$stimulusintensity == "high_stim"] <- "High"
+  df$stim_name[df$stimulusintensity == "med_stim"]  <- "Med"
+  df$stim_name[df$stimulusintensity == "low_stim"]  <- "Low"
+  df$stim_ordered <- factor(df$stim_name, levels = c("Low", "Med", "High"))
+  df$cue_ordered  <- factor(df$cue_name,  levels = c("low cue", "high cue"))
+  df
+}
+
+#' Subjects with < min_n trials in any cell defined by `cells`.
+inadequate_subjects <- function(df, cells, min_n = 3) {
+  df %>%
+    group_by(across(all_of(cells))) %>%
+    dplyr::summarise(count = n(), .groups = "drop") %>%
+    filter(count < min_n) %>%
+    distinct(sub) %>%
+    pull(sub)
+}
+
+#' meanSummary -> summarySEwithin for a two-factor (stim x cue) design.
+twofactor_groupwise <- function(df, dv, subject = "sub",
+                                iv1 = "stim_ordered", iv2 = "cue_ordered",
+                                extra_within = NULL) {
+  sw <- meanSummary(df, c(subject, iv1, iv2, extra_within), dv)
+  gw <- summarySEwithin(
+    data = sw, measurevar = "mean_per_sub",
+    withinvars = c(iv1, iv2, extra_within), idvar = subject
+  )
+  gw$task <- "pain"
+  list(subjectwise = sw, groupwise = gw)
+}
+
+#' Main-effect lineplot (both cues, or low-cue-only). Returns a ggplot.
+make_lineplot <- function(groupwise, ylab, ylim = NULL, ggtitle = "",
+                          low_cue_only = FALSE) {
+  dat <- if (low_cue_only) groupwise[groupwise$cue_ordered == "low cue", ] else groupwise
+  cols <- if (low_cue_only) cue_colors["low cue"] else cue_colors
+  g <- cueR::plot_lineplot_twofactor_subset(
+    dat, taskname = "pain",
+    iv1 = "stim_ordered", iv2 = "cue_ordered",
+    mean = "mean_per_sub_norm_mean", error = "se",
+    color = cols, ggtitle = ggtitle,
+    xlab = "Stimulus intensity", ylab = ylab
+  ) + theme_lineplot + ggplot2::geom_point(size = pt_size)
+  if (!is.null(ylim)) g <- g + ggplot2::ylim(ylim[1], ylim[2])
+  g
+}
+
+#' Faceted sessionwise plot (one panel per session). Returns a ggplot.
+#' Replaces the repeated blocks; uses Title-case cue labels.
+sessionwise_plot <- function(df, dv, title, ylab = title) {
+  df$ses_name <- factor(df$ses, levels = c("ses-01", "ses-03", "ses-04"),
+                        labels = c("Session 1", "Session 2", "Session 3"))
+  df$cue_ordered  <- factor(ifelse(df$cue == "high_cue", "High cue", "Low cue"),
+                            levels = c("Low cue", "High cue"))
+  df$stim_ordered <- factor(dplyr::case_when(
+    df$stimulusintensity == "low_stim"  ~ "Low",
+    df$stimulusintensity == "med_stim"  ~ "Med",
+    df$stimulusintensity == "high_stim" ~ "High"
+  ), levels = c("Low", "Med", "High"))
+
+  summ <- df %>%
+    group_by(ses_name, stim_ordered, cue_ordered, sub) %>%
+    summarise(mean_per_sub = mean(.data[[dv]], na.rm = TRUE), .groups = "drop") %>%
+    group_by(ses_name, stim_ordered, cue_ordered) %>%
+    summarise(mean = mean(mean_per_sub, na.rm = TRUE),
+              se   = sd(mean_per_sub, na.rm = TRUE) / sqrt(n()),
+              .groups = "drop")
+
+  ggplot(summ, aes(x = stim_ordered, y = mean, color = cue_ordered, group = cue_ordered)) +
+    geom_linerange(aes(ymin = mean - se, ymax = mean + se), linewidth = 0.5) +
+    geom_line(linewidth = 1) +
+    geom_point(size = pt_size, shape = 16) +
+    facet_wrap(~ ses_name, ncol = 3) +
+    scale_color_manual(values = cue_colors_title) +
+    labs(title = paste(title, "Across Sessions"), x = "Stimulus Intensity",
+         y = ylab, color = "Cue Type") +
+    theme_classic() +
+    theme(aspect.ratio = 0.8, axis.line = element_line(linewidth = 0.5),
+          axis.text = element_text(size = 12), axis.title = element_text(size = 14),
+          plot.title = element_text(size = 16, hjust = 0.5),
+          strip.background = element_blank(),
+          strip.text = element_text(size = 14, face = "bold"),
+          legend.position = "bottom")
+}
+
+#' Save a figure to the repo fig_dir and (optionally) mirror to a Dropbox subdir.
+save_fig <- function(plot, fname, dropbox_sub = NULL, w = 4, h = 4, dpi = 300) {
+  ggsave(file.path(fig_dir, fname), plot = plot, width = w, height = h, dpi = dpi)
+  if (!is.null(dropbox_dir) && !is.null(dropbox_sub)) {
+    out <- file.path(dropbox_dir, dropbox_sub)
+    dir.create(out, showWarnings = FALSE, recursive = TRUE)
+    ggsave(file.path(out, fname), plot = plot, width = w, height = h, dpi = dpi)
+  }
+  invisible(plot)
+}
+
+#' Save a FULL statistics table for any (mixed) model as a permanent derivative,
+#' and return the table object so it ALSO renders inline when knitting.
+#' Writes three files keyed by `label`:
+#'   table_dir/<label>_table.html  -- rich sjPlot::tab_model: fixed + random
+#'        effects, 95% CI, SE, test statistic, p, ICC, N (obs + groups),
+#'        marginal/conditional R^2, AIC. This is the side-by-side HTML you can
+#'        read straight off when writing up stats (was previously a temp file).
+#'   table_dir/<label>_coefs.csv   -- tidy fixed-effects table for scripting
+#'        (needs broom.mixed; skipped with a note if unavailable).
+#'   model_dir/<label>_summary.txt -- raw summary() (back-compat plain text).
+save_model_table <- function(m, label, title = label) {
+  html <- file.path(table_dir, paste0(label, "_table.html"))
+  tbl <- sjPlot::tab_model(
+    m, title = title,
+    show.se = TRUE, show.stat = TRUE, show.ci = 0.95,
+    show.re.var = TRUE, show.icc = TRUE, show.r2 = TRUE,
+    show.ngroups = TRUE, show.obs = TRUE, show.aic = TRUE,
+    CSS = list(css.table = "+font-size: 12;")
+  )
+  # write the standalone page ourselves: tab_model(file=) is unreliable here.
+  try(writeLines(tbl$page.complete, html), silent = TRUE)
+  if (requireNamespace("broom.mixed", quietly = TRUE)) {
+    try(readr::write_csv(broom.mixed::tidy(m, effects = "fixed", conf.int = TRUE),
+                         file.path(table_dir, paste0(label, "_coefs.csv"))), silent = TRUE)
+  }
+  sink(file.path(model_dir, paste0(label, "_summary.txt"))); print(summary(m)); sink(NULL)
+  invisible(tbl)
+}
+
+#' Fit an lmer, print summary, and persist the full table via save_model_table().
+# NOTE: call lmer() directly (not do.call with the data value) so the model's
+# stored call references `data` by name. do.call(..., list(data = <df>)) embeds
+# the whole data frame into the call, which then gets deparsed by print()/summary
+# as a giant `cue = c("low_cue", ...)` dump.
+fit_report <- function(formula, data, label, title = NULL, control = lme4::lmerControl()) {
+  m <- lmerTest::lmer(formula, data = data, control = control)
+  print(summary(m))
+  if (is.null(title)) title <- label
+  print(save_model_table(m, label, title))                 # full HTML+CSV + inline table
+  try(print(equatiomatic::extract_eq(m)), silent = TRUE)
+  m
+}
+
+#' Build a single index.html that links + embeds every <label>_table.html in
+#' table_dir, in a responsive grid for one-glance, side-by-side stat reporting.
+#' Re-run any time; it always reflects whatever model tables currently exist.
+build_tables_index <- function(dir = table_dir, out = file.path(table_dir, "index.html")) {
+  files <- sort(list.files(dir, pattern = "_table\\.html$"))
+  if (length(files) == 0) { message("No *_table.html found in ", dir); return(invisible(NULL)) }
+  labs  <- sub("_table\\.html$", "", files)
+  toc   <- paste(sprintf('<a href="#%s">%s</a>', labs, labs), collapse = " ")
+  cards <- paste(sprintf(
+    '<section id="%s" class="card"><h2>%s</h2><iframe src="%s" loading="lazy"></iframe></section>',
+    labs, labs, files), collapse = "\n")
+  html <- sprintf('<!DOCTYPE html><html><head><meta charset="utf-8"><title>ch4 model tables</title>
+<style>
+body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:1rem;background:#fafafa;color:#222;}
+h1{font-size:1.3rem;} .toc{line-height:1.8;} .toc a{margin-right:.8rem;white-space:nowrap;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:1rem;margin-top:1rem;}
+.card{background:#fff;border:1px solid #ddd;border-radius:8px;padding:.5rem;}
+.card h2{font-size:1rem;margin:.2rem .2rem .5rem;} iframe{width:100%%;height:380px;border:0;}
+</style></head><body>
+<h1>Chapter 4 &mdash; model tables (%s) &mdash; %d models</h1>
+<p class="toc">%s</p>
+<div class="grid">%s</div></body></html>',
+    as.character(Sys.Date()), length(files), toc, cards)
+  writeLines(html, out)
+  message("Wrote table index: ", out)
+  invisible(out)
+}
+```
+
+### Prepare dataframe
+
+```{r prepare-data}
+# Load behaviour + signatures and merge on singletrial_fname.
+beh  <- readr::read_tsv(file.path(main_dir,
+        "analysis/fmri/nilearn/singletrial_rampupplateau/beh/sub-all_task-all_events.tsv"))
+base_dir <- file.path(main_dir,
+        "analysis/fmri/nilearn/deriv01_signature/rampup_plateau_canlab")
+NPS   <- read.csv(file.path(base_dir, "signature-NPS_sub-all_runtype-pvc_event-stimulus.csv"))
+SIIPS <- read.csv(file.path(base_dir, "signature-SIIPS_sub-all_runtype-pain_event-stimulus.csv"))
+
+dfmerge <- beh %>%
+  inner_join(NPS,   by = "singletrial_fname") %>%
+  inner_join(SIIPS, by = "singletrial_fname") %>%
+  mutate(singletrial_fname = as.character(singletrial_fname)) %>%
+  extract(singletrial_fname,
+          into = c("sub", "ses", "run", "runtype", "event", "trial", "cuetype", "stimintensity"),
+          regex = "^(sub-\\d+)_(ses-\\d+)_(run-\\d+)_runtype-(pain|vicarious|cognitive)_event-(cue|stimulus)_trial-(\\d+)_cuetype-(high|low)(?:_stimintensity-(high|med|low))?\\.nii.gz$",
+          remove = FALSE)
+
+dfmerge$stimintensity[dfmerge$stimintensity == ""] <- NA
+dfmerge$NPS <- dfmerge$nps
+
+# pain only + contrast coding
+data <- contrast_code(dfmerge[dfmerge$runtype == "pain", ])
+
+# ---- restrict to the common analysis sample (beh n NPS n SIIPS n ROI) --------
+# Single shared sample across all neural analyses (SCR handled separately).
+# Written by scripts/step02_R_bookdown/revision_intersection_and_cueepoch.R.
+.isect <- file.path(main_dir, "analysis", "mixedeffect_revision", "participants_intersection.csv")
+if (file.exists(.isect)) {
+  .common <- readr::read_csv(.isect, show_col_types = FALSE)$sub
+  data <- data %>% filter(sub %in% .common)
+  message(sprintf("common analysis sample: N = %d", dplyr::n_distinct(data$sub)))
+} else {
+  warning("participants_intersection.csv not found -- run revision_intersection_and_cueepoch.R first.")
+}
+
+# constants reused downstream
+stim_con1 <- "STIM_linear"
+stim_con2 <- "STIM_quadratic"
+iv1 <- "CUE_high_gt_low"
+
+# ---- min-3-trials-per-cell filter (cue x stim) -------------------------------
+bad_subs  <- inadequate_subjects(data, c("sub", "CUE_high_gt_low", "STIM_linear"), 3)
+df_filter <- prep_factors(data %>% filter(!(sub %in% bad_subs)))
+
+message(sprintf("after filtering subjects with <3 trials/cell: N=%d -> N=%d",
+                length(unique(data$sub)), length(unique(df_filter$sub))))
+```
+
+## 1. Behaviour
+
+### Beh linear analysis
+
+```{r beh-model}
+model.beh <- fit_report(
+  outcomerating_impute ~ CUE_high_gt_low * STIM_linear +
+    CUE_high_gt_low * STIM_quadratic + (CUE_high_gt_low + STIM_linear | sub),
+  data = df_filter, label = "beh",
+  title = "lmer(Outcome ~ CUE * STIM + (CUE + STIM | sub), data = pain)"
+)
+
+# marginal cue means
+df_filter %>%
+  group_by(CUE_high_gt_low) %>%
+  summarise(mean = mean(outcomerating_impute, na.rm = TRUE),
+            sd = sd(outcomerating_impute, na.rm = TRUE),
+            n = n(), se = sd / sqrt(n)) %>%
+  print()
+```
+
+### Lineplot Beh
+
+```{r beh-lineplot}
+gw <- twofactor_groupwise(df_filter, "outcomerating_impute")$groupwise
+meta <- sig_meta$outcomerating_impute
+
+g_low <- make_lineplot(gw, ylab = meta$ylab, ylim = meta$ylim,
+                       ggtitle = "Within pain task: Outcome rating", low_cue_only = TRUE)
+save_fig(g_low, paste0("beh_maineffect", .date_suffix(), "_lowcue.svg"))
+
+g_both <- make_lineplot(gw, ylab = meta$ylab, ylim = meta$ylim,
+                        ggtitle = paste0("Beh N =", length(unique(df_filter$sub))))
+save_fig(g_both, paste0("beh_maineffect", .date_suffix(), ".svg"), dropbox_sub = "fig1")
+g_both
+```
+
+## 2. NPS (df_filter)
+
+### NPS linear analysis
+
+```{r nps-model}
+model.NPS <- fit_report(
+  NPS ~ CUE_high_gt_low * STIM_linear + CUE_high_gt_low * STIM_quadratic +
+    (CUE_high_gt_low + STIM_linear | sub),
+  data = df_filter, label = "NPS",
+  title = "lmer(NPS ~ CUE * STIM + (CUE + STIM | sub), data = pain)"
+)
+```
+
+### Lineplot NPS
+
+```{r nps-lineplot}
+gw <- twofactor_groupwise(df_filter, "NPS")$groupwise
+meta <- sig_meta$NPS
+
+g_low <- make_lineplot(gw, ylab = meta$ylab, ylim = c(3, 6),
+                       ggtitle = paste0("NPS N =", length(unique(df_filter$sub))),
+                       low_cue_only = TRUE)
+save_fig(g_low, paste0("NPS_maineffect", .date_suffix(), "_lowcue.svg"))
+
+g_both <- make_lineplot(gw, ylab = meta$ylab, ylim = meta$ylim,
+                        ggtitle = paste0("NPS N =", length(unique(df_filter$sub))))
+save_fig(g_both, paste0("NPS_maineffect", .date_suffix(), ".svg"), dropbox_sub = "fig2")
+g_both
+```
+
+### NPS pos lineplot
+
+```{r npspos-lineplot}
+gw <- twofactor_groupwise(df_filter, "npspos")$groupwise
+
+g_low <- make_lineplot(gw, ylab = "NPS (pos)", ylim = c(3, 6),
+                       ggtitle = paste0("NPS N =", length(unique(df_filter$sub))),
+                       low_cue_only = TRUE)
+save_fig(g_low, paste0("NPSpos_maineffect", .date_suffix(), "_lowcue.svg"))
+
+g_both <- make_lineplot(gw, ylab = "NPS (pos)",
+                        ggtitle = paste0("NPS (pos) N =", length(unique(df_filter$sub))))
+save_fig(g_both, paste0("NPSpos_maineffect", .date_suffix(), ".svg"), dropbox_sub = "fig2")
+g_both
+```
+
+### NPS pos linear analysis
+
+```{r npspos-model}
+model.NPSpos <- fit_report(
+  npspos ~ CUE_high_gt_low * STIM_linear + CUE_high_gt_low * STIM_quadratic +
+    (CUE_high_gt_low + STIM_linear || sub),
+  data = df_filter, label = "NPSpos",
+  title = "lmer(NPSpos ~ CUE * STIM + (CUE + STIM || sub), data = pain)"
+)
+```
+
+### NPS neg lineplot
+
+```{r npsneg-lineplot}
+gw <- twofactor_groupwise(df_filter, "npsneg")$groupwise
+
+g_low <- make_lineplot(gw, ylab = "NPS (neg)", ylim = c(3, 6),
+                       ggtitle = paste0("NPS N =", length(unique(df_filter$sub))),
+                       low_cue_only = TRUE)
+save_fig(g_low, paste0("NPSneg_maineffect", .date_suffix(), "_lowcue.svg"))
+
+g_both <- make_lineplot(gw, ylab = "NPS (neg)",
+                        ggtitle = paste0("NPSneg N =", length(unique(df_filter$sub))))
+save_fig(g_both, paste0("NPSneg_maineffect", .date_suffix(), ".svg"), dropbox_sub = "fig2")
+g_both
+```
+
+### NPS neg linear analysis
+
+```{r npsneg-model}
+model.NPSneg <- fit_report(
+  npsneg ~ CUE_high_gt_low * STIM_linear + CUE_high_gt_low * STIM_quadratic +
+    (STIM_linear | sub),
+  data = df_filter, label = "NPSneg",
+  title = "lmer(NPSneg ~ CUE * STIM + (STIM | sub), data = pain)"
+)
+```
+
+#### Tor comments
+```
+Some of the NPS neg regions show the hallmarks of appetitive PEs, better-than-expected signals.  higher with high expectations for a given stim intensity, and lower (more negative) with higher pain. here's an especially nice-looking one.
+I think from this that the NPSneg was calculated by taking an average over relevant voxels/regions, rather than by applying a pattern mask with (mostly) negative weights. This inference is because the NPSneg pattern response looks a lot like the region averages you show for individual regions, rather than the opposite (i.e., if you apply neg weights to an image with decreased activity you get a pos response, which would be what you get applying the NPSneg as a pattern). Also, the NPSneg pattern response should go *up* with stim intensity but the mean activity in NPSneg regions should go *down*.  It would be great to confirm how the values were calculated and whether this interpretation of what you did is correct.
+```
+
+## 2-4. NPS during cue epoch
+
+```{r nps-cueepoch}
+NPS_cueepoch <- read.csv(file.path(main_dir,
+  "data/curated/sub-all_signature-NPS_runtype-pain_event-cue.csv"))
+
+# prefix non-key columns with cueepoch_
+names_to_change <- setdiff(colnames(NPS_cueepoch), "singletrial_fname")
+colnames(NPS_cueepoch)[colnames(NPS_cueepoch) %in% names_to_change] <-
+  paste0("cueepoch_", names_to_change)
+
+NPS_cueepoch <- NPS_cueepoch %>%
+  mutate(
+    sub = sub("(sub-\\d+).*", "\\1", singletrial_fname),
+    cue = paste0(str_replace(str_extract(singletrial_fname, "cuetype-(high|low)"),
+                             "cuetype-", ""), "_cue"),
+    CUE_high_gt_low = dplyr::case_when(cue == "low_cue" ~ -0.5,
+                                       cue == "high_cue" ~ 0.5)
+  )
+
+model.cueepochNPS <- fit_report(
+  cueepoch_NPS ~ CUE_high_gt_low + (CUE_high_gt_low | sub),
+  data = NPS_cueepoch, label = "cueepochNPS",
+  title = "lmer(NPS_cueepoch ~ CUE + (CUE | sub))"
+)
+
+model.cueepochNPSpos <- fit_report(
+  cueepoch_NPSpos ~ CUE_high_gt_low + (CUE_high_gt_low | sub),
+  data = NPS_cueepoch, label = "cueepochNPSpos",
+  title = "lmer(NPSpos_cueepoch ~ CUE + (CUE | sub))"
+)
+```
+
+## 3. SIIPS (df_filter)
+
+### Lineplot SIIPS
+
+```{r siips-lineplot}
+gw <- twofactor_groupwise(df_filter, "SIIPS")$groupwise
+meta <- sig_meta$SIIPS
+
+g_low <- make_lineplot(gw, ylab = meta$ylab, ylim = meta$ylim,
+                       ggtitle = paste0("SIIPS N =", length(unique(df_filter$sub))),
+                       low_cue_only = TRUE)
+save_fig(g_low, paste0("SIIPS_maineffect", .date_suffix(), "_lowcue.svg"))
+
+g_both <- make_lineplot(gw, ylab = meta$ylab, ylim = meta$ylim,
+                        ggtitle = paste0("SIIPS N =", length(unique(df_filter$sub))))
+save_fig(g_both, paste0("SIIPS_maineffect", .date_suffix(), ".svg"), dropbox_sub = "supp")
+g_both
+```
+
+### SIIPS linear analysis
+
+```{r siips-model}
+model.SIIPS <- fit_report(
+  SIIPS ~ CUE_high_gt_low * STIM_linear + CUE_high_gt_low * STIM_quadratic +
+    (CUE_high_gt_low * STIM_linear | sub),
+  data = df_filter, label = "SIIPS",
+  title = "lmer(SIIPS ~ CUE * STIM + (CUE * STIM | sub), data = pain)",
+  control = lmerControl(check.conv.singular = .makeCC(action = "ignore", tol = 1e-4))
+)
+```
+
+## N. SCR signals
+via [https://github.com/jungheejung/spacetop_biopac/tree/main/scripts/p03_glm](https://github.com/jungheejung/spacetop_biopac/tree/main/scripts/p03_glm)
+
+```{r scr-prep}
+SCR_wide <- read.csv(file.path(main_dir,
+  "analysis/physio/nobaseline/glm/glm-factorial_task-pain_scr.tsv"), sep = "\t")
+
+SCR_long <- SCR_wide %>%
+  pivot_longer(
+    cols = c(high_stim.high_cue, high_stim.low_cue,
+             med_stim.high_cue, med_stim.low_cue,
+             low_stim.high_cue, low_stim.low_cue),
+    names_to = "condition", values_to = "scr") %>%
+  separate(condition, into = c("stimulusintensity", "cue"), sep = "\\.")
+
+# overlap with neural sample
+overlapping_subjects <- intersect(unique(SCR_long$sub), unique(data$sub))
+cat("Overlapping subjects:", length(overlapping_subjects), "\n")
+
+SCR_filtered <- SCR_long %>% filter(sub %in% overlapping_subjects)
+SCR_filtered$cue_ordered  <- factor(ifelse(SCR_filtered$cue == "high_cue", "high cue", "low cue"),
+                                    levels = c("low cue", "high cue"))
+SCR_filtered$stim_ordered <- factor(dplyr::case_when(
+  SCR_filtered$stimulusintensity == "low_stim"  ~ "Low",
+  SCR_filtered$stimulusintensity == "med_stim"  ~ "Med",
+  SCR_filtered$stimulusintensity == "high_stim" ~ "High"
+), levels = c("Low", "Med", "High"))
+
+SCR_groupwise <- SCR_filtered %>%
+  group_by(sub, stim_ordered, cue_ordered) %>%
+  summarise(mean_per_sub = mean(scr, na.rm = TRUE), .groups = "drop") %>%
+  group_by(stim_ordered, cue_ordered) %>%
+  summarise(mean_per_sub_norm_mean = mean(mean_per_sub, na.rm = TRUE),
+            se = sd(mean_per_sub, na.rm = TRUE) / sqrt(n()), .groups = "drop")
+SCR_groupwise$task <- "pain"
+```
+
+```{r scr-plot}
+p <- make_lineplot(SCR_groupwise, ylab = "SCR",
+                   ggtitle = paste0("SCR N =", length(overlapping_subjects)))
+print(p)
+print(SCR_groupwise)
+save_fig(p, paste0("SCR_maineffect", .date_suffix(), ".svg"),
+         dropbox_sub = "fig1", w = 8, h = 4)
+```
+
+### SCR linear analysis
+
+```{r scr-model}
+# contrast-code SCR_long (mirrors pain coding)
+SCR_long$STIM_linear    <- dplyr::recode(SCR_long$stimulusintensity,
+                                         low_stim = -0.5, med_stim = 0, high_stim = 0.5)
+SCR_long$STIM_quadratic <- dplyr::recode(SCR_long$stimulusintensity,
+                                         low_stim = -0.33, med_stim = 0.66, high_stim = -0.33)
+SCR_long$CUE_high_gt_low <- dplyr::recode(SCR_long$cue, low_cue = -0.5, high_cue = 0.5)
+
+SCR_filtered <- SCR_long %>% filter(sub %in% overlapping_subjects)
+
+model.SCR <- lmer(scr ~ CUE_high_gt_low * STIM_linear + CUE_high_gt_low * STIM_quadratic +
+                    (CUE_high_gt_low + STIM_linear || sub), data = SCR_filtered)
+if (isSingular(model.SCR)) {
+  message("SCR model singular; falling back to random intercept only.")
+  model.SCR <- lmer(scr ~ CUE_high_gt_low * STIM_linear + CUE_high_gt_low * STIM_quadratic +
+                      (1 | sub), data = SCR_filtered)
+}
+print(save_model_table(model.SCR, "SCR", "lmer(SCR ~ CUE * STIM + (CUE + STIM || sub))"))
+summary(model.SCR)
+```
+
+## 4. Prediction error (PEmerge)
+
+```{r pe-merge}
+PEdf <- read.csv(file.path(main_dir, "data/RL/modelfit_072024/table_pain.csv"))
+
+clean_filename <- function(filename) {
+  filename <- gsub("(cuetype-[^_]+)_cue", "\\1", filename)
+  filename <- gsub("(stimintensity-[^_]+)_stim_stim", "\\1", filename)
+  filename
+}
+PEdf$singletrial_fname      <- sapply(PEdf$singletrial_fname, clean_filename)
+df_filter$singletrial_fname <- sapply(df_filter$singletrial_fname, clean_filename)
+
+overlapping_cols <- setdiff(intersect(names(df_filter), names(PEdf)), "singletrial_fname")
+PEdf_clean <- PEdf %>% select(-all_of(overlapping_cols))
+PEmerge <- inner_join(df_filter, PEdf_clean, by = "singletrial_fname")
+
+# ---- write curated derivative (FIX: write_tsv, not write.csv(sep=)) ----------
+readr::write_tsv(PEmerge, file.path(curated_dir, "sub-all_runtype-pain_merge.tsv"))
+metadata <- list(
+  code_name = "scripts/step02_R_bookdown/book_ch4_postthesis_claude.Rmd",
+  code_path = "scripts/step02_R_bookdown/book_ch4_postthesis_claude.Rmd",
+  description = "Compiles NPS, SIIPS, behavioral, and model-fitted RL data into one dataframe (NA removed).",
+  input_files_directory = "analysis/fmri/nilearn",
+  output_directory = file.path(curated_dir)
+)
+jsonlite::write_json(metadata,
+  file.path(curated_dir, "sub-all_runtype-pain_merge.json"),
+  pretty = TRUE, auto_unbox = TRUE)
+
+PE.model <- fit_report(
+  nps ~ PE_mdl2 + (1 | sub), data = PEmerge, label = "PEnps",
+  title = "lmer(NPS ~ PE + (1 | sub), data = pain)",
+  control = lmerControl(optimizer = "nmkbw")
+)
+```
+
+```{r pe-scatter}
+PEmerge$sub <- factor(PEmerge$sub)
+viridis_colors <- viridis::viridis(n = length(unique(PEmerge$sub)), option = "B")
+
+plot.PE_NPS <- ggplot(PEmerge, aes(x = PE_mdl2, y = NPS)) +
+  geom_point(aes(colour = sub), size = .1, alpha = .3) +
+  geom_smooth(aes(colour = sub), method = "lm", formula = y ~ x, se = FALSE,
+              size = .3, linetype = "dashed") +
+  geom_smooth(method = "lm", formula = y ~ x, se = FALSE, size = .5, color = "black") +
+  theme_classic2() +
+  scale_color_manual(values = viridis_colors) +
+  xlab("PE") +
+  theme(aspect.ratio = 1, text = element_text(size = 18),
+        axis.title = element_text(size = 24), axis.text = element_text(size = 18),
+        plot.title = element_text(size = 24, hjust = 0.5), legend.position = "none")
+plot.PE_NPS
+save_fig(plot.PE_NPS, paste0("ch4_NPSPE", .date_suffix(), ".png"), w = 5, h = 4)
+save_fig(plot.PE_NPS, paste0("NPS_PE", .date_suffix(), ".svg"), dropbox_sub = "fig4")
+```
+
+## 5. Correlation plot (naive, cross-subject)
+* 07/06/2025: contrast coding so "high cue" > "low cue".
+
+```{r corr-naive}
+PEmerge$cuetype_numeric <- as.numeric(as.factor(PEmerge$cue))
+PEmerge$cue_coded <- ifelse(PEmerge$cue == "high_cue", 1, -1)
+PEmerge$beh_PE <- PEmerge$outcomerating_impute - PEmerge$expectrating_impute
+
+vars_to_center <- c("outcomerating_impute", "expectrating_impute", "PE_mdl2",
+                    "beh_PE", "nps", "npspos", "npsneg", "cue_coded")
+centered_vars <- as.data.frame(scale(PEmerge[, vars_to_center], center = TRUE, scale = FALSE))
+cor_matrix <- cor(centered_vars, use = "pairwise.complete.obs")
+corrplot(cor_matrix, method = "circle")
+# NOTE: the original referenced cor_matrix["cuetype_numeric", "PE_mdl2"], but
+# cuetype_numeric was never included in centered_vars, so that line errored.
+# cue_coded is the contrast-coded equivalent that *is* in the matrix:
+print(cor_matrix["cue_coded", "PE_mdl2"])
+```
+
+## 5b. Correlation plot — within-subject [Update]
+* 07/09: per Tor, correlations computed within participant (mean-centered per subject),
+  Fisher-z averaged, then one-sample t-tests vs zero.
+
+```{r corr-within}
+vars_to_normalize <- c("CUE_high_gt_low", "STIM_linear", "expectrating_impute",
+                       "outcomerating_impute", "PE_mdl2", "nps", "npspos", "npsneg", "SIIPS")
+new_labels <- c(CUE_high_gt_low = "Cue", STIM_linear = "Stimulus",
+                expectrating_impute = "Expected Rating", outcomerating_impute = "Outcome Rating",
+                PE_mdl2 = "Prediction Error", nps = "NPS Score", npspos = "NPS Positive",
+                npsneg = "NPS Negative", SIIPS = "SIIPS Score")
+stopifnot(all(vars_to_normalize %in% names(new_labels)))
+
+PEmerge_norm <- PEmerge %>%
+  group_by(sub) %>%
+  mutate(across(all_of(vars_to_normalize), ~ scale(., center = TRUE, scale = FALSE)[, 1])) %>%
+  ungroup()
+
+# per-subject correlation matrices (relabeled)
+cor_nested <- PEmerge_norm %>%
+  group_by(sub) %>% nest() %>%
+  mutate(cor_stats = map(data, ~ {
+    cr <- rcorr(as.matrix(.[, vars_to_normalize]), type = "pearson")
+    rmat <- cr$r; rownames(rmat) <- new_labels[rownames(rmat)]; colnames(rmat) <- new_labels[colnames(rmat)]
+    list(cor_matrix = rmat, n = cr$n[1, 1])
+  })) %>% ungroup()
+
+cor_list <- cor_nested %>% pull(cor_stats) %>% map("cor_matrix") %>% set_names(cor_nested$sub)
+
+# Fisher-z transform per subject
+fisher_z <- map(cor_list, function(m) {
+  z <- 0.5 * log((1 + m) / (1 - m))
+  z[is.na(m) | m == 1 | m == -1] <- NA
+  z
+})
+
+num_vars  <- nrow(fisher_z[[1]]); var_names <- rownames(fisher_z[[1]])
+sum_z   <- matrix(0, num_vars, num_vars, dimnames = list(var_names, var_names))
+count_z <- matrix(0, num_vars, num_vars, dimnames = list(var_names, var_names))
+for (z in fisher_z) {
+  ok <- !is.na(z); sum_z[ok] <- sum_z[ok] + z[ok]; count_z[ok] <- count_z[ok] + 1
+}
+avg_z <- sum_z / count_z; avg_z[is.nan(avg_z)] <- NA
+
+avg_r <- (exp(2 * avg_z) - 1) / (exp(2 * avg_z) + 1)
+diag(avg_r) <- 1
+avg_r[lower.tri(avg_r)] <- t(avg_r)[lower.tri(avg_r)]
+cat("\n--- Average Correlation Matrix (Fisher z) ---\n"); print(round(avg_r, 3))
+
+# one-sample t-tests vs zero on Fisher-z, per pair
+pmat <- matrix(NA, num_vars, num_vars, dimnames = list(var_names, var_names))
+for (i in 1:(num_vars - 1)) for (j in (i + 1):num_vars) {
+  zs <- map_dbl(fisher_z, ~ .x[var_names[i], var_names[j]], .null = NA)
+  zs <- zs[!is.na(zs)]
+  if (length(zs) < 2) next
+  tt <- t.test(zs, mu = 0)
+  pmat[i, j] <- pmat[j, i] <- tt$p.value
+}
+diag(pmat) <- 1
+
+corrplot(avg_r, method = "circle", main = "Average Correlation Matrix")
+
+# masked corrplot -> repo + dropbox
+corr_svg <- file.path(fig_dir, "fig4_correlation.svg")
+svg(corr_svg, width = 8, height = 8)
+corrplot(avg_r, p.mat = pmat, sig.level = c(0.001, 0.01, 0.05),
+         insig = "label_sig", pch.cex = 0.9, method = "color",
+         main = "Group average Correlation Matrix")
+dev.off()
+if (!is.null(dropbox_dir)) file.copy(corr_svg, file.path(dropbox_dir, "fig4_correlation.svg"), overwrite = TRUE)
+```
+
+#### Tor comments on correlation plot
+```
+Going through more of your output. the NPSpos clearly seems to track PE and is worth reporting. I like the correlation plot, though there are a couple of strange (reversed?) relationships if i am reading it right, and it makes me wonder if you mean-centered each variable for each subject before calculating the correlation matrix. this centering would then plot the average within-person relationships. Otherwise, between-person correlations will be mixed into this plot, perhaps resulting in a few weird things. but please correct me if I am mis-reading things. otherwise, this is very nice to include. you could do a within-person and a between-person correlation plot where you plot the correlations among the subject-wise mean values.
+```
+
+## 6. Partial effects of PE [Update]
+* 07/06/2025: plot partial effects of PE on NPS controlling for cue/stim.
+
+```{r partial-effects}
+NPSPE <- lmer(NPS ~ CUE_high_gt_low + STIM_linear + STIM_quadratic + scale(PE_mdl2) +
+                (1 | sub), data = PEmerge)
+
+plot_model(NPSPE, type = "eff", terms = c("PE_mdl2", "STIM_linear")) +
+  labs(title = "Partial Effect of Prediction Error on NPS, by Stimulus Level",
+       x = "Prediction Error (PE_mdl2)", y = "Predicted NPS") +
+  theme_classic2()
+
+NPSPEcombined <- fit_report(
+  NPS ~ CUE_high_gt_low + STIM_linear + STIM_quadratic + scale(PE_mdl2) + (1 | sub),
+  data = PEmerge, label = "NPSPEpartial",
+  title = "lmer(NPS ~ cue + stim + PE + (1 | sub), data = pain)"
+)
+
+PEmerge$predicted_NPS <- predict(NPSPE)
+PEmerge %>% arrange(sub, PE_mdl2) %>%
+  ggplot(aes(x = PE_mdl2, y = predicted_NPS, color = sub)) +
+  geom_line(aes(group = sub), alpha = 0.4) +
+  labs(title = "Subject-specific predicted slopes for Prediction Error",
+       x = "Prediction Error (PE_mdl2)", y = "Predicted NPS") +
+  theme_minimal(base_size = 14) + theme(legend.position = "none")
+
+pe_pred <- ggpredict(NPSPE, terms = c("PE_mdl2", "CUE_high_gt_low"))
+ggplot(pe_pred, aes(x = x, y = predicted)) +
+  geom_line() + geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.2) +
+  labs(title = "Partial Effect of Prediction Error on NPS",
+       x = "Prediction Error (PE_mdl2)", y = "Predicted NPS") +
+  theme_minimal(base_size = 14)
+```
+
+## 7. Model comparisons with PE [Update]
+We test whether adding trial-by-trial PE improves fit relative to cue/stim-only models,
+via subject-wise residual SD compared with nonparametric sign tests.
+
+#### Tor comments from Slack 06/26/2025
+```
+One more note for now.  Putting cue and PE into the same linear model, as you did for SIIPS (finding pos effects of both), requires some nuance to interpret and i'm not sure we want to go that route.
+This is because cue is a main driver of PEs: high cue -> high predicted pain -> more negative aversive PEs/positive appetitive PEs.  If you partial that out and then look at effects of PE, you're looking at effects of worse-than-expected pain independent of cue. That's interesting but driven by trial-to-trial fluctuations independent of cue, which are probably smaller effects than the cue effects.
+Overall, SIIPS activity is not consistent with aversive PEs, because it assimilates to cued values, rather than the opposite. Aversive PEs would show contrast from cued values like NPSpos does.
+A model comparison way to approach this could be the following:
+Test separate models with {cue}, {stim}, {pe}, {cue + stim}, and {cue + stim + pe} predictors. pe is a derived variable caused by negative effects of cue and positive effects of stim.
+Save residual variances for each subject for each model. Transform these to residual std by taking square root
+Perform sign tests on pairs of these residual std values (or paired t-tests, if approx normally dstributed) across models.  lower variance means a better model.
+A brain variable that codes for aversive PEs will show (a) pe < cue only and pe < stim only in terms of error, (b) negative effects of cue and positive effects of stim in {cue, stim} model, and possibly (c) {cue, stim, pe} < {cue, stim} in residual error. If (c) holds, the trial-to-trial PE predicts the outcome above and beyond the average cue and stim effects.  Also, if error for {pe alone} = error for {cue, stim} it means the trial-to-trial PE model captures the joint effects of cue and stim (ingredients of PE) adequately.
+```
+
+```{r model-comparison, message=TRUE, warning=TRUE}
+# STEP 1. one model per factor set ---------------------------------------------
+models <- list(
+  cue       = lmer(npspos ~ cue_coded + (1 | sub), data = PEmerge),
+  stim      = lmer(npspos ~ stim + (1 | sub), data = PEmerge),
+  PE        = lmer(npspos ~ PE_mdl2 + (1 | sub), data = PEmerge),
+  cuestim   = lmer(npspos ~ cue_coded + stim + (1 | sub), data = PEmerge),
+  cuePE     = lmer(npspos ~ cue_coded + PE_mdl2 + (1 | sub), data = PEmerge),
+  cuestimPE = lmer(npspos ~ cue_coded + stim + PE_mdl2 + (1 | sub), data = PEmerge)
+)
+
+# STEP 2. per-subject residual SD ----------------------------------------------
+get_sub_res_std <- function(model, df, subject_var = "sub") {
+  df$residuals <- residuals(model)
+  df %>% group_by(across(all_of(subject_var))) %>%
+    summarise(residual_std = sd(residuals, na.rm = TRUE), .groups = "drop")
+}
+all_res_std <- imap(models, ~ get_sub_res_std(.x, PEmerge) %>%
+                      rename(!!paste0("res_std_", .y) := residual_std)) %>%
+  reduce(left_join, by = "sub")
+
+# STEP 3. sign tests -----------------------------------------------------------
+cat("\n(a) median(res_std_cue - res_std_PE) > 0\n")
+print(SIGN.test(all_res_std$res_std_cue, all_res_std$res_std_PE, alternative = "greater"))
+cat("\n(b) median(res_std_stim - res_std_PE) > 0\n")
+print(SIGN.test(all_res_std$res_std_stim, all_res_std$res_std_PE, alternative = "greater"))
+cat("\n(c) median(res_std_cuestimPE - res_std_cuestim) > 0\n")
+print(SIGN.test(all_res_std$res_std_cuestimPE, all_res_std$res_std_cuestim, alternative = "greater"))
+cat("\n(d) median(res_std_cuePE - res_std_cuestim) > 0\n")
+print(SIGN.test(all_res_std$res_std_cuePE, all_res_std$res_std_cuestim, alternative = "greater"))
+
+# STEP 4. interpretation -------------------------------------------------------
+# (a) cue vs PE: PE better predictor of NPSpos than cue alone.
+# (b) stim vs PE: no difference.
+# (c) cue+stim+PE vs cue+stim: no difference (PE adds nothing beyond cue+stim).
+# (d) cue+PE vs cue+stim: cue+stim better.
+```
+
+## 8. NPS nociceptive ROIs (loop)
+
+```{r nps-roi-loop}
+dependent_vars <- c("nps", "npspos", "npsneg",
+  "pos_nps_vermis", "pos_nps_rIns", "pos_nps_rV1", "pos_nps_rThal",
+  "pos_nps_lIns", "pos_nps_rdpIns", "pos_nps_rS2_Op", "pos_nps_dACC",
+  "neg_nps_rLOC", "neg_nps_lLOC", "neg_nps_rpLOC", "neg_nps_pgACC",
+  "neg_nps_lSTS", "neg_nps_rIPL", "neg_nps_PCC")
+roi_labels <- c("NPS", "NPS positive weights", "NPS negative weights",
+  "Vermis", "rIns", "rV1", "rThal", "lIns", "rdpIns", "rS2 & Op", "dACC",
+  "rLOC", "lLOC", "rpLOC", "pgACC", "lSTS", "rIPL", "PCC")
+
+df_filter.NA <- df_filter %>% filter(!is.na(nps)) %>%
+  group_by(sub) %>% mutate(NPS_scaled = scale(nps)) %>% ungroup() %>%
+  prep_factors()
+
+roi_groupwise_all <- list()
+for (i in seq_along(dependent_vars)) {
+  dv <- dependent_vars[i]; dv_title <- roi_labels[i]
+  message("___ ", i, " ", dv, " (", dv_title, ") ___")
+
+  # lmer (singular-tolerant); summary -> model_dir
+  fml <- as.formula(paste(dv,
+    "~ CUE_high_gt_low * STIM_linear + CUE_high_gt_low * STIM_quadratic + (CUE_high_gt_low + STIM_linear | sub)"))
+  m <- lmer(fml, data = df_filter.NA,
+            control = lmerControl(check.conv.singular = .makeCC(action = "ignore", tol = 1e-4)))
+  print(save_model_table(m, paste0("roi-", dv), paste0("lmer(", dv, " ~ CUE * STIM + (CUE + STIM | sub))")))
+  print(performance::r2(m))
+
+  gw <- twofactor_groupwise(df_filter.NA, dv)$groupwise
+  roi_groupwise_all[[dv]] <- gw
+
+  g <- make_lineplot(gw, ylab = "Mean score", ggtitle = dv_title)
+  print(g)
+  save_fig(g, paste0("lineplot_task-all_rating-NPS", dv, ".svg"),
+           dropbox_sub = "fig3", w = 8, h = 4)
+}
+```
+
+### Sessionwise filter
+Defined here because the sessionwise plots/models below all consume `df_filter_ses`.
+
+```{r session-filter}
+bad_subs_ses <- inadequate_subjects(data, c("sub", "CUE_high_gt_low", "STIM_linear", "SES_linear"), 3)
+df_filter_ses <- data %>% filter(!(sub %in% bad_subs_ses))
+message(sprintf("sessionwise filter: N=%d -> N=%d",
+                length(unique(data$sub)), length(unique(df_filter_ses$sub))))
+```
+
+### 8-2. ROI per session
+
+```{r nps-roi-session-loop}
+for (i in seq_along(dependent_vars)) {
+  dv <- dependent_vars[i]; dv_title <- roi_labels[i]
+  message("Plotting ", dv_title, " across sessions...")
+  p <- sessionwise_plot(df_filter_ses, dv, title = dv_title, ylab = dv_title)
+  print(p)
+  save_fig(p, paste0("roi-", dv, "_bysession", .date_suffix(), ".svg"),
+           dropbox_sub = "supp", w = 10, h = 4)   # FIX: was plot=k (stale)
+}
+```
+
+## 9. SIIPS and PE (PEmerge)
+
+```{r siips-pe}
+SIIPSPE <- lmer(SIIPS ~ CUE_high_gt_low + STIM_linear + PE_mdl2 +
+                  (CUE_high_gt_low + STIM_linear | sub),
+                data = PEmerge,
+                control = lmerControl(check.conv.singular = .makeCC(action = "ignore", tol = 1e-4)))
+summary(SIIPSPE)
+vif(SIIPSPE)
+print(save_model_table(SIIPSPE, "SIIPSPE", "lmer(SIIPS ~ CUE + STIM + PE + (CUE + STIM | sub))"))
+```
+
+## 10. Sessionwise Beh
+
+```{r beh-session}
+# Fit INLINE (not via fit_report) because allFit() refits the model and needs the
+# stored call to hold a real control expression + the actual data symbol. A model
+# fit inside fit_report stores `control`/`data` as bare arg symbols, which makes
+# allFit error ("object of type 'symbol' is not subsettable") and would otherwise
+# resolve `data` to the wrong global object.
+model.behses <- lmer(
+  outcomerating_impute ~
+    CUE_high_gt_low * STIM_linear * SES_linear +
+    CUE_high_gt_low * STIM_quadratic * SES_linear +
+    CUE_high_gt_low * STIM_linear * SES_quadratic +
+    CUE_high_gt_low * STIM_quadratic * SES_quadratic +
+    (CUE_high_gt_low + STIM_linear + SES_linear | sub),
+  data = df_filter_ses,
+  control = lmerControl(check.conv.singular = .makeCC(action = "ignore", tol = 1e-4))
+)
+print(summary(model.behses))
+print(save_model_table(model.behses, "behses",
+  "lmer(BEH ~ CUE * STIM * SES + (CUE + STIM + SES | sub), data = pain)"))
+try(print(equatiomatic::extract_eq(model.behses)), silent = TRUE)
+
+abeh <- lme4::allFit(model.behses)
+print(glance(abeh) |> select(optimizer, AIC, NLL_rel) |> arrange(NLL_rel))
+
+p <- sessionwise_plot(df_filter_ses, "outcomerating_impute", title = "Beh", ylab = "Beh")
+print(p)
+save_fig(p, paste0("beh_by_session", .date_suffix(), ".svg"), dropbox_sub = "supp", w = 10, h = 4)
+```
+
+## 11. Sessionwise NPS [Update]
+* using `||` to keep random-slope correlations at 0; reduces 10 -> 4 params.
+
+```{r nps-session}
+model.NPSses <- lmer(NPS ~
+    CUE_high_gt_low * STIM_linear * SES_linear +
+    CUE_high_gt_low * STIM_quadratic * SES_linear +
+    CUE_high_gt_low * STIM_linear * SES_quadratic +
+    CUE_high_gt_low * STIM_quadratic * SES_quadratic +
+    (SES_linear || sub), data = df_filter_ses,
+  control = lmerControl(optimizer = "optimx",
+    optCtrl = list(method = "nmkb", maxit = 1e9, maxfun = 1e9,
+                   maxeval = 1e7, xtol_abs = 1e-9, ftol_abs = 1e-9)))
+summary(model.NPSses)
+print(save_model_table(model.NPSses, "NPSses",
+  "lmer(NPS ~ CUE * STIM * SES + (SES || sub), data = pain)"))
+VarCorr(model.NPSses)
+
+p <- sessionwise_plot(df_filter_ses, "NPS", title = "NPS", ylab = "NPS")
+print(p)
+save_fig(p, paste0("NPS_by_session", .date_suffix(), ".svg"), dropbox_sub = "supp", w = 10, h = 4)
+```
+
+```{r nps-session-pred}
+pred <- ggpredict(model.NPSses,
+  terms = c("STIM_quadratic [-0.33, 0, 0.66]", "CUE_high_gt_low [-0.5, 0.5]",
+            "SES_linear [-0.5, 0, 0.5]"))
+plot(pred)
+```
+
+## 11-2. Sessionwise NPSpos [Update]
+> cue/stim random-slope variances ~0, so dropped from random structure.
+
+```{r npspos-session}
+model.NPSposses <- lmer(npspos ~
+    CUE_high_gt_low * STIM_linear * SES_linear +
+    CUE_high_gt_low * STIM_quadratic * SES_linear +
+    CUE_high_gt_low * STIM_linear * SES_quadratic +
+    CUE_high_gt_low * STIM_quadratic * SES_quadratic +
+    (1 + SES_quadratic || sub), data = df_filter_ses,
+  control = lmerControl(optimizer = "optimx",
+    optCtrl = list(method = "nmkb", maxit = 1e9, maxfun = 1e9,
+                   maxeval = 1e7, xtol_abs = 1e-9, ftol_abs = 1e-9)))
+summary(model.NPSposses)
+print(save_model_table(model.NPSposses, "NPSposses",
+  "lmer(NPSpos ~ CUE * STIM * SES + (1 + SES_quadratic || sub), data = pain)"))
+
+p <- sessionwise_plot(df_filter_ses, "npspos", title = "NPS (pos)", ylab = "NPS (pos)")
+print(p)
+save_fig(p, paste0("NPSpos_by_session", .date_suffix(), ".svg"), dropbox_sub = "supp", w = 10, h = 4)
+```
+
+## 12. Sessionwise SIIPS [Update]
+> cue random slopes were collinear with intercepts (r = 1); session is inversely
+> collinear with stimulus intensity.
+
+```{r siips-session}
+with(df_filter_ses, table(CUE_high_gt_low, STIM_linear, SES_linear))
+
+model.SIIPSses <- lmer(SIIPS ~
+    CUE_high_gt_low * STIM_linear * SES_linear +
+    CUE_high_gt_low * STIM_quadratic * SES_linear +
+    CUE_high_gt_low * STIM_linear * SES_quadratic +
+    CUE_high_gt_low * STIM_quadratic * SES_quadratic +
+    (1 + CUE_high_gt_low + STIM_quadratic + SES_linear || sub),
+  data = df_filter_ses, control = lmerControl(optimizer = "nmkbw"))
+summary(model.SIIPSses)
+print(save_model_table(model.SIIPSses, "SIIPSses",
+  "lmer(SIIPS ~ CUE * STIM * SES + (CUE + STIM + SES || sub), data = pain)"))
+
+p <- sessionwise_plot(df_filter_ses, "SIIPS", title = "SIIPS", ylab = "SIIPS")
+print(p)
+save_fig(p, paste0("SIIPS_by_session", .date_suffix(), ".svg"), dropbox_sub = "supp", w = 10, h = 4)
+```
+
+## Model-table index
+
+One HTML that links + embeds every model table generated above, for side-by-side
+stat reporting. Open `analysis/mixedeffect_revision/ch4/tables/index.html`.
+
+```{r tables-index}
+idx <- build_tables_index()
+cat("All model tables:", normalizePath(idx, mustWork = FALSE), "\n")
+```

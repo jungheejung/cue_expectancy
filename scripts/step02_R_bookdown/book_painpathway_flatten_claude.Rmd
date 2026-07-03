@@ -1,0 +1,525 @@
+---
+title: "painpathway_flatten (refactored)"
+output: html_document
+date: "2026-07-02"
+---
+
+<!--
+================================================================================
+REFACTOR NOTES (book_painpathway_flatten_claude.Rmd)
+--------------------------------------------------------------------------------
+This is a refactored copy of book_painpathway_flatten.Rmd (same pattern as
+book_ch4_postthesis_claude.Rmd). The main ROI analysis is intended to be
+IDENTICAL (same formula, same random-effects structure, same trial-count
+filters); the changes are structural + bug fixes:
+
+BUGS FOUND in book_painpathway_flatten.Rmd:
+  1. Dead/broken code (2nd half of the file, roughly lines 752-973): loops
+     over dependent_vars containing L/R-suffixed ROI names
+     (Thal_VPLM_L, pbn_R, Amy_L, dpIns_R, s1_handplus_L, ...). This "flatten"
+     dataset only has the already-flattened columns (Thal_VPLM, pbn, Amy,
+     dpIns, s1_handplus, ...) -- see roi-painpathway_..._event-stimulus.tsv
+     header. Those chunks would error with "object 'Thal_VPLM_L' not found"
+     if actually knitted; they look like leftover copy-paste from a
+     non-flattened (L/R-split) chapter-4 script. Removed.
+  2. The same dead block also hardcodes an absolute path into a *different*
+     chapter's Dropbox export folder
+     (resources/plots_dissertation/ch4/painpathway_cue_<dv>.svg) -- wrong
+     analysis, wrong machine-specific path. Removed along with #1.
+  3. Duplicate sessionwise-plot loop: "1. organize session wise data frame"
+     and "2. plot per session" run the *exact same* per-ROI/per-session
+     summarise+plot twice back to back (only cosmetic differences:
+     `!!sym(dv)` vs `.data[[dv]]`, and the ggsave filename uses `dv` vs
+     `dv_title`). Doubles plotting cost for identical output. Collapsed to
+     one loop (sessionwise_plot() helper).
+  4. Filename bug: `paste('lineplot_task-all_rating-', dv_keyword, dv, '.svg')`
+     has no separator between dv_keyword and dv, and dv_keyword <- dv in this
+     loop, so filenames double up the ROI name, e.g.
+     "lineplot_task-all_rating-Thal_VPLMThal_VPLM.svg". Fixed to a single
+     readable name.
+  5. Every re-run writes to a NEW dated folder
+     (analysis/mixedeffect/extract_biomarker/glm_single_cue-effect/<date>/...)
+     instead of a stable path, so old raincloud PNGs pile up untouched (this
+     is why `git status` shows dozens of deleted dated PNGs going back to
+     2023-02-03). Moved outputs to one stable root under
+     analysis/mixedeffect_revision/painpathway/{figures,models,tables}.
+  6. `parse_lmer_output()` hand-parses the printed text of summary() with
+     regexes tied to an exact row layout -- silently mis-parses or drops rows
+     whenever the printed table shifts (extra convergence-warning lines,
+     wrapped term names, etc). Replaced with broom.mixed::tidy() on the
+     actual fitted model object (same approach used in the ch4 refactor),
+     which is robust regardless of print formatting.
+  7. `devtools::source_url(...geom_flat_violin.R)` fetches a script from a
+     GitHub gist on every knit, but geom_flat_violin is never called anywhere
+     in the notebook -- a dead network dependency (and a knit-breaking risk
+     if the gist ever moves/goes down). Removed.
+  8. Minor dead code: the `if (any(startsWith(dv_keyword, c("expect",
+     "Expect"))))` colour branch can never fire here -- dv is always a
+     painpathway ROI acronym, never a rating column -- left over from a
+     copy-pasted behavioral-rating script. Removed (always uses the ROI
+     colour).
+  9. Aesthetic mismatch vs. ch4: the original's bare `plot_lineplot_twofactor_subset()`
+     call resolves to the same-named function sourced from scripts/step02_R/utils/
+     (geom_errorbar with capped "T bars"), NOT the cueR package version ch4 uses
+     explicitly (geom_pointrange, no caps). Two functions, same name, different
+     look. make_lineplot() below now calls cueR::plot_lineplot_twofactor_subset()
+     explicitly so the main-effect lineplots render as plain point-intervals,
+     matching ch4.
+  10. Dead-code aspect-ratio override: `g_low + theme(aspect.ratio = .8)` in the
+      original built a modified plot but never reassigned it, so the very next
+      line saved the untouched `g_low` (aspect.ratio = 1, from theme_lineplot)
+      anyway -- the 0.8 override never actually applied. Harmless in practice,
+      but misleading to read (implies low-cue plots are 0.8 while the combined
+      plot is 1). ch4 has no such override anywhere. Removed, so every
+      main-effect lineplot here (low-cue-only and both-cue) uses the same
+      aspect.ratio = 1 panel, matching ch4 exactly.
+
+STRUCTURAL changes (mirrors book_ch4_postthesis_claude.Rmd):
+  * One config chunk (paths, palette, theme, ROI acronym -> full-name labels
+    per user-confirmed mapping in memory `roi-name-lookup`).
+  * Helper functions replace the copy-pasted lineplot / sessionwise-plot /
+    model-table blocks.
+  * Every fitted model's FULL statistics (fixed + random effects, CI, ICC,
+    R^2, AIC) is written as a standalone, readable HTML via
+    sjPlot::tab_model(), plus a tidy coefficients CSV (broom.mixed) for
+    scripting, plus the classic summary() as a .txt (back-compat).
+  * A single `index.html` links + embeds every model's HTML table in a
+    responsive grid -- one-stop-shop for all painpathway ROI results, same
+    pattern as analysis/mixedeffect_revision/ch4/tables/index.html.
+  * Filenames are stable (no Sys.Date() embedded) so re-renders overwrite
+    rather than accumulate dated files.
+
+IMPORTANT: I could not execute R in this environment, so please run once and
+sanity-check before trusting outputs.
+================================================================================
+-->
+
+# Setup
+
+```{r setup, message=FALSE, warning=FALSE, include=FALSE}
+pkgs <- c(
+  "car", "cueR", "lme4", "optimx", "minqa", "dfoptim", "tidyverse", "psych",
+  "reshape", "dplyr", "tidyr", "stringr", "lmerTest", "gghalves", "plyr",
+  "ggpubr", "r2mlm", "effectsize", "EMAtools", "emmeans", "sjPlot",
+  "sjmisc", "sjlabelled", "plotly", "DT", "raincloudplots", "broom.mixed",
+  "performance"
+)
+invisible(lapply(pkgs, function(p) suppressPackageStartupMessages(library(p, character.only = TRUE))))
+options(es.use_symbols = TRUE)
+
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+
+# ---- source project utils (meanSummary, summarySEwithin). NOTE: utils/ also
+#      defines a same-named plot_lineplot_twofactor_subset() (geom_errorbar,
+#      capped "T bars") that would shadow cueR's version if called bare --
+#      make_lineplot() below calls cueR::plot_lineplot_twofactor_subset()
+#      explicitly (geom_pointrange, no caps) to avoid that collision and match
+#      the ch4 aesthetic. ---------------------------------------------------
+main_dir <- dirname(dirname(getwd()))
+file.sources <- list.files(file.path(main_dir, "scripts", "step02_R", "utils"),
+                           pattern = "*.R", full.names = TRUE, ignore.case = TRUE)
+invisible(sapply(file.sources, source, .GlobalEnv))
+```
+
+```{r config}
+# ==============================================================================
+# CONFIG -- single source of truth for paths, colours, theme, and ROI labels.
+# ==============================================================================
+
+# ---- output roots (stable, repo-relative; re-runs overwrite, not accumulate) --
+results_root <- file.path(main_dir, "analysis", "mixedeffect_revision", "painpathway")
+fig_dir      <- file.path(results_root, "figures")   # .svg figures
+model_dir    <- file.path(results_root, "models")    # lmer .txt summaries
+table_dir    <- file.path(results_root, "tables")    # full-stats HTML + CSV tables
+
+for (d in c(results_root, fig_dir, model_dir, table_dir)) {
+  dir.create(d, showWarnings = FALSE, recursive = TRUE)
+}
+
+# ---- palette / theme ----------------------------------------------------------
+lowcuehex  <- "#0b5fa6"
+highcuehex <- "#C5263A"
+cue_colors <- c("low cue" = lowcuehex, "high cue" = highcuehex)
+cue_colors_title <- c("Low cue" = lowcuehex, "High cue" = highcuehex)
+
+pt_size <- 3
+
+theme_lineplot <- ggplot2::theme(
+  aspect.ratio = 1,
+  text         = ggplot2::element_text(size = 18),
+  axis.title   = ggplot2::element_text(size = 22),
+  axis.text    = ggplot2::element_text(size = 15),
+  plot.title   = ggplot2::element_text(size = 24, hjust = 0.5)
+)
+
+# ---- painpathway ROIs: acronym -> full name -----------------------------------
+# Source: user-confirmed mapping, memory `roi-name-lookup` (2026-07-01).
+# 24 hemisphere ROIs flatten to 15 regions (L/R combined at the subject level
+# upstream, before this script runs -- hence "_flatten" in the filename).
+dependent_vars <- c("Thal_VPLM", "Thal_IL", "Thal_MD", "Hythal", "pbn",
+                    "Bstem_PAG", "rvm", "Amy", "dpIns", "S2", "mIns", "aIns",
+                    "aMCC_MPFC", "s1_foot", "s1_handplus")
+
+roi_fullname <- c(
+  Thal_VPLM   = "Ventral posterolateral thalamus (VPL/VPM)",
+  Thal_IL     = "Intralaminar thalamus",
+  Thal_MD     = "Medial dorsal thalamus",
+  Hythal      = "Hypothalamus",
+  pbn         = "Parabrachial nucleus",
+  Bstem_PAG   = "Periaqueductal gray",
+  rvm         = "Rostral ventral medulla",
+  Amy         = "Amygdala",
+  dpIns       = "Dorsal posterior insula",
+  S2          = "Secondary somatosensory ctx",
+  mIns        = "Mid insula",
+  aIns        = "Anterior insula",
+  aMCC_MPFC   = "Anterior midcingulate / mPFC",
+  s1_foot     = "Primary somatosensory ctx (foot)",
+  s1_handplus = "Primary somatosensory ctx (hand)"
+)
+```
+
+```{r helpers}
+# ==============================================================================
+# HELPERS
+# ==============================================================================
+
+#' Add contrast-coded columns for the pain task (STIM, CUE, SES) in place.
+contrast_code <- function(df) {
+  df$stim <- NA; df$STIM_linear <- NA; df$STIM_quadratic <- NA
+  df$CUE_high_gt_low <- NA; df$SES_linear <- NA; df$SES_quadratic <- NA
+
+  df$stim[df$stimulusintensity == "low_stim"]  <- -0.5
+  df$stim[df$stimulusintensity == "med_stim"]  <-  0
+  df$stim[df$stimulusintensity == "high_stim"] <-  0.5
+
+  df$STIM <- factor(df$stimulusintensity)
+
+  df$STIM_linear[df$stimulusintensity == "low_stim"]  <- -0.5
+  df$STIM_linear[df$stimulusintensity == "med_stim"]  <-  0
+  df$STIM_linear[df$stimulusintensity == "high_stim"] <-  0.5
+
+  df$STIM_quadratic[df$stimulusintensity == "low_stim"]  <- -0.33
+  df$STIM_quadratic[df$stimulusintensity == "med_stim"]  <-  0.66
+  df$STIM_quadratic[df$stimulusintensity == "high_stim"] <- -0.33
+
+  df$CUE_high_gt_low[df$cue == "low_cue"]  <- -0.5
+  df$CUE_high_gt_low[df$cue == "high_cue"] <-  0.5
+
+  df$SES_linear[df$ses == "ses-01"] <- -0.5
+  df$SES_linear[df$ses == "ses-03"] <-  0
+  df$SES_linear[df$ses == "ses-04"] <-  0.5
+
+  df$SES_quadratic[df$ses == "ses-01"] <- -0.33
+  df$SES_quadratic[df$ses == "ses-03"] <-  0.66
+  df$SES_quadratic[df$ses == "ses-04"] <- -0.33
+
+  df$EXPECT  <- df$expectrating
+  df$OUTCOME <- df$outcomerating
+  df
+}
+
+#' Add ordered cue/stim factors used by the lineplot helpers (lowercase labels).
+prep_factors <- function(df) {
+  df$cue_name <- NA; df$stim_name <- NA
+  df$cue_name[df$cue == "high_cue"] <- "high cue"
+  df$cue_name[df$cue == "low_cue"]  <- "low cue"
+  df$stim_name[df$stimulusintensity == "high_stim"] <- "High"
+  df$stim_name[df$stimulusintensity == "med_stim"]  <- "Med"
+  df$stim_name[df$stimulusintensity == "low_stim"]  <- "Low"
+  df$stim_ordered <- factor(df$stim_name, levels = c("Low", "Med", "High"))
+  df$cue_ordered  <- factor(df$cue_name,  levels = c("low cue", "high cue"))
+  df
+}
+
+#' Subjects with < min_n trials in any cell defined by `cells`.
+inadequate_subjects <- function(df, cells, min_n = 2) {
+  df %>%
+    group_by(across(all_of(cells))) %>%
+    dplyr::summarise(count = n(), .groups = "drop") %>%
+    filter(count < min_n) %>%
+    distinct(sub) %>%
+    pull(sub)
+}
+
+#' meanSummary -> summarySEwithin for a two-factor (stim x cue) design.
+twofactor_groupwise <- function(df, dv, subject = "sub",
+                                iv1 = "stim_ordered", iv2 = "cue_ordered") {
+  sw <- meanSummary(df, c(subject, iv1, iv2), dv)
+  gw <- summarySEwithin(
+    data = sw, measurevar = "mean_per_sub",
+    withinvars = c(iv1, iv2), idvar = subject
+  )
+  gw$task <- "pain"
+  list(subjectwise = sw, groupwise = gw)
+}
+
+#' Main-effect lineplot (both cues, or low-cue-only). Returns a ggplot.
+make_lineplot <- function(groupwise, ylab, ylim = NULL, ggtitle = "",
+                          low_cue_only = FALSE) {
+  dat <- if (low_cue_only) groupwise[groupwise$cue_ordered == "low cue", ] else groupwise
+  cols <- if (low_cue_only) cue_colors["low cue"] else cue_colors
+  g <- cueR::plot_lineplot_twofactor_subset(
+    dat, taskname = "pain",
+    iv1 = "stim_ordered", iv2 = "cue_ordered",
+    mean = "mean_per_sub_norm_mean", error = "se",
+    color = cols, ggtitle = ggtitle,
+    xlab = "Stimulus intensity", ylab = ylab
+  ) + theme_lineplot + ggplot2::geom_point(size = pt_size)
+  if (!is.null(ylim)) g <- g + ggplot2::ylim(ylim[1], ylim[2])
+  g
+}
+
+#' Faceted sessionwise plot (one panel per session). Returns a ggplot.
+sessionwise_plot <- function(df, dv, title, ylab = title) {
+  df$ses_name <- factor(df$ses, levels = c("ses-01", "ses-03", "ses-04"),
+                        labels = c("Session 1", "Session 2", "Session 3"))
+  df$cue_ordered  <- factor(ifelse(df$cue == "high_cue", "High cue", "Low cue"),
+                            levels = c("Low cue", "High cue"))
+  df$stim_ordered <- factor(dplyr::case_when(
+    df$stimulusintensity == "low_stim"  ~ "Low",
+    df$stimulusintensity == "med_stim"  ~ "Med",
+    df$stimulusintensity == "high_stim" ~ "High"
+  ), levels = c("Low", "Med", "High"))
+
+  summ <- df %>%
+    group_by(ses_name, stim_ordered, cue_ordered, sub) %>%
+    summarise(mean_per_sub = mean(.data[[dv]], na.rm = TRUE), .groups = "drop") %>%
+    group_by(ses_name, stim_ordered, cue_ordered) %>%
+    summarise(mean = mean(mean_per_sub, na.rm = TRUE),
+              se   = sd(mean_per_sub, na.rm = TRUE) / sqrt(n()),
+              .groups = "drop")
+
+  ggplot(summ, aes(x = stim_ordered, y = mean, color = cue_ordered, group = cue_ordered)) +
+    geom_linerange(aes(ymin = mean - se, ymax = mean + se), linewidth = 0.5) +
+    geom_line(linewidth = 1) +
+    geom_point(size = pt_size, shape = 16) +
+    facet_wrap(~ ses_name, ncol = 3) +
+    scale_color_manual(values = cue_colors_title) +
+    labs(title = paste(title, "Across Sessions"), x = "Stimulus Intensity",
+         y = ylab, color = "Cue Type") +
+    theme_classic() +
+    theme(aspect.ratio = 0.8, axis.line = element_line(linewidth = 0.5),
+          axis.text = element_text(size = 12), axis.title = element_text(size = 14),
+          plot.title = element_text(size = 16, hjust = 0.5),
+          strip.background = element_blank(),
+          strip.text = element_text(size = 14, face = "bold"),
+          legend.position = "bottom")
+}
+
+#' Save a figure to the repo fig_dir.
+save_fig <- function(plot, fname, w = 8, h = 4, dpi = 300) {
+  ggsave(file.path(fig_dir, fname), plot = plot, width = w, height = h, dpi = dpi)
+  invisible(plot)
+}
+
+#' Save a FULL statistics table for any (mixed) model as a permanent derivative,
+#' and return the table object so it ALSO renders inline when knitting.
+#' Writes three files keyed by `label`:
+#'   table_dir/<label>_table.html  -- rich sjPlot::tab_model: fixed + random
+#'        effects, 95% CI, SE, test statistic, p, ICC, N (obs + groups),
+#'        marginal/conditional R^2, AIC.
+#'   table_dir/<label>_coefs.csv   -- tidy fixed-effects table for scripting
+#'        (broom.mixed; this is what build_significance_summary() reads, so it
+#'        is robust to how summary() happens to print -- see refactor note #6).
+#'   model_dir/<label>_summary.txt -- raw summary() (back-compat plain text).
+save_model_table <- function(m, label, title = label) {
+  html <- file.path(table_dir, paste0(label, "_table.html"))
+  tbl <- sjPlot::tab_model(
+    m, title = title,
+    show.se = TRUE, show.stat = TRUE, show.ci = 0.95,
+    show.re.var = TRUE, show.icc = TRUE, show.r2 = TRUE,
+    show.ngroups = TRUE, show.obs = TRUE, show.aic = TRUE,
+    CSS = list(css.table = "+font-size: 12;")
+  )
+  try(writeLines(tbl$page.complete, html), silent = TRUE)
+  if (requireNamespace("broom.mixed", quietly = TRUE)) {
+    try(readr::write_csv(broom.mixed::tidy(m, effects = "fixed", conf.int = TRUE),
+                         file.path(table_dir, paste0(label, "_coefs.csv"))), silent = TRUE)
+  }
+  sink(file.path(model_dir, paste0(label, "_summary.txt"))); print(summary(m)); sink(NULL)
+  invisible(tbl)
+}
+
+#' Fit an lmer, print summary, and persist the full table via save_model_table().
+fit_report <- function(formula, data, label, title = NULL, control = lme4::lmerControl()) {
+  m <- lmerTest::lmer(formula, data = data, control = control)
+  print(summary(m))
+  if (is.null(title)) title <- label
+  print(save_model_table(m, label, title))
+  m
+}
+
+#' Build a single index.html that links + embeds every <label>_table.html in
+#' table_dir, in a responsive grid for one-glance, side-by-side stat reporting.
+#' Re-run any time; it always reflects whatever model tables currently exist.
+build_tables_index <- function(dir = table_dir, out = file.path(table_dir, "index.html"),
+                               page_title = "Pain pathway ROI — model tables") {
+  files <- sort(list.files(dir, pattern = "_table\\.html$"))
+  if (length(files) == 0) { message("No *_table.html found in ", dir); return(invisible(NULL)) }
+  labs  <- sub("_table\\.html$", "", files)
+  toc   <- paste(sprintf('<a href="#%s">%s</a>', labs, labs), collapse = " ")
+  cards <- paste(sprintf(
+    '<section id="%s" class="card"><h2>%s</h2><iframe src="%s" loading="lazy"></iframe></section>',
+    labs, labs, files), collapse = "\n")
+  html <- sprintf('<!DOCTYPE html><html><head><meta charset="utf-8"><title>%s</title>
+<style>
+body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:1rem;background:#fafafa;color:#222;}
+h1{font-size:1.3rem;} .toc{line-height:1.8;} .toc a{margin-right:.8rem;white-space:nowrap;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:1rem;margin-top:1rem;}
+.card{background:#fff;border:1px solid #ddd;border-radius:8px;padding:.5rem;}
+.card h2{font-size:1rem;margin:.2rem .2rem .5rem;} iframe{width:100%%;height:380px;border:0;}
+</style></head><body>
+<h1>%s (%s) &mdash; %d models</h1>
+<p class="toc">%s</p>
+<div class="grid">%s</div></body></html>',
+    page_title, page_title, as.character(Sys.Date()), length(files), toc, cards)
+  writeLines(html, out)
+  message("Wrote table index: ", out)
+  invisible(out)
+}
+
+#' Combine every <label>_coefs.csv in table_dir into one tidy fixed-effects
+#' table, and write all/significant/highly-significant CSV summaries.
+#' Replaces the old text-regex parse_lmer_output() (refactor note #6): reads
+#' the tidy coefficients broom.mixed already wrote for each model, instead of
+#' re-parsing summary()'s printed layout.
+build_significance_summary <- function(dir = table_dir) {
+  coef_files <- list.files(dir, pattern = "_coefs\\.csv$", full.names = TRUE)
+  if (length(coef_files) == 0) { message("No *_coefs.csv found in ", dir); return(invisible(NULL)) }
+
+  all_results <- purrr::map_dfr(coef_files, function(f) {
+    dv_name <- sub("_coefs\\.csv$", "", basename(f))
+    readr::read_csv(f, show_col_types = FALSE) %>% mutate(dv = dv_name, .before = 1)
+  })
+
+  readr::write_csv(all_results, file.path(dir, "all_painpathway_effects.csv"))
+
+  significant_results <- all_results %>%
+    filter(p.value < 0.05, term != "(Intercept)") %>%
+    arrange(term, p.value)
+  readr::write_csv(significant_results, file.path(dir, "significant_painpathway_effects.csv"))
+
+  highly_sig <- all_results %>%
+    filter(p.value < 0.001, term != "(Intercept)") %>%
+    arrange(p.value)
+  readr::write_csv(highly_sig, file.path(dir, "highly_significant_painpathway_effects_p001.csv"))
+
+  sig_summary <- significant_results %>%
+    group_by(term) %>%
+    dplyr::summarise(n_significant = n(), regions = paste(dv, collapse = ", "), .groups = "drop")
+  readr::write_csv(sig_summary, file.path(dir, "significant_effects_summary_by_term.csv"))
+
+  cat("\n=== SIGNIFICANT EFFECTS (p < 0.05) ===\n"); print(significant_results)
+  cat("\n=== SUMMARY BY PREDICTOR ===\n"); print(sig_summary)
+  cat("\n=== HIGHLY SIGNIFICANT EFFECTS (p < 0.001) ===\n"); print(highly_sig)
+
+  invisible(list(all = all_results, significant = significant_results, highly_significant = highly_sig))
+}
+```
+
+# F. Painpathway ROIs
+
+## F-1. Load data
+
+```{r prepare-data}
+beh <- readr::read_tsv(file.path(main_dir, "data/beh/sub-all_task-all_events.tsv"))
+all_data <- readr::read_tsv(file.path(main_dir,
+  "analysis/fmri/nilearn/deriv01_signature/rampup_plateau_painpathway/roi-painpathway_sub-all_runtype-pvc_event-stimulus.tsv"))
+
+df_merge <- inner_join(beh, all_data, by = "singletrial_fname") %>%
+  mutate(singletrial_fname = as.character(singletrial_fname)) %>%
+  extract(singletrial_fname,
+          into = c("sub", "ses", "run", "runtype", "event", "trial", "cuetype", "stimintensity"),
+          regex = "^(sub-\\d+)_(ses-\\d+)_(run-\\d+)_runtype-(pain|vicarious|cognitive)_event-(cue|stimulus)_trial-(\\d+)_cuetype-(high|low)(?:_stimintensity-(high|med|low))?\\.nii.gz$",
+          remove = FALSE)
+
+df_merge$stimintensity[df_merge$stimintensity == ""] <- NA
+
+# pain only + contrast coding
+data <- contrast_code(df_merge[df_merge$runtype == "pain", ])
+
+# ---- restrict to the common analysis sample (beh n NPS n SIIPS n ROI) --------
+# Single shared sample across all neural analyses (SCR handled separately).
+# Written by scripts/step02_R_bookdown/revision_intersection_and_cueepoch.R.
+.isect <- file.path(main_dir, "analysis", "mixedeffect_revision", "participants_intersection.csv")
+if (file.exists(.isect)) {
+  .common <- readr::read_csv(.isect, show_col_types = FALSE)$sub
+  data <- data %>% filter(sub %in% .common)
+  message(sprintf("common analysis sample: N = %d", dplyr::n_distinct(data$sub)))
+} else {
+  warning("participants_intersection.csv not found -- run revision_intersection_and_cueepoch.R first.")
+}
+
+# ---- min-2-trials-per-cell filter (cue x stim), matches original threshold --
+bad_subs  <- inadequate_subjects(data, c("sub", "CUE_high_gt_low", "STIM_linear"), min_n = 2)
+df_filter <- prep_factors(data %>% filter(!(sub %in% bad_subs)))
+
+message(sprintf("after filtering subjects with <2 trials/cell: N=%d -> N=%d",
+                length(unique(data$sub)), length(unique(df_filter$sub))))
+```
+
+## F-2. Fit models + plot main-effect lineplots (all 15 ROIs)
+
+```{r roi-loop}
+for (i in seq_along(dependent_vars)) {
+  dv <- dependent_vars[i]
+  dv_title <- roi_fullname[[dv]]
+
+  m <- fit_report(
+    as.formula(paste(dv, "~ CUE_high_gt_low * STIM_linear + CUE_high_gt_low * STIM_quadratic + (1|sub)")),
+    data = df_filter, label = dv,
+    title = paste0("lmer(", dv, " ~ CUE * STIM + (1 | sub), data = pain)  [", dv_title, "]"),
+    control = lmerControl(optimizer = "bobyqa")
+  )
+
+  gw <- twofactor_groupwise(df_filter, dv)$groupwise
+
+  g_low <- make_lineplot(gw, ylab = "Mean score",
+                         ggtitle = paste0(dv_title, " (low cue only)"), low_cue_only = TRUE)
+  save_fig(g_low, paste0("lineplot_", dv, "_lowcue.svg"), w = 4, h = 4)
+
+  g_both <- make_lineplot(gw, ylab = "Mean score", ggtitle = dv_title) +
+    geom_line(linewidth = 1) + geom_point(size = pt_size)
+  print(g_both)
+  save_fig(g_both, paste0("lineplot_", dv, ".svg"))
+}
+```
+
+### Significant results
+
+```{r significance-summary}
+sig <- build_significance_summary()
+```
+
+## Session-wise plots (all 15 ROIs)
+
+```{r session-filter}
+bad_subs_ses <- inadequate_subjects(data, c("sub", "CUE_high_gt_low", "STIM_linear", "SES_linear"), min_n = 3)
+df_filter_ses <- data %>% filter(!(sub %in% bad_subs_ses))
+message(sprintf("sessionwise filter: N=%d -> N=%d",
+                length(unique(data$sub)), length(unique(df_filter_ses$sub))))
+```
+
+```{r roi-session-loop}
+for (i in seq_along(dependent_vars)) {
+  dv <- dependent_vars[i]
+  dv_title <- roi_fullname[[dv]]
+  message("Plotting ", dv_title, " across sessions...")
+
+  p <- sessionwise_plot(df_filter_ses, dv, title = dv_title, ylab = dv_title)
+  print(p)
+  save_fig(p, paste0("roi-", dv, "_bysession.svg"), w = 10, h = 4)
+}
+```
+
+## Model-table index
+
+One HTML that links + embeds every model table generated above, for
+side-by-side stat reporting -- one-stop-shop for all painpathway ROI results.
+Open `analysis/mixedeffect_revision/painpathway/tables/index.html`.
+
+```{r tables-index}
+idx <- build_tables_index()
+cat("All model tables:", normalizePath(idx, mustWork = FALSE), "\n")
+```
