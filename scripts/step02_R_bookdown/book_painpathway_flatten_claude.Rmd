@@ -145,7 +145,7 @@ cue_colors_title <- c("Low cue" = lowcuehex, "High cue" = highcuehex)
 pt_size <- 3
 
 theme_lineplot <- ggplot2::theme(
-  aspect.ratio = 1,
+  aspect.ratio = 1,   # square panel (the 'Insula' reference ratio the user wants)
   text         = ggplot2::element_text(size = 18),
   axis.title   = ggplot2::element_text(size = 22),
   axis.text    = ggplot2::element_text(size = 15),
@@ -265,7 +265,7 @@ make_lineplot <- function(groupwise, ylab, ylim = NULL, ggtitle = "",
     mean = "mean_per_sub_norm_mean", error = "se",
     color = cols, ggtitle = ggtitle,
     xlab = "Stimulus intensity", ylab = ylab
-  ) + theme_lineplot + ggplot2::geom_point(size = pt_size)
+  ) + theme_lineplot   # circle drawn once by cueR geom_pointrange(fatten); no overlay
   if (!is.null(ylim)) g <- g + ggplot2::ylim(ylim[1], ylim[2])
   g
 }
@@ -477,12 +477,11 @@ for (i in seq_along(dependent_vars)) {
 
   g_low <- make_lineplot(gw, ylab = "Mean score",
                          ggtitle = paste0(dv_title, " (low cue only)"), low_cue_only = TRUE)
-  save_fig(g_low, paste0("lineplot_", dv, "_lowcue.svg"), w = 4, h = 4)
+  save_fig(g_low, paste0("lineplot_", dv, "_lowcue.svg"), w = 4, h = 6)
 
-  g_both <- make_lineplot(gw, ylab = "Mean score", ggtitle = dv_title) +
-    geom_line(linewidth = 1) + geom_point(size = pt_size)
+  g_both <- make_lineplot(gw, ylab = "Mean score", ggtitle = dv_title)  # cueR draws line+point
   print(g_both)
-  save_fig(g_both, paste0("lineplot_", dv, ".svg"))
+  save_fig(g_both, paste0("lineplot_", dv, ".svg"), w = 4, h = 6)
 }
 ```
 

@@ -95,7 +95,7 @@ cue_colors_title <- c("Low cue" = lowcuehex, "High cue" = highcuehex)    # facet
 pt_size <- 4
 
 theme_lineplot <- ggplot2::theme(
-  aspect.ratio = 1,
+  aspect.ratio = 1,   # square panel (the 'Insula' reference ratio the user wants)
   text         = ggplot2::element_text(size = 18),
   axis.title   = ggplot2::element_text(size = 22),
   axis.text    = ggplot2::element_text(size = 15),
@@ -207,7 +207,7 @@ make_lineplot <- function(groupwise, ylab, ylim = NULL, ggtitle = "",
     mean = "mean_per_sub_norm_mean", error = "se",
     color = cols, ggtitle = ggtitle,
     xlab = "Stimulus intensity", ylab = ylab
-  ) + theme_lineplot + ggplot2::geom_point(size = pt_size)
+  ) + theme_lineplot   # circle drawn once by cueR geom_pointrange(fatten); no overlay
   if (!is.null(ylim)) g <- g + ggplot2::ylim(ylim[1], ylim[2])
   g
 }
