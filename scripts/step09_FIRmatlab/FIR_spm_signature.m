@@ -71,7 +71,7 @@ for run_ind = 1:size(A, 1)
     onset_fname = fullfile(onset_glob.folder, onset_glob.name);
     runtype = extractBetween(onset_fname, 'runtype-', '_');
     if ~strcmp(runtype{1}, 'pain'); continue; end          % pain runs only (drop for all tasks)
-    events = struct2table(tdfread(onset_fname));
+    events = readtable(onset_fname, "FileType", "delimitedtext");  % NOT tdfread: tdfread returns char-matrix text cols that break strcmp on pmod_cuetype/pmod_stimtype
 
     % ---- 9-condition onset design (spike vectors, 872 TRs) -------------------
     isH = strcmp(events.pmod_cuetype, 'high_cue');  isL = strcmp(events.pmod_cuetype, 'low_cue');
